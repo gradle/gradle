@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -29,25 +28,11 @@ public abstract class AbstractListChildMap<T> extends AbstractChildMap<T> {
         this.children = children;
     }
 
-    @Nullable
-    protected abstract Entry<T> findEntryWithPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity);
-
     protected int findChildIndexWithCommonPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return SearchUtil.binarySearch(
             children,
             candidate -> targetPath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
         );
-    }
-
-    @Override
-    public <R> R findChild(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
-        Entry<T> entry = findEntryWithPrefix(targetPath, caseSensitivity);
-        if (entry == null) {
-            return handler.handleUnrelatedToAnyChild();
-        }
-        return targetPath.length() == entry.getPath().length()
-            ? handler.handleExactMatchWithChild(entry.getValue())
-            : handler.handleAsDescendantOfChild(targetPath.fromChild(entry.getPath()), entry.getValue());
     }
 
     @Override

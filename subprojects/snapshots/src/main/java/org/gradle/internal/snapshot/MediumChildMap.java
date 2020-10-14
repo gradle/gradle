@@ -24,12 +24,20 @@ public class MediumChildMap<T> extends AbstractListChildMap<T> {
     }
 
     @Override
-    protected Entry<T> findEntryWithPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
-        for (Entry<T> child : children) {
-            if (targetPath.hasPrefix(child.getPath(), caseSensitivity)) {
-                return child;
+    public <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
+        for (Entry<T> entry : children) {
+            String childPath = entry.getPath();
+            T child = entry.getValue();
+            if (targetPath.hasPrefix(childPath, caseSensitivity)) {
+                if (targetPath.length() == childPath.length()) {
+                    return handler.handleExactMatchWithChild(child);
+                } else {
+                    return handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), child);
+                }
+            } else if (targetPath.length() < childPath.length() && targetPath.isPrefixOf(childPath, caseSensitivity)) {
+                return handler.handleAsAncestorOfChild(childPath, child);
             }
         }
-        return null;
+        return handler.handleUnrelatedToAnyChild();
     }
 }

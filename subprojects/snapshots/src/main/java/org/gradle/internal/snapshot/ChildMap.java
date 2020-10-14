@@ -29,24 +29,19 @@ public interface ChildMap<T> {
 
     void visitChildren(BiConsumer<String, T> visitor);
 
-    <R> R findChild(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler);
+    <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler);
 
-    interface FindChildHandler<T, RESULT> {
+    interface GetNodeHandler<T, RESULT> {
         RESULT handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
         RESULT handleExactMatchWithChild(T child);
         RESULT handleUnrelatedToAnyChild();
-    }
-
-    <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler);
-
-    interface GetNodeHandler<T, RESULT> extends FindChildHandler<T, RESULT> {
         RESULT handleAsAncestorOfChild(String childPath, T child);
     }
 
-    <R> ChildMap<R> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, R> handler);
+    <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler);
 
-    interface InvalidationHandler<T, R> {
-        Optional<R> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+    interface InvalidationHandler<T, RESULT> {
+        Optional<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
         void handleAsAncestorOfChild(String childPath, T child);
         void handleExactMatchWithChild(T child);
         void handleUnrelatedToAnyChild();

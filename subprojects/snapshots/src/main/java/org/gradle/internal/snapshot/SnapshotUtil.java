@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
 
     public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
-        return children.findChild(targetPath, caseSensitivity, new ChildMap.FindChildHandler<T, Optional<MetadataSnapshot>>() {
+        return children.getNode(targetPath, caseSensitivity, new ChildMap.GetNodeHandler<T, Optional<MetadataSnapshot>>() {
             @Override
             public Optional<MetadataSnapshot> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
                 return child.getSnapshot(pathInChild, caseSensitivity);
@@ -30,6 +30,11 @@ public class SnapshotUtil {
 
             @Override
             public Optional<MetadataSnapshot> handleUnrelatedToAnyChild() {
+                return noChildFoundResult.get();
+            }
+
+            @Override
+            public Optional<MetadataSnapshot> handleAsAncestorOfChild(String childPath, T child) {
                 return noChildFoundResult.get();
             }
 

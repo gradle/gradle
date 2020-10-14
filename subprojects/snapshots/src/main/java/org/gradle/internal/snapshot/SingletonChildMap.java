@@ -34,11 +34,6 @@ public class SingletonChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    public <R> R findChild(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
-        return entry.findPath(targetPath, caseSensitivity, handler);
-    }
-
-    @Override
     protected <R> R handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         return entry.handlePath(targetPath, 0, caseSensitivity, handler);
     }
@@ -57,6 +52,11 @@ public class SingletonChildMap<T> extends AbstractChildMap<T> {
     @Override
     public List<T> values() {
         return Collections.singletonList(entry.getValue());
+    }
+
+    @Override
+    public <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
+        return entry.getNode(targetPath, caseSensitivity, handler);
     }
 
     @Override

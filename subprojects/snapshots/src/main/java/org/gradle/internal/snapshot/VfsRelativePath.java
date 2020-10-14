@@ -225,6 +225,27 @@ public class VfsRelativePath {
         return endOfThisSegment == pathLength || isFileSeparator(absolutePath.charAt(endOfThisSegment));
     }
 
+    /**
+     * Checks whether this path is a prefix of another path.
+     */
+    public boolean isPrefixOf(String otherPath, CaseSensitivity caseSensitivity) {
+        int prefixLength = length();
+        if (prefixLength == 0) {
+            return true;
+        }
+        int endOfThisSegment = prefixLength + offset;
+        int pathLength = otherPath.length();
+        if (pathLength < prefixLength) {
+            return false;
+        }
+        for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
+            if (!equalChars(otherPath.charAt(i), absolutePath.charAt(j), caseSensitivity)) {
+                return false;
+            }
+        }
+        return prefixLength == pathLength || isFileSeparator(otherPath.charAt(prefixLength));
+    }
+
     private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
         if (!caseSensitive) {
             return 0;
