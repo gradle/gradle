@@ -44,6 +44,7 @@ fun IO.emitAccessorsFor(
 
     makeAccessorOutputDirs(srcDir, binDir, outputPackage.path)
 
+    val moduleName = binDir?.name ?: "kotlin-dsl-accessors"
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
             emitClassFor(
@@ -51,13 +52,14 @@ fun IO.emitAccessorsFor(
                 srcDir,
                 binDir,
                 outputPackage,
-                format
+                format,
+                moduleName
             )
         }.toList()
 
     if (binDir != null) {
         writeFile(
-            moduleFileFor(binDir),
+            moduleFileFor(binDir, moduleName),
             moduleMetadataBytesFor(emittedClassNames)
         )
     }
@@ -91,7 +93,8 @@ fun IO.emitClassFor(
     srcDir: File,
     binDir: File?,
     outputPackage: OutputPackage,
-    format: AccessorFormat
+    format: AccessorFormat,
+    moduleName: String
 ): InternalName {
 
     val (simpleClassName, fragments) = fragmentsFor(accessor)
@@ -107,7 +110,8 @@ fun IO.emitClassFor(
             binDir,
             className,
             fragments,
-            ::collectSourceFragment
+            ::collectSourceFragment,
+            moduleName
         )
     } else {
         for ((source, _, _, _) in fragments) {
@@ -136,7 +140,8 @@ fun IO.writeAccessorsBytecodeTo(
     binDir: File,
     className: InternalName,
     fragments: Sequence<AccessorFragment>,
-    collectSourceFragment: (String) -> Unit
+    collectSourceFragment: (String) -> Unit,
+    moduleName: String
 ) {
 
     val metadataWriter = beginFileFacadeClassHeader()
@@ -148,7 +153,7 @@ fun IO.writeAccessorsBytecodeTo(
         BytecodeFragmentScope(signature, classWriter).run(bytecode)
     }
 
-    val classHeader = metadataWriter.closeHeader()
+    val classHeader = metadataWriter.closeHeader(moduleName)
     val classBytes = classWriter.endKotlinClass(classHeader)
     val classFile = binDir.resolve("$className.class")
     writeFile(classFile, classBytes)
