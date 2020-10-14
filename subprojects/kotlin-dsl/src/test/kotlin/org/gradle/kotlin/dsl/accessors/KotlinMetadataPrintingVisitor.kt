@@ -19,6 +19,10 @@ package org.gradle.kotlin.dsl.accessors
 import kotlinx.metadata.ClassName
 import kotlinx.metadata.Flags
 import kotlinx.metadata.KmAnnotation
+import kotlinx.metadata.KmContractVisitor
+import kotlinx.metadata.KmEffectInvocationKind
+import kotlinx.metadata.KmEffectType
+import kotlinx.metadata.KmEffectVisitor
 import kotlinx.metadata.KmExtensionType
 import kotlinx.metadata.KmFunctionExtensionVisitor
 import kotlinx.metadata.KmFunctionVisitor
@@ -33,6 +37,8 @@ import kotlinx.metadata.KmTypeParameterVisitor
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmValueParameterVisitor
 import kotlinx.metadata.KmVariance
+import kotlinx.metadata.KmVersionRequirementLevel
+import kotlinx.metadata.KmVersionRequirementVersionKind
 import kotlinx.metadata.KmVersionRequirementVisitor
 import kotlinx.metadata.jvm.JvmFieldSignature
 import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
@@ -102,6 +108,11 @@ object KotlinMetadataPrintingVisitor {
                     return super.visitLocalDelegatedProperty(flags, name, getterFlags, setterFlags)
                 }
 
+                override fun visitModuleName(name: String) {
+                    println("visitModuleName($name)")
+                    super.visitModuleName(name)
+                }
+
                 override fun visitEnd() {
                     println("visitEnd()")
                     super.visitEnd()
@@ -165,11 +176,21 @@ object KotlinMetadataPrintingVisitor {
                     super.visit(signature)
                 }
 
+                override fun visitLambdaClassOriginName(internalName: String) {
+                    println("visitLambdaClassOriginName($internalName)")
+                    super.visitLambdaClassOriginName(internalName)
+                }
+
                 override fun visitEnd() {
                     println("visitEnd()")
                     super.visitEnd()
                 }
             }
+        }
+
+        override fun visitVersionRequirement(): KmVersionRequirementVisitor? {
+            println("visitVersionRequirement()")
+            return ForVersionRequirement
         }
 
         override fun visitReceiverParameterType(flags: Flags): KmTypeVisitor? {
@@ -197,6 +218,25 @@ object KotlinMetadataPrintingVisitor {
             return ForType
         }
 
+        override fun visitContract(): KmContractVisitor? {
+            println("visitContract()")
+            return object : KmContractVisitor() {
+                override fun visitEffect(type: KmEffectType, invocationKind: KmEffectInvocationKind?): KmEffectVisitor? {
+                    println("visitEffect($type, $invocationKind)")
+                    return object : KmEffectVisitor() {
+                        override fun visitEnd() {
+                            println("visitEnd()")
+                            super.visitEnd()
+                        }
+                    }
+                }
+
+                override fun visitEnd() {
+                    println("visitEnd()")
+                    super.visitEnd()
+                }
+            }
+        }
 
         override fun visitEnd() {
             println("visitEnd()")
@@ -239,7 +279,24 @@ object KotlinMetadataPrintingVisitor {
 
         override fun visitVersionRequirement(): KmVersionRequirementVisitor? {
             println("visitVersionRequirement()")
-            return super.visitVersionRequirement()
+            return ForVersionRequirement
+        }
+
+        override fun visitEnd() {
+            println("visitEnd()")
+            super.visitEnd()
+        }
+    }
+
+    object ForVersionRequirement : KmVersionRequirementVisitor() {
+        override fun visit(kind: KmVersionRequirementVersionKind, level: KmVersionRequirementLevel, errorCode: Int?, message: String?) {
+            println("visit($kind, $level, $errorCode, $message)")
+            super.visit(kind, level, errorCode, message)
+        }
+
+        override fun visitVersion(major: Int, minor: Int, patch: Int) {
+            println("visitVersion($major, $minor, $patch)")
+            super.visitVersion(major, minor, patch)
         }
 
         override fun visitEnd() {
