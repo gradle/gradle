@@ -16,9 +16,8 @@
 
 package org.gradle.performance.fixture;
 
-public class PerformanceTestSpec {
+public class PerformanceTestSpec extends AnnotationGuardedPerformanceSpec {
     String testId;
-    String testClassName;
     Integer runs;
     Integer warmUpRuns;
 
@@ -28,14 +27,6 @@ public class PerformanceTestSpec {
 
     public void setTestId(String testId) {
         this.testId = testId;
-    }
-
-    public String getTestClassName() {
-        return testClassName;
-    }
-
-    public void setTestClassName(String testClassName) {
-        this.testClassName = testClassName;
     }
 
     public Integer getRuns() {

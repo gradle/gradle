@@ -57,7 +57,6 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
  * Runs cross version performance tests using Gradle profiler.
  */
 class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
-
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
     private final IntegrationTestBuildContext buildContext
@@ -113,6 +112,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     CrossVersionPerformanceResults run() {
+        verifyClassIsGuardedByAnnotation()
+
         assumeShouldRun()
 
         def results = new CrossVersionPerformanceResults(
