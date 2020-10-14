@@ -694,6 +694,40 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
          */
     }
 
+    void "repositories declared in settings shouldn't be used to resolve plugins"() {
+        def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
+        pluginPortal.start()
+        def taskName = 'pluginTask'
+        def message = 'hello from plugin'
+        def plugin = new PluginBuilder(testDirectory.file("some-plugin"))
+            .addPluginWithPrintlnTask(taskName, message, 'org.gradle.test.hello-world')
+            .publishAs("g", "a", "1.0", pluginPortal, createExecuter())
+
+        // If we use the same repositories for project resolution and plugin resolution
+        // the build will fail saying that it cannot find our settings plugin
+        settingsFile << """
+            dependencyResolutionManagement {
+                enforceSettingsRepositories()
+            }
+        """
+
+        repository {
+            'org:module:1.0'()
+        }
+
+        withPlugins(['org.gradle.test.hello-world': '1.0'])
+
+        when:
+        plugin.allowAll()
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        cleanup:
+        pluginPortal.stop()
+    }
+
     void withSettingsPlugin() {
         file("settings-plugin/build.gradle") << """
             plugins {
@@ -753,7 +787,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         int idx = text.indexOf('allprojects')
         text = """${text.substring(0, idx)}
             plugins {
-                ${plugins.collect{ "id '$it.key' version '${it.value}'"}.join('\n')}
+                ${plugins.collect { "id '$it.key' version '${it.value}'" }.join('\n')}
             }
 
 ${text.substring(idx)}
