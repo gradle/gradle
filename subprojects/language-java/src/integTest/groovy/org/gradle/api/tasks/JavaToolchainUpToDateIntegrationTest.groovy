@@ -42,8 +42,6 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
 
     def "compile and test not up-to-date once toolchain changed"() {
         def someJdk = AvailableJavaHomes.getDifferentVersion()
-        println "someJdk = $someJdk"
-        println "Jvm.current() = ${Jvm.current()}"
         buildscriptWithToolchain(someJdk)
         file("src/main/java/Foo.java") << """
             /** foo */
@@ -64,7 +62,6 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
         outputContains("Task :javadoc UP-TO-DATE")
 
         when:
-        println "3rd time"
         buildscriptWithToolchain(Jvm.current())
         runWithToolchainConfigured(Jvm.current())
 
