@@ -24,13 +24,11 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+)
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
@@ -146,10 +144,10 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     private determineIterations() {
-        return runner.testProject == LARGE_MONOLITHIC_JAVA_PROJECT.projectName ? 200 : 40
+        return runner.testProject == largeMonolithicJavaProject.projectName ? 200 : 40
     }
 
-    private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {
+    private static void forEachEclipseProject(def elm, @DelegatesTo(value = EclipseProject) Closure<?> action) {
         action.delegate = elm
         action.call()
         elm.children?.each {

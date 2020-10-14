@@ -23,9 +23,9 @@ import org.gradle.performance.annotations.Scenario
 import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjectNames = ['smallNative', 'mediumNative', 'bigNative', 'multiNative'])
-])
+@RunFor(
+    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ['smallNative', 'mediumNative', 'bigNative', 'multiNative'])
+)
 class NativeParallelPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "clean assemble with parallel workers"() {

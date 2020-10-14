@@ -24,15 +24,11 @@ import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_GROOVY_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_GROOVY_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_MONOLITHIC_GROOVY_PROJECT, LARGE_GROOVY_MULTI_PROJECT])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject", "largeGroovyMultiProject"])
+)
 class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "assemble for abi change"() {

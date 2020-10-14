@@ -26,9 +26,9 @@ import org.junit.experimental.categories.Category
 import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = SLOW, oses = [LINUX], testProjectNames = ['mediumSwiftMulti', 'bigSwiftApp'])
-])
+@RunFor(
+    @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ['mediumSwiftMulti', 'bigSwiftApp'])
+)
 @Category(SlowPerformanceRegressionTest)
 class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 

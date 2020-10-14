@@ -26,9 +26,9 @@ import org.gradle.performance.fixture.AndroidTestProject
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["largeAndroidBuild", "k9AndroidBuild"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "k9AndroidBuild"])
+)
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "get IDE model for Android Studio"() {

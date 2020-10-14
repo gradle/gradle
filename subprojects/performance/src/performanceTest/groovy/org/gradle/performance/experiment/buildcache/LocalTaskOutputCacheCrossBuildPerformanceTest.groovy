@@ -26,12 +26,10 @@ import org.gradle.profiler.mutations.ClearBuildCacheMutator
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor([
-    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT])
+    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 ])
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
     def "assemble with local cache (build comparison)"() {

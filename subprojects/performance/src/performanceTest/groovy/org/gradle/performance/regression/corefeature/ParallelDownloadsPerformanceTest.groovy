@@ -37,9 +37,9 @@ import java.util.concurrent.atomic.AtomicInteger
 import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = SLOW, oses = [LINUX], testProjectNames = ["springBootApp"])
-])
+@RunFor(
+    @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["springBootApp"])
+)
 class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
     File tmpRepoDir = temporaryFolder.createDir('repository')
 

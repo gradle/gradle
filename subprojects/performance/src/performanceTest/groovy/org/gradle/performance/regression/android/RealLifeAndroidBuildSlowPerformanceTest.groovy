@@ -31,8 +31,8 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
 
     @RunFor([
-        @Scenario(type = SLOW, oses = [LINUX], testProjectNames = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
-        @Scenario(type = SLOW, oses = [LINUX], testProjectNames = ["largeAndroidBuild"], iterationMatcher = "clean phthalic.*")
+        @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "clean phthalic.*")
     ])
     @Unroll
     def "clean #tasks with clean transforms cache"() {

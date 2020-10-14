@@ -27,9 +27,9 @@ import spock.lang.Unroll
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["nativeMonolithic", "nativeMonolithicOverlapping"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["nativeMonolithic", "nativeMonolithicOverlapping"])
+)
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
@@ -60,8 +60,8 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["mediumNativeMonolithic"], iterationMatcher = ".*(header|source) file.*"),
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["smallNativeMonolithic"], iterationMatcher = ".*build file.*")
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["mediumNativeMonolithic"], iterationMatcher = ".*(header|source) file.*"),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["smallNativeMonolithic"], iterationMatcher = ".*build file.*")
     ])
     @Unroll
     def "build with #changeType file change"() {

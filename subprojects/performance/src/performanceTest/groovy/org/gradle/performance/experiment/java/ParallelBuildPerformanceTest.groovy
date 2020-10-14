@@ -20,14 +20,13 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.generator.JavaTestProjectGenerator
 
 import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjects = [JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT, JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT])
-])
+@RunFor(
+    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "clean assemble with 4 parallel workers"() {

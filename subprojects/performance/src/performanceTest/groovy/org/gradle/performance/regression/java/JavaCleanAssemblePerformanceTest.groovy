@@ -21,15 +21,11 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.MEDIUM_JAVA_COMPOSITE_BUILD
-import static org.gradle.performance.generator.JavaTestProjectGenerator.MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT, MEDIUM_JAVA_COMPOSITE_BUILD, MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject", "mediumJavaCompositeBuild", "mediumJavaPredefinedCompositeBuild"])
+)
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "clean assemble"() {

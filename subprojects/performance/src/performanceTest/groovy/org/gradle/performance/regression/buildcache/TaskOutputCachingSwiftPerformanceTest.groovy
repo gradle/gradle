@@ -23,9 +23,9 @@ import org.gradle.performance.annotations.Scenario
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["mediumSwiftMulti", "bigSwiftApp"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["mediumSwiftMulti", "bigSwiftApp"])
+)
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = "4.5"

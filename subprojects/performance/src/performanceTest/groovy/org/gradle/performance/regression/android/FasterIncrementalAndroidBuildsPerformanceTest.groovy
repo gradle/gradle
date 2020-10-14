@@ -42,9 +42,9 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
-@RunFor([
-    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjectNames = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
-])
+@RunFor(
+    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
+)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.2"
     private static final String BASELINE_VERSION = "6.8-milestone-1"
@@ -78,7 +78,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     @RunFor([
-        @Scenario(type = EXPERIMENT, oses = [LINUX, MAC_OS, WINDOWS], testProjectNames = ["santaTrackerAndroidBuild"])
+        @Scenario(type = EXPERIMENT, operatingSystems = [LINUX, MAC_OS, WINDOWS], testProjects = ["santaTrackerAndroidBuild"])
     ])
     def "file system watching baseline non-abi change (build comparison)"() {
         given:

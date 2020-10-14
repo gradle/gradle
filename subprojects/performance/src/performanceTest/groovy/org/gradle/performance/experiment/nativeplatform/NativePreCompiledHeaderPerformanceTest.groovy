@@ -23,9 +23,9 @@ import org.gradle.performance.annotations.Scenario
 import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjectNames = ["smallPCHNative", "mediumPCHNative", "bigPCHNative"])
-])
+@RunFor(
+    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ["smallPCHNative", "mediumPCHNative", "bigPCHNative"])
+)
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "clean assemble with precompiled headers" () {

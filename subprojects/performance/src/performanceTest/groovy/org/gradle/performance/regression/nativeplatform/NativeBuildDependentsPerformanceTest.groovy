@@ -31,9 +31,9 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.minimumBaseVersion = "4.0"
     }
 
-    @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["nativeDependents"], iterationMatcher = ".*libA0.*")
-    ])
+    @RunFor(
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["nativeDependents"], iterationMatcher = ".*libA0.*")
+    )
     @Unroll
     def "run #task"() {
         // TODO Enable once runnable on CI (google test & target platform)
@@ -57,7 +57,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["nativeDependents"], iterationMatcher = ".*libA0.*")
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["nativeDependents"], iterationMatcher = ".*libA0.*")
     ])
     @Unroll
     def "run #subprojectPath:dependentComponents"() {

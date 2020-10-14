@@ -25,15 +25,13 @@ import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX, WINDOWS], testProjects = [LARGE_JAVA_MULTI_PROJECT], iterationMatcher = '.*parallel true.*'),
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT], iterationMatcher = '.*parallel false.*'),
+        @Scenario(type = TEST, operatingSystems = [LINUX, WINDOWS], testProjects = ["largeJavaMultiProject"], iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
     ])
     @Unroll
     def "up-to-date assemble (parallel #parallel)"() {
@@ -54,8 +52,8 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT], iterationMatcher = '.*parallel true.*'),
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT], iterationMatcher = '.*parallel false.*'),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"], iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
     ])
     @Unroll
     def "up-to-date assemble with local build cache enabled (parallel #parallel)"() {

@@ -26,13 +26,11 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 
 import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = SLOW, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT])
-])
+@RunFor(
+    @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+)
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
@@ -112,9 +110,9 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT])
-    ])
+    @RunFor(
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+    )
     def "clean assemble with local cache"() {
         given:
         setupTestProject(runner)
@@ -129,7 +127,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     }
 
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT],
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"],
             comment = "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation."
         )
     ])
@@ -149,7 +147,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     }
 
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT],
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"],
             comment = "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation."
         )
     ])

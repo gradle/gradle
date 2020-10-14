@@ -26,16 +26,16 @@ import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.fixture.AndroidTestProject.K9_ANDROID
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["santaTrackerAndroidBuild"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild"])
+)
 class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
 
     @Unroll
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["k9AndroidBuild", "largeAndroidBuild"], iterationMatcher = "run help"),
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["k9AndroidBuild", "largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["largeAndroidBuild"], iterationMatcher = ".*phthalic.*")
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["k9AndroidBuild", "largeAndroidBuild"], iterationMatcher = "run help"),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["k9AndroidBuild", "largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = ".*phthalic.*")
     ])
     def "run #tasks"() {
         given:

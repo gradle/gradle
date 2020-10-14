@@ -1,7 +1,7 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -81,15 +82,15 @@ New: ${firstDifferentElementIndex < definitionInJson.performanceTests.size() ? d
         static class GroupsBean {
             /**
              * testProject : largeJavaMultiProject
-             * coverage : {"test":["linux","windows"]}*/
+             * coverage : {"test":["linux","windows"]}
+             */
 
             String testProject
-            String comment
-            TreeMap<String, List<String>> coverage
 
-            String getComment() {
-                return comment ?: ""
-            }
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            String comment
+
+            TreeMap<String, List<String>> coverage
 
             boolean equals(o) {
                 if (this.is(o)) {
@@ -101,7 +102,7 @@ New: ${firstDifferentElementIndex < definitionInJson.performanceTests.size() ? d
 
                 GroupsBean that = (GroupsBean) o
 
-                if (getComment() != that.getComment()) {
+                if (comment != that.comment) {
                     return false
                 }
                 if (coverage != that.coverage) {
@@ -117,7 +118,7 @@ New: ${firstDifferentElementIndex < definitionInJson.performanceTests.size() ? d
             int hashCode() {
                 int result
                 result = (testProject != null ? testProject.hashCode() : 0)
-                result = 31 * result + getComment().hashCode()
+                result = 31 * result + (comment != null ? comment.hashCode() : 0)
                 result = 31 * result + (coverage != null ? coverage.hashCode() : 0)
                 return result
             }

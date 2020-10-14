@@ -18,7 +18,6 @@ package org.gradle.performance.annotations
 
 import groovy.transform.CompileStatic
 import org.gradle.performance.fixture.PerformanceTestScenarioDefinition
-import org.gradle.performance.generator.JavaTestProjectGenerator
 import org.gradle.performance.results.OperatingSystem
 import org.junit.Assume
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
@@ -47,11 +46,9 @@ import static org.gradle.performance.fixture.PerformanceTestScenarioDefinition.P
 @interface Scenario {
     ScenarioType type()
 
-    OperatingSystem[] oses()
+    OperatingSystem[] operatingSystems()
 
-    JavaTestProjectGenerator[] testProjects() default []
-
-    String[] testProjectNames() default []
+    String[] testProjects() default []
 
     /**
      * Declare regular expressions matching the iteration name.
@@ -72,17 +69,17 @@ enum ScenarioType {
 class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
     private static final boolean WRITE_SCENARIO_JSON = Boolean.getBoolean("org.gradle.performance.write.scenario.json")
     private static final String SCENARIO_JSON_PROPERTY_NAME = "org.gradle.performance.scenario.json"
-    private static final File scenarioDefinitionFile = System.getProperty(SCENARIO_JSON_PROPERTY_NAME) == null
+    private static final File SCENARIO_DEFINITION_FILE = System.getProperty(SCENARIO_JSON_PROPERTY_NAME) == null
         ? null : new File(System.getProperty(SCENARIO_JSON_PROPERTY_NAME))
     private static PerformanceTestScenarioDefinition scenarioDefinition = new PerformanceTestScenarioDefinition()
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread({
-            if (scenarioDefinitionFile != null) {
+            if (SCENARIO_DEFINITION_FILE != null) {
                 if (WRITE_SCENARIO_JSON) {
-                    scenarioDefinition.writeTo(scenarioDefinitionFile)
+                    scenarioDefinition.writeTo(SCENARIO_DEFINITION_FILE)
                 } else {
-                    scenarioDefinition.verify(scenarioDefinitionFile)
+                    scenarioDefinition.verify(SCENARIO_DEFINITION_FILE)
                 }
             }
         } as Runnable))
@@ -104,15 +101,14 @@ class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
     }
 
     private static void verify(Scenario scenario) {
-        assert (scenario.testProjects().length != 0 || scenario.testProjectNames().length != 0) &&
-            scenario.oses().length != 0: "Invalid scenario: $scenario"
+        assert scenario.testProjects().length != 0 && scenario.operatingSystems().length != 0: "Invalid scenario: $scenario"
     }
 
     private static GroupsBean createGroup(Scenario scenario, String testProject) {
         return new GroupsBean(
             testProject: testProject,
-            coverage: [(scenario.type().toString().toLowerCase()): scenario.oses().collect { it.coverageName }] as TreeMap,
-            comment: scenario.comment()
+            coverage: [(scenario.type().toString().toLowerCase()): scenario.operatingSystems().collect { it.coverageName }] as TreeMap,
+            comment: scenario.comment() ?: null
         )
     }
 
@@ -127,7 +123,7 @@ class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (scenarioDefinitionFile != null) {
+            if (SCENARIO_DEFINITION_FILE != null) {
                 String testId = invocation.getIteration().getName()
 
                 List<Scenario> scenarios = runFor.value().toList()
@@ -137,9 +133,6 @@ class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
                     String matcher = scenario.iterationMatcher()
                     if (matcher.isEmpty() || testId.matches(matcher)) {
                         scenario.testProjects().each {
-                            groups.add(createGroup(scenario, it.projectName))
-                        }
-                        scenario.testProjectNames().each {
                             groups.add(createGroup(scenario, it))
                         }
                     }

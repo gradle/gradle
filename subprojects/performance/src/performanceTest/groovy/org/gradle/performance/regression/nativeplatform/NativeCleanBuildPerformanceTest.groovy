@@ -30,8 +30,8 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
     }
 
     @RunFor([
-        @Scenario(type = SLOW, oses = [LINUX],
-            testProjectNames =  [
+        @Scenario(type = SLOW, operatingSystems = [LINUX],
+            testProjects =  [
                 'smallNative',
                 'mediumNative',
                 'bigNative',
@@ -63,7 +63,7 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
     }
 
     @RunFor([
-        @Scenario(type = SLOW, oses = [LINUX], testProjectNames =  ['manyProjectsNative'])
+        @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects =  ['manyProjectsNative'])
     ])
     def "clean assemble (native, parallel)"() {
         given:

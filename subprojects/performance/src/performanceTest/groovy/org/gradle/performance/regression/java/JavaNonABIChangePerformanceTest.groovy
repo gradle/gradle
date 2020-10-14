@@ -25,15 +25,11 @@ import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_GROOVY_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_GROOVY_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor([
-    @Scenario(type = TEST, oses = [LINUX],
-        testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_GROOVY_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_MONOLITHIC_GROOVY_PROJECT])
+    @Scenario(type = TEST, operatingSystems = [LINUX],
+        testProjects = ["largeJavaMultiProject", "largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"])
 ])
 class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll

@@ -31,9 +31,9 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["largeMonolithicJavaProject", "largeJavaMultiProject", "bigNative"],
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject", "bigNative"],
             iterationMatcher = "^clean assemble.*"),
-        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["withVerboseJUnit"],
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["withVerboseJUnit"],
             iterationMatcher = "^cleanTest.*")
     ])
     @Unroll

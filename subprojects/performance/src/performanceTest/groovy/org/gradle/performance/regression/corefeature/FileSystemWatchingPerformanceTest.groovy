@@ -31,9 +31,9 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX, WINDOWS, MAC_OS], testProjectNames = ["santaTrackerAndroidBuild", "largeJavaMultiProject"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild", "largeJavaMultiProject"])
+)
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.0"

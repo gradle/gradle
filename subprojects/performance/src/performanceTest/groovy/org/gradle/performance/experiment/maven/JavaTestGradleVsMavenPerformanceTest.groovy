@@ -24,17 +24,15 @@ import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.MEDIUM_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.MEDIUM_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 /**
  * Performance tests aimed at comparing the performance of Gradle for compiling and executing test suites, making
  * sure we are always faster than Maven.
  */
-@RunFor([
-    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjects =  [MEDIUM_MONOLITHIC_JAVA_PROJECT, MEDIUM_JAVA_MULTI_PROJECT])
-])
+@RunFor(
+    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects =  ["mediumMonolithicJavaProject", "mediumJavaMultiProject"])
+)
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
     @Unroll

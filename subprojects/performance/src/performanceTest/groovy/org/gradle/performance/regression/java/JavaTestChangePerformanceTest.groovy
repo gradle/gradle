@@ -23,14 +23,11 @@ import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG, LARGE_MONOLITHIC_JAVA_PROJECT])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "mediumJavaMultiProjectWithTestNG", "largeMonolithicJavaProject"])
+)
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "test for non-abi change"() {
         given:

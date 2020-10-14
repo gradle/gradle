@@ -25,9 +25,9 @@ import spock.lang.Unroll
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["bigCppApp", "bigCppMulti"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["bigCppApp", "bigCppMulti"])
+)
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins

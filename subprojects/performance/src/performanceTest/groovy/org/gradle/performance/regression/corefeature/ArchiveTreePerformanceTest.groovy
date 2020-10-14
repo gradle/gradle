@@ -23,9 +23,9 @@ import org.gradle.performance.annotations.Scenario
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["archivePerformanceProject"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["archivePerformanceProject"])
+)
 class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.targetVersions = ["6.7-20200824220048+0000"]
@@ -41,6 +41,7 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         then:
         result.assertCurrentVersionHasNotRegressed()
     }
+
     def "visiting tar trees"() {
         given:
         runner.tasksToRun = ['visitTar']

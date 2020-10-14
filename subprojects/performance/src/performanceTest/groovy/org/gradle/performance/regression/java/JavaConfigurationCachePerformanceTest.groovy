@@ -28,8 +28,6 @@ import spock.lang.Unroll
 import java.nio.file.Files
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC
-import static org.gradle.performance.generator.JavaTestProjectGenerator.SMALL_JAVA_MULTI_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.junit.Assert.assertTrue
 
@@ -41,9 +39,9 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     }
 
     @RunFor([
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC, SMALL_JAVA_MULTI_PROJECT],
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProjectNoBuildSrc", "smallJavaMultiProject"],
             iterationMatcher = ".*with hot.*"),
-        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC], iterationMatcher = ".*with cold.*")
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProjectNoBuildSrc"], iterationMatcher = ".*with cold.*")
     ])
     @Unroll
     def "assemble #action configuration cache state with #daemon daemon"() {

@@ -23,9 +23,9 @@ import org.gradle.performance.annotations.Scenario
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["createLotsOfTasks"])
-])
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["createLotsOfTasks"])
+)
 class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "create many tasks"() {
