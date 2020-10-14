@@ -237,7 +237,7 @@ fun IO.buildPluginAccessorsFor(
     )
 
     val properties = ArrayList<Pair<PluginAccessor, JvmMethodSignature>>(accessorList.size)
-    val header = writeFileFacadeClassHeader {
+    val header = writeFileFacadeClassHeader(moduleName) {
         accessorList.forEach { accessor ->
 
             if (accessor is PluginAccessor.ForGroup) {
