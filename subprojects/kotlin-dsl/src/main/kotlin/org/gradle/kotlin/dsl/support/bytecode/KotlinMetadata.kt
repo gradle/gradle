@@ -20,7 +20,6 @@ import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
 import kotlinx.metadata.KmAnnotation
 import kotlinx.metadata.KmFunctionVisitor
-import kotlinx.metadata.KmPackageExtensionVisitor
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
