@@ -30,33 +30,33 @@ public abstract class AbstractListChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Nullable
-    protected abstract Entry<T> findEntryWithPrefix(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
+    protected abstract Entry<T> findEntryWithPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity);
 
-    protected int findChildIndexWithCommonPrefix(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    protected int findChildIndexWithCommonPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return SearchUtil.binarySearch(
             children,
-            candidate -> relativePath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
+            candidate -> targetPath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
         );
     }
 
     @Override
-    public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
-        Entry<T> entry = findEntryWithPrefix(relativePath, caseSensitivity);
+    public <R> R findChild(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
+        Entry<T> entry = findEntryWithPrefix(targetPath, caseSensitivity);
         if (entry == null) {
-            return handler.handleNotFound();
+            return handler.handleUnrelatedToAnyChild();
         }
-        return relativePath.length() == entry.getPath().length()
-            ? handler.getFromChild(entry.getValue())
-            : handler.findInChild(relativePath.fromChild(entry.getPath()), entry.getValue());
+        return targetPath.length() == entry.getPath().length()
+            ? handler.handleExactMatchWithChild(entry.getValue())
+            : handler.handleAsDescendantOfChild(targetPath.fromChild(entry.getPath()), entry.getValue());
     }
 
     @Override
-    protected <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
-        int childIndex = findChildIndexWithCommonPrefix(relativePath, caseSensitivity);
+    protected <R> R handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
+        int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndex >= 0) {
-            return children.get(childIndex).handlePath(relativePath, childIndex, caseSensitivity, handler);
+            return children.get(childIndex).handlePath(targetPath, childIndex, caseSensitivity, handler);
         }
-        return handler.handleDifferent(-childIndex - 1);
+        return handler.handleUnrelatedToAnyChild(targetPath, -childIndex - 1);
     }
 
     @Override

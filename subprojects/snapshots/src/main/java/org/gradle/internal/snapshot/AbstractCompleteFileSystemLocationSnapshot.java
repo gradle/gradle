@@ -55,7 +55,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public CompleteFileSystemLocationSnapshot store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
+    public CompleteFileSystemLocationSnapshot store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return this;
     }
 

@@ -29,46 +29,34 @@ public interface ChildMap<T> {
 
     void visitChildren(BiConsumer<String, T> visitor);
 
-    <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler);
+    <R> R findChild(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler);
 
     interface FindChildHandler<T, RESULT> {
-        /**
-         * relativePath is a descendant of child.
-         */
-        RESULT findInChild(VfsRelativePath pathInChild, T child);
-        /**
-         * child is at relativePath.
-         */
-        RESULT getFromChild(T child);
-        /**
-         * relativePath has no common prefix with any child,
-         */
-        RESULT handleNotFound();
+        RESULT handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+        RESULT handleExactMatchWithChild(T child);
+        RESULT handleUnrelatedToAnyChild();
     }
 
-    <R> R getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler);
+    <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler);
 
-    interface GetNodeHandler<T, R> {
-        R getInChild(VfsRelativePath pathInChild, T child);
-        R getForAncestorOf(String childPath, T child);
-        R getForChild(T child);
-        R notFound();
+    interface GetNodeHandler<T, RESULT> extends FindChildHandler<T, RESULT> {
+        RESULT handleAsAncestorOfChild(String childPath, T child);
     }
 
-    <R> ChildMap<R> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, InvalidationHandler<T, R> handler);
+    <R> ChildMap<R> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, R> handler);
 
     interface InvalidationHandler<T, R> {
-        Optional<R> invalidateDescendantOfChild(VfsRelativePath pathInChild, T child);
-        void ancestorInvalidated(T child);
-        void childInvalidated(T child);
-        void invalidatedChildNotFound();
+        Optional<R> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+        void handleAsAncestorOfChild(String childPath, T child);
+        void handleExactMatchWithChild(T child);
+        void handleUnrelatedToAnyChild();
     }
 
-    ChildMap<T> store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler);
+    ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler);
 
     interface StoreHandler<T> {
-        T storeInChild(VfsRelativePath pathInChild, T child);
-        T storeAsAncestor(VfsRelativePath pathToChild, T child);
+        T handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+        T handleAsAncestorOfChild(String childPath, T child);
         T mergeWithExisting(T child);
         T createChild();
         T createNodeFromChildren(ChildMap<T> children);

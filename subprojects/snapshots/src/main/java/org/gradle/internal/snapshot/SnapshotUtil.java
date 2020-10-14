@@ -21,45 +21,45 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
-        return children.findChild(relativePath, caseSensitivity, new ChildMap.FindChildHandler<T, Optional<MetadataSnapshot>>() {
+    public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
+        return children.findChild(targetPath, caseSensitivity, new ChildMap.FindChildHandler<T, Optional<MetadataSnapshot>>() {
             @Override
-            public Optional<MetadataSnapshot> findInChild(VfsRelativePath pathInChild, T child) {
+            public Optional<MetadataSnapshot> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
                 return child.getSnapshot(pathInChild, caseSensitivity);
             }
 
             @Override
-            public Optional<MetadataSnapshot> handleNotFound() {
+            public Optional<MetadataSnapshot> handleUnrelatedToAnyChild() {
                 return noChildFoundResult.get();
             }
 
             @Override
-            public Optional<MetadataSnapshot> getFromChild(T child) {
+            public Optional<MetadataSnapshot> handleExactMatchWithChild(T child) {
                 return child.getSnapshot();
             }
         });
     }
 
-    public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return children.getNode(relativePath, caseSensitivity, new ChildMap.GetNodeHandler<T, ReadOnlyFileSystemNode>() {
+    public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return children.getNode(targetPath, caseSensitivity, new ChildMap.GetNodeHandler<T, ReadOnlyFileSystemNode>() {
             @Override
-            public ReadOnlyFileSystemNode getInChild(VfsRelativePath pathInChild, T child) {
+            public ReadOnlyFileSystemNode handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
                 return child.getNode(pathInChild, caseSensitivity);
             }
 
             @Override
-            public ReadOnlyFileSystemNode getForAncestorOf(String childPath, T child) {
-                // TODO: This is not correct, it should be a node with the child at relativePath.fromChild(childPath).
+            public ReadOnlyFileSystemNode handleAsAncestorOfChild(String childPath, T child) {
+                // TODO: This is not correct, it should be a node with the child at targetPath.fromChild(childPath).
                 return child;
             }
 
             @Override
-            public ReadOnlyFileSystemNode getForChild(T child) {
+            public ReadOnlyFileSystemNode handleExactMatchWithChild(T child) {
                 return child;
             }
 
             @Override
-            public ReadOnlyFileSystemNode notFound() {
+            public ReadOnlyFileSystemNode handleUnrelatedToAnyChild() {
                 return ReadOnlyFileSystemNode.EMPTY;
             }
         });

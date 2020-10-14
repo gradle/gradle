@@ -82,26 +82,26 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return Optional.of(
-            SnapshotUtil.getMetadataFromChildren(children, relativePath, caseSensitivity, Optional::empty)
-                .orElseGet(() -> missingSnapshotForAbsolutePath(relativePath.getAbsolutePath()))
+            SnapshotUtil.getMetadataFromChildren(children, targetPath, caseSensitivity, Optional::empty)
+                .orElseGet(() -> missingSnapshotForAbsolutePath(targetPath.getAbsolutePath()))
         );
     }
 
     @Override
-    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        ReadOnlyFileSystemNode childNode = SnapshotUtil.getChild(children, relativePath, caseSensitivity);
+    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        ReadOnlyFileSystemNode childNode = SnapshotUtil.getChild(children, targetPath, caseSensitivity);
         return childNode == ReadOnlyFileSystemNode.EMPTY
-            ? missingSnapshotForAbsolutePath(relativePath.getAbsolutePath())
+            ? missingSnapshotForAbsolutePath(targetPath.getAbsolutePath())
             : childNode;
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        ChildMap<FileSystemNode> newChildren = children.invalidate(relativePath, caseSensitivity, new ChildMap.InvalidationHandler<CompleteFileSystemLocationSnapshot, FileSystemNode>() {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<CompleteFileSystemLocationSnapshot, FileSystemNode>() {
             @Override
-            public Optional<FileSystemNode> invalidateDescendantOfChild(VfsRelativePath pathInChild, CompleteFileSystemLocationSnapshot child) {
+            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, CompleteFileSystemLocationSnapshot child) {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 Optional<FileSystemNode> invalidated = child.invalidate(pathInChild, caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
                     @Override
@@ -123,12 +123,12 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             }
 
             @Override
-            public void ancestorInvalidated(CompleteFileSystemLocationSnapshot child) {
+            public void handleAsAncestorOfChild(String childPath, CompleteFileSystemLocationSnapshot child) {
                 throw new IllegalStateException("Can't have an ancestor of a single path element");
             }
 
             @Override
-            public void childInvalidated(CompleteFileSystemLocationSnapshot child) {
+            public void handleExactMatchWithChild(CompleteFileSystemLocationSnapshot child) {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 children.visitChildren((__, existingChild) -> {
                     if (existingChild != child) {
@@ -138,7 +138,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             }
 
             @Override
-            public void invalidatedChildNotFound() {
+            public void handleUnrelatedToAnyChild() {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 children.visitChildren((__, child) -> diffListener.nodeAdded(child));
             }

@@ -25,13 +25,13 @@ public class LargeChildMap<T> extends AbstractListChildMap<T> {
     }
 
     @Override
-    protected Entry<T> findEntryWithPrefix(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        int childIndex = findChildIndexWithCommonPrefix(relativePath, caseSensitivity);
+    protected Entry<T> findEntryWithPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndex < 0) {
             return null;
         }
         Entry<T> entry = children.get(childIndex);
-        return relativePath.hasPrefix(entry.getPath(), caseSensitivity)
+        return targetPath.hasPrefix(entry.getPath(), caseSensitivity)
             ? entry
             : null;
     }

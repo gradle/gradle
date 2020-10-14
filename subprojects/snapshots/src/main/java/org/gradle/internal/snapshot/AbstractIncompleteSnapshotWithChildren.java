@@ -31,30 +31,30 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
     }
 
     @Override
-    public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return SnapshotUtil.getChild(children, relativePath, caseSensitivity);
+    public ReadOnlyFileSystemNode getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.getChild(children, targetPath, caseSensitivity);
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        ChildMap<FileSystemNode> newChildren = children.invalidate(relativePath, caseSensitivity, new ChildMap.InvalidationHandler<FileSystemNode, FileSystemNode>() {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<FileSystemNode, FileSystemNode>() {
             @Override
-            public Optional<FileSystemNode> invalidateDescendantOfChild(VfsRelativePath pathInChild, FileSystemNode child) {
+            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, FileSystemNode child) {
                 return child.invalidate(pathInChild, caseSensitivity, diffListener);
             }
 
             @Override
-            public void ancestorInvalidated(FileSystemNode child) {
+            public void handleAsAncestorOfChild(String childPath, FileSystemNode child) {
                 diffListener.nodeRemoved(child);
             }
 
             @Override
-            public void childInvalidated(FileSystemNode child) {
+            public void handleExactMatchWithChild(FileSystemNode child) {
                 diffListener.nodeRemoved(child);
             }
 
             @Override
-            public void invalidatedChildNotFound() {
+            public void handleUnrelatedToAnyChild() {
             }
         });
         if (newChildren.isEmpty()) {
@@ -67,15 +67,15 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
     }
 
     @Override
-    public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
-        ChildMap<FileSystemNode> newChildren = children.store(relativePath, caseSensitivity, new ChildMap.StoreHandler<FileSystemNode>() {
+    public FileSystemNode store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
+        ChildMap<FileSystemNode> newChildren = children.store(targetPath, caseSensitivity, new ChildMap.StoreHandler<FileSystemNode>() {
             @Override
-            public FileSystemNode storeInChild(VfsRelativePath pathInChild, FileSystemNode child) {
+            public FileSystemNode handleAsDescendantOfChild(VfsRelativePath pathInChild, FileSystemNode child) {
                 return child.store(pathInChild, caseSensitivity, snapshot, diffListener);
             }
 
             @Override
-            public FileSystemNode storeAsAncestor(VfsRelativePath pathToChild, FileSystemNode child) {
+            public FileSystemNode handleAsAncestorOfChild(String childPath, FileSystemNode child) {
                 FileSystemNode newChild = snapshot.asFileSystemNode();
                 diffListener.nodeRemoved(child);
                 diffListener.nodeAdded(newChild);
@@ -124,8 +124,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return SnapshotUtil.getMetadataFromChildren(children, relativePath, caseSensitivity, Optional::empty);
+    public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.getMetadataFromChildren(children, targetPath, caseSensitivity, Optional::empty);
     }
 
     /**

@@ -32,13 +32,13 @@ public class EmptyChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
-        return handler.handleNotFound();
+    public <R> R findChild(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
+        return handler.handleUnrelatedToAnyChild();
     }
 
     @Override
-    protected <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
-        return handler.handleDifferent(0);
+    protected <R> R handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
+        return handler.handleUnrelatedToAnyChild(targetPath, 0);
     }
 
     @Override

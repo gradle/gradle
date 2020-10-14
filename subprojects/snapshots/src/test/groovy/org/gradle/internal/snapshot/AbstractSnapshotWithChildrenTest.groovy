@@ -82,27 +82,27 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     int getIndexOfSelectedChild() {
         return ((AbstractChildMap<CHILD>) children).handlePath(VfsRelativePath.of(selectedChildPath), CASE_SENSITIVE, new AbstractChildMap.PathRelationshipHandler<Integer>() {
             @Override
-            Integer handleDescendant(String childPath, int childIndex) {
+            Integer handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 return -1
             }
 
             @Override
-            Integer handleAncestor(String childPath, int childIndex) {
+            Integer handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 return -1
             }
 
             @Override
-            Integer handleSame(int childIndex) {
+            Integer handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 return childIndex
             }
 
             @Override
-            Integer handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+            Integer handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
                 return -1
             }
 
             @Override
-            Integer handleDifferent(int indexOfNextBiggerChild) {
+            Integer handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
                 return -1
             }
         })
@@ -111,29 +111,29 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     ChildMap<FileSystemNode> childrenWithAdditionalChild(String path, FileSystemNode newChild) {
         children.handlePath(VfsRelativePath.of(path), CASE_SENSITIVE, new AbstractChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
             @Override
-            ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
+            ChildMap<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 throw new AssertionError()
             }
 
             @Override
-            ChildMap<FileSystemNode> handleAncestor(String childPath, int childIndex) {
+            ChildMap<FileSystemNode> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 throw new AssertionError()
             }
 
             @Override
-            ChildMap<FileSystemNode> handleSame(int childIndex) {
+            ChildMap<FileSystemNode> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 throw new AssertionError()
             }
 
             @Override
-            ChildMap<FileSystemNode> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+            ChildMap<FileSystemNode> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
                 return PathUtil.getPathComparator(CASE_SENSITIVE).compare(path, childPath) < 0
                     ? children.withNewChild(childIndex, path, newChild)
                     : children.withNewChild(childIndex + 1, path, newChild)
             }
 
             @Override
-            ChildMap<FileSystemNode> handleDifferent(int indexOfNextBiggerChild) {
+            ChildMap<FileSystemNode> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
                 return children.withNewChild(indexOfNextBiggerChild, path, newChild)
             }
         })

@@ -45,73 +45,73 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
         }
     }
 
-    protected abstract <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler);
+    protected abstract <R> R handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler);
 
     protected abstract T get(int index);
 
     @Override
-    public <R> R getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
-        return handlePath(relativePath, caseSensitivity, new PathRelationshipHandler<R>() {
+    public <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
+        return handlePath(targetPath, caseSensitivity, new PathRelationshipHandler<R>() {
             @Override
-            public R handleDescendant(String childPath, int childIndex) {
-                return handler.getInChild(relativePath.fromChild(childPath), get(childIndex));
+            public R handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+                return handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), get(childIndex));
             }
 
             @Override
-            public R handleAncestor(String childPath, int childIndex) {
-                return handler.getForAncestorOf(childPath, get(childIndex));
+            public R handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+                return handler.handleAsAncestorOfChild(childPath, get(childIndex));
             }
 
             @Override
-            public R handleSame(int childIndex) {
-                return handler.getForChild(get(childIndex));
+            public R handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+                return handler.handleExactMatchWithChild(get(childIndex));
             }
 
             @Override
-            public R handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
-                return handler.notFound();
+            public R handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
+                return handler.handleUnrelatedToAnyChild();
             }
 
             @Override
-            public R handleDifferent(int indexOfNextBiggerChild) {
-                return handler.notFound();
+            public R handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
+                return handler.handleUnrelatedToAnyChild();
             }
         });
     }
 
     @Override
-    public <R> ChildMap<R> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, InvalidationHandler<T, R> handler) {
-        return handlePath(relativePath, caseSensitivity, new PathRelationshipHandler<ChildMap<R>>() {
+    public <R> ChildMap<R> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, R> handler) {
+        return handlePath(targetPath, caseSensitivity, new PathRelationshipHandler<ChildMap<R>>() {
             @Override
-            public ChildMap<R> handleDescendant(String childPath, int childIndex) {
+            public ChildMap<R> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 T oldChild = get(childIndex);
-                Optional<R> invalidatedChild = handler.invalidateDescendantOfChild(relativePath.fromChild(childPath), oldChild);
+                Optional<R> invalidatedChild = handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), oldChild);
                 return invalidatedChild
                     .map(newChild -> cast(AbstractChildMap.this).withReplacedChild(childIndex, childPath, newChild))
                     .orElseGet(() -> cast(withRemovedChild(childIndex)));
             }
 
             @Override
-            public ChildMap<R> handleAncestor(String childPath, int childIndex) {
-                handler.ancestorInvalidated(get(childIndex));
+            public ChildMap<R> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+                handler.handleAsAncestorOfChild(childPath, get(childIndex));
                 return cast(withRemovedChild(childIndex));
             }
 
             @Override
-            public ChildMap<R> handleSame(int childIndex) {
-                handler.childInvalidated(get(childIndex));
+            public ChildMap<R> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+                handler.handleExactMatchWithChild(get(childIndex));
                 return cast(withRemovedChild(childIndex));
             }
 
             @Override
-            public ChildMap<R> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
-                handler.invalidatedChildNotFound();
+            public ChildMap<R> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
+                handler.handleUnrelatedToAnyChild();
                 return cast(AbstractChildMap.this);
             }
 
             @Override
-            public ChildMap<R> handleDifferent(int indexOfNextBiggerChild) {
-                handler.invalidatedChildNotFound();
+            public ChildMap<R> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
+                handler.handleUnrelatedToAnyChild();
                 return cast(AbstractChildMap.this);
             }
 
@@ -123,34 +123,34 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
-        return handlePath(relativePath, caseSensitivity, new PathRelationshipHandler<ChildMap<T>>() {
+    public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
+        return handlePath(targetPath, caseSensitivity, new PathRelationshipHandler<ChildMap<T>>() {
             @Override
-            public ChildMap<T> handleDescendant(String childPath, int childIndex) {
+            public ChildMap<T> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 T oldChild = get(childIndex);
-                T newChild = storeHandler.storeInChild(relativePath.fromChild(childPath), oldChild);
+                T newChild = storeHandler.handleAsDescendantOfChild(targetPath.fromChild(childPath), oldChild);
                 return withReplacedChild(childIndex, childPath, newChild);
             }
 
             @Override
-            public ChildMap<T> handleAncestor(String childPath, int childIndex) {
-                T newChild = storeHandler.storeAsAncestor(VfsRelativePath.of(childPath).suffixStartingFrom(relativePath.length() + 1), get(childIndex));
-                return withReplacedChild(childIndex, relativePath.getAsString(), newChild);
+            public ChildMap<T> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+                T newChild = storeHandler.handleAsAncestorOfChild(childPath, get(childIndex));
+                return withReplacedChild(childIndex, targetPath.getAsString(), newChild);
             }
 
             @Override
-            public ChildMap<T> handleSame(int childIndex) {
+            public ChildMap<T> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 T newChild = storeHandler.mergeWithExisting(get(childIndex));
-                return withReplacedChild(childIndex, relativePath.getAsString(), newChild);
+                return withReplacedChild(childIndex, childPath, newChild);
             }
 
             @Override
-            public ChildMap<T> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+            public ChildMap<T> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
                 T oldChild = get(childIndex);
                 String commonPrefix = childPath.substring(0, commonPrefixLength);
                 String newChildPath = childPath.substring(commonPrefixLength + 1);
                 Entry<T> newChild = new Entry<>(newChildPath, oldChild);
-                String siblingPath = relativePath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
+                String siblingPath = targetPath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
                 Entry<T> sibling = new Entry<>(siblingPath, storeHandler.createChild());
                 ChildMap<T> newChildren = childMap(storeHandler.getPathComparator().compare(newChild.getPath(), sibling.getPath()) < 0
                     ? ImmutableList.of(newChild, sibling)
@@ -160,8 +160,8 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
             }
 
             @Override
-            public ChildMap<T> handleDifferent(int indexOfNextBiggerChild) {
-                String path = relativePath.getAsString();
+            public ChildMap<T> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
+                String path = targetPath.getAsString();
                 T newNode = storeHandler.createChild();
                 return withNewChild(indexOfNextBiggerChild, path, newNode);
             }
@@ -175,26 +175,11 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
     protected abstract AbstractChildMap<T> withRemovedChild(int childIndex);
 
     public interface PathRelationshipHandler<RESULT> {
-        /**
-         * relativePath is a descendant of child.
-         */
-        RESULT handleDescendant(String childPath, int childIndex);
-        /**
-         * relativePath is an ancestor of child.
-         */
-        RESULT handleAncestor(String childPath, int childIndex);
-        /**
-         * child is at relativePath.
-         */
-        RESULT handleSame(int childIndex);
-        /**
-         * relativePath has a real common prefix with child,
-         */
-        RESULT handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex);
-        /**
-         * relativePath has no common prefix with any child,
-         */
-        RESULT handleDifferent(int indexOfNextBiggerChild);
+        RESULT handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex);
+        RESULT handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex);
+        RESULT handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex);
+        RESULT handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength);
+        RESULT handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild);
     }
 
     public static class Entry<T> {
@@ -206,34 +191,34 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
             this.value = value;
         }
 
-        public <R> R findPath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
-            if (!relativePath.hasPrefix(path, caseSensitivity)) {
-                return handler.handleNotFound();
+        public <RESULT> RESULT findPath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, FindChildHandler<T, RESULT> handler) {
+            if (!targetPath.hasPrefix(path, caseSensitivity)) {
+                return handler.handleUnrelatedToAnyChild();
             }
-            return relativePath.length() == path.length()
-                ? handler.getFromChild(value)
-                : handler.findInChild(relativePath.fromChild(path), value);
+            return targetPath.length() == path.length()
+                ? handler.handleExactMatchWithChild(value)
+                : handler.handleAsDescendantOfChild(targetPath.fromChild(path), value);
         }
 
-        public <R> R handlePath(VfsRelativePath relativePath, int currentChildIndex, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
+        public <RESULT> RESULT handlePath(VfsRelativePath targetPath, int currentChildIndex, CaseSensitivity caseSensitivity, PathRelationshipHandler<RESULT> handler) {
             int pathToParentLength = path.length();
-            int relativePathLength = relativePath.length();
-            int maxPos = Math.min(pathToParentLength, relativePathLength);
-            int commonPrefixLength = relativePath.lengthOfCommonPrefix(path, caseSensitivity);
+            int targetPathLength = targetPath.length();
+            int maxPos = Math.min(pathToParentLength, targetPathLength);
+            int commonPrefixLength = targetPath.lengthOfCommonPrefix(path, caseSensitivity);
             if (commonPrefixLength == maxPos) {
-                if (pathToParentLength > relativePathLength) {
-                    return handler.handleAncestor(path, currentChildIndex);
+                if (pathToParentLength > targetPathLength) {
+                    return handler.handleAsAncestorOfChild(targetPath, path, currentChildIndex);
                 }
-                if (pathToParentLength == relativePathLength) {
-                    return handler.handleSame(currentChildIndex);
+                if (pathToParentLength == targetPathLength) {
+                    return handler.handleExactMatchWithChild(targetPath, path, currentChildIndex);
                 }
-                return handler.handleDescendant(path, currentChildIndex);
+                return handler.handleAsDescendantOfChild(targetPath, path, currentChildIndex);
             }
             if (commonPrefixLength == 0) {
-                int compared = relativePath.compareToFirstSegment(path, caseSensitivity);
-                return handler.handleDifferent(compared < 0 ? currentChildIndex : currentChildIndex + 1);
+                int compared = targetPath.compareToFirstSegment(path, caseSensitivity);
+                return handler.handleUnrelatedToAnyChild(targetPath, compared < 0 ? currentChildIndex : currentChildIndex + 1);
             }
-            return handler.handleCommonPrefix(commonPrefixLength, path, currentChildIndex);
+            return handler.handleSiblingOfChild(targetPath, path, currentChildIndex, commonPrefixLength);
         }
 
         public String getPath() {

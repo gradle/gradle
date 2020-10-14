@@ -28,10 +28,10 @@ public interface FileSystemNode extends ReadOnlyFileSystemNode {
      *
      * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
      */
-    FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener);
+    FileSystemNode store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener);
 
     /**
      * Invalidates part of the node.
      */
-    Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener);
+    Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener);
 }
