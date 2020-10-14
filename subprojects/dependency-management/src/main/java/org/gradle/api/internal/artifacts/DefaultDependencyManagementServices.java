@@ -117,6 +117,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.initialization.DependencyResolutionManagementInternal;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Try;
@@ -708,11 +709,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         }
 
-        RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, SharedDependencyResolutionServices sharedDependencyResolutionServices) {
+        RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, DependencyResolutionManagementInternal drm) {
             return () -> {
                 List<ResolutionAwareRepository> repositories = collectRepositories(repositoryHandler);
-                if (repositories.isEmpty()) {
-                    repositories = collectRepositories(sharedDependencyResolutionServices.getResolveRepositoryHandler());
+                DependencyResolutionManagementInternal.RepositoryMode mode = drm.getRepositoryMode();
+                if (mode.useProjectRepositories()) {
+                    if (repositories.isEmpty()) {
+                        repositories = collectRepositories(drm.getRepositoryHandler());
+                    }
+                } else {
+                    repositories = collectRepositories(drm.getRepositoryHandler());
                 }
                 return repositories;
             };

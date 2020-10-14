@@ -247,8 +247,7 @@ class ConfigurationCacheHost internal constructor(
                     service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
                     rootDir,
                     settingsSource,
-                    gradle.startParameter,
-                    service<Instantiator>()
+                    gradle.startParameter
                 )
             }
         }

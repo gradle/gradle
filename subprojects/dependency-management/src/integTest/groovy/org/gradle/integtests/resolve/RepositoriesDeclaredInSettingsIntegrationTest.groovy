@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -136,6 +135,108 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 
         then:
         failure.assertHasCause("Could not find org:module:1.0.")
+    }
+
+    def "project local repositories can be ignored if we prefer settings repositories"() {
+        repository {
+            'org:module:1.0'()
+        }
+
+        settingsFile << """
+
+            dependencyResolutionManagement {
+                preferSettingsRepositories()
+            }
+
+        """
+
+        buildFile << """
+            dependencies {
+                conf 'org:module:1.0'
+            }
+
+            repositories {
+                maven { url 'dummy' }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:module:1.0' {
+                expectResolve()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:module:1.0')
+            }
+        }
+
+        and:
+        outputContains "Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'"
+    }
+
+    def "can fail the build if a project declares a repository"() {
+        repository {
+            'org:module:1.0'()
+        }
+
+        settingsFile << """
+
+            dependencyResolutionManagement {
+                enforceSettingsRepositories()
+            }
+
+        """
+
+        buildFile << """
+            dependencies {
+                conf 'org:module:1.0'
+            }
+
+            repositories {
+                maven { url 'dummy' }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
+    }
+
+    def "can detect a repository added by a plugin"() {
+        withProjectPluginAddingRepository()
+
+        repository {
+            'org:module:1.0'()
+        }
+
+        settingsFile << """
+            includeBuild 'my-plugin'
+
+            dependencyResolutionManagement {
+                enforceSettingsRepositories()
+            }
+
+        """
+
+        withPlugins(['org.gradle.repo-conventions': '1.0'])
+        buildFile << """
+            dependencies {
+                conf 'org:module:1.0'
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by plugin 'org.gradle.repo-conventions'")
     }
 
     def "repositories declared in settings are used to resolve dependencies from included builds"() {
@@ -619,4 +720,45 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         }
         """
     }
+
+    void withProjectPluginAddingRepository() {
+        file("my-plugin/build.gradle") << """
+            plugins {
+                id 'java-gradle-plugin'
+            }
+
+            gradlePlugin {
+                plugins {
+                    myPlugin {
+                        id = 'org.gradle.repo-conventions'
+                        implementationClass = 'org.gradle.test.RepoConventionPlugin'
+                    }
+                }
+            }
+        """
+        file("my-plugin/src/main/java/org/gradle/test/RepoConventionPlugin.java") << """package org.gradle.test;
+        import org.gradle.api.Plugin;
+        import org.gradle.api.Project;
+
+        public class RepoConventionPlugin implements Plugin<Project> {
+            public void apply(Project project) {
+                project.getRepositories().maven(mvn -> mvn.setUrl(\"${mavenHttpRepo.uri}\"));
+            }
+        }
+        """
+    }
+
+    private void withPlugins(Map<String, String> plugins) {
+        def text = buildFile.text
+        int idx = text.indexOf('allprojects')
+        text = """${text.substring(0, idx)}
+            plugins {
+                ${plugins.collect{ "id '$it.key' version '${it.value}'"}.join('\n')}
+            }
+
+${text.substring(idx)}
+        """
+        buildFile.text = text
+    }
+
 }

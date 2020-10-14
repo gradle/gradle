@@ -17,7 +17,30 @@ package org.gradle.initialization;
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.DependencyResolutionManagement;
+import org.gradle.api.internal.project.ProjectInternal;
 
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement {
     RepositoryHandler getRepositoryHandler();
+
+    void configureProject(ProjectInternal project);
+
+    void preventFromFurtherMutation();
+
+    RepositoryMode getRepositoryMode();
+
+    enum RepositoryMode {
+        PREFER_PROJECT(true),
+        PREFER_SETTINGS(false),
+        FAIL_ON_PROJECT_REPOS(false);
+
+        private final boolean useProjectRepositories;
+
+        RepositoryMode(boolean useProjectRepositories) {
+            this.useProjectRepositories = useProjectRepositories;
+        }
+
+        public boolean useProjectRepositories() {
+            return useProjectRepositories;
+        }
+    }
 }

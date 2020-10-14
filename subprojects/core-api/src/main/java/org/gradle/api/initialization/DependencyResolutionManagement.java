@@ -34,4 +34,26 @@ public interface DependencyResolutionManagement {
      * @param repositoryConfiguration the repositories configuration
      */
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
+
+    /**
+     * If this method is called, any repository declared on a project will cause
+     * the project to use the repositories declared by the project, ignoring
+     * those declared in settings. A warning will be issued in such a situation.
+     *
+     * This is the default behavior.
+     */
+    void preferProjectRepositories();
+
+    /**
+     * If this method is called, any repository declared directly in a project,
+     * either directly or via a plugin, will be ignored.
+     */
+    void preferSettingsRepositories();
+
+    /**
+     * If this method is called, any repository declared directly in a project,
+     * either directly or via a plugin, will trigger a build error.
+     */
+    void enforceSettingsRepositories();
+
 }
