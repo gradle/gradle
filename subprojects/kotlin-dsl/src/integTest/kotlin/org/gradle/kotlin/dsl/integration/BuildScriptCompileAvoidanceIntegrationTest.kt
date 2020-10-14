@@ -591,7 +591,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         // and not to be reused from daemon's cache from other tests when daemon is in use
         withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin()).appendText(
             """
-                println("$cacheBuster")
+                val cacheBuster = "$cacheBuster"
             """
         )
     }
