@@ -197,13 +197,15 @@ class PerformanceTestPlugin : Plugin<Project> {
      */
     private
     fun Project.createPerformanceDefinitionJsonTask(name: String, performanceSourceSet: SourceSet, write: Boolean) {
+        val outputJson = project.rootProject.file(".teamcity/performance-tests-ci.json")
         tasks.register<Test>(name) {
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
             maxParallelForks = 1
-            systemProperty("org.gradle.performance.scenario.json", project.rootProject.file(".teamcity/performance-tests-ci.json").absolutePath)
+            systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
             systemProperty("org.gradle.performance.write.scenario.json", write)
-            outputs.upToDateWhen { false }
+
+            outputs.file(outputJson)
         }
     }
 
@@ -303,8 +305,10 @@ class PerformanceTestExtension(
 ) {
     private
     val registeredPerformanceTests: MutableList<TaskProvider<out Task>> = mutableListOf()
+
     private
     val registeredTestProjects: MutableList<TaskProvider<out Task>> = mutableListOf()
+
     private
     val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
         .forUseAtConfigurationTime()

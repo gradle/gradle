@@ -98,7 +98,3 @@ tasks.jar {
 
     from(files(provider{ flamegraph.map { zipTree(it) } }))
 }
-
-tasks.named("quickTest") {
-    dependsOn(":performance:verifyPerformanceScenarioDefinitions")
-}
