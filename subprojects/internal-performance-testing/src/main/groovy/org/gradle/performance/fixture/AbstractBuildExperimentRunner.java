@@ -73,8 +73,8 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     private Profiler createProfiler(String profilerName) {
         OptionParser optionParser = new OptionParser();
         optionParser.accepts("profiler");
+        ProfilerFactory.configureParser(optionParser);
         ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
-        profilerFactory.addOptions(optionParser);
         return profilerFactory.createFromOptions(optionParser.parse());
     }
 
