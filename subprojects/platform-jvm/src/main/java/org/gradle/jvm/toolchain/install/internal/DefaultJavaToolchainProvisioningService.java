@@ -44,7 +44,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final AdoptOpenJdkRemoteBinary openJdkBinary;
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
-    private static Object provisioningProcessLock = new Object();
+    private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     @Inject
     public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory) {
@@ -57,7 +57,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         if (!isAutoDownloadEnabled()) {
             return Optional.empty();
         }
-        synchronized (provisioningProcessLock) {
+        synchronized (PROVISIONING_PROCESS_LOCK) {
             String destinationFilename = openJdkBinary.toFilename(spec);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
