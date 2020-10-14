@@ -41,7 +41,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when:
-        run("compileJava", "-Dorg.gradle.vfs.debug=true")
+        run("compileJava")
         then:
         javaClassFile("Foo.class").exists()
     }
