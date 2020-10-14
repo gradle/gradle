@@ -21,8 +21,9 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.gradle.util.TestPrecondition
 import org.gradle.util.ToBeImplemented
-
+import spock.lang.IgnoreIf
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -558,6 +559,8 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause('Cannot resolve external dependency org:module:1.0 because no repositories are defined.')
     }
 
+    // fails to delete directory under Windows otherwise
+    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
     def "can use a published settings plugin which will apply to both the main build and buildSrc"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
@@ -694,6 +697,8 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
          */
     }
 
+    // fails to delete directory under Windows otherwise
+    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
     void "repositories declared in settings shouldn't be used to resolve plugins"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
