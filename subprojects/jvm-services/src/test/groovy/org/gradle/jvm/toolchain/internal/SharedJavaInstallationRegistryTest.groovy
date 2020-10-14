@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.logging.Logger
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -75,6 +76,18 @@ class SharedJavaInstallationRegistryTest extends Specification {
         installations.is(installations2)
     }
 
+    def "detecting installations is tracked as build operation"() {
+        def executor = new TestBuildOperationExecutor()
+        given:
+        def registry = new SharedJavaInstallationRegistry(Collections.emptyList(), executor)
+
+        when:
+        registry.listInstallations()
+
+        then:
+        executor.log.getDescriptors().find { it.displayName == "Toolchain detection"}
+    }
+
     @Unroll
     def "warns and filters invalid installations, exists: #exists, directory: #directory"() {
         given:
@@ -83,7 +96,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         file.isDirectory() >> directory
         file.absolutePath >> path
         def logger = Mock(Logger)
-        def registry = SharedJavaInstallationRegistry.withLogger([forDirectory(file)], logger)
+        def registry = SharedJavaInstallationRegistry.withLogger([forDirectory(file)], logger, new TestBuildOperationExecutor())
 
         when:
         def installations = registry.listInstallations()
@@ -109,6 +122,6 @@ class SharedJavaInstallationRegistryTest extends Specification {
     }
 
     private SharedJavaInstallationRegistry newRegistry(File... location) {
-        new SharedJavaInstallationRegistry(location.collect { forDirectory(it) })
+        new SharedJavaInstallationRegistry(location.collect { forDirectory(it) }, new TestBuildOperationExecutor())
     }
 }

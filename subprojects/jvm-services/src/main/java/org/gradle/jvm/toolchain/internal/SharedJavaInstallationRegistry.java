@@ -22,6 +22,10 @@ import com.google.common.base.Suppliers;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -32,22 +36,41 @@ import java.util.stream.Collectors;
 
 
 public class SharedJavaInstallationRegistry {
+    private final BuildOperationExecutor executor;
     private Supplier<Set<File>> installations;
     private final Logger logger;
 
     @Inject
-    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers) {
-        this(suppliers, Logging.getLogger(SharedJavaInstallationRegistry.class));
+    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, BuildOperationExecutor executor) {
+        this(suppliers, Logging.getLogger(SharedJavaInstallationRegistry.class), executor);
     }
 
-    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger) {
-        this.installations = Suppliers.memoize(() -> collectInstallations(suppliers));
+    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor) {
         this.logger = logger;
+        this.executor = executor;
+        this.installations = Suppliers.memoize(() -> collectInBuildOperation(suppliers));
     }
 
     @VisibleForTesting
-    static SharedJavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger) {
-        return new SharedJavaInstallationRegistry(suppliers, logger);
+    static SharedJavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor) {
+        return new SharedJavaInstallationRegistry(suppliers, logger, executor);
+    }
+
+    private Set<File> collectInBuildOperation(List<InstallationSupplier> suppliers) {
+        return executor.call(new CallableBuildOperation<Set<File>>() {
+            @Override
+            public Set<File> call(BuildOperationContext context) {
+                return collectInstallations(suppliers);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Toolchain detection")
+                    .progressDisplayName("Detecting local java toolchains");
+            }
+
+        });
     }
 
     public Set<File> listInstallations() {
