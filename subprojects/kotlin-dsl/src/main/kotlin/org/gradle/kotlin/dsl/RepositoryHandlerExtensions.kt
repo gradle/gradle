@@ -33,7 +33,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
  * @see [MavenArtifactRepository.setUrl]
  */
 fun RepositoryHandler.maven(url: Any) =
-    maven { it.setUrl(url) }
+    maven { setUrl(url) }
 
 
 /**
@@ -51,8 +51,8 @@ fun RepositoryHandler.maven(url: Any) =
  */
 fun RepositoryHandler.maven(url: Any, action: MavenArtifactRepository.() -> Unit) =
     maven {
-        it.setUrl(url)
-        it.action()
+        setUrl(url)
+        action()
     }
 
 
@@ -69,7 +69,7 @@ fun RepositoryHandler.maven(url: Any, action: MavenArtifactRepository.() -> Unit
  * @see [RepositoryHandler.ivy]
  */
 fun RepositoryHandler.ivy(url: Any) =
-    ivy { it.setUrl(url) }
+    ivy { setUrl(url) }
 
 
 /**
@@ -87,6 +87,6 @@ fun RepositoryHandler.ivy(url: Any) =
  */
 fun RepositoryHandler.ivy(url: Any, action: IvyArtifactRepository.() -> Unit) =
     ivy {
-        it.setUrl(url)
-        it.action()
+        setUrl(url)
+        action()
     }

@@ -10,4 +10,5 @@ dependencies {
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
+    implementation(kotlin("sam-with-receiver"))
 }

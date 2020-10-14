@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.resolver
 
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.repositories.ArtifactRepository
@@ -105,14 +106,14 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         val repoName = repositoryNameFor(gradleVersion)
         name = "Gradle $repoName"
         setUrl("https://services.gradle.org/$repoName")
-        metadataSources { sources ->
-            sources.artifact()
+        metadataSources {
+            artifact()
         }
-        patternLayout { layout ->
+        patternLayout {
             if (isSnapshot(gradleVersion)) {
-                layout.ivy("/dummy") // avoids a lookup that interferes with version listing
+                ivy("/dummy") // avoids a lookup that interferes with version listing
             }
-            layout.artifact("[module]-[revision](-[classifier])(.[ext])")
+            artifact("[module]-[revision](-[classifier])(.[ext])")
         }
     }.also {
         // push the repository first in the list, for performance
@@ -143,12 +144,12 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     }
 
     private
-    inline fun <reified T : TransformAction<TransformParameters.None>> registerTransform(crossinline configure: TransformSpec<TransformParameters.None>.() -> Unit) =
-        dependencies.registerTransform(T::class.java) { configure(it) }
+    inline fun <reified T : TransformAction<TransformParameters.None>> registerTransform(configure: Action<TransformSpec<TransformParameters.None>>) =
+        dependencies.registerTransform(T::class.java, configure)
 
     private
-    fun ivy(configure: IvyArtifactRepository.() -> Unit) =
-        repositories.ivy { configure(it) }
+    fun ivy(configure: Action<IvyArtifactRepository>) =
+        repositories.ivy(configure)
 
     private
     fun minimumGradleVersion(): String? {

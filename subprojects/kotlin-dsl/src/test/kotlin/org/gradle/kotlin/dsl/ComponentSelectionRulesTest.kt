@@ -47,10 +47,10 @@ class ComponentSelectionRulesTest {
 
         configurations {
             create("conf") {
-                it.resolutionStrategy {
-                    it.componentSelection {
-                        it.all { selection ->
-                            selection.reject("all")
+                resolutionStrategy {
+                    componentSelection {
+                        all {
+                            reject("all")
                         }
                     }
                 }
