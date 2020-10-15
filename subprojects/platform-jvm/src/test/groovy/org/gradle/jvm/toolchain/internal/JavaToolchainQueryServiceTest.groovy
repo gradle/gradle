@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
@@ -81,7 +82,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def registry = createInstallationRegistry(["8", "9", "10"])
         def toolchainFactory = newToolchainFactory()
         def provisioningService = Mock(JavaToolchainProvisioningService)
-        provisioningService.tryInstall(_) >> Optional.empty()
+        provisioningService.tryInstall(_ as JavaToolchainSpec) >> Optional.empty()
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisioningService, createProviderFactory())
 
         when:
@@ -158,7 +159,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 installations.collect { new InstallationLocation(new File("/path/${it}").absoluteFile, "test") } as Set
             }
         }
-        def registry = new SharedJavaInstallationRegistry([supplier]) {
+        def registry = new SharedJavaInstallationRegistry([supplier], new TestBuildOperationExecutor()) {
             boolean installationExists(InstallationLocation installationLocation) {
                 return true
             }
