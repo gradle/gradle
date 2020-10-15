@@ -495,6 +495,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.invoke(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Prefer Action<T> to T.() -> Unit",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.invoke(org.gradle.api.NamedDomainObjectContainer,org.gradle.api.Action)",
+            "acceptation": "Prefer Action<T> to T.() -> Unit",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
         }
     ]
 }
