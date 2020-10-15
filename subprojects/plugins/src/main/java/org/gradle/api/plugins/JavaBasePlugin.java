@@ -56,6 +56,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.internal.ShowToolchainsTask;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -129,6 +130,11 @@ public class JavaBasePlugin implements Plugin<Project> {
         configureBuildNeeded(project);
         configureBuildDependents(project);
         bridgeToSoftwareModelIfNecessary(projectInternal);
+        configureToolchainsTask(project);
+    }
+
+    private void configureToolchainsTask(Project project) {
+        project.getTasks().register("javaToolchains",  ShowToolchainsTask.class, new ShowToolchainsTask.ShowToolchainsTaskAction(project.getDisplayName()));
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
