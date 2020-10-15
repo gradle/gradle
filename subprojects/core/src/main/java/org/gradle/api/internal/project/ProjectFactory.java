@@ -23,6 +23,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
@@ -67,7 +68,10 @@ public class ProjectFactory implements IProjectFactory {
             selfClassLoaderScope,
             baseClassLoaderScope
         );
-        project.beforeEvaluate(p -> NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT));
+        project.beforeEvaluate(p -> {
+            NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
+            gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
+        });
 
         if (parent != null) {
             parent.addChildProject(project);

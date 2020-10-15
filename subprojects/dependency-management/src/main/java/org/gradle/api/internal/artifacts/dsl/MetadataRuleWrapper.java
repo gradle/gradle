@@ -17,11 +17,14 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.rules.SpecRuleAction;
 
 import java.util.Collection;
 
 interface MetadataRuleWrapper {
+    DisplayName getDisplayName();
+
     boolean isClassBased();
 
     Collection<SpecConfigurableRule> getClassRules();
