@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class EmptyChildMap<T> extends AbstractChildMap<T> {
+public class EmptyChildMap<T> implements ChildMap<T> {
     private static final EmptyChildMap<Object> INSTANCE = new EmptyChildMap<>();
 
     @SuppressWarnings("unchecked")
@@ -37,13 +37,18 @@ public class EmptyChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    protected <R> R handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
-        return handler.handleUnrelatedToAnyChild(targetPath, 0);
+    public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
+        handler.handleUnrelatedToAnyChild();
+        return getInstance();
     }
 
     @Override
-    protected T get(int index) {
-        throw indexOutOfBoundsException(index);
+    public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
+        return new SingletonChildMap<>(targetPath.getAsString(), storeHandler.createChild());
+    }
+
+    @Override
+    public void visitChildren(BiConsumer<String, T> visitor) {
     }
 
     @Override
@@ -57,28 +62,7 @@ public class EmptyChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    protected AbstractChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
-        if (insertBefore != 0) {
-            throw indexOutOfBoundsException(insertBefore);
-        }
-        return new SingletonChildMap<>(path, newChild);
-    }
-
-    @Override
-    protected AbstractChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
-        throw indexOutOfBoundsException(childIndex);
-    }
-
-    @Override
-    protected AbstractChildMap<T> withRemovedChild(int childIndex) {
-        throw indexOutOfBoundsException(childIndex);
-    }
-
-    @Override
-    public void visitChildren(BiConsumer<String, T> visitor) {
-    }
-
-    private static IndexOutOfBoundsException indexOutOfBoundsException(int childIndex) {
-        return new IndexOutOfBoundsException("Index out of range: " + childIndex);
+    public List<Entry<T>> entries() {
+        return Collections.emptyList();
     }
 }

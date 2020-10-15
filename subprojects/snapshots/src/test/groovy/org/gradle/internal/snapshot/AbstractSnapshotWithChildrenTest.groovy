@@ -60,92 +60,50 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
         this.selectedChildPath = spec.selectedChildPath
         if (selectedChildPath != null) {
             def selectedChildIndex = indexOfSelectedChild
-            this.selectedChild = selectedChildIndex == -1 ? null : children.get(selectedChildIndex)
+            this.selectedChild = selectedChildIndex == -1 ? null : children.entries().get(selectedChildIndex).value
         }
     }
 
     ChildMap<CHILD> createChildren(List<String> pathsToParent) {
-        return AbstractChildMap.childMap(pathsToParent.stream()
+        return ChildMapFactory.childMap(pathsToParent.stream()
             .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
-            .map { childPath -> new AbstractChildMap.Entry(childPath, mockChild()) }
+            .map { childPath -> new ChildMap.Entry(childPath, mockChild()) }
             .collect(Collectors.toList()))
     }
 
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
-        children.withReplacedChild(indexOfSelectedChild, selectedChildPath, replacement)
+        childrenWithSelectedChildReplacedBy(selectedChildPath, replacement)
     }
 
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(String replacementPath, FileSystemNode replacement) {
-        children.withReplacedChild(indexOfSelectedChild, replacementPath, replacement)
+        def newChildren = new ArrayList<ChildMap.Entry<FileSystemNode>>(children.entries())
+        newChildren.set(indexOfSelectedChild, new ChildMap.Entry<FileSystemNode>(replacementPath, replacement))
+        return ChildMapFactory.childMap(newChildren)
     }
 
     int getIndexOfSelectedChild() {
-        return ((AbstractChildMap<CHILD>) children).handlePath(VfsRelativePath.of(selectedChildPath), CASE_SENSITIVE, new AbstractChildMap.PathRelationshipHandler<Integer>() {
-            @Override
-            Integer handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                return -1
-            }
-
-            @Override
-            Integer handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                return -1
-            }
-
-            @Override
-            Integer handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                return childIndex
-            }
-
-            @Override
-            Integer handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
-                return -1
-            }
-
-            @Override
-            Integer handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
-                return -1
-            }
-        })
+        return children.entries()*.path.indexOf(selectedChildPath)
     }
 
     ChildMap<FileSystemNode> childrenWithAdditionalChild(String path, FileSystemNode newChild) {
-        children.handlePath(VfsRelativePath.of(path), CASE_SENSITIVE, new AbstractChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
-            @Override
-            ChildMap<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                throw new AssertionError()
-            }
-
-            @Override
-            ChildMap<FileSystemNode> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                throw new AssertionError()
-            }
-
-            @Override
-            ChildMap<FileSystemNode> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                throw new AssertionError()
-            }
-
-            @Override
-            ChildMap<FileSystemNode> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
-                return PathUtil.getPathComparator(CASE_SENSITIVE).compare(path, childPath) < 0
-                    ? children.withNewChild(childIndex, path, newChild)
-                    : children.withNewChild(childIndex + 1, path, newChild)
-            }
-
-            @Override
-            ChildMap<FileSystemNode> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
-                return children.withNewChild(indexOfNextBiggerChild, path, newChild)
-            }
-        })
+        def targetPath = VfsRelativePath.of(path)
+        def newEntries = new ArrayList<ChildMap.Entry<FileSystemNode>>(children.entries())
+        int insertPosition = -1 - SearchUtil.<ChildMap.Entry<FileSystemNode>>binarySearch(newEntries) { candidate ->
+            targetPath.compareToFirstSegment(candidate.path, CASE_SENSITIVE)
+        }
+        newEntries.add(insertPosition, new ChildMap.Entry<FileSystemNode>(path, newChild))
+        return ChildMapFactory.childMap(newEntries)
     }
 
     ChildMap<CHILD> childrenWithSelectedChildRemoved() {
-        children.withRemovedChild(indexOfSelectedChild)
+        def newEntries = new ArrayList<ChildMap.Entry<CHILD>>(children.entries())
+        newEntries.remove(indexOfSelectedChild)
+        return ChildMapFactory.childMap(newEntries)
     }
 
     CHILD getNodeWithIndexOfSelectedChild(ChildMap<CHILD> newChildren) {
         int index = indexOfSelectedChild
-        return newChildren.get(index)
+        return newChildren.entries().get(index).value
     }
 
     String getCommonPrefix() {

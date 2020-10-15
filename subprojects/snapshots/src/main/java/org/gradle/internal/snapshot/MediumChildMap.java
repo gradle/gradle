@@ -26,7 +26,7 @@ public class MediumChildMap<T> extends AbstractListChildMap<T> {
 
     @Override
     public <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
-        for (Entry<T> entry : children) {
+        for (Entry<T> entry : entries) {
             Optional<RESULT> ancestorDescendantOrExactMatchResult = entry.handleAncestorDescendantOrExactMatch(targetPath, caseSensitivity, handler);
             if (ancestorDescendantOrExactMatchResult.isPresent()) {
                 return ancestorDescendantOrExactMatchResult.get();

@@ -28,7 +28,7 @@ public class LargeChildMap<T> extends AbstractListChildMap<T> {
     public <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
         int childIndexWithCommonPrefix = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndexWithCommonPrefix >= 0) {
-            Entry<T> entry = children.get(childIndexWithCommonPrefix);
+            Entry<T> entry = entries.get(childIndexWithCommonPrefix);
             return entry.getNode(targetPath, caseSensitivity, handler);
         }
         return handler.handleUnrelatedToAnyChild();

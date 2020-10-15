@@ -27,6 +27,8 @@ public interface ChildMap<T> {
 
     List<T> values();
 
+    List<Entry<T>> entries();
+
     void visitChildren(BiConsumer<String, T> visitor);
 
     <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler);
@@ -56,5 +58,91 @@ public interface ChildMap<T> {
         T createChild();
         T createNodeFromChildren(ChildMap<T> children);
         Comparator<String> getPathComparator();
+    }
+
+    class Entry<T> {
+        private final String path;
+        private final T value;
+
+        public Entry(String path, T value) {
+            this.path = path;
+            this.value = value;
+        }
+
+        public <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
+            return handleAncestorDescendantOrExactMatch(targetPath, caseSensitivity, handler)
+                .orElseGet(handler::handleUnrelatedToAnyChild);
+        }
+
+        public <RESULT> Optional<RESULT> handleAncestorDescendantOrExactMatch(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
+            if (targetPath.hasPrefix(path, caseSensitivity)) {
+                if (targetPath.length() == path.length()) {
+                    return Optional.of(handler.handleExactMatchWithChild(value));
+                } else {
+                    return Optional.of(handler.handleAsDescendantOfChild(targetPath.fromChild(path), value));
+                }
+            } else if (targetPath.length() < path.length() && targetPath.isPrefixOf(path, caseSensitivity)) {
+                return Optional.of(handler.handleAsAncestorOfChild(path, value));
+            }
+            return Optional.empty();
+        }
+
+        public <RESULT> RESULT handlePath(VfsRelativePath targetPath, int currentChildIndex, CaseSensitivity caseSensitivity, AbstractListChildMap.PathRelationshipHandler<RESULT> handler) {
+            int pathToParentLength = path.length();
+            int targetPathLength = targetPath.length();
+            int maxPos = Math.min(pathToParentLength, targetPathLength);
+            int commonPrefixLength = targetPath.lengthOfCommonPrefix(path, caseSensitivity);
+            if (commonPrefixLength == maxPos) {
+                if (pathToParentLength > targetPathLength) {
+                    return handler.handleAsAncestorOfChild(targetPath, path, currentChildIndex);
+                }
+                if (pathToParentLength == targetPathLength) {
+                    return handler.handleExactMatchWithChild(targetPath, path, currentChildIndex);
+                }
+                return handler.handleAsDescendantOfChild(targetPath, path, currentChildIndex);
+            }
+            if (commonPrefixLength == 0) {
+                int compared = targetPath.compareToFirstSegment(path, caseSensitivity);
+                return handler.handleUnrelatedToAnyChild(targetPath, compared < 0 ? currentChildIndex : currentChildIndex + 1);
+            }
+            return handler.handleSiblingOfChild(targetPath, path, currentChildIndex, commonPrefixLength);
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Entry<?> entry = (Entry<?>) o;
+
+            if (!path.equals(entry.path)) {
+                return false;
+            }
+            return value.equals(entry.value);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = path.hashCode();
+            result = 31 * result + value.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Entry{" + path + " : " + value + '}';
+        }
     }
 }
