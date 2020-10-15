@@ -29,34 +29,6 @@ import groovy.transform.EqualsAndHashCode
 class PerformanceTestScenarioDefinition {
     List<PerformanceTestsBean> performanceTests = []
 
-    /**
-     * Verify the jsonFile has same data as the instance itself
-     */
-    void verify(File jsonFile) {
-        sort()
-        PerformanceTestScenarioDefinition definitionInJson = new ObjectMapper().readValue(jsonFile, PerformanceTestScenarioDefinition).sort()
-        if (this != definitionInJson) {
-            File oldFile = new File(jsonFile.getAbsolutePath().replaceAll(/\.json$/, ".1.json"))
-            File newFile = new File(jsonFile.getAbsolutePath().replaceAll(/\.json$/, ".2.json"))
-            writeTo(oldFile)
-            definitionInJson.writeTo(newFile)
-
-            int size = Math.min(this.performanceTests.size(), definitionInJson.performanceTests.size())
-            int firstDifferentElementIndex = size
-            for (int i = 0; i < size; ++i) {
-                if (this.performanceTests[i] != definitionInJson.performanceTests[i]) {
-                    firstDifferentElementIndex = i
-                    break
-                }
-            }
-            throw new IllegalStateException("""
-Scenario JSON file verification fails at index ${firstDifferentElementIndex}, please see ${oldFile.getAbsolutePath()} and ${newFile.getAbsolutePath()} for details
-Old: ${firstDifferentElementIndex < performanceTests.size() ? this.performanceTests[firstDifferentElementIndex] : ""}
-New: ${firstDifferentElementIndex < definitionInJson.performanceTests.size() ? definitionInJson.performanceTests[firstDifferentElementIndex] : ""}
-""")
-        }
-    }
-
     @EqualsAndHashCode
     static class PerformanceTestsBean {
         /**

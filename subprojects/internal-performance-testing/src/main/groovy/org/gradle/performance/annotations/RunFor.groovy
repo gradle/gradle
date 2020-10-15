@@ -67,7 +67,6 @@ enum ScenarioType {
 
 @CompileStatic
 class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
-    private static final boolean WRITE_SCENARIO_JSON = Boolean.getBoolean("org.gradle.performance.write.scenario.json")
     private static final String SCENARIO_JSON_PROPERTY_NAME = "org.gradle.performance.scenario.json"
     private static final File SCENARIO_DEFINITION_FILE = System.getProperty(SCENARIO_JSON_PROPERTY_NAME) == null
         ? null : new File(System.getProperty(SCENARIO_JSON_PROPERTY_NAME))
@@ -76,11 +75,7 @@ class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
     static {
         Runtime.getRuntime().addShutdownHook(new Thread({
             if (SCENARIO_DEFINITION_FILE != null) {
-                if (WRITE_SCENARIO_JSON) {
-                    scenarioDefinition.writeTo(SCENARIO_DEFINITION_FILE)
-                } else {
-                    scenarioDefinition.verify(SCENARIO_DEFINITION_FILE)
-                }
+                scenarioDefinition.writeTo(SCENARIO_DEFINITION_FILE)
             }
         } as Runnable))
     }

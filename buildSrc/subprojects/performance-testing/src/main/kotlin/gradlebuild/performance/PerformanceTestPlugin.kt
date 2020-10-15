@@ -55,6 +55,7 @@ import org.w3c.dom.Document
 import java.io.File
 import java.nio.charset.StandardCharsets
 import javax.xml.parsers.DocumentBuilderFactory
+import org.gradle.api.tasks.ClasspathNormalizer
 
 
 object PropertyNames {
@@ -186,34 +187,33 @@ class PerformanceTestPlugin : Plugin<Project> {
             outputs.upToDateWhen { false }
         }
 
-        createPerformanceDefinitionJsonTask("writePerformanceScenarioDefinitions", performanceSourceSet, true)
-        createPerformanceDefinitionJsonTask("verifyPerformanceScenarioDefinitions", performanceSourceSet, false)
+        val performanceScenarioJson = rootProject.file(".teamcity/performance-tests-ci.json")
+        val tmpPerformanceScenarioJson = rootProject.buildDir.resolve("performance-tests-ci.json")
+        createGeneratePerformanceDefinitionJsonTask("writePerformanceScenarioDefinitions", performanceSourceSet, performanceScenarioJson)
+        val writeTmpPerformanceScenarioDefinitions = createGeneratePerformanceDefinitionJsonTask("writeTmpPerformanceScenarioDefinitions", performanceSourceSet, tmpPerformanceScenarioJson)
+
+        tasks.register<JavaExec>("verifyPerformanceScenarioDefinitions") {
+            dependsOn(writeTmpPerformanceScenarioDefinitions)
+            classpath(performanceSourceSet.runtimeClasspath)
+            mainClass.set("org.gradle.performance.fixture.PerformanceTestScenarioDefinitionVerifier")
+            args(performanceScenarioJson.absolutePath, tmpPerformanceScenarioJson.absolutePath)
+            inputs.files(performanceSourceSet.runtimeClasspath).withNormalizer(ClasspathNormalizer::class)
+            inputs.file(performanceScenarioJson.absolutePath)
+            inputs.file(tmpPerformanceScenarioJson.absolutePath)
+        }
     }
 
-    /**
-     * Scan performance test scenarios and:
-     * 1. Write to the scenario JSON file if write=true;
-     * 2. Only verify the scenario JSON file is correct if write=false.
-     */
     private
-    fun Project.createPerformanceDefinitionJsonTask(name: String, performanceSourceSet: SourceSet, write: Boolean) {
-        val outputJson = project.rootProject.file(".teamcity/performance-tests-ci.json")
+    fun Project.createGeneratePerformanceDefinitionJsonTask(name: String, performanceSourceSet: SourceSet, outputJson: File) =
         tasks.register<Test>(name) {
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
             maxParallelForks = 1
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
-            systemProperty("org.gradle.performance.write.scenario.json", write)
 
             outputs.cacheIf { false }
-
-            if (write) {
-                outputs.file(outputJson)
-            } else {
-                inputs.file(outputJson)
-            }
+            outputs.file(outputJson)
         }
-    }
 
     private
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
