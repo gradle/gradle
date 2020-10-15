@@ -277,7 +277,7 @@ fun createPerformanceTest(model: CIBuildModel, performanceTestCoverage: Performa
         performanceSubProject = "performance",
         testProjects = tests.keys.toList(),
         bucketIndex = bucketIndex,
-        extraParameters = " -PincludePerformanceTestScenarios=true"
+        extraParameters = "-PincludePerformanceTestScenarios=true"
     ) {
         tests.forEach { (testProject, scenarios) ->
             prepareScenariosStep(testProject, scenarios, performanceTestCoverage.os)()
