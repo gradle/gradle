@@ -41,6 +41,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         binary.toFilename(spec) >> 'jdk-123.zip'
         def downloadLocation = Mock(File)
+        downloadLocation.name >> "filename.zip"
         cache.getDownloadLocation(_ as String) >> downloadLocation
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, operationExecutor)
@@ -58,7 +59,8 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         1 * lock.close()
 
         then:
-        operationExecutor.log.getDescriptors().find { it.displayName == "Toolchain Provisioning"}
+        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain filename.zip"}
+        operationExecutor.log.getDescriptors().find {it.displayName == "Unpacking toolchain archive"}
     }
 
     def "skips downloading if already downloaded"() {
