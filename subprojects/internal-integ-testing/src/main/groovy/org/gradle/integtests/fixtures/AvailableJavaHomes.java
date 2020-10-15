@@ -34,6 +34,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
@@ -205,7 +206,7 @@ public abstract class AvailableJavaHomes {
     private static List<JvmInstallation> discoverLocalInstallations() {
         ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
         JvmVersionDetector versionDetector = new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
-        final List<JvmInstallation> jvms = new SharedJavaInstallationRegistry(defaultInstallationSuppliers())
+        final List<JvmInstallation> jvms = new SharedJavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor())
             .listInstallations().stream()
             .map(i -> asJvmInstallation(i, versionDetector))
             .sorted(Comparator.comparing(JvmInstallation::getJavaVersion))
