@@ -57,7 +57,7 @@ private constructor(
      * @since 6.3
      */
     fun constraints(configureAction: DependencyConstraintHandlerScope.() -> Unit) {
-        super.constraints { t -> configureAction(DependencyConstraintHandlerScope.of(t)) }
+        super.constraints { configureAction(DependencyConstraintHandlerScope.of(this)) }
     }
 
     /**

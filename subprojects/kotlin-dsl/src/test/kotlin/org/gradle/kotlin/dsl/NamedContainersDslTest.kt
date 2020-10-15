@@ -177,11 +177,11 @@ class NamedContainersDslTest : AbstractDslTest() {
             configurations {
                 val bazar by creating
                 create("cathedral") {
-                    it.extendsFrom(bazar)
+                    extendsFrom(bazar)
                 }
                 val valley by registering
                 register("hill") {
-                    it.extendsFrom(valley.get())
+                    extendsFrom(valley.get())
                 }
             }
             apply(plugin = "java")

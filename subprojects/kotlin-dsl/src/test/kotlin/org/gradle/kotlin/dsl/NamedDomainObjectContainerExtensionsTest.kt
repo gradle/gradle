@@ -45,10 +45,10 @@ class NamedDomainObjectContainerExtensionsTest {
 
         // regular syntax
         container.getByName("alice") {
-            it.foo = "alice-foo"
+            foo = "alice-foo"
         }
         container.create("bob") {
-            it.foo = "bob-foo"
+            foo = "bob-foo"
         }
         container.maybeCreate("john")
 
@@ -58,10 +58,10 @@ class NamedDomainObjectContainerExtensionsTest {
         // invoke syntax
         container {
             getByName("alice") {
-                it.foo = "alice-foo"
+                foo = "alice-foo"
             }
             create("bob") {
-                it.foo = "bob-foo"
+                foo = "bob-foo"
             }
             maybeCreate("john")
 

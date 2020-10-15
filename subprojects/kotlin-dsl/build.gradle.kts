@@ -18,6 +18,7 @@ import gradlebuild.cleanup.WhenNotEmpty
 plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
+    id("gradlebuild.kotlin-dsl-sam-with-receiver")
 }
 
 description = "Kotlin DSL Provider"

@@ -33,7 +33,7 @@ class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Cod
         writeClass(value.type)
         val listeners = mutableListOf<Any>()
         broadcast.visitListeners {
-            listeners.add(it)
+            listeners.add(this)
         }
         writeCollection(listeners) {
             write(it)

@@ -6,6 +6,7 @@ dependencies {
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
+    implementation(kotlin("sam-with-receiver"))
     implementation("org.ow2.asm:asm")
 
     testImplementation("junit:junit")

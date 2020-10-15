@@ -184,14 +184,14 @@ class NamedDomainObjectCollectionExtensionsTest {
         }
 
         container.named<DomainObject>("foo").configure {
-            it.foo = "reified access"
+            foo = "reified access"
         }
         container.named<DomainObject>("foo") {
             bar = "reified configuration"
         }
 
         container.named("bar", DomainObject::class).configure {
-            it.foo = "typed access"
+            foo = "typed access"
         }
         container.named("bar", DomainObject::class) {
             bar = "typed configuration"
