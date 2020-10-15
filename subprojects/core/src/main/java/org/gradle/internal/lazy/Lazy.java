@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  *
  * @param <T> the type of the lazy value
  */
-public interface Lazy<T> {
+public interface Lazy<T> extends Supplier<T> {
 
     /**
      * @return the value this lazy wraps

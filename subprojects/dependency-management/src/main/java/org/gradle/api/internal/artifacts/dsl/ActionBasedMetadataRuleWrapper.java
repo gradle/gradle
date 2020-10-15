@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.rules.SpecRuleAction;
 
 import java.util.Collection;
@@ -26,6 +28,11 @@ class ActionBasedMetadataRuleWrapper implements MetadataRuleWrapper {
 
     ActionBasedMetadataRuleWrapper(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
         this.ruleAction = ruleAction;
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.of("opaque inline rule");
     }
 
     @Override

@@ -18,10 +18,14 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.rules.SpecRuleAction;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class ClassBasedMetadataRuleWrapper implements MetadataRuleWrapper {
     private final List<SpecConfigurableRule> classRules = Lists.newArrayListWithExpectedSize(5);
@@ -48,5 +52,14 @@ class ClassBasedMetadataRuleWrapper implements MetadataRuleWrapper {
     @Override
     public SpecRuleAction<? super ComponentMetadataDetails> getRule() {
         throw new UnsupportedOperationException("This operation is not supported by this implementation");
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.of(classRules.stream()
+            .map(SpecConfigurableRule::getConfigurableRule)
+            .map(ConfigurableRule::getRuleClass)
+            .map(Class::getName)
+            .collect(Collectors.joining(",")));
     }
 }

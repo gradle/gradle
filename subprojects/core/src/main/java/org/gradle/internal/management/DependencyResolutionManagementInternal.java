@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.internal.management;
 
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.DependencyResolutionManagement;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,7 +27,11 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
 
     void preventFromFurtherMutation();
 
+    void applyRules(ComponentMetadataHandler target);
+
     RepositoryMode getRepositoryMode();
+
+    RulesMode getRulesMode();
 
     enum RepositoryMode {
         PREFER_PROJECT(true),
@@ -38,9 +43,23 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
         RepositoryMode(boolean useProjectRepositories) {
             this.useProjectRepositories = useProjectRepositories;
         }
-
         public boolean useProjectRepositories() {
             return useProjectRepositories;
+        }
+    }
+
+    enum RulesMode {
+        PREFER_PROJECT(true),
+        PREFER_SETTINGS(false),
+        FAIL_ON_PROJECT_RULES(false);
+
+        private final boolean useProjectRules;
+
+        RulesMode(boolean useProjectRules) {
+            this.useProjectRules = useProjectRules;
+        }
+        public boolean useProjectRules() {
+            return useProjectRules;
         }
     }
 }
