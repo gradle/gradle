@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.internal.management
 
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
@@ -59,5 +59,28 @@ class DefaultDependencyResolutionManagementTest extends Specification {
 
         then:
         drm.repositoryMode == DependencyResolutionManagementInternal.RepositoryMode.PREFER_PROJECT
+    }
+
+    def "defaults to project rules"() {
+        expect:
+        drm.rulesMode == DependencyResolutionManagementInternal.RulesMode.PREFER_PROJECT
+
+        when:
+        drm.preferSettingsRules()
+
+        then:
+        drm.rulesMode == DependencyResolutionManagementInternal.RulesMode.PREFER_SETTINGS
+
+        when:
+        drm.enforceSettingsRules()
+
+        then:
+        drm.rulesMode == DependencyResolutionManagementInternal.RulesMode.FAIL_ON_PROJECT_RULES
+
+        when:
+        drm.preferProjectRules()
+
+        then:
+        drm.rulesMode == DependencyResolutionManagementInternal.RulesMode.PREFER_PROJECT
     }
 }

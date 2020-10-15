@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.internal.management;
 
+import com.google.common.collect.Lists;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.initialization.DependencyResolutionManagement;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -37,14 +44,19 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.lazy.Lazy;
 
+import java.util.List;
+
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);
+    private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = Lists.newArrayList();
 
     private final Lazy<DependencyResolutionServices> dependencyResolutionServices;
     private final UserCodeApplicationContext context;
+    private final ComponentMetadataHandler registar = new ComponentMetadataRulesRegistar();
     private boolean mutable = true;
     private RepositoryMode repositoryMode = RepositoryMode.PREFER_PROJECT;
+    private RulesMode rulesMode = RulesMode.PREFER_PROJECT;
 
     public DefaultDependencyResolutionManagement(UserCodeApplicationContext context,
                                                  DependencyManagementServices dependencyManagementServices,
@@ -61,6 +73,17 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
+    public void components(Action<? super ComponentMetadataHandler> registration) {
+        assertMutable();
+        componentMetadataRulesActions.add(registration);
+    }
+
+    @Override
+    public ComponentMetadataHandler getComponents() {
+        return registar;
+    }
+
+    @Override
     public RepositoryHandler getRepositoryHandler() {
         return dependencyResolutionServices.get().getResolveRepositoryHandler();
     }
@@ -71,9 +94,36 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
+    public void preferProjectRules() {
+        assertMutable();
+        this.rulesMode = RulesMode.PREFER_PROJECT;
+    }
+
+    @Override
+    public void preferSettingsRules() {
+        assertMutable();
+        this.rulesMode = RulesMode.PREFER_SETTINGS;
+    }
+
+    @Override
+    public void enforceSettingsRules() {
+        assertMutable();
+        this.rulesMode = RulesMode.FAIL_ON_PROJECT_RULES;
+    }
+
+    @Override
+    public RulesMode getRulesMode() {
+        return rulesMode;
+    }
+
+    @Override
     public void configureProject(ProjectInternal project) {
         if (!repositoryMode.useProjectRepositories()) {
-            project.getRepositories().whenObjectAdded(this::mutationDisallowedOnProject);
+            project.getRepositories().whenObjectAdded(this::repoMutationDisallowedOnProject);
+        }
+        if (!rulesMode.useProjectRules()) {
+            ComponentMetadataHandlerInternal components = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
+            components.onAddRule(this::ruleMutationDisallowedOnProject);
         }
     }
 
@@ -95,7 +145,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         throw new InvalidUserCodeException("Mutation of repositories declared in settings is only allowed during settings evaluation");
     }
 
-    private void mutationDisallowedOnProject(ArtifactRepository artifactRepository) {
+    private void repoMutationDisallowedOnProject(ArtifactRepository artifactRepository) {
         UserCodeApplicationContext.Application current = context.current();
         DisplayName displayName = current == null ? null : current.getDisplayName();
         if (displayName == null) {
@@ -104,6 +154,22 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         String message = "Build was configured to prefer settings repositories over project repositories but repository '" + artifactRepository.getName() + "' was added by " + displayName;
         switch (repositoryMode) {
             case FAIL_ON_PROJECT_REPOS:
+                throw new InvalidUserCodeException(message);
+            case PREFER_SETTINGS:
+                LOGGER.warn(message);
+                break;
+        }
+    }
+
+    private void ruleMutationDisallowedOnProject(DisplayName ruleName) {
+        UserCodeApplicationContext.Application current = context.current();
+        DisplayName displayName = current == null ? null : current.getDisplayName();
+        if (displayName == null) {
+            displayName = UNKNOWN_CODE;
+        }
+        String message = "Build was configured to prefer settings component metadata rules over project rules but rule '" + ruleName + "' was added by " + displayName;
+        switch (rulesMode) {
+            case FAIL_ON_PROJECT_RULES:
                 throw new InvalidUserCodeException(message);
             case PREFER_SETTINGS:
                 LOGGER.warn(message);
@@ -131,5 +197,74 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private static ProjectFinder makeUnknownProjectFinder() {
         return new UnknownProjectFinder("Project dependencies are not allowed in shared dependency resolution services");
+    }
+
+    @Override
+    public void applyRules(ComponentMetadataHandler target) {
+        for (Action<? super ComponentMetadataHandler> rule : componentMetadataRulesActions) {
+            rule.execute(target);
+        }
+    }
+
+    private class ComponentMetadataRulesRegistar implements ComponentMetadataHandler {
+        @Override
+        public ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule) {
+            components(h -> h.all(rule));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler all(Closure<?> rule) {
+            components(h -> h.all(rule));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler all(Object ruleSource) {
+            components(h -> h.all(ruleSource));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule) {
+            components(h -> h.all(rule));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
+            components(h -> h.all(rule, configureAction));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
+            components(h -> h.withModule(id, rule));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
+            components(h -> h.withModule(id, rule));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
+            components(h -> h.withModule(id, ruleSource));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule) {
+            components(h -> h.withModule(id, rule));
+            return this;
+        }
+
+        @Override
+        public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
+            components(h -> h.withModule(id, rule, configureAction));
+            return this;
+        }
     }
 }

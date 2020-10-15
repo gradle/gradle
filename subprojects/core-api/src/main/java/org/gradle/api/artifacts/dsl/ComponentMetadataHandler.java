@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows the build to provide rules that modify the metadata of depended-on software components.
@@ -58,6 +59,7 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
  *
  * @since 1.8
  */
+@HasInternalProtocol
 public interface ComponentMetadataHandler {
     /**
      * Adds a rule action that may modify the metadata of any resolved software component.

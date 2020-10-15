@@ -17,6 +17,7 @@ package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -55,5 +56,37 @@ public interface DependencyResolutionManagement {
      * either directly or via a plugin, will trigger a build error.
      */
     void enforceSettingsRepositories();
+
+    /**
+     * Registers component metadata rules used by all projects
+     * @param registration the registration action
+     */
+    void components(Action<? super ComponentMetadataHandler> registration);
+
+    /**
+     * Returns the shared component metadata handler
+     */
+    ComponentMetadataHandler getComponents();
+
+    /**
+     * If this method is called, any component metadata rule declared on a project
+     * will cause the project to use the rules declared by the project, ignoring
+     * those declared in settings. A warning will be issued in such a situation.
+     *
+     * This is the default behavior.
+     */
+    void preferProjectRules();
+
+    /**
+     * If this method is called, any component metadata rule declared directly in a
+     * project, either directly or via a plugin, will be ignored.
+     */
+    void preferSettingsRules();
+
+    /**
+     * If this method is called, any component metadata rule declared directly in a
+     * project, either directly or via a plugin, will trigger a build error.
+     */
+    void enforceSettingsRules();
 
 }

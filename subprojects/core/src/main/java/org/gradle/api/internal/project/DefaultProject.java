@@ -79,7 +79,6 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.DependencyResolutionManagementInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
@@ -259,8 +258,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
                 populateModelRegistry(services.get(ModelRegistry.class));
             }
         });
-
-        services.get(DependencyResolutionManagementInternal.class).configureProject(this);
     }
 
     @SuppressWarnings("unused")
