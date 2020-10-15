@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMap;
@@ -56,30 +55,25 @@ public class SingletonChildMap<T> implements ChildMap<T> {
 
     @Override
     public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
-        return entry.getNode(targetPath, caseSensitivity, new GetNodeHandler<T, ChildMap<RESULT>>() {
+        return entry.getNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
+            @SuppressWarnings("unchecked")
             @Override
-            public ChildMap<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
-                Optional<RESULT> invalidatedChild = handler.handleAsDescendantOfChild(pathInChild, child);
-                return invalidatedChild
-                    .map(it -> withReplacedChild(entry.getPath(), it))
-                    .orElseGet(EmptyChildMap::getInstance);
+            public SingletonChildMap<RESULT> getChildMap() {
+                return (SingletonChildMap<RESULT>) SingletonChildMap.this;
             }
 
             @Override
-            public ChildMap<RESULT> handleExactMatchWithChild(T child) {
-                handler.handleExactMatchWithChild(child);
-                return EmptyChildMap.getInstance();
+            public ChildMap<RESULT> withReplacedChild(RESULT newChild) {
+                return withReplacedChild(entry.getPath(), newChild);
             }
 
             @Override
-            public ChildMap<RESULT> handleUnrelatedToAnyChild() {
-                handler.handleUnrelatedToAnyChild();
-                return castThis();
+            public ChildMap<RESULT> withReplacedChild(String newChildPath, RESULT newChild) {
+                return getChildMap().withReplacedChild(newChildPath, newChild);
             }
 
             @Override
-            public ChildMap<RESULT> handleAsAncestorOfChild(String childPath, T child) {
-                handler.handleAsAncestorOfChild(childPath, child);
+            public ChildMap<RESULT> withRemovedChild() {
                 return EmptyChildMap.getInstance();
             }
         });
@@ -87,52 +81,28 @@ public class SingletonChildMap<T> implements ChildMap<T> {
 
     @Override
     public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
-        return entry.handlePath(targetPath, 0, caseSensitivity, new AbstractListChildMap.PathRelationshipHandler<ChildMap<T>>() {
+        return entry.handlePath(targetPath, caseSensitivity, new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
             @Override
-            public ChildMap<T> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                T oldChild = entry.getValue();
-                T newChild = storeHandler.handleAsDescendantOfChild(targetPath.fromChild(childPath), oldChild);
-                return withReplacedChild(childPath, newChild);
+            public ChildMap<T> withReplacedChild(T newChild) {
+                return withReplacedChild(entry.getPath(), newChild);
             }
 
             @Override
-            public ChildMap<T> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                T newChild = storeHandler.handleAsAncestorOfChild(childPath, entry.getValue());
-                return withReplacedChild(targetPath.getAsString(), newChild);
+            public ChildMap<T> withReplacedChild(String newChildPath, T newChild) {
+                return SingletonChildMap.this.withReplacedChild(newChildPath, newChild);
             }
 
             @Override
-            public ChildMap<T> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                T newChild = storeHandler.mergeWithExisting(entry.getValue());
-                return withReplacedChild(childPath, newChild);
+            public ChildMap<T> withNewChild(String newChildPath, T newChild) {
+                return SingletonChildMap.this.withNewChild(caseSensitivity, newChildPath, newChild);
             }
 
-            @Override
-            public ChildMap<T> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
-                T oldChild = entry.getValue();
-                String commonPrefix = childPath.substring(0, commonPrefixLength);
-                String newChildPath = childPath.substring(commonPrefixLength + 1);
-                Entry<T> newChild = new Entry<>(newChildPath, oldChild);
-                String siblingPath = targetPath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
-                Entry<T> sibling = new Entry<>(siblingPath, storeHandler.createChild());
-                ChildMap<T> newChildren = childMap(caseSensitivity, newChild, sibling);
-                return withReplacedChild(commonPrefix, storeHandler.createNodeFromChildren(newChildren));
-            }
-
-            @Override
-            public ChildMap<T> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
-                String path = targetPath.getAsString();
-                T newNode = storeHandler.createChild();
-                return withNewChild(caseSensitivity, path, newNode);
-            }
         });
     }
 
-    private <RESULT> ChildMap<RESULT> withNewChild(CaseSensitivity caseSensitivity, String newChildPath, RESULT newChild) {
-        @SuppressWarnings("unchecked")
-        Entry<RESULT> currentEntry = (Entry<RESULT>) entry;
-        Entry<RESULT> newEntry = new Entry<>(newChildPath, newChild);
-        return childMap(caseSensitivity, currentEntry, newEntry);
+    private ChildMap<T> withNewChild(CaseSensitivity caseSensitivity, String newChildPath, T newChild) {
+        Entry<T> newEntry = new Entry<>(newChildPath, newChild);
+        return childMap(caseSensitivity, entry, newEntry);
     }
 
     private <RESULT> ChildMap<RESULT> withReplacedChild(String newPath, RESULT newChild) {
@@ -148,7 +118,7 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public void visitChildren(BiConsumer<String, T> visitor) {
+    public void visitChildren(BiConsumer<String, ? super T> visitor) {
         visitor.accept(entry.getPath(), entry.getValue());
     }
 

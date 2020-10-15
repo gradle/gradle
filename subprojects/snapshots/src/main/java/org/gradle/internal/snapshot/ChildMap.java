@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -29,7 +28,7 @@ public interface ChildMap<T> {
 
     List<Entry<T>> entries();
 
-    void visitChildren(BiConsumer<String, T> visitor);
+    void visitChildren(BiConsumer<String, ? super T> visitor);
 
     <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler);
 
@@ -57,7 +56,6 @@ public interface ChildMap<T> {
         T mergeWithExisting(T child);
         T createChild();
         T createNodeFromChildren(ChildMap<T> children);
-        Comparator<String> getPathComparator();
     }
 
     class Entry<T> {
@@ -87,25 +85,32 @@ public interface ChildMap<T> {
             return Optional.empty();
         }
 
-        public <RESULT> RESULT handlePath(VfsRelativePath targetPath, int currentChildIndex, CaseSensitivity caseSensitivity, AbstractListChildMap.PathRelationshipHandler<RESULT> handler) {
+        public <RESULT> RESULT handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<RESULT, T> handler) {
             int pathToParentLength = path.length();
             int targetPathLength = targetPath.length();
             int maxPos = Math.min(pathToParentLength, targetPathLength);
             int commonPrefixLength = targetPath.lengthOfCommonPrefix(path, caseSensitivity);
             if (commonPrefixLength == maxPos) {
                 if (pathToParentLength > targetPathLength) {
-                    return handler.handleAsAncestorOfChild(targetPath, path, currentChildIndex);
+                    return handler.handleAsAncestorOfChild(targetPath, path, value);
                 }
                 if (pathToParentLength == targetPathLength) {
-                    return handler.handleExactMatchWithChild(targetPath, path, currentChildIndex);
+                    return handler.handleExactMatchWithChild(targetPath, path, value);
                 }
-                return handler.handleAsDescendantOfChild(targetPath, path, currentChildIndex);
+                return handler.handleAsDescendantOfChild(targetPath, path, value);
             }
             if (commonPrefixLength == 0) {
-                int compared = targetPath.compareToFirstSegment(path, caseSensitivity);
-                return handler.handleUnrelatedToAnyChild(targetPath, compared < 0 ? currentChildIndex : currentChildIndex + 1);
+                return handler.handleUnrelatedToAnyChild(targetPath);
             }
-            return handler.handleSiblingOfChild(targetPath, path, currentChildIndex, commonPrefixLength);
+            return handler.handleSiblingOfChild(targetPath, path, value, commonPrefixLength);
+        }
+
+        public interface PathRelationshipHandler<RESULT, T> {
+            RESULT handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, T child);
+            RESULT handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, T child);
+            RESULT handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, T child);
+            RESULT handleSiblingOfChild(VfsRelativePath targetPath, String childPath, T child, int commonPrefixLength);
+            RESULT handleUnrelatedToAnyChild(VfsRelativePath targetPath);
         }
 
         public String getPath() {

@@ -48,7 +48,7 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public void visitChildren(BiConsumer<String, T> visitor) {
+    public void visitChildren(BiConsumer<String, ? super T> visitor) {
     }
 
     @Override

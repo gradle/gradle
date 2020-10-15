@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileType;
 
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -106,11 +105,6 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
                 AtomicBoolean isDirectory = new AtomicBoolean(false);
                 children.visitChildren((__, child) -> child.getSnapshot().map(this::isRegularFileOrDirectory).ifPresent(notMissing -> isDirectory.compareAndSet(false, notMissing)));
                 return isDirectory.get() ? new PartialDirectorySnapshot(children) : new UnknownSnapshot(children);
-            }
-
-            @Override
-            public Comparator<String> getPathComparator() {
-                return PathUtil.getPathComparator(caseSensitivity);
             }
 
             private boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {

@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -27,25 +26,6 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
 
     protected AbstractListChildMap(List<Entry<T>> entries) {
         this.entries = entries;
-    }
-
-    protected int findChildIndexWithCommonPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
-        return SearchUtil.binarySearch(
-            entries,
-            candidate -> targetPath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
-        );
-    }
-
-    protected <RESULT> RESULT handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<RESULT> handler) {
-        int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
-        if (childIndex >= 0) {
-            return entries.get(childIndex).handlePath(targetPath, childIndex, caseSensitivity, handler);
-        }
-        return handler.handleUnrelatedToAnyChild(targetPath, -childIndex - 1);
-    }
-
-    protected T get(int index) {
-        return entries.get(index).getValue();
     }
 
     @Override
@@ -63,6 +43,82 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     @Override
     public List<Entry<T>> entries() {
         return entries;
+    }
+
+    @Override
+    public void visitChildren(BiConsumer<String, ? super T> visitor) {
+        for (Entry<T> child : entries) {
+            visitor.accept(child.getPath(), child.getValue());
+        }
+    }
+
+    protected int findChildIndexWithCommonPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return SearchUtil.binarySearch(
+            entries,
+            candidate -> targetPath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
+        );
+    }
+
+    @Override
+    public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
+        int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
+        if (childIndex >= 0) {
+            Entry<T> entry = entries.get(childIndex);
+            String childPath = entry.getPath();
+            return entry.getNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public AbstractListChildMap<RESULT> getChildMap() {
+                    return (AbstractListChildMap<RESULT>) AbstractListChildMap.this;
+                }
+
+                @Override
+                public ChildMap<RESULT> withReplacedChild(RESULT newChild) {
+                    return withReplacedChild(childPath, newChild);
+                }
+
+                @Override
+                public ChildMap<RESULT> withReplacedChild(String newChildPath, RESULT newChild) {
+                    return getChildMap().withReplacedChild(childIndex, newChildPath, newChild);
+                }
+
+                @Override
+                public ChildMap<RESULT> withRemovedChild() {
+                    return getChildMap().withRemovedChild(childIndex);
+                }
+            });
+        } else {
+            handler.handleUnrelatedToAnyChild();
+            @SuppressWarnings("unchecked") AbstractListChildMap<RESULT> castedThis = (AbstractListChildMap<RESULT>) this;
+            return castedThis;
+        }
+    }
+
+    @Override
+    public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
+        int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
+        if (childIndex >= 0) {
+            return entries.get(childIndex).handlePath(targetPath, caseSensitivity, new AbstractStorePathRelationshipHandler<T>(caseSensitivity, storeHandler) {
+                @Override
+                public ChildMap<T> withReplacedChild(T newChild) {
+                    return withReplacedChild(entries.get(childIndex).getPath(), newChild);
+                }
+
+                @Override
+                public ChildMap<T> withReplacedChild(String newChildPath, T newChild) {
+                    return AbstractListChildMap.this.withReplacedChild(childIndex, newChildPath, newChild);
+                }
+
+                @Override
+                public ChildMap<T> withNewChild(String newChildPath, T newChild) {
+                    return AbstractListChildMap.this.withNewChild(childIndex, newChildPath, newChild);
+                }
+            });
+        } else {
+            T newChild = storeHandler.createChild();
+            return withNewChild(-childIndex - 1, targetPath.toString(), newChild);
+        }
     }
 
     protected ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
@@ -88,13 +144,6 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public void visitChildren(BiConsumer<String, T> visitor) {
-        for (Entry<T> child : entries) {
-            visitor.accept(child.getPath(), child.getValue());
-        }
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -111,104 +160,5 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     @Override
     public int hashCode() {
         return entries.hashCode();
-    }
-
-    @Override
-    public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
-        int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
-        if (childIndex >= 0) {
-            Entry<T> entry = entries.get(childIndex);
-            return entry.getNode(targetPath, caseSensitivity, new GetNodeHandler<T, ChildMap<RESULT>>() {
-                @Override
-                public ChildMap<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
-                    Optional<RESULT> invalidatedChild = handler.handleAsDescendantOfChild(pathInChild, child);
-                    return invalidatedChild
-                        .map(newChild -> AbstractListChildMap.this.<RESULT>castThis().withReplacedChild(childIndex, entry.getPath(), newChild))
-                        .orElseGet(() -> cast(withRemovedChild(childIndex)));
-                }
-
-                @SuppressWarnings("unchecked")
-                private <S extends ChildMap<RESULT>> S cast(ChildMap<T> currentMap) {
-                    return (S) currentMap;
-                }
-
-                @Override
-                public ChildMap<RESULT> handleExactMatchWithChild(T child) {
-                    handler.handleExactMatchWithChild(child);
-                    return cast(withRemovedChild(childIndex));
-                }
-
-                @Override
-                public ChildMap<RESULT> handleUnrelatedToAnyChild() {
-                    handler.handleUnrelatedToAnyChild();
-                    return castThis();
-                }
-
-                @Override
-                public ChildMap<RESULT> handleAsAncestorOfChild(String childPath, T child) {
-                    handler.handleAsAncestorOfChild(childPath, get(childIndex));
-                    return cast(withRemovedChild(childIndex));
-                }
-            });
-        } else {
-            handler.handleUnrelatedToAnyChild();
-            return castThis();
-        }
-    }
-
-    @Override
-    public ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler) {
-        return handlePath(targetPath, caseSensitivity, new PathRelationshipHandler<ChildMap<T>>() {
-            @Override
-            public ChildMap<T> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                T oldChild = get(childIndex);
-                T newChild = storeHandler.handleAsDescendantOfChild(targetPath.fromChild(childPath), oldChild);
-                return withReplacedChild(childIndex, childPath, newChild);
-            }
-
-            @Override
-            public ChildMap<T> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                T newChild = storeHandler.handleAsAncestorOfChild(childPath, get(childIndex));
-                return withReplacedChild(childIndex, targetPath.getAsString(), newChild);
-            }
-
-            @Override
-            public ChildMap<T> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                T newChild = storeHandler.mergeWithExisting(get(childIndex));
-                return withReplacedChild(childIndex, childPath, newChild);
-            }
-
-            @Override
-            public ChildMap<T> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
-                T oldChild = get(childIndex);
-                String commonPrefix = childPath.substring(0, commonPrefixLength);
-                String newChildPath = childPath.substring(commonPrefixLength + 1);
-                Entry<T> newChild = new Entry<>(newChildPath, oldChild);
-                String siblingPath = targetPath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
-                Entry<T> sibling = new Entry<>(siblingPath, storeHandler.createChild());
-                ChildMap<T> newChildren = ChildMapFactory.childMap(caseSensitivity, newChild, sibling);
-                return withReplacedChild(childIndex, commonPrefix, storeHandler.createNodeFromChildren(newChildren));
-            }
-
-            @Override
-            public ChildMap<T> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
-                String path = targetPath.getAsString();
-                T newNode = storeHandler.createChild();
-                return withNewChild(indexOfNextBiggerChild, path, newNode);
-            }
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    private <RESULT> AbstractListChildMap<RESULT> castThis() {
-        return (AbstractListChildMap<RESULT>) this;
-    }
-
-    public interface PathRelationshipHandler<RESULT> {
-        RESULT handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex);
-        RESULT handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex);
-        RESULT handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex);
-        RESULT handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength);
-        RESULT handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild);
     }
 }
