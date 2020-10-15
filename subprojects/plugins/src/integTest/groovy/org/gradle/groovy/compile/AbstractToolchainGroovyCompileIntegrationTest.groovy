@@ -16,14 +16,26 @@
 
 package org.gradle.groovy.compile
 
-class ToolchainsGroovyCompileIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+import org.gradle.internal.jvm.Jvm
+import org.junit.Assume
+
+abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+
+    Jvm jdk
+
+    def setup() {
+        jdk = computeJdkForTest()
+        Assume.assumeNotNull(jdk)
+    }
+
+    abstract Jvm computeJdkForTest()
 
     @Override
     String compilerConfiguration() {
 """
-    tasks.withType(GroovyCompile) {
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(14)
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
         }
     }
 """
@@ -31,12 +43,6 @@ class ToolchainsGroovyCompileIntegrationTest extends ApiGroovyCompilerIntegratio
 
     @Override
     String annotationProcessorExtraSetup() {
-"""
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(14)
-    }
-}
-"""
+        compilerConfiguration()
     }
 }

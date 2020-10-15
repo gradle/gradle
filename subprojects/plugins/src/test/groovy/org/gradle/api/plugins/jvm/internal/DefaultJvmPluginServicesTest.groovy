@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal
 
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.ConfigurationPublications
 import org.gradle.api.artifacts.PublishArtifact
@@ -49,13 +50,17 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
     def configuresCompileClasspath() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
+        Action[] action = new Action[1]
         def config
         config = Stub(ConfigurationInternal) {
-            beforeLocking(_) >> { args -> args[0].execute(config) }
+            beforeLocking(_) >> { args -> action[0] = args[0] }
             getAttributes() >> mutable
         }
-        def sourceSet = Stub(SourceSet)
-
+        def javaCompileProvider = Stub(TaskProvider) {
+                get() >> Stub(JavaCompile) {
+                    getTargetCompatibility() >> '8'
+                }
+            }
         when:
         services.configureAsCompileClasspath(attrs)
 
@@ -69,15 +74,10 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
 
         when:
-        services.useDefaultTargetPlatformInference(config, sourceSet)
+        services.useDefaultTargetPlatformInference(config, javaCompileProvider)
+        action[0].execute(config)
 
         then:
-        1 * tasks.named(_, _) >> Stub(TaskProvider) {
-            get() >> Stub(JavaCompile) {
-                getTargetCompatibility() >> '8'
-            }
-        }
-
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),

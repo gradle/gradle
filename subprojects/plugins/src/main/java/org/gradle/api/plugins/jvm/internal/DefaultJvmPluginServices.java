@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
@@ -55,6 +56,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -65,6 +67,8 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,6 +79,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     private final TaskContainer tasks;
     private final SoftwareComponentContainer components;
     private final InstanceGenerator instanceGenerator;
+    private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
 
     private SourceSetContainer sourceSets;
     private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
@@ -90,6 +95,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         this.tasks = tasks;
         this.components = components;
         this.instanceGenerator = instanceGenerator;
+        configurationToCompileTasks = new HashMap<>(5);
     }
 
     @Override
@@ -125,9 +131,16 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public void useDefaultTargetPlatformInference(Configuration configuration, SourceSet sourceSet) {
-        ((ConfigurationInternal) configuration).beforeLocking(
-            configureDefaultTargetPlatform(configuration.isCanBeConsumed(), tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class)));
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
+        ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
+        Set<TaskProvider<?>> compileTasks = configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> {
+            HashSet<TaskProvider<?>> taskProviders = new HashSet<>();
+            configurationInternal.beforeLocking(
+                configureDefaultTargetPlatform(configuration.isCanBeConsumed(), (Set) taskProviders));
+            return taskProviders;
+        });
+        compileTasks.add(compileTask);
     }
 
     @Override
@@ -201,23 +214,31 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         });
     }
 
-    private Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, TaskProvider<JavaCompile> compileTaskProvider) {
+    private <COMPILE extends AbstractCompile & HasCompileOptions> Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, Set<TaskProvider<COMPILE>> compileTasks) {
         return conf -> {
             JavaPluginConvention javaConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
             if (alwaysEnabled || javaConvention == null || !javaConvention.getAutoTargetJvmDisabled()) {
-                JavaCompile javaCompile = compileTaskProvider.get();
-                int majorVersion;
-                if (javaCompile.getOptions().getRelease().isPresent()) {
-                    majorVersion = javaCompile.getOptions().getRelease().get();
-                } else {
-                    int releaseFlag = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
-                    if (releaseFlag != 0) {
-                        majorVersion = releaseFlag;
+                int majorVersion = 0;
+                for (TaskProvider<COMPILE> compileTaskProvider : compileTasks) {
+                    int candidateMajorVersion;
+                    COMPILE compileTask = compileTaskProvider.get();
+                    if (compileTask.getOptions().getRelease().isPresent()) {
+                        candidateMajorVersion = compileTask.getOptions().getRelease().get();
                     } else {
-                        majorVersion = Integer.parseInt(JavaVersion.toVersion(javaCompile.getTargetCompatibility()).getMajorVersion());
+                        int releaseFlag = getReleaseOption(compileTask.getOptions().getCompilerArgs());
+                        if (releaseFlag != 0) {
+                            candidateMajorVersion = releaseFlag;
+                        } else {
+                            candidateMajorVersion = Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
+                        }
+                    }
+                    if (candidateMajorVersion > majorVersion) {
+                        majorVersion = candidateMajorVersion;
                     }
                 }
-                JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
+                if (majorVersion != 0) {
+                    JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
+                }
             }
         };
     }
@@ -228,7 +249,8 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             name,
             this,
             configurations,
-            components);
+            components,
+            tasks);
         configuration.execute(builder);
         return builder.build();
     }
@@ -268,6 +290,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     public static class DefaultElementsConfigurationBuilder extends AbstractConfigurationBuilder<DefaultElementsConfigurationBuilder> implements OutgoingElementsBuilder {
         final SoftwareComponentContainer components;
+        private final TaskContainer tasks;
         boolean api;
         SourceSet sourceSet;
         List<Object> artifactProducers;
@@ -276,9 +299,10 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         private boolean published;
 
         @Inject
-        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components) {
+        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components, TaskContainer tasks) {
             super(name, jvmEcosystemUtilities, configurations);
             this.components = components;
+            this.tasks = tasks;
         }
 
         @Override
@@ -313,7 +337,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 }
             );
             if (sourceSet != null) {
-                jvmEcosystemUtilities.useDefaultTargetPlatformInference(cnf, sourceSet);
+                jvmEcosystemUtilities.useDefaultTargetPlatformInference(cnf, tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class));
             }
             ConfigurationPublications outgoing = cnf.getOutgoing();
             if (artifactProducers != null) {

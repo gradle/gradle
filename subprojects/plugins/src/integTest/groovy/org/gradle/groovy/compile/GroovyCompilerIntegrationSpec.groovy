@@ -91,7 +91,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
     }
 
     def canJointCompileWithJavaCompilerExecutable() {
-        Assume.assumeTrue("Setup invalid with toolchains", !getClass().name.contains('Toolchains'))
+        Assume.assumeTrue("Setup invalid with toolchains", !getClass().name.contains('Toolchain'))
         args("-PjdkHome=${Jvm.current().getJavaHome().absolutePath}")
 
         expect:

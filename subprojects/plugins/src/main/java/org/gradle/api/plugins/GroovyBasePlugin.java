@@ -28,14 +28,20 @@ import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.function.BiFunction;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
@@ -48,14 +54,16 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
+    private final JvmPluginServices jvmPluginServices;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
 
     @Inject
-    public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry) {
+    public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry, JvmEcosystemUtilities jvmPluginServices) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
+        this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
 
     @Override
@@ -98,15 +106,18 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 JvmPluginsHelper.configureForSourceSet(sourceSet, groovySource, compile, compile.getOptions(), project);
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySource);
+                compile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
             });
             JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, groovySource, project, compileTask, compileTask.map(GroovyCompile::getOptions));
+            jvmPluginServices.useDefaultTargetPlatformInference(project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
+            jvmPluginServices.useDefaultTargetPlatformInference(project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
 
             // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin
             // doesn't need to do this.
             project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(compileTask));
 
             // Explain that Groovy, for compile, also needs the resources (#9872)
-            project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
+            project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
                 attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.getObjects().named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES))
             );
         });
@@ -128,5 +139,11 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private JavaPluginConvention java(Convention convention) {
         return convention.getPlugin(JavaPluginConvention.class);
+    }
+
+    private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
+        final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
+        final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+        return toolMapper.apply(service, extension.getToolchain());
     }
 }

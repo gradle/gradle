@@ -45,6 +45,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
@@ -163,7 +164,7 @@ public class JavaBasePlugin implements Plugin<Project> {
             createClassesTask(sourceSet, project);
 
             configureLibraryElements(compileTask, sourceSet, configurations, project.getObjects());
-            configureTargetPlatform(sourceSet, configurations);
+            configureTargetPlatform(compileTask, sourceSet, configurations);
 
             JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(JavaCompile::getOptions));
         });
@@ -174,9 +175,9 @@ public class JavaBasePlugin implements Plugin<Project> {
         ((ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName())).beforeLocking(configureLibraryElements);
     }
 
-    private void configureTargetPlatform(SourceSet sourceSet, ConfigurationContainer configurations) {
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), sourceSet);
-        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), sourceSet);
+    private void configureTargetPlatform(TaskProvider<JavaCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
+        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
+        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
@@ -327,6 +328,13 @@ public class JavaBasePlugin implements Plugin<Project> {
                     // Toolchains in use
                     checkToolchainAndCompatibilityUsage(javaExtension, rawJavaVersionSupplier);
                     return javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString();
+                }
+            }
+            if (compile instanceof GroovyCompile) {
+                GroovyCompile groovyCompile = (GroovyCompile) compile;
+                if (groovyCompile.getJavaLauncher().isPresent()) {
+                    checkToolchainAndCompatibilityUsage(javaExtension, rawJavaVersionSupplier);
+                    return groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString();
                 }
             }
             return javaVersionSupplier.get().toString();
