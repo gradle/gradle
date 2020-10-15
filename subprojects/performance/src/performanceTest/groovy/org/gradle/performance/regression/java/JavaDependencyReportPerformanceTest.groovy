@@ -22,6 +22,7 @@ import org.gradle.performance.annotations.Scenario
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
@@ -32,7 +33,7 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
     @Unroll
     def "generate dependency report"() {
         given:
-        def subProject = (runner.testProject == "largeJavaMultiProject".projectName) ? 'project363:' : ''
+        def subProject = (runner.testProject == LARGE_JAVA_MULTI_PROJECT.projectName) ? 'project363:' : ''
         runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ["${subProject}dependencyReport"]
         runner.targetVersions = ["6.7-20200824220048+0000"]
