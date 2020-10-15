@@ -36,7 +36,7 @@ public abstract class AbstractListChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    protected <R> R handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
+    protected <RESULT> RESULT handlePath(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, PathRelationshipHandler<RESULT> handler) {
         int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
         if (childIndex >= 0) {
             return children.get(childIndex).handlePath(targetPath, childIndex, caseSensitivity, handler);

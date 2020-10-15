@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import java.util.List;
+import java.util.Optional;
 
 public class MediumChildMap<T> extends AbstractListChildMap<T> {
     protected MediumChildMap(List<Entry<T>> children) {
@@ -24,18 +25,11 @@ public class MediumChildMap<T> extends AbstractListChildMap<T> {
     }
 
     @Override
-    public <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
+    public <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
         for (Entry<T> entry : children) {
-            String childPath = entry.getPath();
-            T child = entry.getValue();
-            if (targetPath.hasPrefix(childPath, caseSensitivity)) {
-                if (targetPath.length() == childPath.length()) {
-                    return handler.handleExactMatchWithChild(child);
-                } else {
-                    return handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), child);
-                }
-            } else if (targetPath.length() < childPath.length() && targetPath.isPrefixOf(childPath, caseSensitivity)) {
-                return handler.handleAsAncestorOfChild(childPath, child);
+            Optional<RESULT> ancestorDescendantOrExactMatchResult = entry.handleAncestorDescendantOrExactMatch(targetPath, caseSensitivity, handler);
+            if (ancestorDescendantOrExactMatchResult.isPresent()) {
+                return ancestorDescendantOrExactMatchResult.get();
             }
         }
         return handler.handleUnrelatedToAnyChild();

@@ -50,44 +50,44 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
     protected abstract T get(int index);
 
     @Override
-    public <R> ChildMap<R> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, R> handler) {
-        return handlePath(targetPath, caseSensitivity, new PathRelationshipHandler<ChildMap<R>>() {
+    public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
+        return handlePath(targetPath, caseSensitivity, new PathRelationshipHandler<ChildMap<RESULT>>() {
             @Override
-            public ChildMap<R> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+            public ChildMap<RESULT> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 T oldChild = get(childIndex);
-                Optional<R> invalidatedChild = handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), oldChild);
+                Optional<RESULT> invalidatedChild = handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), oldChild);
                 return invalidatedChild
                     .map(newChild -> cast(AbstractChildMap.this).withReplacedChild(childIndex, childPath, newChild))
                     .orElseGet(() -> cast(withRemovedChild(childIndex)));
             }
 
             @Override
-            public ChildMap<R> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+            public ChildMap<RESULT> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 handler.handleAsAncestorOfChild(childPath, get(childIndex));
                 return cast(withRemovedChild(childIndex));
             }
 
             @Override
-            public ChildMap<R> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
+            public ChildMap<RESULT> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
                 handler.handleExactMatchWithChild(get(childIndex));
                 return cast(withRemovedChild(childIndex));
             }
 
             @Override
-            public ChildMap<R> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
+            public ChildMap<RESULT> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
                 handler.handleUnrelatedToAnyChild();
                 return cast(AbstractChildMap.this);
             }
 
             @Override
-            public ChildMap<R> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
+            public ChildMap<RESULT> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
                 handler.handleUnrelatedToAnyChild();
                 return cast(AbstractChildMap.this);
             }
 
             @SuppressWarnings("unchecked")
-            private AbstractChildMap<R> cast(AbstractChildMap<T> currentMap) {
-                return (AbstractChildMap<R>) currentMap;
+            private AbstractChildMap<RESULT> cast(AbstractChildMap<T> currentMap) {
+                return (AbstractChildMap<RESULT>) currentMap;
             }
         });
     }
@@ -162,16 +162,21 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
         }
 
         public <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
+            return handleAncestorDescendantOrExactMatch(targetPath, caseSensitivity, handler)
+                .orElseGet(handler::handleUnrelatedToAnyChild);
+        }
+
+        public <RESULT> Optional<RESULT> handleAncestorDescendantOrExactMatch(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
             if (targetPath.hasPrefix(path, caseSensitivity)) {
                 if (targetPath.length() == path.length()) {
-                    return handler.handleExactMatchWithChild(value);
+                    return Optional.of(handler.handleExactMatchWithChild(value));
                 } else {
-                    return handler.handleAsDescendantOfChild(targetPath.fromChild(path), value);
+                    return Optional.of(handler.handleAsDescendantOfChild(targetPath.fromChild(path), value));
                 }
             } else if (targetPath.length() < path.length() && targetPath.isPrefixOf(path, caseSensitivity)) {
-                return handler.handleAsAncestorOfChild(path, value);
+                return Optional.of(handler.handleAsAncestorOfChild(path, value));
             }
-            return handler.handleUnrelatedToAnyChild();
+            return Optional.empty();
         }
 
         public <RESULT> RESULT handlePath(VfsRelativePath targetPath, int currentChildIndex, CaseSensitivity caseSensitivity, PathRelationshipHandler<RESULT> handler) {
