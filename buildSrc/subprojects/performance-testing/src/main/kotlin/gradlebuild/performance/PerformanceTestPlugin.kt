@@ -207,7 +207,9 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             outputs.cacheIf { false }
 
-            if (!write) {
+            if (write) {
+                outputs.file(outputJson)
+            } else {
                 inputs.file(outputJson)
             }
         }
