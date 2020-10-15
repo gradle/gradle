@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 public class SharedJavaInstallationRegistry {
     private final BuildOperationExecutor executor;
-    private Supplier<Set<File>> installations;
+    private final Supplier<Set<File>> installations;
     private final Logger logger;
 
     @Inject
