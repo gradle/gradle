@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance.annotations
 
-import org.gradle.performance.annotations.RunFor
-
-/**
- * Make sure all performance tests are annotated with {@link @RunFor}
- */
-class AnnotationGuardedPerformanceSpec {
-    String testClassName
-
-    void verifyClassIsGuardedByAnnotation() {
-        Class klass = Class.forName(testClassName)
-        assert klass.isAnnotationPresent(RunFor.class) ||
-            klass.getMethods().any { it.isAnnotationPresent(RunFor.class) }:
-            "All performance tests must be annotated by @RunFor!"
-    }
+class AllFeaturesShouldBeAnnotatedByRunFor {
 }

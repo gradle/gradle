@@ -33,7 +33,7 @@ import org.junit.Assume
 import java.util.function.Function
 
 @CompileStatic
-abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> extends AnnotationGuardedPerformanceSpec {
+abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> {
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
     private final List<String> measuredBuildOperations = []
 
@@ -42,6 +42,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     final BuildExperimentRunner experimentRunner
     final Clock clock = Time.clock()
 
+    String testClassName
     String testId
     String testGroup
     String testProject
@@ -129,8 +130,6 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     R run() {
         assert !specs.empty
         assert testId
-
-        verifyClassIsGuardedByAnnotation()
 
         // TODO: Make sure cross build scenarios only run on one test project
         Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
