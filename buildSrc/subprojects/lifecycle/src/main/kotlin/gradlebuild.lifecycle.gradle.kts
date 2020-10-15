@@ -37,7 +37,7 @@ val allVersionsIntegMultiVersionTest = "allVersionsIntegMultiVersionTest"
 
 val soakTest = "soakTest"
 
-val smokeTest = "soakTest"
+val smokeTest = "smokeTest"
 
 
 setupTimeoutMonitorOnCI()
