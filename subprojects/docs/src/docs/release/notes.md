@@ -1,9 +1,9 @@
 The Gradle team is excited to announce Gradle @version@.
-The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
 [Jeff](https://github.com/mathjeff),
+[jdai8](https://github.com/jdai8),
 [Björn Kautler](https://github.com/Vampire).
 
 <!-- 

@@ -5,26 +5,27 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
 import org.gradle.kotlin.dsl.provider.SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
 import java.util.regex.Pattern
 
 
 class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    @Rule
-    @JvmField
-    val temporaryFolder = TestNameTestDirectoryProvider(javaClass)
+    companion object CacheBuster {
+        var cacheBuster = UUID.randomUUID()
+    }
 
     @Before
     fun init() {
         assumeTrue(BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
+
+        cacheBuster = UUID.randomUUID()
 
         withSettings(
             """
@@ -585,8 +586,19 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
+    fun withKotlinDslPluginInBuildSrc() {
+        // this is to force buildSrc/build.gradle.kts to be written to test-local buildscript cache
+        // and not to be reused from daemon's cache from other tests when daemon is in use
+        withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin()).appendText(
+            """
+                val cacheBuster = "$cacheBuster"
+            """
+        )
+    }
+
+    private
     fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
-        withKotlinDslPluginIn("buildSrc")
+        withKotlinDslPluginInBuildSrc()
         withFile("buildSrc/src/main/kotlin/$pluginId.gradle.kts", pluginSource)
     }
 
@@ -620,13 +632,13 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun givenKotlinClassInBuildSrcContains(classBody: String): String {
-        withKotlinDslPluginIn("buildSrc")
+        withKotlinDslPluginInBuildSrc()
         return kotlinClassSourceFile("buildSrc", classBody)
     }
 
     private
     fun givenKotlinScriptInBuildSrcContains(scriptName: String, scriptBody: String, scriptPrefix: String = ""): String {
-        withKotlinDslPluginIn("buildSrc")
+        withKotlinDslPluginInBuildSrc()
         return kotlinScriptSourceFile("buildSrc", scriptName, scriptBody, scriptPrefix)
     }
 
@@ -676,15 +688,15 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun configureProject(vararg tasks: String): BuildOperationsAssertions {
-        val buildOperations = BuildOperationsFixture(executer, temporaryFolder)
-        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
+        val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
+        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${testDirectoryProvider.testDirectory}")
         val output = executer.withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
 
     private
     fun configureProjectAndExpectCompileFailure(expectedFailure: String) {
-        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
+        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${testDirectoryProvider.testDirectory}")
         val error = executer.runWithFailure().error
         assertThat(error, containsString(expectedFailure))
     }
@@ -694,7 +706,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     // leaving this one as a workaround for test cases that have precompiled script plugins until the underlying issue is fixed
     private
     fun configureProjectWithDebugOutput(vararg tasks: String): DebugOutputFixture {
-        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
+        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${testDirectoryProvider.testDirectory}")
         return DebugOutputFixture(executer.withArgument("--debug").withTasks(*tasks).run().normalizedOutput)
     }
 }
