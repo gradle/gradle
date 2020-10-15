@@ -36,6 +36,14 @@ import java.lang.annotation.Target
 @interface AllFeaturesShouldBeAnnotated {
 }
 
+/**
+ * Marks a test has deliberately no @RunFor
+ */
+@Target([ElementType.TYPE, ElementType.METHOD])
+@Retention(RetentionPolicy.RUNTIME)
+@interface NoRunFor {
+}
+
 @CompileStatic
 class AllFeaturesShouldBeAnnotatedByRunForExtension extends AbstractAnnotationDrivenExtension<AllFeaturesShouldBeAnnotated> {
     @Override
@@ -45,7 +53,9 @@ class AllFeaturesShouldBeAnnotatedByRunForExtension extends AbstractAnnotationDr
             spec = spec.subSpec
         }
 
-        if (!spec.getReflection().isAnnotationPresent(RunFor.class) && !spec.getReflection().isAnnotationPresent(Ignore.class)) {
+        if (!spec.getReflection().isAnnotationPresent(RunFor) &&
+            !spec.getReflection().isAnnotationPresent(Ignore) &&
+            !spec.getReflection().isAnnotationPresent(NoRunFor)) {
             spec.getFeatures()
                 .findAll {
                     !it.getFeatureMethod().getReflection().isAnnotationPresent(RunFor.class) &&
