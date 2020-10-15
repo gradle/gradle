@@ -19,7 +19,8 @@ package org.gradle.internal.snapshot;
 import org.gradle.internal.file.FileType;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 public abstract class AbstractIncompleteSnapshotWithChildren implements FileSystemNode {
     protected final ChildMap<FileSystemNode> children;
@@ -102,9 +103,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
 
             @Override
             public FileSystemNode createNodeFromChildren(ChildMap<FileSystemNode> children) {
-                AtomicBoolean isDirectory = new AtomicBoolean(false);
-                children.visitChildren((__, child) -> child.getSnapshot().map(this::isRegularFileOrDirectory).ifPresent(notMissing -> isDirectory.compareAndSet(false, notMissing)));
-                return isDirectory.get() ? new PartialDirectorySnapshot(children) : new UnknownSnapshot(children);
+                boolean isDirectory = anyChildMatches(children, node -> node.getSnapshot().map(this::isRegularFileOrDirectory).orElse(false));
+                return isDirectory ? new PartialDirectorySnapshot(children) : new UnknownSnapshot(children);
             }
 
             private boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {
@@ -149,8 +149,30 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
 
     @Override
     public boolean hasDescendants() {
-        AtomicBoolean hasDescendants = new AtomicBoolean();
-        children.visitChildren((childPath, child) -> hasDescendants.compareAndSet(false, child.hasDescendants()));
-        return hasDescendants.get();
+        return anyChildMatches(children, FileSystemNode::hasDescendants);
+    }
+
+    private boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
+        AnyChildHasPropertyVisitor visitor = new AnyChildHasPropertyVisitor(predicate);
+        children.visitChildren(visitor);
+        return visitor.isAnyChildMatches();
+    }
+
+    public static class AnyChildHasPropertyVisitor implements BiConsumer<String, FileSystemNode> {
+        private final Predicate<FileSystemNode> predicate;
+        private boolean anyChildMatches = false;
+
+        public AnyChildHasPropertyVisitor(Predicate<FileSystemNode> predicate) {
+            this.predicate = predicate;
+        }
+
+        @Override
+        public void accept(String path, FileSystemNode child) {
+            anyChildMatches |= predicate.test(child);
+        }
+
+        public boolean isAnyChildMatches() {
+            return anyChildMatches;
+        }
     }
 }
