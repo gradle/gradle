@@ -58,7 +58,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             val coverage = PerformanceTestCoverage(14, PerformanceTestType.adHoc, Os.LINUX, numberOfBuckets = 1, withoutDependencies = true)
             val performanceTests = Os.values().mapIndexed { index, os -> index to os }.flatMap { (index, os) ->
                 val osCoverage = PerformanceTestCoverage(14, PerformanceTestType.adHoc, os, numberOfBuckets = 1, withoutDependencies = true)
-                listOf("async-profiler", "async-profiler-alloc").mapIndexed { profIndex, profiler ->
+                listOf("async-profiler", "async-profiler-heap").mapIndexed { profIndex, profiler ->
                     createProfiledPerformanceTest(
                         model,
                         stage,
