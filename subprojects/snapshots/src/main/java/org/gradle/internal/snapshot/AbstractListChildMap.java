@@ -115,45 +115,45 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
 
     @Override
     public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
-        return handlePath(targetPath, caseSensitivity, new PathRelationshipHandler<ChildMap<RESULT>>() {
-            @Override
-            public ChildMap<RESULT> handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                T oldChild = get(childIndex);
-                Optional<RESULT> invalidatedChild = handler.handleAsDescendantOfChild(targetPath.fromChild(childPath), oldChild);
-                return invalidatedChild
-                    .map(newChild -> ((AbstractListChildMap<RESULT>) cast(AbstractListChildMap.this)).withReplacedChild(childIndex, childPath, newChild))
-                    .orElseGet(() -> cast(withRemovedChild(childIndex)));
-            }
+        int childIndex = findChildIndexWithCommonPrefix(targetPath, caseSensitivity);
+        if (childIndex >= 0) {
+            Entry<T> entry = entries.get(childIndex);
+            return entry.getNode(targetPath, caseSensitivity, new GetNodeHandler<T, ChildMap<RESULT>>() {
+                @Override
+                public ChildMap<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
+                    Optional<RESULT> invalidatedChild = handler.handleAsDescendantOfChild(pathInChild, child);
+                    return invalidatedChild
+                        .map(newChild -> AbstractListChildMap.this.<RESULT>castThis().withReplacedChild(childIndex, entry.getPath(), newChild))
+                        .orElseGet(() -> cast(withRemovedChild(childIndex)));
+                }
 
-            @Override
-            public ChildMap<RESULT> handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                handler.handleAsAncestorOfChild(childPath, get(childIndex));
-                return cast(withRemovedChild(childIndex));
-            }
+                @SuppressWarnings("unchecked")
+                private <S extends ChildMap<RESULT>> S cast(ChildMap<T> currentMap) {
+                    return (S) currentMap;
+                }
 
-            @Override
-            public ChildMap<RESULT> handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, int childIndex) {
-                handler.handleExactMatchWithChild(get(childIndex));
-                return cast(withRemovedChild(childIndex));
-            }
+                @Override
+                public ChildMap<RESULT> handleExactMatchWithChild(T child) {
+                    handler.handleExactMatchWithChild(child);
+                    return cast(withRemovedChild(childIndex));
+                }
 
-            @Override
-            public ChildMap<RESULT> handleSiblingOfChild(VfsRelativePath targetPath, String childPath, int childIndex, int commonPrefixLength) {
-                handler.handleUnrelatedToAnyChild();
-                return cast(AbstractListChildMap.this);
-            }
+                @Override
+                public ChildMap<RESULT> handleUnrelatedToAnyChild() {
+                    handler.handleUnrelatedToAnyChild();
+                    return castThis();
+                }
 
-            @Override
-            public ChildMap<RESULT> handleUnrelatedToAnyChild(VfsRelativePath targetPath, int indexOfNextBiggerChild) {
-                handler.handleUnrelatedToAnyChild();
-                return cast(AbstractListChildMap.this);
-            }
-
-            @SuppressWarnings("unchecked")
-            private <S extends ChildMap<RESULT>> S cast(ChildMap<T> currentMap) {
-                return (S) currentMap;
-            }
-        });
+                @Override
+                public ChildMap<RESULT> handleAsAncestorOfChild(String childPath, T child) {
+                    handler.handleAsAncestorOfChild(childPath, get(childIndex));
+                    return cast(withRemovedChild(childIndex));
+                }
+            });
+        } else {
+            handler.handleUnrelatedToAnyChild();
+            return castThis();
+        }
     }
 
     @Override
@@ -197,6 +197,11 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
                 return withNewChild(indexOfNextBiggerChild, path, newNode);
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private <RESULT> AbstractListChildMap<RESULT> castThis() {
+        return (AbstractListChildMap<RESULT>) this;
     }
 
     public interface PathRelationshipHandler<RESULT> {
