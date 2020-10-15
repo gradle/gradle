@@ -83,6 +83,7 @@ class JavaInstallationProbeTest extends Specification {
         if (expectedResult == IS_JDK || expectedResult == IS_JRE) {
             assert install.javaVersion == javaVersion
             assert displayName == null || install.displayName == displayName
+            assert probeResult.javaHome != null
         }
 
         where:
@@ -118,12 +119,13 @@ class JavaInstallationProbeTest extends Specification {
         'zuluJdk8'                            | zuluJvm('8')     | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'   | true | false | IS_JDK
         'hpuxJre6'                            | hpuxJvm('6')     | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'  | true | true  | IS_JRE
         'hpuxJdk7'                            | hpuxJvm('7')     | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'  | true | false | IS_JDK
+        'whitespaces'                         | whitespaces('11.0.3')  | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11' | true   | true  | IS_JRE
         'binary that has invalid output'      | invalidOutput()  | null                    | null           | true | false | INVALID_JDK
         'binary that returns unknown version' | invalidVersion() | null                    | null           | true | false | INVALID_JDK
     }
 
     @Requires(TestPrecondition.SYMLINKS)
-    def "cached probe are not affecyed by symlink changes"() {
+    def "cached probe are not affected by symlink changes"() {
         given:
         NativeServicesTestFixture.initialize()
         def execFactory = Mock(ExecActionFactory)
@@ -182,6 +184,17 @@ class JavaInstallationProbeTest extends Specification {
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "${version}+7",
          'java.runtime.name': "OpenJDK Runtime Environment"
+        ]
+    }
+
+    private static Map<String, String> whitespaces(String version) {
+        ['java.home': "home-with-whitespaces\r",
+         'java.version': version,
+         'java.vendor': "AdoptOpenJDK\r",
+         'os.arch': "x86_64\r",
+         'java.vm.name': "OpenJDK 64-Bit Server VM\r",
+         'java.vm.version': "${version}+7\r",
+         'java.runtime.name': "OpenJDK Runtime Environment\r"
         ]
     }
 
