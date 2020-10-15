@@ -141,13 +141,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
-                    return projectStateRegistry.withMutableStateOfAllProjects(new Factory<Object>() {
-                        @Nullable
-                        @Override
-                        public Object create() {
-                            return delegate.buildAll(modelName, project);
-                        }
-                    });
+                    return projectStateRegistry.stateFor(project).fromMutableState(p -> delegate.buildAll(modelName, project));
                 }
 
                 @Override
@@ -177,13 +171,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
-                    return projectStateRegistry.withMutableStateOfAllProjects(new Factory<Object>() {
-                        @Nullable
-                        @Override
-                        public Object create() {
-                            return delegate.buildAll(modelName, parameter, project);
-                        }
-                    });
+                    return projectStateRegistry.stateFor(project).fromMutableState(p -> delegate.buildAll(modelName, parameter, project));
                 }
 
                 @Override
