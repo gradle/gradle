@@ -68,7 +68,17 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
     }
 
     @Override
+    public void importBuild(Object antBuildFile, String baseDirectory) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer) {
         throw new UnsupportedOperationException();
     }
 

@@ -99,9 +99,21 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
     }
 
     @Override
+    public void importBuild(Object antBuildFile, String baseDirectory) {
+        importBuild(antBuildFile, baseDirectory, Transformers.<String>noOpTransformer());
+    }
+
+    @Override
     public void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer) {
+        importBuild(antBuildFile, null, taskNamer);
+    }
+
+    @Override
+    public void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer) {
         File file = gradleProject.file(antBuildFile);
-        final File baseDir = file.getParentFile();
+
+        Optional<Object> baseDirectoryOptional = Optional.ofNullable(baseDirectory);
+        final File baseDir = gradleProject.file(baseDirectoryOptional.orElse(file.getParentFile().getAbsolutePath()));
 
         Set<String> existingAntTargets = new HashSet<String>(getAntProject().getTargets().keySet());
         File oldBaseDir = getAntProject().getBaseDir();
