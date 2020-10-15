@@ -20,7 +20,7 @@ import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.BuildEventSubscriptions
@@ -65,7 +65,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
             get(BuildEventConsumer) >> buildEventConsumer
             get(BuildCancellationToken) >> Stub(BuildCancellationToken)
             get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
-            get(ProjectStateRegistry) >> Stub(ProjectStateRegistry)
+            get(ProjectConfigurer) >> Stub(ProjectConfigurer)
         }
     }
     def buildResult = Mock(BuildResult)
@@ -107,13 +107,13 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         1 * buildFinishedAction.execute(_) >> result2
         1 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                    it.phase == PhasedActionResult.Phase.PROJECTS_LOADED &&
-                    it.result == serializedResult1
+                it.phase == PhasedActionResult.Phase.PROJECTS_LOADED &&
+                it.result == serializedResult1
         })
         1 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                    it.phase == PhasedActionResult.Phase.BUILD_FINISHED &&
-                    it.result == serializedResult2
+                it.phase == PhasedActionResult.Phase.BUILD_FINISHED &&
+                it.result == serializedResult2
         })
     }
 
