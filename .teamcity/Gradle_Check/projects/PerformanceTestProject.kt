@@ -8,14 +8,17 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.Stage
 
-class PerformanceTestProject(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, val performanceTestCoverage: PerformanceTestCoverage) : Project({
+abstract class PerformanceTestProject(model: CIBuildModel, val performanceTestCoverage: PerformanceTestCoverage, val performanceTests: List<PerformanceTest>) : Project({
     this.uuid = performanceTestCoverage.asConfigurationId(model)
     this.id = AbsoluteId(uuid)
     this.name = "${performanceTestCoverage.asName()}${if (performanceTestCoverage.withoutDependencies) " without dependencies" else ""}"
 }) {
-    val performanceTests: List<PerformanceTest> = performanceTestBucketProvider.createPerformanceTestsFor(stage, performanceTestCoverage)
-
     init {
         performanceTests.forEach(this::buildType)
     }
 }
+
+class AutomaticallySplitPerformanceTestProject(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, performanceTestCoverage: PerformanceTestCoverage) : PerformanceTestProject(model, performanceTestCoverage, performanceTestBucketProvider.createPerformanceTestsFor(stage, performanceTestCoverage))
+
+class ManuallySplitPerformanceTestProject(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, performanceTests: List<PerformanceTest>) :
+    PerformanceTestProject(model, performanceTestCoverage, performanceTests)
