@@ -20,10 +20,10 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -54,13 +54,11 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final GradleInternal gradle;
     private final BuildCancellationToken cancellationToken;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ProjectStateRegistry projectStateRegistry;
 
-    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
+    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
         this.gradle = gradle;
         this.cancellationToken = cancellationToken;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.projectStateRegistry = projectStateRegistry;
     }
 
     /**
@@ -69,6 +67,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Override
     @Deprecated
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
+        assertCanQuery();
         return new ProviderBuildResult<Object>(gradle);
     }
 
@@ -87,6 +86,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Override
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
         }
@@ -109,9 +109,10 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
     @Override
     public <T> List<T> run(List<Supplier<T>> actions) {
+        assertCanQuery();
         List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());
         for (Supplier<T> action : actions) {
-            wrappers.add(new NestedAction<>(action, projectStateRegistry));
+            wrappers.add(new NestedAction<>(action));
         }
         buildOperationExecutor.runAll(buildOperationQueue -> {
             for (NestedAction<T> wrapper : wrappers) {
@@ -119,7 +120,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             }
         });
 
-        List<T> results = new ArrayList<T>(actions.size());
+        List<T> results = new ArrayList<>(actions.size());
         List<Throwable> failures = new ArrayList<>();
         for (NestedAction<T> wrapper : wrappers) {
             Try<T> value = wrapper.value();
@@ -202,21 +203,24 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         return builder;
     }
 
+    private void assertCanQuery() {
+        if (!GradleThread.isManaged()) {
+            throw new IllegalStateException("A build controller cannot be used from a thread that is not managed by Gradle.");
+        }
+    }
+
     private static class NestedAction<T> implements RunnableBuildOperation {
         private final Supplier<T> action;
-        private final ProjectStateRegistry projectStateRegistry;
         private Try<T> result;
 
-        public NestedAction(Supplier<T> action, ProjectStateRegistry projectStateRegistry) {
+        public NestedAction(Supplier<T> action) {
             this.action = action;
-            this.projectStateRegistry = projectStateRegistry;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            // TODO - do not grant uncontrolled access
             try {
-                T value = projectStateRegistry.allowUncontrolledAccessToAnyProject(action::get);
+                T value = action.get();
                 result = Try.successful(value);
             } catch (Throwable t) {
                 result = Try.failure(t);
@@ -229,7 +233,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("run tooling API client action");
+            return BuildOperationDescriptor.displayName("Tooling API client action");
         }
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
@@ -117,7 +116,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         }
 
         private <T> SerializedPayload runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
-            DefaultBuildController internalBuildController = new DefaultBuildController(gradle, gradle.getServices().get(BuildCancellationToken.class), gradle.getServices().get(BuildOperationExecutor.class), gradle.getServices().get(ProjectStateRegistry.class));
+            DefaultBuildController internalBuildController = new DefaultBuildController(gradle, gradle.getServices().get(BuildCancellationToken.class), gradle.getServices().get(BuildOperationExecutor.class));
             T model;
             try {
                 model = action.execute(internalBuildController);

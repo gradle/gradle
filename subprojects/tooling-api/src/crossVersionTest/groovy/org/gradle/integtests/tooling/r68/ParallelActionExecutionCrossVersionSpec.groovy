@@ -85,7 +85,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=6.8")
-    def "nested actions run in parallel when target Gradle version supports it"() {
+    def "nested actions run in parallel when target Gradle version supports it and --parallel is used"() {
         given:
         server.start()
 
@@ -107,10 +107,15 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
                 implementation project('b')
             }
         """
+
         expect:
         server.expectConcurrent('root', 'a', 'b')
         def models = withConnection {
-            action(new ActionRunsNestedActions()).run()
+            def action = action(new ActionRunsNestedActions())
+            action.standardOutput = System.out
+            action.standardError = System.err
+            action.addArguments("--parallel")
+            action.run()
         }
         models.projects.path == [':', ':a', ':b']
     }

@@ -16,12 +16,14 @@
 
 package org.gradle.tooling.internal.provider.runner
 
+
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.concurrent.GradleThread
+import org.gradle.internal.operations.MultipleBuildOperationFailures
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
@@ -31,6 +33,8 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 class DefaultBuildControllerTest extends Specification {
     def cancellationToken = Stub(BuildCancellationToken)
@@ -50,9 +54,28 @@ class DefaultBuildControllerTest extends Specification {
     }
     def modelBuilder = Stub(ToolingModelBuilder)
     def parameterizedModelBuilder = Stub(ParameterizedToolingModelBuilder)
-    def buildOperationExecutor = Stub(BuildOperationExecutor)
-    def projectStateRegistry = Stub(ProjectStateRegistry)
-    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor, projectStateRegistry)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor)
+
+    def setup() {
+        GradleThread.setManaged()
+    }
+
+    def cleanup() {
+        GradleThread.setUnmanaged()
+    }
+
+    def "cannot get build model from unmanaged thread"() {
+        given:
+        GradleThread.setUnmanaged()
+
+        when:
+        controller.getBuildModel()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "A build controller cannot be used from a thread that is not managed by Gradle."
+    }
 
     def "adapts model not found exception to protocol exception"() {
         def failure = new UnknownModelException("not found")
@@ -67,6 +90,18 @@ class DefaultBuildControllerTest extends Specification {
         then:
         InternalUnsupportedModelException e = thrown()
         e.cause == failure
+    }
+
+    def "cannot get model from unmanaged thread"() {
+        given:
+        GradleThread.setUnmanaged()
+
+        when:
+        controller.getModel(null, modelId)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "A build controller cannot be used from a thread that is not managed by Gradle."
     }
 
     def "uses builder for specified project"() {
@@ -178,6 +213,55 @@ class DefaultBuildControllerTest extends Specification {
 
         then:
         thrown(InternalUnsupportedModelException)
+    }
+
+    def "runs supplied actions"() {
+        def action1 = Mock(Supplier)
+        def action2 = Mock(Supplier)
+        def action3 = Mock(Supplier)
+
+        when:
+        def result = controller.run([action1, action2, action3])
+
+        then:
+        result == ["one", "two", "three"]
+
+        1 * action1.get() >> "one"
+        1 * action2.get() >> "two"
+        1 * action3.get() >> "three"
+        0 * _
+    }
+
+    def "collects all failures from actions"() {
+        def action1 = Mock(Supplier)
+        def action2 = Mock(Supplier)
+        def action3 = Mock(Supplier)
+        def failure1 = new RuntimeException()
+        def failure2 = new RuntimeException()
+
+        when:
+        controller.run([action1, action2, action3])
+
+        then:
+        def e = thrown(MultipleBuildOperationFailures)
+        e.causes == [failure1, failure2]
+
+        1 * action1.get() >> { throw failure1 }
+        1 * action2.get() >> { throw failure2 }
+        1 * action3.get() >> "three"
+        0 * _
+    }
+
+    def "cannot run actions from unmanaged thread"() {
+        given:
+        GradleThread.setUnmanaged()
+
+        when:
+        controller.run([Stub(Supplier)])
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "A build controller cannot be used from a thread that is not managed by Gradle."
     }
 
     interface CustomParameter {
