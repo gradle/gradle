@@ -57,8 +57,8 @@ jobs:
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
 
     - name: Compile with Gradle without Build Scan
-        if: ${{ matrix.language != 'javascript' && github.repository_owner != 'gradle' }}
-        run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -S testClasses
+      if: ${{ matrix.language != 'javascript' && github.repository_owner != 'gradle' }}
+      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -S testClasses
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
