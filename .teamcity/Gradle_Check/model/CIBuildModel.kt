@@ -329,7 +329,7 @@ enum class PerformanceTestType(
         taskId = "HistoricalPerformanceTest",
         displayName = "AdHoc Performance Test",
         timeout = 30,
-        defaultBaselines = "defaults",
+        defaultBaselines = "none",
         channel = "adhoc",
         extraParameters = "--checks none"
     );
