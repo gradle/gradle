@@ -3,9 +3,7 @@
 For beginners to Gradle implementing plugins can look like a daunting task that includes many considerations and deep knowledge:
 organizing and structuring plugin logic, testing and debugging plugin code as well as publishing the plugin artifact to a repository for consumption.
 
-This is the first of a number of sections with deep coverage on various aspects of Gradle plugin development.
-You will learn how to properly design Gradle plugins based on established practices and apply them to your own projects.
-
+In this section, you will learn how to properly design Gradle plugins based on established practices and apply them to your own projects.
 This section assumes you have:
 
 - Basic understanding of software engineering practices
