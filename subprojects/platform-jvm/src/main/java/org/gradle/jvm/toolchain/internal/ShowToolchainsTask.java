@@ -16,48 +16,56 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.HelpTasksPlugin;
 import org.gradle.api.tasks.diagnostics.AbstractReportTask;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ShowToolchainsTask extends AbstractReportTask {
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
     @Override
-    protected ReportRenderer getRenderer() {
-        return toolchainRenderer;
-    }
-
-    @Override
     protected void generate(Project project) throws IOException {
-        toolchainRenderer.getTextOutput().println("Hello toolchains");
+        allReportableToolchains().forEach(toolchainRenderer::printToolchain);
     }
 
-    public static class ShowToolchainsTaskAction implements Action<ShowToolchainsTask> {
+    private List<JavaInstallationProbe.ProbeResult> allReportableToolchains() {
+        return getInstallationRegistry().listInstallations().stream()
+            .map(this::asReportableToolchain)
+            .sorted(reportingProbeCompator())
+            .collect(Collectors.toList());
+    }
 
-        private String projectName;
+    private Comparator<? super JavaInstallationProbe.ProbeResult> reportingProbeCompator() {
+        return Comparator
+            .comparing(JavaInstallationProbe.ProbeResult::getImplementationName)
+            .thenComparing(JavaInstallationProbe.ProbeResult::getJavaVersion);
+    }
 
-        public ShowToolchainsTaskAction(String projectName) {
-            this.projectName = projectName;
-        }
-
-        @Override
-        public void execute(ShowToolchainsTask task) {
-            task.setDescription("Displays the java toolchains available for " + projectName + ".");
-            task.setGroup(HelpTasksPlugin.HELP_GROUP);
-            task.setImpliesSubProjects(true);
-        }
+    private JavaInstallationProbe.ProbeResult asReportableToolchain(File javaHome) {
+        return getProbeService().checkJdk(javaHome);
     }
 
     @Inject
     protected SharedJavaInstallationRegistry getInstallationRegistry() {
         throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaInstallationProbe getProbeService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected ReportRenderer getRenderer() {
+        return toolchainRenderer;
     }
 
 }
