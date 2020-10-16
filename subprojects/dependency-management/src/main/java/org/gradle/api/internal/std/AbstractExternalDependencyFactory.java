@@ -17,7 +17,6 @@ package org.gradle.api.internal.std;
 
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
@@ -32,12 +31,6 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                                                 ProviderFactory providers) {
         this.config = config;
         this.providers = providers;
-    }
-
-    protected Provider<MutableVersionConstraint> createVersion(String alias) {
-        return providers.of(DependencyDataVersionConstraintValueSource.class,
-            spec -> spec.getParameters().getVersion().set(config.getDependencyData(alias).getVersion()))
-            .forUseAtConfigurationTime();
     }
 
     protected Provider<MinimalExternalModuleDependency> create(String alias) {

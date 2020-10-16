@@ -79,7 +79,6 @@ public class DependenciesSourceGenerator {
         for (String alias : dependencies) {
             String coordinates = coordinatesDescriptorFor(config.getDependencyData(alias));
             writeAccessor(alias, coordinates);
-            writeGetVersion(alias, coordinates);
         }
         for (String alias : bundles) {
             List<String> coordinates = config.getBundle(alias).stream()
@@ -100,14 +99,6 @@ public class DependenciesSourceGenerator {
         writeLn("     * Creates a dependency provider for " + alias + " (" + coordinates + ")");
         writeLn("     */");
         writeLn("    public Provider<MinimalExternalModuleDependency> get" + toMethodName(alias) + "() { return create(\"" + alias + "\"); }");
-        writeLn();
-    }
-
-    private void writeGetVersion(String alias, String coordinates) throws IOException {
-        writeLn("    /**");
-        writeLn("     * Creates a version constraint provider for " + alias + " (" + coordinates + ")");
-        writeLn("     */");
-        writeLn("    public Provider<MutableVersionConstraint> get" + toMethodName(alias) + "Version() { return createVersion(\"" + alias + "\"); }");
         writeLn();
     }
 
