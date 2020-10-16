@@ -25,6 +25,7 @@ import org.gradle.profiler.mutations.ClearProjectCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.results.OperatingSystem.LINUX
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 
 @RunFor(
     @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
@@ -39,7 +40,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['tasks']
-        runner.runs = (runner.testProject == "largeMonolithicJavaProjectKotlinDsl".projectName) ? 5 : 10
+        runner.runs = (runner.testProject == (LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL.projectName) ? 5 : 10)
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
