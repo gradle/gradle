@@ -37,6 +37,8 @@ val allVersionsIntegMultiVersionTest = "allVersionsIntegMultiVersionTest"
 
 val soakTest = "soakTest"
 
+val smokeTest = "smokeTest"
+
 
 setupTimeoutMonitorOnCI()
 setupGlobalState()
@@ -69,12 +71,11 @@ fun setupTimeoutMonitorOnCI() {
     }
 }
 
-fun determineTimeoutMillis() =
-    if (isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest)) {
-        Duration.ofMinutes(30).toMillis()
-    } else {
-        Duration.ofHours(2).plusMinutes(45).toMillis()
-    }
+fun determineTimeoutMillis() = when {
+    isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest) -> Duration.ofMinutes(30).toMillis()
+    isRequestedTask(smokeTest) -> Duration.ofHours(1).plusMinutes(30).toMillis()
+    else -> Duration.ofHours(2).plusMinutes(45).toMillis()
+}
 
 fun setupGlobalState() {
     if (needsToUseTestVersionsPartial()) {
