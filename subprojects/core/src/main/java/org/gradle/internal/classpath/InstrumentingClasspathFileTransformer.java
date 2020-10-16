@@ -16,7 +16,9 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
@@ -30,25 +32,20 @@ import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final Attributes.Name DIGEST_ATTRIBUTE = new Attributes.Name("SHA1-Digest");
 
+    private final CopyingClasspathFileTransformer copyingClasspathFileTransformer;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
     private final CachedClasspathTransformer.Transform transform;
     private final HashCode configHash;
 
-    public InstrumentingClasspathFileTransformer(ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, CachedClasspathTransformer.Transform transform) {
+    public InstrumentingClasspathFileTransformer(GlobalCacheLocations globalCacheLocations, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, CachedClasspathTransformer.Transform transform) {
+        this.copyingClasspathFileTransformer = new CopyingClasspathFileTransformer(globalCacheLocations);
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.transform = transform;
@@ -67,12 +64,34 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         HashCode fileHash = hasher.hash();
         File transformed = new File(cacheDir, fileHash.toString() + '/' + name);
         if (!transformed.isFile()) {
-            transform(source, transformed);
+            transformed = transform(source, transformed, sourceSnapshot, cacheDir);
         }
         return transformed;
     }
 
-    private void transform(File source, File dest) {
+    private File transform(File source, File dest, CompleteFileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+        SignedJarDetection signedJarDetection = new SignedJarDetection();
+        try {
+            classpathWalker.visit(source, signedJarDetection);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (FileException e) {
+            LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
+            classpathBuilder.jar(dest, builder -> {
+                // Badly formed archive, so discard the contents and produce an empty JAR
+            });
+            return dest;
+        }
+        if (signedJarDetection.hasSignature) {
+            LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
+            return copyingClasspathFileTransformer.transform(source, sourceSnapshot, cacheDir);
+        } else {
+            instrument(source, dest);
+            return dest;
+        }
+    }
+
+    private void instrument(File source, File dest) {
         classpathBuilder.jar(dest, builder -> {
             try {
                 visitEntries(source, builder);
@@ -92,27 +111,21 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 reader.accept(chain.right, 0);
                 byte[] bytes = classWriter.toByteArray();
                 builder.put(chain.left.getPathString(), bytes);
-            } else if (entry.getName().equals("META-INF/MANIFEST.MF")) {
-                // Remove the signature from the manifest, as the classes may have been instrumented
-                Manifest manifest = new Manifest(new ByteArrayInputStream(entry.getContent()));
-                manifest.getMainAttributes().remove(Attributes.Name.SIGNATURE_VERSION);
-                Iterator<Map.Entry<String, Attributes>> entries = manifest.getEntries().entrySet().iterator();
-                while (entries.hasNext()) {
-                    Map.Entry<String, Attributes> manifestEntry = entries.next();
-                    Attributes attributes = manifestEntry.getValue();
-                    attributes.remove(DIGEST_ATTRIBUTE);
-                    if (attributes.isEmpty()) {
-                        entries.remove();
-                    }
-                }
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                manifest.write(outputStream);
-                builder.put(entry.getName(), outputStream.toByteArray());
-            } else if (!entry.getName().startsWith("META-INF/") || !entry.getName().endsWith(".SF")) {
-                // Discard signature files, as the classes may have been instrumented
-                // Else, copy resource
+            } else {
                 builder.put(entry.getName(), entry.getContent());
             }
         });
+    }
+
+    private static class SignedJarDetection implements ClasspathEntryVisitor {
+
+        boolean hasSignature = false;
+
+        @Override
+        public void visit(Entry entry) {
+            if (entry.getName().startsWith("META-INF/") && entry.getName().endsWith(".SF")) {
+                hasSignature = true;
+            }
+        }
     }
 }

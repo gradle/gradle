@@ -81,7 +81,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     @Override
     public ClassPath transform(ClassPath classPath, StandardTransform transform, Transform additional) {
-        return transformFiles(classPath, new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new CompositeTransformer(additional, transformerFor(transform))));
+        return transformFiles(classPath, new InstrumentingClasspathFileTransformer(globalCacheLocations, classpathWalker, classpathBuilder, new CompositeTransformer(additional, transformerFor(transform))));
     }
 
     @Override
@@ -134,7 +134,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
         switch (transform) {
             case BuildLogic:
-                return new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new InstrumentingTransformer());
+                return new InstrumentingClasspathFileTransformer(globalCacheLocations, classpathWalker, classpathBuilder, new InstrumentingTransformer());
             case None:
                 return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:
