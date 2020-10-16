@@ -69,4 +69,5 @@ public interface DependenciesModelBuilder {
      * @param aliases the aliases of the dependencies included in the bundle
      */
     void bundle(String name, List<String> aliases);
+
 }

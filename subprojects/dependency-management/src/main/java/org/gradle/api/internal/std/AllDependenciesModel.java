@@ -25,7 +25,8 @@ public class AllDependenciesModel implements Serializable {
     private final Map<String, List<String>> bundles;
     private final int hashCode;
 
-    public AllDependenciesModel(Map<String, DependencyModel> aliasToDependency, Map<String, List<String>> bundles) {
+    public AllDependenciesModel(Map<String, DependencyModel> aliasToDependency,
+                                Map<String, List<String>> bundles) {
         this.aliasToDependency = aliasToDependency;
         this.bundles = bundles;
         this.hashCode = doComputeHashCode();
@@ -44,7 +45,6 @@ public class AllDependenciesModel implements Serializable {
             .sorted()
             .collect(Collectors.toList());
     }
-
     public DependencyModel getDependencyData(String alias) {
         return aliasToDependency.get(alias);
     }

@@ -17,6 +17,7 @@ package org.gradle.internal.management;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlParseResult;
@@ -35,13 +36,16 @@ public class DependenciesFileParser {
     private static final Pattern ALIAS_COMPILED_PATTERN = Pattern.compile(ALIAS_PATTERN);
     private static final String DEPENDENCIES_KEY = "dependencies";
     private static final String BUNDLES_KEY = "bundles";
+    private static final String PLUGINS_KEY = "plugins";
 
-    public void parse(InputStream in, DependenciesModelBuilder builder) throws IOException {
+    public void parse(InputStream in, DependenciesModelBuilder builder, PluginDependenciesSpec plugins) throws IOException {
         TomlParseResult result = Toml.parse(in);
         TomlTable dependenciesTable = result.getTable(DEPENDENCIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
+        TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
         parseDependencies(dependenciesTable, builder);
         parseBundles(bundlesTable, builder);
+        parsePlugins(pluginsTable, plugins);
     }
 
     private void parseDependencies(@Nullable TomlTable dependenciesTable, DependenciesModelBuilder builder) {
@@ -62,6 +66,13 @@ public class DependenciesFileParser {
                 .map(String::valueOf)
                 .collect(Collectors.toList());
             builder.bundle(alias, bundled);
+        }
+    }
+
+    private void parsePlugins(@Nullable TomlTable pluginsTable, PluginDependenciesSpec builder) {
+        List<String> keys = pluginsTable.dottedKeySet().stream().sorted().collect(Collectors.toList());
+        for (String id : keys) {
+            builder.id(id).version(pluginsTable.getString(id));
         }
     }
 

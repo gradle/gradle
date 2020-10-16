@@ -57,7 +57,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         ClassLoaderScope parentClassLoaderScope = settings.getClassLoaderScope();
         ClassLoaderScope baseProjectClassLoaderScope = parentClassLoaderScope.createChild(settings.getBuildSrcDir().getAbsolutePath());
         gradle.setBaseProjectClassLoaderScope(baseProjectClassLoaderScope);
-        generateDependenciesAccessors(gradle.getServices(), settings.getSettingsDir(), baseProjectClassLoaderScope);
+        generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, baseProjectClassLoaderScope);
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
         // Makes included build substitutions available
@@ -80,25 +80,25 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         baseProjectClassLoaderScope.export(buildSrcClassPath).lock();
     }
 
-    private void generateDependenciesAccessors(ServiceRegistry services, File settingsDir, ClassLoaderScope classLoaderScope) {
+    private void generateDependenciesAccessorsAndAssignPluginVersions(ServiceRegistry services, SettingsInternal settings, ClassLoaderScope classLoaderScope) {
         DependenciesAccessors accessors = services.get(DependenciesAccessors.class);
         ObjectFactory objects = services.get(ObjectFactory.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
         DependencyResolutionManagementInternal dm = services.get(DependencyResolutionManagementInternal.class);
         dm.dependenciesModel(builder -> {
-            File dependenciesFile = new File(settingsDir, "gradle/dependencies.toml");
+            File dependenciesFile = new File(settings.getSettingsDir(), "gradle/dependencies.toml");
             if (dependenciesFile.exists()) {
                 RegularFileProperty srcProp = objects.fileProperty();
                 srcProp.set(dependenciesFile);
                 Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
                 DependenciesFileParser parser = new DependenciesFileParser();
                 try {
-                    parser.parse(new ByteArrayInputStream(dataSource.get()), builder);
+                    parser.parse(new ByteArrayInputStream(dataSource.get()), builder, settings.getPluginManagement().getPlugins());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             }
-            accessors.generateAccessors(builder, classLoaderScope);
+            accessors.generateAccessors(builder, classLoaderScope, settings);
         });
 
     }

@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.std;
 
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
@@ -39,22 +38,18 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspace workspace;
-    private final ProviderFactory providerFactory;
-    private final ObjectFactory objects;
     private AllDependenciesModel dependenciesConfiguration;
     private Class<? extends ExternalModuleDependencyFactory> factory;
     private ClassPath sources = DefaultClassPath.of();
     private ClassPath classes = DefaultClassPath.of();
 
-    public DefaultDependenciesAccessors(ClassPathRegistry registry, DependenciesAccessorsWorkspace workspace, ProviderFactory providerFactory, ObjectFactory objects) {
+    public DefaultDependenciesAccessors(ClassPathRegistry registry, DependenciesAccessorsWorkspace workspace) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
-        this.providerFactory = providerFactory;
-        this.objects = objects;
     }
 
     @Override
-    public void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope) {
+    public void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope, Settings settings) {
         try {
             dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             StringWriter writer = new StringWriter();
