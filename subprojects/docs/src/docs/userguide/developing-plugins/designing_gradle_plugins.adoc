@@ -127,6 +127,7 @@ Should you decide on using Groovy for your plugin implementation then it is a go
 The recommendation to use a statically-typed language is independent from the language choice for writing tests for your plugin code.
 The use of dynamic Groovy and (its very capable testing and mocking framework) link:http://spockframework.org[Spock] is a very viable and common option.
 
+[[restricting_the_plugin_implementation_to_gradle_s_public_api]]
 === Restricting the plugin implementation to Gradle’s public API
 
 To be able to build a Gradle plugin you’ll need to tell your project to use a compile-time dependency on the Gradle API.

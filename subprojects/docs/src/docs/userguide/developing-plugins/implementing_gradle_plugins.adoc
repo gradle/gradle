@@ -77,6 +77,7 @@ include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/ma
 The first section of this guide talks about the <<plugin-development-plugin,Plugin Development plugin>>.
 As an added benefit of applying the plugin to your project, the task `validateTaskProperties` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
 
+[[modeling_dsl_like_apis]]
 == Modeling DSL-like APIs
 
 DSLs exposed by plugins should be readable and easy to understand.
@@ -124,6 +125,7 @@ The main difference between both concepts is that `Convention` does not allow fo
 Please avoid using the `Convention` concept when writing new plugins.
 The long term plan is to migrate all Gradle core plugins to use extensions and remove the `Convention` concept altogether.
 
+[[capturing_user_input_to_configure_plugin_runtime_behavior]]
 == Capturing user input to configure plugin runtime behavior
 
 Plugins often times come with default conventions that make sensible assumptions about the consuming project.
