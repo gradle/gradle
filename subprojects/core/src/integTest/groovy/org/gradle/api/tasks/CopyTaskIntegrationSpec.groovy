@@ -1945,6 +1945,30 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("out/nested/b.txt").text == "bar"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/14733")
+    def "use expand with immutable map argument"() {
+        given:
+        file("sourceDir/fileToExpand.txt") << "\$foo"
+
+        when:
+        buildScript """
+           task copyWithExpandImmutableMapArgument(type: Copy) {
+               from("sourceDir") {
+                   filesMatching("fileToExpand.txt") {
+                       expand Collections.singletonMap("foo", "fromSingletonMap");
+                   }
+               }
+               into "targetDir"
+           }
+        """
+
+        then:
+        succeeds "copyWithExpandImmutableMapArgument"
+
+        and:
+        file("targetDir/fileToExpand.txt").text == "fromSingletonMap"
+    }
+
     @Issue("GRADLE-3418")
     @Unroll
     def "can copy files with #filePath in path when excluding #pattern"() {
