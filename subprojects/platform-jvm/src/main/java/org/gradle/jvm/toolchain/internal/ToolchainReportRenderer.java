@@ -16,7 +16,30 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.base.Strings;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.internal.logging.text.StyledTextOutput;
+
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ToolchainReportRenderer extends TextReportRenderer {
+
+    public void printToolchain(JavaInstallationProbe.ProbeResult probe) {
+        StyledTextOutput output = getTextOutput();
+        String displayName = probe.getImplementationName() + " " + probe.getImplementationJavaVersion();
+        output.withStyle(Identifier).println(" + " + displayName);
+        printAttribute("Location", probe.getJavaHome().toString());
+        printAttribute("Language Version", probe.getJavaVersion().getMajorVersion());
+        printAttribute("Is JDK", String.valueOf(probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK));
+        output.println();
+    }
+
+    private void printAttribute(String key, String value) {
+        final String paddedKey = Strings.padEnd(key + ":", 20, ' ');
+        getTextOutput().withStyle(Normal).format("     | %s", paddedKey);
+        getTextOutput().withStyle(Description).println(value);
+    }
+
 }
