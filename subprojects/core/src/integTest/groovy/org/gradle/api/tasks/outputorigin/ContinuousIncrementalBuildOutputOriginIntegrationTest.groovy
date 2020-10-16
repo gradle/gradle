@@ -18,7 +18,6 @@ package org.gradle.api.tasks.outputorigin
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -37,7 +36,6 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         void afterExecute(Closure action) {
             afterExecute << new ClosureBackedAction<GradleExecuter>(action)
         }
-
     }
 
     @Rule
@@ -58,7 +56,6 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         afterExecute*.execute(executer)
     }
 
-    @ToBeFixedForConfigurationCache(because = "build ID doesn't change")
     def "new ID is assigned for each execution"() {
         given:
         def i1 = file("i1")
@@ -70,8 +67,8 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
 
         buildFile << """
             task t1 {
-                def o = file("o1")
                 def i = file("i1")
+                def o = file("o1")
                 inputs.files i
                 outputs.files o
                 doLast {
@@ -80,8 +77,8 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
                 }
             }
             task t2 {
-                def o = file("o2")
                 def i = file("i2")
+                def o = file("o2")
                 inputs.files i
                 outputs.files o
                 doLast {
@@ -103,7 +100,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         update(i1, "2")
 
         then:
-        succeeds()
+        succeeds("t")
         afterBuild()
         originBuildInvocationId(":t1") == null
         originBuildInvocationId(":t2") == scopeIds.buildInvocationIds[0].asString()
@@ -112,7 +109,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         update(i2, "2")
 
         then:
-        succeeds()
+        succeeds("t")
         afterBuild()
         originBuildInvocationId(":t1") == scopeIds.buildInvocationIds[1].asString()
         originBuildInvocationId(":t2") == null
