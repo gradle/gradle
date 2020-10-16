@@ -15,18 +15,20 @@
  */
 package org.gradle.api.internal.std;
 
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class DependencyModel implements Serializable {
     private final String group;
     private final String name;
-    private final DependencyVersionModel version;
+    private final ImmutableVersionConstraint version;
     private final int hashCode;
 
     public DependencyModel(String group,
                            String name,
-                           @Nullable DependencyVersionModel version) {
+                           @Nullable ImmutableVersionConstraint version) {
         this.group = group;
         this.name = name;
         this.version = version;
@@ -41,7 +43,7 @@ public class DependencyModel implements Serializable {
         return name;
     }
 
-    public DependencyVersionModel getVersion() {
+    public ImmutableVersionConstraint getVersion() {
         return version;
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -89,4 +90,5 @@ public interface DependencyResolutionManagement {
      */
     void enforceSettingsRules();
 
+    void dependenciesModel(Action<? super DependenciesModelBuilder> spec);
 }

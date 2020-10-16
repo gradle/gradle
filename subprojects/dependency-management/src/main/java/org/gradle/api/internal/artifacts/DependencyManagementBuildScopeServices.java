@@ -217,7 +217,8 @@ class DependencyManagementBuildScopeServices {
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
-            dependencyMetaDataProvider);
+            dependencyMetaDataProvider,
+            instantiator);
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {

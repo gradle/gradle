@@ -15,14 +15,13 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.io.File;
-
 public interface DependenciesAccessors {
-    void generateAccessors(File source, ClassLoaderScope classLoaderScope);
+    void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope);
     void createExtension(ExtensionContainer container);
     ClassPath getSources();
     ClassPath getClasses();

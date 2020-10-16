@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
+package org.gradle.api.initialization.dsl;
 
-import org.gradle.api.Incubating;
+import javax.annotation.Nullable;
+import java.util.List;
 
-/**
- * The minimal information Gradle needs to address an external module.
- *
- * @since 6.8
- */
-@Incubating
-public interface MinimalExternalModuleDependency {
-    ModuleIdentifier getModule();
-    VersionConstraint getVersionConstraint();
+public interface VersionBuilder {
+    void require(@Nullable String version);
+    void prefer(@Nullable String version);
+    void strictly(@Nullable String version);
+    void reject(@Nullable List<String> versions);
+    void rejectAll();
 }

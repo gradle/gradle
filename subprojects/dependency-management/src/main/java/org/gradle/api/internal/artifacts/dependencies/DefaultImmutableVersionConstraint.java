@@ -21,12 +21,13 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.List;
 
 // does not override equals() but hashCode() in order to cache the latter's
 // pre-computed value to improve performance when used in HashMaps
 @SuppressWarnings("checkstyle:EqualsHashCode")
-public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
+public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint, Serializable {
     private static final DefaultImmutableVersionConstraint EMPTY = new DefaultImmutableVersionConstraint("");
     private final String requiredVersion;
     private final String preferredVersion;

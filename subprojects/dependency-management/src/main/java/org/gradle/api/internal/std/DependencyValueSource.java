@@ -16,9 +16,10 @@
 package org.gradle.api.internal.std;
 
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -32,15 +33,9 @@ public abstract class DependencyValueSource implements ValueSource<MinimalExtern
     @Override
     public MinimalExternalModuleDependency obtain() {
         DependencyModel data = getParameters().getDependencyData().get();
-        DependencyVersionModel version = data.getVersion();
-        MutableVersionConstraint vc = DependenciesFactoryHelper.createVersionConstraint(
-            version.getRequiredVersion(),
-            version.getPreferredVersion(),
-            version.getStrictlyVersion(),
-            version.getRejectedVersions(),
-            version.getRejectAll());
+        ImmutableVersionConstraint version = data.getVersion();
         return new DefaultMinimalDependency(
-            DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), vc
+            DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
         );
     }
 }

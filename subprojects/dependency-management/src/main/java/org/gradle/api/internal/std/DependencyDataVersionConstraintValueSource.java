@@ -16,6 +16,8 @@
 package org.gradle.api.internal.std;
 
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -23,18 +25,12 @@ import org.gradle.api.provider.ValueSourceParameters;
 public abstract class DependencyDataVersionConstraintValueSource implements ValueSource<MutableVersionConstraint, DependencyDataVersionConstraintValueSource.Params> {
 
     interface Params extends ValueSourceParameters {
-        Property<DependencyVersionModel> getVersion();
+        Property<ImmutableVersionConstraint> getVersion();
     }
 
     @Override
     public MutableVersionConstraint obtain() {
-        DependencyVersionModel version = getParameters().getVersion().get();
-        return DependenciesFactoryHelper.createVersionConstraint(
-            version.getRequiredVersion(),
-            version.getPreferredVersion(),
-            version.getStrictlyVersion(),
-            version.getRejectedVersions(),
-            version.getRejectAll());
+        return new DefaultMutableVersionConstraint(getParameters().getVersion().get());
     }
 
 }

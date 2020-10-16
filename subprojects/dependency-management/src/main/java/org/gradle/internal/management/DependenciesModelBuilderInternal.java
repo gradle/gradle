@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
+package org.gradle.internal.management;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.internal.std.AllDependenciesModel;
 
-/**
- * The minimal information Gradle needs to address an external module.
- *
- * @since 6.8
- */
-@Incubating
-public interface MinimalExternalModuleDependency {
-    ModuleIdentifier getModule();
-    VersionConstraint getVersionConstraint();
+public interface DependenciesModelBuilderInternal extends DependenciesModelBuilder {
+    AllDependenciesModel build();
 }

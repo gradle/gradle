@@ -18,11 +18,9 @@ package org.gradle.api.internal.std;
 import com.google.common.base.Splitter;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -32,31 +30,19 @@ public class DependenciesSourceGenerator {
 
     private final Writer writer;
     private final AllDependenciesModel config;
-    private final String tomlFileLink;
     private final String ln = System.getProperty("line.separator", "\n");
 
     public DependenciesSourceGenerator(Writer writer,
-                                       File tomlFileLocation,
                                        AllDependenciesModel config) {
         this.writer = writer;
         this.config = config;
-        this.tomlFileLink = toLink(tomlFileLocation);
-    }
-
-    private String toLink(File tomlFileLocation)  {
-        try {
-            return "<a href=\"" + tomlFileLocation.toURI().toURL() + "\">Dependencies configuration file</a>";
-        } catch (MalformedURLException e) {
-            return "<a href=\"" + tomlFileLocation.toURI() + "\">Dependencies configuration file</a>";
-        }
     }
 
     public static void generateSource(Writer writer,
-                                      File tomFile,
                                       AllDependenciesModel config,
                                       String packageName,
                                       String className) {
-        DependenciesSourceGenerator generator = new DependenciesSourceGenerator(writer, tomFile, config);
+        DependenciesSourceGenerator generator = new DependenciesSourceGenerator(writer, config);
         try {
             generator.generate(packageName, className);
         } catch (IOException e) {
@@ -112,20 +98,14 @@ public class DependenciesSourceGenerator {
     private void writeAccessor(String alias, String coordinates) throws IOException {
         writeLn("    /**");
         writeLn("     * Creates a dependency provider for " + alias + " (" + coordinates + ")");
-        writeLinkToToml();
         writeLn("     */");
         writeLn("    public Provider<MinimalExternalModuleDependency> get" + toMethodName(alias) + "() { return create(\"" + alias + "\"); }");
         writeLn();
     }
 
-    private void writeLinkToToml() throws IOException {
-        writeLn("     * See " + tomlFileLink);
-    }
-
     private void writeGetVersion(String alias, String coordinates) throws IOException {
         writeLn("    /**");
         writeLn("     * Creates a version constraint provider for " + alias + " (" + coordinates + ")");
-        writeLinkToToml();
         writeLn("     */");
         writeLn("    public Provider<MutableVersionConstraint> get" + toMethodName(alias) + "Version() { return createVersion(\"" + alias + "\"); }");
         writeLn();
@@ -139,7 +119,6 @@ public class DependenciesSourceGenerator {
             writeLn("     *    <li>" + coordinate + "</li>");
         }
         writeLn("     * </ul>");
-        writeLinkToToml();
         writeLn("     */");
         writeLn("    public Provider<ExternalModuleDependencyBundle> get" + toMethodName(alias) + "Bundle() { return createBundle(\"" + alias + "\"); }");
         writeLn();

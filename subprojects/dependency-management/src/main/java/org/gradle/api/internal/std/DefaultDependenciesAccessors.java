@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.std;
 
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
@@ -28,8 +27,8 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.management.DependenciesModelBuilderInternal;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.List;
@@ -55,13 +54,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Override
-    public void generateAccessors(File source, ClassLoaderScope classLoaderScope) {
+    public void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope) {
         try {
-            RegularFileProperty srcProp = objects.fileProperty();
-            srcProp.set(source);
-            Provider<byte[]> dataSource = providerFactory.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
-            DependenciesFileParser parser = new DependenciesFileParser();
-            dependenciesConfiguration = parser.parse(new ByteArrayInputStream(dataSource.get()));
+            dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             StringWriter writer = new StringWriter();
             Hasher hash = Hashing.sha1().newHasher();
             List<String> dependencyAliases = dependenciesConfiguration.getDependencyAliases();
@@ -73,7 +68,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 File srcDir = new File(workspace, "sources");
                 File dstDir = new File(workspace, "classes");
                 if (!srcDir.exists() || !dstDir.exists()) {
-                    DependenciesSourceGenerator.generateSource(writer, source, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
+                    DependenciesSourceGenerator.generateSource(writer, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
                     DependenciesClassGenerator.compile(srcDir, dstDir, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME, writer.toString(), classPath);
                 }
                 sources = DefaultClassPath.of(srcDir);
