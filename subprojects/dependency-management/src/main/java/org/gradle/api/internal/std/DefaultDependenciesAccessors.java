@@ -39,6 +39,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspace workspace;
     private AllDependenciesModel dependenciesConfiguration;
+    private ClassLoaderScope classLoaderScope;
     private Class<? extends ExternalModuleDependencyFactory> factory;
     private ClassPath sources = DefaultClassPath.of();
     private ClassPath classes = DefaultClassPath.of();
@@ -51,7 +52,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     @Override
     public void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope, Settings settings) {
         try {
-            dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
+            this.dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
+            this.classLoaderScope = classLoaderScope;
             StringWriter writer = new StringWriter();
             Hasher hash = Hashing.sha1().newHasher();
             List<String> dependencyAliases = dependenciesConfiguration.getDependencyAliases();
@@ -59,7 +61,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             dependencyAliases.forEach(hash::putString);
             bundles.forEach(hash::putString);
             String keysHash = hash.hash().toString();
-            factory = workspace.withWorkspace(keysHash, (workspace, executionHistoryStore) -> {
+            ProjectsAccessorsSourceGenerator.generateSource(new StringWriter(), settings.getRootProject(), ACCESSORS_PACKAGE);
+            workspace.withWorkspace(keysHash, (workspace, executionHistoryStore) -> {
                 File srcDir = new File(workspace, "sources");
                 File dstDir = new File(workspace, "classes");
                 if (!srcDir.exists() || !dstDir.exists()) {
@@ -69,22 +72,31 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 sources = DefaultClassPath.of(srcDir);
                 classes = DefaultClassPath.of(dstDir);
                 classLoaderScope.export(DefaultClassPath.of(dstDir));
-                Class<? extends ExternalModuleDependencyFactory> clazz;
-                try {
-                    clazz = Cast.uncheckedCast(classLoaderScope.getExportClassLoader().loadClass(ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME));
-                } catch (ClassNotFoundException e) {
-                    return null;
-                }
-                return clazz;
+                return null;
             });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    private Class<? extends ExternalModuleDependencyFactory> loadFactory(ClassLoaderScope classLoaderScope) {
+        Class<? extends ExternalModuleDependencyFactory> clazz;
+        try {
+            clazz = Cast.uncheckedCast(classLoaderScope.getExportClassLoader().loadClass(ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME));
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+        return clazz;
+    }
+
     @Override
     public void createExtension(ExtensionContainer container) {
         if (dependenciesConfiguration != null) {
+            if (factory == null) {
+                synchronized (this) {
+                    factory = loadFactory(classLoaderScope);
+                }
+            }
             container.create("libs", factory, dependenciesConfiguration);
         }
     }
