@@ -64,7 +64,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
                         osCoverage,
                         testProject = "largeJavaMultiProject",
                         scenario = Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"),
-                        profiler = profiler,
+                        profiler = if (os == Os.WINDOWS) "jprofiler" else profiler,
                         bucketIndex = 2 * index + profIndex
                     )
                 }
@@ -126,7 +126,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         model,
         stage,
         performanceTestCoverage,
-        description = "Flame graphs with $profiler for ${scenario.scenario} | $testProject on ${performanceTestCoverage.os.asName()}",
+        description = "Flame graphs with $profiler for ${scenario.scenario} | $testProject on ${performanceTestCoverage.os.asName()} (bucket $bucketIndex)",
         performanceSubProject = "performance",
         bucketIndex = bucketIndex,
         extraParameters = "--profiler $profiler --tests \"${scenario.className}.${scenario.scenario}\"",

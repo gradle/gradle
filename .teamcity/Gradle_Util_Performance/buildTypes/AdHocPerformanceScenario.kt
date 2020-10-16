@@ -52,7 +52,8 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
         val profilerDescription = "Command line option for the performance test task to enable profiling. For example `--profiler jfr` and `--profiler async-profiler`."
         when (os) {
             Os.WINDOWS -> {
-                text("profiler", "", description = profilerDescription)
+                text("profiler", "--profiler jprofiler", description = profilerDescription)
+                param("env.JPROFILER_HOME", "C:\\Program Files\\jprofiler\\jprofiler11.1.4")
             }
             else -> {
                 text("profiler", "--profiler jfr", description = profilerDescription)
