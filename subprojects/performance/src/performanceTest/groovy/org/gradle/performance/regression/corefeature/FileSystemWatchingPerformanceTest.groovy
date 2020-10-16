@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    private static final String AGP_TARGET_VERSION = "4.0"
+    private static final String AGP_TARGET_VERSION = "4.2"
 
     def setup() {
         runner.minimumBaseVersion = "6.7"
