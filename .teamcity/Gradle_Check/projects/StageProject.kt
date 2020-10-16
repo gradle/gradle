@@ -62,7 +62,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
                         model,
                         stage,
                         osCoverage,
-                        testProject = "largeJavaMultiProject",
+                        testProject = "santaTrackerAndroidBuild",
                         scenario = Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"),
                         profiler = if (os == Os.WINDOWS) "jprofiler" else profiler,
                         bucketIndex = 2 * index + profIndex
