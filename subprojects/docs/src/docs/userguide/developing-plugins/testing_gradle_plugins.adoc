@@ -7,7 +7,7 @@ In this section you will learn effective techniques for testing plugin code.
 This section assumes you have:
 
 - Basic understanding of software engineering practices
-- Knowledge of <<implementing-gradle-plugins.adoc#,Gradle plugin implementation techniques>>
+- Knowledge of <<implementing_gradle_plugins.adoc#,Gradle plugin implementation techniques>>
 - Working knowledge in writing Java code
 
 == The sample project
