@@ -35,6 +35,18 @@ import java.lang.reflect.Method
 
 import static org.gradle.performance.fixture.PerformanceTestScenarioDefinition.PerformanceTestsBean.GroupsBean
 
+/**
+ * We scan all performance test classes annotated by @RunFor and generate the scenario definition JSON file (.teamcity/performance-tests-ci.json).
+ * All performance test methods should be annotated by @RunFor, either at method or class level.
+ *
+ * The sanityCheck task checks (via `performance:verifyPerformanceScenarioDefinitions` task):
+ * 1. All performance test methods are annotated by {@link @RunFor}. (except for {@link @NoRunFor} and {@link @Ignore} annotated methods).
+ * 2. The performance scenario information provided by all {@link @RunFor}s exactly matches scenario definition JSON file, no more, no less.
+ *
+ * To update the scenario definition JSON file, run `./gradlew performance:writePerformanceScenarioDefinitions`.
+ *
+ * Also see {@link @NoRunFor}
+ */
 @Target([ElementType.TYPE, ElementType.METHOD])
 @Retention(RetentionPolicy.RUNTIME)
 @ExtensionAnnotation(RunForExtension.class)

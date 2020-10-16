@@ -188,7 +188,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         val performanceScenarioJson = rootProject.file(".teamcity/performance-tests-ci.json")
-        val tmpPerformanceScenarioJson = rootProject.buildDir.resolve("performance-tests-ci.json")
+        val tmpPerformanceScenarioJson = buildDir.resolve("performance-tests-ci.json")
         createGeneratePerformanceDefinitionJsonTask("writePerformanceScenarioDefinitions", performanceSourceSet, performanceScenarioJson)
         val writeTmpPerformanceScenarioDefinitions = createGeneratePerformanceDefinitionJsonTask("writeTmpPerformanceScenarioDefinitions", performanceSourceSet, tmpPerformanceScenarioJson)
 

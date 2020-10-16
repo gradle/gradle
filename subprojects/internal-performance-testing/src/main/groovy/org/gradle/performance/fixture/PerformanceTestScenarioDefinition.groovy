@@ -52,6 +52,7 @@ class PerformanceTestScenarioDefinition {
         }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
+        @EqualsAndHashCode
         static class GroupsBean {
             /**
              * testProject : largeJavaMultiProject
@@ -62,37 +63,6 @@ class PerformanceTestScenarioDefinition {
             String comment
 
             TreeMap<String, List<String>> coverage
-
-            boolean equals(o) {
-                if (this.is(o)) {
-                    return true
-                }
-                if (getClass() != o.class) {
-                    return false
-                }
-
-                GroupsBean that = (GroupsBean) o
-
-                if (comment != that.comment) {
-                    return false
-                }
-                if (coverage != that.coverage) {
-                    return false
-                }
-                if (testProject != that.testProject) {
-                    return false
-                }
-
-                return true
-            }
-
-            int hashCode() {
-                int result
-                result = (testProject != null ? testProject.hashCode() : 0)
-                result = 31 * result + (comment != null ? comment.hashCode() : 0)
-                result = 31 * result + (coverage != null ? coverage.hashCode() : 0)
-                return result
-            }
         }
     }
 

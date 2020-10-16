@@ -29,6 +29,8 @@ import java.lang.annotation.Target
 
 /**
  * Make sure all feature methods are annotated by {@link @RunFor}
+ *
+ * @see {@link @RunFor}
  */
 @Target([ElementType.TYPE])
 @Retention(RetentionPolicy.RUNTIME)
@@ -38,6 +40,8 @@ import java.lang.annotation.Target
 
 /**
  * Marks a test has deliberately no @RunFor
+ *
+ * @see {@link @RunFor}
  */
 @Target([ElementType.TYPE, ElementType.METHOD])
 @Retention(RetentionPolicy.RUNTIME)
@@ -61,7 +65,7 @@ class AllFeaturesShouldBeAnnotatedByRunForExtension extends AbstractAnnotationDr
                     !it.getFeatureMethod().getReflection().isAnnotationPresent(RunFor.class) &&
                         !it.getFeatureMethod().getReflection().isAnnotationPresent(Ignore.class)
                 }
-                .each { throw new IllegalStateException("All feature methods should be annotated by @RunFor!") }
+                .each { throw new IllegalStateException("All feature methods should be annotated by @RunFor! See RunFor javadoc for more details.") }
         }
     }
 }
