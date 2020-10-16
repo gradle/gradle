@@ -15,26 +15,19 @@
  */
 package org.gradle.api.internal.std;
 
-import com.google.common.base.Splitter;
-import org.apache.commons.lang.StringUtils;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class DependenciesSourceGenerator {
-    private static final Pattern SEPARATOR_PATTERN = Pattern.compile("[.\\-_]");
+public class DependenciesSourceGenerator extends AbstractSourceGenerator {
 
-    private final Writer writer;
     private final AllDependenciesModel config;
-    private final String ln = System.getProperty("line.separator", "\n");
 
     public DependenciesSourceGenerator(Writer writer,
                                        AllDependenciesModel config) {
-        this.writer = writer;
+        super(writer);
         this.config = config;
     }
 
@@ -48,10 +41,6 @@ public class DependenciesSourceGenerator {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private void addImport(String clazz) throws IOException {
-        writeLn("import " + clazz + ";");
     }
 
     private void generate(String packageName, String className) throws IOException {
@@ -98,7 +87,7 @@ public class DependenciesSourceGenerator {
         writeLn("    /**");
         writeLn("     * Creates a dependency provider for " + alias + " (" + coordinates + ")");
         writeLn("     */");
-        writeLn("    public Provider<MinimalExternalModuleDependency> get" + toMethodName(alias) + "() { return create(\"" + alias + "\"); }");
+        writeLn("    public Provider<MinimalExternalModuleDependency> get" + toJavaName(alias) + "() { return create(\"" + alias + "\"); }");
         writeLn();
     }
 
@@ -111,23 +100,8 @@ public class DependenciesSourceGenerator {
         }
         writeLn("     * </ul>");
         writeLn("     */");
-        writeLn("    public Provider<ExternalModuleDependencyBundle> get" + toMethodName(alias) + "Bundle() { return createBundle(\"" + alias + "\"); }");
+        writeLn("    public Provider<ExternalModuleDependencyBundle> get" + toJavaName(alias) + "Bundle() { return createBundle(\"" + alias + "\"); }");
         writeLn();
     }
 
-    private static String toMethodName(String alias) {
-        return Splitter.on(SEPARATOR_PATTERN)
-            .splitToList(alias)
-            .stream()
-            .map(StringUtils::capitalize)
-            .collect(Collectors.joining());
-    }
-
-    private void writeLn() throws IOException {
-        writer.write(ln);
-    }
-
-    public void writeLn(String source) throws IOException {
-        writer.write(source + ln);
-    }
 }

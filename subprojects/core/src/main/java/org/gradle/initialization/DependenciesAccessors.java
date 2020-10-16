@@ -18,12 +18,12 @@ package org.gradle.initialization;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.classpath.ClassPath;
 
 public interface DependenciesAccessors {
     void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope, Settings settings);
-    void createExtension(ExtensionContainer container);
+    void createExtension(ProjectInternal project);
     ClassPath getSources();
     ClassPath getClasses();
 }

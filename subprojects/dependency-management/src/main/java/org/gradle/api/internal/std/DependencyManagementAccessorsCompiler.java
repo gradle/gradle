@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.std;
 
+import com.google.common.collect.Lists;
 import org.gradle.internal.classpath.ClassPath;
 
 import javax.tools.Diagnostic;
@@ -29,20 +30,27 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DependenciesClassGenerator {
-    public static void compile(File srcDir, File dstDir, String packageName, String className, String classCode, ClassPath classPath) {
+public class DependencyManagementAccessorsCompiler {
+    public static void compile(File srcDir, File dstDir, String packageName, Map<String, String> classes, ClassPath classPath) {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> ds = new DiagnosticCollector<>();
         try (StandardJavaFileManager mgr = compiler.getStandardFileManager(ds, null, null)) {
             List<String> options = buildOptions(dstDir, classPath);
-            File file = sourceFile(srcDir, packageName, className);
-            writeSourceFile(classCode, file);
+            List<File> filesToCompile = Lists.newArrayListWithCapacity(classes.size());
+            for (Map.Entry<String, String> entry : classes.entrySet()) {
+                String className = entry.getKey();
+                String classCode = entry.getValue();
+                File file = sourceFile(srcDir, packageName, className);
+                writeSourceFile(classCode, file);
+                filesToCompile.add(file);
+            }
+
             Iterable<? extends JavaFileObject> sources =
-                mgr.getJavaFileObjectsFromFiles(Collections.singletonList(file));
+                mgr.getJavaFileObjectsFromFiles(filesToCompile);
             JavaCompiler.CompilationTask task =
                 compiler.getTask(null, mgr, ds, options,
                     null, sources);

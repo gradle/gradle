@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFac
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -239,20 +240,26 @@ class DependencyManagementBuildScopeServices {
         return defaultVersionComparator;
     }
 
+    DefaultProjectDependencyFactory createProjectDependencyFactory(
+        Instantiator instantiator,
+        StartParameter startParameter,
+        ProjectAccessListener projectAccessListener,
+        ImmutableAttributesFactory attributesFactory) {
+        NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
+        return new DefaultProjectDependencyFactory(
+            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
+    }
+
     DependencyFactory createDependencyFactory(
         Instantiator instantiator,
-        ListenerManager listenerManager,
-        StartParameter startParameter,
+        DefaultProjectDependencyFactory factory,
         ClassPathRegistry classPathRegistry,
         CurrentGradleInstallation currentGradleInstallation,
         FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
-        ProjectAccessListener projectAccessListener,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
@@ -679,8 +686,8 @@ class DependencyManagementBuildScopeServices {
         });
     }
 
-    DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry, DependenciesAccessorsWorkspace workspace) {
-        return new DefaultDependenciesAccessors(registry, workspace);
+    DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry, DependenciesAccessorsWorkspace workspace, DefaultProjectDependencyFactory factory) {
+        return new DefaultDependenciesAccessors(registry, workspace, factory);
     }
 
 }

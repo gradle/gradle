@@ -15,10 +15,17 @@
  */
 package org.gradle.api.internal.std;
 
+import com.google.common.collect.Maps;
+import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
@@ -30,7 +37,9 @@ import org.gradle.internal.management.DependenciesModelBuilderInternal;
 
 import java.io.File;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
@@ -38,15 +47,22 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspace workspace;
+    private final DefaultProjectDependencyFactory projectDependencyFactory;
+
     private AllDependenciesModel dependenciesConfiguration;
     private ClassLoaderScope classLoaderScope;
-    private Class<? extends ExternalModuleDependencyFactory> factory;
+    private String projectFactoryClassName;
+    private Class<? extends ExternalModuleDependencyFactory> generatedDependenciesFactory;
+    private Class<? extends TypeSafeProjectDependencyFactory> generatedProjectFactory;
     private ClassPath sources = DefaultClassPath.of();
     private ClassPath classes = DefaultClassPath.of();
 
-    public DefaultDependenciesAccessors(ClassPathRegistry registry, DependenciesAccessorsWorkspace workspace) {
+    public DefaultDependenciesAccessors(ClassPathRegistry registry,
+                                        DependenciesAccessorsWorkspace workspace,
+                                        DefaultProjectDependencyFactory projectDependencyFactory) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
+        this.projectDependencyFactory = projectDependencyFactory;
     }
 
     @Override
@@ -54,35 +70,64 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         try {
             this.dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             this.classLoaderScope = classLoaderScope;
-            StringWriter writer = new StringWriter();
             Hasher hash = Hashing.sha1().newHasher();
             List<String> dependencyAliases = dependenciesConfiguration.getDependencyAliases();
             List<String> bundles = dependenciesConfiguration.getBundleAliases();
             dependencyAliases.forEach(hash::putString);
             bundles.forEach(hash::putString);
             String keysHash = hash.hash().toString();
-            ProjectsAccessorsSourceGenerator.generateSource(new StringWriter(), settings.getRootProject(), ACCESSORS_PACKAGE);
             workspace.withWorkspace(keysHash, (workspace, executionHistoryStore) -> {
                 File srcDir = new File(workspace, "sources");
                 File dstDir = new File(workspace, "classes");
                 if (!srcDir.exists() || !dstDir.exists()) {
+                    StringWriter writer = new StringWriter();
                     DependenciesSourceGenerator.generateSource(writer, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
-                    DependenciesClassGenerator.compile(srcDir, dstDir, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME, writer.toString(), classPath);
+                    DependencyManagementAccessorsCompiler.compile(srcDir, dstDir, ACCESSORS_PACKAGE, Collections.singletonMap(ACCESSORS_CLASSNAME, writer.toString()), classPath);
                 }
                 sources = DefaultClassPath.of(srcDir);
                 classes = DefaultClassPath.of(dstDir);
                 classLoaderScope.export(DefaultClassPath.of(dstDir));
                 return null;
             });
+            writeProjectAccessors(((SettingsInternal)settings).getProjectRegistry());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Class<? extends ExternalModuleDependencyFactory> loadFactory(ClassLoaderScope classLoaderScope) {
-        Class<? extends ExternalModuleDependencyFactory> clazz;
+    private void writeProjectAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
+        Hasher hash = Hashing.sha1().newHasher();
+        projectRegistry.getAllProjects().stream()
+            .map(ProjectDescriptor::getPath)
+            .sorted()
+            .forEachOrdered(hash::putString);
+        String projectsHash = hash.hash().toString();
+        workspace.withWorkspace(projectsHash, (workspace, executionHistoryStore) -> {
+            File srcDir = new File(workspace, "sources");
+            File dstDir = new File(workspace, "classes");
+            Map<String, String> classNameToSources = Maps.newLinkedHashMap();
+            StringWriter writer = new StringWriter();
+            projectFactoryClassName = RootProjectAccessorSourceGenerator.generateSource(writer, projectRegistry.getRootProject(), ACCESSORS_PACKAGE);
+            classNameToSources.put(projectFactoryClassName, writer.toString());
+//            if (!srcDir.exists() || !dstDir.exists()) {
+                for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
+                    writer = new StringWriter();
+                    classNameToSources.put(ProjectAccessorsSourceGenerator.generateSource(writer, project, ACCESSORS_PACKAGE), writer.toString());
+                }
+//            }
+            DependencyManagementAccessorsCompiler.compile(srcDir, dstDir, ACCESSORS_PACKAGE, classNameToSources, classPath);
+            ClassPath exported = DefaultClassPath.of(dstDir);
+            classLoaderScope.export(exported);
+            sources = sources.plus(DefaultClassPath.of(srcDir));
+            classes = classes.plus(exported);
+            return null;
+        });
+    }
+
+    private <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
+        Class<? extends T> clazz;
         try {
-            clazz = Cast.uncheckedCast(classLoaderScope.getExportClassLoader().loadClass(ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME));
+            clazz = Cast.uncheckedCast(classLoaderScope.getExportClassLoader().loadClass(className));
         } catch (ClassNotFoundException e) {
             return null;
         }
@@ -90,14 +135,21 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Override
-    public void createExtension(ExtensionContainer container) {
+    public void createExtension(ProjectInternal project) {
+        ExtensionContainer container = project.getExtensions();
         if (dependenciesConfiguration != null) {
-            if (factory == null) {
+            if (generatedDependenciesFactory == null) {
                 synchronized (this) {
-                    factory = loadFactory(classLoaderScope);
+                    generatedDependenciesFactory = loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME);
                 }
             }
-            container.create("libs", factory, dependenciesConfiguration);
+            container.create("libs", generatedDependenciesFactory, dependenciesConfiguration);
+            if (generatedProjectFactory == null) {
+                synchronized (this) {
+                    generatedProjectFactory = loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + projectFactoryClassName);
+                }
+            }
+            container.create("projects", generatedProjectFactory, projectDependencyFactory, project.getServices().get(ProjectFinder.class));
         }
     }
 
