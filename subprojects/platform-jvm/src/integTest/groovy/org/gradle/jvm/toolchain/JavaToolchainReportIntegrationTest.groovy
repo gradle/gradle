@@ -16,8 +16,9 @@
 
 package org.gradle.jvm.toolchain
 
-
+import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 
 class JavaToolchainReportIntegrationTest extends AbstractIntegrationSpec {
 
@@ -29,7 +30,7 @@ class JavaToolchainReportIntegrationTest extends AbstractIntegrationSpec {
         run("javaToolchains")
 
         then:
-        outputContains("Hello toolchains")
+        StringUtils.countMatches(output, " + ") == AvailableJavaHomes.availableJvms.size()
     }
 
 }
