@@ -44,6 +44,7 @@ class PerformanceTest(
     val testProjects: List<String>,
     val bucketIndex: Int,
     extraParameters: String = "",
+    performanceTestTaskSuffix: String = "PerformanceTest",
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : BaseGradleBuildType(
     model,
@@ -54,7 +55,7 @@ class PerformanceTest(
         this.name = "$description${if (performanceTestCoverage.withoutDependencies) " (without dependencies)" else ""}"
         val type = performanceTestCoverage.type
         val os = performanceTestCoverage.os
-        val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
+        val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
         applyPerformanceTestSettings(os = os, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
@@ -98,8 +99,8 @@ class PerformanceTest(
     }
 )
 
-fun getPerformanceTestTaskNames(performanceSubProject: String, testProjects: List<String>): List<String> {
+fun getPerformanceTestTaskNames(performanceSubProject: String, testProjects: List<String>, performanceTestTaskSuffix: String): List<String> {
     return testProjects.map {
-        ":$performanceSubProject:${it}PerformanceTest"
+        ":$performanceSubProject:${it}${performanceTestTaskSuffix}"
     }
 }

@@ -7,7 +7,6 @@ import Gradle_Check.model.FunctionalTestBucketProvider
 import Gradle_Check.model.PerformanceTestBucketProvider
 import Gradle_Check.model.PerformanceTestCoverage
 import Gradle_Check.model.Scenario
-import Gradle_Check.model.prepareScenariosStep
 import common.Os
 import configurations.FunctionalTest
 import configurations.SanityCheck
@@ -130,13 +129,9 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         description = "Flame graphs with $profiler for ${scenario.scenario} | $testProject on ${performanceTestCoverage.os.asName()}",
         performanceSubProject = "performance",
         bucketIndex = bucketIndex,
-        extraParameters = "--profiler $profiler -PincludePerformanceTestScenarios=true",
+        extraParameters = "--profiler $profiler --tests \"${scenario.className}.${scenario.scenario}\"",
         testProjects = listOf(testProject),
-        preBuildSteps = prepareScenariosStep(
-            testProject,
-            listOf(scenario),
-            performanceTestCoverage.os
-        )
+        performanceTestTaskSuffix = "PerformanceAdHocTest"
     )
 }
 
