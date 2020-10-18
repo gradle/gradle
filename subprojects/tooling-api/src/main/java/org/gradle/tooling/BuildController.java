@@ -188,7 +188,9 @@ public interface BuildController {
     <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer);
 
     /**
-     * Runs the given actions and returns their results. Attempts to run the actions in parallel.
+     * Runs the given actions and returns their results. Attempts to run the actions in parallel, when supported by the Gradle version.
+     *
+     * <p>This method works with all Gradle versions. For versions 6.7 and earlier, the actions are run sequentially rather than in parallel.</p>
      *
      * @param actions The actions to run.
      * @param <T> the result type.

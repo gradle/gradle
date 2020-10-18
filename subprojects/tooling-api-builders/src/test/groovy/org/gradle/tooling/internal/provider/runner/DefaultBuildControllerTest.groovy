@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -25,11 +24,10 @@ import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
-import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 import spock.lang.Specification
@@ -52,8 +50,7 @@ class DefaultBuildControllerTest extends Specification {
     def modelId = Stub(ModelIdentifier) {
         getName() >> 'some.model'
     }
-    def modelBuilder = Stub(ToolingModelBuilder)
-    def parameterizedModelBuilder = Stub(ParameterizedToolingModelBuilder)
+    def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor)
 
@@ -82,7 +79,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation('some.model') >> { throw failure }
+        _ * registry.locateForClientOperation('some.model', false, gradle) >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -115,9 +112,30 @@ class DefaultBuildControllerTest extends Specification {
         _ * target.rootDir >> rootDir
         _ * gradle.rootProject >> rootProject
         _ * rootProject.project(":some:path") >> project
-        _ * rootProject.getProjectDir() >> rootDir
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
+        _ * rootProject.projectDir >> rootDir
+        _ * registry.locateForClientOperation("some.model", false, project) >> modelBuilder
+        _ * modelBuilder.build(null) >> model
+
+        when:
+        def result = controller.getModel(target, modelId)
+
+        then:
+        result.getModel() == model
+    }
+
+    def "uses builder for specified build"() {
+        def rootDir = new File("dummy")
+        def target = Stub(GradleBuildIdentity)
+        def rootProject = Stub(ProjectInternal)
+        def model = new Object()
+
+        given:
+        _ * target.rootDir >> rootDir
+        _ * gradle.rootProject >> rootProject
+        _ * rootProject.projectDir >> rootDir
+        _ * gradle.defaultProject >> project
+        _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
+        _ * modelBuilder.build(null) >> model
 
         when:
         def result = controller.getModel(target, modelId)
@@ -131,8 +149,8 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
+        _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
+        _ * modelBuilder.build(null) >> model
 
         when:
         def result = controller.getModel(null, modelId)
@@ -147,30 +165,14 @@ class DefaultBuildControllerTest extends Specification {
         def target = Stub(GradleProjectIdentity)
 
         when:
-        def result = controller.getModel(target, modelId)
+        controller.getModel(target, modelId)
 
         then:
         thrown(BuildCancelledException)
     }
 
-    def "uses non parameterized builder when parameter is null"() {
-        def model = new Object()
-
-        given:
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
-
-        when:
-        def result = controller.getModel(null, modelId, null)
-
-        then:
-        result.getModel() == model
-    }
-
     def "uses parameterized builder when parameter is not null"() {
         def model = new Object()
-        def wrongModel = new Object()
         def parameterType = CustomParameter.class
         def parameter = new CustomParameter() {
             @Override
@@ -184,35 +186,19 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> parameterizedModelBuilder
-        _ * parameterizedModelBuilder.getParameterType() >> parameterType
-        _ * parameterizedModelBuilder.buildAll("some.model", _, project) >> { def modelName, CustomParameter param, projectInternal ->
+        _ * registry.locateForClientOperation("some.model", true, gradle) >> modelBuilder
+        _ * modelBuilder.getParameterType() >> parameterType
+        _ * modelBuilder.build(_) >> { CustomParameter param ->
             assert param != null
             assert param.getValue() == "myValue"
             return model
         }
-        _ * parameterizedModelBuilder.buildAll("some.model", project) >> wrongModel
 
         when:
         def result = controller.getModel(null, modelId, parameter)
 
         then:
         result.getModel() == model
-    }
-
-    def "throws an exception when parameter used but no parameterized builder"() {
-        def model = new Object()
-
-        given:
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
-
-        when:
-        controller.getModel(null, modelId, new Object())
-
-        then:
-        thrown(InternalUnsupportedModelException)
     }
 
     def "runs supplied actions"() {
