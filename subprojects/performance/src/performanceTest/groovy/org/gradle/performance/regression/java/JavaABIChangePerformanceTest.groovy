@@ -17,10 +17,18 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject", "largeGroovyMultiProject"])
+)
 class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "assemble for abi change"() {

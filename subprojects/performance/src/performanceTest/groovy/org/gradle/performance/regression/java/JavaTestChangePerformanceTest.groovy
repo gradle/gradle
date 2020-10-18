@@ -17,11 +17,18 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 
-class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "mediumJavaMultiProjectWithTestNG", "largeMonolithicJavaProject"])
+)
+class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "test for non-abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)

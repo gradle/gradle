@@ -18,6 +18,7 @@ package org.gradle.performance
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.performance.annotations.AllFeaturesShouldBeAnnotated
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
@@ -37,6 +38,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
 
 @CompileStatic
 @CleanupTestDirectory
+@AllFeaturesShouldBeAnnotated
 class AbstractCrossBuildPerformanceTest extends Specification {
     private static final WritableResultsStore<CrossBuildPerformanceResults> RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossBuildResultsStore() }
 

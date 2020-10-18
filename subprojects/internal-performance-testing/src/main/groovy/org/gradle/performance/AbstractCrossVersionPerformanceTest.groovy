@@ -19,7 +19,7 @@ package org.gradle.performance
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.annotations.AllFeaturesShouldBeAnnotated
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
@@ -29,7 +29,6 @@ import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
 import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
@@ -39,8 +38,8 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
  *
  * This base class uses Gradle profiler as a backend for running the performance tests.
  */
-@Category(PerformanceRegressionTest)
 @CleanupTestDirectory
+@AllFeaturesShouldBeAnnotated
 class AbstractCrossVersionPerformanceTest extends Specification {
 
     private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossVersionResultsStore() }

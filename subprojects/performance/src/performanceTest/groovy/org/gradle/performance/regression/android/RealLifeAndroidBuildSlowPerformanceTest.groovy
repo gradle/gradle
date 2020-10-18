@@ -16,19 +16,24 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.performance.categories.SlowPerformanceRegressionTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
 import static org.gradle.performance.fixture.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@Category(SlowPerformanceRegressionTest)
 class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
 
+    @RunFor([
+        @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = "clean phthalic.*")
+    ])
     @Unroll
     def "clean #tasks with clean transforms cache"() {
         given:

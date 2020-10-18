@@ -17,7 +17,15 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject"])
+)
 class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "eclipse"() {

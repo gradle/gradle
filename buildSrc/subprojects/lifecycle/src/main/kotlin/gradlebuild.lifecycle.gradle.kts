@@ -105,7 +105,8 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
         dependsOn(
             ":docs:checkstyleApi", ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility", ":docs:javadocAll",
-            ":architecture-test:test", ":tooling-api:toolingApiShadedJar"
+            ":architecture-test:test", ":tooling-api:toolingApiShadedJar",
+            ":performance:verifyPerformanceScenarioDefinitions"
         )
     }
 }

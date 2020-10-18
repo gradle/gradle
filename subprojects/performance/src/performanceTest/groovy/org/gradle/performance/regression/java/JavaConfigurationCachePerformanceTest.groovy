@@ -18,18 +18,19 @@ package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import java.nio.file.Files
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.junit.Assert.assertTrue
 
-@Category(PerformanceRegressionTest)
 class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerformanceTest {
     private File stateDirectory
 
@@ -37,6 +38,11 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
     }
 
+    @RunFor([
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProjectNoBuildSrc", "smallJavaMultiProject"],
+            iterationMatcher = ".*with hot.*"),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProjectNoBuildSrc"], iterationMatcher = ".*with cold.*")
+    ])
     @Unroll
     def "assemble #action configuration cache state with #daemon daemon"() {
         given:

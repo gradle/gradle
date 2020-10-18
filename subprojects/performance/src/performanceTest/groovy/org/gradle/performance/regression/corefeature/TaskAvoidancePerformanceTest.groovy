@@ -17,11 +17,14 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
-import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.junit.experimental.categories.Category
 
-@Category(PerformanceRegressionTest)
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor(@Scenario(type = TEST, operatingSystems = [LINUX], testProjects =  ["largeJavaMultiProject", "largeMonolithicJavaProject"]))
 class TaskAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "help with lazy and eager tasks"() {

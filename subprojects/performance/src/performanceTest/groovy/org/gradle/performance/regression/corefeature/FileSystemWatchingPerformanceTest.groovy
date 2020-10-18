@@ -19,11 +19,21 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.fixture.IncrementalTestProject
 import org.gradle.performance.fixture.TestProjects
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+import static org.gradle.performance.results.OperatingSystem.MAC_OS
+import static org.gradle.performance.results.OperatingSystem.WINDOWS
+
+@RunFor(
+    @Scenario(type = TEST, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild", "largeJavaMultiProject"])
+)
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.0"

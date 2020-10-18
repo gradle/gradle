@@ -17,11 +17,16 @@
 package org.gradle.performance.experiment.java
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.junit.experimental.categories.Category
 
-@Category(PerformanceExperiment)
+import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor(
+    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "clean assemble with 4 parallel workers"() {

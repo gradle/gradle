@@ -1102,7 +1102,7 @@
                 {
                     "testProject" : "santaTrackerAndroidBuild",
                     "coverage" : {
-                        "experiment":  ["linux", "macos", "windows"]
+                        "experiment":  ["linux", "macOs", "windows"]
                     }
                 }
             ]
@@ -1174,13 +1174,7 @@
                     }
                 },
                 {
-                    "testProject" : "bigNative",
-                    "coverage" : {
-                        "experiment":  ["linux"]
-                    }
-                },
-                {
-                    "testProject" : "bigNative",
+                    "testProject" : "multiNative",
                     "coverage" : {
                         "experiment":  ["linux"]
                     }
