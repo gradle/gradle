@@ -16,6 +16,11 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -96,5 +101,45 @@ public interface DirectorySnapshotterStatistics {
                 }
             };
         }
+    }
+
+    abstract class CollectingFileVisitor implements FileVisitor<Path> {
+        private final Collector collector;
+
+        public CollectingFileVisitor(Collector collector) {
+            this.collector = collector;
+            collector.recordVisitHierarchy();
+        }
+
+        @Override
+        public final FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            collector.recordVisitDirectory();
+            return doPreVisitDirectory(dir, attrs);
+        }
+
+        protected abstract FileVisitResult doPreVisitDirectory(Path dir, BasicFileAttributes attrs);
+
+        @Override
+        public final FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            collector.recordVisitFile();
+            return doVisitFile(file, attrs);
+        }
+
+        protected abstract FileVisitResult doVisitFile(Path file, BasicFileAttributes attrs);
+
+        @Override
+        public final FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            collector.recordVisitFileFailed();
+            return doVisitFileFailed(file, exc);
+        }
+
+        protected abstract FileVisitResult doVisitFileFailed(Path file, IOException exc);
+
+        @Override
+        public final FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            return doPostVisitDirectory(dir, exc);
+        }
+
+        protected abstract FileVisitResult doPostVisitDirectory(Path dir, IOException exc);
     }
 }
