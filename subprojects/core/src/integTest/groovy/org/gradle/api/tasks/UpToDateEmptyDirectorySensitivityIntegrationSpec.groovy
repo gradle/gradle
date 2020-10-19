@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.api.tasks
 
-import org.gradle.api.tasks.FileNormalizer;
 
-/**
- * {@link FileNormalizer} that uses the location of files in a hierarchy as normalized paths.
- */
-public interface RelativePathInputNormalizer extends FileNormalizer, EmptyDirectorySensitiveNormalizer {
+class UpToDateEmptyDirectorySensitivityIntegrationSpec extends AbstractEmptyDirectorySensitivityIntegrationSpec {
+    @Override
+    void execute(String... tasks) {
+        succeeds(tasks)
+    }
+
+    @Override
+    void cleanWorkspace() {
+        // do nothing
+    }
+
+    @Override
+    String getStatusForReusedOutput() {
+        return "UP-TO-DATE"
+    }
 }

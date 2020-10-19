@@ -17,6 +17,7 @@ package org.gradle.internal.fingerprint;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
@@ -45,4 +46,9 @@ public interface FileCollectionFingerprinter {
      * Returns the normalized path to use for the given root
      */
     String normalizePath(CompleteFileSystemLocationSnapshot root);
+
+    /**
+     * Returns the empty directory sensitivity associated with this fingerprinter.
+     */
+    EmptyDirectorySensitivity getEmptyDirectorySensitivity();
 }

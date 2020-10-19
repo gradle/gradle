@@ -68,4 +68,18 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      * @since 4.3
      */
     TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
+
+    /**
+     * Ignore empty directories during up-to-date checks.
+     *
+     * @since 6.8
+     */
+    TaskInputFilePropertyBuilder ignoreEmptyDirectories();
+
+    /**
+     * Sets whether empty directories should be considered during up-to-date checks.  Defaults to false.
+     *
+     * @since 6.8
+     */
+    TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ingoreEmptyDirectories);
 }

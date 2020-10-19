@@ -53,6 +53,9 @@ import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterSpec;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterSpec;
+import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -103,6 +106,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     private final InstanceFactory<? extends TransformAction<?>> instanceFactory;
     private final boolean cacheable;
     private final CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters;
+    private final EmptyDirectorySensitivity emptyDirectorySensitivity;
 
     public DefaultTransformer(
         Class<? extends TransformAction<?>> implementationClass,
@@ -111,6 +115,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
         boolean cacheable,
+        EmptyDirectorySensitivity emptyDirectorySensitivity,
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         IsolatableFactory isolatableFactory,
@@ -132,6 +137,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
+        this.emptyDirectorySensitivity = emptyDirectorySensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformerParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
                 valueSnapshotter, fileCollectionFactory));
@@ -147,6 +153,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
         boolean cacheable,
+        EmptyDirectorySensitivity emptyDirectorySensitivity,
         FileLookup fileLookup,
         InstantiationScheme actionInstantiationScheme,
         ServiceLookup internalServices
@@ -161,6 +168,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
         this.isolatedParameters = isolatedParameters;
+        this.emptyDirectorySensitivity = emptyDirectorySensitivity;
     }
 
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
@@ -202,6 +210,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     @Override
     public boolean isCacheable() {
         return cacheable;
+    }
+
+    @Override
+    public EmptyDirectorySensitivity getEmptyDirectorySensitivity() {
+        return emptyDirectorySensitivity;
     }
 
     @Override
@@ -271,9 +284,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             }
 
             @Override
-            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, EmptyDirectorySensitivity emptyDirectorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
-                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(FileParameterUtils.normalizerOrDefault(fileNormalizer));
+                FileCollectionFingerprinterSpec fileCollectionFingerprinterSpec = DefaultFileCollectionFingerprinterSpec.from(FileParameterUtils.normalizerOrDefault(fileNormalizer), emptyDirectorySensitivity);
+                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fileCollectionFingerprinterSpec);
                 FileCollection inputFileValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(inputFileValue);
                 inputFileParameterFingerprintsBuilder.put(propertyName, fingerprint);
@@ -508,7 +522,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             if (parameterObject != null) {
                 parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
                     @Override
-                    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, EmptyDirectorySensitivity emptyDirectorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                         context.add(value.getTaskDependencies());
                     }
                 });

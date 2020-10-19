@@ -16,8 +16,6 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.tasks.FileNormalizer;
-
 public interface FileCollectionFingerprinterRegistry {
-    FileCollectionFingerprinter getFingerprinter(Class<? extends FileNormalizer> type);
+    FileCollectionFingerprinter getFingerprinter(FileCollectionFingerprinterSpec spec);
 }

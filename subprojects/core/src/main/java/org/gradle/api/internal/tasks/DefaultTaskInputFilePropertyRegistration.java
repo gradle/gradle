@@ -21,13 +21,16 @@ import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
+    private EmptyDirectorySensitivity emptyDirectorySensitivity = EmptyDirectorySensitivity.FINGERPRINT_EMPTY;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
     public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
@@ -87,6 +90,23 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     @Override
     public Class<? extends FileNormalizer> getNormalizer() {
         return normalizer;
+    }
+
+    @Override
+    public EmptyDirectorySensitivity getEmptyDirectorySensitivity() {
+        return emptyDirectorySensitivity;
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilder ignoreEmptyDirectories() {
+        this.emptyDirectorySensitivity = EmptyDirectorySensitivity.IGNORE_EMPTY;
+        return this;
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ingoreEmptyDirectories) {
+        this.emptyDirectorySensitivity = ingoreEmptyDirectories ? EmptyDirectorySensitivity.IGNORE_EMPTY : EmptyDirectorySensitivity.FINGERPRINT_EMPTY;
+        return this;
     }
 
     @Override

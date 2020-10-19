@@ -21,5 +21,5 @@ import org.gradle.api.tasks.FileNormalizer;
 /**
  * {@link FileNormalizer} that uses the file name as normalized path.
  */
-public interface NameOnlyInputNormalizer extends FileNormalizer {
+public interface NameOnlyInputNormalizer extends FileNormalizer, EmptyDirectorySensitiveNormalizer {
 }

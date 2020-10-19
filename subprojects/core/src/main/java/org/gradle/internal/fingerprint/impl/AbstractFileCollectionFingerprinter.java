@@ -34,9 +34,15 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
     private final FingerprintingStrategy fingerprintingStrategy;
+    private final EmptyDirectorySensitivity emptyDirectorySensitivity;
 
     public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        this(fingerprintingStrategy, EmptyDirectorySensitivity.NONE, fileCollectionSnapshotter);
+    }
+
+    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, EmptyDirectorySensitivity emptyDirectorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
         this.fingerprintingStrategy = fingerprintingStrategy;
+        this.emptyDirectorySensitivity = emptyDirectorySensitivity;
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
     }
 
@@ -59,5 +65,10 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     @Override
     public CurrentFileCollectionFingerprint empty() {
         return fingerprintingStrategy.getEmptyFingerprint();
+    }
+
+    @Override
+    public EmptyDirectorySensitivity getEmptyDirectorySensitivity() {
+        return emptyDirectorySensitivity;
     }
 }

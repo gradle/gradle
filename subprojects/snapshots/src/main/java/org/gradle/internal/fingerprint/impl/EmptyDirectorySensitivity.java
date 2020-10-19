@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
-
-import org.gradle.api.tasks.FileNormalizer;
+package org.gradle.internal.fingerprint.impl;
 
 /**
- * {@link FileNormalizer} that uses the location of files in a hierarchy as normalized paths.
+ * Specifies how a fingerprinter should handle empty directories that are found in a filecollection.
  */
-public interface RelativePathInputNormalizer extends FileNormalizer, EmptyDirectorySensitiveNormalizer {
+public enum EmptyDirectorySensitivity {
+    // Fingerprint empty directories
+    FINGERPRINT_EMPTY,
+    // Ignore empty directories
+    IGNORE_EMPTY,
+    // Not important (i.e. the fingerprinter does not handle empty directories one way or the other)
+    NONE
 }

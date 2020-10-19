@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
+
 import javax.annotation.Nullable;
 
 public interface InputFilePropertySpec extends FilePropertySpec {
     boolean isSkipWhenEmpty();
 
     boolean isIncremental();
+
+    EmptyDirectorySensitivity getEmptyDirectorySensitivity();
 
     @Nullable
     Object getValue();

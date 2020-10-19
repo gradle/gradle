@@ -23,6 +23,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.work.InputChanges;
 
@@ -70,4 +71,6 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer();
 
     boolean isIsolated();
+
+    EmptyDirectorySensitivity getEmptyDirectorySensitivity();
 }

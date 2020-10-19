@@ -71,6 +71,8 @@ import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterSpec;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterSpec;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -320,7 +322,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         : InputPropertyType.NON_INCREMENTAL;
                 String propertyName = inputFileProperty.getPropertyName();
                 visitor.visitInputFileProperty(propertyName, type, NON_IDENTITY, value, () -> {
-                    FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(inputFileProperty.getNormalizer());
+                    FileCollectionFingerprinterSpec fingerprinterSpec = DefaultFileCollectionFingerprinterSpec.from(inputFileProperty.getNormalizer(), inputFileProperty.getEmptyDirectorySensitivity());
+                    FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fingerprinterSpec);
                     return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
                 });
             }

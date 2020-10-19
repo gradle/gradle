@@ -22,8 +22,8 @@ import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public NameOnlyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(NameOnlyFingerprintingStrategy.INSTANCE, fileCollectionSnapshotter);
+    public NameOnlyFileCollectionFingerprinter(EmptyDirectorySensitivity emptyDirectorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        super(NameOnlyFingerprintingStrategy.FINGERPRINT_DIRECTORIES, emptyDirectorySensitivity, fileCollectionSnapshotter);
     }
 
     @Override

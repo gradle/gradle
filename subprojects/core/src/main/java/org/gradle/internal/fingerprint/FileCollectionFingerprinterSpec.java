@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
 
-public interface TaskInputFilePropertyRegistration extends TaskPropertyRegistration, TaskInputFilePropertyBuilderInternal {
+/**
+ * Specifies criteria for selecting a {@link FileCollectionFingerprinter}
+ */
+public interface FileCollectionFingerprinterSpec {
     Class<? extends FileNormalizer> getNormalizer();
-    InputFilePropertyType getFilePropertyType();
-    boolean isSkipWhenEmpty();
+
     EmptyDirectorySensitivity getEmptyDirectorySensitivity();
 }
