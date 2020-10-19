@@ -24,11 +24,8 @@ import java.nio.file.Paths
 
 class ToolchainReportRendererTest extends Specification {
 
-    JavaInstallationProbe.ProbeResult probe
-
-    void setup() {
-        probe = Mock(JavaInstallationProbe.ProbeResult)
-    }
+    JavaInstallationProbe.ProbeResult probe = Mock(JavaInstallationProbe.ProbeResult)
+    InstallationLocation installation = Mock(InstallationLocation)
 
     def "jre is rendered properly"() {
         given:
@@ -36,12 +33,14 @@ class ToolchainReportRendererTest extends Specification {
         probe.implementationJavaVersion >> "1.8.0"
         probe.javaHome >> Paths.get("/path")
         probe.javaVersion >> JavaVersion.VERSION_1_8
+        installation.source >> "Source"
 
         expect:
         assertOutput("""{identifier} + toolchainName 1.8.0{normal}
      | Location:           {description}/path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
+     | Detected by:        {description}Source{normal}
 
 """)
     }
@@ -53,12 +52,14 @@ class ToolchainReportRendererTest extends Specification {
         probe.javaHome >> Paths.get("/path")
         probe.installType >> JavaInstallationProbe.InstallType.IS_JDK
         probe.javaVersion >> JavaVersion.VERSION_1_8
+        installation.source >> "SourceSupplier"
 
         expect:
         assertOutput("""{identifier} + toolchainName 1.8.0{normal}
      | Location:           {description}/path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}true{normal}
+     | Detected by:        {description}Source{normal}
 
 """)
     }
@@ -67,7 +68,7 @@ class ToolchainReportRendererTest extends Specification {
         def renderer = new ToolchainReportRenderer()
         def output = new TestStyledTextOutput()
         renderer.output = output
-        renderer.printToolchain(new ShowToolchainsTask.ReportableToolchain(probe, Mock(InstallationLocation)))
+        renderer.printToolchain(new ShowToolchainsTask.ReportableToolchain(probe, installation))
         assert output.toString() == expectedOutput
     }
 }

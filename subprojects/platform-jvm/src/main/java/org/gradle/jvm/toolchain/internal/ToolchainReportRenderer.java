@@ -34,6 +34,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         printAttribute("Location", probe.getJavaHome().toString());
         printAttribute("Language Version", probe.getJavaVersion().getMajorVersion());
         printAttribute("Is JDK", String.valueOf(probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK));
+        printAttribute("Detected by", toolchain.location.getSource());
         output.println();
     }
 
