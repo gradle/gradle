@@ -55,19 +55,19 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
 
         performanceTests = if (stage.stageName == StageNames.EXPERIMENTAL_PERFORMANCE) {
             val coverage = PerformanceTestCoverage(14, PerformanceTestType.adHoc, Os.LINUX, numberOfBuckets = 1, withoutDependencies = true)
-            val performanceTests = Os.values().mapIndexed { index, os -> index to os }.flatMap { (index, os) ->
+            val performanceTests = Os.values().flatMap { os ->
+                if (os == Os.WINDOWS) listOf(os to "jprofiler") else listOf(os to "async-profiler", os to "async-profiler-heap")
+            }.mapIndexed { index, (os, profiler) ->
                 val osCoverage = PerformanceTestCoverage(14, PerformanceTestType.adHoc, os, numberOfBuckets = 1, withoutDependencies = true)
-                listOf("async-profiler", "async-profiler-heap").mapIndexed { profIndex, profiler ->
-                    createProfiledPerformanceTest(
-                        model,
-                        stage,
-                        osCoverage,
-                        testProject = "santaTrackerAndroidBuild",
-                        scenario = Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"),
-                        profiler = if (os == Os.WINDOWS) "jprofiler" else profiler,
-                        bucketIndex = 2 * index + profIndex
-                    )
-                }
+                createProfiledPerformanceTest(
+                    model,
+                    stage,
+                    osCoverage,
+                    testProject = "santaTrackerAndroidBuild",
+                    scenario = Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"),
+                    profiler = profiler,
+                    bucketIndex = index
+                )
             }
             val performanceTestProject = ManuallySplitPerformanceTestProject(model, coverage, performanceTests)
             subProject(performanceTestProject)
