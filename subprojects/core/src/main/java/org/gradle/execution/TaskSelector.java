@@ -15,19 +15,20 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
 import org.gradle.util.NameMatcher;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -54,6 +55,27 @@ public class TaskSelector {
     }
 
     public Spec<Task> getFilter(String path) {
+        String[] paths = parsePath(path);
+        final String projectName = paths[0];
+        final String taskPath2 = paths[1];
+        if (paths != null) {
+            for (final IncludedBuild build : gradle.getDefaultProject().getGradle().getIncludedBuilds()) {
+                if (build.getName().equals(projectName)) {
+
+                    return new Spec<Task>() {
+                        @Override
+                        public boolean isSatisfiedBy(Task element) {
+                            System.out.println("!!! taskPath=" + taskPath2);
+                            System.out.println("!!! element.getProject().getPath()=" + element.getProject().getPath());
+                            System.out.println("!!! element.getPath()=" + element.getPath());
+                            return false;
+                        }
+                    };
+                }
+            }
+        }
+
+
         final ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, gradle.getDefaultProject());
         if (!taskPath.isQualified()) {
             ProjectInternal targetProject = taskPath.getProject();
@@ -94,35 +116,19 @@ public class TaskSelector {
     }
 
     private TaskSelection getSelection(String path, ProjectInternal project) {
-        ResolvedTaskPath taskPath = null;
+        String[] paths = parsePath(path);
+        if (paths != null) {
+            String includedBuildName = paths[0];
+            String taskInIncludedBuildPath = paths[1];
 
-        // if the task path points to an included build then run it via a bridge task
-        if (path.startsWith(Project.PATH_SEPARATOR)) {
-            int idx = path.indexOf(Project.PATH_SEPARATOR, 1);
-
-            if (idx >= 0) {
-                String includedBuildName = path.substring(1, idx);
-                String taskInIncludedBuildPath = path.substring(idx);
-
-                for (final IncludedBuild build : project.getGradle().getIncludedBuilds()) {
-                    if (build.getName().equals(includedBuildName)) {
-                        String bridgeTaskName = "bridge_task_to_included_" + includedBuildName + "_" + taskInIncludedBuildPath.replaceAll(Project.PATH_SEPARATOR, "_");
-                        project.getTasks().register(bridgeTaskName, new Action<Task>() {
-                            @Override
-                            public void execute(Task task) {
-                                task.dependsOn(build.task(taskInIncludedBuildPath));
-                            }
-                        });
-
-                        taskPath = taskPathResolver.resolvePath(":" + project.getPath() + ":" + bridgeTaskName, project);
-                    }
+            for (final IncludedBuild build : project.getGradle().getIncludedBuilds()) {
+                if (build.getName().equals(includedBuildName)) {
+                    return new TaskSelection(includedBuildName, taskInIncludedBuildPath, build.task(taskInIncludedBuildPath));
                 }
             }
         }
 
-        if (taskPath == null) {
-            taskPath = taskPathResolver.resolvePath(path, project);
-        }
+        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
         ProjectInternal targetProject = taskPath.getProject();
         if (taskPath.isQualified()) {
             configurer.configure(targetProject);
@@ -146,15 +152,37 @@ public class TaskSelector {
         throw new TaskSelectionException(matcher.formatErrorMessage("task", taskPath.getProject()));
     }
 
+    private String[] parsePath(String path) {
+        if (path.startsWith(Project.PATH_SEPARATOR)) {
+            int idx = path.indexOf(Project.PATH_SEPARATOR, 1);
+
+            if (idx >= 0) {
+                String projectName = path.substring(1, idx);
+                String taskPath = path.substring(idx);
+                return new String[]{ projectName, taskPath };
+            }
+        }
+        return null;
+    }
+
     public static class TaskSelection {
         private final String projectPath;
         private final String taskName;
         private final TaskSelectionResult taskSelectionResult;
+        private final TaskReference taskReference;
 
         public TaskSelection(String projectPath, String taskName, TaskSelectionResult tasks) {
             this.projectPath = projectPath;
             this.taskName = taskName;
-            taskSelectionResult = tasks;
+            this.taskSelectionResult = tasks;
+            this.taskReference = null;
+        }
+
+        public TaskSelection(String projectPath, String taskName, TaskReference taskReference) {
+            this.projectPath = projectPath;
+            this.taskName = taskName;
+            this.taskSelectionResult = null;
+            this.taskReference = taskReference;
         }
 
         public String getProjectPath() {
@@ -166,9 +194,29 @@ public class TaskSelector {
         }
 
         public Set<Task> getTasks() {
-            LinkedHashSet<Task> result = new LinkedHashSet<Task>();
-            taskSelectionResult.collectTasks(result);
-            return result;
+            if (taskReference == null) {
+                LinkedHashSet<Task> result = new LinkedHashSet<Task>();
+                taskSelectionResult.collectTasks(result);
+                return result;
+            } else {
+                return Collections.singleton(taskReference.resolveTask());
+            }
+        }
+    }
+
+    private static class IncludedBuildTaskPathSpec implements Spec<Task> {
+
+        private final String buildName;
+        private final String taskPath;
+
+        IncludedBuildTaskPathSpec(String buildName, String taskPath) {
+            this.buildName = buildName;
+            this.taskPath = taskPath;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(Task task) {
+            return false;
         }
     }
 
