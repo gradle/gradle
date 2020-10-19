@@ -162,8 +162,6 @@ class GeneratePluginAccessors(
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 
-    override fun markExecutionTime(): Long = 0
-
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GeneratePluginAccessors::class.java)
     }

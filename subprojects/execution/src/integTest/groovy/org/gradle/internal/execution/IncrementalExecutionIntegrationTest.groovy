@@ -870,11 +870,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                long markExecutionTime() {
-                    0
-                }
-
-                @Override
                 Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
                     throw new UnsupportedOperationException()
                 }

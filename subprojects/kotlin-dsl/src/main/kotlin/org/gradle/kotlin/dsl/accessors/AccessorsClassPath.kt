@@ -161,8 +161,6 @@ class GenerateProjectAccessors(
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
-    override fun markExecutionTime(): Long = 0
-
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GenerateProjectAccessors::class.java)
     }
