@@ -56,7 +56,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         task.generate(project)
 
         then:
-        output.toString() == """{identifier} + name 1.8.0_202{normal}
+        output.value == """{identifier} + name 1.8.0_202{normal}
      | Location:           {description}/path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}

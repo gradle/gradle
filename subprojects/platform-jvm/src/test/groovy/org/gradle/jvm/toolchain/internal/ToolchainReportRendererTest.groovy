@@ -31,16 +31,16 @@ class ToolchainReportRendererTest extends Specification {
         given:
         probe.implementationName >> "toolchainName"
         probe.implementationJavaVersion >> "1.8.0"
-        probe.javaHome >> Paths.get("/path")
+        probe.javaHome >> Paths.get("path")
         probe.javaVersion >> JavaVersion.VERSION_1_8
-        installation.source >> "Source"
+        installation.source >> "SourceSupplier"
 
         expect:
         assertOutput("""{identifier} + toolchainName 1.8.0{normal}
-     | Location:           {description}/path{normal}
+     | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
-     | Detected by:        {description}Source{normal}
+     | Detected by:        {description}SourceSupplier{normal}
 
 """)
     }
@@ -49,17 +49,17 @@ class ToolchainReportRendererTest extends Specification {
         given:
         probe.implementationName >> "toolchainName"
         probe.implementationJavaVersion >> "1.8.0"
-        probe.javaHome >> Paths.get("/path")
+        probe.javaHome >> Paths.get("path")
         probe.installType >> JavaInstallationProbe.InstallType.IS_JDK
         probe.javaVersion >> JavaVersion.VERSION_1_8
         installation.source >> "SourceSupplier"
 
         expect:
         assertOutput("""{identifier} + toolchainName 1.8.0{normal}
-     | Location:           {description}/path{normal}
+     | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}true{normal}
-     | Detected by:        {description}Source{normal}
+     | Detected by:        {description}SourceSupplier{normal}
 
 """)
     }
@@ -69,6 +69,6 @@ class ToolchainReportRendererTest extends Specification {
         def output = new TestStyledTextOutput()
         renderer.output = output
         renderer.printToolchain(new ShowToolchainsTask.ReportableToolchain(probe, installation))
-        assert output.toString() == expectedOutput
+        assert output.value == expectedOutput
     }
 }
