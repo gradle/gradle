@@ -1,0 +1,4 @@
+// Umbrella build for sanity check test
+rootProject.name = "testing-plugins"
+includeBuild("url-verifier-plugin")
+includeBuild("include-plugin-build")

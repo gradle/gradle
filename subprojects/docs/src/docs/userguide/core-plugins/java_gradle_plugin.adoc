@@ -54,4 +54,4 @@ The `gradlePlugin {}` block defines the plugins being built by the project inclu
 
 * Generate the plugin descriptor in the `jar` file's `META-INF` directory.
 * Configure the <<publishing_maven.adoc#publishing_maven,Maven>> or <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugins>> publishing plugins to publish a <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> for each plugin.
-* Moreover, if the link:https://plugins.gradle.org/docs/publish-plugin[Plugin Publishing Plugin] is applied, it will publish each plugin using the same name, plugin id, display name, and description to the Gradle Plugin Portal (see link:https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/[Publishing Plugins to Gradle Plugin Portal] for details).
+* Moreover, if the link:https://plugins.gradle.org/docs/publish-plugin[Plugin Publishing Plugin] is applied, it will publish each plugin using the same name, plugin id, display name, and description to the Gradle Plugin Portal (see <<publishing_gradle_plugins.adoc#,Publishing Plugins to Gradle Plugin Portal>> for details).
