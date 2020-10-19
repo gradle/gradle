@@ -357,7 +357,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         public T update(Function<T, T> updateFunction) {
             acquireUpdateLock();
             try {
-                // Do not hold any locks while applying the update
                 T newValue = updateFunction.apply(value);
                 value = newValue;
                 return newValue;

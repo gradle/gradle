@@ -47,6 +47,7 @@ import org.gradle.configurationcache.serialization.codecs.transform.Transformati
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
 import org.gradle.configurationcache.serialization.reentrant
 import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.execution.plan.TaskNodeFactory
@@ -139,6 +140,7 @@ class Codecs(
         bind(ResolvableArtifactCodec)
         bind(TransformDependenciesCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
+        bind(TransformedProjectArtifactSetCodec())
         bind(TransformedExternalArtifactSetCodec(transformationNodeRegistry))
         bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory))
 

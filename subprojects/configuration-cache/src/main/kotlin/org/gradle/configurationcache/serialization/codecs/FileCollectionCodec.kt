@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
-import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
 import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -43,7 +43,6 @@ import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import java.io.File
-import java.util.concurrent.Callable
 
 
 internal
@@ -82,13 +81,11 @@ class FileCollectionCodec(
                     contents.map { element ->
                         when (element) {
                             is File -> element
-                            is TransformationNode -> Callable { element.transformedSubject.get().files }
                             is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                             is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                             is ProviderBackedFileCollectionSpec -> element.provider
                             is FileTree -> element
-                            is TransformedExternalArtifactSet -> artifactSetConverter.asFileCollection(element)
-                            is LocalFileDependencyBackedArtifactSet -> artifactSetConverter.asFileCollection(element)
+                            is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
                             else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                         }
                     }
@@ -161,7 +158,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
         when (source) {
             is TransformedProjectArtifactSet -> {
-                elements.addAll(source.scheduledNodes)
+                elements.add(source)
             }
             is LocalFileDependencyBackedArtifactSet -> {
                 elements.add(source)

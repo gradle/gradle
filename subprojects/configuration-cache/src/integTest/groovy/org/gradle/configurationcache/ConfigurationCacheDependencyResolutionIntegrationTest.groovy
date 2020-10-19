@@ -1119,10 +1119,11 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         output.count("processing") == 2
         outputContains("processing root.blue")
         outputContains("processing a.jar")
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
-        // TODO - is missing context exception explaining which configuration could not be resolved
-        // TODO - currently runs transforms for file and external dependencies sequentially and stops on first failure. Should instead run all transforms in parallel
-        // TODO - stops on first failure, should collect all failures
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
+            // TODO - should collect all failures rather than stopping on first failure
+        }
+        failure.assertHasFailures(1)
     }
 
     def "reports failure to transform project dependency"() {
@@ -1171,9 +1172,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         output.count("processing") == 2
         outputContains("processing a.jar")
         outputContains("processing b.jar")
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
-        // TODO - is missing context exception explaining which configuration could not be resolved
-        // TODO - stops on first failure, should collect all failures
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+            // TODO - should collect all failures rather than stopping on first failure
+        }
     }
 
     def "reports failure to transform external dependency"() {
@@ -1227,10 +1229,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         configurationCache.assertStateLoaded()
         output.count("processing") == 1
         outputContains("processing thing1-1.2.jar")
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
-        // TODO - is missing context exception explaining which configuration could not be resolved
-        // TODO - currently runs transforms for file and external dependencies sequentially and stops on first failure. Should instead run all transforms in parallel
-        // TODO - stops on first failure, should collect all failures
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform thing1-1.2.jar (group:thing1:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
+            // TODO - should collect all failures rather than stopping on first failure
+        }
     }
 
     def 'transform action is re-executed when input artifact changes'() {

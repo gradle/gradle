@@ -241,6 +241,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("> Transform lib2.jar (project :lib) with MakeGreenToRedThings") == 1
     }
 
+    // This shows current behaviour, where the transform is executed even though the input artifact has not been created yet
+    // This should become an error eventually
     def "executes transform immediately when required during task graph building"() {
         buildFile << declareAttributes() << withJarTasks() << """
             import org.gradle.api.artifacts.transform.TransformParameters
@@ -251,6 +253,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
                 @Override
                 void transform(TransformOutputs outputs) {
+                    println "Transforming \${inputArtifact.get().asFile.name} with MakeGreen"
                     outputs.file(inputArtifact.get().asFile.name + ".green").text = "very green"
                 }
             }
@@ -304,10 +307,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
 
         when:
-        run(":app:toBeFinalized", "withDependency", "--info")
+        run(":app:toBeFinalized", "withDependency")
+
         then:
-        output.count("Transforming lib1.jar (project :lib) with MakeGreen") == 2
-        output.count("Transforming lib2.jar (project :lib) with MakeGreen") == 2
+        output.count("Transforming lib1.jar with MakeGreen") == 1
+        output.count("Transforming lib2.jar with MakeGreen") == 1
     }
 
     def "each file is transformed once per set of configuration parameters"() {
