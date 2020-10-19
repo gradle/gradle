@@ -18,13 +18,17 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging;
@@ -44,8 +48,12 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     public Result run(BuildAction action, BuildController buildController) {
         GradleInternal gradle = buildController.getGradle();
         StartParameterInternal startParameter = gradle.getStartParameter();
-        BuildLifecycleAwareVirtualFileSystem virtualFileSystem = gradle.getServices().get(BuildLifecycleAwareVirtualFileSystem.class);
-        BuildOperationRunner buildOperationRunner = gradle.getServices().get(BuildOperationRunner.class);
+        ServiceRegistry services = gradle.getServices();
+        BuildLifecycleAwareVirtualFileSystem virtualFileSystem = services.get(BuildLifecycleAwareVirtualFileSystem.class);
+        StatStatistics.Collector statStatisticsCollector = services.get(StatStatistics.Collector.class);
+        FileHasherStatistics.Collector fileHasherStatisticsCollector = services.get(FileHasherStatistics.Collector.class);
+        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector = services.get(DirectorySnapshotterStatistics.Collector.class);
+        BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
         VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
@@ -54,6 +62,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         WatchLogging debugWatchLogging = startParameter.isWatchFileSystemDebugLogging()
             ? WatchLogging.DEBUG
             : WatchLogging.NORMAL;
+        boolean vfsDebugLogging = startParameter.isVfsDebugLogging();
 
         logMessageForDeprecatedWatchFileSystemProperty(startParameter);
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
@@ -61,13 +70,31 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         if (watchFileSystem) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
+        if (vfsDebugLogging) {
+            logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
+        }
         virtualFileSystem.afterBuildStarted(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
         try {
             return delegate.run(action, buildController);
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
             virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
+            if (vfsDebugLogging) {
+                logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
+            }
         }
+    }
+
+    private static void logVfsStatistics(
+        String title,
+        StatStatistics.Collector statStatisticsCollector,
+        FileHasherStatistics.Collector fileHasherStatisticsCollector,
+        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector
+    ) {
+        LOGGER.warn("VFS> Statistics {}:", title);
+        LOGGER.warn("VFS> > Stat: {}", statStatisticsCollector.collect());
+        LOGGER.warn("VFS> > FileHasher: {}", fileHasherStatisticsCollector.collect());
+        LOGGER.warn("VFS> > DirectorySnapshotter: {}", directorySnapshotterStatisticsCollector.collect());
     }
 
     private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {

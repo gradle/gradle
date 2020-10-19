@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.SnapshottingFilter
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -46,12 +47,14 @@ abstract class AbstractFileSystemAccessTest extends Specification {
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
     def updateListener = Mock(FileSystemAccess.WriteListener)
+    def statisticsCollector = Mock(DirectorySnapshotterStatistics.Collector)
     def fileSystemAccess = new DefaultFileSystemAccess(
         fileHasher,
         new StringInterner(),
         stat,
         TestFiles.virtualFileSystem(),
-        updateListener
+        updateListener,
+        statisticsCollector
     )
 
     void allowFileSystemAccess(boolean allow) {

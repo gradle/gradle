@@ -60,17 +60,19 @@ public class DirectorySnapshotter {
     private final FileHasher hasher;
     private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
+    private final DirectorySnapshotterStatistics.Collector collector;
 
-    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes) {
+    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes, DirectorySnapshotterStatistics.Collector collector) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
+        this.collector = collector;
     }
 
     public CompleteFileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
         try {
             Path rootPath = Paths.get(absolutePath);
-            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
+            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector);
             Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
             return visitor.getResult();
         } catch (IOException e) {
@@ -171,7 +173,7 @@ public class DirectorySnapshotter {
         }
     }
 
-    private static class PathVisitor implements java.nio.file.FileVisitor<Path> {
+    private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
         private final MerkleDirectorySnapshotBuilder builder;
         private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
@@ -186,8 +188,10 @@ public class DirectorySnapshotter {
             AtomicBoolean hasBeenFiltered,
             FileHasher hasher,
             Interner<String> stringInterner,
-            DefaultExcludes defaultExcludes
+            DefaultExcludes defaultExcludes,
+            DirectorySnapshotterStatistics.Collector statisticsCollector
         ) {
+            super(statisticsCollector);
             this.builder = MerkleDirectorySnapshotBuilder.sortingRequired();
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
@@ -197,7 +201,7 @@ public class DirectorySnapshotter {
         }
 
         @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+        protected FileVisitResult doPreVisitDirectory(Path dir, BasicFileAttributes attrs) {
             String fileName = getFilename(dir);
             String internedName = intern(fileName);
             if (builder.isRoot() || shouldVisit(dir, internedName, true, builder.getRelativePath())) {
@@ -216,7 +220,7 @@ public class DirectorySnapshotter {
         }
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+        protected FileVisitResult doVisitFile(Path file, BasicFileAttributes attrs) {
             if (attrs.isSymbolicLink()) {
                 BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
                 if (targetAttributes.isDirectory()) {
@@ -290,7 +294,7 @@ public class DirectorySnapshotter {
 
         /** unlistable directories (and maybe some locked files) will stop here */
         @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+        protected FileVisitResult doVisitFileFailed(Path file, IOException exc) {
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
@@ -307,7 +311,7 @@ public class DirectorySnapshotter {
         }
 
         @Override
-        public FileVisitResult postVisitDirectory(Path dir, @Nullable IOException exc) {
+        protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.

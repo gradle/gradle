@@ -22,6 +22,7 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
+import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -198,8 +199,14 @@ public class BuildSessionScopeServices {
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }
 
-    ChecksumService createChecksumService(StringInterner stringInterner, FileSystem fileSystem, CrossBuildFileHashCacheWrapper crossBuildCache, BuildSessionScopeFileTimeStampInspector inspector) {
-        return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector);
+    ChecksumService createChecksumService(
+        StringInterner stringInterner,
+        FileSystem fileSystem,
+        CrossBuildFileHashCacheWrapper crossBuildCache,
+        BuildSessionScopeFileTimeStampInspector inspector,
+        FileHasherStatistics.Collector statisticsCollector
+    ) {
+        return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector, statisticsCollector);
     }
 
     UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock) {

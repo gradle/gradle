@@ -18,11 +18,14 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.changedetection.state.FileHasherStatistics
+import org.gradle.internal.file.StatStatistics
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
@@ -33,7 +36,7 @@ import spock.lang.Unroll
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
-    def startParameter = Mock(StartParameterInternal)
+    def startParameter = Stub(StartParameterInternal)
     def buildOperationRunner = Mock(BuildOperationRunner)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
@@ -41,6 +44,9 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
             getServices() >> Stub(ServiceRegistry) {
                 get(BuildLifecycleAwareVirtualFileSystem) >> watchingHandler
                 get(BuildOperationRunner) >> buildOperationRunner
+                get(FileHasherStatistics.Collector) >> Stub(FileHasherStatistics.Collector)
+                get(StatStatistics.Collector) >> Stub(StatStatistics.Collector)
+                get(DirectorySnapshotterStatistics.Collector) >> Stub(DirectorySnapshotterStatistics.Collector)
             }
         }
     }
@@ -52,6 +58,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         _ * startParameter.isWatchFileSystem() >> watchFsEnabled
         _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
+        _ * startParameter.isVfsDebugLogging() >> false
 
         def runner = new FileSystemWatchingBuildActionRunner(delegate)
 
@@ -65,6 +72,9 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
         then:
         1 * watchingHandler.beforeBuildFinished(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner, _)
+
+        then:
+        0 * _
 
         where:
         watchFsEnabled | vfsLogging         | watchLogging

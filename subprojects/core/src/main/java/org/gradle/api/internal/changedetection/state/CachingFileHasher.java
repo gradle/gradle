@@ -38,8 +38,18 @@ public class CachingFileHasher implements FileHasher {
     private final FileSystem fileSystem;
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
+    private final FileHasherStatistics.Collector statisticsCollector;
 
-    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem, int inMemorySize) {
+    public CachingFileHasher(
+        FileHasher delegate,
+        CrossBuildFileHashCache store,
+        StringInterner stringInterner,
+        FileTimeStampInspector timestampInspector,
+        String cacheName,
+        FileSystem fileSystem,
+        int inMemorySize,
+        FileHasherStatistics.Collector statisticsCollector
+    ) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
         this.cache = store.createCache(
@@ -48,10 +58,7 @@ public class CachingFileHasher implements FileHasher {
             true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
-    }
-
-    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
-        this(delegate, store, stringInterner, timestampInspector, cacheName, fileSystem, 400000);
+        this.statisticsCollector = statisticsCollector;
     }
 
     @Override
@@ -87,6 +94,7 @@ public class CachingFileHasher implements FileHasher {
         HashCode hash = delegate.hash(file);
         FileInfo info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
+        statisticsCollector.reportFileHashed(length);
         return info;
     }
 
