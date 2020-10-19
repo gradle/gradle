@@ -33,12 +33,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
 public class SharedJavaInstallationRegistry {
     private final BuildOperationExecutor executor;
-    private final Supplier<Set<File>> installations;
+    private final Supplier<Set<InstallationLocation>> installations;
     private final Logger logger;
 
     @Inject
@@ -57,21 +60,21 @@ public class SharedJavaInstallationRegistry {
         return new SharedJavaInstallationRegistry(suppliers, logger, executor);
     }
 
-    private Set<File> collectInBuildOperation(List<InstallationSupplier> suppliers) {
+    private Set<InstallationLocation> collectInBuildOperation(List<InstallationSupplier> suppliers) {
         return executor.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
     }
 
-    public Set<File> listInstallations() {
+    public Set<InstallationLocation> listInstallations() {
         return installations.get();
     }
 
-    private Set<File> collectInstallations(List<InstallationSupplier> suppliers) {
+    private Set<InstallationLocation> collectInstallations(List<InstallationSupplier> suppliers) {
         return suppliers.stream()
             .map(InstallationSupplier::get)
             .flatMap(Set::stream)
             .filter(this::installationExists)
-            .map(InstallationLocation::getLocation)
             .map(this::canonicalize)
+            .filter(distinctByKey(InstallationLocation::getLocation))
             .collect(Collectors.toSet());
     }
 
@@ -88,23 +91,31 @@ public class SharedJavaInstallationRegistry {
         return true;
     }
 
-    private File canonicalize(File file) {
+    private InstallationLocation canonicalize(InstallationLocation location) {
+        final File file = location.getLocation();
         try {
-            return file.getCanonicalFile();
+            final File canonicalFile = file.getCanonicalFile();
+            return new InstallationLocation(canonicalFile, location.getSource());
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
     }
 
-    private static class ToolchainDetectionBuildOperation implements CallableBuildOperation<Set<File>> {
-        private final Callable<Set<File>> detectionStrategy;
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
 
-        public ToolchainDetectionBuildOperation(Callable<Set<File>> detectionStrategy) {
+
+    private static class ToolchainDetectionBuildOperation implements CallableBuildOperation<Set<InstallationLocation>> {
+        private final Callable<Set<InstallationLocation>> detectionStrategy;
+
+        public ToolchainDetectionBuildOperation(Callable<Set<InstallationLocation>> detectionStrategy) {
             this.detectionStrategy = detectionStrategy;
         }
 
         @Override
-        public Set<File> call(BuildOperationContext context) throws Exception {
+        public Set<InstallationLocation> call(BuildOperationContext context) throws Exception {
             return detectionStrategy.call();
         }
 

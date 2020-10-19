@@ -26,8 +26,9 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ToolchainReportRenderer extends TextReportRenderer {
 
-    public void printToolchain(JavaInstallationProbe.ProbeResult probe) {
+    public void printToolchain(ShowToolchainsTask.ReportableToolchain toolchain) {
         StyledTextOutput output = getTextOutput();
+        JavaInstallationProbe.ProbeResult probe = toolchain.probe;
         String displayName = probe.getImplementationName() + " " + probe.getImplementationJavaVersion();
         output.withStyle(Identifier).println(" + " + displayName);
         printAttribute("Location", probe.getJavaHome().toString());

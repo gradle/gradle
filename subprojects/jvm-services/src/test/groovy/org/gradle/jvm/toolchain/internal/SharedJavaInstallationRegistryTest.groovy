@@ -30,7 +30,8 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def registry = newRegistry(tempFolder)
 
         then:
-        registry.listInstallations() == [tempFolder] as Set
+        registry.listInstallations()*.location == [tempFolder]
+        registry.listInstallations()*.source == ["testSource"]
     }
 
     def "registry filters non-unique locations"() {
@@ -38,7 +39,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def registry = newRegistry(tempFolder, tempFolder)
 
         then:
-        registry.listInstallations() == [tempFolder] as Set
+        registry.listInstallations()*.location == [tempFolder]
     }
 
     def "duplicates are detected using canonical form"() {
@@ -49,7 +50,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def installations = registry.listInstallations()
 
         then:
-        installations == [tempFolder] as Set
+        installations*.location == [tempFolder]
     }
 
     def "can be initialized with suppliers"() {
@@ -61,7 +62,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def registry = newRegistry(tempFolder, tmpDir2, tmpDir3)
 
         then:
-        registry.listInstallations().containsAll(tempFolder, tmpDir2, tmpDir2)
+        registry.listInstallations()*.location.containsAll(tempFolder, tmpDir2, tmpDir2)
     }
 
     def "list of installations is cached"() {
