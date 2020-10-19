@@ -124,7 +124,7 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     protected ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         List<Entry<T>> newChildren = new ArrayList<>(entries);
         newChildren.add(insertBefore, new Entry<>(path, newChild));
-        return ChildMapFactory.childMap(newChildren);
+        return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
     protected ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
@@ -134,13 +134,13 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
         }
         List<Entry<T>> newChildren = new ArrayList<>(entries);
         newChildren.set(childIndex, new Entry<>(newPath, newChild));
-        return ChildMapFactory.childMap(newChildren);
+        return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
     protected ChildMap<T> withRemovedChild(int childIndex) {
         List<Entry<T>> newChildren = new ArrayList<>(entries);
         newChildren.remove(childIndex);
-        return ChildMapFactory.childMap(newChildren);
+        return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
     @Override

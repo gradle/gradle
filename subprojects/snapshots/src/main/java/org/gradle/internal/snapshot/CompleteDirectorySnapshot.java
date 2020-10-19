@@ -38,7 +38,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
         this(
             absolutePath,
             name,
-            ChildMapFactory.childMap(children.stream()
+            ChildMapFactory.childMapFromSorted(children.stream()
                 .map(it -> new ChildMap.Entry<>(it.getName(), it))
                 .collect(Collectors.toList())),
             contentHash,

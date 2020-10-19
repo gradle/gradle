@@ -388,7 +388,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def compared = PathUtil.getPathComparator(CASE_SENSITIVE).compare(path1, path2)
         def entry1 = new ChildMap.Entry<FileSystemNode>(path1, child1)
         def entry2 = new ChildMap.Entry<FileSystemNode>(path2, child2)
-        return compared < 0 ? ChildMapFactory.childMap([entry1, entry2]) : ChildMapFactory.childMap([entry2, entry1])
+        return compared < 0 ? ChildMapFactory.childMapFromSorted([entry1, entry2]) : ChildMapFactory.childMapFromSorted([entry2, entry1])
     }
 
     @Override

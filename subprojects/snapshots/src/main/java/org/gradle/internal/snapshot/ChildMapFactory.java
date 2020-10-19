@@ -18,6 +18,9 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 public class ChildMapFactory {
@@ -29,7 +32,13 @@ public class ChildMapFactory {
      */
     private static final int MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH = 10;
 
-    public static <T> ChildMap<T> childMap(List<ChildMap.Entry<T>> sortedEntries) {
+    public static <T> ChildMap<T> childMap(CaseSensitivity caseSensitivity, Collection<ChildMap.Entry<T>> entries) {
+        List<ChildMap.Entry<T>> sortedEntries = new ArrayList<>(entries);
+        sortedEntries.sort(Comparator.comparing(ChildMap.Entry::getPath, PathUtil.getPathComparator(caseSensitivity)));
+        return childMapFromSorted(sortedEntries);
+    }
+
+    public static <T> ChildMap<T> childMapFromSorted(List<ChildMap.Entry<T>> sortedEntries) {
         int size = sortedEntries.size();
         switch (size) {
             case 0:
@@ -48,6 +57,6 @@ public class ChildMapFactory {
         List<ChildMap.Entry<T>> sortedEntries = compared < 0
             ? ImmutableList.of(entry1, entry2)
             : ImmutableList.of(entry2, entry1);
-        return childMap(sortedEntries);
+        return childMapFromSorted(sortedEntries);
     }
 }

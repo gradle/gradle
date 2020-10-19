@@ -65,7 +65,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     ChildMap<CHILD> createChildren(List<String> pathsToParent) {
-        return ChildMapFactory.childMap(pathsToParent.stream()
+        return ChildMapFactory.childMapFromSorted(pathsToParent.stream()
             .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
             .map { childPath -> new ChildMap.Entry(childPath, mockChild()) }
             .collect(Collectors.toList()))
@@ -78,7 +78,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(String replacementPath, FileSystemNode replacement) {
         def newChildren = new ArrayList<ChildMap.Entry<FileSystemNode>>(children.entries())
         newChildren.set(indexOfSelectedChild, new ChildMap.Entry<FileSystemNode>(replacementPath, replacement))
-        return ChildMapFactory.childMap(newChildren)
+        return ChildMapFactory.childMapFromSorted(newChildren)
     }
 
     int getIndexOfSelectedChild() {
@@ -92,13 +92,13 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
             targetPath.compareToFirstSegment(candidate.path, CASE_SENSITIVE)
         }
         newEntries.add(insertPosition, new ChildMap.Entry<FileSystemNode>(path, newChild))
-        return ChildMapFactory.childMap(newEntries)
+        return ChildMapFactory.childMapFromSorted(newEntries)
     }
 
     ChildMap<CHILD> childrenWithSelectedChildRemoved() {
         def newEntries = new ArrayList<ChildMap.Entry<CHILD>>(children.entries())
         newEntries.remove(indexOfSelectedChild)
-        return ChildMapFactory.childMap(newEntries)
+        return ChildMapFactory.childMapFromSorted(newEntries)
     }
 
     CHILD getNodeWithIndexOfSelectedChild(ChildMap<CHILD> newChildren) {
