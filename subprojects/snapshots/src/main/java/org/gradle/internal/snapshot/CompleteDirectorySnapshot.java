@@ -17,14 +17,13 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A complete snapshot of an existing directory.
@@ -32,10 +31,22 @@ import java.util.Optional;
  * Includes complete snapshots of every child and the Merkle tree hash.
  */
 public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocationSnapshot {
-    private final List<CompleteFileSystemLocationSnapshot> children;
+    private final ChildMap<CompleteFileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
     public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
+        this(
+            absolutePath,
+            name,
+            ChildMapFactory.childMapFromSorted(children.stream()
+                .map(it -> new ChildMap.Entry<>(it.getName(), it))
+                .collect(Collectors.toList())),
+            contentHash,
+            accessType
+        );
+    }
+
+    public CompleteDirectorySnapshot(String absolutePath, String name, ChildMap<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
         super(absolutePath, name, accessType);
         this.children = children;
         this.contentHash = contentHash;
@@ -61,52 +72,38 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
         if (!visitor.preVisitDirectory(this)) {
             return;
         }
-        for (CompleteFileSystemLocationSnapshot child : children) {
-            child.accept(visitor);
-        }
+        children.visitChildren((__, child) -> child.accept(visitor));
         visitor.postVisitDirectory(this);
     }
 
     @VisibleForTesting
     public List<CompleteFileSystemLocationSnapshot> getChildren() {
-        return children;
+        return children.values();
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return Optional.of(
-            SnapshotUtil.getMetadataFromChildren(children, relativePath, caseSensitivity, Optional::empty)
-                .orElseGet(() -> missingSnapshotForAbsolutePath(relativePath.getAbsolutePath()))
+            SnapshotUtil.getMetadataFromChildren(children, targetPath, caseSensitivity, Optional::empty)
+                .orElseGet(() -> missingSnapshotForAbsolutePath(targetPath.getAbsolutePath()))
         );
     }
 
     @Override
-    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        ReadOnlyFileSystemNode childNode = SnapshotUtil.getChild(children, relativePath, caseSensitivity);
+    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        ReadOnlyFileSystemNode childNode = SnapshotUtil.getChild(children, targetPath, caseSensitivity);
         return childNode == ReadOnlyFileSystemNode.EMPTY
-            ? missingSnapshotForAbsolutePath(relativePath.getAbsolutePath())
+            ? missingSnapshotForAbsolutePath(targetPath.getAbsolutePath())
             : childNode;
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<CompleteFileSystemLocationSnapshot, FileSystemNode>() {
             @Override
-            public Optional<FileSystemNode> handleNewChild(int insertBefore) {
+            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, CompleteFileSystemLocationSnapshot child) {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
-                children.forEach(diffListener::nodeAdded);
-                return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
-            }
-
-            @Override
-            public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
-                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
-                CompleteFileSystemLocationSnapshot foundChild = children.get(childIndex);
-                int childPathLength = foundChild.getPathToParent().length();
-                boolean completeChildRemoved = childPathLength == relativePath.length();
-                Optional<FileSystemNode> invalidated = completeChildRemoved
-                    ? Optional.empty()
-                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
+                Optional<FileSystemNode> invalidated = child.invalidate(pathInChild, caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
                     @Override
                     public void nodeRemoved(FileSystemNode node) {
                         // the parent already has been removed. No children need to be removed.
@@ -117,34 +114,35 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                         diffListener.nodeAdded(node);
                     }
                 });
-                children.forEach(child -> {
-                    if (child != foundChild) {
-                        diffListener.nodeAdded(child);
+                children.visitChildren((__, existingChild) -> {
+                    if (existingChild != child) {
+                        diffListener.nodeAdded(existingChild);
                     }
                 });
-                return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));
+                return invalidated;
             }
 
-            private List<FileSystemNode> getChildren(int childIndex, @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<FileSystemNode> invalidated) {
-                if (children.size() == 1) {
-                    return invalidated.map(ImmutableList::of).orElseGet(ImmutableList::of);
-                }
+            @Override
+            public void handleAsAncestorOfChild(String childPath, CompleteFileSystemLocationSnapshot child) {
+                throw new IllegalStateException("Can't have an ancestor of a single path element");
+            }
 
-                return invalidated
-                    .map(invalidatedChild -> {
-                        List<FileSystemNode> newChildren = new ArrayList<>(children);
-                        newChildren.set(childIndex, invalidatedChild);
-                        return newChildren;
-                    }).orElseGet(() -> {
-                        if (children.size() == 2) {
-                            CompleteFileSystemLocationSnapshot singleChild = childIndex == 0 ? children.get(1) : children.get(0);
-                            return ImmutableList.of(singleChild);
-                        }
-                        List<FileSystemNode> newChildren = new ArrayList<>(children);
-                        newChildren.remove(childIndex);
-                        return newChildren;
-                    });
+            @Override
+            public void handleExactMatchWithChild(CompleteFileSystemLocationSnapshot child) {
+                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
+                children.visitChildren((__, existingChild) -> {
+                    if (existingChild != child) {
+                        diffListener.nodeAdded(existingChild);
+                    }
+                });
+            }
+
+            @Override
+            public void handleUnrelatedToAnyChild() {
+                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
+                children.visitChildren((__, child) -> diffListener.nodeAdded(child));
             }
         });
+        return Optional.of(new PartialDirectorySnapshot(newChildren));
     }
 }

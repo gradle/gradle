@@ -19,6 +19,8 @@ package org.gradle.internal.snapshot
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 @Unroll
 class VfsRelativePathTest extends Specification {
 
@@ -46,5 +48,18 @@ class VfsRelativePathTest extends Specification {
         relativePath | child | result
         "a/b"        | "a"   | "b"
         "a/b"        | ""    | "a/b"
+    }
+
+    def "'#relativePath / #offset' #verb a prefix of '#childPath'"() {
+        expect:
+        VfsRelativePath.of(relativePath, offset).isPrefixOf(childPath, CASE_SENSITIVE) == result
+
+        where:
+        relativePath | offset         | childPath | result
+        "a/b" | "a/".length()  | "a"     | false
+        "a/b" | "a/b".length() | "c"     | true
+        "a/b" | "a/".length()  | "b"     | true
+        "b"   | 0              | "b/c/d" | true
+        verb = result ? "is" : "is not"
     }
 }
