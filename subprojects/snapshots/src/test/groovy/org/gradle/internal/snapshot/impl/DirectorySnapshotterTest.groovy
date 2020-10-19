@@ -341,29 +341,29 @@ class DirectorySnapshotterTest extends Specification {
     private static SnapshottingFilter.DirectoryWalkerPredicate directoryWalkerPredicate(PatternSet patternSet) {
         return new PatternSetSnapshottingFilter(patternSet, TestFiles.fileSystem()).asDirectoryWalkerPredicate
     }
-}
 
-abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {
-    private Deque<String> relativePath = new ArrayDeque<String>()
+    private abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {
+        private Deque<String> relativePath = new ArrayDeque<String>()
 
-    @Override
-    boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        relativePath.addLast(directorySnapshot.name)
-        visit(directorySnapshot.absolutePath, relativePath)
-        return true
+        @Override
+        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            relativePath.addLast(directorySnapshot.name)
+            visit(directorySnapshot.absolutePath, relativePath)
+            return true
+        }
+
+        @Override
+        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+            relativePath.addLast(fileSnapshot.name)
+            visit(fileSnapshot.absolutePath, relativePath)
+            relativePath.removeLast()
+        }
+
+        @Override
+        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            relativePath.removeLast()
+        }
+
+        abstract void visit(String absolutePath, Deque<String> relativePath)
     }
-
-    @Override
-    void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-        relativePath.addLast(fileSnapshot.name)
-        visit(fileSnapshot.absolutePath, relativePath)
-        relativePath.removeLast()
-    }
-
-    @Override
-    void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        relativePath.removeLast()
-    }
-
-    abstract void visit(String absolutePath, Deque<String> relativePath)
 }
