@@ -67,7 +67,7 @@ class ToolchainReportRendererTest extends Specification {
         def renderer = new ToolchainReportRenderer()
         def output = new TestStyledTextOutput()
         renderer.output = output
-        renderer.printToolchain(probe)
+        renderer.printToolchain(new ShowToolchainsTask.ReportableToolchain(probe, Mock(InstallationLocation)))
         assert output.toString() == expectedOutput
     }
 }
