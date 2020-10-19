@@ -32,7 +32,7 @@ class CurrentInstallationSupplierTest extends Specification {
 
         then:
         directories*.location == [Jvm.current().javaHome]
-        directories*.source == ["current jvm"]
+        directories*.source == ["Current JVM"]
     }
 
     def "skips current jre as installation if auto-detection is disabled"() {

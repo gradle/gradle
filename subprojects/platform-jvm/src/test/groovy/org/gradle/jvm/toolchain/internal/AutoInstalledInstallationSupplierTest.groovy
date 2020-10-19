@@ -55,7 +55,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([jdk.absolutePath])
-        directories*.source == ["auto-installed jdk"]
+        directories*.source == ["Auto-provisioned by Gradle"]
     }
 
     @SuppressWarnings('GroovyAccessibility')
@@ -75,7 +75,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
             jdk2.absolutePath,
             jdk3.absolutePath
         ])
-        directories*.source == ["auto-installed jdk", "auto-installed jdk", "auto-installed jdk"]
+        directories*.source == ["Auto-provisioned by Gradle", "Auto-provisioned by Gradle", "Auto-provisioned by Gradle"]
     }
 
     def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {

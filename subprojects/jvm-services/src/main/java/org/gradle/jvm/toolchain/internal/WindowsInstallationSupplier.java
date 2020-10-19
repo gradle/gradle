@@ -58,7 +58,7 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
             "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Runtime Environment"
         ).stream().map(this::findJvms).flatMap(List::stream);
         return Stream.concat(openJdkInstallations, jvms)
-            .map(javaHome -> new InstallationLocation(new File(javaHome), "windows registry"))
+            .map(javaHome -> new InstallationLocation(new File(javaHome), "Windows Registry"))
             .collect(Collectors.toSet());
     }
 
