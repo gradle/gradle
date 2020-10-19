@@ -106,4 +106,4 @@ fun externalModuleDependencyFor(
 
 
 fun functionToAction(f: (Any?) -> Unit): Action<Any?> =
-    Action { f(it) }
+    Action { f(this) }

@@ -17,17 +17,23 @@
 package org.gradle.performance.results;
 
 public enum OperatingSystem {
-    LINUX(""),
-    MAC_OS("-macos"),
-    WINDOWS("-windows");
+    LINUX("", "linux"),
+    MAC_OS("-macos", "macOs"),
+    WINDOWS("-windows", "windows");
 
     private final String channelSuffix;
+    private final String coverageName;
 
-    OperatingSystem(String channelSuffix) {
+    OperatingSystem(String channelSuffix, String coverageName) {
         this.channelSuffix = channelSuffix;
+        this.coverageName = coverageName;
     }
 
     public String getChannelSuffix() {
         return channelSuffix;
+    }
+
+    public String getCoverageName() {
+        return coverageName;
     }
 }

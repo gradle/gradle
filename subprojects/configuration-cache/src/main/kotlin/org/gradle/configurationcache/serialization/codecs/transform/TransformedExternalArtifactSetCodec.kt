@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
@@ -57,7 +56,7 @@ class TransformedExternalArtifactSetCodec(
             write(value.ownerId)
             write(value.targetVariantAttributes)
             val files = mutableListOf<File>()
-            value.visitArtifacts { files.add(it.file) }
+            value.visitArtifacts { files.add(file) }
             write(files)
             write(value.transformation)
             val unpacked = unpackTransformation(value.transformation, value.dependenciesResolver)
@@ -74,7 +73,7 @@ class TransformedExternalArtifactSetCodec(
             val dependencies = readNonNull<List<TransformDependencies>>()
             val dependenciesPerTransformer = mutableMapOf<Transformer, TransformDependencies>()
             transformation.visitTransformationSteps {
-                dependenciesPerTransformer.put(it.transformer, dependencies[dependenciesPerTransformer.size])
+                dependenciesPerTransformer[transformer] = dependencies[dependenciesPerTransformer.size]
             }
             TransformedExternalArtifactSet(ownerId, FixedFilesArtifactSet(ownerId, files), targetAttributes, transformation, FixedDependenciesResolverFactory(dependenciesPerTransformer), transformationNodeRegistry)
         }
@@ -113,12 +112,10 @@ class FixedFilesArtifactSet(private val ownerId: ComponentIdentifier, private va
         for (artifact in artifacts) {
             listener.artifactAvailable(artifact)
         }
-        return object : ResolvedArtifactSet.Completion {
-            override fun visit(visitor: ArtifactVisitor) {
-                val displayName = Describables.of(ownerId)
-                for (artifact in artifacts) {
-                    visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
-                }
+        return ResolvedArtifactSet.Completion { visitor ->
+            val displayName = Describables.of(ownerId)
+            for (artifact in artifacts) {
+                visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
             }
         }
     }

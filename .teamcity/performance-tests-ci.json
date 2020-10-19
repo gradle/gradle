@@ -1102,7 +1102,7 @@
                 {
                     "testProject" : "santaTrackerAndroidBuild",
                     "coverage" : {
-                        "experiment":  ["linux", "macos", "windows"]
+                        "experiment":  ["linux", "macOs", "windows"]
                     }
                 }
             ]
@@ -1174,13 +1174,7 @@
                     }
                 },
                 {
-                    "testProject" : "bigNative",
-                    "coverage" : {
-                        "experiment":  ["linux"]
-                    }
-                },
-                {
-                    "testProject" : "bigNative",
+                    "testProject" : "multiNative",
                     "coverage" : {
                         "experiment":  ["linux"]
                     }
@@ -1274,6 +1268,52 @@
                     "testProject" : "mediumJavaMultiProject",
                     "coverage" : {
                         "experiment":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest.buildSrc abi change",
+            "groups" : [
+                {
+                    "testProject" : "mediumMonolithicJavaProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProjectKotlinDsl",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest.buildSrc non-abi change",
+            "groups" : [
+                {
+                    "testProject" : "mediumMonolithicJavaProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProjectKotlinDsl",
+                    "coverage" : {
+                        "slow":  ["linux"]
                     }
                 }
             ]

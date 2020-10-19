@@ -15,52 +15,62 @@
  */
 package org.gradle.integtests.fixtures;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
-import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
-import org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch;
-import org.gradle.integtests.fixtures.jvm.SdkManJvmLocator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.Unknown;
-import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.i386;
-import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.x86_64;
+import static org.gradle.util.TestUtil.providerFactory;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 public abstract class AvailableJavaHomes {
-    private static List<JvmInstallation> jvms;
+
+    private static Supplier<List<JvmInstallation>> jvms = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
+
     private static GradleDistribution underTest = new UnderDevelopmentGradleDistribution();
 
     @Nullable
@@ -118,13 +128,13 @@ public abstract class AvailableJavaHomes {
 
     public static List<Jvm> getAvailableJvms() {
         return FluentIterable.from(getJvms())
-            .transform(input -> Jvm.discovered(input.getJavaHome(), input.getVersion().toString(), input.getJavaVersion())).toList();
+            .transform(input -> Jvm.discovered(input.getJavaHome(), null, input.getJavaVersion())).toList();
     }
 
     public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallation> filter) {
         return FluentIterable.from(getJvms())
             .filter(input -> input.isJdk() && filter.isSatisfiedBy(input))
-            .transform(input -> Jvm.discovered(input.getJavaHome(), input.getVersion().toString(), input.getJavaVersion())).toList();
+            .transform(input -> Jvm.discovered(input.getJavaHome(), null, input.getJavaVersion())).toList();
     }
 
     public static Map<Jvm, JavaVersion> getAvailableJdksWithVersion() {
@@ -142,7 +152,7 @@ public abstract class AvailableJavaHomes {
     }
 
     private static boolean isSupportedVersion(JvmInstallation jvmInstallation) {
-        return underTest.worksWith(Jvm.discovered(jvmInstallation.getJavaHome(), jvmInstallation.getVersion().toString(), jvmInstallation.getJavaVersion()));
+        return underTest.worksWith(Jvm.discovered(jvmInstallation.getJavaHome(), null, jvmInstallation.getJavaVersion()));
     }
 
     /**
@@ -167,7 +177,7 @@ public abstract class AvailableJavaHomes {
     public static Jvm getDifferentJdkWithValidJre() {
         return AvailableJavaHomes.getAvailableJdk(jvm -> !jvm.getJavaHome().equals(Jvm.current().getJavaHome())
             && isSupportedVersion(jvm)
-            && Jvm.discovered(jvm.getJavaHome(), jvm.getVersion().toString(), jvm.getJavaVersion()).getJre() != null);
+            && Jvm.discovered(jvm.getJavaHome(), null, jvm.getJavaVersion()).getJre() != null);
     }
 
     /**
@@ -190,25 +200,18 @@ public abstract class AvailableJavaHomes {
     }
 
     private static List<JvmInstallation> getJvms() {
-        if (jvms == null) {
-            NativeServices nativeServices = NativeServicesTestFixture.getInstance();
-            FileCanonicalizer fileCanonicalizer = nativeServices.get(FileCanonicalizer.class);
-            jvms = new ArrayList<>();
-            jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
-            InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
-            jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
-            jvms.addAll(installedJvmLocator.findJvms());
-            if (OperatingSystem.current().isLinux()) {
-                jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt")).findJvms());
-            }
-            if (!OperatingSystem.current().isWindows()) {
-                jvms.addAll(new SdkManJvmLocator(fileCanonicalizer).findJvms());
-            }
-            jvms.addAll(new HomeDirJvmLocator(fileCanonicalizer).findJvms());
-            jvms.addAll(new EnvVariableJvmLocator().findJvms());
-            // Order from most recent to least recent
-            Collections.sort(jvms, (o1, o2) -> o2.getVersion().compareTo(o1.getVersion()));
-        }
+        return jvms.get();
+    }
+
+    private static List<JvmInstallation> discoverLocalInstallations() {
+        ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
+        JvmVersionDetector versionDetector = new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
+        final List<JvmInstallation> jvms = new SharedJavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor())
+            .listInstallations().stream()
+            .map(i -> asJvmInstallation(i, versionDetector))
+            .sorted(Comparator.comparing(JvmInstallation::getJavaVersion))
+            .collect(Collectors.toList());
+
         System.out.println("Found the following JVMs:");
         for (JvmInstallation jvm : jvms) {
             System.out.println("    " + jvm);
@@ -216,87 +219,83 @@ public abstract class AvailableJavaHomes {
         return jvms;
     }
 
+    private static List<InstallationSupplier> defaultInstallationSuppliers() {
+        WindowsRegistry windowsRegistry = NativeServicesTestFixture.getInstance().get(WindowsRegistry.class);
+        return Lists.newArrayList(
+            new AsdfInstallationSupplier(providerFactory()),
+            new BaseDirJvmLocator("/opt"),
+            new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
+            new CurrentInstallationSupplier(providerFactory()),
+            new DevInfrastructureJvmLocator(),
+            new EnvVariableJvmLocator(),
+            new JabbaInstallationSupplier(providerFactory()),
+            new LinuxInstallationSupplier(providerFactory()),
+            new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
+            new SdkmanInstallationSupplier(providerFactory()),
+            new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())
+        );
+    }
+
+    private static JvmInstallation asJvmInstallation(File javaHome, JvmVersionDetector versionDetector) {
+        JavaVersion version = versionDetector.getJavaVersion(new File(javaHome, "bin/java").getAbsolutePath());
+        boolean isJdk = new File(javaHome, OperatingSystem.current().getExecutableName("bin/javac")).exists();
+        return new JvmInstallation(version, javaHome, isJdk);
+    }
+
+
     /**
      * Locate Java installations based on environment variables such as "JDK8", "JDK11", "JDK14", etc.
      * This is a convention from https://docs.gradle.com/enterprise/test-distribution-agent/#capabilities
      */
-    private static class EnvVariableJvmLocator {
+    private static class EnvVariableJvmLocator implements InstallationSupplier {
+
         private static final Pattern JDK_PATTERN = Pattern.compile("JDK\\d\\d?");
 
-        public List<JvmInstallation> findJvms() {
+        @Override
+        public Set<InstallationLocation> get() {
             return System.getenv().entrySet()
                 .stream()
                 .filter(it -> JDK_PATTERN.matcher(it.getKey()).matches())
-                .filter(it -> new File(it.getValue()).exists())
-                .map(it -> new JvmInstallation(JavaVersion.toVersion(it.getKey().substring(3)), it.getKey().substring(3), new File(it.getValue()), true, x86_64))
-                .collect(Collectors.toList());
+                .map(entry -> new InstallationLocation(new File(entry.getValue()), "env var " + entry.getKey()))
+                .collect(Collectors.toSet());
         }
     }
 
-    private static class DevInfrastructureJvmLocator {
-        final FileCanonicalizer fileCanonicalizer;
+    private static class DevInfrastructureJvmLocator implements InstallationSupplier {
 
-        private DevInfrastructureJvmLocator(FileCanonicalizer fileCanonicalizer) {
-            this.fileCanonicalizer = fileCanonicalizer;
+        @Override
+        public Set<InstallationLocation> get() {
+            return Stream.of("sun-jdk-5", "sun-jdk-6", "ibm-jdk-6", "oracle-jdk-7", "oracle-jdk-8", "oracle-jdk-9")
+                .map(name -> new File("/opt/jdk/", name))
+                .filter(File::exists)
+                .map(home -> new InstallationLocation(home, "dev infrastructure "))
+                .collect(Collectors.toSet());
         }
 
-        public List<JvmInstallation> findJvms() {
-            List<JvmInstallation> jvms = new ArrayList<>();
-            if (OperatingSystem.current().isLinux()) {
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, i386);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"), true, x86_64);
-            }
-            return CollectionUtils.filter(jvms, element -> element.getJavaHome().isDirectory());
-        }
-
-        private List<JvmInstallation> addJvm(List<JvmInstallation> jvms, JavaVersion javaVersion, String versionString, File javaHome, boolean jdk, Arch arch) {
-            if (javaHome.exists()) {
-                jvms.add(new JvmInstallation(javaVersion, versionString, fileCanonicalizer.canonicalize(javaHome), jdk, arch));
-            }
-            return jvms;
-        }
     }
 
-    private static class BaseDirJvmLocator {
+    private static class BaseDirJvmLocator implements InstallationSupplier {
+
         private static final Pattern JDK_DIR = Pattern.compile("jdk(\\d+\\.\\d+\\.\\d+(_\\d+)?)");
-        private final FileCanonicalizer fileCanonicalizer;
+
         private final File baseDir;
 
-        private BaseDirJvmLocator(FileCanonicalizer fileCanonicalizer, File baseDir) {
-            this.fileCanonicalizer = fileCanonicalizer;
-            this.baseDir = baseDir;
+        private BaseDirJvmLocator(String baseDir) {
+            this.baseDir = new File(baseDir);
         }
 
-        public List<JvmInstallation> findJvms() {
-            Set<File> javaHomes = new HashSet<>();
-            List<JvmInstallation> jvms = new ArrayList<>();
-            for (File file : baseDir.listFiles()) {
-                Matcher matcher = JDK_DIR.matcher(file.getName());
-                if (!matcher.matches()) {
-                    continue;
-                }
-                File javaHome = fileCanonicalizer.canonicalize(file);
-                if (!javaHomes.add(javaHome)) {
-                    continue;
-                }
-                if (!new File(file, "bin/javac").isFile()) {
-                    continue;
-                }
-                String version = matcher.group(1);
-                jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, file, true, Unknown));
+        @Override
+        public Set<InstallationLocation> get() {
+            final File[] files = baseDir.listFiles();
+            if (files != null) {
+                return Arrays.stream(files)
+                    .filter(file -> JDK_DIR.matcher(file.getName()).matches())
+                    .map(file -> new InstallationLocation(file, "base dir " + baseDir.getName()))
+                    .collect(Collectors.toSet());
             }
-            return jvms;
+            return Collections.emptySet();
         }
+
     }
 
-    private static class HomeDirJvmLocator extends BaseDirJvmLocator {
-
-        private HomeDirJvmLocator(FileCanonicalizer fileCanonicalizer) {
-            super(fileCanonicalizer, new File(SystemProperties.getInstance().getUserHome()));
-        }
-    }
 }

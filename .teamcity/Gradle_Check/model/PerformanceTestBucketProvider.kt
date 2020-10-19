@@ -285,7 +285,6 @@ fun createPerformanceTest(model: CIBuildModel, performanceTestCoverage: Performa
     }
 }
 
-private
 fun prepareScenariosStep(testProject: String, scenarios: List<Scenario>, os: Os): BuildSteps.() -> Unit {
     if (scenarios.isEmpty()) {
         throw IllegalArgumentException("Scenarios list must not be empty for $testProject")

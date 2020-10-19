@@ -58,7 +58,7 @@ class ScriptCache(
             .withProperties(cacheProperties)
             .withInitializer {
                 initializeCacheDir(
-                    cacheDirOf(it.baseDir).apply { mkdir() },
+                    cacheDirOf(baseDir).apply { mkdir() },
                     cacheKey,
                     scriptTarget,
                     displayName,

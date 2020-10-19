@@ -281,7 +281,7 @@ class DependencyHandlerExtensionsTest {
             constraints {
                 add("api", "some:thing:1.0")
                 add("api", "other:thing") {
-                    it.version { it.strictly("1.0") }
+                    version { strictly("1.0") }
                 }
             }
         }
@@ -297,7 +297,7 @@ class DependencyHandlerExtensionsTest {
             constraints {
                 api("some:thing:1.0")
                 api("other:thing") {
-                    version { it.strictly("1.0") }
+                    version { strictly("1.0") }
                 }
             }
         }
@@ -307,7 +307,7 @@ class DependencyHandlerExtensionsTest {
             (constraints) {
                 "api"("some:thing:1.0")
                 "api"("other:thing") {
-                    version { it.strictly("1.0") }
+                    version { strictly("1.0") }
                 }
             }
         }

@@ -74,7 +74,7 @@ Specifies the JVM arguments used for the Gradle Daemon. The setting is particula
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
 
 `org.gradle.parallel=(true,false)`::
-When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. To learn more about parallel task execution, see link:https://guides.gradle.org/performance/#parallel_execution[the Gradle performance guide].
+When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. To learn more about parallel task execution, see <<performance.adoc#parallel_execution,the section on Gradle build performance>>.
 
 `org.gradle.priority=(low,normal)`::
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Default is `normal`. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.

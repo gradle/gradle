@@ -17,15 +17,19 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.categories.SlowPerformanceRegressionTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
-import org.junit.experimental.categories.Category
 
+import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 
-@Category(SlowPerformanceRegressionTest)
+@RunFor(
+    @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
+)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
@@ -36,7 +40,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['tasks']
-        runner.runs = (runner.testProject == LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL.projectName) ? 5 : 10
+        runner.runs = (runner.testProject == (LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL.projectName) ? 5 : 10)
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)

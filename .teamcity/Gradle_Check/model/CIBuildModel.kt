@@ -324,6 +324,14 @@ enum class PerformanceTestType(
         defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
         channel = "historical",
         extraParameters = "--checks none"
+    ),
+    adHoc(
+        taskId = "HistoricalPerformanceTest",
+        displayName = "AdHoc Performance Test",
+        timeout = 30,
+        defaultBaselines = "defaults",
+        channel = "adhoc",
+        extraParameters = "--checks none"
     );
 
     fun asId(model: CIBuildModel): String =

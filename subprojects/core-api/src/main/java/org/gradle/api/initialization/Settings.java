@@ -18,6 +18,7 @@ package org.gradle.api.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
@@ -281,4 +282,13 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 4.6
      */
     void enableFeaturePreview(String name);
+
+    /**
+     * Configures the cross-project dependency resolution aspects
+     * @param dependencyResolutionConfiguration the configuration
+     *
+     * @since 6.8
+     */
+    @Incubating
+    void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 }

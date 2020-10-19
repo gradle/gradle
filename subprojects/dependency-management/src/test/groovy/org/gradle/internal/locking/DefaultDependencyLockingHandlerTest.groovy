@@ -31,7 +31,7 @@ class DefaultDependencyLockingHandlerTest extends Specification {
         Configuration configuration = Mock()
         ResolutionStrategy strategy = Mock()
         @Subject
-        def handler = new DefaultDependencyLockingHandler(container, null)
+        def handler = new DefaultDependencyLockingHandler({container}, null)
 
         when:
         handler.lockAllConfigurations()
@@ -51,7 +51,7 @@ class DefaultDependencyLockingHandlerTest extends Specification {
         Configuration configuration = Mock()
         ResolutionStrategy strategy = Mock()
         @Subject
-        def handler = new DefaultDependencyLockingHandler(container, null)
+        def handler = new DefaultDependencyLockingHandler({container}, null)
 
         when:
         handler.unlockAllConfigurations()

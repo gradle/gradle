@@ -15,17 +15,23 @@
  */
 package org.gradle.performance.regression.inception
 
+import org.gradle.api.JavaVersion
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.categories.SlowPerformanceRegressionTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 
-@Ignore // TODO (donat) there's a memory leak probably. Will investigate later.
-@Category(SlowPerformanceRegressionTest)
+import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor(
+    @Scenario(type = SLOW, operatingSystems = [LINUX],
+        testProjects = ["mediumMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
+)
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
@@ -33,13 +39,14 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.targetVersions = [targetVersion]
         runner.minimumBaseVersion = "6.8"
         runner.warmUpRuns = 3
+        useG1GarbageCollectorOnJava8(runner)
     }
 
     def "buildSrc abi change"() {
         given:
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['help']
         runner.runs = determineNumberOfRuns(runner.testProject)
-        runner.gradleOpts = runner.projectMemoryOptions
 
         and:
         def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
@@ -55,9 +62,9 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
     def "buildSrc non-abi change"() {
         given:
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['help']
         runner.runs = determineNumberOfRuns(runner.testProject)
-        runner.gradleOpts = runner.projectMemoryOptions
 
         and:
         def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
@@ -80,6 +87,12 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
                 return 10
             default:
                 20
+        }
+    }
+
+    private static void useG1GarbageCollectorOnJava8(CrossVersionPerformanceTestRunner runner) {
+        if (!JavaVersion.current().isJava9Compatible()) {
+            runner.gradleOpts.addAll(['-XX:+UnlockExperimentalVMOptions', '-XX:+UseG1GC'])
         }
     }
 

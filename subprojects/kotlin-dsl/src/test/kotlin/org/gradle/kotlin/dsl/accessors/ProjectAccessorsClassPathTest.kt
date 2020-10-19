@@ -386,6 +386,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                         }
                     }
                 }
+
+                fun Project.canUseContainerElementAccessors() {
+                    sourceSets {
+                        main {
+                        }
+                    }
+                }
             """
         )
 

@@ -44,7 +44,7 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
-import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
@@ -147,7 +147,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningReporter)
 
     // @formatter:off
-    def workExecutor = new DefaultWorkExecutor(
+    def executionEngine = new DefaultExecutionEngine(
         new IdentifyStep<>(valueSnapshotter,
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
@@ -177,7 +177,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         taskCacheabilityResolver,
         fingerprinterRegistry,
         classloaderHierarchyHasher,
-        workExecutor,
+        executionEngine,
         listenerManager,
         reservedFileSystemLocationRegistry,
         emptySourceTaskSkipper,

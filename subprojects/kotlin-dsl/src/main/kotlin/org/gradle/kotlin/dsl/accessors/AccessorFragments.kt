@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
@@ -34,7 +33,6 @@ import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
-import org.gradle.kotlin.dsl.support.bytecode.extensionFunctionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
@@ -570,16 +568,20 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
 
     val accessorSpec = accessor.spec
     val className = internalNameForAccessorClassOf(accessorSpec)
-    val (accessibleReceiverType, name, returnType) = accessorSpec
+    val (accessibleReceiverType, name, extensionType) = accessorSpec
     val propertyName = name.kotlinIdentifier
     val receiverType = accessibleReceiverType.type.builder
     val receiverTypeName = accessibleReceiverType.internalName()
-    val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
+    val (kotlinExtensionType, jvmExtensionType) = accessibleTypesFor(extensionType)
 
     return className to sequenceOf(
 
         AccessorFragment(
             source = extensionAccessor(accessorSpec),
+            signature = jvmGetterSignatureFor(
+                propertyName,
+                accessorDescriptorFor(receiverTypeName, jvmExtensionType)
+            ),
             bytecode = {
                 publicStaticMethod(signature) {
                     ALOAD(0)
@@ -588,39 +590,43 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                         "extensionOf",
                         "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
                     )
-                    if (returnType is TypeAccessibility.Accessible)
-                        CHECKCAST(jvmReturnType)
+                    if (extensionType is TypeAccessibility.Accessible)
+                        CHECKCAST(jvmExtensionType)
                     ARETURN()
                 }
             },
             metadata = {
                 writer.writePropertyOf(
                     receiverType = receiverType,
-                    returnType = kotlinReturnType,
+                    returnType = kotlinExtensionType,
                     propertyName = propertyName,
                     getterSignature = signature
                 )
-            },
-            signature = jvmGetterSignatureFor(
-                propertyName,
-                accessorDescriptorFor(receiverTypeName, jvmReturnType)
-            )
+            }
         ),
 
         AccessorFragment(
             source = "",
+            signature = JvmMethodSignature(
+                propertyName,
+                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+            ),
             bytecode = {
                 publicStaticMethod(signature) {
                     ALOAD(0)
                     CHECKCAST(GradleTypeName.extensionAware)
-                    INVOKEINTERFACE(GradleTypeName.extensionAware, "getExtensions", "()Lorg/gradle/api/plugins/ExtensionContainer;")
+                    INVOKEINTERFACE(
+                        GradleTypeName.extensionAware,
+                        "getExtensions",
+                        "()Lorg/gradle/api/plugins/ExtensionContainer;"
+                    )
                     LDC(name.original)
                     ALOAD(1)
-                    invokeRuntime(
-                        "functionToAction",
-                        "(Lkotlin/jvm/functions/Function1;)Lorg/gradle/api/Action;"
+                    INVOKEINTERFACE(
+                        GradleTypeName.extensionContainer,
+                        "configure",
+                        "(Ljava/lang/String;Lorg/gradle/api/Action;)V"
                     )
-                    INVOKEINTERFACE(GradleTypeName.extensionContainer, "configure", "(Ljava/lang/String;Lorg/gradle/api/Action;)V")
                     RETURN()
                 }
             },
@@ -629,16 +635,15 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     parameters = {
-                        visitParameter("configure", extensionFunctionTypeOf(kotlinReturnType, KotlinType.unit))
+                        visitParameter(
+                            "configure",
+                            actionTypeOf(kotlinExtensionType)
+                        )
                     },
                     name = propertyName,
                     signature = signature
                 )
-            },
-            signature = JvmMethodSignature(
-                propertyName,
-                "(L$receiverTypeName;Lkotlin/jvm/functions/Function1;)V"
-            )
+            }
         )
     )
 }
@@ -649,34 +654,34 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
 
     val accessorSpec = accessor.spec
     val className = internalNameForAccessorClassOf(accessorSpec)
-    val (accessibleReceiverType, name, returnType) = accessorSpec
+    val (accessibleReceiverType, name, conventionType) = accessorSpec
     val receiverType = accessibleReceiverType.type.builder
     val propertyName = name.kotlinIdentifier
     val receiverTypeName = accessibleReceiverType.internalName()
-    val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
+    val (kotlinConventionType, jvmConventionType) = accessibleTypesFor(conventionType)
 
     return className to sequenceOf(
 
         AccessorFragment(
             source = conventionAccessor(accessorSpec),
+            signature = jvmGetterSignatureFor(
+                propertyName,
+                accessorDescriptorFor(receiverTypeName, jvmConventionType)
+            ),
             bytecode = {
                 publicStaticMethod(signature) {
-                    loadConventionOf(name, returnType, jvmReturnType)
+                    loadConventionOf(name, conventionType, jvmConventionType)
                     ARETURN()
                 }
             },
             metadata = {
                 writer.writePropertyOf(
                     receiverType = receiverType,
-                    returnType = kotlinReturnType,
+                    returnType = kotlinConventionType,
                     propertyName = propertyName,
                     getterSignature = signature
                 )
-            },
-            signature = jvmGetterSignatureFor(
-                propertyName,
-                accessorDescriptorFor(receiverTypeName, jvmReturnType)
-            )
+            }
         ),
 
         AccessorFragment(
@@ -684,7 +689,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             bytecode = {
                 publicStaticMethod(signature) {
                     ALOAD(1)
-                    loadConventionOf(name, returnType, jvmReturnType)
+                    loadConventionOf(name, conventionType, jvmConventionType)
                     invokeAction()
                     RETURN()
                 }
@@ -694,7 +699,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     parameters = {
-                        visitParameter("configure", actionTypeOf(kotlinReturnType))
+                        visitParameter("configure", actionTypeOf(kotlinConventionType))
                     },
                     name = propertyName,
                     signature = signature

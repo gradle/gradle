@@ -66,8 +66,8 @@ See the <<dependency_capability_conflict.adoc#sub:selecting-between-candidates, 
 == Declaring additional capabilities for a local component
 
 All components have an _implicit capability_ corresponding to the same GAV coordinates as the component.
-This is convenient whenever a library published at different GAV coordinates is an _alternate implementation_ of the same API.
-However, it is also possible to declare additional _explicit capabilities_ for a component:
+However, it is also possible to declare additional _explicit capabilities_ for a component.
+This is convenient whenever a library published at different GAV coordinates is an _alternate implementation_ of the same API:
 
 .Declaring capabilities of a component
 ====

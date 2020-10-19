@@ -66,7 +66,7 @@ fun accessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, t
         /**
          * Configures the [$original][$type] extension.
          */
-        fun $targetType.`$kotlinIdentifier`(configure: $type.() -> Unit): Unit =
+        fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
             $thisExtensions.configure("$stringLiteral", configure)
     """
 }
@@ -88,7 +88,7 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        fun $targetType.`$kotlinIdentifier`(configure: Any.() -> Unit): Unit =
+        fun $targetType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
             $thisExtensions.configure("$stringLiteral", configure)
 
     """
@@ -116,8 +116,8 @@ fun accessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, 
         /**
          * Configures the [$original][$type] convention.
          */
-        fun $targetType.`$kotlinIdentifier`(configure: $type.() -> Unit): Unit =
-            configure(`$stringLiteral`)
+        fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+            configure.execute(`$stringLiteral`)
 
     """
 }
@@ -139,7 +139,7 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        fun $targetType.`$kotlinIdentifier`(configure: Any.() -> Unit): Unit =
+        fun $targetType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
             configure(`$stringLiteral`)
 
     """

@@ -44,6 +44,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -54,6 +55,7 @@ import org.w3c.dom.Document
 import java.io.File
 import java.nio.charset.StandardCharsets
 import javax.xml.parsers.DocumentBuilderFactory
+import org.gradle.api.tasks.ClasspathNormalizer
 
 
 object PropertyNames {
@@ -184,7 +186,34 @@ class PerformanceTestPlugin : Plugin<Project> {
             // Never up-to-date since it reads data from the database.
             outputs.upToDateWhen { false }
         }
+
+        val performanceScenarioJson = rootProject.file(".teamcity/performance-tests-ci.json")
+        val tmpPerformanceScenarioJson = buildDir.resolve("performance-tests-ci.json")
+        createGeneratePerformanceDefinitionJsonTask("writePerformanceScenarioDefinitions", performanceSourceSet, performanceScenarioJson)
+        val writeTmpPerformanceScenarioDefinitions = createGeneratePerformanceDefinitionJsonTask("writeTmpPerformanceScenarioDefinitions", performanceSourceSet, tmpPerformanceScenarioJson)
+
+        tasks.register<JavaExec>("verifyPerformanceScenarioDefinitions") {
+            dependsOn(writeTmpPerformanceScenarioDefinitions)
+            classpath(performanceSourceSet.runtimeClasspath)
+            mainClass.set("org.gradle.performance.fixture.PerformanceTestScenarioDefinitionVerifier")
+            args(performanceScenarioJson.absolutePath, tmpPerformanceScenarioJson.absolutePath)
+            inputs.files(performanceSourceSet.runtimeClasspath).withNormalizer(ClasspathNormalizer::class)
+            inputs.file(performanceScenarioJson.absolutePath)
+            inputs.file(tmpPerformanceScenarioJson.absolutePath)
+        }
     }
+
+    private
+    fun Project.createGeneratePerformanceDefinitionJsonTask(name: String, performanceSourceSet: SourceSet, outputJson: File) =
+        tasks.register<Test>(name) {
+            testClassesDirs = performanceSourceSet.output.classesDirs
+            classpath = performanceSourceSet.runtimeClasspath
+            maxParallelForks = 1
+            systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
+
+            outputs.cacheIf { false }
+            outputs.file(outputJson)
+        }
 
     private
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
@@ -282,8 +311,10 @@ class PerformanceTestExtension(
 ) {
     private
     val registeredPerformanceTests: MutableList<TaskProvider<out Task>> = mutableListOf()
+
     private
     val registeredTestProjects: MutableList<TaskProvider<out Task>> = mutableListOf()
+
     private
     val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
         .forUseAtConfigurationTime()

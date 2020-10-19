@@ -28,6 +28,7 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
@@ -109,6 +110,7 @@ import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatur
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
@@ -131,6 +133,9 @@ import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.initialization.DefaultDependencyResolutionManagement;
+import org.gradle.initialization.DependencyResolutionManagementInternal;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
@@ -194,6 +199,20 @@ class DependencyManagementBuildScopeServices {
         registration.add(ProjectArtifactResolver.class);
         registration.add(ProjectArtifactSetResolver.class);
         registration.add(ProjectDependencyResolver.class);
+    }
+
+    DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
+                                                                                    UserCodeApplicationContext context,
+                                                                                    DependencyManagementServices dependencyManagementServices,
+                                                                                    FileResolver fileResolver,
+                                                                                    FileCollectionFactory fileCollectionFactory,
+                                                                                    DependencyMetaDataProvider dependencyMetaDataProvider) {
+        return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
+            context,
+            dependencyManagementServices,
+            fileResolver,
+            fileCollectionFactory,
+            dependencyMetaDataProvider);
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {

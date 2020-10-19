@@ -32,6 +32,7 @@ import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assume
 import org.junit.Rule
@@ -46,7 +47,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     private static final SnapshotHierarchy EMPTY = DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)
 
-    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
+    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
 
     def diffListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override

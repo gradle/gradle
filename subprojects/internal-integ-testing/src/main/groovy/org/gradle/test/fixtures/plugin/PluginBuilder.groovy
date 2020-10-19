@@ -167,8 +167,13 @@ class PluginBuilder {
     }
 
     PluginBuilder addPluginSource(String id, String className, String impl) {
-        pluginIds[id] = className
+        addPluginId(id, className)
         groovy("${className}.groovy") << impl
+        this
+    }
+
+    PluginBuilder addPluginId(String id, String className) {
+        pluginIds[id] = className
         this
     }
 

@@ -71,7 +71,7 @@ class TestTaskToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "Test task is configured using default toolchain"() {
-        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        def someJdk = AvailableJavaHomes.getDifferentVersion()
         buildFile << """
             apply plugin: "java"
 

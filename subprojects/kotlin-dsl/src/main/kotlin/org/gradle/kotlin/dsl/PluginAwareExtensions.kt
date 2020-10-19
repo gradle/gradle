@@ -30,10 +30,10 @@ import org.gradle.api.plugins.PluginAware
  */
 fun PluginAware.apply(from: Any? = null, plugin: String? = null, to: Any? = null) {
     require(from != null || plugin != null) { "At least one of 'from' or 'plugin' must be given." }
-    apply { action ->
-        if (plugin != null) action.plugin(plugin)
-        if (from != null) action.from(from)
-        if (to != null) action.to(to)
+    apply {
+        if (plugin != null) this.plugin(plugin)
+        if (from != null) this.from(from)
+        if (to != null) this.to(to)
     }
 }
 
@@ -48,7 +48,7 @@ fun PluginAware.apply(from: Any? = null, plugin: String? = null, to: Any? = null
  */
 inline fun <reified T : Plugin<*>> PluginAware.apply() {
     apply {
-        it.plugin(T::class.java)
+        plugin(T::class.java)
     }
 }
 
@@ -64,7 +64,7 @@ inline fun <reified T : Plugin<*>> PluginAware.apply() {
  */
 inline fun <reified T : Plugin<*>> PluginAware.applyTo(vararg targets: Any) {
     apply {
-        it.plugin(T::class.java)
-        it.to(*targets)
+        plugin(T::class.java)
+        to(*targets)
     }
 }

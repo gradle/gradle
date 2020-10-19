@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -35,6 +36,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 
 public class AdoptOpenJdkDownloader {
@@ -69,11 +73,27 @@ public class AdoptOpenJdkDownloader {
         return getTransport(source).getRepository().withProgressLogging().resource(resourceName);
     }
 
-    private void downloadResource(URI source, File tmpFile, ExternalResource resource) {
-        resource.withContent(inputStream -> {
-            LOGGER.info("Downloading {} to {}", resource.getDisplayName(), tmpFile);
-            copyIntoFile(source, inputStream, tmpFile);
-        });
+    private void downloadResource(URI source, File targetFile, ExternalResource resource) {
+        final File downloadFile = new File(targetFile.getAbsoluteFile() + ".part");
+        try {
+            resource.withContent(inputStream -> {
+                LOGGER.info("Downloading {} to {}", resource.getDisplayName(), targetFile);
+                copyIntoFile(source, inputStream, downloadFile);
+            });
+            moveFile(targetFile, downloadFile);
+        } catch (IOException e) {
+            throw new GradleException("Unable to move downloaded toolchain to target destination", e);
+        } finally {
+            downloadFile.delete();
+        }
+    }
+
+    private void moveFile(File targetFile, File downloadFile) throws IOException {
+        try {
+            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     private void copyIntoFile(URI source, InputStream inputStream, File destination) {

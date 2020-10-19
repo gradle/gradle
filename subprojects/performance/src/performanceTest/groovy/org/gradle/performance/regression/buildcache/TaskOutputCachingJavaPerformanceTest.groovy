@@ -16,12 +16,21 @@
 
 package org.gradle.performance.regression.buildcache
 
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
+import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor(
+    @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+)
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
@@ -101,6 +110,9 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    @RunFor(
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+    )
     def "clean assemble with local cache"() {
         given:
         setupTestProject(runner)
@@ -114,6 +126,11 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    @RunFor([
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"],
+            comment = "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation."
+        )
+    ])
     def "clean assemble for abi change with local cache"() {
         given:
         setupTestProject(runner)
@@ -129,6 +146,11 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    @RunFor([
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"],
+            comment = "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation."
+        )
+    ])
     def "clean assemble for non-abi change with local cache"() {
         given:
         setupTestProject(runner)

@@ -1,0 +1,16 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        myBasePlugin {
+            id = 'my-base-plugin'
+            implementationClass = 'MyBasePlugin'
+        }
+        myPlugin {
+            id = 'my-plugin'
+            implementationClass = 'MyPlugin'
+        }
+    }
+}
