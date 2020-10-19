@@ -336,7 +336,7 @@ Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process.
 
 [[sec:command_line_performance]]
 == Performance options
-Try these options when optimizing build performance. Learn more about https://guides.gradle.org/performance/[improving performance of Gradle builds here].
+Try these options when optimizing build performance. Learn more about <<performance.adoc#,improving performance of Gradle builds here>>.
 
 Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<build_environment.adoc#sec:gradle_configuration_properties, configuring build environment guide>>.
 

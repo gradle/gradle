@@ -88,7 +88,7 @@ The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencie
 [[sec:troubleshooting_performance]]
 == Troubleshooting slow Gradle builds
 
-For build performance issues (including “slow sync time”), see the guide to link:https://guides.gradle.org/performance/[Improving the Performance of Gradle Builds].
+For build performance issues (including “slow sync time”), see <<performance.adoc#,improving the Performance of Gradle Builds>>.
 
 Android developers should watch a presentation by the Android SDK Tools team about link:https://youtu.be/7ll-rkLCtyk[Speeding Up Your Android Gradle Builds].
 Many tips are also covered in the Android Studio user guide link:https://developer.android.com/studio/build/optimize-your-build.html[on optimizing build speed].
