@@ -34,7 +34,7 @@ import java.util.List;
 
 public abstract class TaskInAnotherBuild extends TaskNode {
 
-    private final IncludedBuildTaskGraph taskGraph;
+    protected final IncludedBuildTaskGraph taskGraph;
 
     public static TaskInAnotherBuild of(
         TaskInternal task,
@@ -215,6 +215,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
         private final Path taskIdentityPath;
         private final String taskPath;
+        private TaskInternal task;
 
         public Unresolved(
             Path taskIdentityPath,
@@ -239,7 +240,10 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
         @Override
         public TaskInternal getTask() {
-            throw new UnsupportedOperationException();
+            if (task == null) {
+                task = taskGraph.getTask(getTargetBuild(), getTaskPath());
+            }
+            return task;
         }
     }
 }

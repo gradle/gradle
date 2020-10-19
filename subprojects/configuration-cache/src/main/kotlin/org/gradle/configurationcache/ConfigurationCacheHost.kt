@@ -151,7 +151,13 @@ class ConfigurationCacheHost internal constructor(
                     return BuildOperationDescriptor.displayName(displayName)
                         .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
                         .progressDisplayName(displayName)
-                        .details(ConfigureProjectBuildOperationType.DetailsImpl(project.projectPath, gradle.identityPath, project.rootDir))
+                        .details(
+                            ConfigureProjectBuildOperationType.DetailsImpl(
+                                project.projectPath,
+                                gradle.identityPath,
+                                project.rootDir
+                            )
+                        )
                 }
             })
         }

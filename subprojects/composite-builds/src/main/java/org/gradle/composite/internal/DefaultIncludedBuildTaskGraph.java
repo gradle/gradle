@@ -19,6 +19,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -61,6 +62,12 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
         IncludedBuildController controller = getBuildController(targetBuild);
         return controller.getTaskState(taskPath);
+    }
+
+    @Override
+    public TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
+        IncludedBuildController controller = getBuildController(targetBuild);
+        return controller.getTask(taskPath);
     }
 
     private IncludedBuildController getBuildController(BuildIdentifier buildId) {
