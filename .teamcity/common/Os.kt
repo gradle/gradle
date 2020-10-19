@@ -54,7 +54,7 @@ enum class Os(
     MACOS("Mac",
         listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "platform-play", "tooling-native"),
         androidHome = "/opt/android/sdk",
-        jprofilerHome = "/opt/jprofiler/jprofiler11.1.4",
+        jprofilerHome = "/Applications/JProfiler11.1.4.app",
         killAllGradleProcesses = killAllGradleProcessesUnixLike
     );
 
