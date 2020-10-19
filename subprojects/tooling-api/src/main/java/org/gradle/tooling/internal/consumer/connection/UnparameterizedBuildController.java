@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -29,29 +32,77 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.ProjectModel;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-class BuildControllerAdapter extends AbstractBuildController implements BuildController {
-    private final InternalBuildControllerAdapter buildController;
+abstract class UnparameterizedBuildController extends HasCompatibilityMapping implements BuildController {
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
     private final ModelMapping modelMapping;
     private final File rootDir;
 
-    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildControllerAdapter buildController, ModelMapping modelMapping, File rootDir) {
+    public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir) {
         this.adapter = adapter;
-        this.buildController = buildController;
+        // Treat all models returned to the action as part of the same object graph
+        this.resultAdapter = adapter.newGraph();
         this.modelMapping = modelMapping;
         this.rootDir = rootDir;
-        // Treat all models returned to the action as part of the same object graph
-        resultAdapter = adapter.newGraph();
     }
 
     @Override
-    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
+    public <T> T getModel(Class<T> modelType) throws UnknownModelException {
+        return getModel(null, modelType);
+    }
+
+    @Override
+    public <T> T findModel(Class<T> modelType) {
+        return findModel(null, modelType);
+    }
+
+    @Override
+    public GradleBuild getBuildModel() {
+        return getModel(null, GradleBuild.class);
+    }
+
+    @Override
+    public <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException {
+        return getModel(target, modelType, null, null);
+    }
+
+    @Override
+    public <T> T findModel(Model target, Class<T> modelType) {
+        return findModel(target, modelType, null, null);
+    }
+
+    @Override
+    public <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
+        return getModel(null, modelType, parameterType, parameterInitializer);
+    }
+
+    @Override
+    public <T, P> T findModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
+        return findModel(null, modelType, parameterType, parameterInitializer);
+    }
+
+    @Override
+    public <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
+        try {
+            return getModel(target, modelType, parameterType, parameterInitializer);
+        } catch (UnknownModelException e) {
+            // Ignore
+            return null;
+        }
+    }
+
+    @Override
+    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException {
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
         Object originalTarget = target == null ? null : adapter.unpack(target);
 
@@ -59,7 +110,7 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
 
         BuildResult<?> result;
         try {
-            result = buildController.getModel(originalTarget, modelIdentifier, parameter);
+            result = getModel(originalTarget, modelIdentifier, parameter);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(modelType, e);
         }
@@ -97,5 +148,25 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         } else {
             return ":";
         }
+    }
+
+    protected abstract BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
+
+    @Override
+    public <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions) {
+        List<T> results = new ArrayList<T>(actions.size());
+        List<Throwable> failures = new ArrayList<Throwable>();
+        for (BuildAction<? extends T> action : actions) {
+            try {
+                T result = action.execute(this);
+                results.add(result);
+            } catch (Throwable t) {
+                failures.add(t);
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(failures, null);
+        }
+        return results;
     }
 }

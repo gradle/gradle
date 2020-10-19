@@ -20,15 +20,19 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.concurrent.GradleThread
+import org.gradle.internal.operations.MultipleBuildOperationFailures
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
-import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 class DefaultBuildControllerTest extends Specification {
     def cancellationToken = Stub(BuildCancellationToken)
@@ -46,16 +50,36 @@ class DefaultBuildControllerTest extends Specification {
     def modelId = Stub(ModelIdentifier) {
         getName() >> 'some.model'
     }
-    def modelBuilder = Stub(ToolingModelBuilder)
-    def parameterizedModelBuilder = Stub(ParameterizedToolingModelBuilder)
-    def controller = new DefaultBuildController(gradle)
+    def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor)
+
+    def setup() {
+        GradleThread.setManaged()
+    }
+
+    def cleanup() {
+        GradleThread.setUnmanaged()
+    }
+
+    def "cannot get build model from unmanaged thread"() {
+        given:
+        GradleThread.setUnmanaged()
+
+        when:
+        controller.getBuildModel()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "A build controller cannot be used from a thread that is not managed by Gradle."
+    }
 
     def "adapts model not found exception to protocol exception"() {
         def failure = new UnknownModelException("not found")
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation('some.model') >> { throw failure }
+        _ * registry.locateForClientOperation('some.model', false, gradle) >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -63,6 +87,18 @@ class DefaultBuildControllerTest extends Specification {
         then:
         InternalUnsupportedModelException e = thrown()
         e.cause == failure
+    }
+
+    def "cannot get model from unmanaged thread"() {
+        given:
+        GradleThread.setUnmanaged()
+
+        when:
+        controller.getModel(null, modelId)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "A build controller cannot be used from a thread that is not managed by Gradle."
     }
 
     def "uses builder for specified project"() {
@@ -76,9 +112,30 @@ class DefaultBuildControllerTest extends Specification {
         _ * target.rootDir >> rootDir
         _ * gradle.rootProject >> rootProject
         _ * rootProject.project(":some:path") >> project
-        _ * rootProject.getProjectDir() >> rootDir
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
+        _ * rootProject.projectDir >> rootDir
+        _ * registry.locateForClientOperation("some.model", false, project) >> modelBuilder
+        _ * modelBuilder.build(null) >> model
+
+        when:
+        def result = controller.getModel(target, modelId)
+
+        then:
+        result.getModel() == model
+    }
+
+    def "uses builder for specified build"() {
+        def rootDir = new File("dummy")
+        def target = Stub(GradleBuildIdentity)
+        def rootProject = Stub(ProjectInternal)
+        def model = new Object()
+
+        given:
+        _ * target.rootDir >> rootDir
+        _ * gradle.rootProject >> rootProject
+        _ * rootProject.projectDir >> rootDir
+        _ * gradle.defaultProject >> project
+        _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
+        _ * modelBuilder.build(null) >> model
 
         when:
         def result = controller.getModel(target, modelId)
@@ -92,8 +149,8 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
+        _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
+        _ * modelBuilder.build(null) >> model
 
         when:
         def result = controller.getModel(null, modelId)
@@ -108,50 +165,34 @@ class DefaultBuildControllerTest extends Specification {
         def target = Stub(GradleProjectIdentity)
 
         when:
-        def result = controller.getModel(target, modelId)
+        controller.getModel(target, modelId)
 
         then:
         thrown(BuildCancelledException)
     }
 
-    def "uses non parameterized builder when parameter is null"() {
-        def model = new Object()
-
-        given:
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
-
-        when:
-        def result = controller.getModel(null, modelId, null)
-
-        then:
-        result.getModel() == model
-    }
-
     def "uses parameterized builder when parameter is not null"() {
         def model = new Object()
-        def wrongModel = new Object()
         def parameterType = CustomParameter.class
         def parameter = new CustomParameter() {
             @Override
             String getValue() {
                 return "myValue"
             }
+
             @Override
             void setValue(String value) {}
         }
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> parameterizedModelBuilder
-        _ * parameterizedModelBuilder.getParameterType() >> parameterType
-        _ * parameterizedModelBuilder.buildAll("some.model", _, project) >> { def modelName, CustomParameter param, projectInternal ->
+        _ * registry.locateForClientOperation("some.model", true, gradle) >> modelBuilder
+        _ * modelBuilder.getParameterType() >> parameterType
+        _ * modelBuilder.build(_) >> { CustomParameter param ->
             assert param != null
             assert param.getValue() == "myValue"
             return model
         }
-        _ * parameterizedModelBuilder.buildAll("some.model", project) >> wrongModel
 
         when:
         def result = controller.getModel(null, modelId, parameter)
@@ -160,23 +201,58 @@ class DefaultBuildControllerTest extends Specification {
         result.getModel() == model
     }
 
-    def "throws an exception when parameter used but no parameterized builder"() {
-        def model = new Object()
-
-        given:
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model") >> modelBuilder
-        _ * modelBuilder.buildAll("some.model", project) >> model
+    def "runs supplied actions"() {
+        def action1 = Mock(Supplier)
+        def action2 = Mock(Supplier)
+        def action3 = Mock(Supplier)
 
         when:
-        controller.getModel(null, modelId, new Object())
+        def result = controller.run([action1, action2, action3])
 
         then:
-        thrown(InternalUnsupportedModelException)
+        result == ["one", "two", "three"]
+
+        1 * action1.get() >> "one"
+        1 * action2.get() >> "two"
+        1 * action3.get() >> "three"
+        0 * _
+    }
+
+    def "collects all failures from actions"() {
+        def action1 = Mock(Supplier)
+        def action2 = Mock(Supplier)
+        def action3 = Mock(Supplier)
+        def failure1 = new RuntimeException()
+        def failure2 = new RuntimeException()
+
+        when:
+        controller.run([action1, action2, action3])
+
+        then:
+        def e = thrown(MultipleBuildOperationFailures)
+        e.causes == [failure1, failure2]
+
+        1 * action1.get() >> { throw failure1 }
+        1 * action2.get() >> { throw failure2 }
+        1 * action3.get() >> "three"
+        0 * _
+    }
+
+    def "cannot run actions from unmanaged thread"() {
+        given:
+        GradleThread.setUnmanaged()
+
+        when:
+        controller.run([Stub(Supplier)])
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "A build controller cannot be used from a thread that is not managed by Gradle."
     }
 
     interface CustomParameter {
         String getValue()
+
         void setValue(String value)
     }
 }

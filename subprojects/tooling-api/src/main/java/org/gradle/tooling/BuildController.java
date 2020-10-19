@@ -17,10 +17,13 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Provides a {@link BuildAction} various ways to control a Gradle build and access information about the build.
@@ -53,7 +56,6 @@ public interface BuildController {
      * @param <T> The model type.
      * @return The model.
      * @throws UnknownModelException When the default project does not support the requested model.
-     *
      * @since 1.8
      */
     <T> T getModel(Class<T> modelType) throws UnknownModelException;
@@ -125,7 +127,6 @@ public interface BuildController {
      * @return The model.
      * @throws UnknownModelException When the target project does not support the requested model.
      * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
-     *
      * @since 4.4
      */
     <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
@@ -141,7 +142,6 @@ public interface BuildController {
      * @param <P> The parameter type.
      * @param parameterInitializer Action to configure the parameter
      * @return The model.
-     *
      * @since 4.4
      */
     @Nullable
@@ -166,7 +166,6 @@ public interface BuildController {
      * @return The model.
      * @throws UnknownModelException When the target project does not support the requested model.
      * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
-     *
      * @since 4.4
      */
     <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
@@ -183,9 +182,21 @@ public interface BuildController {
      * @param <P> The parameter type.
      * @param parameterInitializer Action to configure the parameter
      * @return The model.
-     *
      * @since 4.4
      */
     @Nullable
     <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer);
+
+    /**
+     * Runs the given actions and returns their results. Attempts to run the actions in parallel, when supported by the Gradle version.
+     *
+     * <p>This method works with all Gradle versions. For versions 6.7 and earlier, the actions are run sequentially rather than in parallel.</p>
+     *
+     * @param actions The actions to run.
+     * @param <T> the result type.
+     * @return The action results. These are returned in the same order as the actions
+     * @since 6.8
+     */
+    @Incubating
+    <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions);
 }

@@ -19,12 +19,20 @@ package org.gradle.internal.operations;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 public class MultipleBuildOperationFailures extends DefaultMultiCauseException {
     private static final int MAX_CAUSES = 10;
 
-    public MultipleBuildOperationFailures(String message, Iterable<? extends Throwable> causes, @Nullable String logLocation) {
-        super(format(message, causes, logLocation), causes);
+    public MultipleBuildOperationFailures(Collection<? extends Throwable> causes, @Nullable String logLocation) {
+        super(format(getFailureMessage(causes), causes, logLocation), causes);
+    }
+
+    private static String getFailureMessage(Collection<? extends Throwable> failures) {
+        if (failures.size() == 1) {
+            return "A build operation failed.";
+        }
+        return "Multiple build operations failed.";
     }
 
     private static String format(String message, Iterable<? extends Throwable> causes, String logLocation) {

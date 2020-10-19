@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection;
+package org.gradle.integtests.tooling.r68;
 
-import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import java.io.File;
+import java.util.List;
 
-/**
- * Interface representing either an {@link org.gradle.tooling.internal.protocol.InternalBuildController}
- * or an {@link org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2}.
- */
-public interface InternalBuildControllerAdapter {
-    BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter);
+public interface CustomModel {
+    String getPath();
+
+    List<File> getRuntimeClasspath();
 }

@@ -17,26 +17,39 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.Model;
 
-public class BuildControllerWithoutParameterSupport extends AbstractBuildController {
+import javax.annotation.Nullable;
+import java.io.File;
 
+@SuppressWarnings("deprecation")
+public class BuildControllerWithoutParameterSupport extends UnparameterizedBuildController {
+    private final org.gradle.tooling.internal.protocol.InternalBuildController buildController;
     private final VersionDetails gradleVersion;
-    private final BuildController delegate;
 
-    public BuildControllerWithoutParameterSupport(VersionDetails gradleVersion, BuildController delegate) {
+    public BuildControllerWithoutParameterSupport(org.gradle.tooling.internal.protocol.InternalBuildController buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir, VersionDetails gradleVersion) {
+        super(adapter, modelMapping, rootDir);
+        this.buildController = buildController;
         this.gradleVersion = gradleVersion;
-        this.delegate = delegate;
     }
 
     @Override
     public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
-        if (parameterType != null || parameterInitializer != null) {
+        if (parameterType != null) {
             throw new UnsupportedVersionException(String.format("Gradle version %s does not support parameterized tooling models.", gradleVersion.getVersion()));
         }
-        return delegate.getModel(target, modelType, parameterType, parameterInitializer);
+        return super.getModel(target, modelType, parameterType, parameterInitializer);
+    }
+
+    @Override
+    protected BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException {
+        return buildController.getModel(target, modelIdentifier);
     }
 }

@@ -21,7 +21,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -132,7 +131,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
             queueState = QueueState.Done;
             if (!failures.isEmpty()) {
-                throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures, logLocation);
+                throw new MultipleBuildOperationFailures(failures, logLocation);
             }
         } finally {
             lock.unlock();
@@ -161,13 +160,6 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     @Override
     public void setLogLocation(String logLocation) {
         this.logLocation = logLocation;
-    }
-
-    private static String getFailureMessage(Collection<? extends Throwable> failures) {
-        if (failures.size() == 1) {
-            return "A build operation failed.";
-        }
-        return "Multiple build operations failed.";
     }
 
     private class WorkerRunnable implements Runnable {
