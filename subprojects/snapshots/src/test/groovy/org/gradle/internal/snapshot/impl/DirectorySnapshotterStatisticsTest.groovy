@@ -113,6 +113,26 @@ class DirectorySnapshotterStatisticsTest extends Specification {
         0 * _
     }
 
+    @Requires(TestPrecondition.SYMLINKS)
+    def "can visit symlinked hierarchy"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        def targetDir = rootDir.createDir("target-dir")
+        targetDir.createFile("file.txt")
+        rootDir.file('linked-dir').createLink("target-dir")
+
+        when:
+        snapshot(rootDir)
+
+        then:
+        1 * statisticsCollector.recordVisitHierarchy()
+
+        then:
+        3 * statisticsCollector.recordVisitDirectory()
+        3 * statisticsCollector.recordVisitFile()
+        0 * _
+    }
+
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "can visit unreadable files"() {
         given:
