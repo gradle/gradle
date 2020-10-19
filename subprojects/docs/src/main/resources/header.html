@@ -185,11 +185,11 @@
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#advanced-techniques" aria-expanded="false" aria-controls="advanced-techniques">Advanced Techniques</a>
-            <ul id="advanced-techniques">
-                <li><a href="https://guides.gradle.org/using-the-worker-api/">Developing Parallel Tasks</a></li>
-                <li><a href="../userguide/test_kit.html">Testing a Build with TestKit</a></li>
-                <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
-            </ul>
+                <ul id="advanced-techniques">
+                    <li><a href="../userguide/test_kit.html">Testing a Build with TestKit</a></li>
+                    <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
+                </ul>
+            </li>
         </ul>
 
         <h3 id="authoring-gradle-builds-java">Authoring JVM Builds</h3>
@@ -289,10 +289,15 @@
                     <li><a href="../userguide/publishing_gradle_plugins.html">Publishing Plugins</a></li>
                 </ul>
             </li>
-            <li><a href="../userguide/custom_tasks.html">Writing Gradle Task Types</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#advanced-techniques" aria-expanded="false" aria-controls="advanced-techniques">Developing Gradle Tasks</a>
+                <ul id="developing-tasks">
+                    <li><a href="../userguide/custom_tasks.html">Writing Gradle Task Types</a></li>
+                    <li><a href="../userguide/lazy_configuration.html">Configuring Tasks Lazily</a></li>
+                    <li><a href="../userguide/task_configuration_avoidance.html">Avoiding Unnecessary Task Configuration</a></li>
+                    <li><a href="../userguide/worker_api.html">Developing Parallel Tasks</a></li>
+                </ul>
+            </li>
             <li><a href="../userguide/custom_gradle_types.html">Writing Custom Gradle Types</a></li>
-            <li><a href="../userguide/lazy_configuration.html">Configuring Tasks Lazily</a></li>
-            <li><a href="../userguide/task_configuration_avoidance.html">Using Task Configuration Avoidance</a></li>
         </ul>
 
         <h3 id="reference">Reference</h3>

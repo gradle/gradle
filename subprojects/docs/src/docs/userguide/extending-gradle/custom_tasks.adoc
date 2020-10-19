@@ -454,6 +454,11 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 [[using-the-worker-api]]
 === Using the Worker API
 
+[NOTE]
+====
+A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#,developing parallel tasks>>.
+====
+
 In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and the parameters for the unit of work.
 
 The parameters for the unit of work are defined as an interface or abstract class that implements link:{javadocPath}/org/gradle/workers/WorkParameters.html[WorkParameters].

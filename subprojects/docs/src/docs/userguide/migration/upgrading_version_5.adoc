@@ -508,7 +508,7 @@ This will become an error in Gradle 6.0.
 
 The `WorkerExecutor.submit()` method is now deprecated.
 The new `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods should now be used to submit work.
-See <<custom_tasks.adoc#using-the-worker-api, the userguide>> for more information on using these methods.
+See <<worker_api.adoc#,the section on the Worker API>> for more information on using these methods.
 
 `WorkerExecutor.submit()` will be removed in Gradle 7.0.
 
