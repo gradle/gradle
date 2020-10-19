@@ -341,11 +341,11 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     def "properties files are normalized against changes to whitespace, order and comments"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
-        project.propertiesFileInDir.overwriteProperties([
-            'foo': 'bar',
-            'bar': 'baz',
-            'fizz': 'fuzz'
-        ] as LinkedHashMap)
+        project.propertiesFileInDir.setContent('''
+            foo=bar
+            bar=baz
+            fizz=fuzz
+        '''.stripIndent())
 
         when:
         succeeds project.customTask
@@ -360,14 +360,17 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         when:
         project.propertiesFileInDir
             .setComment('this comment should be ignored')
-            .overwriteProperties([
-                (BLANK_LINE): '',
-                'bar': 'baz',
-                (BLANK_LINE): '',
-                'fizz': 'fuzz',
-                'foo': 'bar',
-                (BLANK_LINE): '',
-            ] as LinkedHashMap)
+            .setContent('''
+
+                # Some comment
+                bar=baz
+
+                fizz=fuzz
+
+                # Another comment
+                foo=bar
+
+            '''.stripIndent())
         succeeds project.customTask
         then:
         skipped(project.customTask)
@@ -424,7 +427,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     static final String IGNORE_ME = 'ignore-me'
     static final String IGNORE_ME_TOO = 'ignore-me-too'
     static final String DONT_IGNORE_ME = 'dont-ignore-me'
-    static final String BLANK_LINE = 'BLANK'
 
     enum Api {
         RUNTIME, ANNOTATION
@@ -684,17 +686,11 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             return this
         }
 
-        PropertiesResource overwriteProperties(Map<String, String> propertiesMap) {
+        PropertiesResource setContent(String content) {
             // Preserve the order of the properties in the map when writing the properties file
             backingFile.withWriter {writer ->
                 writer.write("# ${comment}\n")
-                propertiesMap.each {key, value ->
-                    if (key == BLANK_LINE) {
-                        writer.write('    \n')
-                    } else {
-                        writer.write("${key}=${value}\n")
-                    }
-                }
+                writer.write(content)
             }
             changed()
             return this
