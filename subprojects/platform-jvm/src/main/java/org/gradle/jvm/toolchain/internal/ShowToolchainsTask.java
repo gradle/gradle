@@ -21,7 +21,6 @@ import org.gradle.api.tasks.diagnostics.AbstractReportTask;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
@@ -29,6 +28,18 @@ import java.util.stream.Collectors;
 
 public class ShowToolchainsTask extends AbstractReportTask {
 
+    static class ReportableToolchain {
+
+        JavaInstallationProbe.ProbeResult probe;
+
+        InstallationLocation location;
+
+        public ReportableToolchain(JavaInstallationProbe.ProbeResult probe, InstallationLocation location) {
+            this.probe = probe;
+            this.location = location;
+        }
+
+    }
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
     @Override
@@ -36,21 +47,22 @@ public class ShowToolchainsTask extends AbstractReportTask {
         allReportableToolchains().forEach(toolchainRenderer::printToolchain);
     }
 
-    private List<JavaInstallationProbe.ProbeResult> allReportableToolchains() {
+    private List<ReportableToolchain> allReportableToolchains() {
         return getInstallationRegistry().listInstallations().stream()
             .map(this::asReportableToolchain)
             .sorted(reportingProbeCompator())
             .collect(Collectors.toList());
     }
 
-    private Comparator<? super JavaInstallationProbe.ProbeResult> reportingProbeCompator() {
-        return Comparator
-            .comparing(JavaInstallationProbe.ProbeResult::getImplementationName)
-            .thenComparing(JavaInstallationProbe.ProbeResult::getJavaVersion);
+    private ReportableToolchain asReportableToolchain(InstallationLocation location) {
+        final JavaInstallationProbe.ProbeResult result = getProbeService().checkJdk(location.getLocation());
+        return new ReportableToolchain(result, location);
     }
 
-    private JavaInstallationProbe.ProbeResult asReportableToolchain(File javaHome) {
-        return getProbeService().checkJdk(javaHome);
+    private Comparator<ReportableToolchain> reportingProbeCompator() {
+        return Comparator
+            .<ReportableToolchain, String>comparing(t -> t.probe.getImplementationName())
+            .thenComparing(t -> t.probe.getJavaVersion());
     }
 
     @Inject

@@ -62,6 +62,7 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain query(JavaToolchainSpec filter) {
         return registry.listInstallations().stream()
+            .map(InstallationLocation::getLocation)
             .map(this::asToolchain)
             .filter(matchingToolchain(filter))
             .sorted(new JavaToolchainComparator())
