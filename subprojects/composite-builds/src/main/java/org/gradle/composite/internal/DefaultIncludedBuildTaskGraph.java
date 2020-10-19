@@ -15,36 +15,20 @@
  */
 package org.gradle.composite.internal;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.util.Path;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
-    private final Multimap<BuildIdentifier, BuildIdentifier> buildDependencies = LinkedHashMultimap.create();
     private final IncludedBuildControllers includedBuilds;
 
     public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds) {
-            this.includedBuilds = includedBuilds;
-        }
+        this.includedBuilds = includedBuilds;
+    }
 
     @Override
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
-        boolean newBuildDependency = buildDependencies.put(requestingBuild, targetBuild);
-        if (newBuildDependency) {
-            checkNoCycles(requestingBuild, targetBuild, newArrayList());
-        }
-
         getBuildController(targetBuild).queueForExecution(taskPath);
     }
 
@@ -67,29 +51,4 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         return includedBuilds.getBuildController(buildId);
     }
 
-    private void checkNoCycles(BuildIdentifier sourceBuild, BuildIdentifier targetBuild, List<BuildIdentifier> candidateCycle) {
-        candidateCycle.add(targetBuild);
-        for (BuildIdentifier nextTarget : buildDependencies.get(targetBuild)) {
-            if (sourceBuild.equals(nextTarget)) {
-                candidateCycle.add(nextTarget);
-                ProjectComponentSelector selector = new DefaultProjectComponentSelector(candidateCycle.get(0), Path.ROOT, Path.ROOT, ":", ImmutableAttributes.EMPTY, Collections.emptyList());
-                throw new ModuleVersionResolveException(selector, () -> "Included build dependency cycle: " + reportCycle(candidateCycle));
-            }
-
-            checkNoCycles(sourceBuild, nextTarget, candidateCycle);
-
-        }
-        candidateCycle.remove(targetBuild);
-    }
-
-
-    private String reportCycle(List<BuildIdentifier> cycle) {
-        StringBuilder cycleReport = new StringBuilder();
-        for (BuildIdentifier buildIdentifier : cycle) {
-            cycleReport.append(buildIdentifier);
-            cycleReport.append(" -> ");
-        }
-        cycleReport.append(cycle.get(0));
-        return cycleReport.toString();
-    }
 }

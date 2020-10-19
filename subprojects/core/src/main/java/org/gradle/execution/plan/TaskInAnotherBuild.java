@@ -31,6 +31,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public abstract class TaskInAnotherBuild extends TaskNode {
 
@@ -57,6 +58,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.WAITING;
     private final BuildIdentifier thisBuild;
     private final BuildIdentifier targetBuild;
+    private boolean required;
 
     protected TaskInAnotherBuild(BuildIdentifier thisBuild, BuildIdentifier targetBuild, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
@@ -136,7 +138,17 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
     @Override
     public void require() {
-        // Ignore
+        this.required = true;
+    }
+
+    @Override
+    public boolean isRequired() {
+        return required;
+    }
+
+    @Override
+    public boolean isIncludeInGraph() {
+        return required;
     }
 
     @Override
@@ -208,6 +220,17 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         @Override
         public String getTaskPath() {
             return task.getPath();
+        }
+
+        @Override
+        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+            Set<Node> dependencies = dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
+            for (Node targetNode : dependencies) {
+                if (targetNode instanceof TaskNode) {
+                    addDependencySuccessor(targetNode);
+                    processHardSuccessor.execute(targetNode);
+                }
+            }
         }
     }
 

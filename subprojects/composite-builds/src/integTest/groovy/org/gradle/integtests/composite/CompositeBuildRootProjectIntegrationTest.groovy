@@ -70,7 +70,7 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         fails(buildA, "buildBJar")
 
         then:
-        failure.assertHasDescription("Included build dependency cycle: build ':' -> build 'buildB' -> build ':'")
+        failure.assertHasDescription("Could not find build ':'")
         // result.assertTaskExecuted(":buildB:compileJava")
         // result.assertTaskExecuted(":compileJava")
     }

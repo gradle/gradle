@@ -18,6 +18,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Issue
 
 /**
  * Tests for resolving dependency cycles in a composite build.
@@ -36,21 +37,21 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
                 from configurations.compileClasspath
                 into 'libs'
             }
-"""
+        """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includedBuilds << buildB
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
                 apply plugin: 'java-library'
-"""
+            """
         }
         includedBuilds << buildC
     }
@@ -85,7 +86,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+        failure.assertHasDescription("Circular dependency between the following tasks:")
+        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":buildC:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava (*)"))
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -100,7 +104,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
                 dependencies {
                     implementation "org.test:buildB:1.0"
                 }
-"""
+            """
         }
         includedBuilds << buildD
 
@@ -132,7 +136,11 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'")
+        failure.assertHasDescription("Circular dependency between the following tasks:")
+        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":buildC:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":buildD:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava (*)"))
     }
 
     // Not actually a cycle, just documenting behaviour
@@ -140,12 +148,12 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         given:
         dependency "org.test:b1:1.0"
         buildB.buildFile << """
-project(':b1') {
-    dependencies {
-        implementation "org.test:buildC:1.0"
-    }
-}
-"""
+            project(':b1') {
+                dependencies {
+                    implementation "org.test:buildC:1.0"
+                }
+            }
+        """
         dependency buildC, "org.test:b2:1.0"
 
         when:
@@ -168,11 +176,8 @@ project(':b1') {
             }
         }
 
-        when:
-        resolveFails(":resolveArtifacts")
-
-        then:
-        failure.assertHasDescription("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+        and:
+        resolveSucceeds(":resolveArtifacts")
     }
 
     def "compile-only dependency cycle between included builds"() {
@@ -184,7 +189,7 @@ project(':b1') {
             dependencies {
                 compileOnly "org.test:buildB:1.0"
             }
-"""
+        """
 
         when:
         resolve.withoutBuildingArtifacts()
@@ -206,7 +211,10 @@ project(':b1') {
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+        failure.assertHasDescription("Circular dependency between the following tasks:")
+        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":buildC:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava (*)"))
     }
 
     def "dependency cycle between subprojects in an included multiproject build"() {
@@ -227,7 +235,7 @@ project(':b1') {
                     implementation "org.test:b1:1.0"
                 }
             }
-"""
+        """
 
         when:
         resolve.withoutBuildingArtifacts()
@@ -256,6 +264,44 @@ project(':b1') {
         then:
         failure.assertHasDescription("Circular dependency between the following tasks:")
         failure.assertThatDescription(containsNormalizedString(":buildB:b1:compileJava"))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6229")
+    def "cross-build dependencies without task cycle"() {
+        given:
+        def buildD = multiProjectBuild("buildD", ['buildD-api', 'buildD-impl'])
+        buildD.buildFile << """
+        subprojects {
+            apply plugin: "java-library"
+        }
+        project(":buildD-impl") {
+            dependencies {
+                api(project(":buildD-api"))
+                implementation("org.test:buildE-api:1.0")
+            }
+        }
+        """
+        includedBuilds << buildD
+        def buildE = multiProjectBuild("buildE", ['buildE-api', 'buildE-impl'])
+        buildE.buildFile << """
+        subprojects {
+            apply plugin: "java-library"
+        }
+        project(":buildE-impl") {
+            dependencies {
+                api(project(":buildE-api"))
+                implementation("org.test:buildD-api:1.0")
+            }
+        }
+        """
+        includedBuilds << buildE
+
+        when:
+        dependency(buildA, "org.test:buildD-impl:1.0")
+        dependency(buildA, "org.test:buildE-impl:1.0")
+
+        then:
+        resolveSucceeds(":build")
     }
 
     protected void resolveSucceeds(String task) {

@@ -142,7 +142,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath == ":b"
-        taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
+        taskGraphCalculations[2].result.requestedTaskPaths == [":classes", ":compileJava", ":jar", ":processResources"]
     }
 
     def "exposes task plan details"() {

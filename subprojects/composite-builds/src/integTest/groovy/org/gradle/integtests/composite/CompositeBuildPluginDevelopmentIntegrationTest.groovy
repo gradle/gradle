@@ -343,7 +343,12 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "tasks")
 
         then:
-        failure.assertHasDescription("Included build dependency cycle: build 'pluginDependencyA' -> build 'pluginDependencyB' -> build 'pluginDependencyA'")
+        failure.assertHasDescription("Circular dependency between the following tasks:")
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:jar"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:classes"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava (*)"))
     }
 
     @ToBeFixedForConfigurationCache
