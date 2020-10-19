@@ -35,10 +35,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.JAVA_HOME", os.buildJavaHome())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
+        param("env.JPROFILER_HOME", os.jprofilerHome)
         param("performance.db.username", "tcagent")
-        if (os == Os.WINDOWS) {
-            param("env.JPROFILER_HOME", "C:\\Program Files\\jprofiler\\jprofiler11.1.4")
-        }
     }
 }
 
