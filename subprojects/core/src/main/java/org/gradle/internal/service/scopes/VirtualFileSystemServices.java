@@ -137,8 +137,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     @VisibleForTesting
     public static final String DEPRECATED_VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
-    private static final int DEFAULT_MAX_HIERARCHIES_TO_WATCH = 50;
     public static final String MAX_HIERARCHIES_TO_WATCH_PROPERTY = "org.gradle.vfs.watch.hierarchies.max";
+
+    private static final int DEFAULT_MAX_HIERARCHIES_TO_WATCH = 50;
+    private static final int FILE_HASHER_MEMORY_CACHE_SIZE = 400000;
 
     public static boolean isDropVfs(StartParameter startParameter) {
         if (getSystemProperty(DEPRECATED_VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()) != null) {
@@ -214,7 +216,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StreamHasher streamHasher,
             StringInterner stringInterner
         ) {
-            CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, 400000, statisticsCollector);
+            CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, FILE_HASHER_MEMORY_CACHE_SIZE, statisticsCollector);
             fileTimeStampInspector.attach(fileHasher);
             return fileHasher;
         }
@@ -367,7 +369,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             FileHasherStatistics.Collector statisticsCollector
         ) {
-            CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, 400000, statisticsCollector);
+            CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, FILE_HASHER_MEMORY_CACHE_SIZE, statisticsCollector);
             return new SplitFileHasher(globalHasher, localHasher, globalCacheLocations);
         }
 
