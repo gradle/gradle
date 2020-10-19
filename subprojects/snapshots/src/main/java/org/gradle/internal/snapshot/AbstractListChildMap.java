@@ -65,7 +65,7 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
         if (childIndex >= 0) {
             Entry<T> entry = entries.get(childIndex);
             String childPath = entry.getPath();
-            return entry.getNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
+            return entry.withNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
 
                 @SuppressWarnings("unchecked")
                 @Override

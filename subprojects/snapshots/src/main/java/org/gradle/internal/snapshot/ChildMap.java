@@ -30,13 +30,13 @@ public interface ChildMap<T> {
 
     void visitChildren(BiConsumer<String, ? super T> visitor);
 
-    <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler);
+    <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler);
 
-    interface GetNodeHandler<T, RESULT> {
+    interface NodeHandler<T, RESULT> {
         RESULT handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+        RESULT handleAsAncestorOfChild(String childPath, T child);
         RESULT handleExactMatchWithChild(T child);
         RESULT handleUnrelatedToAnyChild();
-        RESULT handleAsAncestorOfChild(String childPath, T child);
     }
 
     <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler);
@@ -67,12 +67,12 @@ public interface ChildMap<T> {
             this.value = value;
         }
 
-        public <RESULT> RESULT getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
+        public <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler) {
             return handleAncestorDescendantOrExactMatch(targetPath, caseSensitivity, handler)
                 .orElseGet(handler::handleUnrelatedToAnyChild);
         }
 
-        public <RESULT> Optional<RESULT> handleAncestorDescendantOrExactMatch(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, RESULT> handler) {
+        public <RESULT> Optional<RESULT> handleAncestorDescendantOrExactMatch(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler) {
             if (targetPath.hasPrefix(path, caseSensitivity)) {
                 if (targetPath.length() == path.length()) {
                     return Optional.of(handler.handleExactMatchWithChild(value));

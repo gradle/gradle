@@ -32,7 +32,7 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
+    public <R> R withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, R> handler) {
         return handler.handleUnrelatedToAnyChild();
     }
 

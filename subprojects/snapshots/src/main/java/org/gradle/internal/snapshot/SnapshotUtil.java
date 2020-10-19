@@ -22,15 +22,10 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
 
     public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
-        return children.getNode(targetPath, caseSensitivity, new ChildMap.GetNodeHandler<T, Optional<MetadataSnapshot>>() {
+        return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, Optional<MetadataSnapshot>>() {
             @Override
             public Optional<MetadataSnapshot> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
                 return child.getSnapshot(pathInChild, caseSensitivity);
-            }
-
-            @Override
-            public Optional<MetadataSnapshot> handleUnrelatedToAnyChild() {
-                return noChildFoundResult.get();
             }
 
             @Override
@@ -42,11 +37,16 @@ public class SnapshotUtil {
             public Optional<MetadataSnapshot> handleExactMatchWithChild(T child) {
                 return child.getSnapshot();
             }
+
+            @Override
+            public Optional<MetadataSnapshot> handleUnrelatedToAnyChild() {
+                return noChildFoundResult.get();
+            }
         });
     }
 
     public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
-        return children.getNode(targetPath, caseSensitivity, new ChildMap.GetNodeHandler<T, ReadOnlyFileSystemNode>() {
+        return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, ReadOnlyFileSystemNode>() {
             @Override
             public ReadOnlyFileSystemNode handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
                 return child.getNode(pathInChild, caseSensitivity);

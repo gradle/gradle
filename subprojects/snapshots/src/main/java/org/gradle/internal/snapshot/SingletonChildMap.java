@@ -49,13 +49,13 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <R> R getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, GetNodeHandler<T, R> handler) {
-        return entry.getNode(targetPath, caseSensitivity, handler);
+    public <R> R withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, R> handler) {
+        return entry.withNode(targetPath, caseSensitivity, handler);
     }
 
     @Override
     public <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler) {
-        return entry.getNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
+        return entry.withNode(targetPath, caseSensitivity, new AbstractInvalidateChildHandler<T, RESULT>(handler) {
             @SuppressWarnings("unchecked")
             @Override
             public SingletonChildMap<RESULT> getChildMap() {

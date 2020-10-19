@@ -18,7 +18,7 @@ package org.gradle.internal.snapshot;
 
 import java.util.Optional;
 
-public abstract class AbstractInvalidateChildHandler<T, RESULT> implements ChildMap.GetNodeHandler<T, ChildMap<RESULT>> {
+public abstract class AbstractInvalidateChildHandler<T, RESULT> implements ChildMap.NodeHandler<T, ChildMap<RESULT>> {
 
     private final ChildMap.InvalidationHandler<T, RESULT> handler;
 
@@ -43,6 +43,12 @@ public abstract class AbstractInvalidateChildHandler<T, RESULT> implements Child
     }
 
     @Override
+    public ChildMap<RESULT> handleAsAncestorOfChild(String childPath, T child) {
+        handler.handleAsAncestorOfChild(childPath, child);
+        return withRemovedChild();
+    }
+
+    @Override
     public ChildMap<RESULT> handleExactMatchWithChild(T child) {
         handler.handleExactMatchWithChild(child);
         return withRemovedChild();
@@ -52,11 +58,5 @@ public abstract class AbstractInvalidateChildHandler<T, RESULT> implements Child
     public ChildMap<RESULT> handleUnrelatedToAnyChild() {
         handler.handleUnrelatedToAnyChild();
         return getChildMap();
-    }
-
-    @Override
-    public ChildMap<RESULT> handleAsAncestorOfChild(String childPath, T child) {
-        handler.handleAsAncestorOfChild(childPath, child);
-        return withRemovedChild();
     }
 }
