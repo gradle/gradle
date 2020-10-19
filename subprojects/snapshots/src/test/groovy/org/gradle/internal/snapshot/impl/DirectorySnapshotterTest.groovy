@@ -203,8 +203,10 @@ class DirectorySnapshotterTest extends Specification {
         def rootDir = tmpDir.createDir("root")
         def dir = rootDir.file("dir").createDir()
         dir.file('subdir').createLink(dir)
+
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+
         then:
         snapshot.children.size == 1
         def dirSnapshot = snapshot.children[0]
