@@ -22,7 +22,7 @@ import org.gradle.internal.execution.UnitOfWork.Identity;
 
 import javax.annotation.Nullable;
 
-public interface WorkExecutor {
+public interface ExecutionEngine {
     CachingResult execute(UnitOfWork work, @Nullable String rebuildReason);
 
     <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
