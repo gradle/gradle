@@ -119,7 +119,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
-    def workExecutor = new ExecutionGradleServices().createWorkExecutor(
+    def executionEngine = new ExecutionGradleServices().createExecutionEngine(
         buildCacheCommandFactory,
         buildCacheController,
         cancellationToken,
@@ -143,7 +143,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     )
 
     def invoker = new DefaultTransformerInvocationFactory(
-        workExecutor,
+        executionEngine,
         fileSystemAccess,
         artifactTransformListener,
         transformationWorkspaceProvider,

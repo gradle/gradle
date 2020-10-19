@@ -132,18 +132,18 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
-import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
-import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
@@ -259,11 +259,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         /**
-         * Work executer for usage above Gradle scope
+         * Execution engine for usage above Gradle scope
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor createWorkExecutor(
+        ExecutionEngine createExecutionEngine(
                 BuildOperationExecutor buildOperationExecutor,
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 Deleter deleter,
@@ -279,7 +279,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             // @formatter:off
-            return new DefaultWorkExecutor(
+            return new DefaultExecutionEngine(
                 new IdentifyStep<>(valueSnapshotter,
                 new IdentityCacheStep<>(
                 new AssignWorkspaceStep<>(
@@ -409,7 +409,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformerInvocationFactory createTransformerInvocationFactory(
-                WorkExecutor workExecutor,
+                ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
                 ImmutableTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,
@@ -418,7 +418,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 BuildOperationExecutor buildOperationExecutor
         ) {
             return new DefaultTransformerInvocationFactory(
-                workExecutor,
+                executionEngine,
                 fileSystemAccess,
                 artifactTransformListener,
                 transformationWorkspaceProvider,

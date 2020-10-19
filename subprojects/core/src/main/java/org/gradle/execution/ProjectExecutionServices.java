@@ -47,8 +47,8 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
@@ -126,7 +126,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
         TaskListenerInternal taskListenerInternal,
-        WorkExecutor workExecutor
+        ExecutionEngine executionEngine
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheController.isEnabled()
@@ -142,7 +142,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             taskCacheabilityResolver,
             fingerprinterRegistry,
             classLoaderHierarchyHasher,
-            workExecutor,
+            executionEngine,
             listenerManager,
             reservedFileSystemLocationRegistry,
             emptySourceTaskSkipper,

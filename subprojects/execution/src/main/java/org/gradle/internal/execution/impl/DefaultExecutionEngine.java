@@ -21,18 +21,18 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
+import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.execution.WorkExecutor;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class DefaultWorkExecutor implements WorkExecutor {
+public class DefaultExecutionEngine implements ExecutionEngine {
     private final DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep;
 
-    public DefaultWorkExecutor(DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep) {
+    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep) {
         this.executeStep = executeStep;
     }
 
