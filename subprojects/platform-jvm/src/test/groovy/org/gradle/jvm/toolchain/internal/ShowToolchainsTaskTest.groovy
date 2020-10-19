@@ -44,7 +44,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         def jdk82 = new File("1.8.0_404")
 
         given:
-        task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82].collect {new InstallationLocation(it, "")}
+        task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82].collect {new InstallationLocation(it, "TestSource")}
         task.probeService.checkJdk(jdk14) >> newProbe("14", JavaVersion.VERSION_14)
         task.probeService.checkJdk(jdk15) >> newProbe("15-ea", JavaVersion.VERSION_15)
         task.probeService.checkJdk(jdk9) >> newProbe("9", JavaVersion.VERSION_1_9)
@@ -60,26 +60,31 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Location:           {description}/path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
+     | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 1.8.0_404{normal}
      | Location:           {description}/path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
+     | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 9{normal}
      | Location:           {description}/path{normal}
      | Language Version:   {description}9{normal}
      | Is JDK:             {description}false{normal}
+     | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 14{normal}
      | Location:           {description}/path{normal}
      | Language Version:   {description}14{normal}
      | Is JDK:             {description}false{normal}
+     | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 15-ea{normal}
      | Location:           {description}/path{normal}
      | Language Version:   {description}15{normal}
      | Is JDK:             {description}false{normal}
+     | Detected by:        {description}TestSource{normal}
 
 """
     }
