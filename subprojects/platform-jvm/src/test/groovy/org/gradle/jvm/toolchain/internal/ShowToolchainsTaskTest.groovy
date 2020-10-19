@@ -57,31 +57,31 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         output.value == """{identifier} + name 1.8.0_202{normal}
-     | Location:           {description}/path{normal}
+     | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 1.8.0_404{normal}
-     | Location:           {description}/path{normal}
+     | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 9{normal}
-     | Location:           {description}/path{normal}
+     | Location:           {description}path{normal}
      | Language Version:   {description}9{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 14{normal}
-     | Location:           {description}/path{normal}
+     | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + name 15-ea{normal}
-     | Location:           {description}/path{normal}
+     | Location:           {description}path{normal}
      | Language Version:   {description}15{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
@@ -93,7 +93,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         JavaInstallationProbe.ProbeResult probe = Mock(JavaInstallationProbe.ProbeResult)
         probe.implementationName >> "name"
         probe.implementationJavaVersion >> implVersion
-        probe.javaHome >> Paths.get("/path")
+        probe.javaHome >> Paths.get("path")
         probe.javaVersion >> languageVersion
         probe
     }
