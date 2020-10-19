@@ -309,8 +309,8 @@ The identifiers for plugins written as a class should be defined in the build sc
 For this, the `java-gradle-plugin` needs to be applied.
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy/buildSrc",files="build.gradle[]"]
-include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin/buildSrc",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin",files="buildSrc/build.gradle.kts[]"]
 ====
 
 Note that identifiers for <<custom_plugins.adoc#sec:precompiled_plugins,precompiled script plugins>> are automatically registered based on the file name of the script plugin.
