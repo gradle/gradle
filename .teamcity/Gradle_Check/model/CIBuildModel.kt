@@ -1,7 +1,10 @@
 package model
 
+import Gradle_Check.model.FlameGraphGeneration
 import Gradle_Check.model.GradleSubprojectProvider
+import Gradle_Check.model.PerformanceScenario
 import Gradle_Check.model.PerformanceTestCoverage
+import Gradle_Check.model.Scenario
 import common.BuildCache
 import common.JvmCategory
 import common.JvmVendor
@@ -128,6 +131,11 @@ data class CIBuildModel(
                 TestCoverage(38, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION, withoutDependencies = true),
                 TestCoverage(32, TestType.watchFs, Os.MACOS, JvmCategory.MAX_VERSION, withoutDependencies = true),
                 TestCoverage(37, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION, withoutDependencies = true)
+            ),
+            flameGraphs = listOf(
+                FlameGraphGeneration(14, "File System Watching", listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
+                    PerformanceScenario(Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"), it)
+                })
             )),
         Stage(StageNames.EXPERIMENTAL_JDK,
             trigger = Trigger.never,
@@ -216,7 +224,18 @@ interface StageName {
         get() = stageName.replace(" ", "").replace("-", "")
 }
 
-data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestCoverage> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
+data class Stage(
+    val stageName: StageName,
+    val specificBuilds: List<SpecificBuild> = emptyList(),
+    val functionalTests: List<TestCoverage> = emptyList(),
+    val performanceTests: List<PerformanceTestCoverage> = emptyList(),
+    val flameGraphs: List<FlameGraphGeneration> = emptyList(),
+    val trigger: Trigger = Trigger.never,
+    val functionalTestsDependOnSpecificBuilds: Boolean = false,
+    val runsIndependent: Boolean = false,
+    val omitsSlowProjects: Boolean = false,
+    val dependsOnSanityCheck: Boolean = false
+) {
     val id = stageName.id
 }
 

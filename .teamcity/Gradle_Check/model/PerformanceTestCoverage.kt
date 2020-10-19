@@ -21,20 +21,100 @@ import model.CIBuildModel
 import model.PerformanceTestType
 import java.util.Locale
 
-data class PerformanceTestCoverage(
-    val uuid: Int,
-    val type: PerformanceTestType,
-    val os: Os,
-    val numberOfBuckets: Int = 40,
-    val oldUuid: String? = null,
-    val withoutDependencies: Boolean = false,
-    val failsStage: Boolean = true
-) {
-    fun asConfigurationId(model: CIBuildModel, bucket: String = "") =
-        "${model.projectPrefix}${oldUuid ?: "PerformanceTest$uuid"}$bucket"
-    fun asName(): String =
-        "${type.displayName} - ${os.asName()}"
+interface PerformanceTestBuildSpec {
+    val type: PerformanceTestType
+    val os: Os
+    val withoutDependencies: Boolean
 
-    fun channel(branch: String = "%teamcity.build.branch%") =
-        "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-$branch"
+    fun asConfigurationId(model: CIBuildModel, bucket: String): String
+    fun channel(): String
+}
+
+interface PerformanceTestProjectSpec {
+    val type: PerformanceTestType
+    val failsStage: Boolean
+
+    fun asConfigurationId(model: CIBuildModel): String
+    fun asName(): String
+    fun channel(): String
+}
+
+data class PerformanceTestCoverage(
+    private val uuid: Int,
+    override val type: PerformanceTestType,
+    override val os: Os,
+    val numberOfBuckets: Int = 40,
+    private val oldUuid: String? = null,
+    override val withoutDependencies: Boolean = false,
+    override val failsStage: Boolean = true
+) : PerformanceTestBuildSpec, PerformanceTestProjectSpec {
+    override
+    fun asConfigurationId(model: CIBuildModel, bucket: String) =
+        "${asConfigurationId(model)}$bucket"
+
+    override
+    fun asConfigurationId(model: CIBuildModel) =
+        "${model.projectPrefix}${oldUuid ?: "PerformanceTest$uuid"}"
+
+    override
+    fun asName(): String =
+        "${type.displayName} - ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
+
+    override
+    fun channel() =
+        "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-%teamcity.build.branch%"
+}
+
+data class FlameGraphGeneration(
+    private val uuid: Int,
+    private val name: String,
+    private val scenarios: List<PerformanceScenario>
+) : PerformanceTestProjectSpec {
+    override
+    fun asConfigurationId(model: CIBuildModel) =
+        "${model.projectPrefix}PerformanceTest$uuid"
+
+    override
+    fun asName(): String =
+        "Flamegraphs for $name"
+
+    override
+    fun channel(): String = "adhoc-%teamcity.build.branch%"
+
+    override
+    val type: PerformanceTestType
+        get() = PerformanceTestType.adHoc
+
+    override
+    val failsStage: Boolean
+        get() = false
+
+    val buildSpecs: List<FlameGraphGenerationBuildSpec>
+        get() = scenarios.flatMap { scenario ->
+            Os.values().flatMap { os ->
+                if (os == Os.WINDOWS) {
+                    listOf("jprofiler")
+                } else {
+                    listOf("async-profiler", "async-profiler-heap")
+                }.map { FlameGraphGenerationBuildSpec(scenario, os, it) }
+            }
+        }
+
+    inner
+    class FlameGraphGenerationBuildSpec(
+        val performanceScenario: PerformanceScenario,
+        override val os: Os,
+        val profiler: String
+    ) : PerformanceTestBuildSpec {
+        override
+        val type: PerformanceTestType = PerformanceTestType.adHoc
+        override
+        val withoutDependencies: Boolean = true
+        override
+        fun asConfigurationId(model: CIBuildModel, bucket: String): String =
+            "${this@FlameGraphGeneration.asConfigurationId(model)}$bucket"
+
+        override
+        fun channel(): String = this@FlameGraphGeneration.channel()
+    }
 }
