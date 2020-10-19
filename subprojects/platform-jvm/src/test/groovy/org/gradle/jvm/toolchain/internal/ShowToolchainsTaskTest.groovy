@@ -42,8 +42,9 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         def jdk9 = new File("9")
         def jdk8 = new File("1.8.0_202")
         def jdk82 = new File("1.8.0_404")
+
         given:
-        task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82]
+        task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82].collect {new InstallationLocation(it, "")}
         task.probeService.checkJdk(jdk14) >> newProbe("14", JavaVersion.VERSION_14)
         task.probeService.checkJdk(jdk15) >> newProbe("15-ea", JavaVersion.VERSION_15)
         task.probeService.checkJdk(jdk9) >> newProbe("9", JavaVersion.VERSION_1_9)

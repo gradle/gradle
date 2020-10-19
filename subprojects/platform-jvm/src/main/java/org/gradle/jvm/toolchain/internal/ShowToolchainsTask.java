@@ -55,7 +55,7 @@ public class ShowToolchainsTask extends AbstractReportTask {
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        final JavaInstallationProbe.ProbeResult result = getProbeService().checkJdk(location.getLocation());
+        JavaInstallationProbe.ProbeResult result = getProbeService().checkJdk(location.getLocation());
         return new ReportableToolchain(result, location);
     }
 
