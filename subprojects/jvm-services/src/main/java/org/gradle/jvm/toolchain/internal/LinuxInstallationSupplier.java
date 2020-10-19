@@ -46,7 +46,7 @@ public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier
     protected Set<InstallationLocation> findCandidates() {
         if (os.isLinux()) {
             return Arrays.stream(roots)
-                .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), "linux"))
+                .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), "Common Linux Locations"))
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
         }
