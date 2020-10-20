@@ -76,7 +76,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         ProfilerFactory.configureParser(optionParser);
         ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
         String[] options = profilerName.equals("jprofiler")
-            ? new String[] { "--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME") }
+            ? new String[] {"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")}
             : new String[] {};
         return profilerFactory.createFromOptions(optionParser.parse(options));
     }
