@@ -17,7 +17,9 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.ProjectBuilder
 
@@ -25,7 +27,7 @@ import java.nio.file.Paths
 
 class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
-    def task
+    TestShowToolchainsTask task
     def output
 
     def setup() {
@@ -33,7 +35,9 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         task.installationRegistry = Mock(SharedJavaInstallationRegistry)
         task.probeService = Mock(JavaInstallationProbe)
         output = new TestStyledTextOutput()
-        task.getRenderer().output = output
+        task.outputFactory = Mock(StyledTextOutputFactory) {
+            create(_ as Class) >> output
+        }
     }
 
     def "reports toolchains in right order"() {
@@ -53,10 +57,11 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
         when:
         def project = ProjectBuilder.builder().build()
-        task.generate(project)
+        task.showToolchains()
 
         then:
-        output.value == """{identifier} + name 1.8.0_202{normal}
+        output.value == """
+{identifier} + name 1.8.0_202{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
@@ -101,16 +106,21 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     static class TestShowToolchainsTask extends ShowToolchainsTask {
         def installationRegistry
         def probeService
+        def outputFactory
 
         @Override
         protected SharedJavaInstallationRegistry getInstallationRegistry() {
-            return installationRegistry
+            installationRegistry
         }
 
         @Override
         protected JavaInstallationProbe getProbeService() {
-            return probeService
+            probeService
         }
 
+        @Override
+        protected StyledTextOutputFactory getTextOutputFactory() {
+            outputFactory
+        }
     }
 }

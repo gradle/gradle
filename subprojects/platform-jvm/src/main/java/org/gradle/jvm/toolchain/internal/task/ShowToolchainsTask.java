@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain.internal.task;
 
-import org.gradle.api.Project;
-import org.gradle.api.tasks.diagnostics.AbstractReportTask;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ShowToolchainsTask extends AbstractReportTask {
+public class ShowToolchainsTask extends DefaultTask {
 
     static class ReportableToolchain {
 
@@ -40,29 +43,35 @@ public class ShowToolchainsTask extends AbstractReportTask {
         }
 
     }
+
+    private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
+        .<ReportableToolchain, String>comparing(t -> t.probe.getImplementationName())
+        .thenComparing(t -> t.probe.getJavaVersion());
+
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
-    @Override
-    protected void generate(Project project) throws IOException {
+    public ShowToolchainsTask() {
+        getOutputs().upToDateWhen(element -> false);
+    }
+
+    @TaskAction
+    public void showToolchains() {
+        StyledTextOutput output = getTextOutputFactory().create(getClass());
+        toolchainRenderer.setOutput(output);
+        output.println();
         allReportableToolchains().forEach(toolchainRenderer::printToolchain);
     }
 
     private List<ReportableToolchain> allReportableToolchains() {
         return getInstallationRegistry().listInstallations().stream()
             .map(this::asReportableToolchain)
-            .sorted(reportingProbeCompator())
+            .sorted(TOOLCHAIN_COMPARATOR)
             .collect(Collectors.toList());
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
         JavaInstallationProbe.ProbeResult result = getProbeService().checkJdk(location.getLocation());
         return new ReportableToolchain(result, location);
-    }
-
-    private Comparator<ReportableToolchain> reportingProbeCompator() {
-        return Comparator
-            .<ReportableToolchain, String>comparing(t -> t.probe.getImplementationName())
-            .thenComparing(t -> t.probe.getJavaVersion());
     }
 
     @Inject
@@ -75,9 +84,10 @@ public class ShowToolchainsTask extends AbstractReportTask {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    protected ReportRenderer getRenderer() {
-        return toolchainRenderer;
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
     }
+
 
 }
