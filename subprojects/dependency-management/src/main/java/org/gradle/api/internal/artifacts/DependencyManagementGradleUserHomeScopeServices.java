@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
@@ -29,7 +28,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -91,23 +89,12 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheRepository cacheRepository,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore, ListenerManager listenerManager) {
-        ImmutableTransformationWorkspaceProvider workspaceProvider = new ImmutableTransformationWorkspaceProvider(
+        return new ImmutableTransformationWorkspaceProvider(
             artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
             cacheRepository,
             fileAccessTimeJournal,
             executionHistoryStore
         );
-        listenerManager.addListener(new RootBuildLifecycleListener() {
-            @Override
-            public void afterStart(GradleInternal gradle) {
-            }
-
-            @Override
-            public void beforeComplete(GradleInternal gradle) {
-                workspaceProvider.getIdentityCache().invalidateAll();
-            }
-        });
-        return workspaceProvider;
     }
 
 }
