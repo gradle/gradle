@@ -17,6 +17,30 @@
 package org.gradle.performance.fixture
 
 class TestProjects {
+    static void validateTestProject(String testProject) {
+        File gradlePropertiesFile = new File(TestProjectLocator.findProjectDir(testProject), "gradle.properties")
+        if (!gradlePropertiesFile.exists()) {
+            throw new IllegalArgumentException("Every test project needs to provide a gradle.properties file with memory and parallelism settings")
+        }
+        def gradleProperties = new Properties()
+        gradlePropertiesFile.withInputStream {gradleProperties.load(it) }
+        verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.jvmargs")
+        def jvmArgs = gradleProperties.getProperty("org.gradle.jvmargs")?.split(' ')
+        if (!jvmArgs.find { it.startsWith("-Xmx") }) {
+            throw new IllegalArgumentException("Test project needs to specify -Xmx in gradle.properties. org.gradle.jvmargs = ${jvmArgs?.join(' ')}")
+        }
+        verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.parallel")
+        verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.workers.max")
+    }
+
+    private static void verifyGradlePropertiesSettingSpecified(Properties gradleProperties, String propertyName) {
+        def propertyValue = gradleProperties.getProperty(propertyName)
+        if (propertyValue == null || propertyValue.isEmpty()) {
+            throw new IllegalArgumentException("Test project needs to specify ${propertyName} but did not.")
+        }
+    }
+
+
     static List<String> getProjectMemoryOptions(String testProject) {
         def daemonMemory = determineDaemonMemory(testProject)
         return ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
