@@ -38,7 +38,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     def "with and without plugin application (#scenario)"() {
         given:
         def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
-        def opts = ['-Xms4096m', '-Xmx4096m']
 
         runner.baseline {
             warmUpCount WARMUPS
@@ -94,11 +93,11 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         where:
-        scenario                                                | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                                                                   | manageCacheState
-        "clean build - 50 projects"                             | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache', '--parallel', '--max-workers=4']                                             | true
-        "clean build - 20 projects - slow tasks - less console" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project20:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4', '-DreducedOutput=true', '-DslowTasks=true'] | true
-        "help"                                                  | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                                                             | false
-        "help - no console output"                              | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | ['-DreducedOutput=true']                                                                       | false
+        scenario                                                | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                                  | manageCacheState
+        "clean build - 50 projects"                             | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache']                                             | true
+        "clean build - 20 projects - slow tasks - less console" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project20:buildNeeded'] | true        | ['--build-cache', '-DreducedOutput=true', '-DslowTasks=true'] | true
+        "help"                                                  | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                            | false
+        "help - no console output"                              | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | ['-DreducedOutput=true']                                      | false
     }
 
 
