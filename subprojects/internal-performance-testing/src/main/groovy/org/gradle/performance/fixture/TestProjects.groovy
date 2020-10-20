@@ -48,22 +48,6 @@ class TestProjects {
 
     private static String determineDaemonMemory(String testProject) {
         switch (testProject) {
-            case 'smallCppApp':
-                return '256m'
-            case 'mediumCppApp':
-                return '256m'
-            case 'mediumCppAppWithMacroIncludes':
-                return '256m'
-            case 'bigCppApp':
-                return '256m'
-            case 'smallCppMulti':
-                return '256m'
-            case 'mediumCppMulti':
-                return '256m'
-            case 'mediumCppMultiWithMacroIncludes':
-                return '256m'
-            case 'bigCppMulti':
-                return '1g'
             case 'mediumSwiftMulti':
                 return '1G'
             case 'bigSwiftApp':

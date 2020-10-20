@@ -251,7 +251,8 @@ performanceTest.registerTestProject("smallCppApp", CppMultiProjectGeneratorTask)
     templateArgs = [
         functionCount: 2
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppApp", CppMultiProjectGeneratorTask) {
@@ -260,7 +261,8 @@ performanceTest.registerTestProject("mediumCppApp", CppMultiProjectGeneratorTask
     templateArgs = [
         functionCount: 20
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppAppWithMacroIncludes", CppMultiProjectGeneratorTask) {
@@ -271,7 +273,8 @@ performanceTest.registerTestProject("mediumCppAppWithMacroIncludes", CppMultiPro
         useMacroIncludes: true
 
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigCppApp", CppMultiProjectGeneratorTask) {
@@ -280,7 +283,8 @@ performanceTest.registerTestProject("bigCppApp", CppMultiProjectGeneratorTask) {
     templateArgs = [
         functionCount: 50
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("smallCppMulti", CppMultiProjectGeneratorTask) {
@@ -290,6 +294,7 @@ performanceTest.registerTestProject("smallCppMulti", CppMultiProjectGeneratorTas
         functionCount: 1
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppMulti", CppMultiProjectGeneratorTask) {
@@ -299,6 +304,7 @@ performanceTest.registerTestProject("mediumCppMulti", CppMultiProjectGeneratorTa
         functionCount: 2
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppMultiWithMacroIncludes", CppMultiProjectGeneratorTask) {
@@ -309,6 +315,7 @@ performanceTest.registerTestProject("mediumCppMultiWithMacroIncludes", CppMultiP
         useMacroIncludes: true
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask) {
@@ -318,6 +325,7 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
         functionCount: 3
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '1G'
 }
 
 // Build-builder projects
