@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain.internal.task;
 
 import com.google.common.base.Strings;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;

@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
+import org.gradle.jvm.toolchain.internal.task.ToolchainReportRenderer
 import spock.lang.Specification
 
 import java.nio.file.Paths
