@@ -90,7 +90,8 @@ See the [matrix of supported core plugins](userguide/configuration_cache.html#co
 
 ### Implicit imports
 
-This version of Gradle allows you to use the `@Inject` annotation without explicitly importing it into your build scripts the same way it works for other Gradle API classes.
+When using [dependency injection](userguide/custom_gradle_types.html#service_injection) when developing plugins, tasks or project extensions, it is now possible to use the `@Inject` annotation without explicitly importing it into your build scripts the
+same way it works for other Gradle API classes.
 
 ## Security Improvements
 
