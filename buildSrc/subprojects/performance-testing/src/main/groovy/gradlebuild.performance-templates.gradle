@@ -386,6 +386,9 @@ performanceTest.registerTestProject("k9AndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
     // From android-31 branch
     ref = "d9776762e7da63cd9b2925efa2b7d8bcdc373600"
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
 }
 
 performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
@@ -397,7 +400,7 @@ performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
 performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0
-    ref = '3122343674246eaa56a5dd6365ea137edb021780'
+    ref = '9855911d336f77db708540ce936c3ea0321e3ddb'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -406,10 +409,25 @@ performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
 performanceTest.registerTestProject("santaTrackerAndroidJavaBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0-java
-    ref = 'd8543e51ac5a4803a8ac57f0639229736f11e0a8'
+    ref = 'e40ae59e5e5342cad4f8288c1bd46d69267d7156'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
+}
+
+private void setMaxWorkers(File projectDirectory, int maxWorkers) {
+    new File(projectDirectory, "gradle.properties") << "\norg.gradle.workers.max=${maxWorkers}\n"
+
+}
+
+private void setMaxHeap(File projectDirectory, String maxHeap) {
+    new File(projectDirectory, "gradle.properties") << "\norg.gradle.jvmargs=-Xmx${maxHeap}\n"
+
+}
+
+private void setParallel(File projectDirectory, boolean parallel) {
+    new File(projectDirectory, "gradle.properties") << "\norg.gradle.parallel=${parallel}\n"
+
 }
 
 private void addGoogleServicesJson(File outputDirectory) {
