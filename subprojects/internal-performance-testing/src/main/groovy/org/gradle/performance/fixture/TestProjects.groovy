@@ -70,14 +70,6 @@ class TestProjects {
                 return '1G'
             case 'bigSwiftApp':
                 return '1G'
-            case 'nativeMonolithic':
-                return '2500m'
-            case 'nativeMonolithicOverlapping':
-                return '2500m'
-            case 'mediumNativeMonolithic':
-                return '512m'
-            case 'smallNativeMonolithic':
-                return '512m'
             default:
                 return JavaTestProject.projectFor(testProject).daemonMemory
         }

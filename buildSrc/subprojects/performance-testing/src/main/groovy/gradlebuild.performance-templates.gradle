@@ -189,24 +189,28 @@ performanceTest.registerTestProject("nativeMonolithicOverlapping", MonolithicNat
     // number of source files to generate in each project of each type
     // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
     sourceFiles = 200
+    daemonMemory = '2500m'
 }
 
 performanceTest.registerTestProject("nativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 100
     sourceFiles = 200
+    daemonMemory = '2500m'
 }
 
 performanceTest.registerTestProject("smallNativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 2
     sourceFiles = 100
+    daemonMemory = '512m'
 }
 
 performanceTest.registerTestProject("mediumNativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 10
     sourceFiles = 200
+    daemonMemory = '512m'
 }
 
 ["nativeMonolithicOverlapping", "nativeMonolithic", "smallNativeMonolithic", "mediumNativeMonolithic"].collect { tasks.withType(MonolithicNativeProjectGeneratorTask).named(it) }*.configure {
@@ -222,7 +226,7 @@ performanceTest.registerTestProject("mediumNativeMonolithic", MonolithicNativePr
         // number of 'common' headers each source file includes
         includedCommonHeaderCount: 10,
     ]
-    rootProjectTemplates = ['native-monolithic']
+    rootProjectTemplates = ['native-monolithic', 'gradle-properties']
     subProjectTemplates = []
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
