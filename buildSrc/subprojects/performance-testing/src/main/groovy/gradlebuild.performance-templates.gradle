@@ -52,11 +52,13 @@ performanceTest.registerTestProject("withVerboseTestNG", JvmProjectGeneratorTask
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-testng'
+    daemonMemory = '256m'
 }
 performanceTest.registerTestProject("withVerboseJUnit", JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-junit'
+    daemonMemory = '256m'
 }
 
 //TODO replace with direct task objects creation in test

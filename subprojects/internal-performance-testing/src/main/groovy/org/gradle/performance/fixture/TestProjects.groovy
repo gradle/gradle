@@ -74,10 +74,6 @@ class TestProjects {
                 return '1g'
             case 'multiNative':
                 return '256m'
-            case 'withVerboseJUnit':
-                return '256m'
-            case 'withVerboseTestNG':
-                return '256m'
             case 'mediumSwiftMulti':
                 return '1G'
             case 'bigSwiftApp':
