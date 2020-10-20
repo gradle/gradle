@@ -35,9 +35,13 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
 
-            abstract class CustomPlugin implements Plugin<Project> {
+            class CustomPlugin implements Plugin<Project> {
+                ToolingModelBuilderRegistry registry
+
                 @Inject
-                abstract ToolingModelBuilderRegistry getRegistry();
+                CustomPlugin(ToolingModelBuilderRegistry registry) {
+                    this.registry = registry
+                }
 
                 void apply(Project project) {
                     registry.register(new CustomBuilder())
