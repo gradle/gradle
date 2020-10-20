@@ -63,7 +63,7 @@ performanceTest.registerTestProject("withVerboseJUnit", JvmProjectGeneratorTask)
 performanceTest.registerTestProject("createLotsOfTasks", JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 0
-    subProjectTemplates = ['task-creation']
+    subProjectTemplates = ['task-creation', 'gradle-properties']
     templateArgs = [
         taskCount: 15000
     ]
@@ -72,6 +72,7 @@ performanceTest.registerTestProject("createLotsOfTasks", JvmProjectGeneratorTask
     }
 
     numberOfExternalDependencies = 0
+    daemonMemory = '1G'
 }
 
 performanceTest.registerTestProject("generateLotsOfDeprecationWarnings", Copy) {
