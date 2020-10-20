@@ -92,26 +92,50 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
         getBuildPaths().last()
     }
 
-    private TestFile getIdsFile() {
-        testDir.testDirectory.file("ids.json")
-    }
-
     @Override
     String initScriptContent() {
         """
-            def idsFile = file("${normaliseFileSeparators(idsFile.absolutePath)}")
-            if (gradle.parent == null) {
-                idsFile.delete()
+            abstract class CollectScopeIds extends DefaultTask {
+
+                @Internal
+                abstract RegularFileProperty getOutputJsonFile()
+
+                @TaskAction def collect() {
+                    def gradle = services.get(Gradle)
+                    def scopeIds = [
+                        "\${gradle.identityPath}": [
+                            buildInvocation: services.get(${BuildInvocationScopeId.name}).id.asString(),
+                            workspace: services.get(${WorkspaceScopeId.name}).id.asString(),
+                            user: services.get(${UserScopeId.name}).id.asString()
+                        ]
+                    ]
+                    outputJsonFile.get().asFile << groovy.json.JsonOutput.toJson(scopeIds) + '\\n'
+                }
             }
-            def record = [
-                "\${gradle.identityPath}": [
-                    buildInvocation: gradle.services.get(${BuildInvocationScopeId.name}).id.asString(),
-                    workspace: gradle.services.get(${WorkspaceScopeId.name}).id.asString(),
-                    user: gradle.services.get(${UserScopeId.name}).id.asString()
-                ]
-            ]
-            idsFile << groovy.json.JsonOutput.toJson(record) + '\\n'
+
+            rootProject {
+                def collector = tasks.register("collectScopeIds", CollectScopeIds) {
+                    outputJsonFile.fileValue(new File("${normaliseFileSeparators(idsFile.absolutePath)}"))
+                }
+                tasks.withType(DefaultTask).configureEach {
+                    if (name != "collectScopeIds") {
+                        dependsOn collector
+                    }
+                }
+            }
         """
+    }
+
+    @Override
+    void configureExecuter(GradleExecuter executer) {
+        super.configureExecuter(executer)
+        executer.beforeExecute {
+            idsFile.delete()
+        }
+    }
+
+    private TestFile getIdsFile() {
+        testDir.testDirectory.file("ids.json")
     }
 
     @Override
