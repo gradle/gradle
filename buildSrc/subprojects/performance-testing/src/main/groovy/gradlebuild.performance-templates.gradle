@@ -100,7 +100,8 @@ performanceTest.registerTestProject("smallNative", NativeProjectGeneratorTask) {
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-source', 'native-component']
+    subProjectTemplates = ['native-source', 'native-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumNative", NativeProjectGeneratorTask) {
@@ -110,7 +111,8 @@ performanceTest.registerTestProject("mediumNative", NativeProjectGeneratorTask) 
         moduleCount: 1,
         functionCount: 20
     ]
-    subProjectTemplates = ['native-source', 'native-component']
+    subProjectTemplates = ['native-source', 'native-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigNative", NativeProjectGeneratorTask) {
@@ -120,7 +122,8 @@ performanceTest.registerTestProject("bigNative", NativeProjectGeneratorTask) {
         moduleCount: 1,
         functionCount: 50
     ]
-    subProjectTemplates = ['native-source', 'native-component']
+    subProjectTemplates = ['native-source', 'native-component', 'gradle-properties']
+    daemonMemory = '1G'
 }
 
 performanceTest.registerTestProject("multiNative", NativeProjectGeneratorTask) {
@@ -131,6 +134,7 @@ performanceTest.registerTestProject("multiNative", NativeProjectGeneratorTask) {
         functionCount: 20
     ]
     subProjectTemplates = ['native-source', 'native-component']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("manyProjectsNative", NativeProjectGeneratorTask) {
@@ -141,6 +145,7 @@ performanceTest.registerTestProject("manyProjectsNative", NativeProjectGenerator
         functionCount: 1
     ]
     subProjectTemplates = ['native-source', 'native-component']
+    daemonMemory = '1G'
 }
 
 performanceTest.registerTestProject("smallPCHNative", NativeProjectGeneratorTask) {
