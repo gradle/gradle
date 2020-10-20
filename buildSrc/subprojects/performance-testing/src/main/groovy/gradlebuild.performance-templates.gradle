@@ -525,7 +525,7 @@ performanceTest.registerTestProject("springBootApp", RemoteProject) {
 performanceTest.registerTestProject("largeNativeBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
     // From master branch
-    ref = "71c9ea2616677a09515aef34365993dd368ca19e"
+    ref = "af00fd258fbe9c7d274f386e46847fe12062cc71"
     finalizedBy 'largeNativeBuildPrebuilt'
 }
 
