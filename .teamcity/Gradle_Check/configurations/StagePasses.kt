@@ -99,7 +99,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
 
         snapshotDependencies(stageProject.specificBuildTypes)
         snapshotDependencies(stageProject.performanceTests) { performanceTestPass ->
-            if (!performanceTestPass.performanceTestCoverage.failsStage) {
+            if (!performanceTestPass.performanceSpec.failsStage) {
                 onDependencyFailure = FailureAction.IGNORE
                 onDependencyCancel = FailureAction.IGNORE
             }

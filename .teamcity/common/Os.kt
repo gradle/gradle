@@ -37,17 +37,24 @@ enum class Os(
     val agentRequirement: String,
     val ignoredSubprojects: List<String> = emptyList(),
     val androidHome: String,
+    val jprofilerHome: String,
     val killAllGradleProcesses: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%"
 ) {
-    LINUX("Linux", androidHome = "/opt/android/sdk", killAllGradleProcesses = killAllGradleProcessesUnixLike),
+    LINUX("Linux",
+        androidHome = "/opt/android/sdk",
+        jprofilerHome = "/opt/jprofiler/jprofiler11.1.4",
+        killAllGradleProcesses = killAllGradleProcessesUnixLike
+    ),
     WINDOWS("Windows",
         androidHome = """C:\Program Files\android\sdk""",
+        jprofilerHome = """C:\Program Files\jprofiler\jprofiler11.1.4""",
         killAllGradleProcesses = killAllGradleProcessesWindows,
         perfTestWorkingDir = "P:/"),
     MACOS("Mac",
         listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "platform-play", "tooling-native"),
         androidHome = "/opt/android/sdk",
+        jprofilerHome = "/Applications/JProfiler11.1.4.app",
         killAllGradleProcesses = killAllGradleProcessesUnixLike
     );
 

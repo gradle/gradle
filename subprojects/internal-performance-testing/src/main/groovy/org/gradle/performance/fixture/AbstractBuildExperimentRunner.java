@@ -75,7 +75,10 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         optionParser.accepts("profiler");
         ProfilerFactory.configureParser(optionParser);
         ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
-        return profilerFactory.createFromOptions(optionParser.parse());
+        String[] options = profilerName.equals("jprofiler")
+            ? new String[] { "--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME") }
+            : new String[] {};
+        return profilerFactory.createFromOptions(optionParser.parse(options));
     }
 
     protected ProfilerFlameGraphGenerator getFlameGraphGenerator() {

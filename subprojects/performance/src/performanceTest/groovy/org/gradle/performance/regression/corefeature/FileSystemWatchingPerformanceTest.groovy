@@ -36,12 +36,13 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 )
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    private static final String AGP_TARGET_VERSION = "4.0"
+    private static final String AGP_TARGET_VERSION = "4.2"
 
     def setup() {
         runner.minimumBaseVersion = "6.7"
         runner.targetVersions = ["6.8-20201007220043+0000"]
         runner.useToolingApi = true
+        runner.args = ["-Dorg.gradle.workers.max=8", "--no-build-cache", "--no-scan"]
         if (OperatingSystem.current().windows) {
             // Reduce the number of iterations on Windows, since the test takes 3 times as long (10s vs 3s).
             runner.warmUpRuns = 5

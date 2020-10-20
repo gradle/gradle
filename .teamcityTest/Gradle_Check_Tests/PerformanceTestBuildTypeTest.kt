@@ -41,15 +41,15 @@ class PerformanceTestBuildTypeTest {
     @Test
     fun `create correct PerformanceTest build type`() {
         val performanceTest = PerformanceTest(buildModel, Stage(StageNames.READY_FOR_MERGE,
-            specificBuilds = listOf(
-                SpecificBuild.BuildDistributions,
-                SpecificBuild.Gradleception,
-                SpecificBuild.SmokeTestsMinJavaVersion),
-            functionalTests = listOf(
-                TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
-                TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)),
-            performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX)),
-            omitsSlowProjects = true),
+                specificBuilds = listOf(
+                    SpecificBuild.BuildDistributions,
+                    SpecificBuild.Gradleception,
+                    SpecificBuild.SmokeTestsMinJavaVersion),
+                functionalTests = listOf(
+                    TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
+                    TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)),
+                performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX)),
+                omitsSlowProjects = true),
             PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX),
             "Description",
             "performance",

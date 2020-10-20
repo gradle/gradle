@@ -3,12 +3,10 @@ package projects
 import Gradle_Check.configurations.FunctionalTestsPass
 import Gradle_Check.configurations.PerformanceTest
 import Gradle_Check.configurations.PerformanceTestsPass
+import Gradle_Check.model.FlameGraphGeneration
 import Gradle_Check.model.FunctionalTestBucketProvider
 import Gradle_Check.model.PerformanceTestBucketProvider
 import Gradle_Check.model.PerformanceTestCoverage
-import Gradle_Check.model.Scenario
-import Gradle_Check.model.prepareScenariosStep
-import common.Os
 import configurations.FunctionalTest
 import configurations.SanityCheck
 import configurations.buildReportTab
@@ -18,10 +16,8 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
-import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
-import model.StageNames
 import model.TestType
 
 class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
@@ -52,30 +48,8 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         }
         specificBuildTypes.forEach(this::buildType)
 
-        val performanceTestsFromModel = stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) }
-
-        performanceTests = if (stage.stageName == StageNames.EXPERIMENTAL_PERFORMANCE) {
-            val coverage = PerformanceTestCoverage(14, PerformanceTestType.adHoc, Os.LINUX, numberOfBuckets = 1, withoutDependencies = true)
-            val performanceTests = Os.values().mapIndexed { index, os -> index to os }.flatMap { (index, os) ->
-                val osCoverage = PerformanceTestCoverage(14, PerformanceTestType.adHoc, os, numberOfBuckets = 1, withoutDependencies = true)
-                listOf("async-profiler", "async-profiler-alloc").mapIndexed { profIndex, profiler ->
-                    createProfiledPerformanceTest(
-                        model,
-                        stage,
-                        osCoverage,
-                        testProject = "santaTrackerAndroidBuild",
-                        scenario = Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"),
-                        profiler = profiler,
-                        bucketIndex = 2 * index + profIndex
-                    )
-                }
-            }
-            val performanceTestProject = ManuallySplitPerformanceTestProject(model, coverage, performanceTests)
-            subProject(performanceTestProject)
-            performanceTestsFromModel + listOf(PerformanceTestsPass(model, performanceTestProject).also(this::buildType))
-        } else {
-            performanceTestsFromModel
-        }
+        performanceTests = stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) } +
+            stage.flameGraphs.map { createFlameGraphs(model, stage, it) }
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak || it.testDistribution }
         val topLevelFunctionalTests = topLevelCoverage
@@ -122,25 +96,32 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         return PerformanceTestsPass(model, performanceTestProject).also(this::buildType)
     }
 
+    private fun createFlameGraphs(model: CIBuildModel, stage: Stage, flameGraphSpec: FlameGraphGeneration): PerformanceTestsPass {
+        val flameGraphBuilds = flameGraphSpec.buildSpecs.mapIndexed { index, buildSpec ->
+            createFlameGraphBuild(model, stage, buildSpec, index)
+        }
+        val performanceTestProject = ManuallySplitPerformanceTestProject(model, flameGraphSpec, flameGraphBuilds)
+        subProject(performanceTestProject)
+        return PerformanceTestsPass(model, performanceTestProject).also(this::buildType)
+    }
+
     private
-    fun createProfiledPerformanceTest(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, testProject: String, scenario: Scenario, profiler: String, bucketIndex: Int): PerformanceTest = PerformanceTest(
-        model,
-        stage,
-        performanceTestCoverage,
-        description = "Flame graphs with $profiler for ${scenario.scenario} | $testProject on ${performanceTestCoverage.os.asName()}",
-        performanceSubProject = "performance",
-        bucketIndex = bucketIndex,
-        extraParameters = "--profiler $profiler",
-        testProjects = listOf(testProject),
-        preBuildSteps = prepareScenariosStep(
-            testProject,
-            listOf(scenario),
-            performanceTestCoverage.os
+    fun createFlameGraphBuild(model: CIBuildModel, stage: Stage, flameGraphGenerationBuildSpec: FlameGraphGeneration.FlameGraphGenerationBuildSpec, bucketIndex: Int): PerformanceTest = flameGraphGenerationBuildSpec.run {
+        PerformanceTest(
+            model,
+            stage,
+            flameGraphGenerationBuildSpec,
+            description = "Flame graphs with $profiler for ${performanceScenario.scenario} | ${performanceScenario.testProject} on ${os.asName()} (bucket $bucketIndex)",
+            performanceSubProject = "performance",
+            bucketIndex = bucketIndex,
+            extraParameters = "--profiler $profiler --tests \"${performanceScenario.scenario.className}.${performanceScenario.scenario.scenario}\"",
+            testProjects = listOf(performanceScenario.testProject),
+            performanceTestTaskSuffix = "PerformanceAdHocTest"
         )
-    )
+    }
 }
 
-private fun FunctionalTestProject.addDependencyForAllBuildTypes(dependency: IdOwner) {
+private fun FunctionalTestProject.addDependencyForAllBuildTypes(dependency: IdOwner) =
     functionalTests.forEach { functionalTestBuildType ->
         functionalTestBuildType.dependencies {
             dependency(dependency) {
@@ -151,4 +132,3 @@ private fun FunctionalTestProject.addDependencyForAllBuildTypes(dependency: IdOw
             }
         }
     }
-}
