@@ -115,7 +115,7 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
 
             rootProject {
                 def collector = tasks.register("collectScopeIds", CollectScopeIds) {
-                    outputJsonFile.fileValue(new File("${normaliseFileSeparators(idsFile.absolutePath)}"))
+                    outputJsonFile.set(new File("${normaliseFileSeparators(idsFile.absolutePath)}"))
                 }
                 tasks.withType(DefaultTask).configureEach {
                     if (name != "collectScopeIds") {
