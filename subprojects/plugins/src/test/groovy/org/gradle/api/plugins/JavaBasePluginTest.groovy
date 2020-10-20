@@ -37,7 +37,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.internal.ShowToolchainsTask
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
@@ -402,18 +401,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
-    }
-
-    void registersToolchainsTask() {
-        given:
-        project.pluginManager.apply(JavaBasePlugin)
-
-        when:
-        def task = project.tasks.named('javaToolchains', ShowToolchainsTask).get()
-
-        then:
-        task.description == "Displays the java toolchains available for ${project.displayName}.";
-        task.group == HelpTasksPlugin.HELP_GROUP;
     }
 
     void appliesMappingsToCustomJarTasks() {

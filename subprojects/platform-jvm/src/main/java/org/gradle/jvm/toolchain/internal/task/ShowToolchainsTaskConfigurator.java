@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain.internal.task;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.HelpTasksPlugin;
+import org.gradle.configuration.project.ProjectConfigureAction;
 
-public class ShowToolchainsTaskAction implements Action<ShowToolchainsTask> {
-
-    private final String projectName;
-
-    public ShowToolchainsTaskAction(String projectName) {
-        this.projectName = projectName;
-    }
+public class ShowToolchainsTaskConfigurator implements ProjectConfigureAction {
 
     @Override
-    public void execute(ShowToolchainsTask task) {
-        task.setDescription("Displays the java toolchains available for " + projectName + ".");
-        task.setGroup(HelpTasksPlugin.HELP_GROUP);
-        task.setImpliesSubProjects(true);
+    public void execute(ProjectInternal project) {
+        project.getTasks().register("javaToolchains", ShowToolchainsTask.class, task -> {
+            task.setDescription("Displays the detected java toolchains. [incubating]");
+            task.setGroup(HelpTasksPlugin.HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        });
     }
 
 }
