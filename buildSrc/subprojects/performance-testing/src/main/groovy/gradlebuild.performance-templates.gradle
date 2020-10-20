@@ -234,12 +234,14 @@ performanceTest.registerTestProject("mediumNativeMonolithic", MonolithicNativePr
 performanceTest.registerTestProject("nativeDependents", NativeProjectWithDepsGeneratorTask) {
     resources.from(fileTree(resolveTemplate("native-dependents-resources")))
     resources.from(resolveTemplate("init.gradle"))
+    daemonMemory = '3G'
 }
 
 performanceTest.registerTestProject("nativeDependentsDeep", NativeProjectWithDepsGeneratorTask) {
     resources.from(fileTree(resolveTemplate("native-dependents-resources")))
     resources.from(resolveTemplate("init.gradle"))
     generateDeepHierarchy = true
+    daemonMemory = '3G'
 }
 
 // === Native Current Model Plugins ===

@@ -64,8 +64,6 @@ class TestProjects {
                 return '256m'
             case 'bigCppMulti':
                 return '1g'
-            case 'nativeDependents':
-                return '3g'
             case 'mediumSwiftMulti':
                 return '1G'
             case 'bigSwiftApp':

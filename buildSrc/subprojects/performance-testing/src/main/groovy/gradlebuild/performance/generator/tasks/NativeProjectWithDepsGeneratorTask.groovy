@@ -100,6 +100,9 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
     @Input
     String projectTemplateName = "native-dependents"
 
+    @Input
+    String daemonMemory
+
     /**
      * @return Template directory with source and build file templates
      */
@@ -118,6 +121,7 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
 
     void generateRootProject() {
         generateSettings()
+        generateGradleProperties()
     }
 
     // TODO: This could be made more generic by passing a list of subproject names
@@ -131,6 +135,21 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
                 copySpec.expand([
                         rootProjectName: name,
                         subprojects: subprojectNames
+                ])
+            }
+        })
+    }
+
+    void generateGradleProperties() {
+        project.copy(new Action<CopySpec>() {
+            @Override
+            void execute(CopySpec copySpec) {
+                copySpec.from(new File(resolveTemplate("gradle-properties"), "gradle.properties"))
+                copySpec.into(destDir)
+                copySpec.expand([
+                    daemonMemory: daemonMemory,
+                    maxWorkers: 8,
+                    parallel: true
                 ])
             }
         })
