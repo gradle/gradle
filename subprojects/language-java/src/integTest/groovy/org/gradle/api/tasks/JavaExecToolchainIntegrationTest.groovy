@@ -26,9 +26,10 @@ import spock.lang.Unroll
 class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
     def setup() {
-        executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            .withArgument("-Porg.gradle.java.installations.auto-download=false")
+        executer.beforeExecute {
+            withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            withArgument("-Porg.gradle.java.installations.auto-download=false")
+        }
     }
 
     @Unroll
