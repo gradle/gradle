@@ -343,7 +343,6 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     specificFeatures = mapOf(
         LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
         LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED,
-        LanguageFeature.SamConversionPerArgument to LanguageFeature.State.ENABLED,
         LanguageFeature.ReferencesToSyntheticJavaProperties to LanguageFeature.State.ENABLED
     ),
     analysisFlags = mapOf(
