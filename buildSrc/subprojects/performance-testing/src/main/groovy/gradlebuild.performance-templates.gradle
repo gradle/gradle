@@ -351,6 +351,12 @@ performanceTest.registerTestProject("mediumSwiftMulti", BuildBuilderGenerator) {
     projects = 100
     sourceFiles = 4
     description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
+    doLast {
+        def projectDirectory = generatedDir.get().asFile
+        setMaxWorkers(projectDirectory, 8)
+        setMaxHeap(projectDirectory, "1G")
+        setParallel(projectDirectory, true)
+    }
 }
 
 performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
@@ -360,7 +366,11 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
     description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
 
     doLast {
-        def buildFile = generatedDir.file("build.gradle").get().asFile
+        def projectDirectory = generatedDir.get().asFile
+        setMaxWorkers(projectDirectory, 8)
+        setMaxHeap(projectDirectory, "1G")
+        setParallel(projectDirectory, true)
+        def buildFile = new File(projectDirectory, "build.gradle")
         buildFile << """
             tasks.withType(SwiftCompile) {
                 compilerArgs.addAll provider {

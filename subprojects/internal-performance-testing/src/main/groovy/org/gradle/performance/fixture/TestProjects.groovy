@@ -47,14 +47,7 @@ class TestProjects {
     }
 
     private static String determineDaemonMemory(String testProject) {
-        switch (testProject) {
-            case 'mediumSwiftMulti':
-                return '1G'
-            case 'bigSwiftApp':
-                return '1G'
-            default:
-                return JavaTestProject.projectFor(testProject).daemonMemory
-        }
+        return JavaTestProject.projectFor(testProject).daemonMemory
     }
 
     static <T extends TestProject> T projectFor(String testProject) {
