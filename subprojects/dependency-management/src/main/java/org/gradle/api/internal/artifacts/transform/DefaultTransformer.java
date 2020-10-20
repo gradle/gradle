@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -28,11 +29,14 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -89,7 +93,7 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
 
     private final TransformParameters parameterObject;
-    private final ModelContainer<?> owner;
+    private final DomainObjectContext owner;
     private final Class<? extends FileNormalizer> fileNormalizer;
     private final Class<? extends FileNormalizer> dependenciesNormalizer;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -105,6 +109,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     private final InstanceFactory<? extends TransformAction<?>> instanceFactory;
     private final boolean cacheable;
 
+    private final WorkNodeAction isolateAction;
     private final CalculatedModelValue<IsolatedParameters> isolatedParameters;
 
     public DefaultTransformer(
@@ -123,13 +128,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         FileLookup fileLookup,
         PropertyWalker parameterPropertyWalker,
         InstantiationScheme actionInstantiationScheme,
-        ModelContainer<?> owner,
+        DomainObjectContext owner,
         ServiceLookup internalServices
     ) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
         this.owner = owner;
-        this.isolatedParameters = owner.newCalculatedValue(isolatedParameters);
+        this.isolatedParameters = owner.getModel().newCalculatedValue(isolatedParameters);
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -144,6 +149,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
+        this.isolateAction = isIsolated() ? null : new IsolateTransformerParametersNode(this);
     }
 
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
@@ -202,19 +208,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        if (parameterObject != null) {
-            parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
-                @Override
-                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    context.add(value.getTaskDependencies());
-                }
-            });
-        }
+        context.add(isolateAction);
     }
 
     @Override
     public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-        if (!owner.hasMutableState()) {
+        ModelContainer<?> model = owner.getModel();
+        if (!model.hasMutableState()) {
             // This may happen when a task visits artifacts using a FileCollection instance created from a Configuration instance in a different project (not an artifact produced by a different project, these work fine)
             // There is a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
             // necessarily be triggered. For example, the configuration may be legitimately resolved by some other task prior to the problematic task running
@@ -230,7 +230,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             // when performed from a worker thread (see DefaultBuildOperationQueue.waitForCompletion() which intentionally does not release the project locks while waiting)
             // TODO - add validation to fail eagerly when a worker attempts to lock a project
             //
-            owner.forceAccessToMutableState(o -> doIsolateParameters(fingerprinterRegistry));
+            model.forceAccessToMutableState(o -> doIsolateParameters(fingerprinterRegistry));
         } else {
             doIsolateParameters(fingerprinterRegistry);
         }
@@ -511,6 +511,47 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
         public Isolatable<? extends TransformParameters> getIsolatedParameterObject() {
             return isolatedParameterObject;
+        }
+    }
+
+    public static class IsolateTransformerParametersNode implements WorkNodeAction {
+        private final DefaultTransformer transformer;
+
+        public IsolateTransformerParametersNode(DefaultTransformer transformer) {
+            this.transformer = transformer;
+        }
+
+        @Override
+        public String toString() {
+            return "isolate parameters of transform " + transformer.getDisplayName();
+        }
+
+        public DefaultTransformer getTransformer() {
+            return transformer;
+        }
+
+        @Nullable
+        @Override
+        public Project getProject() {
+            return transformer.owner.getProject();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            if (transformer.parameterObject != null) {
+                transformer.parameterPropertyWalker.visitProperties(transformer.parameterObject, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
+                    @Override
+                    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        context.add(value.getTaskDependencies());
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void run(NodeExecutionContext context) {
+            FileCollectionFingerprinterRegistry fingerprinterRegistry = context.getService(FileCollectionFingerprinterRegistry.class);
+            transformer.isolateParameters(fingerprinterRegistry);
         }
     }
 

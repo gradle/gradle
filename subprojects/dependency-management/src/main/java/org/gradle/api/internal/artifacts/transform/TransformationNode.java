@@ -51,26 +51,26 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     private final int order = ORDER_COUNTER.incrementAndGet();
     protected final TransformationStep transformationStep;
+    protected final ResolvedArtifactSet.LocalArtifactSet artifacts;
     protected final ExecutionGraphDependenciesResolver dependenciesResolver;
-    protected final BuildOperationExecutor buildOperationExecutor;
-    protected final ArtifactTransformListener transformListener;
 
-    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-        return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
+    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
+        return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver, buildOperationExecutor);
     }
 
-    public static InitialTransformationNode initial(TransformationStep initial, ResolvedArtifactSet.LocalArtifactSet localArtifacts, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-        return new InitialTransformationNode(initial, localArtifacts, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
+    public static InitialTransformationNode initial(TransformationStep initial, ResolvedArtifactSet.LocalArtifactSet localArtifacts, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
+        return new InitialTransformationNode(initial, localArtifacts, executionGraphDependenciesResolver, buildOperationExecutor);
     }
 
-    protected TransformationNode(TransformationStep transformationStep, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+    protected TransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, ExecutionGraphDependenciesResolver dependenciesResolver) {
         this.transformationStep = transformationStep;
+        this.artifacts = artifacts;
         this.dependenciesResolver = dependenciesResolver;
-        this.buildOperationExecutor = buildOperationExecutor;
-        this.transformListener = transformListener;
     }
 
-    public abstract ResolvedArtifactSet.LocalArtifactSet getInputArtifacts();
+    public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
+        return artifacts;
+    }
 
     @Nullable
     @Override
@@ -174,17 +174,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     public static class InitialTransformationNode extends TransformationNode {
-        private final ResolvedArtifactSet.LocalArtifactSet artifacts;
-        private final CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> result = new CalculatedValueContainer<>(new TransformInitialArtifact());
+        private final CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> result;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
-            this.artifacts = artifacts;
-        }
-
-        @Override
-        public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
-            return artifacts;
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
+            super(transformationStep, artifacts, dependenciesResolver);
+            result = new CalculatedValueContainer<>(new TransformInitialArtifact(buildOperationExecutor));
         }
 
         @Override
@@ -193,6 +187,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         }
 
         private class TransformInitialArtifact implements ValueCalculator<TransformationSubject> {
+            private final BuildOperationExecutor buildOperationExecutor;
+
+            public TransformInitialArtifact(BuildOperationExecutor buildOperationExecutor) {
+                this.buildOperationExecutor = buildOperationExecutor;
+            }
+
             @Override
             public DisplayName getDisplayName() {
                 return Describables.of(InitialTransformationNode.this);
@@ -233,16 +233,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     public static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
-        private final CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> result = new CalculatedValueContainer<>(new TransformPreviousArtifacts());
+        private final CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> result;
 
-        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
+        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
+            super(transformationStep, previousTransformationNode.artifacts, dependenciesResolver);
             this.previousTransformationNode = previousTransformationNode;
-        }
-
-        @Override
-        public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
-            return previousTransformationNode.getInputArtifacts();
+            result = new CalculatedValueContainer<>(new TransformPreviousArtifacts(buildOperationExecutor));
         }
 
         public TransformationNode getPreviousTransformationNode() {
@@ -255,6 +251,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         }
 
         private class TransformPreviousArtifacts implements ValueCalculator<TransformationSubject> {
+            private final BuildOperationExecutor buildOperationExecutor;
+
+            public TransformPreviousArtifacts(BuildOperationExecutor buildOperationExecutor) {
+                this.buildOperationExecutor = buildOperationExecutor;
+            }
+
             @Override
             public DisplayName getDisplayName() {
                 return Describables.of(ChainedTransformationNode.this);

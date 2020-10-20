@@ -29,6 +29,8 @@ import org.gradle.api.tasks.FileNormalizer
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
+import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -53,61 +55,65 @@ class DefaultTransformerCodec(
 ) : Codec<DefaultTransformer> {
 
     override suspend fun WriteContext.encode(value: DefaultTransformer) {
-        writeClass(value.implementationClass)
-        write(value.fromAttributes)
-        writeClass(value.inputArtifactNormalizer)
-        writeClass(value.inputArtifactDependenciesNormalizer)
-        writeBoolean(value.isCacheable)
+        encodePreservingSharedIdentityOf(value) {
+            writeClass(value.implementationClass)
+            write(value.fromAttributes)
+            writeClass(value.inputArtifactNormalizer)
+            writeClass(value.inputArtifactDependenciesNormalizer)
+            writeBoolean(value.isCacheable)
 
-        // TODO - isolate now and discard node, if isolation is scheduled and has no dependencies
-        // Write isolated parameters, if available, and discard the parameters
-        if (value.isIsolated) {
-            writeBoolean(true)
-            writeBinary(value.isolatedParameters.secondaryInputsHash.toByteArray())
-            write(value.isolatedParameters.isolatedParameterObject)
-        } else {
-            writeBoolean(false)
-            write(value.parameterObject)
+            // TODO - isolate now and discard node, if isolation is scheduled and has no dependencies
+            // Write isolated parameters, if available, and discard the parameters
+            if (value.isIsolated) {
+                writeBoolean(true)
+                writeBinary(value.isolatedParameters.secondaryInputsHash.toByteArray())
+                write(value.isolatedParameters.isolatedParameterObject)
+            } else {
+                writeBoolean(false)
+                write(value.parameterObject)
+            }
         }
     }
 
     override suspend fun ReadContext.decode(): DefaultTransformer? {
-        val implementationClass = readClassOf<TransformAction<*>>()
-        val fromAttributes = readNonNull<ImmutableAttributes>()
-        val inputArtifactNormalizer = readClassOf<FileNormalizer>()
-        val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
-        val isCacheable = readBoolean()
+        return decodePreservingSharedIdentity {
+            val implementationClass = readClassOf<TransformAction<*>>()
+            val fromAttributes = readNonNull<ImmutableAttributes>()
+            val inputArtifactNormalizer = readClassOf<FileNormalizer>()
+            val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
+            val isCacheable = readBoolean()
 
-        val isolated = readBoolean()
-        val parametersObject: TransformParameters?
-        val isolatedParametersObject: DefaultTransformer.IsolatedParameters?
-        if (isolated) {
-            parametersObject = null
-            val secondaryInputsHash = HashCode.fromBytes(readBinary())
-            val isolatedParameters = readNonNull<Isolatable<TransformParameters>>()
-            isolatedParametersObject = DefaultTransformer.IsolatedParameters(isolatedParameters, secondaryInputsHash)
-        } else {
-            parametersObject = read() as TransformParameters?
-            isolatedParametersObject = null
+            val isolated = readBoolean()
+            val parametersObject: TransformParameters?
+            val isolatedParametersObject: DefaultTransformer.IsolatedParameters?
+            if (isolated) {
+                parametersObject = null
+                val secondaryInputsHash = HashCode.fromBytes(readBinary())
+                val isolatedParameters = readNonNull<Isolatable<TransformParameters>>()
+                isolatedParametersObject = DefaultTransformer.IsolatedParameters(isolatedParameters, secondaryInputsHash)
+            } else {
+                parametersObject = read() as TransformParameters?
+                isolatedParametersObject = null
+            }
+            DefaultTransformer(
+                implementationClass,
+                parametersObject,
+                isolatedParametersObject,
+                fromAttributes,
+                inputArtifactNormalizer,
+                inputArtifactDependenciesNormalizer,
+                isCacheable,
+                buildOperationExecutor,
+                classLoaderHierarchyHasher,
+                isolatableFactory,
+                valueSnapshotter,
+                fileCollectionFactory,
+                fileLookup,
+                parameterScheme.inspectionScheme.propertyWalker,
+                actionScheme.instantiationScheme,
+                RootScriptDomainObjectContext.INSTANCE,
+                isolate.owner.service(ServiceRegistry::class.java)
+            )
         }
-        return DefaultTransformer(
-            implementationClass,
-            parametersObject,
-            isolatedParametersObject,
-            fromAttributes,
-            inputArtifactNormalizer,
-            inputArtifactDependenciesNormalizer,
-            isCacheable,
-            buildOperationExecutor,
-            classLoaderHierarchyHasher,
-            isolatableFactory,
-            valueSnapshotter,
-            fileCollectionFactory,
-            fileLookup,
-            parameterScheme.inspectionScheme.propertyWalker,
-            actionScheme.instantiationScheme,
-            RootScriptDomainObjectContext.INSTANCE.model,
-            isolate.owner.service(ServiceRegistry::class.java)
-        )
     }
 }

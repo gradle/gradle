@@ -31,11 +31,9 @@ import java.util.Optional;
 public class DefaultTransformationNodeRegistry implements TransformationNodeRegistry {
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ArtifactTransformListener transformListener;
 
-    public DefaultTransformationNodeRegistry(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+    public DefaultTransformationNodeRegistry(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.transformListener = transformListener;
     }
 
     @Override
@@ -65,10 +63,10 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.get(0).get(), localArtifacts, dependenciesResolver, buildOperationExecutor, transformListener);
+                transformationNode = TransformationNode.initial(transformationChain.get(0).get(), localArtifacts, dependenciesResolver, buildOperationExecutor);
             } else {
                 TransformationNode previous = getOrCreateInternal(localArtifacts, transformationChain.subList(0, transformationChain.size() - 1), dependenciesResolver);
-                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1).get(), previous, dependenciesResolver, buildOperationExecutor, transformListener);
+                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1).get(), previous, dependenciesResolver, buildOperationExecutor);
             }
             transformations.put(key, transformationNode);
         }

@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
-import org.gradle.api.internal.artifacts.transform.TransformationStep
+import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -27,15 +27,16 @@ import org.gradle.configurationcache.serialization.withCodec
 
 class IsolateTransformerParametersNodeCodec(
     val userTypesCodec: BindingsBackedCodec
-) : Codec<TransformationStep.IsolateTransformerParametersNode> {
-    override suspend fun WriteContext.encode(value: TransformationStep.IsolateTransformerParametersNode) {
+) : Codec<DefaultTransformer.IsolateTransformerParametersNode> {
+    override suspend fun WriteContext.encode(value: DefaultTransformer.IsolateTransformerParametersNode) {
         withCodec(userTypesCodec) {
-            write(value.transformationStep)
+            write(value.transformer)
         }
     }
 
-    override suspend fun ReadContext.decode(): TransformationStep.IsolateTransformerParametersNode? {
-        val step = withCodec(userTypesCodec) { readNonNull<TransformationStep>() }
-        return TransformationStep.IsolateTransformerParametersNode(step)
+    override suspend fun ReadContext.decode(): DefaultTransformer.IsolateTransformerParametersNode? {
+        val transformer = withCodec(userTypesCodec) { readNonNull<DefaultTransformer>() }
+
+        return DefaultTransformer.IsolateTransformerParametersNode(transformer)
     }
 }

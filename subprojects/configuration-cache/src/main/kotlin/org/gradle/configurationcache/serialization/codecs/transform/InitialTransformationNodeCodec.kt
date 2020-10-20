@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.configurationcache.serialization.Codec
@@ -31,8 +30,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 internal
 class InitialTransformationNodeCodec(
     private val userTypesCodec: Codec<Any?>,
-    private val buildOperationExecutor: BuildOperationExecutor,
-    private val transformListener: ArtifactTransformListener
+    private val buildOperationExecutor: BuildOperationExecutor
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
@@ -51,6 +49,6 @@ class InitialTransformationNodeCodec(
             (read() as TransformDependencies).recreate()
         }
         val artifacts = ArtifactBackedResolvedVariant.SingleLocalArtifactSet(readNonNull())
-        return TransformationNode.initial(transformationStep, artifacts, resolver, buildOperationExecutor, transformListener)
+        return TransformationNode.initial(transformationStep, artifacts, resolver, buildOperationExecutor)
     }
 }

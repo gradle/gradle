@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.configurationcache.serialization.Codec
@@ -30,8 +29,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 internal
 class ChainedTransformationNodeCodec(
     private val userTypesCodec: Codec<Any?>,
-    private val buildOperationExecutor: BuildOperationExecutor,
-    private val transformListener: ArtifactTransformListener
+    private val buildOperationExecutor: BuildOperationExecutor
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
@@ -50,6 +48,6 @@ class ChainedTransformationNodeCodec(
             (read() as TransformDependencies).recreate()
         }
         val previousStep = readNonNull<TransformationNode>()
-        return TransformationNode.chained(transformationStep, previousStep, resolver, buildOperationExecutor, transformListener)
+        return TransformationNode.chained(transformationStep, previousStep, resolver, buildOperationExecutor)
     }
 }

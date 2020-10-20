@@ -19,7 +19,6 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
@@ -98,7 +97,6 @@ class Codecs(
     parameterScheme: ArtifactTransformParameterScheme,
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
-    transformListener: ArtifactTransformListener,
     transformationNodeRegistry: TransformationNodeRegistry,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
@@ -187,8 +185,8 @@ class Codecs(
         bind(BuildIdentifierSerializer())
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
-        bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
-        bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
+        bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
+        bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
         bind(IsolateTransformerParametersNodeCodec(userTypesCodec))
         bind(WorkNodeActionCodec)
         bind(ActionNodeCodec)
