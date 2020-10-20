@@ -65,20 +65,21 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private Stage stage;
 
-    public DefaultGradleLauncher(GradleInternal gradle,
-                                 ProjectsPreparer projectsPreparer,
-                                 ExceptionAnalyser exceptionAnalyser,
-                                 BuildListener buildListener,
-                                 BuildCompletionListener buildCompletionListener,
-                                 InternalBuildFinishedListener buildFinishedListener,
-                                 BuildWorkExecutor buildExecuter,
-                                 BuildScopeServices buildServices,
-                                 List<?> servicesToStop,
-                                 IncludedBuildControllers includedBuildControllers,
-                                 SettingsPreparer settingsPreparer,
-                                 TaskExecutionPreparer taskExecutionPreparer,
-                                 ConfigurationCache configurationCache,
-                                 BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
+    public DefaultGradleLauncher(
+        GradleInternal gradle,
+        ProjectsPreparer projectsPreparer,
+        ExceptionAnalyser exceptionAnalyser,
+        BuildListener buildListener,
+        BuildCompletionListener buildCompletionListener,
+        InternalBuildFinishedListener buildFinishedListener,
+        BuildWorkExecutor buildExecuter,
+        BuildScopeServices buildServices,
+        List<?> servicesToStop,
+        IncludedBuildControllers includedBuildControllers,
+        SettingsPreparer settingsPreparer,
+        TaskExecutionPreparer taskExecutionPreparer,
+        ConfigurationCache configurationCache,
+        BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
     ) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
@@ -169,10 +170,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
         configurationCache.save();
         runWork();
-    }
-
-    public void setConfiguredByCache() {
-        stage = Stage.TaskGraph;
     }
 
     @SuppressWarnings("deprecation")

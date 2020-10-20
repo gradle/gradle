@@ -235,7 +235,9 @@ class ConfigurationCacheHost internal constructor(
                 gradle,
                 SettingsLocation(rootDir, File(rootDir, "settings.gradle")),
                 gradle.classLoaderScope,
-                gradle.startParameter
+                gradle.startParameter.apply {
+                    useEmptySettingsWithoutDeprecationWarning()
+                }
             )
         }
 
