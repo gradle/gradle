@@ -39,7 +39,7 @@ public interface DependencyResolutionManagement {
     /**
      * If this method is called, any repository declared on a project will cause
      * the project to use the repositories declared by the project, ignoring
-     * those declared in settings. A warning will be issued in such a situation.
+     * those declared in settings.
      *
      * This is the default behavior.
      */
@@ -71,7 +71,7 @@ public interface DependencyResolutionManagement {
     /**
      * If this method is called, any component metadata rule declared on a project
      * will cause the project to use the rules declared by the project, ignoring
-     * those declared in settings. A warning will be issued in such a situation.
+     * those declared in settings.
      *
      * This is the default behavior.
      */
