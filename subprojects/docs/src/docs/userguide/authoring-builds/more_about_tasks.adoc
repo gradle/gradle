@@ -1175,7 +1175,8 @@ However, excluding the entire file would also exclude the properties that do hav
 In this case, properties can be excluded selectively from any or all properties files on the runtime classpath.
 
 A rule for ignoring properties can be applied to a specific set of files using the patterns described in link:{groovyDslPath}/org.gradle.normalization.RuntimeClasspathNormalization.html[RuntimeClasspathNormalization].
-In the event that a file matches a rule, but cannot be loaded as a properties file (e.g. because it is not formatted properly or uses a non-standard encoding), it will be ignored by the rule and will be incorporated into the up-to-date or build cache key calculation as a normal file.
+In the event that a file matches a rule, but cannot be loaded as a properties file (e.g. because it is not formatted properly or uses a non-standard encoding), it will be incorporated into the up-to-date or build cache key calculation as a normal file.
+In other words, if the file cannot be loaded as a properties file, any changes to whitespace, property order, or comments may cause the task to become out-of-date or cause a cache miss.
 
 .Ignore a property in selected properties files
 ====
