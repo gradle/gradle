@@ -30,7 +30,6 @@ class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformance
     def "create many deprecation warnings"() {
         given:
         runner.tasksToRun = ['help']
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.minimumBaseVersion = '6.3'
         runner.targetVersions = ["6.7-20200827220028+0000"]
         when:
