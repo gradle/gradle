@@ -87,9 +87,11 @@ performanceTest.registerTestProject("generateLotsOfDeprecationWarnings", Copy) {
 performanceTest.registerTestProject("ktsManyProjects", KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
+    daemonMemory = '512m'
 }
 
 performanceTest.registerTestProject("ktsSmall", KtsProjectGeneratorTask) {
+    daemonMemory = '512m'
 }
 
 // === Native Software Model ===
