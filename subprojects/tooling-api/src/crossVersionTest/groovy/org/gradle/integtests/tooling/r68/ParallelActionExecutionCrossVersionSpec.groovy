@@ -74,7 +74,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             allprojects {
                 apply plugin: CustomPlugin
-                apply plugin: 'java-library'
+                apply plugin: 'java'
             }
             dependencies {
                 implementation project('a')
@@ -100,7 +100,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             allprojects {
                 apply plugin: CustomPlugin
-                apply plugin: 'java-library'
+                apply plugin: 'java'
 
                 configurations.runtimeClasspath.incoming.beforeResolve {
                     ${server.callFromBuildUsingExpression('project.name')}
