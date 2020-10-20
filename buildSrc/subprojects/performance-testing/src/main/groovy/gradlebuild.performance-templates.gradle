@@ -157,7 +157,8 @@ performanceTest.registerTestProject("smallPCHNative", NativeProjectGeneratorTask
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+    subProjectTemplates = ['native-pch-source', 'native-pch-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumPCHNative", NativeProjectGeneratorTask) {
@@ -167,7 +168,8 @@ performanceTest.registerTestProject("mediumPCHNative", NativeProjectGeneratorTas
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+    subProjectTemplates = ['native-pch-source', 'native-pch-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigPCHNative", NativeProjectGeneratorTask) {
@@ -177,7 +179,8 @@ performanceTest.registerTestProject("bigPCHNative", NativeProjectGeneratorTask) 
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+    subProjectTemplates = ['native-pch-source', 'native-pch-component', 'gradle-properties']
+    daemonMemory = '1G'
 }
 
 performanceTest.registerTestProject("nativeMonolithicOverlapping", MonolithicNativeProjectGeneratorTask) {
