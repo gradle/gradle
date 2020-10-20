@@ -66,6 +66,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
+    @TargetGradleVersion(">=3.4")
     def "build action can run nested actions that request models that require dependency resolution"() {
         given:
         settingsFile << """
