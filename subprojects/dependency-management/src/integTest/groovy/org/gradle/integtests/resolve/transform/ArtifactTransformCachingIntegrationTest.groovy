@@ -253,8 +253,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
                 @Override
                 void transform(TransformOutputs outputs) {
-                    println "Transforming \${inputArtifact.get().asFile.name} with MakeGreen"
-                    outputs.file(inputArtifact.get().asFile.name + ".green").text = "very green"
+                    def file = inputArtifact.get().asFile
+                    println "Transforming \${file.name} with MakeGreen"
+                    outputs.file(file.name + ".green").text = "very green"
                 }
             }
 
@@ -290,9 +291,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     doLast { }
                 }
                 tasks.register("declareTransformAsInput").configure {
-                    inputs.files(configurations.green)
+                    def files = configurations.green
+                    inputs.files(files)
                     doLast {
-                        configurations.green.each { println it }
+                        files.each { println it }
                     }
                 }
 
@@ -305,6 +307,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
             }
         """
+
+        when:
+        run(":app:toBeFinalized", "withDependency")
+
+        then:
+        output.count("Transforming lib1.jar with MakeGreen") == 1
+        output.count("Transforming lib2.jar with MakeGreen") == 1
 
         when:
         run(":app:toBeFinalized", "withDependency")

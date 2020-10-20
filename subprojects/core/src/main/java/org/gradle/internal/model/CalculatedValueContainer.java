@@ -17,6 +17,8 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 
@@ -31,14 +33,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class CalculatedValueContainer<T> {
+public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements TaskDependencyContainer {
     private final DisplayName displayName;
-    private CalculatedValue<? extends T> value;
+    private volatile S supplier;
     private volatile Try<T> result;
 
-    public CalculatedValueContainer(CalculatedValue<? extends T> value) {
-        this.value = value;
-        this.displayName = value.getDisplayName();
+    public CalculatedValueContainer(S supplier) {
+        this.supplier = supplier;
+        this.displayName = supplier.getDisplayName();
     }
 
     /**
@@ -60,13 +62,29 @@ public class CalculatedValueContainer<T> {
     }
 
     /**
+     * Returns the supplier of the value, failing if the value has already been calculated and the supplier no longer available.
+     */
+    public S getSupplier() throws IllegalStateException {
+        S supplier = this.supplier;
+        if (supplier == null) {
+            throw new IllegalStateException(String.format("%s has already been calculated.", displayName.getCapitalizedDisplayName()));
+        }
+        return supplier;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        getSupplier().visitDependencies(context);
+    }
+
+    /**
      * Calculates the value, if not already calculated.
      */
     public void calculateNow(@Nullable NodeExecutionContext context) {
         synchronized (this) {
             if (result == null) {
-                result = Try.ofFailable(() -> value.calculateValue(context));
-                value = null;
+                result = Try.ofFailable(() -> supplier.calculateValue(context));
+                supplier = null;
             }
         }
     }

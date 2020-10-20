@@ -23,14 +23,15 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.SelfExecutingNode;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
-import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -119,7 +120,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         getResult().calculateNow(null);
     }
 
-    protected abstract CalculatedValueContainer<TransformationSubject> getResult();
+    protected abstract CalculatedValueContainer<TransformationSubject, ?> getResult();
 
     @Override
     public Set<Node> getFinalizers() {
@@ -160,6 +161,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         return order - otherTransformation.order;
     }
 
+    @Override
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, getResult()));
+    }
+
     protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
         for (Node dependency : dependencies) {
             addDependencySuccessor(dependency);
@@ -167,22 +173,40 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         }
     }
 
-    @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, transformationStep));
-        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
-    }
-
     public static class InitialTransformationNode extends TransformationNode {
         private final ResolvedArtifactSet.LocalArtifactSet artifacts;
-        private final CalculatedValueContainer<TransformationSubject> result = new CalculatedValueContainer<>(new CalculatedValue<TransformationSubject>() {
+        private final CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> result = new CalculatedValueContainer<>(new TransformInitialArtifact());
+
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+            super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
+            this.artifacts = artifacts;
+        }
+
+        @Override
+        public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
+            return artifacts;
+        }
+
+        @Override
+        protected CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> getResult() {
+            return result;
+        }
+
+        private class TransformInitialArtifact implements ValueCalculator<TransformationSubject> {
             @Override
             public DisplayName getDisplayName() {
                 return Describables.of(InitialTransformationNode.this);
             }
 
             @Override
-            public TransformationSubject calculateValue(NodeExecutionContext context) {
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(transformationStep);
+                context.add(dependenciesResolver.computeDependencyNodes(transformationStep));
+                context.add(artifacts.getTaskDependencies());
+            }
+
+            @Override
+            public TransformationSubject calculateValue(@Nullable NodeExecutionContext context) {
                 return buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                     @Override
                     protected TransformationSubject transform() {
@@ -204,56 +228,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
                     }
                 });
             }
-        });
-
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
-            this.artifacts = artifacts;
-        }
-
-        @Override
-        public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
-            return artifacts;
-        }
-
-        @Override
-        protected CalculatedValueContainer<TransformationSubject> getResult() {
-            return result;
-        }
-
-        @Override
-        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-            super.resolveDependencies(dependencyResolver, processHardSuccessor);
-            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, artifacts.getTaskDependencies()));
         }
     }
 
     public static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
-        private final CalculatedValueContainer<TransformationSubject> result = new CalculatedValueContainer<>(new CalculatedValue<TransformationSubject>() {
-            @Override
-            public DisplayName getDisplayName() {
-                return Describables.of(ChainedTransformationNode.this);
-            }
-
-            @Override
-            public TransformationSubject calculateValue(NodeExecutionContext context) {
-                return buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
-                    @Override
-                    protected TransformationSubject transform() {
-                        return previousTransformationNode.getTransformedSubject().flatMap(transformedSubject ->
-                            transformationStep.createInvocation(transformedSubject, dependenciesResolver, context).invoke()).get();
-                    }
-
-                    @Override
-                    protected String describeSubject() {
-                        return previousTransformationNode.getTransformedSubject()
-                            .map(Describable::getDisplayName)
-                            .getOrMapFailure(Throwable::getMessage);
-                    }
-                });
-            }
-        });
+        private final CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> result = new CalculatedValueContainer<>(new TransformPreviousArtifacts());
 
         public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
@@ -270,17 +250,41 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         }
 
         @Override
-        protected CalculatedValueContainer<TransformationSubject> getResult() {
+        protected CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> getResult() {
             return result;
         }
 
-        @Override
-        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-            super.resolveDependencies(dependencyResolver, processHardSuccessor);
-            addDependencySuccessor(previousTransformationNode);
-            processHardSuccessor.execute(previousTransformationNode);
-        }
+        private class TransformPreviousArtifacts implements ValueCalculator<TransformationSubject> {
+            @Override
+            public DisplayName getDisplayName() {
+                return Describables.of(ChainedTransformationNode.this);
+            }
 
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(transformationStep);
+                context.add(dependenciesResolver.computeDependencyNodes(transformationStep));
+                context.add(new DefaultTransformationDependency(Collections.singletonList(previousTransformationNode)));
+            }
+
+            @Override
+            public TransformationSubject calculateValue(@Nullable NodeExecutionContext context) {
+                return buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
+                    @Override
+                    protected TransformationSubject transform() {
+                        return previousTransformationNode.getTransformedSubject().flatMap(transformedSubject ->
+                            transformationStep.createInvocation(transformedSubject, dependenciesResolver, context).invoke()).get();
+                    }
+
+                    @Override
+                    protected String describeSubject() {
+                        return previousTransformationNode.getTransformedSubject()
+                            .map(Describable::getDisplayName)
+                            .getOrMapFailure(Throwable::getMessage);
+                    }
+                });
+            }
+        }
     }
 
     private abstract class ArtifactTransformationStepBuildOperation implements CallableBuildOperation<TransformationSubject> {

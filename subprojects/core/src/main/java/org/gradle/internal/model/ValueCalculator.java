@@ -17,11 +17,15 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
-public interface CalculatedValue<T> {
+/**
+ * Produces a value, potentially based on values produced by tasks or other work nodes.
+ */
+public interface ValueCalculator<T> extends TaskDependencyContainer {
     DisplayName getDisplayName();
 
     T calculateValue(@Nullable NodeExecutionContext context);
