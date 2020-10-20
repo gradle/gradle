@@ -21,13 +21,15 @@ import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 
+import java.util.List;
+
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ToolchainReportRenderer extends TextReportRenderer {
 
-    public void printToolchain(ShowToolchainsTask.ReportableToolchain toolchain) {
+    public void printToolchain(ReportableToolchain toolchain) {
         StyledTextOutput output = getTextOutput();
         JavaInstallationProbe.ProbeResult probe = toolchain.probe;
         String displayName = probe.getImplementationName() + " " + probe.getImplementationJavaVersion();
@@ -45,4 +47,17 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         getTextOutput().withStyle(Description).println(value);
     }
 
+    public void printInvalidToolchains(List<ReportableToolchain> invalidToolchains) {
+        if(!invalidToolchains.isEmpty()) {
+            StyledTextOutput output = getTextOutput();
+            output.withStyle(Identifier).println(" + Invalid toolchains");
+            for (ReportableToolchain toolchain : invalidToolchains) {
+                JavaInstallationProbe.ProbeResult probe = toolchain.probe;
+                final String paddedErrorType = Strings.padEnd(probe.getInstallType().name() + ":", 20, ' ');
+                getTextOutput().withStyle(Normal).format("     - %s", paddedErrorType);
+                getTextOutput().withStyle(Description).println(probe.getError());
+            }
+            output.println();
+        }
+    }
 }

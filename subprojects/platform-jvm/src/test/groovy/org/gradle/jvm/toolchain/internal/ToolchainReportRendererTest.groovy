@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
 import org.gradle.internal.logging.text.TestStyledTextOutput
-import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
+import org.gradle.jvm.toolchain.internal.task.ReportableToolchain
 import org.gradle.jvm.toolchain.internal.task.ToolchainReportRenderer
 import spock.lang.Specification
 
@@ -70,7 +70,7 @@ class ToolchainReportRendererTest extends Specification {
         def renderer = new ToolchainReportRenderer()
         def output = new TestStyledTextOutput()
         renderer.output = output
-        renderer.printToolchain(new ShowToolchainsTask.ReportableToolchain(probe, installation))
+        renderer.printToolchain(new ReportableToolchain(probe, installation))
         assert output.value == expectedOutput
     }
 }

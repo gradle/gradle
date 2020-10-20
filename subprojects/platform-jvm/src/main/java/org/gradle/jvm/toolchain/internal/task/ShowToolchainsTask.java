@@ -27,22 +27,13 @@ import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType;
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.ProbeResult;
+
 public class ShowToolchainsTask extends DefaultTask {
-
-    static class ReportableToolchain {
-
-        JavaInstallationProbe.ProbeResult probe;
-
-        InstallationLocation location;
-
-        public ReportableToolchain(JavaInstallationProbe.ProbeResult probe, InstallationLocation location) {
-            this.probe = probe;
-            this.location = location;
-        }
-
-    }
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
         .<ReportableToolchain, String>comparing(t -> t.probe.getImplementationName())
@@ -59,18 +50,35 @@ public class ShowToolchainsTask extends DefaultTask {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
         toolchainRenderer.setOutput(output);
         output.println();
-        allReportableToolchains().forEach(toolchainRenderer::printToolchain);
+        List<ReportableToolchain> validToolchains = validToolchains();
+        List<ReportableToolchain> invalidToolchains = invalidToolchains();
+        validToolchains.forEach(toolchainRenderer::printToolchain);
+        toolchainRenderer.printInvalidToolchains(invalidToolchains);
+    }
+
+    private List<ReportableToolchain> invalidToolchains() {
+        return allReportableToolchains().stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
+    }
+
+    private List<ReportableToolchain> validToolchains() {
+        return allReportableToolchains().stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
+    }
+
+    private Predicate<? super ReportableToolchain> isValidToolchain() {
+        return t -> {
+            InstallType installType = t.probe.getInstallType();
+            return installType == InstallType.IS_JDK || installType == InstallType.IS_JRE;
+        };
     }
 
     private List<ReportableToolchain> allReportableToolchains() {
         return getInstallationRegistry().listInstallations().stream()
             .map(this::asReportableToolchain)
-            .sorted(TOOLCHAIN_COMPARATOR)
             .collect(Collectors.toList());
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        JavaInstallationProbe.ProbeResult result = getProbeService().checkJdk(location.getLocation());
+        ProbeResult result = getProbeService().checkJdk(location.getLocation());
         return new ReportableToolchain(result, location);
     }
 

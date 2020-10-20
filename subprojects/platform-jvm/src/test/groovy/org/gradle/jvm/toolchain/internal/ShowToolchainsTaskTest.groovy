@@ -21,9 +21,10 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.testfixtures.ProjectBuilder
 
-import java.nio.file.Paths
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.ProbeResult
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.SysProp
 
 class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
@@ -48,7 +49,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         def jdk82 = new File("1.8.0_404")
 
         given:
-        task.installationRegistry.listInstallations() >> [jdk14, jdk15, jdk9, jdk8, jdk82].collect {new InstallationLocation(it, "TestSource")}
+        task.installationRegistry.listInstallations() >>
+            [jdk14, jdk15, jdk9, jdk8, jdk82].collect {new InstallationLocation(it, "TestSource")}
         task.probeService.checkJdk(jdk14) >> newProbe("14", JavaVersion.VERSION_14)
         task.probeService.checkJdk(jdk15) >> newProbe("15-ea", JavaVersion.VERSION_15)
         task.probeService.checkJdk(jdk9) >> newProbe("9", JavaVersion.VERSION_1_9)
@@ -56,36 +58,35 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         task.probeService.checkJdk(jdk82) >> newProbe("1.8.0_404", JavaVersion.VERSION_1_8)
 
         when:
-        def project = ProjectBuilder.builder().build()
         task.showToolchains()
 
         then:
         output.value == """
-{identifier} + name 1.8.0_202{normal}
+{identifier} + AdoptOpenJDK JRE 1.8.0_202{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + name 1.8.0_404{normal}
+{identifier} + AdoptOpenJDK JRE 1.8.0_404{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + name 9{normal}
+{identifier} + AdoptOpenJDK JRE 9{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}9{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + name 14{normal}
+{identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + name 15-ea{normal}
+{identifier} + AdoptOpenJDK JRE 15-ea{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}15{normal}
      | Is JDK:             {description}false{normal}
@@ -94,13 +95,68 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 """
     }
 
-    private JavaInstallationProbe.ProbeResult newProbe(String implVersion, JavaVersion languageVersion) {
-        JavaInstallationProbe.ProbeResult probe = Mock(JavaInstallationProbe.ProbeResult)
-        probe.implementationName >> "name"
-        probe.implementationJavaVersion >> implVersion
-        probe.javaHome >> Paths.get("path")
-        probe.javaVersion >> languageVersion
-        probe
+    def "reports toolchains with good and invalid ones"() {
+        def jdk14 = new File("14")
+        def invalid = new File("invalid")
+        def noSuchDirectory = new File("noSuchDirectory")
+
+        given:
+        task.installationRegistry.listInstallations() >>
+            [jdk14, invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
+        task.probeService.checkJdk(jdk14) >> newProbe("14", JavaVersion.VERSION_14)
+        task.probeService.checkJdk(invalid) >> newInvalidProbe(InstallType.INVALID_JDK)
+        task.probeService.checkJdk(noSuchDirectory) >> newInvalidProbe(InstallType.NO_SUCH_DIRECTORY)
+
+        when:
+        task.showToolchains()
+
+        then:
+        output.value == """
+{identifier} + AdoptOpenJDK JRE 14{normal}
+     | Location:           {description}path{normal}
+     | Language Version:   {description}14{normal}
+     | Is JDK:             {description}false{normal}
+     | Detected by:        {description}TestSource{normal}
+
+{identifier} + Invalid toolchains{normal}
+     - INVALID_JDK:        {description}errorMessage{normal}
+     - NO_SUCH_DIRECTORY:  {description}errorMessage{normal}
+
+"""
+    }
+
+    def "reports only toolchains with errors"() {
+        def invalid = new File("invalid")
+        def noSuchDirectory = new File("noSuchDirectory")
+
+        given:
+        task.installationRegistry.listInstallations() >> [
+            invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
+        task.probeService.checkJdk(invalid) >> newInvalidProbe(InstallType.INVALID_JDK)
+        task.probeService.checkJdk(noSuchDirectory) >> newInvalidProbe(InstallType.NO_SUCH_DIRECTORY)
+
+        when:
+        task.showToolchains()
+
+        then:
+        output.value == """
+{identifier} + Invalid toolchains{normal}
+     - INVALID_JDK:        {description}errorMessage{normal}
+     - NO_SUCH_DIRECTORY:  {description}errorMessage{normal}
+
+"""
+    }
+
+    private ProbeResult newProbe(String implVersion, JavaVersion languageVersion) {
+        def metaData = new EnumMap<SysProp, String>(SysProp.class);
+        metaData.put(SysProp.JAVA_HOME, "path");
+        metaData.put(SysProp.VERSION, implVersion);
+        metaData.put(SysProp.VENDOR, "adoptopenjdk");
+        return ProbeResult.success(InstallType.IS_JRE, metaData)
+    }
+
+    private ProbeResult newInvalidProbe(InstallType type) {
+        return ProbeResult.failure(type, "errorMessage");
     }
 
     static class TestShowToolchainsTask extends ShowToolchainsTask {
