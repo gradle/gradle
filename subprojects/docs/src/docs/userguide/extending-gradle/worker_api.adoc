@@ -126,9 +126,9 @@ include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/C
 ----
 <1> You'll need to have the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service in order to submit your work.
     Create a abstract getter methods annotated `javax.inject.Inject` and Gradle will inject the service at runtime when the task is created.
-<3> Before submitting work, you'll need to get a `WorkQueue` object with the desired isolation mode.
+<2> Before submitting work, you'll need to get a `WorkQueue` object with the desired isolation mode.
     We'll talk more about isolation modes later.
-<4> When submitting the unit of work, specify the unit of work implementation, in this case `GenerateMD5` and configure its parameters.
+<3> When submitting the unit of work, specify the unit of work implementation, in this case `GenerateMD5` and configure its parameters.
 
 At this point, you should be able to try your task again.
 

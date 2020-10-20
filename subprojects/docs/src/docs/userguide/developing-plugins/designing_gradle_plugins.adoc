@@ -133,7 +133,6 @@ The use of dynamic Groovy and (its very capable testing and mocking framework) l
 To be able to build a Gradle plugin you’ll need to tell your project to use a compile-time dependency on the Gradle API.
 Your build script would usually contain the following declaration:
 
-.build.gradle
 ====
 include::sample[dir="snippets/plugins/customPlugin/groovy/plugin",files="build.gradle[tags=gradle-api-dependencies]"]
 include::sample[dir="snippets/plugins/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=gradle-api-dependencies]"]
@@ -160,7 +159,6 @@ The dependency report does not render dependencies declared for the `classpath` 
 However, you can call the help task `buildEnvironment` to render the full dependency graph.
 To demonstrate the functionality let’s assume the following build script:
 
-.build.gradle
 ====
 include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/externalLibraries/kotlin",files="build.gradle.kts[]"]

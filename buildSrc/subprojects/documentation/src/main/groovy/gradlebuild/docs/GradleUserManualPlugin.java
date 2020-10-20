@@ -192,7 +192,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             });
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
-                sub.include("**/*.png", "**/*.gif", "**/*.jpg");
+                sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
                 sub.into("img");
             });
             task.from(extension.getUserManual().getResources());
@@ -287,7 +287,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
             // TODO: Eliminate this duplication with the flatten task
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
-                sub.include("**/*.png", "**/*.gif", "**/*.jpg");
+                sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
                 sub.into("img");
             });
 
