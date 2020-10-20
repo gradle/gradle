@@ -95,10 +95,13 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
     @Override
     String initScriptContent() {
         """
-            abstract class CollectScopeIds extends DefaultTask {
+            class CollectScopeIds extends DefaultTask {
 
-                @Internal
-                abstract RegularFileProperty getOutputJsonFile()
+                private File outputJsonFile
+
+                void setOutputJsonFile(File file) {
+                    outputJsonFile = file
+                }
 
                 @TaskAction def collect() {
                     def gradle = services.get(Gradle)
@@ -109,13 +112,13 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
                             user: services.get(${UserScopeId.name}).id.asString()
                         ]
                     ]
-                    outputJsonFile.get().asFile << groovy.json.JsonOutput.toJson(scopeIds) + '\\n'
+                    outputJsonFile << groovy.json.JsonOutput.toJson(scopeIds) + '\\n'
                 }
             }
 
             rootProject {
                 def collector = tasks.register("collectScopeIds", CollectScopeIds) {
-                    outputJsonFile.set(new File("${normaliseFileSeparators(idsFile.absolutePath)}"))
+                    outputJsonFile = new File("${normaliseFileSeparators(idsFile.absolutePath)}")
                 }
                 tasks.withType(DefaultTask).configureEach {
                     if (name != "collectScopeIds") {
