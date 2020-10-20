@@ -18,7 +18,7 @@ package gradlebuild.performance.generator.tasks
 class KtsProjectGeneratorTask extends JvmProjectGeneratorTask {
 
     KtsProjectGeneratorTask() {
-        this.rootProjectTemplates = ['kts-settings', 'kts-empty']
+        this.rootProjectTemplates = ['kts-settings', 'kts-empty', 'gradle-properties']
         this.subProjectTemplates = ['kts-project-with-source', 'java-source']
     }
 
@@ -29,12 +29,12 @@ class KtsProjectGeneratorTask extends JvmProjectGeneratorTask {
 
     @Override
     List<String> getRootProjectFiles() {
-        ['settings.gradle', 'build.gradle.kts']
+        ['settings.gradle', 'build.gradle.kts', 'gradle.properties']
     }
 
     @Override
     List<String> getEffectiveRootProjectTemplates() {
-        subprojectNames.empty ? (subProjectTemplates + ['kts-settings']) : rootProjectTemplates
+        subprojectNames.empty ? (subProjectTemplates + ['kts-settings', 'gradle-properties']) : rootProjectTemplates
     }
 }
 
