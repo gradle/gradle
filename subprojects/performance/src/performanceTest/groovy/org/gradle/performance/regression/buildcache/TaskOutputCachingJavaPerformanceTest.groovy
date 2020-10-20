@@ -167,7 +167,6 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     }
 
     static def setupTestProject(CrossVersionPerformanceTestRunner runner) {
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
     }

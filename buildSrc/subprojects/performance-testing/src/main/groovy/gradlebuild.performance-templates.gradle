@@ -148,6 +148,7 @@ performanceTest.registerTestProject("manyProjectsNative", NativeProjectGenerator
     ]
     subProjectTemplates = ['native-source', 'native-component']
     daemonMemory = '1G'
+    maxWorkers = 12
 }
 
 performanceTest.registerTestProject("smallPCHNative", NativeProjectGeneratorTask) {
@@ -229,6 +230,7 @@ performanceTest.registerTestProject("mediumNativeMonolithic", MonolithicNativePr
     rootProjectTemplates = ['native-monolithic', 'gradle-properties']
     subProjectTemplates = []
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
+    maxWorkers = 12
 }
 
 performanceTest.registerTestProject("nativeDependents", NativeProjectWithDepsGeneratorTask) {
@@ -353,7 +355,7 @@ performanceTest.registerTestProject("mediumSwiftMulti", BuildBuilderGenerator) {
     description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
     doLast {
         def projectDirectory = generatedDir.get().asFile
-        setMaxWorkers(projectDirectory, 8)
+        setMaxWorkers(projectDirectory, 6)
         setMaxHeap(projectDirectory, "1G")
         setParallel(projectDirectory, true)
     }
@@ -367,7 +369,7 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 
     doLast {
         def projectDirectory = generatedDir.get().asFile
-        setMaxWorkers(projectDirectory, 8)
+        setMaxWorkers(projectDirectory, 6)
         setMaxHeap(projectDirectory, "1G")
         setParallel(projectDirectory, true)
         def buildFile = new File(projectDirectory, "build.gradle")

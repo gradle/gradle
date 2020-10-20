@@ -51,7 +51,6 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
         def iterations = runner.testProject in ['smallNative', 'smallCppApp', 'smallCppMulti'] ? 40 : null
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.runs = iterations
         runner.warmUpRuns = iterations
 

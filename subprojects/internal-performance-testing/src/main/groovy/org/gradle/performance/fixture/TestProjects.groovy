@@ -40,16 +40,6 @@ class TestProjects {
         }
     }
 
-
-    static List<String> getProjectMemoryOptions(String testProject) {
-        def daemonMemory = determineDaemonMemory(testProject)
-        return ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
-    }
-
-    private static String determineDaemonMemory(String testProject) {
-        return JavaTestProject.projectFor(testProject).daemonMemory
-    }
-
     static <T extends TestProject> T projectFor(String testProject) {
         (AndroidTestProject.findProjectFor(testProject) ?:
             JavaTestProject.projectFor(testProject)) as T

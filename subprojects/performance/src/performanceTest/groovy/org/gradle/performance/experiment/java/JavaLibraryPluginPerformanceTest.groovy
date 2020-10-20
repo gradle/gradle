@@ -46,7 +46,6 @@ class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest
             invocation {
                 tasksToRun("clean", "classes")
                 args("-PcompileConfiguration", "-Dorg.gradle.java.compile-classpath-packaging=$compileClasspathPackaging")
-                gradleOpts(runner.projectMemoryOptions)
             }
         }
         runner.baseline {
@@ -56,7 +55,6 @@ class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest
             invocation {
                 tasksToRun("clean", "classes")
                 args("-PcompileConfiguration", "-PnoJavaLibraryPlugin")
-                gradleOpts(runner.projectMemoryOptions)
             }
         }
 

@@ -30,7 +30,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
     def "eclipse"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['eclipse']
         runner.targetVersions = ["6.7-20200824220048+0000"]
 
@@ -43,7 +42,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
     def "idea"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['idea']
         runner.targetVersions = ["6.7-20200824220048+0000"]
 

@@ -148,7 +148,7 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
                 copySpec.into(destDir)
                 copySpec.expand([
                     daemonMemory: daemonMemory,
-                    maxWorkers: 8,
+                    maxWorkers: 4,
                     parallel: true
                 ])
             }

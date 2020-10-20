@@ -108,10 +108,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return measuredBuildOperations
     }
 
-    List<String> getProjectMemoryOptions() {
-        TestProjects.getProjectMemoryOptions(testProject)
-    }
-
     CrossVersionPerformanceResults run() {
         assumeShouldRun()
 

@@ -80,10 +80,6 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         measuredBuildOperations << operation
     }
 
-    List<String> getProjectMemoryOptions() {
-        TestProjects.getProjectMemoryOptions(testProject)
-    }
-
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.measuredBuildOperations.addAll(measuredBuildOperations)
         builder.measureGarbageCollection(measureGarbageCollection)

@@ -44,7 +44,6 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
     def "buildSrc abi change"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['help']
         runner.runs = determineNumberOfRuns(runner.testProject)
 
@@ -62,7 +61,6 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
     def "buildSrc non-abi change"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['help']
         runner.runs = determineNumberOfRuns(runner.testProject)
 
