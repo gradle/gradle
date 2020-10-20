@@ -511,14 +511,14 @@ private void addGoogleServicesJson(File outputDirectory) {
 performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
+    ref = "e9fdc0afef15efc082f1712865e92312125ba6d0"
     subdirectory = 'exclude-merging'
 }
 
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "cbfe4c63fa570200624575c75bafb556d3eb4bdd"
+    ref = "e9fdc0afef15efc082f1712865e92312125ba6d0"
     subdirectory = 'parallel-downloads'
 }
 
