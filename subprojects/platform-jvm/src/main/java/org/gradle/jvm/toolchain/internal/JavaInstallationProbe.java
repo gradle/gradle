@@ -243,6 +243,8 @@ public class JavaInstallationProbe {
                 return result == InstallType.IS_JDK ? "OpenJDK" : "OpenJDK JRE";
             }
             return "Oracle " + basename;
+        } else if (vendor.contains("amazon")) {
+            return "Amazon Corretto " + basename;
         } else if (vendor.contains("ibm")) {
             return "IBM " + basename;
         } else if (vendor.contains("sap se")) {

@@ -121,6 +121,8 @@ class JavaInstallationProbeTest extends Specification {
         'hpuxJdk7'                            | hpuxJvm('7')     | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'  | true | false | IS_JDK
         'sapjdk13'                            | sapJvm('13')      | JavaVersion.VERSION_13 | 'SAP SapMachine JDK 13'  | true | false | IS_JDK
         'sapjre13'                            | sapJvm('13')      | JavaVersion.VERSION_13 | 'SAP SapMachine JRE 13'  | true | true | IS_JRE
+        'correttojdk11'                            | correttoJvm('11')      | JavaVersion.VERSION_11 | 'Amazon Corretto JDK 11'  | true | false | IS_JDK
+        'correttojre11'                            | correttoJvm('11')      | JavaVersion.VERSION_11 | 'Amazon Corretto JRE 11'  | true | true | IS_JRE
         'whitespaces'                         | whitespaces('11.0.3')  | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11' | true   | true  | IS_JRE
         'binary that has invalid output'      | invalidOutput()  | null                    | null           | true | false | INVALID_JDK
         'binary that returns unknown version' | invalidVersion() | null                    | null           | true | false | INVALID_JDK
@@ -251,6 +253,17 @@ class JavaInstallationProbeTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "13.0.2+8-sapmachine",
+         'java.runtime.name': "OpenJDK Runtime Environment"
+        ]
+    }
+
+    private static Map<String, String> correttoJvm(String version) {
+        ['java.home': "java-home",
+         'java.version': "${version}.0.8",
+         'java.vendor': "Amazon.com Inc.",
+         'os.arch': "x86_64",
+         'java.vm.name': "OpenJDK 64-Bit Server VM",
+         'java.vm.version': "11.0.8+10-LTS",
          'java.runtime.name': "OpenJDK Runtime Environment"
         ]
     }
