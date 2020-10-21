@@ -245,6 +245,8 @@ public class JavaInstallationProbe {
             return "Oracle " + basename;
         } else if (vendor.contains("ibm")) {
             return "IBM " + basename;
+        } else if (vendor.contains("sap se")) {
+            return "SAP SapMachine " + basename;
         } else if (vendor.contains("azul systems")) {
             return "Zulu " + basename;
         } else if (vendor.contains("hewlett-packard")) {

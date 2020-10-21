@@ -119,6 +119,8 @@ class JavaInstallationProbeTest extends Specification {
         'zuluJdk8'                            | zuluJvm('8')     | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'   | true | false | IS_JDK
         'hpuxJre6'                            | hpuxJvm('6')     | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'  | true | true  | IS_JRE
         'hpuxJdk7'                            | hpuxJvm('7')     | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'  | true | false | IS_JDK
+        'sapjdk13'                            | sapJvm('13')      | JavaVersion.VERSION_13 | 'SAP SapMachine JDK 13'  | true | false | IS_JDK
+        'sapjre13'                            | sapJvm('13')      | JavaVersion.VERSION_13 | 'SAP SapMachine JRE 13'  | true | true | IS_JRE
         'whitespaces'                         | whitespaces('11.0.3')  | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11' | true   | true  | IS_JRE
         'binary that has invalid output'      | invalidOutput()  | null                    | null           | true | false | INVALID_JDK
         'binary that returns unknown version' | invalidVersion() | null                    | null           | true | false | INVALID_JDK
@@ -239,6 +241,17 @@ class JavaInstallationProbeTest extends Specification {
          'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
          'java.vm.version': "25.66-b17",
          'java.runtime.name': "Java(TM) SE Runtime Environment"
+        ]
+    }
+
+    private static Map<String, String> sapJvm(String version) {
+        ['java.home': "java-home",
+         'java.version': "${version}.0.2",
+         'java.vendor': "SAP SE",
+         'os.arch': "x86_64",
+         'java.vm.name': "OpenJDK 64-Bit Server VM",
+         'java.vm.version': "13.0.2+8-sapmachine",
+         'java.runtime.name': "OpenJDK Runtime Environment"
         ]
     }
 
