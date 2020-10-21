@@ -33,13 +33,16 @@ import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CleanupOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
+/**
+ * When executed non-incrementally remove previous outputs owned by the work unit.
+ */
+public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends R> delegate;
 
-    public CleanupOutputsStep(
+    public RemovePreviousOutputsStep(
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         Step<? super C, ? extends R> delegate
@@ -60,7 +63,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                 if (hasOverlappingOutputs) {
                     cleanupOverlappingOutputs(context, work);
                 } else {
-                    cleanupExclusiveOutputs(context, work);
+                    cleanupExclusivelyOwnedOutputs(context, work);
                 }
             }
         }
@@ -102,7 +105,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         });
     }
 
-    private void cleanupExclusiveOutputs(BeforeExecutionContext context, UnitOfWork work) {
+    private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
         work.visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> {
             if (root.exists()) {
                 try {

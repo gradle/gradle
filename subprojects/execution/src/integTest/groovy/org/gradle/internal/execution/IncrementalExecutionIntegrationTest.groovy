@@ -34,7 +34,7 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CleanupOutputsStep
+import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
@@ -151,7 +151,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(
             new ResolveInputChangesStep<>(
-            new CleanupOutputsStep<>(deleter, outputChangeListener,
+            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
         ))))))))))))))))))
         // @formatter:on
