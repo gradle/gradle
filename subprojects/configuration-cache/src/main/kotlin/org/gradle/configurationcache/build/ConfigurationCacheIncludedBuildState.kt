@@ -22,6 +22,7 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.composite.internal.DefaultIncludedBuild
+import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.initialization.BuildCompletionListener
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter
@@ -30,6 +31,8 @@ import org.gradle.initialization.DefaultGradleLauncher
 import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.InternalBuildFinishedListener
+import org.gradle.initialization.SettingsPreparer
+import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
@@ -51,20 +54,26 @@ open class ConfigurationCacheIncludedBuildState(
 
     override fun createGradleLauncher(): GradleLauncher {
         return nestedBuildFactoryInternal().nestedInstance(
-            // Consider using a defensive copy of the build definition here
             buildDefinition,
             this,
             { parent ->
+                // Avoid BuildLayout discovery
                 object : BuildScopeServices(parent) {
                     override fun createBuildLayout(buildLayoutFactory: BuildLayoutFactory, startParameter: StartParameter) =
-                        BuildLayout(buildDefinition.buildRootDir, buildDefinition.buildRootDir, null)
+                        buildDefinition.buildRootDir.let { rootDir ->
+                            BuildLayout(rootDir, rootDir, null)
+                        }
                 }
             },
             { gradle: GradleInternal, serviceRegistry: BuildScopeServices, servicesToStop: List<*> ->
+                // Create a GradleLauncher with empty project, settings and task execution preparers
                 val listenerManager = serviceRegistry.get(ListenerManager::class.java)
+                val projectsPreparer = ProjectsPreparer {}
+                val settingsPreparer = SettingsPreparer {}
+                val taskExecutionPreparer = TaskExecutionPreparer {}
                 DefaultGradleLauncher(
                     gradle,
-                    {},
+                    projectsPreparer,
                     serviceRegistry.get(ExceptionAnalyser::class.java),
                     gradle.buildListenerBroadcaster,
                     listenerManager.getBroadcaster(BuildCompletionListener::class.java),
@@ -73,12 +82,10 @@ open class ConfigurationCacheIncludedBuildState(
                     serviceRegistry,
                     servicesToStop,
                     gradle.serviceOf(),
-                    {},
-                    {},
+                    settingsPreparer,
+                    taskExecutionPreparer,
                     NullConfigurationCache,
-                    BuildOptionBuildOperationProgressEventsEmitter(
-                        gradle.serviceOf()
-                    )
+                    BuildOptionBuildOperationProgressEventsEmitter(gradle.serviceOf())
                 )
             }
         )
