@@ -120,7 +120,7 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
                 task collectScopeIds(type: CollectScopeIds) {
                     outputJsonFile = new File("${normaliseFileSeparators(idsFile.absolutePath)}")
                 }
-                tasks.withType(DefaultTask).configureEach {
+                tasks.withType(DefaultTask) {
                     if (name != "collectScopeIds") {
                         dependsOn collectScopeIds
                     }
