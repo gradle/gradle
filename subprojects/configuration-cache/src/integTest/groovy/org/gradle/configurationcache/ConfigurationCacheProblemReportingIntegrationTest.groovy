@@ -866,7 +866,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 26 problems.")
+        outputContains("Configuration cache entry discarded with 28 problems.")
         // TODO - use fixture. Need to be able to accept a range of expected problem counts
         failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': read system property 'PROP'"))
         failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"))
