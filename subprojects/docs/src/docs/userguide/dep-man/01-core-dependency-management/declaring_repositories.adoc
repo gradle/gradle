@@ -496,7 +496,6 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files
 The `dependencyResolutionManagement` repositories block accepts the same notations as in a project, which includes Maven or Ivy repositories, with or without credentials, etc.
 
 By default, repositories declared by a project will *override* whatever is declared in settings.
-This means that repositories declared in settings are the _conventional_ repositories used by a project, but they can be overridden by project.
 You can change this behavior to make sure that you always use the settings repositories:
 
 .Preferring settings repositories

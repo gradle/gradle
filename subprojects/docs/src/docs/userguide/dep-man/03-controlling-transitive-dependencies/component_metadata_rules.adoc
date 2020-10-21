@@ -43,8 +43,8 @@ Usually, a rule is specifically written to enrich metadata of one specific modul
 
 NOTE: Declaring component metadata rules in settings is an incubating feature
 
-Instead of declaring rules on a project's component metadata handler, it is possible to declare rules in the `settings.gradle(.kts)` file.
-In this case, rules declared in settings are the _conventional_ rules applied to a project: if the project doesn't declare any rules, the rules from the settings script will be used.
+Instead of declaring rules for each subproject individually, it is possible to declare rules in the `settings.gradle(.kts)` file for the whole build.
+Rules declared in settings are the _conventional_ rules applied to each project: if the project doesn't declare any rules, the rules from the settings script will be used.
 
 .Declaring a rule in settings
 ====
@@ -385,5 +385,4 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.
 Existing modules with the state `integration` are mapped to `nightly`.
-
 
