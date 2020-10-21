@@ -23,6 +23,9 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
+import javax.annotation.Nullable;
+import java.util.function.Supplier;
+
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 
 public class InputFingerprintUtil {
@@ -38,35 +41,40 @@ public class InputFingerprintUtil {
         InputPropertyPredicate filter
     ) {
         valueSnapshotsBuilder.putAll(knownValueSnapshots);
-        work.visitInputProperties((propertyName, identity, value) -> {
-            if (knownValueSnapshots.containsKey(propertyName)) {
-                return;
-            }
-            if (!filter.include(propertyName, NON_INCREMENTAL, identity)) {
-                return;
-            }
-            Object actualValue = value.getValue();
-            try {
-                ValueSnapshot previousSnapshot = previousValueSnapshots.get(propertyName);
-                if (previousSnapshot == null) {
-                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue));
-                } else {
-                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
-                }
-            } catch (Exception e) {
-                throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",
-                    work.getDisplayName(), propertyName, value.getValue()), e);
-            }
-        });
         fingerprintsBuilder.putAll(knownFingerprints);
-        work.visitInputFileProperties((propertyName, type, identity, value, fingerprinter) -> {
-            if (knownFingerprints.containsKey(propertyName)) {
-                return;
+        work.visitInputProperties(new UnitOfWork.InputPropertyVisitor() {
+            @Override
+            public void visitInputProperty(String propertyName, UnitOfWork.IdentityKind identity, UnitOfWork.ValueSupplier value) {
+                if (knownValueSnapshots.containsKey(propertyName)) {
+                    return;
+                }
+                if (!filter.include(propertyName, NON_INCREMENTAL, identity)) {
+                    return;
+                }
+                Object actualValue = value.getValue();
+                try {
+                    ValueSnapshot previousSnapshot = previousValueSnapshots.get(propertyName);
+                    if (previousSnapshot == null) {
+                        valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue));
+                    } else {
+                        valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
+                    }
+                } catch (Exception e) {
+                    throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",
+                        work.getDisplayName(), propertyName, value.getValue()), e);
+                }
             }
-            if (!filter.include(propertyName, type, identity)) {
-                return;
+
+            @Override
+            public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter) {
+                if (knownFingerprints.containsKey(propertyName)) {
+                    return;
+                }
+                if (!filter.include(propertyName, type, identity)) {
+                    return;
+                }
+                fingerprintsBuilder.put(propertyName, fingerprinter.get());
             }
-            fingerprintsBuilder.put(propertyName, fingerprinter.get());
         });
     }
 

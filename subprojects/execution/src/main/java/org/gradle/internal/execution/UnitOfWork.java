@@ -107,17 +107,13 @@ public interface UnitOfWork extends Describable {
 
     interface InputPropertyVisitor {
         void visitInputProperty(String propertyName, IdentityKind identity, ValueSupplier value);
+
+        void visitInputFileProperty(String propertyName, InputPropertyType type, IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
     }
 
     interface ValueSupplier {
         @Nullable
         Object getValue();
-    }
-
-    void visitInputFileProperties(InputFilePropertyVisitor visitor);
-
-    interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String propertyName, InputPropertyType type, IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
     }
 
     enum InputPropertyType {

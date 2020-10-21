@@ -300,14 +300,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void visitInputProperties(InputPropertyVisitor visitor) {
             ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
+            ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputPropertySpec inputProperty : inputProperties) {
                 visitor.visitInputProperty(inputProperty.getPropertyName(), NON_IDENTITY, () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
             }
-        }
-
-        @Override
-        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
-            ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
                 // SkipWhenEmpty implies incremental.

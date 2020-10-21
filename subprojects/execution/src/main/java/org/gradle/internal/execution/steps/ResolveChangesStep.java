@@ -35,8 +35,10 @@ import org.gradle.internal.execution.history.changes.RebuildExecutionStateChange
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
@@ -142,12 +144,19 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                work.visitInputFileProperties((propertyName, type, identity, value, fingerprinter) -> {
-                    if (type.isIncremental()) {
-                        if (value == null) {
-                            throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
+                work.visitInputProperties(new UnitOfWork.InputPropertyVisitor() {
+                    @Override
+                    public void visitInputProperty(String propertyName, UnitOfWork.IdentityKind identity, UnitOfWork.ValueSupplier value) {
+                    }
+
+                    @Override
+                    public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter) {
+                        if (type.isIncremental()) {
+                            if (value == null) {
+                                throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
+                            }
+                            builder.put(propertyName, value);
                         }
-                        builder.put(propertyName, value);
                     }
                 });
                 return new DefaultIncrementalInputProperties(builder.build());

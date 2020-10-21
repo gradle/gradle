@@ -167,9 +167,6 @@ class GenerateProjectAccessors(
 
     override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
         visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, IDENTITY) { hashCodeFor(projectSchema) }
-    }
-
-    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) {
         visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, NON_INCREMENTAL, IDENTITY, classPath) {
             classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
         }

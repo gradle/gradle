@@ -170,8 +170,6 @@ class GeneratePluginAccessors(
         visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, IDENTITY) { classLoaderHash }
     }
 
-    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
-
     override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)

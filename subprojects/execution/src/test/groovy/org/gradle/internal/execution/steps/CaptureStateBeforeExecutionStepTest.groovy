@@ -159,7 +159,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         step.execute(context)
 
         then:
-        _ * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
+        _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
             visitor.visitInputFileProperty("inputFile", NON_INCREMENTAL, NON_IDENTITY, "ignored", { -> fingerprint })
         }
         interaction { fingerprintInputs() }
@@ -288,7 +288,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
             visitor.visitImplementation(implementationSnapshot)
         }
         _ * work.visitInputProperties(_ as UnitOfWork.InputPropertyVisitor)
-        _ * work.visitInputFileProperties(_ as UnitOfWork.InputFilePropertyVisitor)
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
         _ * context.history >> Optional.of(executionHistoryStore)

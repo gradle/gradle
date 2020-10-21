@@ -49,8 +49,6 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
         _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
             visitor.visitInputProperty("non-identity", NON_IDENTITY) { Mock(Object) }
             visitor.visitInputProperty("identity", UnitOfWork.IdentityKind.IDENTITY) { 123 }
-        }
-        _ * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
             visitor.visitInputFileProperty(
                 "non-identity-file",
                 UnitOfWork.InputPropertyType.NON_INCREMENTAL,

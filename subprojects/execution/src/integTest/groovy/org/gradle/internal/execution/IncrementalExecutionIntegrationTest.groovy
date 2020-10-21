@@ -837,10 +837,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                     inputProperties.each { propertyName, value ->
                         visitor.visitInputProperty(propertyName, NON_IDENTITY, { -> value } as UnitOfWork.ValueSupplier)
                     }
-                }
-
-                @Override
-                void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(
                             entry.key,
