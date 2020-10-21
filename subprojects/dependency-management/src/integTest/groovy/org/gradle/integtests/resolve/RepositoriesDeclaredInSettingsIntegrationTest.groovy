@@ -146,7 +146,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         settingsFile << """
 
             dependencyResolutionManagement {
-                preferSettingsRepositories()
+                repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
             }
 
         """
@@ -188,7 +188,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         settingsFile << """
 
             dependencyResolutionManagement {
-                enforceSettingsRepositories()
+                repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
             }
 
         """
@@ -221,7 +221,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             includeBuild 'my-plugin'
 
             dependencyResolutionManagement {
-                enforceSettingsRepositories()
+                repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
             }
 
         """
@@ -712,7 +712,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         // the build will fail saying that it cannot find our settings plugin
         settingsFile << """
             dependencyResolutionManagement {
-                enforceSettingsRepositories()
+                repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
             }
         """
 

@@ -10,18 +10,18 @@ dependencyResolutionManagement {
 
 // tag::prefer_settings[]
 dependencyResolutionManagement {
-    preferSettingsRepositories()
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
 }
 // end::prefer_settings[]
 
 // tag::enforce_settings[]
 dependencyResolutionManagement {
-    enforceSettingsRepositories()
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 }
 // end::enforce_settings[]
 
 // tag::prefer_projects[]
 dependencyResolutionManagement {
-    preferProjectRepositories()
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
 }
 // end::prefer_projects[]

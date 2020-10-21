@@ -21,7 +21,7 @@ import groovy.lang.Closure
 import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.initialization.ConfigurableIncludedBuild
-import org.gradle.api.initialization.DependencyResolutionManagement
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
