@@ -23,6 +23,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
+import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
+
 public class InputFingerprintUtil {
 
     public static ImmutableSortedMap<String, ValueSnapshot> fingerprintInputProperties(
@@ -38,7 +40,7 @@ public class InputFingerprintUtil {
             if (alreadyKnownSnapshots.containsKey(propertyName)) {
                 return;
             }
-            if (!filter.include(propertyName, identity)) {
+            if (!filter.include(propertyName, NON_INCREMENTAL, identity)) {
                 return;
             }
             Object actualValue = value.getValue();
@@ -57,14 +59,10 @@ public class InputFingerprintUtil {
         return builder.build();
     }
 
-    public interface InputPropertyPredicate {
-        boolean include(String propertyName, UnitOfWork.IdentityKind identity);
-    }
-
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(
         UnitOfWork work,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownFingerprints,
-        InputFilePropertyPredicate filter
+        InputPropertyPredicate filter
     ) {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         builder.putAll(alreadyKnownFingerprints);
@@ -80,7 +78,7 @@ public class InputFingerprintUtil {
         return builder.build();
     }
 
-    public interface InputFilePropertyPredicate {
+    public interface InputPropertyPredicate {
         boolean include(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity);
     }
 }

@@ -183,7 +183,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             previousInputProperties,
             valueSnapshotter,
             context.getInputProperties(),
-            (propertyName, identity) -> identity == NON_IDENTITY);
+            (propertyName, type, identity) -> identity == NON_IDENTITY);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = fingerprintInputFiles(
             work,
             context.getInputFileProperties(),

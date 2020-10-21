@@ -66,7 +66,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             ImmutableSortedMap.of(),
             valueSnapshotter,
             ImmutableSortedMap.of(),
-            (propertyName, identity) -> identity == IDENTITY);
+            (propertyName, type, identity) -> identity == IDENTITY);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = fingerprintInputFiles(
             context.getWork(),
             ImmutableSortedMap.of(),
