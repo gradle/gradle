@@ -27,17 +27,19 @@ import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INC
 
 public class InputFingerprintUtil {
 
-    public static ImmutableSortedMap<String, ValueSnapshot> fingerprintInputProperties(
+    public static void fingerprintInputProperties(
         UnitOfWork work,
-        ImmutableSortedMap<String, ValueSnapshot> previousSnapshots,
+        ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
         ValueSnapshotter valueSnapshotter,
-        ImmutableSortedMap<String, ValueSnapshot> alreadyKnownSnapshots,
+        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
+        ImmutableSortedMap.Builder<String, ValueSnapshot> valueSnapshotsBuilder,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
+        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> fingerprintsBuilder,
         InputPropertyPredicate filter
     ) {
-        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        builder.putAll(alreadyKnownSnapshots);
+        valueSnapshotsBuilder.putAll(knownValueSnapshots);
         work.visitInputProperties((propertyName, identity, value) -> {
-            if (alreadyKnownSnapshots.containsKey(propertyName)) {
+            if (knownValueSnapshots.containsKey(propertyName)) {
                 return;
             }
             if (!filter.include(propertyName, NON_INCREMENTAL, identity)) {
@@ -45,37 +47,27 @@ public class InputFingerprintUtil {
             }
             Object actualValue = value.getValue();
             try {
-                ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
+                ValueSnapshot previousSnapshot = previousValueSnapshots.get(propertyName);
                 if (previousSnapshot == null) {
-                    builder.put(propertyName, valueSnapshotter.snapshot(actualValue));
+                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue));
                 } else {
-                    builder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
+                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
                 }
             } catch (Exception e) {
                 throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",
                     work.getDisplayName(), propertyName, value.getValue()), e);
             }
         });
-        return builder.build();
-    }
-
-    public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(
-        UnitOfWork work,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownFingerprints,
-        InputPropertyPredicate filter
-    ) {
-        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
-        builder.putAll(alreadyKnownFingerprints);
+        fingerprintsBuilder.putAll(knownFingerprints);
         work.visitInputFileProperties((propertyName, type, identity, value, fingerprinter) -> {
-            if (alreadyKnownFingerprints.containsKey(propertyName)) {
+            if (knownFingerprints.containsKey(propertyName)) {
                 return;
             }
             if (!filter.include(propertyName, type, identity)) {
                 return;
             }
-            builder.put(propertyName, fingerprinter.get());
+            fingerprintsBuilder.put(propertyName, fingerprinter.get());
         });
-        return builder.build();
     }
 
     public interface InputPropertyPredicate {
