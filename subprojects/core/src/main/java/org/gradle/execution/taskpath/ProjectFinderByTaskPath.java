@@ -50,6 +50,32 @@ public class ProjectFinderByTaskPath {
         return (ProjectInternal) current;
     }
 
+    // Now, with included builds
+    public ProjectInternal findProject2(String projectPath, ProjectInternal startFrom) {
+        if (projectPath.equals(Project.PATH_SEPARATOR)) {
+            return startFrom.getRootProject();
+        }
+        Project current = startFrom;
+        if (projectPath.startsWith(Project.PATH_SEPARATOR)) {
+            current = current.getRootProject();
+            projectPath = projectPath.substring(1);
+        }
+        for (String pattern : projectPath.split(Project.PATH_SEPARATOR)) {
+            Map<String, Project> children = current.getChildProjects();
+
+            NameMatcher matcher = new NameMatcher();
+            Project child = matcher.find(pattern, children);
+            if (child != null) {
+                current = child;
+                continue;
+            }
+
+            throw new ProjectLookupException(matcher.formatErrorMessage("project", current));
+        }
+
+        return (ProjectInternal) current;
+    }
+
     public static class ProjectLookupException extends InvalidUserDataException {
         public ProjectLookupException(String message) {
             super(message);

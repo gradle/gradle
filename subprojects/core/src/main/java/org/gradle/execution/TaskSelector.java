@@ -29,7 +29,6 @@ import org.gradle.util.NameMatcher;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -54,7 +53,8 @@ public class TaskSelector {
     }
 
     public TaskSelection getSelection(String path) {
-        return getSelection(path, gradle.getDefaultProject());
+        TaskSelection includedBuildSelection = findIncludedBuildSelection(path);
+        return includedBuildSelection != null ? includedBuildSelection : getSelection(path, gradle.getDefaultProject());
     }
 
     public Spec<Task> getFilter(String path) {
@@ -81,10 +81,50 @@ public class TaskSelector {
         if (root != null) {
             ensureNotFromIncludedBuild(root);
         }
+
+        // TODO included build should be addressed from composite root
+        TaskSelection includedBuildSelection = findIncludedBuildSelection(path);
+        if (includedBuildSelection != null) {
+            return includedBuildSelection;
+        }
+
         ProjectInternal project = projectPath != null
             ? gradle.getRootProject().findProject(projectPath)
             : gradle.getDefaultProject();
         return getSelection(path, project);
+    }
+
+    private TaskSelection findIncludedBuildSelection(String path) {
+        String[] paths = parsePath(path);
+        if (paths != null) {
+            IncludedBuildState includedBuild = findIncludedBuild(paths[0]);
+            if (includedBuild != null) {
+                ProjectInternal includedBuildRoot = includedBuild.getConfiguredBuild().getRootProject();
+                return getSelection(paths[1], includedBuildRoot);
+            }
+        }
+        return null;
+    }
+
+    private String[] parsePath(String path) {
+        if (path.startsWith(Project.PATH_SEPARATOR)) {
+            int idx = path.indexOf(Project.PATH_SEPARATOR, 1);
+            if (idx >= 0) {
+                String projectName = path.substring(1, idx);
+                String taskPath = path.substring(idx);
+                return new String[]{ projectName, taskPath };
+            }
+        }
+        return null;
+    }
+
+    private IncludedBuildState findIncludedBuild(String name) {
+        for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
+            if (includedBuild.getName().equals(name)) {
+                return includedBuild;
+            }
+        }
+        return null;
     }
 
     private void ensureNotFromIncludedBuild(File root) {
@@ -98,24 +138,6 @@ public class TaskSelector {
     }
 
     private TaskSelection getSelection(String path, ProjectInternal project) {
-        String[] paths = parsePath(path);
-        if (paths != null) {
-            String includedBuildName = paths[0];
-            String taskInIncludedBuildPath = paths[1];
-
-            for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
-                if (includedBuild.getName().equals(includedBuildName)) {
-                    return new TaskSelection(includedBuildName, taskInIncludedBuildPath, new TaskSelectionResult() {
-                        @Override
-                        public void collectTasks(Collection<? super Task> tasks) {
-                            Task task = includedBuild.getConfiguredBuild().getRootProject().getTasks().getByPath(taskInIncludedBuildPath);
-                            tasks.add(task);
-                        }
-                    });
-                }
-            }
-        }
-
         ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
         ProjectInternal targetProject = taskPath.getProject();
         if (taskPath.isQualified()) {
@@ -138,19 +160,6 @@ public class TaskSelector {
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", taskPath.getProject()));
-    }
-
-    private String[] parsePath(String path) {
-        if (path.startsWith(Project.PATH_SEPARATOR)) {
-            int idx = path.indexOf(Project.PATH_SEPARATOR, 1);
-
-            if (idx >= 0) {
-                String projectName = path.substring(1, idx);
-                String taskPath = path.substring(idx);
-                return new String[]{ projectName, taskPath };
-            }
-        }
-        return null;
     }
 
     public static class TaskSelection {

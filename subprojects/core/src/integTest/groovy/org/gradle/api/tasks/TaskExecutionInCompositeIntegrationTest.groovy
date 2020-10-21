@@ -56,7 +56,8 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":other-build:sub:doSomething")
     }
 
-    @NotYetImplemented // works, but produces a misleading error message
+    @NotYetImplemented
+    // works, but produces a misleading error message; parsePath() should return an separate type where we we could define a proper error message for this use-case
     def "Cannot run non-qualified tasks"() {
         setup:
         settingsFile << """
@@ -76,7 +77,7 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails("other-build:sub:doSomething").assertHasDescription("Task 'someNonexistent' not found in build project")
+        fails("other-build:sub:doSomething").assertHasDescription("Task 'someNonexistent' not found in build 'other-build'")
     }
 
     def "Selects only the exact task and ignores tasks with the same name in subprojects"() {
@@ -225,7 +226,6 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Prints the message 'do something'")
     }
 
-    @NotYetImplemented
     def "Can use pattern matching to address tasks"() {
         setup:
         settingsFile << "includeBuild('other-build')"
@@ -269,5 +269,9 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":third-build:sub:doSomething")
+    }
+
+    def "Tasks from included build can only be executed from the root of the composite"() {
+
     }
 }
