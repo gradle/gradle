@@ -87,8 +87,8 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public void isolateParameters() {
-        first.isolateParameters();
-        second.isolateParameters();
+    public void isolateParametersIfNotAlready() {
+        first.isolateParametersIfNotAlready();
+        second.isolateParametersIfNotAlready();
     }
 }

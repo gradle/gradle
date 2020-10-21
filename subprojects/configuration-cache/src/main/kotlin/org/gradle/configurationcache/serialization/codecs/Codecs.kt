@@ -133,7 +133,7 @@ class Codecs(
         bind(TransformationNodeReferenceCodec)
         bind(TransformationStepCodec(fingerprinterRegistry))
         bind(TransformationChainCodec())
-        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
+        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme, fingerprinterRegistry))
         bind(LegacyTransformerCodec(actionScheme))
         bind(ResolvableArtifactCodec)
         bind(TransformDependenciesCodec)
@@ -187,7 +187,7 @@ class Codecs(
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
         bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
         bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
-        bind(IsolateTransformerParametersNodeCodec(userTypesCodec))
+        bind(IsolateTransformerParametersNodeCodec(userTypesCodec, fingerprinterRegistry))
         bind(WorkNodeActionCodec)
         bind(ActionNodeCodec)
 

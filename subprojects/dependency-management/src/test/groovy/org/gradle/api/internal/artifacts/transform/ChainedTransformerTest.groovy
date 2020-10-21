@@ -58,7 +58,7 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        void isolateParameters() {
+        void isolateParametersIfNotAlready() {
         }
 
         @Override

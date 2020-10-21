@@ -18,17 +18,18 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.SelfExecutingNode;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.ValueCalculator;
@@ -107,20 +108,20 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     public Try<TransformationSubject> getTransformedSubject() {
-        return getResult().getValue();
+        return getTransformedArtifacts().getValue();
     }
 
     @Override
     public void execute(NodeExecutionContext context) {
-        getResult().calculateNow(context);
+        getTransformedArtifacts().calculateIfNotAlready(context);
     }
 
     public void executeIfNotAlready() {
-        transformationStep.isolateParameters();
-        getResult().calculateNow(null);
+        transformationStep.isolateParametersIfNotAlready();
+        getTransformedArtifacts().calculateIfNotAlready(null);
     }
 
-    protected abstract CalculatedValueContainer<TransformationSubject, ?> getResult();
+    protected abstract CalculatedValueContainer<TransformationSubject, ?> getTransformedArtifacts();
 
     @Override
     public Set<Node> getFinalizers() {
@@ -163,7 +164,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, getResult()));
+        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
     }
 
     protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
@@ -178,11 +179,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
         public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
             super(transformationStep, artifacts, dependenciesResolver);
-            result = new CalculatedValueContainer<>(new TransformInitialArtifact(buildOperationExecutor));
+            result = CalculatedValueContainer.of(Describables.of(this), new TransformInitialArtifact(buildOperationExecutor));
         }
 
         @Override
-        protected CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> getResult() {
+        protected CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> getTransformedArtifacts() {
             return result;
         }
 
@@ -194,8 +195,15 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             }
 
             @Override
-            public DisplayName getDisplayName() {
-                return Describables.of(InitialTransformationNode.this);
+            public boolean usesMutableProjectState() {
+                // Transforms do not require access to any mutable model state
+                return false;
+            }
+
+            @Nullable
+            @Override
+            public Project getOwningProject() {
+                return null;
             }
 
             @Override
@@ -238,7 +246,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
             super(transformationStep, previousTransformationNode.artifacts, dependenciesResolver);
             this.previousTransformationNode = previousTransformationNode;
-            result = new CalculatedValueContainer<>(new TransformPreviousArtifacts(buildOperationExecutor));
+            result = CalculatedValueContainer.of(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
         }
 
         public TransformationNode getPreviousTransformationNode() {
@@ -246,7 +254,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         }
 
         @Override
-        protected CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> getResult() {
+        protected CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> getTransformedArtifacts() {
             return result;
         }
 
@@ -258,8 +266,15 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             }
 
             @Override
-            public DisplayName getDisplayName() {
-                return Describables.of(ChainedTransformationNode.this);
+            public boolean usesMutableProjectState() {
+                // Transforms do not require access to any mutable model state
+                return false;
+            }
+
+            @Nullable
+            @Override
+            public Project getOwningProject() {
+                return null;
             }
 
             @Override

@@ -165,7 +165,12 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         }
 
         @Override
-        public Project getProject() {
+        public boolean usesMutableProjectState() {
+            return owner.getProject() != null;
+        }
+
+        @Override
+        public Project getOwningProject() {
             return owner.getProject();
         }
 

@@ -114,14 +114,8 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public void isolateParameters() {
-        isolateTransformerParameters(globalFingerprinterRegistry);
-    }
-
-    private void isolateTransformerParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-        if (!transformer.isIsolated()) {
-            transformer.isolateParameters(fingerprinterRegistry);
-        }
+    public void isolateParametersIfNotAlready() {
+        transformer.isolateParametersIfNotAlready();
     }
 
     @Override
@@ -145,7 +139,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
 
     @Override
     public String toString() {
-        return String.format("%s@%s", transformer.getDisplayName(), transformer.getSecondaryInputHash());
+        return transformer.getDisplayName();
     }
 
     @Override

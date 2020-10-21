@@ -292,11 +292,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
-        public void forceAccessToMutableState(Consumer<? super ProjectInternal> action) {
+        public <S> S forceAccessToMutableState(Function<? super ProjectInternal, ? extends S> factory) {
             Thread currentThread = Thread.currentThread();
             boolean added = canDoAnythingToThisProject.add(currentThread);
             try {
-                action.accept(getMutableModel());
+                return factory.apply(getMutableModel());
             } finally {
                 if (added) {
                     canDoAnythingToThisProject.remove(currentThread);

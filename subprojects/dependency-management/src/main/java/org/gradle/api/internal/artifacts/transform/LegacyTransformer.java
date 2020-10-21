@@ -130,7 +130,7 @@ public class LegacyTransformer extends AbstractTransformer<org.gradle.api.artifa
     }
 
     @Override
-    public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+    public void isolateParametersIfNotAlready() {
     }
 
     private org.gradle.api.artifacts.transform.ArtifactTransform newTransformer() {

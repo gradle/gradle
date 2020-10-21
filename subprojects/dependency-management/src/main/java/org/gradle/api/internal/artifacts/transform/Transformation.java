@@ -54,5 +54,5 @@ public interface Transformation extends Describable {
     /**
      * Isolates the parameters of this transformation, if not already.
      */
-    void isolateParameters();
+    void isolateParametersIfNotAlready();
 }

@@ -23,20 +23,22 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codecs.BindingsBackedCodec
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withCodec
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 
 
 class IsolateTransformerParametersNodeCodec(
-    val userTypesCodec: BindingsBackedCodec
-) : Codec<DefaultTransformer.IsolateTransformerParametersNode> {
-    override suspend fun WriteContext.encode(value: DefaultTransformer.IsolateTransformerParametersNode) {
+    val userTypesCodec: BindingsBackedCodec,
+    val fingerprinterRegistry: FileCollectionFingerprinterRegistry
+) : Codec<DefaultTransformer.IsolateTransformerParameters> {
+    override suspend fun WriteContext.encode(value: DefaultTransformer.IsolateTransformerParameters) {
         withCodec(userTypesCodec) {
             write(value.transformer)
         }
     }
 
-    override suspend fun ReadContext.decode(): DefaultTransformer.IsolateTransformerParametersNode? {
+    override suspend fun ReadContext.decode(): DefaultTransformer.IsolateTransformerParameters? {
         val transformer = withCodec(userTypesCodec) { readNonNull<DefaultTransformer>() }
 
-        return DefaultTransformer.IsolateTransformerParametersNode(transformer)
+        return DefaultTransformer.IsolateTransformerParameters(transformer, fingerprinterRegistry)
     }
 }

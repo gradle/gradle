@@ -156,6 +156,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             parametersPropertyWalker,
             actionInstantiationScheme,
             owner,
+            fileCollectionFingerprinterRegistry,
             internalServices);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, fileCollectionFingerprinterRegistry));

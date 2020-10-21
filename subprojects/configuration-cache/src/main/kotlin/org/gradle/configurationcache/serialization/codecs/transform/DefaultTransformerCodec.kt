@@ -33,6 +33,7 @@ import org.gradle.configurationcache.serialization.decodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.Isolatable
@@ -51,7 +52,8 @@ class DefaultTransformerCodec(
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileLookup: FileLookup,
     private val parameterScheme: ArtifactTransformParameterScheme,
-    private val actionScheme: ArtifactTransformActionScheme
+    private val actionScheme: ArtifactTransformActionScheme,
+    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry
 ) : Codec<DefaultTransformer> {
 
     override suspend fun WriteContext.encode(value: DefaultTransformer) {
@@ -112,6 +114,7 @@ class DefaultTransformerCodec(
                 parameterScheme.inspectionScheme.propertyWalker,
                 actionScheme.instantiationScheme,
                 RootScriptDomainObjectContext.INSTANCE,
+                fingerprinterRegistry,
                 isolate.owner.service(ServiceRegistry::class.java)
             )
         }

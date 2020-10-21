@@ -40,9 +40,9 @@ object WorkNodeActionCodec : Codec<WorkNodeAction> {
     override suspend fun ReadContext.decode(): WorkNodeAction {
         // TODO - should discard from graph instead
         return object : WorkNodeAction {
-            override fun getProject(): Project? {
-                return null
-            }
+            override fun usesMutableProjectState() = false
+
+            override fun getOwningProject(): Project? = null
 
             override fun visitDependencies(context: TaskDependencyResolveContext) {
             }

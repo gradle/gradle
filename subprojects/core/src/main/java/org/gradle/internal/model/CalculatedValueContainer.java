@@ -16,9 +16,10 @@
 
 package org.gradle.internal.model;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 
@@ -28,19 +29,47 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Represents a calculated immutable value that should be calculated once and then consumed by multiple threads.
  *
- * <p>This type is intended to represent values that are calculated as nodes in the work graph, but which may also be calculated
- * on demand.
+ * <p>This type is intended to contain values that are calculated as nodes in the work graph, but which may also be calculated
+ * on demand. An instance of this type can be used as a node in the work graph.
+ * </p>
+ *
+ * <p>Note that when used as a work node, any failure to calculate the value is collected and not rethrown. This means that the node is considered to have succeeded and any dependent
+ * nodes will execute, and the exception will be rethrown when the value is queried.
  * </p>
  */
 @ThreadSafe
-public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements TaskDependencyContainer {
+public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements WorkNodeAction {
     private final DisplayName displayName;
     private volatile S supplier;
     private volatile Try<T> result;
 
-    public CalculatedValueContainer(S supplier) {
+    private CalculatedValueContainer(DisplayName displayName, S supplier) {
+        this.displayName = displayName;
         this.supplier = supplier;
-        this.displayName = supplier.getDisplayName();
+    }
+
+    private CalculatedValueContainer(DisplayName displayName, T value) {
+        this.displayName = displayName;
+        this.result = Try.successful(value);
+    }
+
+    /**
+     * Creates a container for a value that is yet to be produced.
+     */
+    public static <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> of(DisplayName displayName, S supplier) {
+        return new CalculatedValueContainer<>(displayName, supplier);
+    }
+
+    /**
+     * Creates a container for a value that has already been produced. For example, the value might have been restored from the configuration cache.
+     */
+    public static <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> of(DisplayName displayName, T value) {
+        return new CalculatedValueContainer<>(displayName, value);
+    }
+
+    @Override
+    public String toString() {
+        return displayName.getCapitalizedDisplayName();
     }
 
     /**
@@ -48,6 +77,18 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      */
     public T get() throws IllegalStateException {
         return getValue().get();
+    }
+
+    /**
+     * Returns the value, or null if it has not been calculated. Does not calculate the value on demand.
+     */
+    public T getOrNull() {
+        Try<T> result = this.result;
+        if (result != null) {
+            return result.get();
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -73,17 +114,36 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
+    public boolean usesMutableProjectState() {
+        return getSupplier().usesMutableProjectState();
+    }
+
+    @Override
+    public Project getOwningProject() {
+        return getSupplier().getOwningProject();
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         getSupplier().visitDependencies(context);
     }
 
     /**
-     * Calculates the value, if not already calculated.
+     * Calculates the value, if not already calculated. Collects and does not rethrow failures.
      */
-    public void calculateNow(@Nullable NodeExecutionContext context) {
+    @Override
+    public void run(NodeExecutionContext context) {
+        calculateIfNotAlready(context);
+    }
+
+    /**
+     * Calculates the value, if not already calculated. Collects and does not rethrow failures.
+     */
+    public void calculateIfNotAlready(@Nullable NodeExecutionContext context) {
         synchronized (this) {
             if (result == null) {
                 result = Try.ofFailable(() -> supplier.calculateValue(context));
+                // Discard the supplier
                 supplier = null;
             }
         }

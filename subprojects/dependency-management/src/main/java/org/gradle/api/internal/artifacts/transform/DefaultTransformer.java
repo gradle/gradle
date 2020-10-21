@@ -36,7 +36,6 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -47,6 +46,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.Describables;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
@@ -63,8 +63,9 @@ import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.model.CalculatedModelValue;
+import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -109,8 +110,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     private final InstanceFactory<? extends TransformAction<?>> instanceFactory;
     private final boolean cacheable;
 
-    private final WorkNodeAction isolateAction;
-    private final CalculatedModelValue<IsolatedParameters> isolatedParameters;
+    private final CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters;
 
     public DefaultTransformer(
         Class<? extends TransformAction<?>> implementationClass,
@@ -129,12 +129,12 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         PropertyWalker parameterPropertyWalker,
         InstantiationScheme actionInstantiationScheme,
         DomainObjectContext owner,
+        FileCollectionFingerprinterRegistry globalFingerprinterRegistry,
         ServiceLookup internalServices
     ) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
         this.owner = owner;
-        this.isolatedParameters = owner.getModel().newCalculatedValue(isolatedParameters);
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -149,7 +149,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
-        this.isolateAction = isIsolated() ? null : new IsolateTransformerParametersNode(this);
+        if (isolatedParameters == null) {
+            this.isolatedParameters = CalculatedValueContainer.of(Describables.of("parameters of", this), new IsolateTransformerParameters(this, globalFingerprinterRegistry));
+        } else {
+            this.isolatedParameters = CalculatedValueContainer.of(Describables.of("parameters of", this), isolatedParameters);
+        }
     }
 
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
@@ -208,11 +212,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(isolateAction);
+        context.add(isolatedParameters);
     }
 
     @Override
-    public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+    public void isolateParametersIfNotAlready() {
+        isolatedParameters.calculateIfNotAlready(null);
+    }
+
+    private IsolatedParameters isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         ModelContainer<?> model = owner.getModel();
         if (!model.hasMutableState()) {
             // This may happen when a task visits artifacts using a FileCollection instance created from a Configuration instance in a different project (not an artifact produced by a different project, these work fine)
@@ -230,24 +238,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             // when performed from a worker thread (see DefaultBuildOperationQueue.waitForCompletion() which intentionally does not release the project locks while waiting)
             // TODO - add validation to fail eagerly when a worker attempts to lock a project
             //
-            model.forceAccessToMutableState(o -> doIsolateParameters(fingerprinterRegistry));
+            return model.forceAccessToMutableState(o -> doIsolateParameters(fingerprinterRegistry));
         } else {
-            doIsolateParameters(fingerprinterRegistry);
+            return doIsolateParameters(fingerprinterRegistry);
         }
     }
 
-    private void doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+    private IsolatedParameters doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         try {
-            isolatedParameters.update(current -> {
-                if (current != null) {
-                    // Already isolated. This can happen when a given transformer is shared by the inputs of multiple tasks of the same project and these tasks run in parallel due to
-                    // the configuration cache being enabled. In this case, multiple worker threads may attempt to isolate the transformer parameters.
-                    // It would be better to ensure that there is always an isolation node in the execution graph on which all of the consuming tasks depend and assert that the transform
-                    // has been isolated by the time the transform needs to run
-                    return current;
-                }
-                return isolateParametersExclusively(fingerprinterRegistry);
-            });
+            return isolateParametersExclusively(fingerprinterRegistry);
         } catch (Exception e) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Could not isolate parameters ").appendValue(parameterObject).append(" of artifact transform ").appendType(getImplementationClass());
@@ -514,25 +513,27 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         }
     }
 
-    public static class IsolateTransformerParametersNode implements WorkNodeAction {
+    public static class IsolateTransformerParameters implements ValueCalculator<IsolatedParameters> {
         private final DefaultTransformer transformer;
+        private final FileCollectionFingerprinterRegistry globalFingerprinterRegistry;
 
-        public IsolateTransformerParametersNode(DefaultTransformer transformer) {
+        public IsolateTransformerParameters(DefaultTransformer transformer, FileCollectionFingerprinterRegistry globalFingerprinterRegistry) {
             this.transformer = transformer;
-        }
-
-        @Override
-        public String toString() {
-            return "isolate parameters of transform " + transformer.getDisplayName();
+            this.globalFingerprinterRegistry = globalFingerprinterRegistry;
         }
 
         public DefaultTransformer getTransformer() {
             return transformer;
         }
 
+        @Override
+        public boolean usesMutableProjectState() {
+            return transformer.owner.getProject() != null;
+        }
+
         @Nullable
         @Override
-        public Project getProject() {
+        public Project getOwningProject() {
             return transformer.owner.getProject();
         }
 
@@ -549,9 +550,14 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         }
 
         @Override
-        public void run(NodeExecutionContext context) {
-            FileCollectionFingerprinterRegistry fingerprinterRegistry = context.getService(FileCollectionFingerprinterRegistry.class);
-            transformer.isolateParameters(fingerprinterRegistry);
+        public IsolatedParameters calculateValue(@Nullable NodeExecutionContext context) {
+            FileCollectionFingerprinterRegistry fingerprinterRegistry;
+            if (context != null) {
+                fingerprinterRegistry = context.getService(FileCollectionFingerprinterRegistry.class);
+            } else {
+                fingerprinterRegistry = globalFingerprinterRegistry;
+            }
+            return transformer.isolateParameters(fingerprinterRegistry);
         }
     }
 

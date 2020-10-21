@@ -75,7 +75,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         }
 
         // Isolate the transformation parameters, if not already done
-        transformation.isolateParameters();
+        transformation.isolateParametersIfNotAlready();
 
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
         Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver, transformationNodeRegistry));

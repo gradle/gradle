@@ -64,7 +64,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     HashCode getSecondaryInputHash();
 
-    void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry);
+    void isolateParametersIfNotAlready();
 
     Class<? extends FileNormalizer> getInputArtifactNormalizer();
 
