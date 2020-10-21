@@ -21,6 +21,7 @@ include::dependency_version_alignment.adoc[leveloffset=+1]
 include::dependency_capability_conflict.adoc[leveloffset=+1]
 include::component_metadata_rules.adoc[leveloffset=+1]
 include::resolution_rules.adoc[leveloffset=+1]
+include::consistent_resolution.adoc[leveloffset=+1]
 
 = Producing and Consuming Variants of Libraries
 include::component_capabilities.adoc[leveloffset=+1]
