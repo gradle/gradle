@@ -1,0 +1,164 @@
+
+> Task :dependencyInsight
+io.vertx:vertx-lang-groovy:3.9.4
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+
+io.vertx:vertx-lang-groovy:3.9.4
+\--- runtimeClasspath
+
+io.vertx:vertx-lang-groovy-gen:3.9.4
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+
+io.vertx:vertx-lang-groovy-gen:3.9.4
+\--- io.vertx:vertx-lang-groovy:3.9.4
+     \--- runtimeClasspath
+
+org.codehaus.groovy:groovy:3.0.1
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+   Selection reasons:
+      - By constraint : version resolved in configuration ':compileClasspath' by consistent resolution
+      - By ancestor
+
+org.codehaus.groovy:groovy:3.0.1
+\--- runtimeClasspath
+
+org.codehaus.groovy:groovy:{strictly 3.0.1} -> 3.0.1
+\--- runtimeClasspath
+
+org.codehaus.groovy:groovy:3.0.2 -> 3.0.1
++--- io.vertx:vertx-lang-groovy:3.9.4
+|    \--- runtimeClasspath
++--- io.vertx:vertx-lang-groovy-gen:3.9.4
+|    \--- io.vertx:vertx-lang-groovy:3.9.4 (*)
++--- org.codehaus.groovy:groovy-console:3.0.2
+|    \--- io.vertx:vertx-lang-groovy-gen:3.9.4 (*)
++--- org.codehaus.groovy:groovy-json:3.0.2
+|    \--- io.vertx:vertx-lang-groovy:3.9.4 (*)
++--- org.codehaus.groovy:groovy-swing:3.0.2
+|    \--- org.codehaus.groovy:groovy-console:3.0.2 (*)
++--- org.codehaus.groovy:groovy-templates:3.0.2
+|    \--- org.codehaus.groovy:groovy-console:3.0.2 (*)
+\--- org.codehaus.groovy:groovy-xml:3.0.2
+     \--- org.codehaus.groovy:groovy-templates:3.0.2 (*)
+
+org.codehaus.groovy:groovy-console:3.0.2
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+
+org.codehaus.groovy:groovy-console:3.0.2
+\--- io.vertx:vertx-lang-groovy-gen:3.9.4
+     \--- io.vertx:vertx-lang-groovy:3.9.4
+          \--- runtimeClasspath
+
+org.codehaus.groovy:groovy-json:3.0.2
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+
+org.codehaus.groovy:groovy-json:3.0.2
+\--- io.vertx:vertx-lang-groovy:3.9.4
+     \--- runtimeClasspath
+
+org.codehaus.groovy:groovy-swing:3.0.2
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+
+org.codehaus.groovy:groovy-swing:3.0.2
+\--- org.codehaus.groovy:groovy-console:3.0.2
+     \--- io.vertx:vertx-lang-groovy-gen:3.9.4
+          \--- io.vertx:vertx-lang-groovy:3.9.4
+               \--- runtimeClasspath
+
+org.codehaus.groovy:groovy-templates:3.0.2
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+
+org.codehaus.groovy:groovy-templates:3.0.2
+\--- org.codehaus.groovy:groovy-console:3.0.2
+     \--- io.vertx:vertx-lang-groovy-gen:3.9.4
+          \--- io.vertx:vertx-lang-groovy:3.9.4
+               \--- runtimeClasspath
+
+org.codehaus.groovy:groovy-xml:3.0.2
+   variant "runtime" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-runtime
+      org.gradle.libraryelements     = jar
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version = 11
+   ]
+
+org.codehaus.groovy:groovy-xml:3.0.2
+\--- org.codehaus.groovy:groovy-templates:3.0.2
+     \--- org.codehaus.groovy:groovy-console:3.0.2
+          \--- io.vertx:vertx-lang-groovy-gen:3.9.4
+               \--- io.vertx:vertx-lang-groovy:3.9.4
+                    \--- runtimeClasspath
+
+(*) - dependencies omitted (listed previously)
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

@@ -45,6 +45,18 @@ import org.gradle.samples.test.runner.SamplesOutputNormalizers;
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class
 })
+/*
+ * To run the samples tests:
+ *
+ * Say you want to run the snippet found at:
+ *    src/snippets/dependencyManagement/customizingResolution-consistentResolution
+ *
+ * then you can run the followng command line:
+ *
+ * ./gradlew :docs:docsTest --tests "*.snippet-dependency-management-customizing-resolution-consistent-resolution*"
+ *
+ * which would run both Groovy and Kotlin tests.
+ */
 abstract class BaseSamplesTest {
 }
 

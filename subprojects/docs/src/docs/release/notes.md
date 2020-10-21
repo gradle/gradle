@@ -123,6 +123,26 @@ dependencyResolutionManagement {
 
 You can learn more about declaring rules globally in the [user manual](userguide/component_metadata_rules.html#sec:rules_in_settings).
 
+### Consistent dependency resolution
+
+It's a common problem that the dependencies resolved for the runtime have different versions than the dependencies resolved for compile time.
+This typically happens whenever a transitive dependency brings in a higher version of a first level dependency, and that this transitive dependency is only added at runtime.
+
+To mitigate this problem, Gradle now introduces an API which lets you declare consistency between configurations of a project.
+For example, in the Java ecosystem, you can write:
+
+```
+java {
+    consistentResolution {
+        useCompileClasspathVersions()
+    }
+}
+```
+
+which tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be "aligned" to the versions used at compile time.
+
+There are many configuration options which are described in the [user manual](userguide/consistent_resolution.html).
+
 ## New features and usability improvements
 
 ### Implicit imports
