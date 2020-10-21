@@ -173,7 +173,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment and composite builds")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def "resolved configurations of composite builds as build dependencies are exposed"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
