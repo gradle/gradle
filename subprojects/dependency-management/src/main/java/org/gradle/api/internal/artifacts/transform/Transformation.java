@@ -39,7 +39,7 @@ public interface Transformation extends Describable {
      * Creating the invocation is not for free, since the workspace identity needs to be determined.
      * This requires snapshotting the input artifact and its dependencies.
      */
-    CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable NodeExecutionContext context);
+    CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependenciesResolver upstreamDependenciesResolver, @Nullable NodeExecutionContext context);
 
     /**
      * Whether the transformation requires upstream dependencies of the transformed artifact to be injected.

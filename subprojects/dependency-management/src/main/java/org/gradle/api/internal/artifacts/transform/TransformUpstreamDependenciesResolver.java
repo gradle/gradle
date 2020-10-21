@@ -16,33 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.execution.plan.Node;
-import org.gradle.internal.Try;
-
 /**
  * Companion type to {@link TransformationNode} that knows how to compute extra dependent nodes aside from the to be transformed artifact.
  * Instances of this type should not be shared beyond a single transformation chain.
  *
  * @see ExtraExecutionGraphDependenciesResolverFactory
  */
-public interface ExecutionGraphDependenciesResolver {
+public interface TransformUpstreamDependenciesResolver {
     /**
-     * Computes the build dependencies for the given transformation step.
-     *
-     * @param transformationStep the transformation
-     * @return a set of {@link Node}, can be empty
+     * Returns the dependencies that should be applied to the given transformation step.
      */
-    TaskDependencyContainer computeDependencyNodes(TransformationStep transformationStep);
-
-    /**
-     * Returns a collection containing the future dependency artifacts for the given transformation step.
-     */
-    FileCollection selectedArtifacts(Transformer transformer);
-
-    /**
-     * Computes the finalized dependency artifacts for the given transformation step.
-     */
-    Try<ArtifactTransformDependencies> computeArtifacts(Transformer transformer);
+    TransformUpstreamDependencies dependenciesFor(TransformationStep transformationStep);
 }

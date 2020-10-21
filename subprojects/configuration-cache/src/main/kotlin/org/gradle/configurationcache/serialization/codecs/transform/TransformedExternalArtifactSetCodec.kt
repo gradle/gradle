@@ -18,18 +18,15 @@ package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.Transformation
-import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
-import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -40,7 +37,6 @@ import org.gradle.configurationcache.serialization.decodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.Describables
-import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.operations.BuildOperationQueue
@@ -49,7 +45,6 @@ import java.io.File
 
 
 class TransformedExternalArtifactSetCodec(
-    private val transformationNodeRegistry: TransformationNodeRegistry
 ) : Codec<TransformedExternalArtifactSet> {
     override suspend fun WriteContext.encode(value: TransformedExternalArtifactSet) {
         encodePreservingSharedIdentityOf(value) {
@@ -60,7 +55,7 @@ class TransformedExternalArtifactSetCodec(
             write(files)
             write(value.transformation)
             val unpacked = unpackTransformation(value.transformation, value.dependenciesResolver)
-            write(unpacked.dependencies)
+            write(unpacked)
         }
     }
 
@@ -71,32 +66,24 @@ class TransformedExternalArtifactSetCodec(
             val files = readNonNull<List<File>>()
             val transformation = readNonNull<Transformation>()
             val dependencies = readNonNull<List<TransformDependencies>>()
-            val dependenciesPerTransformer = mutableMapOf<Transformer, TransformDependencies>()
+            val dependenciesPerTransformer = mutableMapOf<TransformationStep, TransformDependencies>()
             transformation.visitTransformationSteps {
-                dependenciesPerTransformer[transformer] = dependencies[dependenciesPerTransformer.size]
+                dependenciesPerTransformer[this] = dependencies[dependenciesPerTransformer.size]
             }
-            TransformedExternalArtifactSet(ownerId, FixedFilesArtifactSet(ownerId, files), targetAttributes, transformation, FixedDependenciesResolverFactory(dependenciesPerTransformer), transformationNodeRegistry)
+            TransformedExternalArtifactSet(ownerId, FixedFilesArtifactSet(ownerId, files), targetAttributes, transformation, FixedDependenciesResolverFactory(dependenciesPerTransformer))
         }
     }
 }
 
 
 private
-class FixedDependenciesResolverFactory(private val dependencies: Map<Transformer, TransformDependencies>) : ExtraExecutionGraphDependenciesResolverFactory, ExecutionGraphDependenciesResolver {
-    override fun create(componentIdentifier: ComponentIdentifier): ExecutionGraphDependenciesResolver {
+class FixedDependenciesResolverFactory(private val dependencies: Map<TransformationStep, TransformDependencies>) : ExtraExecutionGraphDependenciesResolverFactory, TransformUpstreamDependenciesResolver {
+    override fun create(componentIdentifier: ComponentIdentifier, transformation: Transformation): TransformUpstreamDependenciesResolver {
         return this
     }
 
-    override fun computeDependencyNodes(transformationStep: TransformationStep): TaskDependencyContainer {
-        throw UnsupportedOperationException("should not be called")
-    }
-
-    override fun selectedArtifacts(transformer: Transformer): FileCollection {
-        throw UnsupportedOperationException("should not be called")
-    }
-
-    override fun computeArtifacts(transformer: Transformer): Try<ArtifactTransformDependencies> {
-        return dependencies.getValue(transformer).recreate().computeArtifacts(transformer)
+    override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {
+        return dependencies.getValue(transformationStep).recreate().dependenciesFor(transformationStep)
     }
 }
 

@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
-import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -97,7 +96,6 @@ class Codecs(
     parameterScheme: ArtifactTransformParameterScheme,
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
-    transformationNodeRegistry: TransformationNodeRegistry,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
@@ -139,7 +137,7 @@ class Codecs(
         bind(TransformDependenciesCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
         bind(TransformedProjectArtifactSetCodec())
-        bind(TransformedExternalArtifactSetCodec(transformationNodeRegistry))
+        bind(TransformedExternalArtifactSetCodec())
         bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory))
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
@@ -187,6 +185,7 @@ class Codecs(
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
         bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
         bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
+        bind(CalculatedValueContainerCodec())
         bind(IsolateTransformerParametersNodeCodec(userTypesCodec, fingerprinterRegistry))
         bind(WorkNodeActionCodec)
         bind(ActionNodeCodec)

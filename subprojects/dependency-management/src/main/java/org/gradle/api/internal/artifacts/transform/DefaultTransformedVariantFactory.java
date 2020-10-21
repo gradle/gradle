@@ -52,13 +52,13 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
         if (identifier == null) {
             // An ad hoc variant, do not cache the result
-            return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
+            return factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory);
         }
         return variants.computeIfAbsent(new VariantWithOverloadAttributes(identifier, target), key -> factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory));
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory);
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {

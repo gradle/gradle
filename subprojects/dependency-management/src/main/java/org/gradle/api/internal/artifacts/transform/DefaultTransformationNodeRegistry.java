@@ -37,7 +37,7 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
     }
 
     @Override
-    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
+    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver) {
         final List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         artifactSet.visitLocalArtifacts(localArtifacts -> {
@@ -58,7 +58,7 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
         return Optional.empty();
     }
 
-    private TransformationNode getOrCreateInternal(ResolvedArtifactSet.LocalArtifactSet localArtifacts, List<Equivalence.Wrapper<TransformationStep>> transformationChain, ExecutionGraphDependenciesResolver dependenciesResolver) {
+    private TransformationNode getOrCreateInternal(ResolvedArtifactSet.LocalArtifactSet localArtifacts, List<Equivalence.Wrapper<TransformationStep>> transformationChain, TransformUpstreamDependenciesResolver dependenciesResolver) {
         ArtifactTransformKey key = new ArtifactTransformKey(localArtifacts.getId(), transformationChain);
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {

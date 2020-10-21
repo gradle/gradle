@@ -17,6 +17,7 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -97,7 +98,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     public Try<T> getValue() throws IllegalStateException {
         Try<T> result = this.result;
         if (result == null) {
-            throw new IllegalStateException(String.format("%s has not been calculated yet.", displayName.getCapitalizedDisplayName()));
+            throw new IllegalStateException(String.format("Value for %s has not been calculated yet.", displayName));
         }
         return result;
     }
@@ -108,7 +109,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     public S getSupplier() throws IllegalStateException {
         S supplier = this.supplier;
         if (supplier == null) {
-            throw new IllegalStateException(String.format("%s has already been calculated.", displayName.getCapitalizedDisplayName()));
+            throw new IllegalStateException(String.format("Value for %s has already been calculated.", displayName));
         }
         return supplier;
     }
@@ -125,7 +126,10 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        getSupplier().visitDependencies(context);
+        S supplier = this.supplier;
+        if (supplier != null) {
+            supplier.visitDependencies(context);
+        } // else, already calculated
     }
 
     /**
@@ -142,7 +146,20 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     public void calculateIfNotAlready(@Nullable NodeExecutionContext context) {
         synchronized (this) {
             if (result == null) {
-                result = Try.ofFailable(() -> supplier.calculateValue(context));
+                result = Try.ofFailable(() -> {
+                    if (supplier.usesMutableProjectState()) {
+                        // Must only be called while holding the lock for the target project
+                        ProjectInternal owningProject = (ProjectInternal) supplier.getOwningProject();
+                        if (!owningProject.getModel().hasMutableState()) {
+                            throw new IllegalStateException(String.format("Cannot calculate value for %s without access to the state of %s.", displayName, owningProject));
+                        }
+                    }
+                    T value = supplier.calculateValue(context);
+                    if (value == null) {
+                        throw new IllegalStateException(String.format("Calculated value for %s cannot be null.", displayName));
+                    }
+                    return value;
+                });
                 // Discard the supplier
                 supplier = null;
             }

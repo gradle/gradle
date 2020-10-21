@@ -37,22 +37,19 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
     private final ResolvedArtifactSet delegate;
     private final ImmutableAttributes targetVariantAttributes;
     private final Transformation transformation;
-    private final TransformationNodeRegistry transformationNodeRegistry;
-    private final ExecutionGraphDependenciesResolver dependenciesResolver;
+    private final TransformUpstreamDependenciesResolver dependenciesResolver;
 
     public AbstractTransformedArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         ImmutableAttributes targetVariantAttributes,
         Transformation transformation,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
     ) {
         this.delegate = delegate;
         this.targetVariantAttributes = targetVariantAttributes;
         this.transformation = transformation;
-        this.transformationNodeRegistry = transformationNodeRegistry;
-        this.dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier);
+        this.dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformation);
     }
 
     public ImmutableAttributes getTargetVariantAttributes() {
@@ -63,7 +60,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         return transformation;
     }
 
-    public ExecutionGraphDependenciesResolver getDependenciesResolver() {
+    public TransformUpstreamDependenciesResolver getDependenciesResolver() {
         return dependenciesResolver;
     }
 
@@ -78,7 +75,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         transformation.isolateParametersIfNotAlready();
 
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver, transformationNodeRegistry));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver));
         return new TransformCompletion(result, targetVariantAttributes, artifactResults);
     }
 

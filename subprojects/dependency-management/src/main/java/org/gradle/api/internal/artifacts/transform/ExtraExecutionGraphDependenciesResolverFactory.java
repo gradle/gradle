@@ -19,15 +19,16 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * Factory for {@link ExecutionGraphDependenciesResolver} that relies on the information provided to its {@code create} method.
+ * Factory for {@link TransformUpstreamDependenciesResolver} that relies on the information provided to its {@code create} method.
  */
 public interface ExtraExecutionGraphDependenciesResolverFactory {
     /**
-     * Creates a {@link ExecutionGraphDependenciesResolver} based on the provided {@code ComponentIdentifier} and {@code Transformation}.
+     * Creates a {@link TransformUpstreamDependenciesResolver} for the given {@code ComponentIdentifier} and {@code Transformation}.
      *
-     * @param componentIdentifier the identifier of the artifact under transform
+     * @param componentIdentifier the identifier of the component whose artifacts will be transformed.
+     * @param transformation the transformation that will be applied.
      *
      * @return an {@code ExecutionGraphDependenciesResolver} based on the provided parameters
      */
-    ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier);
+    TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation);
 }

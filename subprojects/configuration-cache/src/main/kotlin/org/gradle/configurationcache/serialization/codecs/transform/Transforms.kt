@@ -19,13 +19,13 @@ package org.gradle.configurationcache.serialization.codecs.transform
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.DefaultExecutionGraphDependenciesResolver
-import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver
+import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
-import org.gradle.api.internal.artifacts.transform.Transformer
-import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -33,16 +33,16 @@ import org.gradle.internal.Try
 
 
 sealed class TransformDependencies {
-    abstract fun recreate(): ExecutionGraphDependenciesResolver
+    abstract fun recreate(): TransformUpstreamDependenciesResolver
 
     object NotRequired : TransformDependencies() {
-        override fun recreate(): ExecutionGraphDependenciesResolver {
-            return FixedDependenciesResolver(DefaultExecutionGraphDependenciesResolver.MISSING_DEPENDENCIES)
+        override fun recreate(): TransformUpstreamDependenciesResolver {
+            return DefaultExtraExecutionGraphDependenciesResolverFactory.NO_DEPENDENCIES_RESOLVER
         }
     }
 
     class FileDependencies(val files: FileCollection) : TransformDependencies() {
-        override fun recreate(): ExecutionGraphDependenciesResolver {
+        override fun recreate(): TransformUpstreamDependenciesResolver {
             return FixedDependenciesResolver(DefaultArtifactTransformDependencies(files))
         }
     }
@@ -69,21 +69,18 @@ object TransformDependenciesCodec : Codec<TransformDependencies> {
 }
 
 
-class TransformationSpec(val transformation: Transformation, val dependencies: List<TransformDependencies>)
-
-
-fun unpackTransformation(transformation: Transformation, dependenciesResolver: ExecutionGraphDependenciesResolver): TransformationSpec {
+fun unpackTransformation(transformation: Transformation, dependenciesResolver: TransformUpstreamDependenciesResolver): List<TransformDependencies> {
     val dependencies = mutableListOf<TransformDependencies>()
     transformation.visitTransformationSteps {
-        dependencies.add(transformDependencies(transformer, dependenciesResolver))
+        dependencies.add(transformDependencies(this, dependenciesResolver.dependenciesFor(this)))
     }
-    return TransformationSpec(transformation, dependencies)
+    return dependencies
 }
 
 
-fun transformDependencies(transformer: Transformer, dependenciesResolver: ExecutionGraphDependenciesResolver): TransformDependencies {
-    return if (transformer.requiresDependencies()) {
-        TransformDependencies.FileDependencies(dependenciesResolver.selectedArtifacts(transformer))
+fun transformDependencies(transformation: TransformationStep, upstreamDependencies: TransformUpstreamDependencies): TransformDependencies {
+    return if (transformation.requiresDependencies()) {
+        TransformDependencies.FileDependencies(upstreamDependencies.selectedArtifacts())
     } else {
         TransformDependencies.NotRequired
     }
@@ -91,20 +88,24 @@ fun transformDependencies(transformer: Transformer, dependenciesResolver: Execut
 
 
 fun transformDependencies(node: TransformationNode): TransformDependencies {
-    return transformDependencies(node.transformationStep.transformer, node.dependenciesResolver)
+    return transformDependencies(node.transformationStep, node.upstreamDependencies)
 }
 
 
-class FixedDependenciesResolver(private val dependencies: ArtifactTransformDependencies) : ExecutionGraphDependenciesResolver {
-    override fun computeDependencyNodes(transformationStep: TransformationStep): TaskDependencyContainer {
-        throw IllegalStateException()
+class FixedDependenciesResolver(private val dependencies: ArtifactTransformDependencies) : TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
+    override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {
+        return this
     }
 
-    override fun selectedArtifacts(transformer: Transformer): FileCollection {
+    override fun visitDependencies(context: TaskDependencyResolveContext) {
+        throw IllegalStateException("Should not be called")
+    }
+
+    override fun selectedArtifacts(): FileCollection {
         return dependencies.files
     }
 
-    override fun computeArtifacts(transformer: Transformer): Try<ArtifactTransformDependencies> {
+    override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
         return Try.successful(dependencies)
     }
 }

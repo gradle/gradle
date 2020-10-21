@@ -53,7 +53,7 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     ) {
         this.componentIdentifier = componentIdentifier;
         this.targetAttributes = targetAttributes;
-        this.transformedArtifacts = transformationNodeRegistry.getOrCreate(delegate, transformation, dependenciesResolverFactory.create(componentIdentifier));
+        this.transformedArtifacts = transformationNodeRegistry.getOrCreate(delegate, transformation, dependenciesResolverFactory.create(componentIdentifier, transformation));
     }
 
     public TransformedProjectArtifactSet(ComponentIdentifier componentIdentifier, ImmutableAttributes targetAttributes, Collection<TransformationNode> transformedArtifacts) {

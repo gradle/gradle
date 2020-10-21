@@ -35,10 +35,9 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
         ResolvedArtifactSet delegate,
         ImmutableAttributes target,
         Transformation transformation,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
     ) {
-        super(componentIdentifier, delegate, target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
+        super(componentIdentifier, delegate, target, transformation, dependenciesResolverFactory);
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
     }
@@ -49,7 +48,7 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        getTransformation().visitTransformationSteps(step -> context.add(getDependenciesResolver().computeDependencyNodes(step)));
+        getTransformation().visitTransformationSteps(step -> context.add(getDependenciesResolver().dependenciesFor(step)));
     }
 
     public void visitArtifacts(Action<ResolvableArtifact> visitor) {

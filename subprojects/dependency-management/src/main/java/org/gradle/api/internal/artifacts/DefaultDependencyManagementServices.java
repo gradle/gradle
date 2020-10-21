@@ -88,7 +88,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistra
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.Transformation;
@@ -248,7 +248,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         TransformationNodeRegistry createTransformationNodeRegistry() {
             return new TransformationNodeRegistry() {
                 @Override
-                public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
+                public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver) {
                     throw new UnsupportedOperationException("Cannot schedule transforms for build script dependencies");
                 }
 

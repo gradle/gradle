@@ -26,12 +26,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Optional;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
-    private final ExecutionGraphDependenciesResolver dependenciesResolver;
-    private final TransformationNodeRegistry transformationNodeRegistry;
+    private final TransformUpstreamDependenciesResolver dependenciesResolver;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final Transformation transformation;
 
@@ -39,28 +37,21 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.As
         Transformation transformation,
         BuildOperationQueue<RunnableBuildOperation> actions,
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
-        ExecutionGraphDependenciesResolver dependenciesResolver,
-        TransformationNodeRegistry transformationNodeRegistry
+        TransformUpstreamDependenciesResolver dependenciesResolver
     ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transformation = transformation;
         this.dependenciesResolver = dependenciesResolver;
-        this.transformationNodeRegistry = transformationNodeRegistry;
     }
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
-        Optional<TransformationNode> node = transformationNodeRegistry.getIfExecuted(artifactId, transformation);
-        if (node.isPresent()) {
-            artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
-        } else {
-            File file = artifact.getFile();
-            TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
-            TransformationResult result = createTransformationResult(initialSubject);
-            artifactResults.put(artifactId, result);
-        }
+        File file = artifact.getFile();
+        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
+        TransformationResult result = createTransformationResult(initialSubject);
+        artifactResults.put(artifactId, result);
     }
 
     @Override

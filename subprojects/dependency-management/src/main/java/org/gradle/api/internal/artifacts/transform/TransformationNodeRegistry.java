@@ -25,7 +25,7 @@ import java.util.Optional;
 public interface TransformationNodeRegistry {
     TransformationNodeRegistry EMPTY = new TransformationNodeRegistry() {
         @Override
-        public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver) {
             throw new UnsupportedOperationException();
         }
 
@@ -35,7 +35,7 @@ public interface TransformationNodeRegistry {
         }
     };
 
-    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver);
+    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver);
 
     Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation);
 }

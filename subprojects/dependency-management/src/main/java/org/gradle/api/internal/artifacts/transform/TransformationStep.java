@@ -74,14 +74,18 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable NodeExecutionContext context) {
+    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependenciesResolver upstreamDependenciesResolver, @Nullable NodeExecutionContext context) {
+        return createInvocation(subjectToTransform, upstreamDependenciesResolver.dependenciesFor(this), context);
+    }
+
+    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
 
         FileCollectionFingerprinterRegistry fingerprinterRegistry = context != null ? context.getService(FileCollectionFingerprinterRegistry.class) : globalFingerprinterRegistry;
 
-        Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.computeArtifacts(transformer);
+        Try<ArtifactTransformDependencies> resolvedDependencies = upstreamDependencies.computeArtifacts();
         return resolvedDependencies
             .map(dependencies -> {
                 ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();

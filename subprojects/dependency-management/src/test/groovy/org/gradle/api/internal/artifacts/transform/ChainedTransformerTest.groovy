@@ -30,7 +30,7 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new TestTransformation("first"), new TestTransformation("second"))
 
         expect:
-        chain.createInvocation(initialSubject, Mock(ExecutionGraphDependenciesResolver), null).invoke().get().files == [new File("foo/first/second")]
+        chain.createInvocation(initialSubject, Mock(TransformUpstreamDependenciesResolver), null).invoke().get().files == [new File("foo/first/second")]
     }
 
     class TestTransformation implements Transformation {
@@ -42,7 +42,7 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
+        CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
             return CacheableInvocation.cached(Try.successful(
                 subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), name)))
             ))

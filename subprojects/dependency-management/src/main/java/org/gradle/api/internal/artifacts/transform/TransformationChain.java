@@ -65,7 +65,7 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
+    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
         CacheableInvocation<TransformationSubject> invocation = first.createInvocation(subjectToTransform, dependenciesResolver, context);
         return invocation.flatMap(intermediate -> second.createInvocation(intermediate, dependenciesResolver, context));
     }

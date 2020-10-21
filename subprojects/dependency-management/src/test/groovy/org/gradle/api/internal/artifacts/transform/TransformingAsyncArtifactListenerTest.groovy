@@ -30,7 +30,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
     def operationQueue = Mock(BuildOperationQueue)
     def transformationNodeRegistry = Mock(TransformationNodeRegistry)
-    def listener  = new TransformingAsyncArtifactListener(transformation, operationQueue, Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
+    def listener  = new TransformingAsyncArtifactListener(transformation, operationQueue, Maps.newHashMap(), Mock(TransformUpstreamDependenciesResolver), transformationNodeRegistry)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -57,7 +57,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.empty()
-        1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as ExecutionGraphDependenciesResolver, _) >> invocation
+        1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependenciesResolver, _) >> invocation
         1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(file)))
     }
 
@@ -68,6 +68,6 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         then:
         1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.of(node)
         1 * node.getTransformedSubject() >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
-        0 * transformation.createInvocation(_, _ as ExecutionGraphDependenciesResolver, _)
+        0 * transformation.createInvocation(_, _ as TransformUpstreamDependenciesResolver, _)
     }
 }
