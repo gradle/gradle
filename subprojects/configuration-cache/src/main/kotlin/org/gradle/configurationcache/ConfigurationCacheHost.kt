@@ -72,7 +72,7 @@ class ConfigurationCacheHost internal constructor(
         DefaultVintageGradleBuild(gradle)
 
     override fun createBuild(rootProjectName: String): ConfigurationCacheBuild =
-        DefaultConfigurationCacheBuild(gradle, gradle.serviceOf(), rootProjectName)
+        DefaultConfigurationCacheBuild(gradle, service(), rootProjectName)
 
     override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -82,7 +82,6 @@ class ConfigurationCacheHost internal constructor(
 
     private
     class DefaultVintageGradleBuild(override val gradle: GradleInternal) : VintageGradleBuild {
-
         override val scheduledWork: List<Node>
             get() = gradle.taskGraph.scheduledWorkPlusDependencies
     }
@@ -104,8 +103,8 @@ class ConfigurationCacheHost internal constructor(
                     SettingsPreparer {
                         settings = processSettings()
                     },
-                    serviceOf<BuildOperationExecutor>(),
-                    serviceOf<BuildDefinition>().fromBuild
+                    service<BuildOperationExecutor>(),
+                    service<BuildDefinition>().fromBuild
                 )
                 settingsPreparer.prepareSettings(this)
 
@@ -130,7 +129,7 @@ class ConfigurationCacheHost internal constructor(
 
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
-            gradle.serviceOf<ProjectStateRegistry>().registerProjects(service<BuildState>())
+            service<ProjectStateRegistry>().registerProjects(service<BuildState>())
             val rootProjectDescriptor = projectDescriptorRegistry.rootProject!!
             val rootProject = createProject(rootProjectDescriptor, null)
             gradle.rootProject = rootProject
