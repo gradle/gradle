@@ -46,11 +46,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
 
         _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
-        }
-        _ * work.visitDestroyableRoots(_ as UnitOfWork.DestroyableVisitor) >> { UnitOfWork.DestroyableVisitor visitor ->
             visitor.visitDestroyableRoot(destroyableDir)
-        }
-        _ * work.visitLocalState(_ as UnitOfWork.LocalStateVisitor) >> { UnitOfWork.LocalStateVisitor visitor ->
             visitor.visitLocalStateRoot(localStateDir)
         }
 

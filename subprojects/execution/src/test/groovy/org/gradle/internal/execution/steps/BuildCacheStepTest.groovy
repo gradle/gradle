@@ -77,7 +77,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
         then:
-        _ * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
+        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitLocalStateRoot(localStateFile)
         }
         1 * outputChangeListener.beforeOutputChange([localStateFile.getAbsolutePath()])

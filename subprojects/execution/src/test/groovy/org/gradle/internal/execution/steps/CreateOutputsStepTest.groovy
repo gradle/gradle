@@ -31,8 +31,12 @@ class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
     }
 
     def "outputs are created"() {
+        given:
         def outputDir = file("outDir")
         def outputFile = file("parent/outFile")
+        def localStateFile = file("local-state/stateFile")
+        def destroyableFile = file("destroyable/file.txt")
+
         when:
         step.execute(context)
 
@@ -40,14 +44,15 @@ class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
         _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputDir, TestFiles.fixed(outputDir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputFile, TestFiles.fixed(outputFile))
+            visitor.visitLocalStateRoot(localStateFile)
+            visitor.visitDestroyableRoot(destroyableFile)
         }
 
         then:
-        file("outDir").isDirectory()
-
-        def outFile = file("parent/outFile")
-        outFile.parentFile.isDirectory()
-        !outFile.exists()
+        outputDir.assertIsEmptyDir()
+        outputFile.parentFile.assertIsEmptyDir()
+        localStateFile.parentFile.assertIsEmptyDir()
+        !destroyableFile.parentFile.exists()
 
         then:
         1 * delegate.execute(context)

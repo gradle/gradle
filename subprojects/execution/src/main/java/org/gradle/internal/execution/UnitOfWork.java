@@ -158,17 +158,7 @@ public interface UnitOfWork extends Describable {
 
     interface OutputPropertyVisitor {
         void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents);
-    }
-
-    default void visitLocalState(LocalStateVisitor visitor) {}
-
-    interface LocalStateVisitor {
         void visitLocalStateRoot(File localStateRoot);
-    }
-
-    default void visitDestroyableRoots(DestroyableVisitor visitor) {}
-
-    interface DestroyableVisitor {
         void visitDestroyableRoot(File destroyableRoot);
     }
 

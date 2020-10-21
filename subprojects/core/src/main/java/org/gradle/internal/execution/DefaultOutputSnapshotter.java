@@ -17,6 +17,8 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.file.FileCollection;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -34,9 +36,18 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
     @Override
     public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        work.visitOutputProperties(workspace, (propertyName, type, root, contents) -> {
-            List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
-            builder.put(propertyName, CompositeFileSystemSnapshot.of(results));
+        work.visitOutputProperties(workspace, new UnitOfWork.OutputPropertyVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
+                builder.put(propertyName, CompositeFileSystemSnapshot.of(results));
+            }
+
+            @Override
+            public void visitLocalStateRoot(File localStateRoot) {}
+
+            @Override
+            public void visitDestroyableRoot(File destroyableRoot) {}
         });
         return builder.build();
     }

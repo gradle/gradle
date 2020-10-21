@@ -330,17 +330,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());
                 }
             }
-        }
-
-        @Override
-        public void visitLocalState(LocalStateVisitor visitor) {
             for (File localStateRoot : context.getTaskProperties().getLocalStateFiles()) {
                 visitor.visitLocalStateRoot(localStateRoot);
             }
-        }
-
-        @Override
-        public void visitDestroyableRoots(DestroyableVisitor visitor) {
             for (File destroyableRoot : context.getTaskProperties().getDestroyableFiles()) {
                 visitor.visitDestroyableRoot(destroyableRoot);
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -25,6 +26,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.io.File;
@@ -73,20 +75,29 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> {
-                switch (type) {
-                    case FILE:
-                        File parentFile = root.getParentFile();
-                        if (parentFile != null) {
-                            outputDirectoriesToPreserve.add(parentFile);
-                        }
-                        break;
-                    case DIRECTORY:
-                        outputDirectoriesToPreserve.add(root);
-                        break;
-                    default:
-                        throw new AssertionError();
+            work.visitOutputProperties(context.getWorkspace(), new UnitOfWork.OutputPropertyVisitor() {
+                @Override
+                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                    switch (type) {
+                        case FILE:
+                            File parentFile = root.getParentFile();
+                            if (parentFile != null) {
+                                outputDirectoriesToPreserve.add(parentFile);
+                            }
+                            break;
+                        case DIRECTORY:
+                            outputDirectoriesToPreserve.add(root);
+                            break;
+                        default:
+                            throw new AssertionError();
+                    }
                 }
+
+                @Override
+                public void visitLocalStateRoot(File localStateRoot) {}
+
+                @Override
+                public void visitDestroyableRoot(File destroyableRoot) {}
             });
             OutputsCleaner cleaner = new OutputsCleaner(
                 deleter,
@@ -106,23 +117,32 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     }
 
     private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
-        work.visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> {
-            if (root.exists()) {
-                try {
-                    switch (type) {
-                        case FILE:
-                            deleter.delete(root);
-                            break;
-                        case DIRECTORY:
-                            deleter.ensureEmptyDirectory(root);
-                            break;
-                        default:
-                            throw new AssertionError();
+        work.visitOutputProperties(context.getWorkspace(), new UnitOfWork.OutputPropertyVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                if (root.exists()) {
+                    try {
+                        switch (type) {
+                            case FILE:
+                                deleter.delete(root);
+                                break;
+                            case DIRECTORY:
+                                deleter.ensureEmptyDirectory(root);
+                                break;
+                            default:
+                                throw new AssertionError();
+                        }
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
                     }
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
                 }
             }
+
+            @Override
+            public void visitLocalStateRoot(File localStateRoot) {}
+
+            @Override
+            public void visitDestroyableRoot(File destroyableRoot) {}
         });
     }
 }
