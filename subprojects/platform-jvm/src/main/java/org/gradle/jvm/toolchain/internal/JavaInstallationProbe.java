@@ -245,6 +245,8 @@ public class JavaInstallationProbe {
             return "Oracle " + basename;
         } else if (vendor.contains("amazon")) {
             return "Amazon Corretto " + basename;
+        } else if (vendor.contains("bellsoft")) {
+            return "BellSoft Liberica " + basename;
         } else if (vendor.contains("ibm")) {
             return "IBM " + basename;
         } else if (vendor.contains("sap se")) {
