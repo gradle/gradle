@@ -31,7 +31,6 @@ import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.initialization.BuildLoader
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
 import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
@@ -40,8 +39,6 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
-import org.gradle.initialization.SettingsPreparer
-import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
@@ -100,16 +97,14 @@ class ConfigurationCacheHost internal constructor(
             gradle.run {
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
                 val settingsPreparer = BuildOperationFiringSettingsPreparer(
-                    SettingsPreparer {
-                        settings = processSettings()
-                    },
+                    { settings = processSettings() },
                     service<BuildOperationExecutor>(),
                     service<BuildDefinition>().fromBuild
                 )
                 settingsPreparer.prepareSettings(this)
 
                 setBaseProjectClassLoaderScope(coreScope)
-                projectDescriptorRegistry.rootProject!!.name = rootProjectName
+                rootProjectDescriptor().name = rootProjectName
             }
         }
 
@@ -130,14 +125,26 @@ class ConfigurationCacheHost internal constructor(
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
             service<ProjectStateRegistry>().registerProjects(service<BuildState>())
-            val rootProjectDescriptor = projectDescriptorRegistry.rootProject!!
-            val rootProject = createProject(rootProjectDescriptor, null)
-            gradle.rootProject = rootProject
-            gradle.defaultProject = gradle.rootProject
+            createRootProject()
+            fireBuildOperationsRequiredByBuildScans()
+        }
 
+        private
+        fun createRootProject() {
+            val rootProject = createProject(rootProjectDescriptor(), null)
+            gradle.rootProject = rootProject
+            gradle.defaultProject = rootProject
+        }
+
+        private
+        fun rootProjectDescriptor() =
+            projectDescriptorRegistry.rootProject!!
+
+        private
+        fun fireBuildOperationsRequiredByBuildScans() {
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
             val buildOperationExecutor = service<BuildOperationExecutor>()
-            val buildLoader = NotifyingBuildLoader(BuildLoader { _, _ -> }, buildOperationExecutor)
+            val buildLoader = NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor)
             buildLoader.load(gradle.settings, gradle)
 
             // Fire build operation required by build scans to determine the root path
@@ -189,7 +196,7 @@ class ConfigurationCacheHost internal constructor(
             // Currently this operation is not around the actual task graph calculation/populate for configuration cache (just to make this a smaller step)
             // This might be better done as a new build operation type
             BuildOperationFiringTaskExecutionPreparer(
-                TaskExecutionPreparer {
+                {
                     // Nothing to do
                     // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
                 },
