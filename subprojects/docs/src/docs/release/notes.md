@@ -112,7 +112,7 @@ See the [matrix of supported core plugins](userguide/configuration_cache.html#co
 Traditionally in a Gradle build, repositories used for dependency resolution are declared in every project.
 However, in most cases, the same repositories should be used in every project of a single build.
 This led to the common pattern of using an `allprojects { ... }` block to declare the repositories.
-In Gradle 6.7, this pattern can be replaced with a conventional block in `settings.gradle(.kts)`:
+In Gradle 6.8, this pattern can be replaced with a conventional block in `settings.gradle(.kts)`:
 
 ```
 dependencyResolutionManagement {
@@ -125,6 +125,22 @@ dependencyResolutionManagement {
 There are several advantages in using this new construct instead of using `allprojects` or repeating the declaration in every build script.
 
 Learn more by reading how to [declare repositories for the whole build](userguide/declaring_repositories.html#sub:centralized-repository-declaration).
+
+### Central declaration of component metadata rules
+
+[Component metadata rules](userguide/component_metadata_rules.html) are a powerful tool to fix bad metadata published on remote repositories.
+However, similarly to repositories, rules traditionnally had to be applied on each project.
+Starting from this release, it is possible to declare component metadata rules at a central place in `settings.gradle(.kts)`:
+
+```
+dependencyResolutionManagement {
+    components {
+        withModule('com.google.guava:guava', GuavaRule)
+    }
+}
+```
+
+You can learn more about declaring rules globally in the [user manual](userguide/component_metadata_rules.html#sec:rules_in_settings).
 
 ## New features and usability improvements
 
