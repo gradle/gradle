@@ -26,7 +26,7 @@ This chapter provides details of the main Kotlin DSL constructs and how to use i
 
 [TIP]
 ====
-If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated link:https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/[migration guide].
+If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated <<migrating_from_groovy_to_kotlin_dsl.adoc#,migration section>>.
 ====
 
 
