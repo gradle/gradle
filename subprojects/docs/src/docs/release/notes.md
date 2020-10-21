@@ -105,6 +105,27 @@ In this release a number of core Gradle plugins got improved to support the conf
 
 See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
 
+## Dependency resolution improvements
+
+### Central declaration of repositories
+
+Traditionally in a Gradle build, repositories used for dependency resolution are declared in every project.
+However, in most cases, the same repositories should be used in every project of a single build.
+This led to the common pattern of using an `allprojects { ... }` block to declare the repositories.
+In Gradle 6.7, this pattern can be replaced with a conventional block in `settings.gradle(.kts)`:
+
+```
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+There are several advantages in using this new construct instead of using `allprojects` or repeating the declaration in every build script.
+
+Learn more by reading how to [declare repositories for the whole build](userguide/declaring_repositories.html#sub:centralized-repository-declaration).
+
 ## New features and usability improvements
 
 ### Implicit imports
