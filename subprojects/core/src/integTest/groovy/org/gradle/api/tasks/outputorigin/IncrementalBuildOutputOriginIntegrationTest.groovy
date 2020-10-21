@@ -19,7 +19,6 @@ package org.gradle.api.tasks.outputorigin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.junit.Rule
 
@@ -160,7 +159,6 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":buildSrc:w") == origin
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "composite participant tasks advertise build id"() {
         given:
         ["a", "b"].each {
