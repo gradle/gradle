@@ -43,6 +43,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -54,6 +55,7 @@ import org.gradle.invocation.DefaultGradle;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Function;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
@@ -102,7 +104,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             parent,
             buildTree,
             servicesToStop,
-            this::createDefaultGradleLauncher
+            this::createDefaultGradleLauncher,
+            BuildScopeServices::new
         );
     }
 
@@ -112,10 +115,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         @Nullable GradleLauncher parent,
         BuildTreeState buildTree,
         List<?> servicesToStop,
-        CustomGradleLauncherFactory gradleLauncherFactory
+        CustomGradleLauncherFactory gradleLauncherFactory,
+        Function<ServiceRegistry, BuildScopeServices> createBuildScopeServices
     ) {
 
-        final BuildScopeServices serviceRegistry = new BuildScopeServices(buildTree.getServices());
+        final BuildScopeServices serviceRegistry = createBuildScopeServices.apply(buildTree.getServices());
         serviceRegistry.add(BuildDefinition.class, buildDefinition);
         serviceRegistry.add(BuildState.class, owner);
         NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTree);
@@ -171,7 +175,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         TaskExecutionPreparer taskExecutionPreparer = gradle.getServices().get(TaskExecutionPreparer.class);
         final ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
 
-        DefaultGradleLauncher gradleLauncher = new DefaultGradleLauncher(
+        return new DefaultGradleLauncher(
             gradle,
             projectsPreparer,
             serviceRegistry.get(ExceptionAnalyser.class),
@@ -189,7 +193,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 gradle.getServices().get(BuildOperationProgressEventEmitter.class)
             )
         );
-        return gradleLauncher;
     }
 
     @FunctionalInterface
@@ -205,6 +208,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         GradleLauncher nestedInstance(
             BuildDefinition buildDefinition,
             NestedBuildState build,
+            Function<ServiceRegistry, BuildScopeServices> createBuildScopeServices,
             CustomGradleLauncherFactory gradleLauncherFactory
         );
     }
@@ -219,8 +223,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         @Override
-        public GradleLauncher nestedInstance(BuildDefinition buildDefinition, NestedBuildState build, CustomGradleLauncherFactory gradleLauncherFactory) {
-            return doNewInstance(buildDefinition, build, parent, buildTree, ImmutableList.of(), gradleLauncherFactory);
+        public GradleLauncher nestedInstance(
+            BuildDefinition buildDefinition,
+            NestedBuildState build,
+            Function<ServiceRegistry, BuildScopeServices> createBuildScopeServices,
+            CustomGradleLauncherFactory gradleLauncherFactory
+        ) {
+            return doNewInstance(buildDefinition, build, parent, buildTree, ImmutableList.of(), gradleLauncherFactory, createBuildScopeServices);
         }
 
         @Override

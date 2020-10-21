@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.build
 
+import org.gradle.StartParameter
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
@@ -30,6 +31,8 @@ import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.InternalBuildFinishedListener
 import org.gradle.initialization.exception.ExceptionAnalyser
+import org.gradle.initialization.layout.BuildLayout
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -48,32 +51,37 @@ open class ConfigurationCacheIncludedBuildState(
 
     override fun createGradleLauncher(): GradleLauncher {
         return nestedBuildFactoryInternal().nestedInstance(
-            // Use a defensive copy of the build definition, as it may be mutated during build execution
-            buildDefinition.newInstance(),
-            this
-        ) { gradle: GradleInternal, serviceRegistry: BuildScopeServices, servicesToStop: List<*> ->
-
-            val listenerManager = serviceRegistry.get(ListenerManager::class.java)
-
-            DefaultGradleLauncher(
-                gradle,
-                {},
-                serviceRegistry.get(ExceptionAnalyser::class.java),
-                gradle.buildListenerBroadcaster,
-                listenerManager.getBroadcaster(BuildCompletionListener::class.java),
-                listenerManager.getBroadcaster(InternalBuildFinishedListener::class.java),
-                gradle.serviceOf(),
-                serviceRegistry,
-                servicesToStop,
-                gradle.serviceOf(),
-                {},
-                {},
-                NullConfigurationCache,
-                BuildOptionBuildOperationProgressEventsEmitter(
-                    gradle.serviceOf()
+            // Consider using a defensive copy of the build definition here
+            buildDefinition,
+            this,
+            { parent ->
+                object : BuildScopeServices(parent) {
+                    override fun createBuildLayout(buildLayoutFactory: BuildLayoutFactory, startParameter: StartParameter) =
+                        BuildLayout(buildDefinition.buildRootDir, buildDefinition.buildRootDir, null)
+                }
+            },
+            { gradle: GradleInternal, serviceRegistry: BuildScopeServices, servicesToStop: List<*> ->
+                val listenerManager = serviceRegistry.get(ListenerManager::class.java)
+                DefaultGradleLauncher(
+                    gradle,
+                    {},
+                    serviceRegistry.get(ExceptionAnalyser::class.java),
+                    gradle.buildListenerBroadcaster,
+                    listenerManager.getBroadcaster(BuildCompletionListener::class.java),
+                    listenerManager.getBroadcaster(InternalBuildFinishedListener::class.java),
+                    gradle.serviceOf(),
+                    serviceRegistry,
+                    servicesToStop,
+                    gradle.serviceOf(),
+                    {},
+                    {},
+                    NullConfigurationCache,
+                    BuildOptionBuildOperationProgressEventsEmitter(
+                        gradle.serviceOf()
+                    )
                 )
-            )
-        }
+            }
+        )
     }
 
     private

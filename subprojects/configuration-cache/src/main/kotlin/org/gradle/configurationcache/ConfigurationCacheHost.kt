@@ -29,7 +29,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.configurationcache.extensions.serviceOf
-import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLoader
@@ -43,6 +42,7 @@ import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -63,7 +63,6 @@ import java.io.File
 
 
 class ConfigurationCacheHost internal constructor(
-    private val startParameter: ConfigurationCacheStartParameter,
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
     private val projectFactory: IProjectFactory
@@ -73,7 +72,7 @@ class ConfigurationCacheHost internal constructor(
         DefaultVintageGradleBuild(gradle)
 
     override fun createBuild(rootProjectName: String): ConfigurationCacheBuild =
-        DefaultConfigurationCacheBuild(gradle, service(), rootProjectName)
+        DefaultConfigurationCacheBuild(gradle, gradle.serviceOf(), rootProjectName)
 
     override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -105,8 +104,8 @@ class ConfigurationCacheHost internal constructor(
                     SettingsPreparer {
                         settings = processSettings()
                     },
-                    service<BuildOperationExecutor>(),
-                    service<BuildDefinition>().fromBuild
+                    serviceOf<BuildOperationExecutor>(),
+                    serviceOf<BuildDefinition>().fromBuild
                 )
                 settingsPreparer.prepareSettings(this)
 
@@ -131,8 +130,9 @@ class ConfigurationCacheHost internal constructor(
 
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
-            service<ProjectStateRegistry>().registerProjects(service<BuildState>())
-            val rootProject = createProject(projectDescriptorRegistry.rootProject!!, null)
+            gradle.serviceOf<ProjectStateRegistry>().registerProjects(service<BuildState>())
+            val rootProjectDescriptor = projectDescriptorRegistry.rootProject!!
+            val rootProject = createProject(rootProjectDescriptor, null)
             gradle.rootProject = rootProject
             gradle.defaultProject = gradle.rootProject
 
@@ -233,7 +233,7 @@ class ConfigurationCacheHost internal constructor(
                 service()
             ).process(
                 gradle,
-                SettingsLocation(rootDir, File(rootDir, "settings.gradle")),
+                SettingsLocation(settingsDir(), null),
                 gradle.classLoaderScope,
                 gradle.startParameter.apply {
                     useEmptySettingsWithoutDeprecationWarning()
@@ -253,17 +253,17 @@ class ConfigurationCacheHost internal constructor(
                     classLoaderScope,
                     baseClassLoaderScope,
                     service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
-                    rootDir,
+                    settingsDir(),
                     settingsSource,
                     gradle.startParameter
                 )
             }
         }
-    }
 
-    private
-    val rootDir
-        get() = startParameter.rootDirectory
+        private
+        fun settingsDir() =
+            service<BuildLayout>().settingsDir
+    }
 
     private
     val coreScope: ClassLoaderScope
