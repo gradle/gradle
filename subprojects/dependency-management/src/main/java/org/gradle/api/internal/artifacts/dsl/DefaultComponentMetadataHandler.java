@@ -256,7 +256,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         // method is called.
         Lazy<ComponentMetadataHandlerInternal> actualHandler = Lazy.unsafe().of(() -> {
             // determine whether to use the project local handler or the settings handler
-            boolean useRules = dependencyResolutionManagement.getRulesMode().useProjectRules();
+            boolean useRules = dependencyResolutionManagement.getConfiguredRulesMode().useProjectRules();
             if (metadataRuleContainer.isEmpty() || !useRules) {
                 // We're creating a component metadata handler which will be applied the settings
                 // rules and the current derivation strategy

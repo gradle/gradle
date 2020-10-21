@@ -10,19 +10,19 @@ dependencyResolutionManagement {
 
 // tag::prefer-settings[]
 dependencyResolutionManagement {
-    preferSettingsRules()
+    rulesMode.set(RulesMode.PREFER_SETTINGS)
 }
 // end::prefer-settings[]
 
 // tag::enforce-settings[]
 dependencyResolutionManagement {
-    enforceSettingsRules()
+    rulesMode.set(RulesMode.FAIL_ON_PROJECT_RULES)
 }
 // end::enforce-settings[]
 
 // tag::prefer-projects[]
 dependencyResolutionManagement {
-    preferProjectRules()
+    rulesMode.set(RulesMode.PREFER_PROJECT)
 }
 // end::prefer-projects[]
 
