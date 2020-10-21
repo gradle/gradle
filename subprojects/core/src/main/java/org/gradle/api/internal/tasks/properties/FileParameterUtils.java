@@ -64,7 +64,7 @@ public class FileParameterUtils {
 
     public static Class<? extends FileNormalizer> normalizerOrDefault(@Nullable Class<? extends FileNormalizer> fileNormalizer) {
         // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
-        // https://guides.gradle.org/using-build-cache/#relocatability
+        // https://docs.gradle.org/current/userguide/build_cache_concepts.html#relocatability
         return fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer;
     }
 
