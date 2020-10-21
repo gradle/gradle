@@ -39,6 +39,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     dependencies()
                     dependencyInsight()
                     dependentComponents()
+                    javaToolchains()
                     help()
                     init()
                     model()
@@ -333,6 +334,12 @@ model {
           | Type:   \torg.gradle.buildinit.tasks.InitBuild
           | Value:  \ttask ':init\'
           | Creator: \tProject.<init>.tasks.init()
+          | Rules:
+             ⤷ copyToTaskContainer
+    + javaToolchains
+          | Type:   \torg.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
+          | Value:  \ttask ':javaToolchains\'
+          | Creator: \tProject.<init>.tasks.javaToolchains()
           | Rules:
              ⤷ copyToTaskContainer
     + model
