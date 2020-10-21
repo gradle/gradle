@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.TargetVersions
 import org.junit.Rule
 
-@TargetVersions("4.10+")
+@TargetVersions("4.0+")
 class CrossVersionScopeIdsIntegrationTest extends CrossVersionIntegrationSpec {
 
     def currentExecuter = version(current)
