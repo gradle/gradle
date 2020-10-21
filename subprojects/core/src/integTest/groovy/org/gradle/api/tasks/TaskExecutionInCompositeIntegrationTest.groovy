@@ -135,8 +135,7 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         output.count(":other-plugin:jar") == 1
     }
 
-
-    //@NotYetImplemented // "Task exclusion doesn't work"
+    @NotYetImplemented
     def "Can exclude tasks coming from included builds"() {
         setup:
         settingsFile << "includeBuild('other-build')"
@@ -157,9 +156,9 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":other-build:doSomething", "-x", ":other-build:setupTask")
+        output.contains(":other-build:setupTask SKIPPED")
     }
 
-    //@NotYetImplemented // the current setup configures the bridge task
     def "Can pass options to task in included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
@@ -185,7 +184,6 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":other-build:doSomething", "--content", "do something")
     }
 
-    //@NotYetImplemented // Help task prints details of the bridge task at the moment
     def "Can call help on task from included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"

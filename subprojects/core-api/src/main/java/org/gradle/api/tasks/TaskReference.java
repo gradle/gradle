@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Named;
-import org.gradle.api.Task;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -25,6 +24,4 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 public interface TaskReference extends Named {
-
-    Task resolveTask();
 }

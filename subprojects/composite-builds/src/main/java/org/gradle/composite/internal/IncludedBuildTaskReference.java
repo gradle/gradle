@@ -47,8 +47,7 @@ public class IncludedBuildTaskReference implements TaskReference, TaskDependency
         context.add(resolveTask());
     }
 
-    // TODO (donat) changed just for the sake of the hack
-    public Task resolveTask() {
+    private Task resolveTask() {
         return includedBuild.getConfiguredBuild().getRootProject().getTasks().getByPath(taskPath);
     }
 }

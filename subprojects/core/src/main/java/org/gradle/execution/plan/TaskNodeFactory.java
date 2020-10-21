@@ -36,7 +36,7 @@ public class TaskNodeFactory {
 
     public TaskNodeFactory(GradleInternal thisBuild, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
-        currentBuildId = thisBuild.getServices().get(BuildState.class).getBuildIdentifier();
+        this.currentBuildId = thisBuild.getServices().get(BuildState.class).getBuildIdentifier();
         this.taskGraph = taskGraph;
     }
 

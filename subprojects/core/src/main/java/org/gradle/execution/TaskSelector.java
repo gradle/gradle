@@ -21,14 +21,15 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskReference;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.NameMatcher;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class TaskSelector {
     private final GradleInternal gradle;
     private final ProjectConfigurer configurer;
     private final TaskPathResolver taskPathResolver = new TaskPathResolver();
+    private final BuildStateRegistry buildStateRegistry;
 
     public TaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
         this(gradle, new TaskNameResolver(), projectConfigurer);
@@ -48,6 +50,7 @@ public class TaskSelector {
         this.taskNameResolver = taskNameResolver;
         this.gradle = gradle;
         this.configurer = configurer;
+        this.buildStateRegistry = gradle.getServices().get(BuildStateRegistry.class);
     }
 
     public TaskSelection getSelection(String path) {
@@ -55,27 +58,6 @@ public class TaskSelector {
     }
 
     public Spec<Task> getFilter(String path) {
-        String[] paths = parsePath(path);
-        final String projectName = paths[0];
-        final String taskPath2 = paths[1];
-        if (paths != null) {
-            for (final IncludedBuild build : gradle.getDefaultProject().getGradle().getIncludedBuilds()) {
-                if (build.getName().equals(projectName)) {
-
-                    return new Spec<Task>() {
-                        @Override
-                        public boolean isSatisfiedBy(Task element) {
-                            System.out.println("!!! taskPath=" + taskPath2);
-                            System.out.println("!!! element.getProject().getPath()=" + element.getProject().getPath());
-                            System.out.println("!!! element.getPath()=" + element.getPath());
-                            return false;
-                        }
-                    };
-                }
-            }
-        }
-
-
         final ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, gradle.getDefaultProject());
         if (!taskPath.isQualified()) {
             ProjectInternal targetProject = taskPath.getProject();
@@ -121,9 +103,16 @@ public class TaskSelector {
             String includedBuildName = paths[0];
             String taskInIncludedBuildPath = paths[1];
 
-            for (final IncludedBuild build : project.getGradle().getIncludedBuilds()) {
-                if (build.getName().equals(includedBuildName)) {
-                    return new TaskSelection(includedBuildName, taskInIncludedBuildPath, build.task(taskInIncludedBuildPath));
+
+            for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
+                if (includedBuild.getName().equals(includedBuildName)) {
+                    return new TaskSelection(includedBuildName, taskInIncludedBuildPath, new TaskSelectionResult() {
+                        @Override
+                        public void collectTasks(Collection<? super Task> tasks) {
+                            Task task = includedBuild.getConfiguredBuild().getRootProject().getTasks().getByPath(taskInIncludedBuildPath);
+                            tasks.add(task);
+                        }
+                    });
                 }
             }
         }
@@ -169,20 +158,11 @@ public class TaskSelector {
         private final String projectPath;
         private final String taskName;
         private final TaskSelectionResult taskSelectionResult;
-        private final TaskReference taskReference;
 
         public TaskSelection(String projectPath, String taskName, TaskSelectionResult tasks) {
             this.projectPath = projectPath;
             this.taskName = taskName;
             this.taskSelectionResult = tasks;
-            this.taskReference = null;
-        }
-
-        public TaskSelection(String projectPath, String taskName, TaskReference taskReference) {
-            this.projectPath = projectPath;
-            this.taskName = taskName;
-            this.taskSelectionResult = null;
-            this.taskReference = taskReference;
         }
 
         public String getProjectPath() {
@@ -194,29 +174,9 @@ public class TaskSelector {
         }
 
         public Set<Task> getTasks() {
-            if (taskReference == null) {
-                LinkedHashSet<Task> result = new LinkedHashSet<Task>();
-                taskSelectionResult.collectTasks(result);
-                return result;
-            } else {
-                return Collections.singleton(taskReference.resolveTask());
-            }
-        }
-    }
-
-    private static class IncludedBuildTaskPathSpec implements Spec<Task> {
-
-        private final String buildName;
-        private final String taskPath;
-
-        IncludedBuildTaskPathSpec(String buildName, String taskPath) {
-            this.buildName = buildName;
-            this.taskPath = taskPath;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(Task task) {
-            return false;
+            LinkedHashSet<Task> result = new LinkedHashSet<Task>();
+            taskSelectionResult.collectTasks(result);
+            return result;
         }
     }
 
