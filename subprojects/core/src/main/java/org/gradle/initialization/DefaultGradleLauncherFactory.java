@@ -115,11 +115,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         @Nullable GradleLauncher parent,
         BuildTreeState buildTree,
         List<?> servicesToStop,
-        CustomGradleLauncherFactory gradleLauncherFactory,
-        Function<ServiceRegistry, BuildScopeServices> createBuildScopeServices
+        GradleLauncherInstantiator gradleLauncherInstantiator,
+        Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator
     ) {
 
-        final BuildScopeServices serviceRegistry = createBuildScopeServices.apply(buildTree.getServices());
+        final BuildScopeServices serviceRegistry = buildScopeServicesInstantiator.apply(buildTree.getServices());
         serviceRegistry.add(BuildDefinition.class, buildDefinition);
         serviceRegistry.add(BuildState.class, owner);
         NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTree);
@@ -155,7 +155,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(ServiceRegistryFactory.class)
         );
 
-        GradleLauncher gradleLauncher = gradleLauncherFactory.createGradleLauncher(gradle, serviceRegistry, servicesToStop);
+        GradleLauncher gradleLauncher = gradleLauncherInstantiator.gradleLauncherFor(gradle, serviceRegistry, servicesToStop);
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(
             buildTree.getServices().get(BuildCancellationToken.class)
@@ -196,8 +196,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     @FunctionalInterface
-    public interface CustomGradleLauncherFactory {
-        GradleLauncher createGradleLauncher(
+    public interface GradleLauncherInstantiator {
+        GradleLauncher gradleLauncherFor(
             GradleInternal gradle,
             BuildScopeServices serviceRegistry,
             List<?> servicesToStop
@@ -208,8 +208,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         GradleLauncher nestedInstance(
             BuildDefinition buildDefinition,
             NestedBuildState build,
-            Function<ServiceRegistry, BuildScopeServices> createBuildScopeServices,
-            CustomGradleLauncherFactory gradleLauncherFactory
+            Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator,
+            GradleLauncherInstantiator gradleLauncherInstantiator
         );
     }
 
@@ -226,10 +226,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         public GradleLauncher nestedInstance(
             BuildDefinition buildDefinition,
             NestedBuildState build,
-            Function<ServiceRegistry, BuildScopeServices> createBuildScopeServices,
-            CustomGradleLauncherFactory gradleLauncherFactory
+            Function<ServiceRegistry, BuildScopeServices> buildScopeServicesInstantiator,
+            GradleLauncherInstantiator gradleLauncherInstantiator
         ) {
-            return doNewInstance(buildDefinition, build, parent, buildTree, ImmutableList.of(), gradleLauncherFactory, createBuildScopeServices);
+            return doNewInstance(buildDefinition, build, parent, buildTree, ImmutableList.of(), gradleLauncherInstantiator, buildScopeServicesInstantiator);
         }
 
         @Override
