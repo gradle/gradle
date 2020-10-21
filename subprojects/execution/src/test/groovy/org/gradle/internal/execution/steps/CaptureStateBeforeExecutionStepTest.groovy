@@ -89,7 +89,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
             additionalImplementations.each {
-                visitor.visitAdditionalImplementation(it)
+                visitor.visitImplementation(it)
             }
         }
         interaction { fingerprintInputs() }

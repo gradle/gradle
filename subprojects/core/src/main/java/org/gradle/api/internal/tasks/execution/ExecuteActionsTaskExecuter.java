@@ -293,7 +293,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
             List<InputChangesAwareTaskAction> taskActions = task.getTaskActions();
             for (InputChangesAwareTaskAction taskAction : taskActions) {
-                visitor.visitAdditionalImplementation(taskAction.getActionImplementation(classLoaderHierarchyHasher));
+                visitor.visitImplementation(taskAction.getActionImplementation(classLoaderHierarchyHasher));
             }
         }
 

@@ -249,15 +249,11 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
 
         @Override
         public void visitImplementation(ImplementationSnapshot implementation) {
-            if (this.implementation != null) {
-                throw new IllegalStateException("Implementation already set");
+            if (this.implementation == null) {
+                this.implementation = implementation;
+            } else {
+                this.additionalImplementations.add(implementation);
             }
-            this.implementation = implementation;
-        }
-
-        @Override
-        public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
-            additionalImplementations.add(implementation);
         }
 
         public ImplementationSnapshot getImplementation() {
