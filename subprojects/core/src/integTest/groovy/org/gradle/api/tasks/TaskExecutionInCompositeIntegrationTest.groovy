@@ -56,7 +56,30 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":other-build:sub:doSomething")
     }
 
-    def "Does not run non-qualified tasks"() {
+    @NotYetImplemented // works, but produces a misleading error message
+    def "Cannot run non-qualified tasks"() {
+        setup:
+        settingsFile << """
+            rootProject.name = 'root-project'
+            includeBuild('other-build')
+        """
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        fails("other-build:sub:doSomething").assertHasDescription("Task 'someNonexistent' not found in build project")
+    }
+
+    def "Selects only the exact task and ignores tasks with the same name in subprojects"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
@@ -200,5 +223,51 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("help", "--task", ":other-build:doSomething")
         output.contains("Prints the message 'do something'")
+    }
+
+    @NotYetImplemented
+    def "Can use pattern matching to address tasks"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                description = "Prints the message 'do something'"
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        succeeds(":other-build:dSo")
+        output.contains("do something")
+    }
+
+    def "Can run tasks from transitive included builds"() {
+        setup:
+        settingsFile << """
+            rootProject.name = 'root-project'
+            includeBuild('other-build')
+        """
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            includeBuild('../third-build')
+        """
+        file('third-build/settings.gradle') << """
+            rootProject.name = 'third-build'
+            include('sub')
+        """
+
+        file('third-build/sub/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        succeeds(":third-build:sub:doSomething")
     }
 }

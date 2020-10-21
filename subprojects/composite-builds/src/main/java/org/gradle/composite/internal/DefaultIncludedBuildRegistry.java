@@ -243,6 +243,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
             includedBuildsByRootDir.put(buildDir, includedBuild);
+            System.out.println("includedBuildsByRootDir" + includedBuildsByRootDir);
             pendingIncludedBuilds.add(includedBuild);
             addBuild(includedBuild);
         } else {

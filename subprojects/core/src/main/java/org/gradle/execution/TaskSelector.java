@@ -103,7 +103,6 @@ public class TaskSelector {
             String includedBuildName = paths[0];
             String taskInIncludedBuildPath = paths[1];
 
-
             for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
                 if (includedBuild.getName().equals(includedBuildName)) {
                     return new TaskSelection(includedBuildName, taskInIncludedBuildPath, new TaskSelectionResult() {
