@@ -56,30 +56,6 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":other-build:sub:doSomething")
     }
 
-    @NotYetImplemented
-    // works, but produces a misleading error message; parsePath() should return an separate type where we we could define a proper error message for this use-case
-    def "Cannot run non-qualified tasks"() {
-        setup:
-        settingsFile << """
-            rootProject.name = 'root-project'
-            includeBuild('other-build')
-        """
-        file('other-build/settings.gradle') << """
-            rootProject.name = 'other-build'
-            include 'sub'
-        """
-        file('other-build/sub/build.gradle') << """
-            tasks.register('doSomething') {
-                doLast {
-                    println 'do something'
-                }
-            }
-        """
-
-        expect:
-        fails("other-build:sub:doSomething").assertHasDescription("Task 'someNonexistent' not found in build 'other-build'")
-    }
-
     def "Selects only the exact task and ignores tasks with the same name in subprojects"() {
         setup:
         settingsFile << "includeBuild('other-build')"
@@ -104,9 +80,12 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds(":other-build:sub:doSomething")
+        succeeds(task)
         output.contains("[sub] do something")
         !output.contains("[sub/subsub] do something")
+
+        where:
+        task << ["other-build:sub:doSomething", ":other-build:sub:doSomething"]
     }
 
     def "Can run task from included build with applied plugin"() {
@@ -285,5 +264,33 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":oB:doSo")
+    }
+
+    def "Gives reasonable error message when a task does not exist in the referenced included build"() {
+        setup:
+        settingsFile << """
+            rootProject.name = 'root-project'
+            includeBuild('other-build')
+        """
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+        """
+
+        expect:
+        fails(":other-build:nonexistent").assertHasDescription("Task 'nonexistent' not found in project ':other-build'")
+    }
+
+    def "Gives reasonable error message when a project does not exist in the referenced included build"() {
+        setup:
+        settingsFile << """
+            rootProject.name = 'root-project'
+            includeBuild('other-build')
+        """
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+        """
+
+        expect:
+        fails(":other-build:sub:nonexistent").assertHasDescription("Project 'sub' not found in project ':other-build'.")
     }
 }
