@@ -748,6 +748,9 @@
     "testProject" : "mediumNative",
     "linux" : 187000
   }, {
+    "testProject" : "multiNative",
+    "linux" : 187000
+  }, {
     "testProject" : "smallNative",
     "linux" : 116000
   } ]
