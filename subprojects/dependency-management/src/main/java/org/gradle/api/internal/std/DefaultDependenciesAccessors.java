@@ -78,27 +78,31 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         try {
             this.dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             this.classLoaderScope = classLoaderScope;
-            Hasher hash = Hashing.sha1().newHasher();
-            List<String> dependencyAliases = dependenciesConfiguration.getDependencyAliases();
-            List<String> bundles = dependenciesConfiguration.getBundleAliases();
-            dependencyAliases.forEach(hash::putString);
-            bundles.forEach(hash::putString);
-            String keysHash = hash.hash().toString();
-            workspace.withWorkspace(keysHash, (workspace, executionHistoryStore) -> {
-                File srcDir = new File(workspace, "sources");
-                File dstDir = new File(workspace, "classes");
-                if (!srcDir.exists() || !dstDir.exists()) {
-                    buildOperationExecutor.run(new CompilationOperation(dependenciesConfiguration, srcDir, dstDir, classPath));
-                }
-                sources = DefaultClassPath.of(srcDir);
-                classes = DefaultClassPath.of(dstDir);
-                classLoaderScope.export(DefaultClassPath.of(dstDir));
-                return null;
-            });
+            writeDependenciesAccessors();
             writeProjectAccessors(((SettingsInternal)settings).getProjectRegistry());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void writeDependenciesAccessors() {
+        Hasher hash = Hashing.sha1().newHasher();
+        List<String> dependencyAliases = dependenciesConfiguration.getDependencyAliases();
+        List<String> bundles = dependenciesConfiguration.getBundleAliases();
+        dependencyAliases.forEach(hash::putString);
+        bundles.forEach(hash::putString);
+        String keysHash = hash.hash().toString();
+        workspace.withWorkspace(keysHash, (workspace, executionHistoryStore) -> {
+            File srcDir = new File(workspace, "sources");
+            File dstDir = new File(workspace, "classes");
+            if (!srcDir.exists() || !dstDir.exists()) {
+                buildOperationExecutor.run(new CompilationOperation(dependenciesConfiguration, srcDir, dstDir, classPath));
+            }
+            sources = DefaultClassPath.of(srcDir);
+            classes = DefaultClassPath.of(dstDir);
+            classLoaderScope.export(DefaultClassPath.of(dstDir));
+            return null;
+        });
     }
 
     private void writeProjectAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
@@ -164,12 +168,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     @Override
     public ClassPath getSources() {
-        return classes;
+        return sources;
     }
 
     @Override
     public ClassPath getClasses() {
-        return sources;
+        return classes;
     }
 
     private static class CompilationOperation implements RunnableBuildOperation {
