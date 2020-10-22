@@ -40,7 +40,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
     private final BuildStateRegistry buildRegistry;
     private final BuildState consumingBuild;
     private static final Resolution UNKNOWN = new Resolution(null);
-    private final Map<PluginId, Resolution> results = new HashMap<PluginId, Resolution>();
+    private final Map<PluginId, Resolution> results = new HashMap<>();
 
     public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
         this.buildRegistry = buildRegistry;

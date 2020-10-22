@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -30,6 +29,7 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractCompositeParticipantBuildState extends AbstractBuildState {
@@ -41,7 +41,7 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
     public synchronized Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         if (availableModules == null) {
             Gradle gradle = getBuild();
-            availableModules = Sets.newLinkedHashSet();
+            availableModules = new LinkedHashSet<>();
             for (Project project : gradle.getRootProject().getAllprojects()) {
                 registerProject(availableModules, (ProjectInternal) project);
             }

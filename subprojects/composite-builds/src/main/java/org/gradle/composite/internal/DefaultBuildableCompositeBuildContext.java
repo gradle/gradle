@@ -16,8 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -26,13 +24,15 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     // TODO: Synchronization
-    private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules = Sets.newHashSet();
-    private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
+    private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules = new HashSet<>();
+    private final List<Action<DependencySubstitution>> substitutionRules = new ArrayList<>();
 
     public DefaultBuildableCompositeBuildContext() {
     }
@@ -49,7 +49,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     @Override
     public Action<DependencySubstitution> getRuleAction() {
-        List<Action<DependencySubstitution>> allActions = Lists.newArrayList();
+        List<Action<DependencySubstitution>> allActions = new ArrayList<>();
         if (!availableModules.isEmpty()) {
             // Automatically substitute all available modules
             allActions.add(new CompositeBuildDependencySubstitutions(availableModules));
