@@ -55,8 +55,6 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 }
                 b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, mainClass), false);
             });
-
-            buildScriptBuilder.dependencies().dependency("implementation", "This dependency is used by the application.", "org.apache.commons:commons-text");
         }
 
         if (isSingleProject(settings)) {
@@ -66,6 +64,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
         } else {
             if ("app".equals(projectName)) {
                 buildScriptBuilder.plugin(null, applicationConventionPlugin(settings));
+                buildScriptBuilder.dependencies().dependency("implementation", null, "org.apache.commons:commons-text");
                 buildScriptBuilder.dependencies().projectDependency("implementation", null, ":utilities");
             } else {
                 buildScriptBuilder.plugin(null, libraryConventionPlugin(settings));
