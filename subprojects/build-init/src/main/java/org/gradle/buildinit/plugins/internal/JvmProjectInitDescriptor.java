@@ -198,16 +198,15 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.implementationDependencyConstraint("Define dependency versions as constraints", "org.apache.commons:commons-text:" + commonsTextVersion);
 
         if (getLanguage() == Language.GROOVY) {
-            buildScriptBuilder.implementationDependencyConstraint("Use the latest Groovy version for building this library", "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
+            buildScriptBuilder.implementationDependencyConstraint(null, "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
         }
         if (getLanguage() == Language.KOTLIN) {
             buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
-            buildScriptBuilder.implementationDependencyConstraint("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
+            buildScriptBuilder.implementationDependencyConstraint(null, "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
         }
         if (getLanguage() == Language.SCALA) {
-            String scalaVersion = libraryVersionProvider.getVersion("scala");
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
-            buildScriptBuilder.implementationDependencyConstraint("Use Scala " + scalaVersion + " in our library project", "org.scala-lang:scala-library:" + scalaLibraryVersion);
+            buildScriptBuilder.implementationDependencyConstraint(null, "org.scala-lang:scala-library:" + scalaLibraryVersion);
         }
     }
 
