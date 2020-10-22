@@ -229,7 +229,7 @@ include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.r
 
 The `${languageLC.raw}-common-conventions` defines some configuration that should be shared by all our ${language.raw} project -- independent of whether they represent a library or the actual application.
 First, we apply the ${languagePluginDocsLink.raw} *(1)* to have all functionality for building ${language.raw} projects available.
-Then, we declare a repository -- `jcenter()` -- as source for external dependencies *(2)*, add standard dependencies and set JUnit 5 as testing framework *(3...)*.
+Then, we declare a repository -- `jcenter()` -- as source for external dependencies *(2)*, define dependency constraints *(3)* as well as standard dependencies that are shared by all subprojects and set JUnit 5 as testing framework *(4...)*.
 Other shared settings, like compiler flags or JVM version compatibilities, could also be set here.
 
 ====
