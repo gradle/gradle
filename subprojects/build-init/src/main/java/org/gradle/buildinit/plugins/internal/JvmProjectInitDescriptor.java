@@ -176,10 +176,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
-        String commonsTextVersion = libraryVersionProvider.getVersion("commons-text");
-        String commonsTextCoordinates = constraintsDefined ? "org.apache.commons:commons-text" : "org.apache.commons:commons-text:" + commonsTextVersion;
-        buildScriptBuilder.implementationDependency(null, commonsTextCoordinates);
-
         if (getLanguage() == Language.GROOVY) {
             String groovyVersion = libraryVersionProvider.getVersion("groovy");
             String groovyAllCoordinates = constraintsDefined ? "org.codehaus.groovy:groovy-all" : "org.codehaus.groovy:groovy-all:" + groovyVersion;
