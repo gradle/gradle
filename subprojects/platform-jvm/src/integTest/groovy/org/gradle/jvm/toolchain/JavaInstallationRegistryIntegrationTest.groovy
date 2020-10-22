@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
@@ -129,7 +128,6 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         version << [JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_7]
     }
 
-    @IgnoreIf({ OperatingSystem.current().windows }) // FIXME: Test fails on Windows for unknown reason
     def "plugin can query information about a standalone JRE install alongside a JDK"() {
         def jvm = AvailableJavaHomes.availableJvms.find { it.standaloneJre != null }
         Assume.assumeTrue(jvm != null)
@@ -172,7 +170,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("install dir = ${jvm.javaHome}")
         outputContains("java version = ${jvm.javaVersion}")
-        outputContains("java executable = ${jvm.javaExecutable}")
+        outputContains("java executable = ${jvm.javaExecutable.canonicalPath}")
         outputContains("JDK? = true")
         outputContains("javac executable = ${jvm.javacExecutable}")
         outputContains("javadoc executable = ${jvm.javadocExecutable}")
@@ -257,15 +255,15 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 def show() {
                     def javaInstallation = installation.get()
-                    println("install dir = \${javaInstallation.installationDirectory.asFile}")
+                    println("install dir = \${javaInstallation.installationDirectory.asFile.getCanonicalPath()}")
                     println("java version = \${javaInstallation.javaVersion}")
-                    println("java executable = \${javaInstallation.javaExecutable.asFile}")
+                    println("java executable = \${javaInstallation.javaExecutable.asFile.getCanonicalPath()}")
                     println("implementation name = \${javaInstallation.implementationName}")
                     println("JDK? = \${javaInstallation.jdk.present}")
                     if (javaInstallation.jdk.present) {
-                        println("javac executable = \${javaInstallation.jdk.get().javacExecutable.asFile}")
-                        println("javadoc executable = \${javaInstallation.jdk.get().javadocExecutable.asFile}")
-                        println("tools classpath = \${javaInstallation.jdk.get().toolsClasspath.files}")
+                        println("javac executable = \${javaInstallation.jdk.get().javacExecutable.asFile.getCanonicalPath()}")
+                        println("javadoc executable = \${javaInstallation.jdk.get().javadocExecutable.asFile.getCanonicalPath()}")
+                        println("tools classpath = \${javaInstallation.jdk.get().toolsClasspath.files*.getCanonicalPath()}")
                     }
                 }
             }
