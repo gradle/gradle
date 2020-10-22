@@ -20,6 +20,8 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -28,9 +30,16 @@ class TaskSelectorTest extends AbstractProjectBuilderSpec {
     def projectA = TestUtil.createChildProject(rootProject, "a")
     def projectB = TestUtil.createChildProject(rootProject, "b")
     def projectBChild = TestUtil.createChildProject(projectB, "child")
+    def buildStateRegistry = Stub(BuildStateRegistry) {
+        getIncludedBuilds() >> []
+    }
+    def serviceRegistry = Stub(ServiceRegistry) {
+        get(BuildStateRegistry) >> buildStateRegistry
+    }
     def gradle = Stub(GradleInternal) {
         getRootProject() >> rootProject
         getDefaultProject() >> projectB
+        getServices() >> serviceRegistry
     }
     def resolver = Mock(TaskNameResolver)
     def projectConfigurer = Mock(ProjectConfigurer)
