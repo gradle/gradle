@@ -44,7 +44,7 @@ class TaskInAnotherBuildCodec(
         val taskPath = readString()
         val targetBuild = readNonNull<BuildIdentifier>()
         val thisBuild = readNonNull<BuildIdentifier>()
-        return TaskInAnotherBuild.ofUnresolved(
+        return TaskInAnotherBuild.of(
             taskIdentityPath,
             taskPath,
             targetBuild,

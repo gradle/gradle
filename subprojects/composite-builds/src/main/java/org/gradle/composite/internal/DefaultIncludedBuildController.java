@@ -18,10 +18,13 @@ package org.gradle.composite.internal;
 
 import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
@@ -138,6 +141,20 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public TaskInternal getTask(String taskPath) {
+        for (Task task : getTaskGraph().getAllTasks()) {
+            if (task.getPath().equals(taskPath)) {
+                return (TaskInternal) task;
+            }
+        }
+        throw includedBuildTaskWasNeverScheduled(taskPath);
+    }
+
+    private TaskExecutionGraphInternal getTaskGraph() {
+        return includedBuild.getBuild().getTaskGraph();
     }
 
     @Override
@@ -270,7 +287,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         try {
             TaskState state = tasks.get(taskPath);
             if (state == null) {
-                throw new IllegalStateException("Included build task '" + taskPath + "' was never scheduled for execution.");
+                throw includedBuildTaskWasNeverScheduled(taskPath);
             }
             if (state.status == TaskStatus.FAILED) {
                 return FAILED;
@@ -282,6 +299,10 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         } finally {
             lock.unlock();
         }
+    }
+
+    private IllegalStateException includedBuildTaskWasNeverScheduled(String taskPath) {
+        return new IllegalStateException("Included build task '" + taskPath + "' was never scheduled for execution.");
     }
 
     private enum TaskStatus {QUEUED, EXECUTING, FAILED, SUCCESS}
