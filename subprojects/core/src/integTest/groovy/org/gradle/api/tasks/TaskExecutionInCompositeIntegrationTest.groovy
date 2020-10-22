@@ -270,8 +270,4 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds(":third-build:sub:doSomething")
     }
-
-    def "Tasks from included build can only be executed from the root of the composite"() {
-
-    }
 }
