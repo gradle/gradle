@@ -270,4 +270,20 @@ class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds(":third-build:sub:doSomething")
     }
+
+    def "Can use abbreviated names to reference included build"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        succeeds(":oB:doSo")
+    }
 }

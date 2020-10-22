@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ProjectFinderByTaskPath {
 
@@ -70,14 +72,13 @@ public class ProjectFinderByTaskPath {
     }
 
     private IncludedBuildState findIncludedBuild(String name, Collection<? extends IncludedBuildState> includedBuilds) {
-        for (IncludedBuildState includedBuild : includedBuilds) {
-            if (includedBuild.getName().equals(name)) {
-                return includedBuild;
-            }
+        if (includedBuilds.isEmpty()) {
+            return null;
         }
 
-        // TODO use project name matcher
-        return null;
+        Map<String, IncludedBuildState> builds = includedBuilds.stream().collect(Collectors.toMap(IncludedBuildState::getName, Function.identity()));
+        NameMatcher matcher = new NameMatcher();
+        return matcher.find(name, builds);
     }
 
     public static class ProjectLookupException extends InvalidUserDataException {
