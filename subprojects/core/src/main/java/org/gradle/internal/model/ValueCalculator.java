@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.WorkNodeAction;
-import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 

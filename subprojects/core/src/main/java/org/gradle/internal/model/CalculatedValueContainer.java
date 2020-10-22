@@ -17,7 +17,6 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -147,13 +146,6 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         synchronized (this) {
             if (result == null) {
                 result = Try.ofFailable(() -> {
-                    if (supplier.usesMutableProjectState()) {
-                        // Must only be called while holding the lock for the target project
-                        ProjectInternal owningProject = (ProjectInternal) supplier.getOwningProject();
-                        if (!owningProject.getModel().hasMutableState()) {
-                            throw new IllegalStateException(String.format("Cannot calculate value for %s without access to the state of %s.", displayName, owningProject));
-                        }
-                    }
                     T value = supplier.calculateValue(context);
                     if (value == null) {
                         throw new IllegalStateException(String.format("Calculated value for %s cannot be null.", displayName));

@@ -44,8 +44,7 @@ import org.gradle.internal.operations.RunnableBuildOperation
 import java.io.File
 
 
-class TransformedExternalArtifactSetCodec(
-) : Codec<TransformedExternalArtifactSet> {
+class TransformedExternalArtifactSetCodec : Codec<TransformedExternalArtifactSet> {
     override suspend fun WriteContext.encode(value: TransformedExternalArtifactSet) {
         encodePreservingSharedIdentityOf(value) {
             write(value.ownerId)
