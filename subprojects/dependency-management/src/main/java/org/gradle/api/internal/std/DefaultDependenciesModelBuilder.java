@@ -26,6 +26,8 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.management.DependenciesModelBuilderInternal;
@@ -34,9 +36,14 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DefaultDependenciesModelBuilder implements DependenciesModelBuilderInternal {
+    private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesModelBuilder.class);
+
+    private final static String ALIAS_REGEX = "[a-z]([a-zA-Z0-9_.\\-])+";
+    private final static Pattern ALIAS_PATTERN = Pattern.compile(ALIAS_REGEX);
     private final Interner<String> strings = Interners.newStrongInterner();
     private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
     private final Map<String, DependencyModel> dependencies = Maps.newLinkedHashMap();
@@ -76,15 +83,31 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
 
     @Override
     public void alias(String alias, String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
+        validateName("alias", alias);
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
         ImmutableVersionConstraint version = versions.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
-        dependencies.put(intern(alias), new DependencyModel(intern(group), intern(name), version));
+        DependencyModel model = new DependencyModel(intern(group), intern(name), version);
+        DependencyModel previous = dependencies.put(intern(alias), model);
+        if (previous != null) {
+            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous, model);
+        }
+    }
+
+    private static void validateName(String type, String value) {
+        if (!ALIAS_PATTERN.matcher(value).matches()) {
+            throw new InvalidUserDataException("Invalid " + type + " name '" + value + "': it must match the following regular expression: " + ALIAS_REGEX);
+        }
     }
 
     @Override
     public void bundle(String name, List<String> aliases) {
-        bundles.put(intern(name), ImmutableList.copyOf(aliases.stream().map(this::intern).collect(Collectors.toList())));
+        validateName("bundle", name);
+        ImmutableList<String> value = ImmutableList.copyOf(aliases.stream().map(this::intern).collect(Collectors.toList()));
+        List<String> previous = bundles.put(intern(name), value);
+        if (previous != null) {
+            LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", name, previous, value);
+        }
     }
 
     private String intern(@Nullable String value) {

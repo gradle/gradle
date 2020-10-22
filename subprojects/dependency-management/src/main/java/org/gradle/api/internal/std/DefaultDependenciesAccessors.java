@@ -35,6 +35,10 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.management.DependenciesModelBuilderInternal;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
@@ -50,6 +54,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspace workspace;
     private final DefaultProjectDependencyFactory projectDependencyFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     private AllDependenciesModel dependenciesConfiguration;
     private ClassLoaderScope classLoaderScope;
@@ -60,10 +65,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
                                         DependenciesAccessorsWorkspace workspace,
-                                        DefaultProjectDependencyFactory projectDependencyFactory) {
+                                        DefaultProjectDependencyFactory projectDependencyFactory,
+                                        BuildOperationExecutor buildOperationExecutor) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -81,9 +88,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 File srcDir = new File(workspace, "sources");
                 File dstDir = new File(workspace, "classes");
                 if (!srcDir.exists() || !dstDir.exists()) {
-                    StringWriter writer = new StringWriter();
-                    DependenciesSourceGenerator.generateSource(writer, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
-                    DependencyManagementAccessorsCompiler.compile(srcDir, dstDir, ACCESSORS_PACKAGE, Collections.singletonMap(ACCESSORS_CLASSNAME, writer.toString()), classPath);
+                    buildOperationExecutor.run(new CompilationOperation(dependenciesConfiguration, srcDir, dstDir, classPath));
                 }
                 sources = DefaultClassPath.of(srcDir);
                 classes = DefaultClassPath.of(dstDir);
@@ -165,5 +170,33 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     @Override
     public ClassPath getClasses() {
         return sources;
+    }
+
+    private static class CompilationOperation implements RunnableBuildOperation {
+
+        private static final BuildOperationDescriptor.Builder GENERATE_DEPENDENCY_ACCESSORS = BuildOperationDescriptor.displayName("Generate dependency accessors");
+        private final AllDependenciesModel dependenciesConfiguration;
+        private final File srcDir;
+        private final File dstDir;
+        private final ClassPath classPath;
+
+        private CompilationOperation(AllDependenciesModel dependenciesConfiguration, File srcDir, File dstDir, ClassPath classPath) {
+            this.dependenciesConfiguration = dependenciesConfiguration;
+            this.srcDir = srcDir;
+            this.dstDir = dstDir;
+            this.classPath = classPath;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            StringWriter writer = new StringWriter();
+            DependenciesSourceGenerator.generateSource(writer, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
+            DependencyManagementAccessorsCompiler.compile(srcDir, dstDir, ACCESSORS_PACKAGE, Collections.singletonMap(ACCESSORS_CLASSNAME, writer.toString()), classPath);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return GENERATE_DEPENDENCY_ACCESSORS;
+        }
     }
 }

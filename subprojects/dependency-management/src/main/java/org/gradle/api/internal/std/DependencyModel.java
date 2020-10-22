@@ -81,7 +81,7 @@ public class DependencyModel implements Serializable {
 
     @Override
     public String toString() {
-        return "DependencyData{" +
+        return "dependency {" +
             "group='" + group + '\'' +
             ", name='" + name + '\'' +
             ", version='" + version + '\'' +
