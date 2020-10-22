@@ -87,6 +87,12 @@ Root project
           | Creator: 	Project.<init>.tasks.init()
           | Rules:
              ⤷ copyToTaskContainer
+    + javaToolchains
+          | Type:   	org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
+          | Value:  	task ':javaToolchains'
+          | Creator: 	Project.<init>.tasks.javaToolchains()
+          | Rules:
+             ⤷ copyToTaskContainer
     + model
           | Type:   	org.gradle.api.reporting.model.ModelReport
           | Value:  	task ':model'
