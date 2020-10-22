@@ -24,7 +24,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.NameMatcher;
 
 import javax.annotation.Nullable;
@@ -53,12 +52,11 @@ public class TaskSelector {
     }
 
     public TaskSelection getSelection(String path) {
-        TaskSelection includedBuildSelection = findIncludedBuildSelection(path);
-        return includedBuildSelection != null ? includedBuildSelection : getSelection(path, gradle.getDefaultProject());
+        return getSelection(path, gradle.getDefaultProject());
     }
 
     public Spec<Task> getFilter(String path) {
-        final ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, gradle.getDefaultProject());
+        final ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, gradle.getDefaultProject(), buildStateRegistry.getIncludedBuilds());
         if (!taskPath.isQualified()) {
             ProjectInternal targetProject = taskPath.getProject();
             configurer.configure(targetProject);
@@ -82,49 +80,10 @@ public class TaskSelector {
             ensureNotFromIncludedBuild(root);
         }
 
-        // TODO included build should be addressed from composite root
-        TaskSelection includedBuildSelection = findIncludedBuildSelection(path);
-        if (includedBuildSelection != null) {
-            return includedBuildSelection;
-        }
-
         ProjectInternal project = projectPath != null
             ? gradle.getRootProject().findProject(projectPath)
             : gradle.getDefaultProject();
         return getSelection(path, project);
-    }
-
-    private TaskSelection findIncludedBuildSelection(String path) {
-        String[] paths = parsePath(path);
-        if (paths != null) {
-            IncludedBuildState includedBuild = findIncludedBuild(paths[0]);
-            if (includedBuild != null) {
-                ProjectInternal includedBuildRoot = includedBuild.getConfiguredBuild().getRootProject();
-                return getSelection(paths[1], includedBuildRoot);
-            }
-        }
-        return null;
-    }
-
-    private String[] parsePath(String path) {
-        if (path.startsWith(Project.PATH_SEPARATOR)) {
-            int idx = path.indexOf(Project.PATH_SEPARATOR, 1);
-            if (idx >= 0) {
-                String projectName = path.substring(1, idx);
-                String taskPath = path.substring(idx);
-                return new String[]{ projectName, taskPath };
-            }
-        }
-        return null;
-    }
-
-    private IncludedBuildState findIncludedBuild(String name) {
-        for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
-            if (includedBuild.getName().equals(name)) {
-                return includedBuild;
-            }
-        }
-        return null;
     }
 
     private void ensureNotFromIncludedBuild(File root) {
@@ -138,7 +97,7 @@ public class TaskSelector {
     }
 
     private TaskSelection getSelection(String path, ProjectInternal project) {
-        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
+        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project, buildStateRegistry.getIncludedBuilds());
         ProjectInternal targetProject = taskPath.getProject();
         if (taskPath.isQualified()) {
             configurer.configure(targetProject);

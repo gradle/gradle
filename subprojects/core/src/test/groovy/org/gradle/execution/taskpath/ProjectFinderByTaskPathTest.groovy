@@ -31,29 +31,29 @@ class ProjectFinderByTaskPathTest extends AbstractProjectBuilderSpec {
 
     def "finds root"() {
         expect:
-        finder.findProject(":", root) == root
-        finder.findProject(":", foo) == root
-        finder.findProject(":", bar) == root
+        finder.findProject(":", root, []) == root
+        finder.findProject(":", foo, []) == root
+        finder.findProject(":", bar, []) == root
     }
 
     def "finds project from root"() {
         expect:
-        finder.findProject(":foo:bar", foo) == bar
-        finder.findProject(":foo:bar", bar) == bar
-        finder.findProject(":foo:bar", root) == bar
-        finder.findProject(":foo", bar) == foo
+        finder.findProject(":foo:bar", foo, []) == bar
+        finder.findProject(":foo:bar", bar, []) == bar
+        finder.findProject(":foo:bar", root, []) == bar
+        finder.findProject(":foo", bar, []) == foo
     }
 
     def "finds project relatively"() {
         expect:
-        finder.findProject("foo:bar", root) == bar
-        finder.findProject("foo", root) == foo
-        finder.findProject("bar", foo) == bar
+        finder.findProject("foo:bar", root, []) == bar
+        finder.findProject("foo", root, []) == foo
+        finder.findProject("bar", foo, []) == bar
     }
 
     def "provides decent information when project cannot be found"() {
         when:
-        finder.findProject("foo:xxx", root)
+        finder.findProject("foo:xxx", root, [])
         then:
         def ex = thrown(ProjectFinderByTaskPath.ProjectLookupException)
         ex.message.contains("xxx")

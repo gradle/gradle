@@ -18,6 +18,9 @@ package org.gradle.execution.taskpath;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.build.IncludedBuildState;
+
+import java.util.Collection;
 
 public class TaskPathResolver {
 
@@ -34,9 +37,10 @@ public class TaskPathResolver {
     /**
      * @param path the task path, e.g. 'someTask', 'sT', ':sT', ':foo:bar:sT'
      * @param startFrom the starting project the task should be found recursively
+     * @param includedBuilds the list of included builds to include in the search
      * @return resolved task path
      */
-    public ResolvedTaskPath resolvePath(String path, ProjectInternal startFrom) {
+    public ResolvedTaskPath resolvePath(String path, ProjectInternal startFrom, Collection<? extends IncludedBuildState> includedBuilds) {
         ProjectInternal project;
         String taskName; //eg. 'someTask' or 'sT'
         String prefix; //eg. '', ':' or ':foo:bar'
@@ -46,7 +50,7 @@ public class TaskPathResolver {
             taskName = path.substring(idx + 1);
             prefix = path.substring(0, idx+1);
             String projectPath = Project.PATH_SEPARATOR.equals(prefix) ? prefix : path.substring(0, idx);
-            project = projectFinder.findProject(projectPath, startFrom);
+            project = projectFinder.findProject(projectPath, startFrom, includedBuilds);
         } else {
             project = startFrom;
             taskName = path;

@@ -31,10 +31,10 @@ class TaskPathResolverTest extends Specification {
         }
 
         when:
-        def path = resolver.resolvePath(":x:foo:someTask", project)
+        def path = resolver.resolvePath(":x:foo:someTask", project, [])
 
         then:
-        1 * finder.findProject(":x:foo", project) >> fooProject
+        1 * finder.findProject(":x:foo", project, []) >> fooProject
 
         and:
         path.qualified
@@ -49,10 +49,10 @@ class TaskPathResolverTest extends Specification {
         }
 
         when:
-        def path = resolver.resolvePath("x:foo:someTask", project)
+        def path = resolver.resolvePath("x:foo:someTask", project, [])
 
         then:
-        1 * finder.findProject("x:foo", project) >> fooProject
+        1 * finder.findProject("x:foo", project, []) >> fooProject
 
         and:
         path.qualified
@@ -67,10 +67,10 @@ class TaskPathResolverTest extends Specification {
         }
 
         when:
-        def path = resolver.resolvePath(":someTask", project)
+        def path = resolver.resolvePath(":someTask", project, [])
 
         then:
-        1 * finder.findProject(":", project) >> root
+        1 * finder.findProject(":", project, []) >> root
 
         and:
         path.qualified
@@ -81,7 +81,7 @@ class TaskPathResolverTest extends Specification {
 
     def "resolves unqualified path"() {
         when:
-        def path = resolver.resolvePath("someTask", project)
+        def path = resolver.resolvePath("someTask", project, [])
 
         then:
         !path.qualified
