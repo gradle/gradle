@@ -25,12 +25,10 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Ignore
 import spock.lang.Retry
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
-@Ignore
 @Timeout(60)
 @Retry(count = 3)
 @ToolingApiVersion(">=6.5")
@@ -46,6 +44,38 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     @TargetGradleVersion(">=6.5")
     def "disconnect during build stops daemon"() {
         setup:
+        buildFile.text = """
+            task hang {
+                doLast {
+                    ${server.callFromBuild("waiting")}
+                }
+            }
+        """.stripIndent()
+
+        def sync = server.expectAndBlock("waiting")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        ProjectConnection connection = connector.connect() // using withConnection would call close after the closure
+
+        def build = connection.newBuild()
+        build.forTasks('hang')
+        build.run(resultHandler)
+        sync.waitForAllPendingCalls(resultHandler)
+        connector.disconnect()
+        resultHandler.finished()
+
+        then:
+        assertNoRunningDaemons()
+    }
+
+    @Timeout(30)
+    @TargetGradleVersion(">=6.8")
+    @ToolingApiVersion(">=6.8")
+    def "disconnect during build stops daemon in a timely fashion"() {
+        setup:
+        file("gradle.properties") << "systemProp.org.gradle.internal.testing.daemon.hang=60000"
         buildFile.text = """
             task hang {
                 doLast {
