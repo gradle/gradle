@@ -47,15 +47,11 @@ public class ProjectFinderByTaskPath {
             IncludedBuildState includedBuild = findIncludedBuild(includedBuildName, includedBuilds);
             if (includedBuild != null) {
                 current = includedBuild.getConfiguredBuild().getRootProject();
-                if (projectPathElements.size() == 1) {
-                    return (ProjectInternal) current;
-                } else {
-                    projectPath = projectPath.substring(includedBuildName.length() + 1);
-                }
+                projectPathElements = projectPathElements.subList(1, projectPathElements.size());
             }
         }
 
-        for (String pattern : projectPath.split(Project.PATH_SEPARATOR)) {
+        for (String pattern : projectPathElements) {
             Map<String, Project> children = current.getChildProjects();
 
             NameMatcher matcher = new NameMatcher();
