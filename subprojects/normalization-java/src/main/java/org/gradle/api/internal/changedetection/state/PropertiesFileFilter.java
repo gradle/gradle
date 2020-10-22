@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.hash.HashCode;
+import com.google.common.collect.ImmutableMap;
 
-import javax.annotation.Nullable;
+import java.util.Map;
 
-public interface ResourceSnapshotterCacheService {
-    @Nullable
-    HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash);
+public interface PropertiesFileFilter {
+    String ALL_PROPERTIES = "**/*.properties";
+
+    Map<String, ResourceEntryFilter> FILTER_NOTHING = ImmutableMap.of();
+
+    Map<String, ResourceEntryFilter> getFilters();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
-public interface ResourceSnapshotterCacheService {
-    @Nullable
-    HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash);
+public interface RegularFileSnapshotContext {
+    public Supplier<String[]> getRelativePathSegments();
+
+    public RegularFileSnapshot getSnapshot();
 }

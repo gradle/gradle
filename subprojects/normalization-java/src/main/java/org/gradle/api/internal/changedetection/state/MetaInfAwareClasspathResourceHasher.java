@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,25 +30,22 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     private final ResourceHasher delegate;
     private final ManifestFileZipEntryHasher manifestFileZipEntryHasher;
-    private final PropertiesFileZipEntryHasher propertiesFileZipEntryHasher;
 
-    public MetaInfAwareClasspathResourceHasher(ResourceHasher delegate, ManifestFileZipEntryHasher manifestFileZipEntryHasher, PropertiesFileZipEntryHasher propertiesFileZipEntryHasher) {
+    public MetaInfAwareClasspathResourceHasher(ResourceHasher delegate, ManifestFileZipEntryHasher manifestFileZipEntryHasher) {
         this.delegate = delegate;
         this.manifestFileZipEntryHasher = manifestFileZipEntryHasher;
-        this.propertiesFileZipEntryHasher = propertiesFileZipEntryHasher;
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         delegate.appendConfigurationToHasher(hasher);
         manifestFileZipEntryHasher.appendConfigurationToHasher(hasher);
-        propertiesFileZipEntryHasher.appendConfigurationToHasher(hasher);
     }
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot snapshot) {
-        return delegate.hash(snapshot);
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+        return delegate.hash(snapshotContext);
     }
 
     @Nullable
@@ -58,8 +54,6 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
         ZipEntry zipEntry = zipEntryContext.getEntry();
         if (isManifestFile(zipEntry.getName())) {
             return tryHashWithFallback(zipEntryContext, manifestFileZipEntryHasher);
-        } else if (isManifestPropertyFile(zipEntry.getName())) {
-            return tryHashWithFallback(zipEntryContext, propertiesFileZipEntryHasher);
         } else {
             return delegate.hash(zipEntryContext);
         }
@@ -77,9 +71,5 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     private static boolean isManifestFile(final String name) {
         return name.equals("META-INF/MANIFEST.MF");
-    }
-
-    private static boolean isManifestPropertyFile(final String name) {
-        return name.startsWith("META-INF/") && name.endsWith(".properties");
     }
 }
