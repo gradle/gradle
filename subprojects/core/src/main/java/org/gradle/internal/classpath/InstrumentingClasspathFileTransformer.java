@@ -18,6 +18,9 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.FileException;
@@ -70,19 +73,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private File transform(File source, File dest, CompleteFileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
-        SignedJarDetection signedJarDetection = new SignedJarDetection();
-        try {
-            classpathWalker.visit(source, signedJarDetection);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (FileException e) {
-            LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
-            classpathBuilder.jar(dest, builder -> {
-                // Badly formed archive, so discard the contents and produce an empty JAR
-            });
-            return dest;
-        }
-        if (signedJarDetection.hasSignature) {
+        if (isSignedJar(source)) {
             LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
             return copyingClasspathFileTransformer.transform(source, sourceSnapshot, cacheDir);
         } else {
@@ -117,15 +108,22 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         });
     }
 
-    private static class SignedJarDetection implements ClasspathEntryVisitor {
-
-        boolean hasSignature = false;
-
-        @Override
-        public void visit(Entry entry) {
-            if (entry.getName().startsWith("META-INF/") && entry.getName().endsWith(".SF")) {
-                hasSignature = true;
-            }
+    private boolean isSignedJar(File source) {
+        if (!source.isFile()) {
+            return false;
         }
+        try (ZipInput entries = FileZipInput.create(source)) {
+            for (ZipEntry entry : entries) {
+                String entryName = entry.getName();
+                if (entryName.startsWith("META-INF/") && entryName.endsWith(".SF")) {
+                    return true;
+                }
+            }
+        } catch (FileException e) {
+            // Ignore malformed archive
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return false;
     }
 }
