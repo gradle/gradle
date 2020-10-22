@@ -58,7 +58,6 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.WAITING;
     private final BuildIdentifier thisBuild;
     private final BuildIdentifier targetBuild;
-    private boolean required;
 
     protected TaskInAnotherBuild(BuildIdentifier thisBuild, BuildIdentifier targetBuild, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
@@ -134,21 +133,6 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     @Override
     public boolean requiresMonitoring() {
         return true;
-    }
-
-    @Override
-    public void require() {
-        this.required = true;
-    }
-
-    @Override
-    public boolean isRequired() {
-        return required;
-    }
-
-    @Override
-    public boolean isIncludeInGraph() {
-        return required;
     }
 
     @Override
