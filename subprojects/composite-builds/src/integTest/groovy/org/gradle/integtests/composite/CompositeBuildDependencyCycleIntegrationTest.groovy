@@ -302,6 +302,12 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         resolveSucceeds(":build")
+
+        assertTaskExecuted(":buildD", ":buildD-api:jar")
+        assertTaskExecuted(":buildE", ":buildE-api:jar")
+        assertTaskExecuted(":buildD", ":buildD-impl:jar")
+        assertTaskExecuted(":buildE", ":buildE-impl:jar")
+        assertTaskExecuted(":", ":jar")
     }
 
     protected void resolveSucceeds(String task) {
