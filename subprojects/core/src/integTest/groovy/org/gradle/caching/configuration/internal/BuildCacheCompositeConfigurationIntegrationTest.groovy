@@ -25,7 +25,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isConfigCache
-import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.notConfigCache
+import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isNotConfigCache
 
 /**
  * Tests build cache configuration within composite builds and buildSrc.
@@ -78,7 +78,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             build.dependsOn customTask
         """
         file("i2/build.gradle") << customTaskCode("i2")
-        if (notConfigCache()) { // GradleBuild is not supported with the configuration cache
+        if (isNotConfigCache()) { // GradleBuild is not supported with the configuration cache
             file("i2/build.gradle") << """
 
                 task gradleBuild(type: GradleBuild) {
@@ -105,17 +105,17 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i2Cache.empty
         buildSrcCache.empty
         mainCache.listCacheFiles().size() == 5 // root, i1, i1BuildSrc, i2, buildSrc
-
-        and:
         isConfigCache() || i3Cache.listCacheFiles().size() == 1
-        isConfigCache() || outputContains("Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, removeUnusedEntriesAfter = 7 days).")
 
         and:
+        if (isNotConfigCache()) {
+            outputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
+        }
         outputContains "Using local directory build cache for the root build (location = ${mainCache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
 
         and:
         def expectedCacheDirs = [":": mainCache.cacheDir]
-        if (notConfigCache()) {
+        if (isNotConfigCache()) {
             expectedCacheDirs[":i2:i3"] = i3Cache.cacheDir
         }
 
