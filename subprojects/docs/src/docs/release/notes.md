@@ -141,7 +141,7 @@ java {
 
 which tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
 
-There are many options to configure this feature which are described in the [user manual](userguide/consistent_resolution.html).
+There are many options to configure this feature which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
 
 ## New features and usability improvements
 

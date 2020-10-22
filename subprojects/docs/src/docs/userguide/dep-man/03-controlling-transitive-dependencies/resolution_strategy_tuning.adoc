@@ -71,3 +71,72 @@ Eventually, it's possible to combine both failing on dynamic versions and changi
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-unstable]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=fail-on-unstable]"]
 ====
+
+[[resolution_consistency]]
+== Getting consistent dependency resolution results
+
+NOTE: Dependency resolution consistency is an incubating feature
+
+It's a common misconception that there's a single dependency graph for an application.
+In fact Gradle will, during a build, resolve a number of distinct dependency graphs, even within a single project.
+For example, the graph of dependencies to use at compile time is different from the graph of dependencies to use at runtime.
+In general, the graph of dependencies at runtime is a superset of the compile dependencies (there are exceptions to the rule, for example in case some dependencies are repackaged within the runtime binary).
+
+Gradle resolves those dependency graphs independently.
+This means, in the Java ecosystem for example, that the resolution of the "compile classpath" doesn't influence the resolution of the "runtime classpath".
+
+This can lead to surprising behaviors which can be mitated by enabling dependency resolution consistency.
+
+[[sec::project_dependency_resolution_consistency]]
+=== Enabling project-local dependency resolution consistency
+
+For example, imagine that your Java library depends on the following libraries:
+
+.First-level dependencies
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+Then resolving the `compileClasspath` configuration would resolve the `groovy` library to version `3.0.1` as expected.
+However, resolving the `runtimeClasspath` configuration would instead return `groovy 3.0.2`.
+
+The reason for this is that a transitive dependency of `vertx`, which is a `runtimeOnly` dependency, brings a higher version of `groovy`.
+In general, this isn't a problem but it also means that the version of the Groovy library that you are going to use at runtime is going to be different from the one that you used for compilation.
+
+In order to avoid this situation, Gradle offers an API to explain that configurations should be resolved consitently.
+
+[[sec:configuration_consistency]]
+=== Declaring resolution consistency between configurations
+
+In the example above, we can declare that we want, at runtime, the same versions of the common dependencies as compile time, by declaring that the "runtime classpath" _should be consistent with_ the "compile classpath":
+
+.Declaring consistency between configurations
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=explicit-configuration]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=explicit-configuration]"]
+====
+
+As a result, both the `runtimeClasspath` and `compileClasspath` will resolve Groovy 3.0.1.
+
+The relationship is _directed_, which means that if the `runtimeClasspath` configuration has to be resolved, Gradle will _first_ resolve the `compileClasspath` and then "inject" the result of resolution as <<rich_versions.adoc#sec:strict-version,strict constraints>> into the `runtimeClasspath`.
+
+If, for some reason, the versions of the two graphs cannot be "aligned", then resolution will fail with a call to action.
+
+[[sec:java_consistency]]
+=== Declaring consistent resolution in the Java ecosystem
+
+The `runtimeClasspath` and `compileClasspath` example above are common in the Java ecosystem.
+However, it's often not enough to declare consistency between those two configurations only.
+For example, you most likely want the _test runtime classpath_ to be consistent with the
+_runtime classpath_.
+
+To make this easier, Gradle provides a way to configure consistent resolution for the Java ecosystem using the `java` extension:
+
+.Declaring consistency in the Java ecosystem
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=java-convention]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=java-convention]"]
+====
+
+Please refer to the link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[Java Plugin Extension docs] for more configuration options.
