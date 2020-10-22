@@ -36,8 +36,8 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     private final IncludedBuildControllers includedBuilds;
 
     public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds) {
-            this.includedBuilds = includedBuilds;
-        }
+        this.includedBuilds = includedBuilds;
+    }
 
     @Override
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
@@ -46,7 +46,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
             checkNoCycles(requestingBuild, targetBuild, newArrayList());
         }
 
-        getBuildController(targetBuild).queueForExecution(taskPath);
+        buildControllerFor(targetBuild).queueForExecution(taskPath);
     }
 
     @Override
@@ -60,17 +60,15 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
 
     @Override
     public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
-        IncludedBuildController controller = getBuildController(targetBuild);
-        return controller.getTaskState(taskPath);
+        return buildControllerFor(targetBuild).getTaskState(taskPath);
     }
 
     @Override
     public TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
-        IncludedBuildController controller = getBuildController(targetBuild);
-        return controller.getTask(taskPath);
+        return buildControllerFor(targetBuild).getTask(taskPath);
     }
 
-    private IncludedBuildController getBuildController(BuildIdentifier buildId) {
+    private IncludedBuildController buildControllerFor(BuildIdentifier buildId) {
         return includedBuilds.getBuildController(buildId);
     }
 
