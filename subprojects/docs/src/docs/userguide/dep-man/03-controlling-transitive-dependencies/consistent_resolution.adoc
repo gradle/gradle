@@ -5,7 +5,7 @@ NOTE: Dependency resolution consistency is an incubating feature
 
 It's a common misconception that there's a single dependency graph for an application.
 In fact Gradle will, during a build, resolve a number of distinct dependency graphs, even within a single project.
-For example, the graph of dependencies to use at compile time is different from the graph of dependencies to use a runtime.
+For example, the graph of dependencies to use at compile time is different from the graph of dependencies to use at runtime.
 In general, the graph of dependencies at runtime is a superset of the compile dependencies (there are exceptions to the rule, for example in case some dependencies are repackaged within the runtime binary).
 
 Gradle resolves those dependency graphs independently.
@@ -27,7 +27,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-consist
 Then resolving the `compileClasspath` configuration would resolve the `groovy` library to version `3.0.1` as expected.
 However, resolving the `runtimeClasspath` configuration would instead return `groovy 3.0.2`.
 
-The reason for this is that a transitive dependency of `vertx` brings a higher version of `groovy`.
+The reason for this is that a transitive dependency of `vertx`, which is a `runtimeOnly` dependency, brings a higher version of `groovy`.
 In general, this isn't a problem but it also means that the version of the Groovy library that you are going to use at runtime is going to be different from the one that you used for compilation.
 
 In order to avoid this situation, Gradle offers an API to explain that configurations should be resolved consitently.

@@ -481,7 +481,7 @@ As the way to declare the repositories and what they are expected to contain dep
 [[sub:centralized-repository-declaration]]
 == Centralizing repositories declaration
 
-Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle offers a way to declare them once for every project.
+Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle offers a way to declare them in a central place for all project.
 
 NOTE: Central declaration of repositories is an incubating feature
 
