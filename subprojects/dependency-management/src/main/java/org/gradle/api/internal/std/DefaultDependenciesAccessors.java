@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.std;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
@@ -45,7 +45,6 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
@@ -79,7 +78,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             this.dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             this.classLoaderScope = classLoaderScope;
             writeDependenciesAccessors();
-            writeProjectAccessors(((SettingsInternal)settings).getProjectRegistry());
+            writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -96,7 +95,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             File srcDir = new File(workspace, "sources");
             File dstDir = new File(workspace, "classes");
             if (!srcDir.exists() || !dstDir.exists()) {
-                buildOperationExecutor.run(new CompilationOperation(dependenciesConfiguration, srcDir, dstDir, classPath));
+                buildOperationExecutor.run(new DependencyAccessorCompilationOperation(dependenciesConfiguration, srcDir, dstDir, classPath));
             }
             sources = DefaultClassPath.of(srcDir);
             classes = DefaultClassPath.of(dstDir);
@@ -116,15 +115,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             File srcDir = new File(workspace, "sources");
             File dstDir = new File(workspace, "classes");
             if (!srcDir.exists() || !dstDir.exists()) {
-                Map<String, String> classNameToSources = Maps.newLinkedHashMap();
-                StringWriter writer = new StringWriter();
-                RootProjectAccessorSourceGenerator.generateSource(writer, projectRegistry.getRootProject(), ACCESSORS_PACKAGE);
-                classNameToSources.put(RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME, writer.toString());
+                List<ClassSource> sources = Lists.newArrayList();
+                sources.add(new RootProjectAccessorSource(projectRegistry.getRootProject()));
                 for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
-                    writer = new StringWriter();
-                    classNameToSources.put(ProjectAccessorsSourceGenerator.generateSource(writer, project, ACCESSORS_PACKAGE), writer.toString());
+                    sources.add(new ProjectAccessorClassSource(project));
                 }
-                DependencyManagementAccessorsCompiler.compile(srcDir, dstDir, ACCESSORS_PACKAGE, classNameToSources, classPath);
+                SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath);
             }
             ClassPath exported = DefaultClassPath.of(dstDir);
             classLoaderScope.export(exported);
@@ -176,7 +172,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         return classes;
     }
 
-    private static class CompilationOperation implements RunnableBuildOperation {
+    private static class DependencyAccessorCompilationOperation implements RunnableBuildOperation {
 
         private static final BuildOperationDescriptor.Builder GENERATE_DEPENDENCY_ACCESSORS = BuildOperationDescriptor.displayName("Generate dependency accessors");
         private final AllDependenciesModel dependenciesConfiguration;
@@ -184,7 +180,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         private final File dstDir;
         private final ClassPath classPath;
 
-        private CompilationOperation(AllDependenciesModel dependenciesConfiguration, File srcDir, File dstDir, ClassPath classPath) {
+        private DependencyAccessorCompilationOperation(AllDependenciesModel dependenciesConfiguration, File srcDir, File dstDir, ClassPath classPath) {
             this.dependenciesConfiguration = dependenciesConfiguration;
             this.srcDir = srcDir;
             this.dstDir = dstDir;
@@ -193,14 +189,99 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public void run(BuildOperationContext context) {
-            StringWriter writer = new StringWriter();
-            DependenciesSourceGenerator.generateSource(writer, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
-            DependencyManagementAccessorsCompiler.compile(srcDir, dstDir, ACCESSORS_PACKAGE, Collections.singletonMap(ACCESSORS_CLASSNAME, writer.toString()), classPath);
+            List<ClassSource> sources = Collections.singletonList(new DependenciesAccessorClassSource(dependenciesConfiguration));
+            SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath);
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             return GENERATE_DEPENDENCY_ACCESSORS;
         }
+    }
+
+    private static class DependenciesAccessorClassSource implements ClassSource {
+
+        private final AllDependenciesModel model;
+
+        private DependenciesAccessorClassSource(AllDependenciesModel model) {
+            this.model = model;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            return ACCESSORS_CLASSNAME;
+        }
+
+        @Override
+        public String getSource() {
+            StringWriter writer = new StringWriter();
+            DependenciesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
+            return writer.toString();
+        }
+    }
+
+    private static class ProjectAccessorClassSource implements ClassSource {
+        private final ProjectDescriptor project;
+        private String className;
+        private String source;
+
+        private ProjectAccessorClassSource(ProjectDescriptor project) {
+            this.project = project;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            ensureInitialized();
+            return className;
+        }
+
+        @Override
+        public String getSource() {
+            ensureInitialized();
+            return source;
+        }
+
+        private void ensureInitialized() {
+            if (className == null) {
+                StringWriter writer = new StringWriter();
+                className = ProjectAccessorsSourceGenerator.generateSource(writer, project, ACCESSORS_PACKAGE);
+            }
+        }
+    }
+
+    private static class RootProjectAccessorSource implements ClassSource {
+        private final ProjectDescriptor rootProject;
+
+        private RootProjectAccessorSource(ProjectDescriptor rootProject) {
+            this.rootProject = rootProject;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            return RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
+        }
+
+        @Override
+        public String getSource() {
+            StringWriter writer = new StringWriter();
+            RootProjectAccessorSourceGenerator.generateSource(writer, rootProject, ACCESSORS_PACKAGE);
+            return writer.toString();
+        }
+
     }
 }

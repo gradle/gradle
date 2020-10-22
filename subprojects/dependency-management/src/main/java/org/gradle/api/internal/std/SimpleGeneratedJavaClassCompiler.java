@@ -17,6 +17,7 @@ package org.gradle.api.internal.std;
 
 import com.google.common.collect.Lists;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -31,38 +32,58 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DependencyManagementAccessorsCompiler {
-    public static void compile(File srcDir, File dstDir, String packageName, Map<String, String> classes, ClassPath classPath) {
+class SimpleGeneratedJavaClassCompiler {
+    /**
+     * Compiles generated Java source files.
+     *
+     * @param srcDir where the compiler will output the sources
+     * @param dstDir where the compiler will output the class files
+     * @param classes the classes to compile
+     * @param classPath the classpath to use for compilation
+     */
+    public static void compile(File srcDir, File dstDir, List<ClassSource> classes, ClassPath classPath) {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> ds = new DiagnosticCollector<>();
         try (StandardJavaFileManager mgr = compiler.getStandardFileManager(ds, null, null)) {
             List<String> options = buildOptions(dstDir, classPath);
-            List<File> filesToCompile = Lists.newArrayListWithCapacity(classes.size());
-            for (Map.Entry<String, String> entry : classes.entrySet()) {
-                String className = entry.getKey();
-                String classCode = entry.getValue();
-                File file = sourceFile(srcDir, packageName, className);
-                writeSourceFile(classCode, file);
-                filesToCompile.add(file);
-            }
-
-            Iterable<? extends JavaFileObject> sources =
-                mgr.getJavaFileObjectsFromFiles(filesToCompile);
-            JavaCompiler.CompilationTask task =
-                compiler.getTask(null, mgr, ds, options,
-                    null, sources);
+            List<File> filesToCompile = outputSourceFilesToSourceDir(srcDir, classes);
+            Iterable<? extends JavaFileObject> sources = mgr.getJavaFileObjectsFromFiles(filesToCompile);
+            JavaCompiler.CompilationTask task = compiler.getTask(null, mgr, ds, options, null, sources);
             task.call();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        for (Diagnostic<? extends JavaFileObject> d : ds.getDiagnostics()) {
-            System.out.format("Line: %d, %s in %s",
-                d.getLineNumber(), d.getMessage(null),
-                d.getSource().getName());
+        List<Diagnostic<? extends JavaFileObject>> diagnostics = ds.getDiagnostics();
+        if (!diagnostics.isEmpty()) {
+            throwCompilationError(diagnostics);
         }
+    }
+
+    private static void throwCompilationError(List<Diagnostic<? extends JavaFileObject>> diagnostics) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Unable to compile generated sources");
+        formatter.startChildren();
+        for (Diagnostic<? extends JavaFileObject> d : diagnostics) {
+            String diagLine = String.format("File %s, line: %d, %s in %s", d.getSource().getName(), d.getLineNumber(), d.getMessage(null), d.getSource().getName());
+            formatter.node(diagLine);
+        }
+        formatter.endChildren();
+        throw new RuntimeException(formatter.toString());
+    }
+
+    private static List<File> outputSourceFilesToSourceDir(File srcDir, List<ClassSource> classes) throws IOException {
+        List<File> filesToCompile = Lists.newArrayListWithCapacity(classes.size());
+        for (ClassSource classSource : classes) {
+            String packageName = classSource.getPackageName();
+            String className = classSource.getSimpleClassName();
+            String classCode = classSource.getSource();
+            File file = sourceFile(srcDir, packageName, className);
+            writeSourceFile(classCode, file);
+            filesToCompile.add(file);
+        }
+        return filesToCompile;
     }
 
     private static void writeSourceFile(String classCode, File file) throws IOException {
