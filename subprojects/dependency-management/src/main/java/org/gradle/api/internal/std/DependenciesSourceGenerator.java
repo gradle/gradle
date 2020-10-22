@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.std;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.logging.text.TreeFormatter;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
@@ -23,6 +27,7 @@ import java.util.stream.Collectors;
 
 public class DependenciesSourceGenerator extends AbstractSourceGenerator {
 
+    private static final int MAX_ENTRIES = 30000;
     private final AllDependenciesModel config;
 
     public DependenciesSourceGenerator(Writer writer,
@@ -65,6 +70,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
         List<String> dependencies = config.getDependencyAliases();
         List<String> bundles = config.getBundleAliases();
+        performValidation(dependencies, bundles);
         for (String alias : dependencies) {
             String coordinates = coordinatesDescriptorFor(config.getDependencyData(alias));
             writeAccessor(alias, coordinates);
@@ -77,6 +83,51 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
             writeBundle(alias, coordinates);
         }
         writeLn("}");
+    }
+
+    private static void performValidation(List<String> dependencies, List<String> bundles) {
+        assertDependencyAliases(dependencies);
+        assertUnique(dependencies, "dependency aliases", "");
+        assertUnique(bundles, "dependency bundles", "Bundle");
+        int size = dependencies.size() + bundles.size();
+        if (size > MAX_ENTRIES) {
+            maybeThrowValidationError(ImmutableList.of("model contains too many entries (" + size + "), maximum is " + MAX_ENTRIES));
+        }
+    }
+
+    private static void assertDependencyAliases(List<String> names) {
+        List<String> errors = names.stream()
+            .filter(n -> n.toLowerCase().endsWith("bundle"))
+            .map(n -> "alias " + n + " isn't a valid: it shouldn't end with 'Bundle'")
+            .collect(Collectors.toList());
+        maybeThrowValidationError(errors);
+    }
+
+    private static void assertUnique(List<String> names, String prefix, String suffix) {
+        List<String> errors = names.stream()
+            .collect(Collectors.groupingBy(AbstractSourceGenerator::toJavaName))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue().size() > 1)
+            .map(e -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
+            .collect(Collectors.toList());
+        maybeThrowValidationError(errors);
+    }
+
+    private static void maybeThrowValidationError(List<String> errors) {
+        if (errors.size() == 1 ) {
+            throw new InvalidUserDataException("Cannot generate dependency accessors because " + errors.get(0));
+        }
+        if (errors.size() > 1) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot generate dependency accessors because");
+            formatter.startChildren();
+            errors.stream()
+                .sorted()
+                .forEach(formatter::node);
+            formatter.endChildren();
+            throw new InvalidUserDataException(formatter.toString());
+        }
     }
 
     private String coordinatesDescriptorFor(DependencyModel dependencyData) {

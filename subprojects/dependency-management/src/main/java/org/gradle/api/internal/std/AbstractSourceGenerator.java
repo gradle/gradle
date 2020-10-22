@@ -32,7 +32,7 @@ public abstract class AbstractSourceGenerator {
         this.writer = writer;
     }
 
-    protected static String toJavaName(String alias) {
+    static String toJavaName(String alias) {
         return Splitter.on(SEPARATOR_PATTERN)
             .splitToList(alias)
             .stream()
