@@ -16,9 +16,7 @@ dependencies {
 if (project.hasProperty("explicitRule")) {
     // tag::explicit-configuration[]
     configurations {
-        runtimeClasspath {
-            shouldResolveConsistentlyWith(compileClasspath.get())
-        }
+        runtimeClasspath.get().shouldResolveConsistentlyWith(compileClasspath.get())
     }
     // end::explicit-configuration[]
 }
