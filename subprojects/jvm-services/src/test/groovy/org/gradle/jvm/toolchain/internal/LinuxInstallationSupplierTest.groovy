@@ -94,7 +94,7 @@ class LinuxInstallationSupplierTest extends Specification {
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([new File(candidates, "11.0.6.hs-adpt").absolutePath])
-        directories*.source == ["linux"]
+        directories*.source == ["Common Linux Locations"]
     }
 
     def "supplies multiple installations for multiple paths"() {
@@ -113,7 +113,7 @@ class LinuxInstallationSupplierTest extends Specification {
             new File(candidates, "14").absolutePath,
             new File(candidates, "8.0.262.fx-librca").absolutePath
         ])
-        directories*.source == ["linux", "linux", "linux"]
+        directories*.source == ["Common Linux Locations", "Common Linux Locations", "Common Linux Locations"]
     }
 
     def "supplies installations for multiple locations"() {
@@ -130,7 +130,7 @@ class LinuxInstallationSupplierTest extends Specification {
             new File(otherCandidates, "8.0.262.fx-librca").absolutePath,
             new File(candidates, "11.0.6.hs-adpt").absolutePath
         ])
-        directories*.source == ["linux", "linux"]
+        directories*.source == ["Common Linux Locations", "Common Linux Locations"]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -149,7 +149,7 @@ class LinuxInstallationSupplierTest extends Specification {
             new File(candidates, "14-real").absolutePath,
             new File(candidates, "other-symlinked").absolutePath
         ])
-        directories*.source == ["linux", "linux"]
+        directories*.source == ["Common Linux Locations", "Common Linux Locations"]
     }
 
     def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {

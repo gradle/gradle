@@ -16,10 +16,10 @@
 * [Building Scala Libraries](https://docs.gradle.org/current/samples/sample_building_scala_libraries.html)
 * [Building Kotlin JVM Applications](https://docs.gradle.org/current/samples/sample_building_kotlin_applications.html)
 * [Building Kotlin JVM Libraries](https://docs.gradle.org/current/samples/sample_building_kotlin_libraries.html)
-* [Building C++ Applications](https://docs.gradle.org/nightly/samples/sample_building_cpp_applications.html)
-* [Building C++ Libraries](https://docs.gradle.org/nightly/samples/sample_building_cpp_libraries.html)
-* [Building Swift Applications](https://docs.gradle.org/nightly/samples/sample_building_swift_applications.html)
-* [Building Swift Libraries](https://docs.gradle.org/nightly/samples/sample_building_swift_libraries.html)
+* [Building C++ Applications](https://docs.gradle.org/current/samples/sample_building_cpp_applications.html)
+* [Building C++ Libraries](https://docs.gradle.org/current/samples/sample_building_cpp_libraries.html)
+* [Building Swift Applications](https://docs.gradle.org/current/samples/sample_building_swift_applications.html)
+* [Building Swift Libraries](https://docs.gradle.org/current/samples/sample_building_swift_libraries.html)
 * [Creating Build Scans](https://scans.gradle.com/)
 
 ## Stay in Flow

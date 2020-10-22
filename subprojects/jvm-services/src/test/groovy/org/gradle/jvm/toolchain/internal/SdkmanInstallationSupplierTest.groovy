@@ -94,7 +94,7 @@ class SdkmanInstallationSupplierTest extends Specification {
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([new File(candidates, "java/11.0.6.hs-adpt").absolutePath])
-        directories*.source == ["SDKMAN"]
+        directories*.source == ["SDKMAN!"]
     }
 
     def "supplies multiple installations for multiple paths"() {
@@ -113,7 +113,7 @@ class SdkmanInstallationSupplierTest extends Specification {
             new File(candidates, "java/14").absolutePath,
             new File(candidates, "java/8.0.262.fx-librca").absolutePath
         ])
-        directories*.source == ["SDKMAN", "SDKMAN", "SDKMAN"]
+        directories*.source == ["SDKMAN!", "SDKMAN!", "SDKMAN!"]
     }
 
     def "falls back to default location if environment variable is not set"() {
@@ -130,7 +130,7 @@ class SdkmanInstallationSupplierTest extends Specification {
             new File(candidates, "java/14").absolutePath,
             new File(candidates, "java/8.0.262.fx-librca").absolutePath
         ])
-        directories*.source == ["SDKMAN", "SDKMAN", "SDKMAN"]
+        directories*.source == ["SDKMAN!", "SDKMAN!", "SDKMAN!"]
     }
 
     def "ignores fallback location if not existing"() {
@@ -158,7 +158,7 @@ class SdkmanInstallationSupplierTest extends Specification {
             new File(candidates, "java/14-real").absolutePath,
             new File(candidates, "java/other-symlinked").absolutePath
         ])
-        directories*.source == ["SDKMAN", "SDKMAN"]
+        directories*.source == ["SDKMAN!", "SDKMAN!"]
     }
 
     def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {

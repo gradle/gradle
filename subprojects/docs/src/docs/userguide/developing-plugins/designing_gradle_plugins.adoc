@@ -28,7 +28,7 @@ When designing Gradle plugins always be aware of the impact on the end user.
 Seemingly simple logic can have a considerable impact on the execution performance of a build.
 That’s especially the case when code of a plugin is executed during the <<build_lifecycle.adoc#sec:build_phases,configuration phase of the build lifecycle>> e.g.
 resolving dependencies by iterating over them, making HTTP calls or writing to files.
-The guide on link:https://guides.gradle.org/performance[Optimizing Gradle Build Performance] will give you additional code examples, pitfalls and recommendations.
+The section on <<performance.adoc#,optimizing Gradle build performance>> will give you additional code examples, pitfalls and recommendations.
 
 As you write plugin code ask yourself whether the code shouldn’t rather be run during the execution phase.
 If you suspect issues with your plugin code, try creating a link:https://scans.gradle.com/[build scan] to identify bottlenecks.
@@ -133,7 +133,6 @@ The use of dynamic Groovy and (its very capable testing and mocking framework) l
 To be able to build a Gradle plugin you’ll need to tell your project to use a compile-time dependency on the Gradle API.
 Your build script would usually contain the following declaration:
 
-.build.gradle
 ====
 include::sample[dir="snippets/plugins/customPlugin/groovy/plugin",files="build.gradle[tags=gradle-api-dependencies]"]
 include::sample[dir="snippets/plugins/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=gradle-api-dependencies]"]
@@ -160,7 +159,6 @@ The dependency report does not render dependencies declared for the `classpath` 
 However, you can call the help task `buildEnvironment` to render the full dependency graph.
 To demonstrate the functionality let’s assume the following build script:
 
-.build.gradle
 ====
 include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/externalLibraries/kotlin",files="build.gradle.kts[]"]

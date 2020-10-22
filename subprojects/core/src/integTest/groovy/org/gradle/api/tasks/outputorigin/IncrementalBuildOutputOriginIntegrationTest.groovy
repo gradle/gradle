@@ -17,9 +17,10 @@
 package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.junit.Rule
 
 class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpec {
@@ -38,7 +39,6 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId.originId(taskPath)
     }
 
-    @ToBeFixedForConfigurationCache(because = "build ID doesn't change")
     def "exposes origin build id when reusing outputs"() {
         given:
         buildScript """
@@ -135,7 +135,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":w2") == firstBuildId
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildSrc is skipped")
+    @UnsupportedWithConfigurationCache(because = "buildSrc is skipped")
     def "buildSrc tasks advertise build id"() {
         given:
         file("buildSrc/build.gradle").text = """

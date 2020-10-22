@@ -1,7 +1,10 @@
 package model
 
+import Gradle_Check.model.FlameGraphGeneration
 import Gradle_Check.model.GradleSubprojectProvider
+import Gradle_Check.model.PerformanceScenario
 import Gradle_Check.model.PerformanceTestCoverage
+import Gradle_Check.model.Scenario
 import common.BuildCache
 import common.JvmCategory
 import common.JvmVendor
@@ -128,6 +131,11 @@ data class CIBuildModel(
                 TestCoverage(38, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION, withoutDependencies = true),
                 TestCoverage(32, TestType.watchFs, Os.MACOS, JvmCategory.MAX_VERSION, withoutDependencies = true),
                 TestCoverage(37, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION, withoutDependencies = true)
+            ),
+            flameGraphs = listOf(
+                FlameGraphGeneration(14, "File System Watching", listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
+                    PerformanceScenario(Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"), it)
+                })
             )),
         Stage(StageNames.EXPERIMENTAL_JDK,
             trigger = Trigger.never,
@@ -216,7 +224,18 @@ interface StageName {
         get() = stageName.replace(" ", "").replace("-", "")
 }
 
-data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestCoverage> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
+data class Stage(
+    val stageName: StageName,
+    val specificBuilds: List<SpecificBuild> = emptyList(),
+    val functionalTests: List<TestCoverage> = emptyList(),
+    val performanceTests: List<PerformanceTestCoverage> = emptyList(),
+    val flameGraphs: List<FlameGraphGeneration> = emptyList(),
+    val trigger: Trigger = Trigger.never,
+    val functionalTestsDependOnSpecificBuilds: Boolean = false,
+    val runsIndependent: Boolean = false,
+    val omitsSlowProjects: Boolean = false,
+    val dependsOnSanityCheck: Boolean = false
+) {
     val id = stageName.id
 }
 
@@ -278,39 +297,31 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
 }
 
 enum class PerformanceTestType(
-    val taskId: String,
     val displayName: String,
     val timeout: Int,
     val defaultBaselines: String = "",
     val channel: String,
-    val extraParameters: String = "",
-    val uuid: String? = null
+    val extraParameters: String = ""
 ) {
     test(
-        taskId = "PerformanceTest",
         displayName = "Performance Regression Test",
         timeout = 420,
         defaultBaselines = "defaults",
         channel = "commits"
     ),
     slow(
-        taskId = "SlowPerformanceTest",
         displayName = "Slow Performance Regression Test",
         timeout = 420,
         defaultBaselines = "defaults",
-        channel = "commits",
-        uuid = "PerformanceExperimentCoordinator"
+        channel = "commits"
     ),
     experiment(
-        taskId = "PerformanceExperiment",
         displayName = "Performance Experiment",
         timeout = 420,
         defaultBaselines = "defaults",
-        channel = "experiments",
-        uuid = "PerformanceExperimentOnlyCoordinator"
+        channel = "experiments"
     ),
     flakinessDetection(
-        taskId = "FlakinessDetection",
         displayName = "Performance Test Flakiness Detection",
         timeout = 600,
         defaultBaselines = "flakiness-detection-commit",
@@ -318,7 +329,6 @@ enum class PerformanceTestType(
         extraParameters = "--checks none --rerun"
     ),
     historical(
-        taskId = "HistoricalPerformanceTest",
         displayName = "Historical Performance Test",
         timeout = 2280,
         defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
@@ -326,19 +336,12 @@ enum class PerformanceTestType(
         extraParameters = "--checks none"
     ),
     adHoc(
-        taskId = "HistoricalPerformanceTest",
         displayName = "AdHoc Performance Test",
         timeout = 30,
-        defaultBaselines = "defaults",
+        defaultBaselines = "none",
         channel = "adhoc",
         extraParameters = "--checks none"
     );
-
-    fun asId(model: CIBuildModel): String =
-        "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
-
-    fun asUuid(model: CIBuildModel): String =
-        uuid?.let { model.projectPrefix + it } ?: asId(model)
 }
 
 enum class Trigger {

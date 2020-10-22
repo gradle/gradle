@@ -28,6 +28,7 @@ dependencies {
 
     testImplementation(project(":file-collections"))
     testImplementation(project(":platform-jvm"))
+    testImplementation(testFixtures(project(":core")))
 }
 
 strictCompile {

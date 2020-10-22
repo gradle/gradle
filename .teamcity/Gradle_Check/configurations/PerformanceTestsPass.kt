@@ -16,7 +16,7 @@
 
 package Gradle_Check.configurations
 
-import Gradle_Check.model.PerformanceTestCoverage
+import Gradle_Check.model.PerformanceTestProjectSpec
 import common.Os
 import common.applyDefaultSettings
 import configurations.BaseGradleBuildType
@@ -32,11 +32,11 @@ import projects.PerformanceTestProject
 class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(model, init = {
     uuid = performanceTestProject.uuid + "_Trigger"
     id = AbsoluteId(uuid)
-    val performanceTestCoverage = performanceTestProject.performanceTestCoverage
+    val performanceTestSpec = performanceTestProject.spec
     name = performanceTestProject.name + " (Trigger)"
 
     val os = Os.LINUX
-    val type = performanceTestCoverage.type
+    val type = performanceTestSpec.type
 
     applyDefaultSettings(os)
     params {
@@ -44,7 +44,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
         param("env.JAVA_HOME", os.buildJavaHome())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("performance.db.username", "tcagent")
-        param("performance.channel", performanceTestCoverage.channel())
+        param("performance.channel", performanceTestSpec.channel())
     }
 
     features {
@@ -54,7 +54,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
     val performanceResultsDir = "perf-results"
     val performanceProjectName = "performance"
 
-    val taskName = if (performanceTestCoverage.type == PerformanceTestType.flakinessDetection)
+    val taskName = if (performanceTestSpec.type == PerformanceTestType.flakinessDetection)
         "performanceTestFlakinessReport"
     else
         "performanceTestReport"
@@ -101,5 +101,5 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
         }
     }
 }) {
-    val performanceTestCoverage: PerformanceTestCoverage = performanceTestProject.performanceTestCoverage
+    val performanceSpec: PerformanceTestProjectSpec = performanceTestProject.spec
 }

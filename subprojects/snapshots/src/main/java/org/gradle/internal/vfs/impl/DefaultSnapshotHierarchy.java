@@ -17,33 +17,32 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
+import org.gradle.internal.snapshot.PartialDirectorySnapshot;
 import org.gradle.internal.snapshot.ReadOnlyFileSystemNode;
+import org.gradle.internal.snapshot.SingletonChildMap;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.snapshot.SnapshotUtil;
+import org.gradle.internal.snapshot.UnknownSnapshot;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.util.Optional;
 
-import static org.gradle.internal.snapshot.SnapshotUtil.getSnapshotFromChild;
-import static org.gradle.internal.snapshot.SnapshotUtil.invalidateSingleChild;
-import static org.gradle.internal.snapshot.SnapshotUtil.storeSingleChild;
-
 public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
+    private final CaseSensitivity caseSensitivity;
     @VisibleForTesting
     final FileSystemNode rootNode;
-    private final CaseSensitivity caseSensitivity;
 
     public static SnapshotHierarchy from(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
         return new DefaultSnapshotHierarchy(rootNode, caseSensitivity);
     }
 
     private DefaultSnapshotHierarchy(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
-        this.rootNode = rootNode;
         this.caseSensitivity = caseSensitivity;
+        this.rootNode = rootNode;
     }
 
     public static SnapshotHierarchy empty(CaseSensitivity caseSensitivity) {
@@ -60,30 +59,39 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     @Override
     public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        String pathToParent = rootNode.getPathToParent();
-        if (!relativePath.hasPrefix(pathToParent, caseSensitivity)) {
-            return Optional.empty();
+        if (relativePath.length() == 0) {
+            return rootNode.getSnapshot();
         }
-        return getSnapshotFromChild(rootNode, relativePath, caseSensitivity);
+        return rootNode.getSnapshot(relativePath, caseSensitivity);
     }
 
     @Override
     public boolean hasDescendantsUnder(String absolutePath) {
-        return getNodeForLocation(absolutePath).hasDescendants();
+        return getNode(absolutePath).hasDescendants();
     }
 
     @Override
     public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        return new DefaultSnapshotHierarchy(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot, diffListener), caseSensitivity);
+        if (relativePath.length() == 0) {
+            return new DefaultSnapshotHierarchy(snapshot.asFileSystemNode(), caseSensitivity);
+        }
+        return new DefaultSnapshotHierarchy(
+            rootNode.store(relativePath, caseSensitivity, snapshot, diffListener),
+            caseSensitivity
+        );
     }
 
     @Override
     public SnapshotHierarchy invalidate(String absolutePath, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        return invalidateSingleChild(rootNode, relativePath, caseSensitivity, diffListener)
-            .<SnapshotHierarchy>map(newRootNode -> new DefaultSnapshotHierarchy(newRootNode, caseSensitivity))
-            .orElse(empty());
+        if (relativePath.length() == 0) {
+            diffListener.nodeRemoved(rootNode);
+            return empty();
+        }
+        return rootNode.invalidate(relativePath, caseSensitivity, diffListener)
+            .<SnapshotHierarchy>map(it -> new DefaultSnapshotHierarchy(it, caseSensitivity))
+            .orElseGet(() -> empty(caseSensitivity));
     }
 
     @Override
@@ -98,11 +106,12 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor) {
-        getNodeForLocation(absolutePath).accept(snapshotVisitor);
+        getNode(absolutePath).accept(snapshotVisitor);
     }
 
-    private ReadOnlyFileSystemNode getNodeForLocation(String absolutePath) {
-        return SnapshotUtil.getNodeFromChild(rootNode, VfsRelativePath.of(absolutePath), caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY);
+    private ReadOnlyFileSystemNode getNode(String absolutePath) {
+        VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
+        return (relativePath.length() == 0) ? rootNode : rootNode.getNode(relativePath, caseSensitivity);
     }
 
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
@@ -128,7 +137,11 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         @Override
         public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
             VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-            FileSystemNode rootNode = snapshot.asFileSystemNode(relativePath.getAsString());
+            String childPath = relativePath.getAsString();
+            SingletonChildMap<FileSystemNode> children = new SingletonChildMap<>(childPath, snapshot.asFileSystemNode());
+            FileSystemNode rootNode = snapshot.getType() == FileType.Missing
+                ? new UnknownSnapshot(children)
+                : new PartialDirectorySnapshot(children);
             diffListener.nodeAdded(rootNode);
             return from(rootNode, caseSensitivity);
         }

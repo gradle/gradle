@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.internal.execution.WorkExecutor
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -30,12 +30,12 @@ object GradleScopeServices {
     fun createPluginAccessorClassPathGenerator(
         classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
         fileCollectionFactory: FileCollectionFactory,
-        workExecutor: WorkExecutor,
+        executionEngine: ExecutionEngine,
         workspaceProvider: KotlinDslWorkspaceProvider
     ) = PluginAccessorClassPathGenerator(
         classLoaderHierarchyHasher,
         fileCollectionFactory,
-        workExecutor,
+        executionEngine,
         workspaceProvider
     )
 
@@ -44,13 +44,13 @@ object GradleScopeServices {
         classpathFingerprinter: ClasspathFingerprinter,
         fileCollectionFactory: FileCollectionFactory,
         projectSchemaProvider: ProjectSchemaProvider,
-        workExecutor: WorkExecutor,
+        executionEngine: ExecutionEngine,
         workspaceProvider: KotlinDslWorkspaceProvider
     ) = ProjectAccessorsClassPathGenerator(
         classpathFingerprinter,
         fileCollectionFactory,
         projectSchemaProvider,
-        workExecutor,
+        executionEngine,
         workspaceProvider
     )
 }

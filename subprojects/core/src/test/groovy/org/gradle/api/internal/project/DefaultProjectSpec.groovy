@@ -29,7 +29,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.DependencyResolutionManagementInternal
+import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory

@@ -32,16 +32,16 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
-import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
@@ -133,7 +133,7 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor createWorkExecutor(
+    public ExecutionEngine createExecutionEngine(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -152,7 +152,7 @@ public class ExecutionGradleServices {
         ValueSnapshotter valueSnapshotter
     ) {
         // @formatter:off
-        return new DefaultWorkExecutor(
+        return new DefaultExecutionEngine(
             new IdentifyStep<>(valueSnapshotter,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(

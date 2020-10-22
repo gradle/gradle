@@ -40,4 +40,8 @@ public class InstallationLocation implements Describable {
         return "'" + location.getAbsolutePath() + "' (" + source + ")";
     }
 
+    public String getSource() {
+        return source;
+    }
+
 }

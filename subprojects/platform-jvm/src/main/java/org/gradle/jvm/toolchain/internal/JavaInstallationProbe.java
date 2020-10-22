@@ -354,7 +354,7 @@ public class JavaInstallationProbe {
         EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
         for (SysProp type : SysProp.values()) {
             if (type != SysProp.Z_ERROR) {
-                result.put(type, split[type.ordinal()]);
+                result.put(type, split[type.ordinal()].trim());
             }
         }
         return result;

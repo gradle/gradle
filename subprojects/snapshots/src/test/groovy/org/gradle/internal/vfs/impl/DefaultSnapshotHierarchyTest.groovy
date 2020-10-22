@@ -26,11 +26,13 @@ import org.gradle.internal.snapshot.AbstractIncompleteSnapshotWithChildren
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemNode
+import org.gradle.internal.snapshot.MetadataSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assume
 import org.junit.Rule
@@ -45,7 +47,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     private static final SnapshotHierarchy EMPTY = DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)
 
-    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
+    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
 
     def diffListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override
@@ -653,6 +655,78 @@ class DefaultSnapshotHierarchyTest extends Specification {
         !invalidated.getMetadata(thirdPath).present
     }
 
+    def "getSnapshot returns root node when queried at the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def foundSnapshot = hierarchy.getMetadata("/")
+        then:
+        foundSnapshot.present
+        1 * rootNode.snapshot >> Optional.of(Mock(MetadataSnapshot))
+        0 * _
+    }
+
+    def "hasDescendants can query the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def hasDescendants = hierarchy.hasDescendantsUnder("/")
+        then:
+        hasDescendants
+        1 * rootNode.hasDescendants() >> true
+        0 * _
+    }
+
+    def "visitRootSnapshots can visit the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+        def snapshotVisitor = Mock(SnapshotHierarchy.SnapshotVisitor)
+
+        when:
+        hierarchy.visitSnapshotRoots("/", snapshotVisitor)
+        then:
+        1 * rootNode.accept(snapshotVisitor)
+        0 * _
+    }
+
+    def "store overwrites root node when storing at the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def newRoot = Mock(FileSystemNode)
+        def snapshot = Mock(MetadataSnapshot)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def newHierarchy = hierarchy.store("/", snapshot, SnapshotHierarchy.NodeDiffListener.NOOP)
+        then:
+        1 * snapshot.asFileSystemNode() >> newRoot
+        0 * _
+
+        when:
+        def foundSnapshot = newHierarchy.getMetadata("/")
+        then:
+        foundSnapshot.get() is snapshot
+        1 * newRoot.snapshot >> Optional.of(snapshot)
+        0 * _
+    }
+
+    def "can invalidate the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def newHierarchy = hierarchy.invalidate("/", SnapshotHierarchy.NodeDiffListener.NOOP)
+        then:
+        0 * _
+
+        when:
+        def rootMetadata = newHierarchy.getMetadata("/")
+        then:
+        !rootMetadata.present
+        0 * _
+    }
+
     private static CompleteDirectorySnapshot rootDirectorySnapshot() {
         new CompleteDirectorySnapshot("/", "", [
             new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT)),
@@ -737,27 +811,39 @@ class DefaultSnapshotHierarchyTest extends Specification {
             return []
         }
         List<String> prefixes = new ArrayList<>()
-        collectPrefixes(set.rootNode, 0, prefixes)
+        def node = set.rootNode
+        def unpackedNode = (node.getSnapshot().filter { it instanceof CompleteFileSystemLocationSnapshot }.orElse(node))
+        if (unpackedNode instanceof CompleteDirectorySnapshot) {
+            def children = unpackedNode.children
+            children.forEach { child ->
+                collectPrefixes(child.name, child, 0, prefixes)
+            }
+        } else if (unpackedNode instanceof AbstractIncompleteSnapshotWithChildren) {
+            def children = unpackedNode.children
+            children.visitChildren { path, child ->
+                collectPrefixes(path, child, 0, prefixes)
+            }
+        }
         return prefixes
     }
 
-    private static void collectPrefixes(FileSystemNode node, int depth, List<String> prefixes) {
+    private static void collectPrefixes(String path, FileSystemNode node, int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add((File.separator == '/' ? '/' : "") + node.getPathToParent())
+            prefixes.add((File.separator == '/' ? '/' : "") + path)
         } else {
-            prefixes.add(depth + ":" + node.getPathToParent().replace(File.separatorChar, (char) '/'))
+            prefixes.add(depth + ":" + path.replace(File.separatorChar, (char) '/'))
         }
-        List<? extends FileSystemNode> children
         def unpackedNode = (node.getSnapshot().filter { it instanceof CompleteFileSystemLocationSnapshot }.orElse(node))
         if (unpackedNode instanceof CompleteDirectorySnapshot) {
-            children = unpackedNode.children
+            def children = unpackedNode.children
+            children.forEach { child ->
+                collectPrefixes(child.name, child, depth + 1, prefixes)
+            }
         } else if (unpackedNode instanceof AbstractIncompleteSnapshotWithChildren) {
-            children = unpackedNode.children
-        } else {
-            children = []
-        }
-        children.forEach { child ->
-            collectPrefixes(child, depth + 1, prefixes)
+            def children = unpackedNode.children
+            children.visitChildren { childPath, child ->
+                collectPrefixes(childPath, child, depth + 1, prefixes)
+            }
         }
     }
 }

@@ -48,7 +48,9 @@ class DirectorySnapshotterTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def fileHasher = new TestFileHasher()
-    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [])
+    def statisticsCollector = Stub(DirectorySnapshotterStatistics.Collector)
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector)
+    def actuallyFiltered = new AtomicBoolean(false)
 
     def "should snapshot without filters"() {
         given:
@@ -68,9 +70,14 @@ class DirectorySnapshotterTest extends Specification {
         def visited = []
         def relativePaths = []
 
-        def actuallyFiltered = new AtomicBoolean(false)
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+
+        then:
+        ! actuallyFiltered.get()
+        0 * _
+
+        when:
         snapshot.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
@@ -80,7 +87,6 @@ class DirectorySnapshotterTest extends Specification {
         })
 
         then:
-        ! actuallyFiltered.get()
         visited.contains(rootTextFile.absolutePath)
         visited.contains(nestedTextFile.absolutePath)
         visited.contains(nestedSiblingTextFile.absolutePath)
@@ -101,14 +107,15 @@ class DirectorySnapshotterTest extends Specification {
         given:
         def fileSystemRoot = fileSystemRoot()
         def patterns = new PatternSet().exclude("*")
-        def actuallyFiltered = new AtomicBoolean(false)
 
         when:
         def snapshot = directorySnapshotter.snapshot(fileSystemRoot, directoryWalkerPredicate(patterns) , actuallyFiltered)
 
         then:
+        actuallyFiltered.get()
         snapshot.absolutePath == fileSystemRoot
         snapshot.name == ""
+        0 * _
     }
 
     def "should snapshot with filters"() {
@@ -129,9 +136,14 @@ class DirectorySnapshotterTest extends Specification {
         def visited = []
         def relativePaths = []
 
-        def actuallyFiltered = new AtomicBoolean(false)
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered)
+
+        then:
+        actuallyFiltered.get()
+        0 * _
+
+        when:
         snapshot.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
@@ -141,7 +153,6 @@ class DirectorySnapshotterTest extends Specification {
         })
 
         then:
-        actuallyFiltered.get()
         visited.contains(rootTextFile.absolutePath)
         visited.contains(nestedTextFile.absolutePath)
         visited.contains(nestedSiblingTextFile.absolutePath)
@@ -163,21 +174,28 @@ class DirectorySnapshotterTest extends Specification {
         def rootDir = tmpDir.createDir("root")
         rootDir.file('brokenSymlink').createLink("linkTarget")
         assert rootDir.listFiles()*.exists() == [false]
+
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+
         then:
-        snapshot.children.size == 1
+        ! actuallyFiltered.get()
+        snapshot.children.size() == 1
         def brokenSymlinkSnapshot = snapshot.children[0]
         brokenSymlinkSnapshot.class == MissingFileSnapshot
         brokenSymlinkSnapshot.accessType == AccessType.VIA_SYMLINK
+        0 * _
 
         when:
         rootDir.file("linkTarget").createFile() // unbreak my heart
         and:
-        snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+
         then:
+        ! actuallyFiltered.get()
         snapshot.children*.class == [RegularFileSnapshot, RegularFileSnapshot]
         snapshot.children*.accessType == [AccessType.VIA_SYMLINK, AccessType.DIRECT]
+        0 * _
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -185,14 +203,17 @@ class DirectorySnapshotterTest extends Specification {
         def rootDir = tmpDir.createDir("root")
         def dir = rootDir.file("dir").createDir()
         dir.file('subdir').createLink(dir)
+
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+
         then:
-        snapshot.children.size == 1
+        snapshot.children.size() == 1
         def dirSnapshot = snapshot.children[0]
         dirSnapshot.class == CompleteDirectorySnapshot
         dirSnapshot.accessType == AccessType.DIRECT
         dirSnapshot.children == []
+        0 * _
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -205,11 +226,14 @@ class DirectorySnapshotterTest extends Specification {
         second.createLink(third)
         third.createLink(first)
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+
         then:
+        ! actuallyFiltered.get()
         snapshot.children.size == 3
         snapshot.children.every { it.class == MissingFileSnapshot }
         snapshot.children.every { it.accessType == AccessType.VIA_SYMLINK }
+        0 * _
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -222,9 +246,10 @@ class DirectorySnapshotterTest extends Specification {
         rootDir.file('unreadableDirectory').createDir().makeUnreadable()
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
 
         then:
+        ! actuallyFiltered.get()
         assert snapshot instanceof CompleteDirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
             readableDirectory: CompleteDirectorySnapshot,
@@ -233,6 +258,7 @@ class DirectorySnapshotterTest extends Specification {
             unreadableFile: MissingFileSnapshot
         ]
         snapshot.children.every { it.accessType == AccessType.DIRECT }
+        0 * _
 
         cleanup:
         rootDir.listFiles()*.makeReadable()
@@ -246,13 +272,16 @@ class DirectorySnapshotterTest extends Specification {
         def pipe = rootDir.file("testPipe").createNamedPipe()
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+
         then:
+        ! actuallyFiltered.get()
         assert snapshot instanceof CompleteDirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
             testPipe: MissingFileSnapshot
         ]
         snapshot.children.every { it.accessType == AccessType.DIRECT }
+        0 * _
 
         cleanup:
         pipe.delete()
@@ -286,29 +315,29 @@ class DirectorySnapshotterTest extends Specification {
     private static SnapshottingFilter.DirectoryWalkerPredicate directoryWalkerPredicate(PatternSet patternSet) {
         return new PatternSetSnapshottingFilter(patternSet, TestFiles.fileSystem()).asDirectoryWalkerPredicate
     }
-}
 
-abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {
-    private Deque<String> relativePath = new ArrayDeque<String>()
+    private abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {
+        private Deque<String> relativePath = new ArrayDeque<String>()
 
-    @Override
-    boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        relativePath.addLast(directorySnapshot.name)
-        visit(directorySnapshot.absolutePath, relativePath)
-        return true
+        @Override
+        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            relativePath.addLast(directorySnapshot.name)
+            visit(directorySnapshot.absolutePath, relativePath)
+            return true
+        }
+
+        @Override
+        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+            relativePath.addLast(fileSnapshot.name)
+            visit(fileSnapshot.absolutePath, relativePath)
+            relativePath.removeLast()
+        }
+
+        @Override
+        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            relativePath.removeLast()
+        }
+
+        abstract void visit(String absolutePath, Deque<String> relativePath)
     }
-
-    @Override
-    void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-        relativePath.addLast(fileSnapshot.name)
-        visit(fileSnapshot.absolutePath, relativePath)
-        relativePath.removeLast()
-    }
-
-    @Override
-    void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        relativePath.removeLast()
-    }
-
-    abstract void visit(String absolutePath, Deque<String> relativePath)
 }

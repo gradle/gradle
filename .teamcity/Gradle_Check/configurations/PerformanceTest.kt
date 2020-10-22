@@ -16,7 +16,7 @@
 
 package Gradle_Check.configurations
 
-import Gradle_Check.model.PerformanceTestCoverage
+import Gradle_Check.model.PerformanceTestBuildSpec
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
@@ -38,29 +38,30 @@ import model.Stage
 class PerformanceTest(
     model: CIBuildModel,
     stage: Stage,
-    performanceTestCoverage: PerformanceTestCoverage,
+    performanceTestBuildSpec: PerformanceTestBuildSpec,
     description: String,
     performanceSubProject: String,
     val testProjects: List<String>,
     val bucketIndex: Int,
     extraParameters: String = "",
+    performanceTestTaskSuffix: String = "PerformanceTest",
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : BaseGradleBuildType(
     model,
     stage = stage,
     init = {
-        this.uuid = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
+        this.uuid = performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}")
         this.id = AbsoluteId(uuid)
-        this.name = "$description${if (performanceTestCoverage.withoutDependencies) " (without dependencies)" else ""}"
-        val type = performanceTestCoverage.type
-        val os = performanceTestCoverage.os
-        val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
+        this.name = "$description${if (performanceTestBuildSpec.withoutDependencies) " (without dependencies)" else ""}"
+        val type = performanceTestBuildSpec.type
+        val os = performanceTestBuildSpec.os
+        val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
         applyPerformanceTestSettings(os = os, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
             param("performance.baselines", type.defaultBaselines)
-            param("performance.channel", performanceTestCoverage.channel())
+            param("performance.channel", performanceTestBuildSpec.channel())
             param("env.ANDROID_HOME", os.androidHome)
             when (os) {
                 Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
@@ -94,12 +95,12 @@ class PerformanceTest(
             }
         }
 
-        applyDefaultDependencies(model, this, !performanceTestCoverage.withoutDependencies)
+        applyDefaultDependencies(model, this, !performanceTestBuildSpec.withoutDependencies)
     }
 )
 
-fun getPerformanceTestTaskNames(performanceSubProject: String, testProjects: List<String>): List<String> {
+fun getPerformanceTestTaskNames(performanceSubProject: String, testProjects: List<String>, performanceTestTaskSuffix: String): List<String> {
     return testProjects.map {
-        ":$performanceSubProject:${it}PerformanceTest"
+        ":$performanceSubProject:$it$performanceTestTaskSuffix"
     }
 }

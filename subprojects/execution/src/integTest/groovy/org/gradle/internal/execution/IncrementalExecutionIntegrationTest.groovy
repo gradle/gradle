@@ -30,7 +30,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -133,9 +133,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
 
-    WorkExecutor getExecutor() {
+    ExecutionEngine getExecutor() {
         // @formatter:off
-        new DefaultWorkExecutor(
+        new DefaultExecutionEngine(
             new IdentifyStep<>(valueSnapshotter,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
@@ -867,11 +867,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 boolean shouldCleanupOutputsOnNonIncrementalExecution() {
                     return false
-                }
-
-                @Override
-                long markExecutionTime() {
-                    0
                 }
 
                 @Override

@@ -23,11 +23,11 @@ import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
-import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType.DIRECTORY
@@ -66,7 +66,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
     private val classpathFingerprinter: ClasspathFingerprinter,
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
-    private val workExecutor: WorkExecutor,
+    private val executionEngine: ExecutionEngine,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
 
@@ -89,7 +89,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 fileCollectionFactory,
                 workspaceProvider
             )
-            val result = workExecutor.execute(work, null)
+            val result = executionEngine.execute(work, null)
             result.executionResult.get().output as AccessorsClassPath
         }
     }
@@ -160,8 +160,6 @@ class GenerateProjectAccessors(
         }
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
-
-    override fun markExecutionTime(): Long = 0
 
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GenerateProjectAccessors::class.java)

@@ -23,7 +23,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.execution.WorkExecutor
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.process.ExecOperations
 import spock.lang.Unroll
 
@@ -165,7 +165,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
             ObjectFactory,
             ProjectLayout,
             ProviderFactory,
-            WorkExecutor,
+            ExecutionEngine,
             FileSystemOperations,
             ExecOperations,
         ].collect { it.name }

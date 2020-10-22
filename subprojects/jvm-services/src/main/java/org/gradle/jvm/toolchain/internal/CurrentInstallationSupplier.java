@@ -37,7 +37,7 @@ public class CurrentInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, "current jvm");
+        return new InstallationLocation(javaHome, "Current JVM");
     }
 
 }

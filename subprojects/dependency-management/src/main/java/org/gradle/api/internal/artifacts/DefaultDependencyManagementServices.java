@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler;
@@ -117,7 +118,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.DependencyResolutionManagementInternal;
+import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Try;
@@ -132,18 +133,18 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
-import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
-import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
@@ -259,11 +260,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         /**
-         * Work executer for usage above Gradle scope
+         * Execution engine for usage above Gradle scope
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor createWorkExecutor(
+        ExecutionEngine createExecutionEngine(
                 BuildOperationExecutor buildOperationExecutor,
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 Deleter deleter,
@@ -279,7 +280,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             // @formatter:off
-            return new DefaultWorkExecutor(
+            return new DefaultExecutionEngine(
                 new IdentifyStep<>(valueSnapshotter,
                 new IdentityCacheStep<>(
                 new AssignWorkspaceStep<>(
@@ -409,7 +410,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformerInvocationFactory createTransformerInvocationFactory(
-                WorkExecutor workExecutor,
+                ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
                 ImmutableTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,
@@ -418,7 +419,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 BuildOperationExecutor buildOperationExecutor
         ) {
             return new DefaultTransformerInvocationFactory(
-                workExecutor,
+                executionEngine,
                 fileSystemAccess,
                 artifactTransformListener,
                 transformationWorkspaceProvider,
@@ -619,7 +620,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, namedObjectInstantiator, platformSupport);
         }
 
-        DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, SimpleMapInterner interner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor componentMetadataRuleExecutor, PlatformSupport platformSupport) {
+        DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator,
+                                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                       SimpleMapInterner interner,
+                                                                       ImmutableAttributesFactory attributesFactory,
+                                                                       IsolatableFactory isolatableFactory,
+                                                                       ComponentMetadataRuleExecutor componentMetadataRuleExecutor,
+                                                                       PlatformSupport platformSupport) {
             DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport);
             if (domainObjectContext.isScript()) {
                 componentMetadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
@@ -634,6 +641,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {
             NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context)).create();
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
+        }
+
+        ComponentMetadataProcessorFactory createComponentMetadataProcessorFactory(ComponentMetadataHandlerInternal componentMetadataHandler, DependencyResolutionManagementInternal dependencyResolutionManagement,  DomainObjectContext context) {
+            if (context.isScript()) {
+                return componentMetadataHandler::createComponentMetadataProcessor;
+            }
+            return componentMetadataHandler.createFactory(dependencyResolutionManagement);
         }
 
         GlobalDependencyResolutionRules createModuleMetadataHandler(ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentModuleMetadataProcessor moduleMetadataProcessor, List<DependencySubstitutionRules> rules) {

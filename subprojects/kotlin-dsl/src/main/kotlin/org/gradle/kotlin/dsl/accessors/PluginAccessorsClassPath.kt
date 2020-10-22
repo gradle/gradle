@@ -26,10 +26,10 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
-import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType.DIRECTORY
@@ -91,7 +91,7 @@ import javax.inject.Inject
 class PluginAccessorClassPathGenerator @Inject constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val workExecutor: WorkExecutor,
+    private val executionEngine: ExecutionEngine,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
     fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
@@ -107,7 +107,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                 fileCollectionFactory,
                 workspaceProvider
             )
-            val result = workExecutor.execute(work, null)
+            val result = executionEngine.execute(work, null)
             result.executionResult.get().output as AccessorsClassPath
         }
     }
@@ -161,8 +161,6 @@ class GeneratePluginAccessors(
         }
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
-
-    override fun markExecutionTime(): Long = 0
 
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GeneratePluginAccessors::class.java)

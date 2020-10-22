@@ -16,81 +16,110 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.internal.file.FileType;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
-public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFileSystemNode {
-    protected final List<? extends FileSystemNode> children;
+public abstract class AbstractIncompleteSnapshotWithChildren implements FileSystemNode {
+    protected final ChildMap<FileSystemNode> children;
 
-    public AbstractIncompleteSnapshotWithChildren(String pathToParent, List<? extends FileSystemNode> children) {
-        super(pathToParent);
-        this.children = children;
+    @SuppressWarnings("unchecked")
+    public AbstractIncompleteSnapshotWithChildren(ChildMap<? extends FileSystemNode> children) {
+        this.children = (ChildMap<FileSystemNode>) children;
     }
 
     @Override
-    public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return SnapshotUtil.getChild(children, relativePath, caseSensitivity);
+    public ReadOnlyFileSystemNode getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.getChild(children, targetPath, caseSensitivity);
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<FileSystemNode, FileSystemNode>() {
             @Override
-            public Optional<FileSystemNode> handleNewChild(int insertBefore) {
-                return Optional.of(withIncompleteChildren());
+            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, FileSystemNode child) {
+                return child.invalidate(pathInChild, caseSensitivity, diffListener);
             }
 
             @Override
-            public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
-                FileSystemNode child = children.get(childIndex);
-                return SnapshotUtil.invalidateSingleChild(child, relativePath, caseSensitivity, diffListener)
-                    .map(invalidatedChild -> withReplacedChild(childIndex, child, invalidatedChild))
-                    .map(Optional::of)
-                    .orElseGet(() -> {
-                        if (children.size() == 1) {
-                            return withAllChildrenRemoved();
-                        }
-                        List<FileSystemNode> merged = new ArrayList<>(children);
-                        merged.remove(childIndex);
-                        return Optional.of(withIncompleteChildren(getPathToParent(), merged));
-                    });
+            public void handleAsAncestorOfChild(String childPath, FileSystemNode child) {
+                diffListener.nodeRemoved(child);
+            }
+
+            @Override
+            public void handleExactMatchWithChild(FileSystemNode child) {
+                diffListener.nodeRemoved(child);
+            }
+
+            @Override
+            public void handleUnrelatedToAnyChild() {
             }
         });
+        if (newChildren.isEmpty()) {
+            return withAllChildrenRemoved();
+        }
+        if (newChildren == children) {
+            return Optional.of(withIncompleteChildren());
+        }
+        return Optional.of(withIncompleteChildren(newChildren));
     }
 
     @Override
-    public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<FileSystemNode>() {
+    public FileSystemNode store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
+        ChildMap<FileSystemNode> newChildren = children.store(targetPath, caseSensitivity, new ChildMap.StoreHandler<FileSystemNode>() {
             @Override
-            public FileSystemNode handleNewChild(int insertBefore) {
-                List<FileSystemNode> newChildren = new ArrayList<>(children);
-                FileSystemNode newChild = snapshot.asFileSystemNode(relativePath.getAsString());
-                newChildren.add(insertBefore, newChild);
+            public FileSystemNode handleAsDescendantOfChild(VfsRelativePath pathInChild, FileSystemNode child) {
+                return child.store(pathInChild, caseSensitivity, snapshot, diffListener);
+            }
+
+            @Override
+            public FileSystemNode handleAsAncestorOfChild(String childPath, FileSystemNode child) {
+                FileSystemNode newChild = snapshot.asFileSystemNode();
+                diffListener.nodeRemoved(child);
                 diffListener.nodeAdded(newChild);
-                return withIncompleteChildren(getPathToParent(), newChildren);
+                return newChild;
             }
 
             @Override
-            public FileSystemNode handleChildOfExisting(int childIndex) {
-                FileSystemNode child = children.get(childIndex);
-                return withReplacedChild(childIndex, child, SnapshotUtil.storeSingleChild(child, relativePath, caseSensitivity, snapshot, diffListener));
+            public FileSystemNode mergeWithExisting(FileSystemNode child) {
+                if (snapshot instanceof CompleteFileSystemLocationSnapshot || !child.getSnapshot().map(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot).orElse(false)) {
+                    FileSystemNode newChild = snapshot.asFileSystemNode();
+                    diffListener.nodeRemoved(child);
+                    diffListener.nodeAdded(newChild);
+                    return newChild;
+                } else {
+                    return child;
+                }
+            }
+
+            @Override
+            public FileSystemNode createChild() {
+                FileSystemNode newChild = snapshot.asFileSystemNode();
+                diffListener.nodeAdded(newChild);
+                return newChild;
+            }
+
+            @Override
+            public FileSystemNode createNodeFromChildren(ChildMap<FileSystemNode> children) {
+                boolean isDirectory = anyChildMatches(children, node -> node.getSnapshot().map(this::isRegularFileOrDirectory).orElse(false));
+                return isDirectory ? new PartialDirectorySnapshot(children) : new UnknownSnapshot(children);
+            }
+
+            private boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {
+                return metadataSnapshot.getType() != FileType.Missing;
             }
         });
+        if (newChildren == children) {
+            return this;
+        }
+        return withIncompleteChildren(newChildren);
     }
 
     @Override
-    public FileSystemNode withPathToParent(String newPathToParent) {
-        return getPathToParent().equals(newPathToParent)
-            ? this
-            : withIncompleteChildren(newPathToParent, children);
-    }
-
-    @Override
-    public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return SnapshotUtil.getMetadataFromChildren(children, relativePath, caseSensitivity, Optional::empty);
+    public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.getMetadataFromChildren(children, targetPath, caseSensitivity, Optional::empty);
     }
 
     /**
@@ -105,7 +134,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
      * Caller must ensure the child list is not be mutated as the method
      * doesn't make a defensive copy.
      */
-    protected abstract FileSystemNode withIncompleteChildren(String prefix, List<? extends FileSystemNode> newChildren);
+    protected abstract FileSystemNode withIncompleteChildren(ChildMap<? extends FileSystemNode> newChildren);
 
     /**
      * Returns an updated node with all children removed, or {@link Optional#empty()}
@@ -113,32 +142,37 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
      */
     protected abstract Optional<FileSystemNode> withAllChildrenRemoved();
 
-    private FileSystemNode withReplacedChild(int childIndex, FileSystemNode childToReplace, FileSystemNode newChild) {
-        if (newChild == childToReplace) {
-            return AbstractIncompleteSnapshotWithChildren.this;
-        }
-        if (children.size() == 1) {
-            return withIncompleteChildren(getPathToParent(), ImmutableList.of(newChild));
-        }
-        List<FileSystemNode> merged = new ArrayList<>(children);
-        merged.set(childIndex, newChild);
-        return withIncompleteChildren(getPathToParent(), merged);
-    }
-
     @Override
     public void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor) {
-        for (FileSystemNode child : children) {
-            child.accept(snapshotVisitor);
-        }
+        children.visitChildren((childPath, child) -> child.accept(snapshotVisitor));
     }
 
     @Override
     public boolean hasDescendants() {
-        for (FileSystemNode child : children) {
-            if (child.hasDescendants()) {
-                return true;
-            }
+        return anyChildMatches(children, FileSystemNode::hasDescendants);
+    }
+
+    private boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
+        AnyChildHasPropertyVisitor visitor = new AnyChildHasPropertyVisitor(predicate);
+        children.visitChildren(visitor);
+        return visitor.isAnyChildMatches();
+    }
+
+    public static class AnyChildHasPropertyVisitor implements BiConsumer<String, FileSystemNode> {
+        private final Predicate<FileSystemNode> predicate;
+        private boolean anyChildMatches = false;
+
+        public AnyChildHasPropertyVisitor(Predicate<FileSystemNode> predicate) {
+            this.predicate = predicate;
         }
-        return false;
+
+        @Override
+        public void accept(String path, FileSystemNode child) {
+            anyChildMatches |= predicate.test(child);
+        }
+
+        public boolean isAnyChildMatches() {
+            return anyChildMatches;
+        }
     }
 }

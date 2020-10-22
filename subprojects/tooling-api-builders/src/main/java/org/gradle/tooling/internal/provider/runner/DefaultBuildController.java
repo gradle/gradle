@@ -21,28 +21,42 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Try;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.concurrent.GradleThread;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
-@SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2 {
-    private final GradleInternal gradle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
-    public DefaultBuildController(GradleInternal gradle) {
+@SuppressWarnings("deprecation")
+class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
+    private final GradleInternal gradle;
+    private final BuildCancellationToken cancellationToken;
+    private final BuildOperationExecutor buildOperationExecutor;
+
+    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
         this.gradle = gradle;
+        this.cancellationToken = cancellationToken;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     /**
@@ -51,6 +65,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Override
     @Deprecated
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
+        assertCanQuery();
         return new ProviderBuildResult<Object>(gradle);
     }
 
@@ -69,54 +84,74 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Override
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
-        BuildCancellationToken cancellationToken = gradle.getServices().get(BuildCancellationToken.class);
+        assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
         }
-        ProjectInternal project = getTargetProject(target);
-        ToolingModelBuilder builder = getToolingModelBuilder(project, modelIdentifier);
-        String modelName = modelIdentifier.getName();
+        ModelTarget modelTarget = getTarget(target);
+        ToolingModelBuilderLookup.Builder builder = getToolingModelBuilder(modelTarget, parameter != null, modelIdentifier);
 
         Object model;
         if (parameter == null) {
-            model = builder.buildAll(modelName, project);
-        } else if (builder instanceof ParameterizedToolingModelBuilder<?>) {
-            model = getParameterizedModel(project, modelName, (ParameterizedToolingModelBuilder<?>) builder, parameter);
+            model = builder.build(null);
         } else {
-            throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(
-                new UnknownModelException(String.format("No parameterized builders are available to build a model of type '%s'.", modelName)));
+            model = getParameterizedModel(builder, parameter);
         }
 
-        return new ProviderBuildResult<Object>(model);
+        return new ProviderBuildResult<>(model);
     }
 
-    private <T> Object getParameterizedModel(ProjectInternal project,
-                                             String modelName,
-                                             ParameterizedToolingModelBuilder<T> builder,
-                                             Object parameter)
+    @Override
+    public <T> List<T> run(List<Supplier<T>> actions) {
+        assertCanQuery();
+        List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());
+        for (Supplier<T> action : actions) {
+            wrappers.add(new NestedAction<>(action));
+        }
+        buildOperationExecutor.runAll(buildOperationQueue -> {
+            for (NestedAction<T> wrapper : wrappers) {
+                buildOperationQueue.add(wrapper);
+            }
+        });
+
+        List<T> results = new ArrayList<>(actions.size());
+        List<Throwable> failures = new ArrayList<>();
+        for (NestedAction<T> wrapper : wrappers) {
+            Try<T> value = wrapper.value();
+            if (value.isSuccessful()) {
+                results.add(value.get());
+            } else {
+                failures.add(value.getFailure().get());
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(failures, null);
+        }
+        return results;
+    }
+
+    private Object getParameterizedModel(ToolingModelBuilderLookup.Builder builder, Object parameter)
         throws InternalUnsupportedModelException {
-        Class<T> expectedParameterType = builder.getParameterType();
+        Class<?> expectedParameterType = builder.getParameterType();
 
-        ViewBuilder<T> viewBuilder = new ProtocolToModelAdapter().builder(expectedParameterType);
-        T internalParameter = viewBuilder.build(parameter);
-        return builder.buildAll(modelName, internalParameter, project);
+        ViewBuilder<?> viewBuilder = new ProtocolToModelAdapter().builder(expectedParameterType);
+        Object internalParameter = viewBuilder.build(parameter);
+        return builder.build(internalParameter);
     }
 
-    private ProjectInternal getTargetProject(Object target) {
-        ProjectInternal project;
+    private ModelTarget getTarget(Object target) {
         if (target == null) {
-            project = gradle.getDefaultProject();
+            return new BuildScopedModel(gradle);
         } else if (target instanceof GradleProjectIdentity) {
             GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
             GradleInternal build = findBuild(projectIdentity);
-            project = findProject(build, projectIdentity);
+            return new ProjectScopedModel(findProject(build, projectIdentity));
         } else if (target instanceof GradleBuildIdentity) {
             GradleBuildIdentity buildIdentity = (GradleBuildIdentity) target;
-            project = findBuild(buildIdentity).getDefaultProject();
+            return new BuildScopedModel(findBuild(buildIdentity));
         } else {
             throw new IllegalArgumentException("Don't know how to build models for " + target);
         }
-        return project;
     }
 
     private GradleInternal findBuild(GradleBuildIdentity buildIdentity) {
@@ -145,15 +180,81 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         return build.getRootProject().project(projectIdentity.getProjectPath());
     }
 
-    private ToolingModelBuilder getToolingModelBuilder(ProjectInternal project, ModelIdentifier modelIdentifier) {
-        ToolingModelBuilderLookup modelBuilderRegistry = project.getServices().get(ToolingModelBuilderLookup.class);
-
-        ToolingModelBuilder builder;
+    private ToolingModelBuilderLookup.Builder getToolingModelBuilder(ModelTarget modelTarget, boolean parameter, ModelIdentifier modelIdentifier) {
+        ToolingModelBuilderLookup modelBuilderRegistry = modelTarget.targetProject.getServices().get(ToolingModelBuilderLookup.class);
         try {
-            builder = modelBuilderRegistry.locateForClientOperation(modelIdentifier.getName());
+            return modelTarget.locate(modelBuilderRegistry, parameter, modelIdentifier);
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(e);
         }
-        return builder;
+    }
+
+    private void assertCanQuery() {
+        if (!GradleThread.isManaged()) {
+            throw new IllegalStateException("A build controller cannot be used from a thread that is not managed by Gradle.");
+        }
+    }
+
+    private static abstract class ModelTarget {
+        final ProjectInternal targetProject;
+
+        protected ModelTarget(ProjectInternal targetProject) {
+            this.targetProject = targetProject;
+        }
+
+        abstract ToolingModelBuilderLookup.Builder locate(ToolingModelBuilderLookup lookup, boolean parameter, ModelIdentifier modelIdentifier);
+    }
+
+    private static class ProjectScopedModel extends ModelTarget {
+        public ProjectScopedModel(ProjectInternal targetProject) {
+            super(targetProject);
+        }
+
+        @Override
+        ToolingModelBuilderLookup.Builder locate(ToolingModelBuilderLookup lookup, boolean parameter, ModelIdentifier modelIdentifier) {
+            return lookup.locateForClientOperation(modelIdentifier.getName(), parameter, targetProject);
+        }
+    }
+
+    private static class BuildScopedModel extends ModelTarget {
+        private final GradleInternal targetBuild;
+
+        public BuildScopedModel(GradleInternal gradle) {
+            super(gradle.getDefaultProject());
+            this.targetBuild = gradle;
+        }
+
+        @Override
+        ToolingModelBuilderLookup.Builder locate(ToolingModelBuilderLookup lookup, boolean parameter, ModelIdentifier modelIdentifier) {
+            return lookup.locateForClientOperation(modelIdentifier.getName(), parameter, targetBuild);
+        }
+    }
+
+    private static class NestedAction<T> implements RunnableBuildOperation {
+        private final Supplier<T> action;
+        private Try<T> result;
+
+        public NestedAction(Supplier<T> action) {
+            this.action = action;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            try {
+                T value = action.get();
+                result = Try.successful(value);
+            } catch (Throwable t) {
+                result = Try.failure(t);
+            }
+        }
+
+        public Try<T> value() {
+            return result;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Tooling API client action");
+        }
     }
 }
