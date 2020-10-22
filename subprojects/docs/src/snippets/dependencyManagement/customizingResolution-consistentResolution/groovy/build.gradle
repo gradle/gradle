@@ -8,12 +8,12 @@ repositories {
 
 // tag::dependencies[]
 dependencies {
-    implementation "org.codehaus.groovy:groovy:3.0.1"
-    runtimeOnly "io.vertx:vertx-lang-groovy:3.9.4"
+    implementation 'org.codehaus.groovy:groovy:3.0.1'
+    runtimeOnly 'io.vertx:vertx-lang-groovy:3.9.4'
 }
 // end::dependencies[]
 
-if (project.hasProperty("explicitRule")) {
+if (project.hasProperty('explicitRule')) {
     // tag::explicit-configuration[]
     configurations {
         runtimeClasspath.shouldResolveConsistentlyWith(compileClasspath)
@@ -21,7 +21,7 @@ if (project.hasProperty("explicitRule")) {
     // end::explicit-configuration[]
 }
 
-if (project.hasProperty("javaConvention")) {
+if (project.hasProperty('javaConvention')) {
     // tag::java-convention[]
     java {
         consistentResolution {
