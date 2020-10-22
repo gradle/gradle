@@ -16,8 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -35,6 +33,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,9 +59,9 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     // Fields guarded by lock
     private final Lock lock = new ReentrantLock();
     private final Condition stateChange = lock.newCondition();
-    private final Map<String, TaskState> tasks = Maps.newLinkedHashMap();
-    private final Set<String> tasksAdded = Sets.newHashSet();
-    private final List<Throwable> taskFailures = new ArrayList<Throwable>();
+    private final Map<String, TaskState> tasks = new LinkedHashMap<>();
+    private final Set<String> tasksAdded = new HashSet<>();
+    private final List<Throwable> taskFailures = new ArrayList<>();
     private State state = State.CollectingTasks;
     private boolean stopRequested;
 
@@ -71,7 +72,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     @Override
     public boolean populateTaskGraph() {
-        Set<String> tasksToExecute = Sets.newLinkedHashSet();
+        Set<String> tasksToExecute = new LinkedHashSet<>();
         lock.lock();
         try {
             if (state != State.CollectingTasks) {
@@ -141,7 +142,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     @Override
     public void stop() {
-        ArrayList<Throwable> failures = new ArrayList<Throwable>();
+        ArrayList<Throwable> failures = new ArrayList<>();
         awaitTaskCompletion(failures);
         if (!failures.isEmpty()) {
             throw new MultipleBuildFailures(failures);
@@ -165,7 +166,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             if (stopRequested) {
                 return null;
             }
-            Set<String> tasksToExecute = Sets.newLinkedHashSet();
+            Set<String> tasksToExecute = new LinkedHashSet<>();
             for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
                 if (taskEntry.getValue().status == TaskStatus.QUEUED) {
                     tasksToExecute.add(taskEntry.getKey());
