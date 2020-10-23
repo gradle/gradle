@@ -80,4 +80,8 @@ public class AllDependenciesModel implements Serializable {
         result = 31 * result + bundles.hashCode();
         return result;
     }
+
+    public boolean isNotEmpty() {
+        return !(aliasToDependency.isEmpty() && bundles.isEmpty());
+    }
 }

@@ -192,7 +192,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     @Override
     public void createExtension(ProjectInternal project) {
-        if (dependenciesConfiguration != null) {
+        if (dependenciesConfiguration != null && dependenciesConfiguration.isNotEmpty()) {
             ExtensionContainer container = project.getExtensions();
             ServiceRegistry services = project.getServices();
             DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
