@@ -27,7 +27,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ class SimpleGeneratedJavaClassCompiler {
      * @param classes the classes to compile
      * @param classPath the classpath to use for compilation
      */
-    public static void compile(File srcDir, File dstDir, List<ClassSource> classes, ClassPath classPath) {
+    public static void compile(File srcDir, File dstDir, List<ClassSource> classes, ClassPath classPath) throws GeneratedClassCompilationException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> ds = new DiagnosticCollector<>();
         try (StandardJavaFileManager mgr = compiler.getStandardFileManager(ds, null, null)) {
@@ -53,7 +53,7 @@ class SimpleGeneratedJavaClassCompiler {
             JavaCompiler.CompilationTask task = compiler.getTask(null, mgr, ds, options, null, sources);
             task.call();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new GeneratedClassCompilationException("Unable to compile generated classes", e);
         }
         List<Diagnostic<? extends JavaFileObject>> diagnostics = ds.getDiagnostics();
         if (!diagnostics.isEmpty()) {
@@ -66,11 +66,13 @@ class SimpleGeneratedJavaClassCompiler {
         formatter.node("Unable to compile generated sources");
         formatter.startChildren();
         for (Diagnostic<? extends JavaFileObject> d : diagnostics) {
-            String diagLine = String.format("File %s, line: %d, %s in %s", d.getSource().getName(), d.getLineNumber(), d.getMessage(null), d.getSource().getName());
+            URI src = d.getSource().toUri();
+            File srcFile = new File(src);
+            String diagLine = String.format("File %s, line: %d, %s", srcFile.getName(), d.getLineNumber(), d.getMessage(null));
             formatter.node(diagLine);
         }
         formatter.endChildren();
-        throw new RuntimeException(formatter.toString());
+        throw new GeneratedClassCompilationException(formatter.toString());
     }
 
     private static List<File> outputSourceFilesToSourceDir(File srcDir, List<ClassSource> classes) throws IOException {

@@ -115,7 +115,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private static void maybeThrowValidationError(List<String> errors) {
-        if (errors.size() == 1 ) {
+        if (errors.size() == 1) {
             throw new InvalidUserDataException("Cannot generate dependency accessors because " + errors.get(0));
         }
         if (errors.size() > 1) {

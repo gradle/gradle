@@ -46,6 +46,8 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.api.internal.std.SimpleGeneratedJavaClassCompiler.compile;
+
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
     private final static String ACCESSORS_CLASSNAME = "Libraries";
@@ -120,7 +122,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
                     sources.add(new ProjectAccessorClassSource(project));
                 }
-                SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath);
+                compile(srcDir, dstDir, sources, classPath);
             }
             ClassPath exported = DefaultClassPath.of(dstDir);
             classLoaderScope.export(exported);
@@ -190,7 +192,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         public void run(BuildOperationContext context) {
             List<ClassSource> sources = Collections.singletonList(new DependenciesAccessorClassSource(dependenciesConfiguration));
-            SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath);
+            compile(srcDir, dstDir, sources, classPath);
         }
 
         @Override
