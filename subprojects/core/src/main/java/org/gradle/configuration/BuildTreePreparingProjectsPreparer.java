@@ -28,7 +28,7 @@ import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.management.DependenciesFileParser;
+import org.gradle.api.internal.std.TomlDependenciesFileParser;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -91,9 +91,8 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
                 RegularFileProperty srcProp = objects.fileProperty();
                 srcProp.set(dependenciesFile);
                 Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
-                DependenciesFileParser parser = new DependenciesFileParser();
                 try {
-                    parser.parse(new ByteArrayInputStream(dataSource.get()), builder, settings.getPluginManagement().getPlugins());
+                    TomlDependenciesFileParser.parse(new ByteArrayInputStream(dataSource.get()), builder, settings.getPluginManagement().getPlugins());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
