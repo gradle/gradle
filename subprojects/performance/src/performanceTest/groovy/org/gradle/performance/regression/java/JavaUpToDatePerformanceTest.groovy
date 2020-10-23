@@ -37,7 +37,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "up-to-date assemble (parallel #parallel)"() {
         given:
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201022220054+0000"]
         runner.args += ["-Dorg.gradle.parallel=$parallel"]
 
         when:
