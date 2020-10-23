@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.UncheckedException;
+import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
@@ -152,9 +153,9 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 MeasuredOperationList current = results.getCurrent();
                 MeasuredOperationList baseline = results.getBaselineVersions().iterator().next().getResults();
 
-                BigDecimal currentMedian = current.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
-                BigDecimal baselineMedian = baseline.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
-                BigDecimal diffConfidence = BigDecimal.valueOf(DataSeries.confidenceInDifference(current.getTotalTime(), baseline.getTotalTime()));
+                BigDecimal currentMedian = getMedianInMillis(current);
+                BigDecimal baselineMedian = getMedianInMillis(baseline);
+                BigDecimal diffConfidence = (currentMedian != null && baselineMedian != null) ? BigDecimal.valueOf(DataSeries.confidenceInDifference(current.getTotalTime(), baseline.getTotalTime())) : null;
                 statement.setBigDecimal(19, currentMedian);
                 statement.setBigDecimal(20, baselineMedian);
                 statement.setBigDecimal(21, diffConfidence);
@@ -170,6 +171,11 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 return keys.getLong(1);
             }
         }
+    }
+
+    private static BigDecimal getMedianInMillis(MeasuredOperationList operations) {
+        Amount<Duration> median = operations.getTotalTime().getMedian();
+        return median == null ? null : median.toUnits(Duration.MILLI_SECONDS).getValue();
     }
 
     private void addOperations(PreparedStatement statement, long testId, String version, MeasuredOperationList operations) throws SQLException {
