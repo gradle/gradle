@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -28,7 +29,7 @@ import spock.lang.IgnoreIf
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest {
+class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest implements PluginDslSupport {
 
     def "can declare component metadata rules in settings"() {
         withLoggingRuleInSettings()
@@ -278,16 +279,4 @@ class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDepe
 """
     }
 
-    private void withPlugins(Map<String, String> plugins) {
-        def text = buildFile.text
-        int idx = text.indexOf('allprojects')
-        text = """${text.substring(0, idx)}
-            plugins {
-                ${plugins.collect { "id '$it.key' version '${it.value}'" }.join('\n')}
-            }
-
-${text.substring(idx)}
-        """
-        buildFile.text = text
-    }
 }
