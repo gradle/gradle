@@ -65,7 +65,7 @@ fun <T : Dependency> addDependencyTo(
 fun addConfiguredDependencyTo(
     dependencies: DependencyHandler,
     configuration: String,
-    dependencyNotation: Provider<Any>,
+    dependencyNotation: Provider<*>,
     configurationAction: Action<ExternalModuleDependency>
 ) {
     dependencies.addProvider(configuration, dependencyNotation, configurationAction)

@@ -67,8 +67,6 @@ object GradleType {
     val publishArtifact = classOf<PublishArtifact>()
 
     val provider = classOf<Provider<*>>()
-
-    val providerOfAny = genericTypeOf(provider, classOf<Any>())
 }
 
 

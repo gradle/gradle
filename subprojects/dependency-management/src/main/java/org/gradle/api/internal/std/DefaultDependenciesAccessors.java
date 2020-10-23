@@ -198,7 +198,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Override
-    public void createExtension(ProjectInternal project) {
+    public void createExtensions(ProjectInternal project) {
         if (dependenciesConfiguration != null) {
             ExtensionContainer container = project.getExtensions();
             ServiceRegistry services = project.getServices();

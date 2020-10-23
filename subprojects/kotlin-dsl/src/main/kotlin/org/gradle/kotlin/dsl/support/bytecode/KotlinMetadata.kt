@@ -279,6 +279,13 @@ fun actionTypeOf(parameterType: KmTypeBuilder): KmTypeBuilder = {
 }
 
 
+internal
+fun providerOfStar(): KmTypeBuilder = {
+    visitClass("org/gradle/api/provider/Provider")
+    visitStarProjection()
+}
+
+
 /**
  * [receiverType].() -> [returnType]
  */

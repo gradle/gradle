@@ -37,6 +37,7 @@ import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
+import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
@@ -176,7 +177,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @see [DependencyHandler.add]
                      */$deprecationBlock
                     fun DependencyHandler.`$kotlinIdentifier`(
-                        dependencyNotation: Any,
+                        dependencyNotation: Provider<*>,
                         dependencyConfiguration: Action<ExternalModuleDependency>
                     ): Unit = addConfiguredDependencyTo(
                         this, "$stringLiteral", dependencyNotation, dependencyConfiguration
@@ -203,7 +204,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     returnType = KotlinType.unit,
                     name = propertyName,
                     parameters = {
-                        visitParameter("dependencyNotation", KotlinType.any)
+                        visitParameter("dependencyNotation", providerOfStar())
                         visitParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
                     },
                     signature = signature
@@ -211,7 +212,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             signature = JvmMethodSignature(
                 propertyName,
-                "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)V"
+                "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/Action;)V"
             )
         ),
         AccessorFragment(
