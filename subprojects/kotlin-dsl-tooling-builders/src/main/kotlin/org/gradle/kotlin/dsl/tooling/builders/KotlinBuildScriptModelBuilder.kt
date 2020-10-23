@@ -253,7 +253,7 @@ fun projectScriptModelBuilder(
         val pluginAccessorClassPathGenerator = project.serviceOf<PluginAccessorClassPathGenerator>()
         val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
         val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project) + AccessorsClassPath(dependenciesAccessors.sources, dependenciesAccessors.classes)
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
     },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir
