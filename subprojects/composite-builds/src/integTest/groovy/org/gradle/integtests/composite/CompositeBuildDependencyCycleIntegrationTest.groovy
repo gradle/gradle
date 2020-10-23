@@ -310,6 +310,89 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         assertTaskExecuted(":", ":jar")
     }
 
+    def "direct mustRunAfter cycle between included builds"() {
+        given:
+        buildA.buildFile << """
+            task a {
+                dependsOn gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        // TODO: if I use mustRunAfter here, the build fails with "Included build task ':c' was never scheduled for execution."
+        buildB.buildFile << """
+            task b {
+                dependsOn gradle.includedBuild('buildC').task(':c')
+            }
+        """
+        buildB.settingsFile << """
+            includeBuild('../buildC')
+        """
+        buildC.buildFile << """
+            task c {
+                mustRunAfter gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        buildC.settingsFile << """
+            includeBuild('../buildB')
+        """
+
+        when:
+        resolveFails(":a")
+
+        then:
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:b
+\\--- :buildC:c
+     \\--- :buildB:b (*)""")
+    }
+
+    def "indirect mustRunAfter cycle between included builds"() {
+        given:
+        buildA.buildFile << """
+            task a {
+                dependsOn gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        // TODO: if I use mustRunAfter here, the build fails with "Included build task ':c' was never scheduled for execution."
+        buildB.buildFile << """
+            task b {
+                dependsOn gradle.includedBuild('buildC').task(':c')
+            }
+        """
+        buildB.settingsFile << """
+            includeBuild('../buildC')
+        """
+        // TODO: if I use mustRunAfter here, the build fails with "Included build task ':d' was never scheduled for execution."
+        buildC.buildFile << """
+            task c {
+                dependsOn gradle.includedBuild('buildD').task(':d')
+            }
+        """
+        buildC.settingsFile << """
+            includeBuild('../buildD')
+        """
+
+        def buildD = singleProjectBuild('buildD')
+        buildD.buildFile << """
+            task d {
+                mustRunAfter gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        buildD.settingsFile << """
+            includeBuild('../buildB')
+        """
+        includedBuilds << buildD
+
+        when:
+        resolveFails(":a")
+
+        then:
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:b
+\\--- :buildC:c
+     \\--- :buildD:d
+          \\--- :buildB:b (*)""")
+    }
+
     protected void resolveSucceeds(String task) {
         resolve.prepare()
         super.execute(buildA, task, arguments)

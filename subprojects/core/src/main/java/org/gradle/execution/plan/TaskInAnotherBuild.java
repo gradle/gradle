@@ -215,6 +215,9 @@ public abstract class TaskInAnotherBuild extends TaskNode {
                     processHardSuccessor.execute(targetNode);
                 }
             }
+            for (Node targetNode : dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter())) {
+                addMustSuccessor((TaskNode) targetNode);
+            }
         }
     }
 
