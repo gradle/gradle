@@ -17,6 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.internal.file.FilePathUtil;
+
+import java.util.function.Supplier;
 
 public class ZipEntryContext {
     private final ZipEntry entry;
@@ -39,5 +42,22 @@ public class ZipEntryContext {
 
     public String getRootParentName() {
         return rootParentName;
+    }
+
+    public Supplier<String[]> getRelativePathSegments() {
+        return new ZipEntryRelativePath(entry);
+    }
+
+    private static class ZipEntryRelativePath implements Supplier<String[]> {
+        private final ZipEntry zipEntry;
+
+        ZipEntryRelativePath(ZipEntry zipEntry) {
+            this.zipEntry = zipEntry;
+        }
+
+        @Override
+        public String[] get() {
+            return FilePathUtil.getPathSegments(zipEntry.getName());
+        }
     }
 }

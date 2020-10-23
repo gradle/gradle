@@ -38,13 +38,13 @@ class ZipHasherTest extends Specification {
 
     ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
     ResourceEntryFilter propertyResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by", "पशुपतिरपि"))
-    ZipHasher zipHasher = new ZipHasher(resourceHasher(ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING), ResourceFilter.FILTER_NOTHING)
-    ZipHasher ignoringZipHasher = new ZipHasher(resourceHasher(manifestResourceFilter, propertyResourceFilter), ResourceFilter.FILTER_NOTHING)
+    ZipHasher zipHasher = new ZipHasher(resourceHasher(ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING))
+    ZipHasher ignoringZipHasher = new ZipHasher(resourceHasher(manifestResourceFilter, propertyResourceFilter))
 
     static ResourceHasher resourceHasher(ResourceEntryFilter manifestResourceFilter, ResourceEntryFilter propertyResourceFilter) {
-        ManifestFileZipEntryHasher manifestZipEntryHasher = new ManifestFileZipEntryHasher(manifestResourceFilter)
-        PropertiesFileZipEntryHasher propertyZipEntryHasher = new PropertiesFileZipEntryHasher(propertyResourceFilter)
-        return new MetaInfAwareClasspathResourceHasher(new RuntimeClasspathResourceHasher(), manifestZipEntryHasher, propertyZipEntryHasher)
+        ResourceHasher hasher = new RuntimeClasspathResourceHasher()
+        ResourceHasher propertiesFileHasher = new PropertiesFileAwareClasspathResourceHasher(hasher, ['**/*.properties': propertyResourceFilter])
+        return new MetaInfAwareClasspathResourceHasher(propertiesFileHasher, new ManifestFileZipEntryHasher(manifestResourceFilter))
     }
 
     def "adding an empty jar inside another jar changes the hashcode"() {
@@ -52,14 +52,14 @@ class ZipHasherTest extends Specification {
         def outerContent = tmpDir.createDir("outer")
         def outer = tmpDir.file("outer.jar")
         outerContent.zipTo(outer)
-        def originalHash = zipHasher.hash(snapshot(outer))
+        def originalHash = zipHasher.hash(snapshotContext(outer))
 
         when:
         def innerContent = tmpDir.createDir("inner")
         def inner = outerContent.file("inner.jar")
         innerContent.zipTo(inner)
         outerContent.zipTo(outer)
-        def newHash = zipHasher.hash(snapshot(outer))
+        def newHash = zipHasher.hash(snapshotContext(outer))
 
         then:
         originalHash != newHash
@@ -74,7 +74,7 @@ class ZipHasherTest extends Specification {
         innerContent1.zipTo(inner1)
         def outer1 = tmpDir.file("outer1.jar")
         outerContent1.zipTo(outer1)
-        def hash1 = zipHasher.hash(snapshot(outer1))
+        def hash1 = zipHasher.hash(snapshotContext(outer1))
 
         def outerContent2 = tmpDir.createDir("outer2")
         def innerContent2 = tmpDir.createDir("inner2")
@@ -83,7 +83,7 @@ class ZipHasherTest extends Specification {
         innerContent2.zipTo(inner2)
         def outer2 = tmpDir.file("outer2.jar")
         outerContent2.zipTo(outer2)
-        def hash2 = zipHasher.hash(snapshot(outer2))
+        def hash2 = zipHasher.hash(snapshotContext(outer2))
 
         expect:
         hash1 != hash2
@@ -97,8 +97,8 @@ class ZipHasherTest extends Specification {
         def jarfile2 = tmpDir.file("test2.jar")
         createJarWithAttributes(jarfile2, ["Implementation-Version": "1.0.1"])
 
-        def hash1 = zipHasher.hash(snapshot(jarfile))
-        def hash2 = zipHasher.hash(snapshot(jarfile2))
+        def hash1 = zipHasher.hash(snapshotContext(jarfile))
+        def hash2 = zipHasher.hash(snapshotContext(jarfile2))
 
         expect:
         hash1 != hash2
@@ -109,8 +109,8 @@ class ZipHasherTest extends Specification {
         def jarfile = tmpDir.file("test.jar")
         createJarWithAttributes(jarfile, ["Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)"])
 
-        def hash1 = zipHasher.hash(snapshot(jarfile))
-        def hash2 = ignoringZipHasher.hash(snapshot(jarfile))
+        def hash1 = zipHasher.hash(snapshotContext(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshotContext(jarfile))
 
         expect:
         hash1 != hash2
@@ -124,8 +124,8 @@ class ZipHasherTest extends Specification {
         def jarfile2 = tmpDir.file("test2.jar")
         createJarWithBuildInfo(jarfile2, ["implementation-version": "1.0.1"])
 
-        def hash1 = ignoringZipHasher.hash(snapshot(jarfile))
-        def hash2 = ignoringZipHasher.hash(snapshot(jarfile2))
+        def hash1 = ignoringZipHasher.hash(snapshotContext(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshotContext(jarfile2))
 
         expect:
         hash1 != hash2
@@ -139,8 +139,8 @@ class ZipHasherTest extends Specification {
         def jarfile2 = tmpDir.file("test2.jar")
         createJarWithBuildInfo(jarfile2, ["created-by": "1.8.0_232-b15 (Azul Systems, Inc.)", "foo": "true"], "Build information 1.1")
 
-        def hash1 = ignoringZipHasher.hash(snapshot(jarfile))
-        def hash2 = ignoringZipHasher.hash(snapshot(jarfile2))
+        def hash1 = ignoringZipHasher.hash(snapshotContext(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshotContext(jarfile2))
 
         expect:
         hash1 == hash2
@@ -173,7 +173,7 @@ class ZipHasherTest extends Specification {
         jarOutput.close()
     }
 
-    private static RegularFileSnapshot snapshot(TestFile file) {
-        new RegularFileSnapshot(file.path, file.name, HashCode.fromInt(0), DefaultFileMetadata.file(0, 0, AccessType.DIRECT))
+    private static RegularFileSnapshotContext snapshotContext(TestFile file) {
+        return new DefaultRegularFileSnapshotContext({ }, new RegularFileSnapshot(file.path, file.name, HashCode.fromInt(0), DefaultFileMetadata.file(0, 0, AccessType.DIRECT)))
     }
 }

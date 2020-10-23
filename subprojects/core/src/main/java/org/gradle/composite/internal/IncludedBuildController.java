@@ -15,12 +15,16 @@
  */
 package org.gradle.composite.internal;
 
+import org.gradle.api.internal.TaskInternal;
+
 import java.util.Collection;
 
 public interface IncludedBuildController {
     void queueForExecution(String taskPath);
 
     IncludedBuildTaskResource.State getTaskState(String taskPath);
+
+    TaskInternal getTask(String taskPath);
 
     boolean populateTaskGraph();
 

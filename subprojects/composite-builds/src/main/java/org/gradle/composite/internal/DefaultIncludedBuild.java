@@ -62,8 +62,20 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.parentLease = parentLease;
+        this.gradleLauncher = createGradleLauncher();
+    }
+
+    protected GradleLauncher createGradleLauncher() {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        this.gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
+        return owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
+    }
+
+    protected BuildDefinition getBuildDefinition() {
+        return buildDefinition;
+    }
+
+    protected BuildState getOwner() {
+        return owner;
     }
 
     @Override

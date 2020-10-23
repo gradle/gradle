@@ -140,7 +140,7 @@ class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDepe
 
         settingsFile << """
             dependencyResolutionManagement {
-                preferSettingsRules()
+                rulesMode.set(RulesMode.PREFER_SETTINGS)
             }
         """
 
@@ -173,7 +173,7 @@ class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDepe
 
         settingsFile << """
             dependencyResolutionManagement {
-                preferSettingsRules()
+                rulesMode.set(RulesMode.PREFER_SETTINGS)
             }
         """
 
@@ -206,7 +206,7 @@ class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDepe
 
         settingsFile << """
             dependencyResolutionManagement {
-                enforceSettingsRules()
+                rulesMode.set(RulesMode.FAIL_ON_PROJECT_RULES)
             }
         """
 

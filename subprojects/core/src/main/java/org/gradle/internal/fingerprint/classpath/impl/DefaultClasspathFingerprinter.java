@@ -27,20 +27,22 @@ import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
 
+import java.util.Map;
+
 public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     public DefaultClasspathFingerprinter(
         ResourceSnapshotterCacheService cacheService,
         FileCollectionSnapshotter fileCollectionSnapshotter,
         ResourceFilter classpathResourceFilter,
         ResourceEntryFilter manifestAttributeResourceEntryFilter,
-        ResourceEntryFilter manifestPropertyResourceEntryFilter,
+        Map<String, ResourceEntryFilter> propertiesFileFilters,
         StringInterner stringInterner
     ) {
         super(
             ClasspathFingerprintingStrategy.runtimeClasspath(
                 classpathResourceFilter,
                 manifestAttributeResourceEntryFilter,
-                manifestPropertyResourceEntryFilter,
+                propertiesFileFilters,
                 new RuntimeClasspathResourceHasher(),
                 cacheService,
                 stringInterner

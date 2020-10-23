@@ -138,7 +138,6 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     private setupRunner() {
-        runner.gradleOpts = runner.projectMemoryOptions
         def iterations = determineIterations()
         runner.warmUpRuns = iterations
         runner.runs = iterations

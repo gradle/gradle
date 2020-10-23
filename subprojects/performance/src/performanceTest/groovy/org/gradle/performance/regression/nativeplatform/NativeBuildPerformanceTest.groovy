@@ -37,7 +37,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "up-to-date assemble (native)"() {
         given:
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
@@ -50,7 +49,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "assemble with #changeType file change"() {
         given:
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.addBuildMutator { settings ->
             new ApplyChangeToNativeSourceFileMutator(new File(settings.getProjectDir(), determineFileToChange(changeType, runner.testProject)))
         }

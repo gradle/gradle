@@ -17,7 +17,9 @@ package org.gradle.internal.management;
 
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.initialization.DependencyResolutionManagement;
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
+import org.gradle.api.initialization.resolve.RepositoriesMode;
+import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement {
@@ -29,37 +31,45 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
 
     void applyRules(ComponentMetadataHandler target);
 
-    RepositoryMode getRepositoryMode();
+    RepositoriesModeInternal getConfiguredRepositoriesMode();
 
-    RulesMode getRulesMode();
+    RulesModeInternal getConfiguredRulesMode();
 
-    enum RepositoryMode {
+    enum RepositoriesModeInternal {
         PREFER_PROJECT(true),
         PREFER_SETTINGS(false),
         FAIL_ON_PROJECT_REPOS(false);
 
         private final boolean useProjectRepositories;
 
-        RepositoryMode(boolean useProjectRepositories) {
+        RepositoriesModeInternal(boolean useProjectRepositories) {
             this.useProjectRepositories = useProjectRepositories;
         }
         public boolean useProjectRepositories() {
             return useProjectRepositories;
         }
+
+        public static RepositoriesModeInternal of(RepositoriesMode mode) {
+            return RepositoriesModeInternal.valueOf(mode.name());
+        }
     }
 
-    enum RulesMode {
+    enum RulesModeInternal {
         PREFER_PROJECT(true),
         PREFER_SETTINGS(false),
         FAIL_ON_PROJECT_RULES(false);
 
         private final boolean useProjectRules;
 
-        RulesMode(boolean useProjectRules) {
+        RulesModeInternal(boolean useProjectRules) {
             this.useProjectRules = useProjectRules;
         }
         public boolean useProjectRules() {
             return useProjectRules;
+        }
+
+        public static RulesModeInternal of(RulesMode mode) {
+            return RulesModeInternal.valueOf(mode.name());
         }
     }
 }

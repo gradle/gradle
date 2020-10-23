@@ -53,7 +53,7 @@ public class CompositeResultsStore implements ResultsStore {
     public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {
         return stores.stream()
             .flatMap(store -> store.getEstimatedExperimentDurationsInMillis().entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Math::max));
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Math::max, LinkedHashMap::new));
     }
 
     private ResultsStore getStoreForTest(PerformanceExperiment experiment) {

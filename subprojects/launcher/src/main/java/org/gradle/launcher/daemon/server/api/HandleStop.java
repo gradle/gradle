@@ -39,10 +39,25 @@ public class HandleStop implements DaemonCommandAction {
             listenerBroadcast.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.IMMEDIATE_EXPIRE, EXPIRATION_REASON));
             execution.getConnection().completed(new Success(null));
         } else if (execution.getCommand() instanceof StopWhenIdle) {
+            hangShutdownForTesting();
             listenerBroadcast.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON));
             execution.getConnection().completed(new Success(null));
         } else {
             execution.proceed();
+        }
+    }
+
+    private void hangShutdownForTesting() {
+        // For testing purposes, if this system property is set, the daemon will wait the specified
+        // number of milliseconds before continuing to shutdown. This simulates builds for daemons
+        // that are very slow to respond.
+        int hang = Integer.getInteger("org.gradle.internal.testing.daemon.hang", 0);
+        if (hang > 0) {
+            try {
+                Thread.sleep(hang);
+            } catch (InterruptedException e) {
+                // ignore
+            }
         }
     }
 }

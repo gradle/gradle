@@ -16,7 +16,6 @@
 
 package org.gradle.performance.regression.nativeplatform
 
-import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
@@ -33,13 +32,11 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.6'
         runner.targetVersions = ["6.7-20200824220048+0000"]
-        runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
     def "up-to-date assemble (swift)"() {
         given:
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
@@ -51,7 +48,6 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "incremental compile"() {
         given:
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.addBuildMutator { invocationSettings -> new ChangeSwiftFileMutator(new File(invocationSettings.projectDir, determineFileToChange(runner.testProject))) }
 
         when:

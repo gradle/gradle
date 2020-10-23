@@ -41,6 +41,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.execution.plan.Node
+import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.internal.Actions
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
@@ -138,6 +139,9 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             // per build tree
+            withDebugFrame({ "build cache" }) {
+                writeBuildCacheConfiguration(gradle)
+            }
             withDebugFrame({ "listener subscriptions" }) {
                 writeBuildEventListenerSubscriptions(gradle)
             }
@@ -149,6 +153,7 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             // per build tree
+            readBuildCacheConfiguration(gradle)
             readBuildEventListenerSubscriptions(gradle)
             readGradleEnterprisePluginManager(gradle)
         }
@@ -160,9 +165,6 @@ class ConfigurationCacheState(
             // per build
             withDebugFrame({ "included builds" }) {
                 writeChildBuilds(gradle)
-            }
-            withDebugFrame({ "build cache" }) {
-                writeBuildCacheConfiguration(gradle)
             }
             withDebugFrame({ "cleanup registrations" }) {
                 writeBuildOutputCleanupRegistrations(gradle)
@@ -176,7 +178,6 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
             readChildBuildsOf(build)
-            readBuildCacheConfiguration(gradle)
             readBuildOutputCleanupRegistrations(gradle)
         }
     }
@@ -271,6 +272,7 @@ class ConfigurationCacheState(
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
         }
+        RootBuildCacheControllerSettingsProcessor.process(gradle)
     }
 
     private

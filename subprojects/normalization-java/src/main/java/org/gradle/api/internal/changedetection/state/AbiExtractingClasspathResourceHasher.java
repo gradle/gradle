@@ -56,7 +56,8 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshotContext fileSnapshotContext) {
+        RegularFileSnapshot fileSnapshot = fileSnapshotContext.getSnapshot();
         try {
             if (!isClassFile(fileSnapshot.getName())) {
                 return null;

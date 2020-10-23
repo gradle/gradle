@@ -28,15 +28,16 @@ class CachingResourceHasherTest extends Specification {
     def path = "some"
     def snapshotterCacheService = Mock(ResourceSnapshotterCacheService)
     private RegularFileSnapshot snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(456), DefaultFileMetadata.file(3456, 456, AccessType.DIRECT))
+    def snapshotContext = new DefaultRegularFileSnapshotContext({path}, snapshot)
     def cachingHasher = new CachingResourceHasher(delegate, snapshotterCacheService)
 
 
     def "uses cache service for snapshots"() {
         def expectedHash = HashCode.fromInt(123)
         when:
-        cachingHasher.hash(snapshot)
+        cachingHasher.hash(snapshotContext)
         then:
-        1 * snapshotterCacheService.hashFile(snapshot, delegate, _)
+        1 * snapshotterCacheService.hashFile(snapshotContext, delegate, _)
         0 * _
     }
 

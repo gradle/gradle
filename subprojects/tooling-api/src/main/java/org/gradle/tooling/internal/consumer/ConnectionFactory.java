@@ -38,7 +38,7 @@ public class ConnectionFactory {
     }
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters, ProjectConnectionCloseListener listener) {
-        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
+        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, executorFactory, parameters);
         ConsumerActionExecutor cancellableConnection = new CancellableConsumerActionExecutor(lazyConnection);
         ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(cancellableConnection, loggingProvider);
         ConsumerActionExecutor rethrowingErrorsConnection = new RethrowingErrorsConsumerActionExecutor(progressLoggingConnection);

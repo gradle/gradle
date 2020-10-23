@@ -25,6 +25,17 @@ import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 
 public class RootBuildCacheControllerSettingsProcessor implements SettingsProcessor {
 
+    public static void process(GradleInternal gradle) {
+        // The strategy for sharing build cache configuration across included builds in a composite,
+        // requires that the cache configuration be finalized (and cache controller available)
+        // before configuring them. This achieves that.
+        if (gradle.isRootBuild()) {
+            BuildCacheController rootController = gradle.getServices().get(BuildCacheController.class);
+            RootBuildCacheControllerRef rootControllerRef = gradle.getServices().get(RootBuildCacheControllerRef.class);
+            rootControllerRef.set(rootController);
+        }
+    }
+
     private final SettingsProcessor delegate;
 
     public RootBuildCacheControllerSettingsProcessor(SettingsProcessor delegate) {
@@ -34,18 +45,7 @@ public class RootBuildCacheControllerSettingsProcessor implements SettingsProces
     @Override
     public SettingsInternal process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
         SettingsInternal settings = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
-
-        // The strategy for sharing build cache configuration across included builds in a composite,
-        // requires that the cache configuration be finalized (and cache controller available)
-        // before configuring them. This achieves that.
-
-        if (gradle.isRootBuild()) {
-            BuildCacheController rootController = gradle.getServices().get(BuildCacheController.class);
-            RootBuildCacheControllerRef rootControllerRef = gradle.getServices().get(RootBuildCacheControllerRef.class);
-            rootControllerRef.set(rootController);
-        }
-
+        process(gradle);
         return settings;
-
     }
 }

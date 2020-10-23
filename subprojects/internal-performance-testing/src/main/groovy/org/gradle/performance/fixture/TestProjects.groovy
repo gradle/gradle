@@ -17,59 +17,26 @@
 package org.gradle.performance.fixture
 
 class TestProjects {
-    static List<String> getProjectMemoryOptions(String testProject) {
-        def daemonMemory = determineDaemonMemory(testProject)
-        return ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
+    static void validateTestProject(String testProject) {
+        File gradlePropertiesFile = new File(TestProjectLocator.findProjectDir(testProject), "gradle.properties")
+        if (!gradlePropertiesFile.exists()) {
+            throw new IllegalArgumentException("Every test project needs to provide a gradle.properties file with memory and parallelism settings")
+        }
+        def gradleProperties = new Properties()
+        gradlePropertiesFile.withInputStream {gradleProperties.load(it) }
+        verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.jvmargs")
+        def jvmArgs = gradleProperties.getProperty("org.gradle.jvmargs")?.split(' ')
+        if (!jvmArgs.find { it.startsWith("-Xmx") }) {
+            throw new IllegalArgumentException("Test project needs to specify -Xmx in gradle.properties. org.gradle.jvmargs = ${jvmArgs?.join(' ')}")
+        }
+        verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.parallel")
+        verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.workers.max")
     }
 
-    private static String determineDaemonMemory(String testProject) {
-        switch (testProject) {
-            case 'smallCppApp':
-                return '256m'
-            case 'mediumCppApp':
-                return '256m'
-            case 'mediumCppAppWithMacroIncludes':
-                return '256m'
-            case 'bigCppApp':
-                return '256m'
-            case 'smallCppMulti':
-                return '256m'
-            case 'mediumCppMulti':
-                return '256m'
-            case 'mediumCppMultiWithMacroIncludes':
-                return '256m'
-            case 'bigCppMulti':
-                return '1g'
-            case 'nativeDependents':
-                return '3g'
-            case 'smallNative':
-                return '256m'
-            case 'mediumNative':
-                return '256m'
-            case 'bigNative':
-                return '1g'
-            case 'multiNative':
-                return '256m'
-            case 'withVerboseJUnit':
-                return '256m'
-            case 'withVerboseTestNG':
-                return '256m'
-            case 'mediumSwiftMulti':
-                return '1G'
-            case 'bigSwiftApp':
-                return '1G'
-            case 'nativeMonolithic':
-                return '2500m'
-            case 'nativeMonolithicOverlapping':
-                return '2500m'
-            case 'mediumNativeMonolithic':
-                return '512m'
-            case 'smallNativeMonolithic':
-                return '512m'
-            case 'manyProjectsNative':
-                return '1G'
-            default:
-                return JavaTestProject.projectFor(testProject).daemonMemory
+    private static void verifyGradlePropertiesSettingSpecified(Properties gradleProperties, String propertyName) {
+        def propertyValue = gradleProperties.getProperty(propertyName)
+        if (propertyValue == null || propertyValue.isEmpty()) {
+            throw new IllegalArgumentException("Test project needs to specify ${propertyName} but did not.")
         }
     }
 

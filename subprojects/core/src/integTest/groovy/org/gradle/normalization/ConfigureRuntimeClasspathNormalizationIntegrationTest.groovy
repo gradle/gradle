@@ -27,7 +27,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
     def "can ignore files on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
-        def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi).withFilesIgnored()
+        def project = new ProjectWithRuntimeClasspathNormalization(api).withFilesIgnored()
 
         def ignoredResource = project[ignoredResourceName]
         def notIgnoredResource = project[notIgnoredResourceName]
@@ -69,19 +69,19 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         where:
-        tree                 | ignoredResourceName               | notIgnoredResourceName               | useRuntimeApi
-        'directories'        | 'ignoredResourceInDirectory'      | 'notIgnoredResourceInDirectory'      | true
-        'jars'               | 'ignoredResourceInJar'            | 'notIgnoredResourceInJar'            | true
-        'nested jars'        | 'ignoredResourceInNestedJar'      | 'notIgnoredResourceInNestedJar'      | true
-        'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | true
-        'directories'        | 'ignoredResourceInDirectory'      | 'notIgnoredResourceInDirectory'      | false
-        'jars'               | 'ignoredResourceInJar'            | 'notIgnoredResourceInJar'            | false
-        'nested jars'        | 'ignoredResourceInNestedJar'      | 'notIgnoredResourceInNestedJar'      | false
-        'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | false
+        tree                 | ignoredResourceName               | notIgnoredResourceName               | api
+        'directories'        | 'ignoredResourceInDirectory'      | 'notIgnoredResourceInDirectory'      | Api.RUNTIME
+        'jars'               | 'ignoredResourceInJar'            | 'notIgnoredResourceInJar'            | Api.RUNTIME
+        'nested jars'        | 'ignoredResourceInNestedJar'      | 'notIgnoredResourceInNestedJar'      | Api.RUNTIME
+        'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | Api.RUNTIME
+        'directories'        | 'ignoredResourceInDirectory'      | 'notIgnoredResourceInDirectory'      | Api.ANNOTATION
+        'jars'               | 'ignoredResourceInJar'            | 'notIgnoredResourceInJar'            | Api.ANNOTATION
+        'nested jars'        | 'ignoredResourceInNestedJar'      | 'notIgnoredResourceInNestedJar'      | Api.ANNOTATION
+        'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | Api.ANNOTATION
     }
 
     def "can ignore manifest attributes on runtime classpath"() {
-        def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestAttributesIgnored()
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestAttributesIgnored()
 
         when:
         succeeds project.customTask
@@ -102,7 +102,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
     def "can ignore entire manifest on runtime classpath"() {
-        def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestIgnored()
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestIgnored()
 
         when:
         succeeds project.customTask
@@ -123,7 +123,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
     def "can ignore all meta-inf files on runtime classpath"() {
-        def project = new ProjectWithRuntimeClasspathNormalization(true).withAllMetaInfIgnored()
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withAllMetaInfIgnored()
 
         when:
         succeeds project.customTask
@@ -145,7 +145,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
     def "can ignore manifest properties on runtime classpath"() {
-        def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestPropertiesIgnored()
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestPropertiesIgnored()
 
         when:
         succeeds project.customTask
@@ -166,8 +166,8 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
     def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
-        def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', useRuntimeApi).withFilesIgnored()
-        def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', useRuntimeApi)
+        def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', api).withFilesIgnored()
+        def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', api)
         def allProjects = [projectWithoutIgnores, projectWithIgnores]
         settingsFile << "include 'a', 'b'"
 
@@ -185,19 +185,19 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(projectWithoutIgnores.customTask)
 
         where:
-        useRuntimeApi << [true, false]
+        api << [Api.RUNTIME, Api.ANNOTATION]
     }
 
     @UnsupportedWithConfigurationCache(because = "Task.getProject() during execution")
-    def "runtime classpath normalization cannot be changed after first usage (using runtime API: #useRuntimeApi)"() {
-        def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi)
+    def "runtime classpath normalization to #change cannot be changed after first usage (using runtime API: #useRuntimeApi)"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         project.buildFile << """
             task configureNormalization() {
                 dependsOn '${project.customTask}'
                 doLast {
                     project.normalization {
                         runtimeClasspath {
-                            ignore '**/some-other-file.txt'
+                            ${config}
                         }
                     }
                 }
@@ -211,7 +211,225 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         failureHasCause 'Cannot configure runtime classpath normalization after execution started.'
 
         where:
-        useRuntimeApi << [true, false]
+        change                      | config                                                    | api
+        'ignore file'               | "ignore '**/some-other-file.txt'"                         | Api.RUNTIME
+        'ignore file'               | "ignore '**/some-other-file.txt'"                         | Api.ANNOTATION
+        'ignore manifest attribute' | "metaInf { ignoreAttribute 'Implementation-version' }"    | Api.RUNTIME
+        'ignore manifest attribute' | "metaInf { ignoreAttribute 'Implementation-version' }"    | Api.ANNOTATION
+        'ignore property'           | "properties { ignoreProperty 'timestamp' }"               | Api.RUNTIME
+        'ignore property'           | "properties { ignoreProperty 'timestamp' }"               | Api.ANNOTATION
+    }
+
+    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    def "can ignore properties on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(api).withPropertiesIgnored()
+
+        def ignoredResource = project[ignoredResourceName]
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        ignoredResource.changeProperty(IGNORE_ME, 'please ignore me')
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        ignoredResource.changeProperty(DONT_IGNORE_ME, 'please dont ignore me')
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        where:
+        tree                 | ignoredResourceName              | api
+        'directories'        | 'propertiesFileInDir'            | Api.RUNTIME
+        'jars'               | 'propertiesFileInJar'            | Api.RUNTIME
+        'nested jars'        | 'propertiesFileInNestedJar'      | Api.RUNTIME
+        'nested in dir jars' | 'propertiesFileInNestedInDirJar' | Api.RUNTIME
+        'directories'        | 'propertiesFileInDir'            | Api.ANNOTATION
+        'jars'               | 'propertiesFileInJar'            | Api.ANNOTATION
+        'nested jars'        | 'propertiesFileInNestedJar'      | Api.ANNOTATION
+        'nested in dir jars' | 'propertiesFileInNestedInDirJar' | Api.ANNOTATION
+    }
+
+    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    def "can ignore properties in selected files"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        def notIgnoredPropertiesFile = new PropertiesResource(project.root.file('classpath/dirEntry/bar.properties'), [(IGNORE_ME_TOO): 'this should not actually be ignored'])
+        project.buildFile << """
+            normalization {
+                runtimeClasspath {
+                    properties('**/foo.properties') {
+                        ignoreProperty '${IGNORE_ME}'
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir.changeProperty(IGNORE_ME, 'please ignore me')
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        notIgnoredPropertiesFile.changeProperty(IGNORE_ME, 'please dont ignore me')
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+    }
+
+    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    def "can ignore properties in selected files defined in multiple rules"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        def notIgnoredPropertiesFile = new PropertiesResource(project.root.file('classpath/dirEntry/bar.properties'), [(IGNORE_ME_TOO): 'this should not actually be ignored'])
+        project.propertiesFileInDir.changeProperty(IGNORE_ME_TOO, 'this should also be ignored')
+        project.buildFile << """
+            normalization {
+                runtimeClasspath {
+                    properties('**/foo.properties') {
+                        ignoreProperty '${IGNORE_ME}'
+                    }
+                    properties('some/path/to/foo.properties') {
+                        ignoreProperty '${IGNORE_ME_TOO}'
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir.changeProperty(IGNORE_ME, 'please ignore me')
+        project.propertiesFileInDir.changeProperty(IGNORE_ME_TOO, 'please ignore me too')
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        notIgnoredPropertiesFile.changeProperty(IGNORE_ME, 'please dont ignore me')
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+    }
+
+    def "properties files are normalized against changes to whitespace, order and comments"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        project.propertiesFileInDir.setContent('''
+            foo=bar
+            bar=baz
+            fizz=fuzz
+        '''.stripIndent())
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir
+            .setComment('this comment should be ignored')
+            .setContent('''
+
+                # Some comment
+                bar=baz
+
+                fizz=fuzz
+
+                # Another comment
+                foo=bar
+
+            '''.stripIndent())
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir.changeProperty('foo', 'baz')
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+    }
+
+    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    def "can add rules to the default properties rule"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        def notIgnoredPropertiesFile = new PropertiesResource(project.root.file('classpath/dirEntry/bar.properties'), [(IGNORE_ME): 'this should not actually be ignored'])
+        project.propertiesFileInDir.changeProperty(IGNORE_ME_TOO, 'this should also be ignored')
+        project.buildFile << """
+            normalization {
+                runtimeClasspath {
+                    properties('**/foo.properties') {
+                        ignoreProperty '${IGNORE_ME}'
+                    }
+                    properties {
+                        ignoreProperty '${IGNORE_ME_TOO}'
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir.changeProperty(IGNORE_ME, 'please ignore me')
+        project.propertiesFileInDir.changeProperty(IGNORE_ME_TOO, 'please ignore me too')
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        notIgnoredPropertiesFile.changeProperty(IGNORE_ME, 'please dont ignore me')
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+    }
+
+    static final String IGNORE_ME = 'ignore-me'
+    static final String IGNORE_ME_TOO = 'ignore-me-too'
+    static final String DONT_IGNORE_ME = 'dont-ignore-me'
+
+    enum Api {
+        RUNTIME, ANNOTATION
     }
 
     class ProjectWithRuntimeClasspathNormalization {
@@ -226,6 +444,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource notIgnoredResourceInNestedInDirJar
         TestResource jarManifest
         TestResource jarManifestProperties
+        PropertiesResource propertiesFileInDir
+        PropertiesResource propertiesFileInJar
+        PropertiesResource propertiesFileInNestedJar
+        PropertiesResource propertiesFileInNestedInDirJar
         TestFile libraryJar
         TestFile nestedJar
         TestFile nestedInDirJar
@@ -235,7 +457,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         private final String projectName
         final TestFile buildFile
 
-        ProjectWithRuntimeClasspathNormalization(String projectName = null, boolean useRuntimeApi) {
+        ProjectWithRuntimeClasspathNormalization(String projectName = null, Api api) {
             this.projectName = projectName
             this.root = projectName ? file(projectName) : temporaryFolder.testDirectory
 
@@ -243,20 +465,23 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 apply plugin: 'base'
             """
 
-            buildFile << declareCustomTask(useRuntimeApi)
+            buildFile << declareCustomTask(api)
 
             nestedInDirJarContents = root.file('nestedInDirJarContents').create {
                 ignoredResourceInNestedInDirJar = new TestResource(file('another/package/ignored.txt') << "This should be ignored", this.&createNestedInDirJar)
                 notIgnoredResourceInNestedInDirJar = new TestResource(file('another/package/not-ignored.txt') << "This should not be ignored", this.&createNestedInDirJar)
+                propertiesFileInNestedInDirJar = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'], this.&createNestedInDirJar)
             }
             root.file('classpath/dirEntry').create {
                 ignoredResourceInDirectory = new TestResource(file("ignored.txt") << "This should be ignored")
                 notIgnoredResourceInDirectory = new TestResource(file("not-ignored.txt") << "This should not be ignored")
                 nestedInDirJar = file('nestedInDir.jar')
+                propertiesFileInDir = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'])
             }
             nestedJarContents = root.file('libraryContents').create {
                 ignoredResourceInNestedJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
                 notIgnoredResourceInNestedJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
+                propertiesFileInNestedJar = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'], this.&createJar)
             }
             libraryJarContents = root.file('libraryContents').create {
                 jarManifest = new TestResource(file('META-INF/MANIFEST.MF') << "Manifest-Version: 1.0\nImplementation-Version: 1.0.0", this.&createJar)
@@ -264,14 +489,15 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 ignoredResourceInJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
                 notIgnoredResourceInJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
                 nestedJar = file('nested.jar')
+                propertiesFileInJar = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'], this.&createJar)
             }
             libraryJar = root.file('library.jar')
             createJar()
             createNestedInDirJar()
         }
 
-        String declareCustomTask(boolean useRuntimeApi) {
-            if (useRuntimeApi) {
+        String declareCustomTask(Api api) {
+            if (api == Api.RUNTIME) {
                 return """
                     task customTask {
                         def outputFile = file("\$temporaryDir/output.txt")
@@ -383,6 +609,19 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             return this
         }
 
+        ProjectWithRuntimeClasspathNormalization withPropertiesIgnored() {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        properties {
+                            ignoreProperty "${IGNORE_ME}"
+                        }
+                    }
+                }
+            """.stripIndent()
+            return this
+        }
+
         String getCustomTask() {
             return "${projectName ? ":${projectName}" : ''}:customTask"
         }
@@ -390,33 +629,90 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
     class TestResource {
         final TestFile backingFile
-        private final Closure finalizedBy
+        private final Closure onChange
 
-        TestResource(TestFile backingFile, Closure finalizedBy = {}) {
+        TestResource(TestFile backingFile, Closure onChange = {}) {
             this.backingFile = backingFile
-            this.finalizedBy = finalizedBy
+            this.onChange = onChange
         }
 
         void replaceContents(String contents) {
             backingFile.withWriter { w ->
                 w << contents
             }
-            finalizedBy()
+            changed()
         }
 
         void changeContents() {
             backingFile << "More changes"
-            finalizedBy()
+            changed()
         }
 
         void remove() {
             assert backingFile.delete()
-            finalizedBy()
+            changed()
         }
 
         void add() {
             backingFile << "First creation of file"
-            finalizedBy()
+            changed()
+        }
+
+        void changed() {
+            onChange.call()
+        }
+    }
+
+    class PropertiesResource extends TestResource {
+        String comment = ""
+
+        PropertiesResource(TestFile backingFile, Map<String, String> initialProps, Closure finalizedBy={}) {
+            super(backingFile, finalizedBy)
+            withProperties() { Properties props ->
+                props.putAll(initialProps)
+            }
+        }
+
+        PropertiesResource changeProperty(String key, String value) {
+            withProperties(true) { Properties props ->
+                props.setProperty(key, value)
+            }
+            changed()
+            return this
+        }
+
+        PropertiesResource setComment(String comment) {
+            this.comment = comment
+            return this
+        }
+
+        PropertiesResource setContent(String content) {
+            // Preserve the order of the properties in the map when writing the properties file
+            backingFile.withWriter {writer ->
+                writer.write("# ${comment}\n")
+                writer.write(content)
+            }
+            changed()
+            return this
+        }
+
+        private withProperties(boolean loadFromExisting = false, Closure action) {
+            Properties props = new Properties()
+            if (loadFromExisting) {
+                def inputStream = backingFile.newInputStream()
+                try {
+                    props.load(inputStream)
+                } finally {
+                    inputStream.close()
+                }
+            }
+            action.call(props)
+            def outputStream = backingFile.newOutputStream()
+            try {
+                props.store(outputStream, comment)
+            } finally {
+                outputStream.close()
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ These rules take effect after a module's metadata has been downloaded, but befor
 
 == Basics of writing a component metadata rule
 
-Component metadata rules are applied in the components (link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html[ComponentMetadataHandler]) section of the dependencies block (link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[DependencyHandler]) of a build script.
+Component metadata rules are applied in the components (link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html[ComponentMetadataHandler]) section of the dependencies block (link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[DependencyHandler]) of a build script or in the settings script.
 The rules can be defined in two different ways:
 
 1. As an action directly when they are applied in the _components_ section
@@ -37,6 +37,47 @@ A service which is helpful for advanced usage of component metadata rules with c
 
 A component metadata rule can be applied to all modules — `all(rule)` — or to a selected module — `withModule(groupAndName, rule)`.
 Usually, a rule is specifically written to enrich metadata of one specific module and hence the `withModule` API should be preferred.
+
+[[sec:rules_in_settings]]
+=== Declaring rules in a central place
+
+NOTE: Declaring component metadata rules in settings is an incubating feature
+
+Instead of declaring rules for each subproject individually, it is possible to declare rules in the `settings.gradle(.kts)` file for the whole build.
+Rules declared in settings are the _conventional_ rules applied to each project: if the project doesn't declare any rules, the rules from the settings script will be used.
+
+.Declaring a rule in settings
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=rule-in-settings]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=rule-in-settings]"]
+====
+
+By default, rules declared in a project will *override* whatever is declared in settings.
+It is possible to change this default, for example to always prefer the settings rules:
+
+.Preferring rules declared in settings
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=prefer-settings]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=prefer-settings]"]
+====
+
+If this method is called and that a project or plugin declares rules, a warning will be issued.
+You can make this a failure instead by using this alternative:
+
+.Enforcing rules declared in settings
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=enforce-settings]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=enforce-settings]"]
+====
+
+The default behavior is equivalent to calling this method:
+
+.Preferring rules declared in projects
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=prefer-projects]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=prefer-projects]"]
+====
+
 
 [[sec:component_metadata_rules_details]]
 == Which parts of metadata can be modified?
@@ -344,5 +385,4 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.
 Existing modules with the state `integration` are mapped to `nightly`.
-
 

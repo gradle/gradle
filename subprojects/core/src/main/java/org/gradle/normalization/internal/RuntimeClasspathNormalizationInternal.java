@@ -20,10 +20,12 @@ import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.normalization.RuntimeClasspathNormalization;
 
+import java.util.Map;
+
 public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
      ResourceFilter getClasspathResourceFilter();
 
      ResourceEntryFilter getManifestAttributeResourceEntryFilter();
 
-     ResourceEntryFilter getManifestPropertyResourceEntryFilter();
+     Map<String, ResourceEntryFilter> getPropertiesFileFilters();
 }

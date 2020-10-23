@@ -41,12 +41,12 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
     def "build with #parallelWorkers parallel workers"() {
         given:
         runner.tasksToRun = ['build']
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.warmUpRuns = 5
         runner.runs = 10
 
+        runner.args += ["-Dorg.gradle.parallel=${parallelWorkers ? true : false}"]
         if (parallelWorkers) {
-            runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
+            runner.args += ["--max-workers=$parallelWorkers".toString()]
         }
 
         when:
@@ -67,8 +67,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
     def "build with #changeType file change"() {
         given:
         runner.tasksToRun = ['build']
-        runner.args = ["--parallel", "--max-workers=12"]
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.warmUpRuns = 39
         runner.runs = 40
 

@@ -39,11 +39,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
     def "clean #gradleTask (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
-        runner.jvmOpts.addAll(runner.projectMemoryOptions)
-        def testProject = JavaTestProject.projectFor(runner.testProject)
-        if (testProject.parallel) {
-            runner.mvnArgs << '-T' << testProject.maxWorkers
-        }
+        configureMavenOptions(JavaTestProject.projectFor(runner.testProject))
         runner.gradleTasks = ["clean", gradleTask]
         runner.equivalentMavenTasks = ["clean", mavenTask]
         if (mavenTask == "package") {
@@ -70,10 +66,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         def testProject = JavaTestProject.projectFor(runner.testProject)
         def fileToChange = testProject.config.fileToChangeByScenario["assemble"]
-        runner.jvmOpts.addAll(runner.projectMemoryOptions)
-        if (testProject.parallel) {
-            runner.mvnArgs << '-T' << testProject.maxWorkers
-        }
+        configureMavenOptions(testProject)
         runner.gradleTasks = gradleTask.split(' ')
         runner.equivalentMavenTasks = mavenTask.split(' ')
         if (runner.equivalentMavenTasks.contains('package')) {
@@ -93,5 +86,13 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         gradleTask | mavenTask
         'assemble' | 'clean package'
         'test'     | 'clean test'
+    }
+
+    void configureMavenOptions(JavaTestProject testProject) {
+        def daemonMemory = testProject.daemonMemory
+        runner.jvmOpts.addAll(["-Xms${daemonMemory}", "-Xmx${daemonMemory}"])
+        if (testProject.parallel) {
+            runner.mvnArgs << '-T' << testProject.maxWorkers
+        }
     }
 }

@@ -478,6 +478,49 @@ When a build requires one of these plugins, additional repositories need to be s
 
 As the way to declare the repositories and what they are expected to contain depends on the way the plugin is applied, it is best to refer to <<plugins.adoc#sec:custom_plugin_repositories, Custom Plugin Repositories>>.
 
+[[sub:centralized-repository-declaration]]
+== Centralizing repositories declaration
+
+Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle offers a way to declare them in a central place for all project.
+
+NOTE: Central declaration of repositories is an incubating feature
+
+Repositories used by convention by every subproject can be declared in the `settings.gradle(.kts)` file:
+
+.Declaring a Maven repository in settings
+====
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=declare_repositories_settings]"]
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=declare_repositories_settings]"]
+====
+
+The `dependencyResolutionManagement` repositories block accepts the same notations as in a project, which includes Maven or Ivy repositories, with or without credentials, etc.
+
+By default, repositories declared by a project will *override* whatever is declared in settings.
+You can change this behavior to make sure that you always use the settings repositories:
+
+.Preferring settings repositories
+====
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_settings]"]
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_settings]"]
+====
+
+If, for some reason, a project or a plugin declares a repository in a project, Gradle would warn you.
+You can however make it _fail the build_ if you want to enforce that only settings repositories are used:
+
+.Enforcing settings repositories
+====
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=enforce_settings]"]
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]
+====
+
+Eventually, the default is equivalent to calling `preferProjectRepositories`:
+
+.Preferring project repositories
+====
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_projects]"]
+include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_projects]"]
+====
+
 [[sec:supported_transport_protocols]]
 == Supported repository transport protocols
 

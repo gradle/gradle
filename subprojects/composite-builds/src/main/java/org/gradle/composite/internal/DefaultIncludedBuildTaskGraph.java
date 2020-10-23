@@ -16,6 +16,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.TaskInternal;
 
 import java.util.Collection;
 
@@ -29,7 +30,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
 
     @Override
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
-        getBuildController(targetBuild).queueForExecution(taskPath);
+        buildControllerFor(targetBuild).queueForExecution(taskPath);
     }
 
     @Override
@@ -43,11 +44,15 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
 
     @Override
     public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
-        IncludedBuildController controller = getBuildController(targetBuild);
-        return controller.getTaskState(taskPath);
+        return buildControllerFor(targetBuild).getTaskState(taskPath);
     }
 
-    private IncludedBuildController getBuildController(BuildIdentifier buildId) {
+    @Override
+    public TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
+        return buildControllerFor(targetBuild).getTask(taskPath);
+    }
+
+    private IncludedBuildController buildControllerFor(BuildIdentifier buildId) {
         return includedBuilds.getBuildController(buildId);
     }
 

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.initialization;
+package org.gradle.api.initialization.resolve;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -36,26 +37,7 @@ public interface DependencyResolutionManagement {
      */
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
 
-    /**
-     * If this method is called, any repository declared on a project will cause
-     * the project to use the repositories declared by the project, ignoring
-     * those declared in settings.
-     *
-     * This is the default behavior.
-     */
-    void preferProjectRepositories();
-
-    /**
-     * If this method is called, any repository declared directly in a project,
-     * either directly or via a plugin, will be ignored.
-     */
-    void preferSettingsRepositories();
-
-    /**
-     * If this method is called, any repository declared directly in a project,
-     * either directly or via a plugin, will trigger a build error.
-     */
-    void enforceSettingsRepositories();
+    Property<RepositoriesMode> getRepositoriesMode();
 
     /**
      * Registers component metadata rules used by all projects
@@ -63,30 +45,11 @@ public interface DependencyResolutionManagement {
      */
     void components(Action<? super ComponentMetadataHandler> registration);
 
+    Property<RulesMode> getRulesMode();
+
     /**
      * Returns the shared component metadata handler
      */
     ComponentMetadataHandler getComponents();
-
-    /**
-     * If this method is called, any component metadata rule declared on a project
-     * will cause the project to use the rules declared by the project, ignoring
-     * those declared in settings.
-     *
-     * This is the default behavior.
-     */
-    void preferProjectRules();
-
-    /**
-     * If this method is called, any component metadata rule declared directly in a
-     * project, either directly or via a plugin, will be ignored.
-     */
-    void preferSettingsRules();
-
-    /**
-     * If this method is called, any component metadata rule declared directly in a
-     * project, either directly or via a plugin, will trigger a build error.
-     */
-    void enforceSettingsRules();
 
 }
