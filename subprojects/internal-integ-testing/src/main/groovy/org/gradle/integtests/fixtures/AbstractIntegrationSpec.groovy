@@ -95,10 +95,12 @@ class AbstractIntegrationSpec extends Specification {
     def setup() {
         m2.isolateMavenLocalRepo(executer)
         executer.beforeExecute {
-            executer.withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
+            withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
             if (maxUploadAttempts != null) {
-                executer.withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
+                withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
             }
+            withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            withArgument("-Porg.gradle.java.installations.auto-download=false")
         }
     }
 

@@ -21,11 +21,6 @@ import org.junit.Assume
 abstract class AbstractSampleIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withRepositoryMirrors()
-        // Disable toolchain detection and download - we want to be specific
-        executer.beforeExecute {
-            withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            withArgument("-Porg.gradle.java.installations.auto-download=false")
-        }
     }
 
     def configureExecuterForToolchains(String... versions) {
