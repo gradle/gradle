@@ -23,7 +23,7 @@ import org.gradle.internal.classpath.ClassPath;
 
 public interface DependenciesAccessors {
     void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope, Settings settings);
-    void createExtension(ProjectInternal project);
+    void createExtensions(ProjectInternal project);
     ClassPath getSources();
     ClassPath getClasses();
 }
