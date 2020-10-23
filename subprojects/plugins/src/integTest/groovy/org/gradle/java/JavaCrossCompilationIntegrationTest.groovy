@@ -57,9 +57,7 @@ tasks.withType(Javadoc) {
 /** Some thing. */
 public class Thing { }
 """
-        executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            .withArgument("-Porg.gradle.java.installations.auto-download=false")
-            .withArgument("-Porg.gradle.java.installations.paths=" + javaHome)
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + javaHome)
     }
 
     def "can compile source and run JUnit tests using target Java version"() {

@@ -38,7 +38,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         failure = executer
-            .withArguments("-Porg.gradle.java.installations.auto-detect=false")
             .withTasks("compileJava")
             .requireOwnGradleUserHomeDir()
             .runWithFailure()
@@ -72,7 +71,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         failure = executer
-            .withArguments("-Porg.gradle.java.installations.auto-detect=false")
             .withTasks("compileJava")
             .requireOwnGradleUserHomeDir()
             .runWithFailure()
@@ -97,7 +95,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         """
 
         propertiesFile << """
-            org.gradle.java.installations.auto-detect=false
             org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=http://example.com
         """
 
