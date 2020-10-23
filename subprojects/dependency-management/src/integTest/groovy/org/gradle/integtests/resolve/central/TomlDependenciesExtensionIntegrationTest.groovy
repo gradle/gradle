@@ -82,6 +82,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
 
         then: "extension is not regenerated"
         !operations.hasOperation("Generate dependency accessors")
+        outputContains 'Type-safe dependency accessors is an incubating feature.'
     }
 
     def "can use the generated extension to declare a dependency"() {

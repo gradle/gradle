@@ -43,7 +43,9 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.IncubationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -92,8 +94,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         try {
             this.dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             this.classLoaderScope = classLoaderScope;
-            writeDependenciesAccessors();
+            if (dependenciesConfiguration.isNotEmpty()) {
+                IncubationLogger.incubatingFeatureUsed("Type-safe dependency accessors");
+                writeDependenciesAccessors();
+            }
             if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+                IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
                 writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
             }
         } catch (Exception e) {
@@ -180,6 +186,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         return errors.isEmpty();
     }
 
+    @Nullable
     private <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
         Class<? extends T> clazz;
         try {
@@ -192,18 +199,20 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     @Override
     public void createExtension(ProjectInternal project) {
-        if (dependenciesConfiguration != null && dependenciesConfiguration.isNotEmpty()) {
+        if (dependenciesConfiguration != null) {
             ExtensionContainer container = project.getExtensions();
             ServiceRegistry services = project.getServices();
             DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
             ProjectFinder projectFinder = services.get(ProjectFinder.class);
-            if (generatedDependenciesFactory == null) {
-                synchronized (this) {
-                    generatedDependenciesFactory = loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME);
-                }
-            }
             try {
-                container.create(drm.getLibrariesExtensionName(), generatedDependenciesFactory, dependenciesConfiguration);
+                if (dependenciesConfiguration.isNotEmpty()) {
+                    if (generatedDependenciesFactory == null) {
+                        synchronized (this) {
+                            generatedDependenciesFactory = loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME);
+                        }
+                    }
+                    container.create(drm.getLibrariesExtensionName(), generatedDependenciesFactory, dependenciesConfiguration);
+                }
             } finally {
                 createProjectsExtension(container, drm, projectFinder);
             }
@@ -217,7 +226,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     generatedProjectFactory = loadFactory(classLoaderScope, ROOT_PROJECT_ACCESSOR_FQCN);
                 }
             }
-            container.create(drm.getProjectsExtensionName(), generatedProjectFactory, projectDependencyFactory, projectFinder);
+            if (generatedProjectFactory != null) {
+                container.create(drm.getProjectsExtensionName(), generatedProjectFactory, projectDependencyFactory, projectFinder);
+            }
         }
     }
 
@@ -314,6 +325,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             if (className == null) {
                 StringWriter writer = new StringWriter();
                 className = ProjectAccessorsSourceGenerator.generateSource(writer, project, ACCESSORS_PACKAGE);
+                source = writer.toString();
             }
         }
     }
