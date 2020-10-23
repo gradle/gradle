@@ -1,0 +1,14 @@
+plugins {
+    id('java-library')
+}
+
+// tag::customAction[]
+tasks.named('jar') {
+    doFirst {
+        manifest {
+            def classPath = configurations.runtimeClasspath.collect { it.name }.join(" ")
+            attributes('Class-Path': classPath)
+        }
+    }
+}
+// end::customAction[]

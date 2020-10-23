@@ -20,6 +20,9 @@
             <tr>
                 <td>ignore</td>
             </tr>
+            <tr>
+                <td>properties</td>
+            </tr>
         </table>
     </section>
 </section>

@@ -355,7 +355,7 @@ It is also possible to use a shared build cache service, like https://gradle.com
 Shared caches can reduce the number of tasks you need to execute by reusing outputs already generated elsewhere.
 This can significantly decrease build times for both CI and developer builds.
 
-For extensive information about leveraging the build cache in your build, check out the complete guide about https://guides.gradle.org/using-build-cache/[using the build cache].
+For extensive information about leveraging the build cache in your build, check out the documentation about <<build_cache_use_cases.adoc#,using the build cache>>.
 It covers the different scenarios caching can improve, and detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
 
 Again, build scans can help you investigate how well your tasks are caching.

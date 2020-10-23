@@ -208,7 +208,7 @@ public abstract class AvailableJavaHomes {
         JvmVersionDetector versionDetector = new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
         final List<JvmInstallation> jvms = new SharedJavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor())
             .listInstallations().stream()
-            .map(i -> asJvmInstallation(i, versionDetector))
+            .map(i -> asJvmInstallation(i.getLocation(), versionDetector))
             .sorted(Comparator.comparing(JvmInstallation::getJavaVersion))
             .collect(Collectors.toList());
 

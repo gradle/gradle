@@ -52,6 +52,7 @@ dependencies - Displays all dependencies declared in root project '$projectName'
 dependencyInsight - Displays the insight into a specific dependency in root project '$projectName'.
 dependentComponents - Displays the dependent components of components in root project '$projectName'. [incubating]
 help - Displays a help message.
+javaToolchains - Displays the detected java toolchains. [incubating]
 model - Displays the configuration model of root project '$projectName'. [incubating]
 outgoingVariants - Displays the outgoing variants of root project '$projectName'.
 projects - Displays the sub-projects of root project '$projectName'.

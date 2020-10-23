@@ -55,7 +55,7 @@ class WindowsInstallationSupplierTest extends Specification {
 
         then:
         locations*.location.path.containsAll("c:\\jdk8", "d:\\jdk9")
-        locations*.source == ["windows registry", "windows registry"]
+        locations*.source == ["Windows Registry", "Windows Registry"]
     }
 
     def "handles absent adoptopenjdk keys"() {
@@ -87,7 +87,7 @@ class WindowsInstallationSupplierTest extends Specification {
 
         then:
         locations*.location.path.containsAll(home + "${File.separator}8.0-home", home + "${File.separator}9.0-home")
-        locations*.source == ["windows registry", "windows registry"]
+        locations*.source == ["Windows Registry", "Windows Registry"]
 
         where:
         key                                                         | home

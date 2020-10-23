@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -30,10 +29,11 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
-    private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
+    private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new HashMap<>();
     private final ManagedExecutor executorService;
     private final ResourceLockCoordinationService coordinationService;
     private final BuildStateRegistry buildRegistry;

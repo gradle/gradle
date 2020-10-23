@@ -128,7 +128,7 @@ public class RootOfNestedBuildTree extends AbstractCompositeParticipantBuildStat
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Run nested build")
-                        .details(new RunNestedBuildBuildOperationType.Details() {
+                       .details(new RunNestedBuildBuildOperationType.Details() {
                             @Override
                             public String getBuildPath() {
                                 return gradle.getIdentityPath().getPath();

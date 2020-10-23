@@ -17,6 +17,8 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
@@ -39,6 +41,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private final Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
     private final LoggingProvider loggingProvider;
+    private final ManagedExecutor shutdownExecutor;
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
@@ -49,11 +52,12 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private final ConnectionParameters connectionParameters;
     private BuildCancellationToken cancellationToken;
 
-    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ConnectionParameters connectionParameters) {
+    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ExecutorFactory executorFactory, ConnectionParameters connectionParameters) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
         this.connectionParameters = connectionParameters;
+        this.shutdownExecutor = executorFactory.create("disconnect pool " + distribution.getDisplayName(), 1);
     }
 
     @Override
@@ -108,10 +112,15 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             }
 
             @Override
-            public Void run(ConsumerConnection c) {
-                c.stopWhenIdle(getParameters());
+            public Void run(final ConsumerConnection c) {
+                shutdownExecutor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        c.stopWhenIdle(getParameters());
+                    }
+                });
                 return null;
-            }
+        }
         });
     }
 

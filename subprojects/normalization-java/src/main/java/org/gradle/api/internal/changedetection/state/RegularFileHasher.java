@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -27,5 +26,5 @@ public interface RegularFileHasher {
      * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(RegularFileSnapshot snapshot);
+    HashCode hash(RegularFileSnapshotContext snapshotContext);
 }

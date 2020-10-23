@@ -26,7 +26,7 @@ This chapter provides details of the main Kotlin DSL constructs and how to use i
 
 [TIP]
 ====
-If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated link:https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/[migration guide].
+If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated <<migrating_from_groovy_to_kotlin_dsl.adoc#,migration section>>.
 ====
 
 
@@ -942,6 +942,7 @@ include::sample[dir="snippets/kotlinDsl/interoperability-groovy-builder/kotlin",
 The link:{kotlin-dsl-samples}maven-plugin[maven-plugin] sample demonstrates the use of the `withGroovyBuilder()` utility extensions for configuring the `uploadArchives` task to <<maven_plugin#sec:deploying_to_a_maven_repository, deploy to a Maven repository>> with a custom POM using Gradle's core <<maven_plugin#, Maven Plugin>>.
 Note that the recommended <<publishing_maven#, Maven Publish Plugin>> provides a type-safe and Kotlin-friendly DSL that allows you to easily do <<publishing_maven#sec:modifying_the_generated_pom, the same and more>> without resorting to `withGroovyBuilder()`.
 
+[[using_a_groovy_script]]
 === Using a Groovy script
 
 Another option when dealing with problematic plugins that assume a Groovy DSL build script is to configure them in a Groovy DSL build script that is applied from the main Kotlin DSL build script:

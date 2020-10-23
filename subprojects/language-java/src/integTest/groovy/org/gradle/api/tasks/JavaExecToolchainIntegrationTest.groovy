@@ -25,6 +25,13 @@ import spock.lang.Unroll
 
 class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
+    def setup() {
+        executer.beforeExecute {
+            withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            withArgument("-Porg.gradle.java.installations.auto-download=false")
+        }
+    }
+
     @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java launcher via  #type toolchain on java exec task #jdk"() {
@@ -55,7 +62,6 @@ class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
         when:
         result = executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
             .withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
             .withArgument("--info")
             .withTasks("run")
@@ -95,7 +101,6 @@ class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
         when:
         result = executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
             .withArgument("-Porg.gradle.java.installations.paths=" + someJdk.javaHome.absolutePath)
             .withArgument("--info")
             .withTasks("run")

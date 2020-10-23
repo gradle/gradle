@@ -19,10 +19,13 @@ package org.gradle.caching.configuration.internal
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isConfigCache
+import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isNotConfigCache
 
 /**
  * Tests build cache configuration within composite builds and buildSrc.
@@ -37,7 +40,10 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "GradleBuild")
+    @ToBeFixedForConfigurationCache(
+        because = "startParameter.buildCacheEnabled is not restored",
+        iterationMatchers = ['^.+PROGRAMMATIC$']
+    )
     def "can configure with settings.gradle - enabled by #by"() {
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
         if (by == EnabledBy.INVOCATION_SWITCH) {
@@ -71,17 +77,20 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         file("i1/buildSrc/build.gradle") << customTaskCode("i1:buildSrc") << """
             build.dependsOn customTask
         """
-        file("i2/build.gradle") << customTaskCode("i2") << """
+        file("i2/build.gradle") << customTaskCode("i2")
+        if (isNotConfigCache()) { // GradleBuild is not supported with the configuration cache
+            file("i2/build.gradle") << """
 
-            task gradleBuild(type: GradleBuild) {
-                dir = "../i3"
-                tasks = ["customTask"]
-            }
+                task gradleBuild(type: GradleBuild) {
+                    dir = "../i3"
+                    tasks = ["customTask"]
+                }
 
-            customTask.dependsOn gradleBuild
-        """
-        file("i3/settings.gradle") << i3Cache.localCacheConfiguration() << enablingCode
-        file("i3/build.gradle") << customTaskCode("i3")
+                customTask.dependsOn gradleBuild
+            """
+            file("i3/settings.gradle") << i3Cache.localCacheConfiguration() << enablingCode
+            file("i3/build.gradle") << customTaskCode("i3")
+        }
 
         buildFile << """
             task all { dependsOn gradle.includedBuilds*.task(':customTask'), tasks.customTask }
@@ -96,16 +105,22 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i2Cache.empty
         buildSrcCache.empty
         mainCache.listCacheFiles().size() == 5 // root, i1, i1BuildSrc, i2, buildSrc
-
-        i3Cache.listCacheFiles().size() == 1
+        isConfigCache() || i3Cache.listCacheFiles().size() == 1
 
         and:
-        outputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
+        if (isNotConfigCache()) {
+            outputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
+        }
         outputContains "Using local directory build cache for the root build (location = ${mainCache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
 
         and:
+        def expectedCacheDirs = [":": mainCache.cacheDir]
+        if (isNotConfigCache()) {
+            expectedCacheDirs[":i2:i3"] = i3Cache.cacheDir
+        }
+
         def finalizeOps = operations.all(FinalizeBuildCacheConfigurationBuildOperationType)
-        finalizeOps.size() == 2
+        finalizeOps.size() == expectedCacheDirs.size()
         def pathToCacheDirMap = finalizeOps.collectEntries {
             [
                 it.details.buildPath,
@@ -113,10 +128,19 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             ]
         } as Map<String, File>
 
-        pathToCacheDirMap == [
-            ":": mainCache.cacheDir,
-            ":i2:i3": i3Cache.cacheDir
-        ]
+        pathToCacheDirMap == expectedCacheDirs
+
+        when:
+        file("i1/build").forceDeleteDir()
+        file("i2/build").forceDeleteDir()
+
+        and:
+        succeeds "all", "-i"
+
+        then:
+        result.assertTaskSkipped(':all')
+        result.groupedOutput.task(':i1:customTask').outcome == 'FROM-CACHE'
+        result.groupedOutput.task(':i2:customTask').outcome == 'FROM-CACHE'
 
         where:
         by << EnabledBy.values()

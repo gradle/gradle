@@ -104,7 +104,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
                 .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
 
-            addStandardDependencies(buildScriptBuilder);
+            addStandardDependencies(buildScriptBuilder, false);
             addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         }
     }
@@ -115,7 +115,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             addJcenter(buildScriptBuilder);
             String languagePlugin = description.getPluginName() == null ? "java" : description.getPluginName();
             buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin);
-            addStandardDependencies(buildScriptBuilder);
+            addStandardDependencies(buildScriptBuilder, true);
+            addDependencyConstraints(buildScriptBuilder);
             addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         } else {
             buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
@@ -174,9 +175,11 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.repositories().jcenter("Use JCenter for resolving dependencies.");
     }
 
-    private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder) {
+    private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
         if (getLanguage() == Language.GROOVY) {
-            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
+            String groovyVersion = libraryVersionProvider.getVersion("groovy");
+            String groovyAllCoordinates = constraintsDefined ? "org.codehaus.groovy:groovy-all" : "org.codehaus.groovy:groovy-all:" + groovyVersion;
+            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyAllCoordinates);
         }
         if (getLanguage() == Language.KOTLIN) {
             buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
@@ -185,7 +188,25 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         if (getLanguage() == Language.SCALA) {
             String scalaVersion = libraryVersionProvider.getVersion("scala");
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
-            buildScriptBuilder.implementationDependency("Use Scala " + scalaVersion + " in our library project", "org.scala-lang:scala-library:" + scalaLibraryVersion);
+            String scalaCoordinates = constraintsDefined ? "org.scala-lang:scala-library" : "org.scala-lang:scala-library:" + scalaLibraryVersion;
+            buildScriptBuilder.implementationDependency("Use Scala " + scalaVersion + " in our library project", scalaCoordinates);
+        }
+    }
+
+    private void addDependencyConstraints(BuildScriptBuilder buildScriptBuilder) {
+        String commonsTextVersion = libraryVersionProvider.getVersion("commons-text");
+        buildScriptBuilder.implementationDependencyConstraint("Define dependency versions as constraints", "org.apache.commons:commons-text:" + commonsTextVersion);
+
+        if (getLanguage() == Language.GROOVY) {
+            buildScriptBuilder.implementationDependencyConstraint(null, "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
+        }
+        if (getLanguage() == Language.KOTLIN) {
+            buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
+            buildScriptBuilder.implementationDependencyConstraint(null, "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
+        }
+        if (getLanguage() == Language.SCALA) {
+            String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
+            buildScriptBuilder.implementationDependencyConstraint(null, "org.scala-lang:scala-library:" + scalaLibraryVersion);
         }
     }
 

@@ -64,7 +64,7 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
 
                 void apply(Project project) {
                     project.tasks.register("show") {
-                       registry.listInstallations().each { println it }
+                       registry.listInstallations().each { println it.location }
                     }
                 }
             }

@@ -4,6 +4,7 @@ We would like to thank the following community contributors to this release of G
 
 [Jeff](https://github.com/mathjeff),
 [jdai8](https://github.com/jdai8),
+[David Burström](https://github.com/davidburstrom),
 [Björn Kautler](https://github.com/Vampire).
 
 <!-- 
@@ -50,6 +51,7 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
+<<<<<<< HEAD
 ### Compilation avoidance for Kotlin DSL scripts
 
 Until now, any changes to build logic in [buildSrc](userguide/organizing_gradle_projects.html#sec:build_sources) required all the build scripts in the project to be recompiled.
@@ -70,6 +72,23 @@ A non-ABI change can [eliminate build script recompilation altogether now](https
 While changes to `buildSrc` immediately affect the classpath of all the scripts, this improvement is more general and applies to changes in
 any jar on the scripts classpath that can be added by a plugin applied from an included build or added directly via `buildscript {}` block.
 
+### Improved cache hits when normalizing runtime classpaths
+
+For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first [normalizes](userguide/more_about_tasks.html#sec:configure_input_normalization) both inputs and then compares the result.
+
+Runtime classpath analysis now smartly inspects all properties files, ignoring changes to comments, whitespace, and differences in property order.  Moreover, you can selectively ignore properties that don't impact the runtime classpath.
+
+```
+normalization {
+    properties('**/build-info.properties') {
+        ignoreProperty('timestamp')
+    }
+}
+```
+
+This improves the likelihood of up-to-date and build cache hits when any properties file on the classpath is regenerated or only differs by unimportant values.
+
+See [the userguide](userguide/more_about_tasks.html#sec:property_file_normalization) for further information.
 
 ### Configuration cache improvements
 
@@ -90,7 +109,8 @@ See the [matrix of supported core plugins](userguide/configuration_cache.html#co
 
 ### Implicit imports
 
-This version of Gradle allows you to use the `@Inject` annotation without explicitly importing it into your build scripts the same way it works for other Gradle API classes.
+When using [dependency injection](userguide/custom_gradle_types.html#service_injection) when developing plugins, tasks or project extensions, it is now possible to use the `@Inject` annotation without explicitly importing it into your build scripts the
+same way it works for other Gradle API classes.
 
 ## Security Improvements
 
