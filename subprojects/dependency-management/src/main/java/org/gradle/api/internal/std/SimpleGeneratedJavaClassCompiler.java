@@ -27,7 +27,6 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -55,7 +54,9 @@ class SimpleGeneratedJavaClassCompiler {
         } catch (IOException e) {
             throw new GeneratedClassCompilationException("Unable to compile generated classes", e);
         }
-        List<Diagnostic<? extends JavaFileObject>> diagnostics = ds.getDiagnostics();
+        List<Diagnostic<? extends JavaFileObject>> diagnostics = ds.getDiagnostics().stream()
+            .filter(d -> d.getKind() == Diagnostic.Kind.ERROR)
+            .collect(Collectors.toList());
         if (!diagnostics.isEmpty()) {
             throwCompilationError(diagnostics);
         }
@@ -66,9 +67,9 @@ class SimpleGeneratedJavaClassCompiler {
         formatter.node("Unable to compile generated sources");
         formatter.startChildren();
         for (Diagnostic<? extends JavaFileObject> d : diagnostics) {
-            URI src = d.getSource().toUri();
-            File srcFile = new File(src);
-            String diagLine = String.format("File %s, line: %d, %s", srcFile.getName(), d.getLineNumber(), d.getMessage(null));
+            JavaFileObject source = d.getSource();
+            String srcFile = source == null ? "unknown" : new File(source.toUri()).getName();
+            String diagLine = String.format("File %s, line: %d, %s", srcFile, d.getLineNumber(), d.getMessage(null));
             formatter.node(diagLine);
         }
         formatter.endChildren();
@@ -99,6 +100,10 @@ class SimpleGeneratedJavaClassCompiler {
 
     private static List<String> buildOptions(File dstDir, ClassPath classPath) {
         List<String> options = new ArrayList<>();
+        options.add("-source");
+        options.add("1.8");
+        options.add("-target");
+        options.add("1.8");
         options.add("-classpath");
         String cp = classPath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(":"));
         options.add(cp);

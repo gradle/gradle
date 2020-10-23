@@ -27,6 +27,9 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.Opcodes
 import spock.lang.Specification
 
 class SimpleGeneratedJavaClassCompilerTest extends Specification {
@@ -117,7 +120,20 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
             assert source.exists()
             def clazz = new File(dstDir, "org/test/${className}.class")
             assert clazz.exists()
+            assertCompatibleWithJava8(clazz)
         }
+    }
+
+    private static void assertCompatibleWithJava8(File clazz) {
+        ClassVisitor cv = new ClassVisitor(Opcodes.ASM7) {
+            @Override
+            void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                super.visit(version, access, name, signature, superName, interfaces)
+                assert version == 52
+            }
+        }
+        ClassReader reader = new ClassReader(clazz.bytes)
+        reader.accept(cv, 0)
     }
 
     ClassSource source(String className, String classSource) {
