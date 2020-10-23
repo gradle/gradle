@@ -30,7 +30,6 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
 
     def "configure"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['help']
         runner.targetVersions = ["6.8-20200910220041+0000"]
 

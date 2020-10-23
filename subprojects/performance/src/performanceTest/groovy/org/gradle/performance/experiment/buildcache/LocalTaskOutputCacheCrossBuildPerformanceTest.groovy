@@ -104,7 +104,6 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         super.defaultSpec(builder)
         builder.invocation {
             tasksToRun("assemble")
-            gradleOpts(runner.projectMemoryOptions)
         }
     }
 }

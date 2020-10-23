@@ -43,8 +43,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         // 'nativeDependentsDeep' | 'libA0:buildDependentsLibA0'
         given:
         runner.tasksToRun = [task]
-        runner.args += ["--parallel", "--max-workers=4"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
@@ -68,8 +66,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         // 'nativeDependentsDeep' | 'libA0'
         given:
         runner.tasksToRun = ["$subprojectPath:dependentComponents"]
-        runner.args += ["--parallel", "--max-workers=4"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()

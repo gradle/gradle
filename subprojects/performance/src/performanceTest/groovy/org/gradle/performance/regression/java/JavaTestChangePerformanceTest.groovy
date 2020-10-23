@@ -32,7 +32,6 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
     def "test for non-abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.warmUpRuns = 2
         runner.runs = 6
         runner.tasksToRun = ['test']

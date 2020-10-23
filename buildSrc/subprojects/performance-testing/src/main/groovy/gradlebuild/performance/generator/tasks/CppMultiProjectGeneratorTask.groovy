@@ -24,6 +24,10 @@ class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
     @Internal
     gradlebuild.performance.generator.DependencyGenerator.DependencyInfo depInfo
 
+    CppMultiProjectGeneratorTask() {
+        maxWorkers = 6
+    }
+
     @Override
     void generateProjectSource(File projectDir, TestProject testProject, Map args) {
         def projectNumber = testProject.subprojectNumber == null ? -1 : testProject.subprojectNumber

@@ -34,7 +34,6 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "assemble for abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['assemble']
         boolean isGroovyProject = testProject.name().contains("GROOVY")
         runner.addBuildMutator {

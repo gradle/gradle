@@ -59,7 +59,6 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
         builder.invocationCount = 3
         builder.invocation {
             tasksToRun("clean", "assemble")
-            gradleOpts(runner.projectMemoryOptions)
         }
     }
 }

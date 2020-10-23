@@ -16,7 +16,6 @@
 
 package org.gradle.performance.regression.buildcache
 
-import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 
@@ -32,13 +31,12 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
     def setup() {
         runner.minimumBaseVersion = "4.3"
         runner.targetVersions = ["6.7-20200824220048+0000"]
-        runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
+        runner.args += ["-Dorg.gradle.caching.native=true"]
     }
 
     def "clean assemble with local cache (native project)"() {
         given:
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
