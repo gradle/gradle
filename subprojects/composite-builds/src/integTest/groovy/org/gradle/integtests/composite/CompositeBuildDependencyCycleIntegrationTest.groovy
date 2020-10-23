@@ -86,10 +86,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
-        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":buildC:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava (*)"))
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:compileJava
+\\--- :buildC:compileJava
+     \\--- :buildB:compileJava (*)""")
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -136,11 +136,11 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
-        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":buildC:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":buildD:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava (*)"))
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:compileJava
+\\--- :buildC:compileJava
+     \\--- :buildD:compileJava
+          \\--- :buildB:compileJava (*)""")
     }
 
     // Not actually a cycle, just documenting behaviour
@@ -211,10 +211,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
-        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":buildC:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":buildB:compileJava (*)"))
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:compileJava
+\\--- :buildC:compileJava
+     \\--- :buildB:compileJava (*)""")
     }
 
     def "dependency cycle between subprojects in an included multiproject build"() {
@@ -262,8 +262,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
-        failure.assertThatDescription(containsNormalizedString(":buildB:b1:compileJava"))
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:b1:compileJava
+\\--- :buildB:b2:compileJava
+     \\--- :buildB:b1:compileJava (*)""")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6229")
