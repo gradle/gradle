@@ -203,6 +203,30 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    void 'circular dependency is detected on cycle within chained finalizers'() {
+        buildFile << """
+            task a {
+                finalizedBy 'b'
+            }
+            task b {
+                finalizedBy 'c'
+            }
+            task c {
+                finalizedBy 'c'
+            }
+        """
+
+        expect:
+        2.times {
+            fails 'a'
+            failure.assertHasDescription """Circular dependency between the following tasks:
+:c
+\\--- :c (*)
+
+(*) - details omitted (listed previously)"""
+        }
+    }
+
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile << """
             task a {
