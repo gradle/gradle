@@ -20,12 +20,15 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
@@ -45,17 +48,25 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.std.SimpleGeneratedJavaClassCompiler.compile;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
+    private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesAccessors.class);
+
+    private final static String KEBAB_CASE = "[a-z]([a-z0-9\\-])*";
+    private final static Pattern KEBAB_PATTERN = Pattern.compile(KEBAB_CASE);
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
     private final static String ACCESSORS_CLASSNAME = "Libraries";
+    private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
 
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspace workspace;
     private final DefaultProjectDependencyFactory projectDependencyFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final FeaturePreviews featurePreviews;
 
     private AllDependenciesModel dependenciesConfiguration;
     private ClassLoaderScope classLoaderScope;
@@ -67,11 +78,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
                                         DependenciesAccessorsWorkspace workspace,
                                         DefaultProjectDependencyFactory projectDependencyFactory,
-                                        BuildOperationExecutor buildOperationExecutor) {
+                                        BuildOperationExecutor buildOperationExecutor,
+                                        FeaturePreviews featurePreview) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.featurePreviews = featurePreview;
     }
 
     @Override
@@ -80,7 +93,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             this.dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             this.classLoaderScope = classLoaderScope;
             writeDependenciesAccessors();
-            writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
+            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -107,6 +122,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private void writeProjectAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
+        if (!assertCanGenerateAccessors(projectRegistry)) {
+            return;
+        }
         Hasher hash = Hashing.sha1().newHasher();
         projectRegistry.getAllProjects().stream()
             .map(ProjectDescriptor::getPath)
@@ -132,6 +150,36 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         });
     }
 
+    private static boolean assertCanGenerateAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
+        List<String> errors = Lists.newArrayList();
+        projectRegistry.getAllProjects()
+            .stream()
+            .map(ProjectDescriptor::getName)
+            .filter(p -> !KEBAB_PATTERN.matcher(p).matches())
+            .map(name -> "project '" + name + "' doesn't follow the kebab case naming convention: " + KEBAB_CASE)
+            .forEach(errors::add);
+        for (ProjectDescriptor project : projectRegistry.getAllProjects()) {
+            project.getChildren()
+                .stream()
+                .map(ProjectDescriptor::getName)
+                .collect(Collectors.groupingBy(AbstractSourceGenerator::toJavaName))
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue().size() > 1)
+                .forEachOrdered(e -> {
+                    String javaName = e.getKey();
+                    List<String> names = e.getValue();
+                    errors.add("subprojects " + names + " of project " + project.getPath() + " map to the same method name get" + javaName + "()");
+                });
+        }
+        if (!errors.isEmpty()) {
+            for (String error : errors) {
+                LOGGER.warn("Cannot generate project dependency accessors because " + error);
+            }
+        }
+        return errors.isEmpty();
+    }
+
     private <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
         Class<? extends T> clazz;
         try {
@@ -154,10 +202,19 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     generatedDependenciesFactory = loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME);
                 }
             }
-            container.create(drm.getLibrariesExtensionName(), generatedDependenciesFactory, dependenciesConfiguration);
+            try {
+                container.create(drm.getLibrariesExtensionName(), generatedDependenciesFactory, dependenciesConfiguration);
+            } finally {
+                createProjectsExtension(container, drm, projectFinder);
+            }
+        }
+    }
+
+    private void createProjectsExtension(ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
             if (generatedProjectFactory == null) {
                 synchronized (this) {
-                    generatedProjectFactory = loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME);
+                    generatedProjectFactory = loadFactory(classLoaderScope, ROOT_PROJECT_ACCESSOR_FQCN);
                 }
             }
             container.create(drm.getProjectsExtensionName(), generatedProjectFactory, projectDependencyFactory, projectFinder);
