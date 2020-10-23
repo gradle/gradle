@@ -35,4 +35,10 @@ enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')
             enableFeaturePreview('VERSION_ORDERING_V2')
 """
     }
+
+    static void enableTypeSafeProjectAccessors(File settings) {
+        settings << """
+            enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
+"""
+    }
 }

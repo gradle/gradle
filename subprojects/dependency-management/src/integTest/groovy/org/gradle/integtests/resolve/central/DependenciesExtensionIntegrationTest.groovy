@@ -78,6 +78,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
 
         then: "extension is not regenerated"
         !operations.hasOperation("Generate dependency accessors")
+        outputContains 'Type-safe dependency accessors is an incubating feature.'
 
         where:
         notation << [
