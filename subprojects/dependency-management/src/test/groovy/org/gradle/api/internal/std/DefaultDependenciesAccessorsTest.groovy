@@ -17,6 +17,7 @@
 package org.gradle.api.internal.std
 
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -31,8 +32,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultDependenciesAccessorsTest extends Specification {
-    private final static String PROJECTS_IDENTITY = 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
-
     @Rule
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -46,13 +45,15 @@ class DefaultDependenciesAccessorsTest extends Specification {
     }
 
     def builder = new DefaultDependenciesModelBuilder(TestUtil.objectFactory())
+    FeaturePreviews featurePreviews = new FeaturePreviews()
 
     @Subject
     DefaultDependenciesAccessors accessors = new DefaultDependenciesAccessors(
         classpathRegistry,
         workspace,
         dependencyFactory,
-        buildOperationExecutor
+        buildOperationExecutor,
+        featurePreviews
     )
 
     def "generates accessors only if the model keys change"() {
@@ -62,7 +63,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
 
         when:
@@ -71,7 +71,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
 
         when:
@@ -80,7 +79,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
 
         when:
@@ -89,7 +87,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('839737519c42bb6246e5ca35781e55d9203d89b4', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
 
         when:
@@ -98,7 +95,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('f7c536cbfe187f080fbd7c8e3eb8107fe633c72c', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
 
         when:
@@ -107,7 +103,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('f7c536cbfe187f080fbd7c8e3eb8107fe633c72c', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
     }
 
@@ -120,7 +115,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('839737519c42bb6246e5ca35781e55d9203d89b4', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
 
         when:
@@ -132,7 +126,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         then:
         1 * workspace.withWorkspace('839737519c42bb6246e5ca35781e55d9203d89b4', _)
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         0 * _
     }
 
@@ -147,7 +140,6 @@ class DefaultDependenciesAccessorsTest extends Specification {
         1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _) >> { args ->
             args[1].executeInWorkspace(workspaceDir, Stub(ExecutionHistoryStore))
         }
-        1 * workspace.withWorkspace(PROJECTS_IDENTITY, _)
         1 * buildOperationExecutor._
         1 * scope.export(DefaultClassPath.of(new File(workspaceDir, "classes")))
         0 * _

@@ -692,8 +692,9 @@ class DependencyManagementBuildScopeServices {
     DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry,
                                                               DependenciesAccessorsWorkspace workspace,
                                                               DefaultProjectDependencyFactory factory,
-                                                              BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, buildOperationExecutor);
+                                                              BuildOperationExecutor buildOperationExecutor,
+                                                              FeaturePreviews featurePreviews) {
+        return new DefaultDependenciesAccessors(registry, workspace, factory, buildOperationExecutor, featurePreviews);
     }
 
 }
