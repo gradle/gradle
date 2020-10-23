@@ -4,6 +4,7 @@ We would like to thank the following community contributors to this release of G
 
 [Jeff](https://github.com/mathjeff),
 [jdai8](https://github.com/jdai8),
+[David Burström](https://github.com/davidburstrom),
 [Björn Kautler](https://github.com/Vampire).
 
 <!-- 
