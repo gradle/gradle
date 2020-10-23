@@ -36,14 +36,11 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DefaultDependenciesModelBuilder implements DependenciesModelBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesModelBuilder.class);
 
-    private final static String ALIAS_REGEX = "[a-z]([a-zA-Z0-9_.\\-])+";
-    private final static Pattern ALIAS_PATTERN = Pattern.compile(ALIAS_REGEX);
     private final Interner<String> strings = Interners.newStrongInterner();
     private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
     private final Map<String, DependencyModel> dependencies = Maps.newLinkedHashMap();
@@ -95,8 +92,8 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     private static void validateName(String type, String value) {
-        if (!ALIAS_PATTERN.matcher(value).matches()) {
-            throw new InvalidUserDataException("Invalid " + type + " name '" + value + "': it must match the following regular expression: " + ALIAS_REGEX);
+        if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
+            throw new InvalidUserDataException("Invalid " + type + " name '" + value + "': it must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX);
         }
     }
 

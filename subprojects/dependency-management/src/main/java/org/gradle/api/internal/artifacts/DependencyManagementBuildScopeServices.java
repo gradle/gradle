@@ -130,7 +130,6 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.internal.std.DefaultDependenciesAccessors;
 import org.gradle.api.internal.std.DependenciesAccessorsWorkspace;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
