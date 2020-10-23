@@ -60,6 +60,7 @@ import org.gradle.execution.IncludedBuildLifecycleBuildWorkExecutor;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
+import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
@@ -119,10 +120,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerGradleServices(registration);
             }
         });
-    }
-
-    TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
-        return new TaskSelector(gradle, projectConfigurer);
     }
 
     OptionReader createOptionReader() {

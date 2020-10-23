@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -37,6 +38,8 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, IncludedBuild, Stoppable {
     private final BuildIdentifier buildIdentifier;
@@ -205,7 +208,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     protected void scheduleTasks(Iterable<String> tasks) {
-        gradleLauncher.scheduleTasks(tasks);
+        Collection<String> paths = new ArrayList<>();
+        for (String task : tasks) {
+            paths.add(getGradle().getIdentityPath() + task);
+        }
+        gradleLauncher.scheduleTasks(paths);
     }
 
     protected final GradleLauncher getGradleLauncher() {

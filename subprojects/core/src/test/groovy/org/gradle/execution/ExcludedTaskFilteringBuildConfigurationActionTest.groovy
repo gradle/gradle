@@ -26,7 +26,7 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     final BuildExecutionContext context = Mock()
     final StartParameterInternal startParameter = Mock()
     final TaskExecutionGraphInternal taskGraph = Mock()
-    final TaskSelector selector = Mock()
+    final DefaultTaskSelector selector = Mock()
     final GradleInternal gradle = Mock()
     final action = new ExcludedTaskFilteringBuildConfigurationAction(selector)
 

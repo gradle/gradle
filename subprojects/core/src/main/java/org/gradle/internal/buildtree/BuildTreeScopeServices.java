@@ -17,13 +17,22 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.BuildType;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.execution.CompositeAwareTaskSelector;
+import org.gradle.execution.DefaultTaskSelector;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.execution.TaskNameResolver;
+import org.gradle.execution.TaskPathProjectEvaluator;
+import org.gradle.execution.TaskSelector;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
@@ -68,5 +77,13 @@ public class BuildTreeScopeServices {
 
     public DefaultProjectStateRegistry createProjectPathRegistry(WorkerLeaseService workerLeaseService) {
         return new DefaultProjectStateRegistry(workerLeaseService);
+    }
+
+    protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {
+        return new TaskPathProjectEvaluator(cancellationToken);
+    }
+
+    protected TaskSelector createTaskSelector(BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer) {
+        return new CompositeAwareTaskSelector(buildStateRegistry, projectConfigurer, new TaskNameResolver());
     }
 }

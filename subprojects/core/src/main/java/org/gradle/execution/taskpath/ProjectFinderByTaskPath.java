@@ -19,19 +19,13 @@ package org.gradle.execution.taskpath;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.NameMatcher;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class ProjectFinderByTaskPath {
 
-    public ProjectInternal findProject(String projectPath, ProjectInternal startFrom, Collection<? extends IncludedBuildState> includedBuilds) {
+    public ProjectInternal findProject(String projectPath, ProjectInternal startFrom) {
         if (projectPath.equals(Project.PATH_SEPARATOR)) {
             return startFrom.getRootProject();
         }
@@ -40,18 +34,7 @@ public class ProjectFinderByTaskPath {
             current = current.getRootProject();
             projectPath = projectPath.substring(1);
         }
-
-        List<String> projectPathElements = Arrays.asList(projectPath.split(Project.PATH_SEPARATOR));
-        if (!projectPathElements.isEmpty()) {
-            String includedBuildName = projectPathElements.get(0);
-            IncludedBuildState includedBuild = findIncludedBuild(includedBuildName, includedBuilds);
-            if (includedBuild != null) {
-                current = includedBuild.getConfiguredBuild().getRootProject();
-                projectPathElements = projectPathElements.subList(1, projectPathElements.size());
-            }
-        }
-
-        for (String pattern : projectPathElements) {
+        for (String pattern : projectPath.split(Project.PATH_SEPARATOR)) {
             Map<String, Project> children = current.getChildProjects();
 
             NameMatcher matcher = new NameMatcher();
@@ -65,16 +48,6 @@ public class ProjectFinderByTaskPath {
         }
 
         return (ProjectInternal) current;
-    }
-
-    private IncludedBuildState findIncludedBuild(String name, Collection<? extends IncludedBuildState> includedBuilds) {
-        if (includedBuilds.isEmpty()) {
-            return null;
-        }
-
-        Map<String, IncludedBuildState> builds = includedBuilds.stream().collect(Collectors.toMap(IncludedBuildState::getName, Function.identity()));
-        NameMatcher matcher = new NameMatcher();
-        return matcher.find(name, builds);
     }
 
     public static class ProjectLookupException extends InvalidUserDataException {

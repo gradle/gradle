@@ -63,8 +63,8 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         def task1 = Stub(Task)
         def task2 = Stub(Task)
         def task3 = Stub(Task)
-        def selection1 = Stub(TaskSelector.TaskSelection)
-        def selection2 = Stub(TaskSelector.TaskSelection)
+        def selection1 = Stub(DefaultTaskSelector.TaskSelection)
+        def selection2 = Stub(DefaultTaskSelector.TaskSelection)
 
         given:
         _ * gradle.startParameter >> startParameters

@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.tasks.TaskAction
-import org.gradle.execution.TaskSelector
+import org.gradle.execution.DefaultTaskSelector
 import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
     Project project = ProjectBuilder.builder().build()
     CommandLineTaskConfigurer configurer = new CommandLineTaskConfigurer(new OptionReader());
 
-    TaskSelector selector = Mock()
+    DefaultTaskSelector selector = Mock()
     SomeTask task = project.task('someTask', type: SomeTask)
     SomeTask task2 = project.task('someTask2', type: SomeTask)
     SomeOtherTask otherTask = project.task('otherTask', type: SomeOtherTask)

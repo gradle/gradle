@@ -25,7 +25,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
-class TaskSelectorTest extends AbstractProjectBuilderSpec {
+class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
     def rootProject = TestUtil.create(temporaryFolder).rootProject()
     def projectA = TestUtil.createChildProject(rootProject, "a")
     def projectB = TestUtil.createChildProject(rootProject, "b")
@@ -43,7 +43,7 @@ class TaskSelectorTest extends AbstractProjectBuilderSpec {
     }
     def resolver = Mock(TaskNameResolver)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def selector = new TaskSelector(gradle, resolver, projectConfigurer)
+    def selector = new DefaultTaskSelector(gradle, resolver, projectConfigurer)
 
     def "qualified exclude filter configures target project and selects exact match on task name"() {
         def excluded = Stub(Task)
