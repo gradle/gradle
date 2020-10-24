@@ -105,7 +105,7 @@ class SimpleGeneratedJavaClassCompiler {
         options.add("-target");
         options.add("1.8");
         options.add("-classpath");
-        String cp = classPath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(":"));
+        String cp = classPath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
         options.add(cp);
         options.add("-d");
         options.add(dstDir.getAbsolutePath());
