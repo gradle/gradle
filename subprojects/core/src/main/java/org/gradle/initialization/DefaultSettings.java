@@ -34,6 +34,8 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -51,6 +53,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     private ScriptSource settingsScript;
@@ -238,6 +241,18 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     public void setSettingsScript(ScriptSource settingsScript) {
         this.settingsScript = settingsScript;
+    }
+
+    @Override
+    @Inject
+    public ProviderFactory getProviders() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Provider<T> provider(Callable<T> value) {
+        return getProviders().provider(value);
     }
 
     @Inject

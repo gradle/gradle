@@ -25,6 +25,8 @@ import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -32,6 +34,7 @@ import org.gradle.vcs.SourceControl;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * <p>Declares the configuration required to instantiate and configure the hierarchy of {@link
@@ -208,6 +211,24 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @return The parameters. Never returns null.
      */
     StartParameter getStartParameter();
+
+    /**
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
+     * @since 6.8
+     */
+    <T> Provider<T> provider(Callable<T> value);
+
+    /**
+     * Provides access to methods to create various kinds of {@link Provider} instances.
+     *
+     * @since 6.8
+     */
+    ProviderFactory getProviders();
 
     /**
      * Returns the {@link Gradle} instance for the current build.

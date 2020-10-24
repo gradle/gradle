@@ -30,11 +30,14 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.vcs.SourceControl
 
 import java.io.File
+import java.util.concurrent.Callable
 
 
 /**
@@ -128,6 +131,12 @@ abstract class SettingsDelegate : Settings {
 
     override fun getSourceControl(): SourceControl =
         delegate.sourceControl
+
+    override fun <T : Any?> provider(value: Callable<T>): Provider<T> =
+        delegate.provider(value)
+
+    override fun getProviders(): ProviderFactory =
+        delegate.providers
 
     override fun dependencyResolutionManagement(dependencyResolutionConfiguration: Action<in DependencyResolutionManagement>) =
         delegate.dependencyResolutionManagement(dependencyResolutionConfiguration)
