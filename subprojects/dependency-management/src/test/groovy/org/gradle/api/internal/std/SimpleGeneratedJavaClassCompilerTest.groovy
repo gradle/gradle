@@ -32,6 +32,8 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class SimpleGeneratedJavaClassCompilerTest extends Specification {
     @Rule
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -65,7 +67,7 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
 
         then:
         GeneratedClassCompilationException ex = thrown()
-        ex.message == """Unable to compile generated sources:
+        normaliseLineSeparators(ex.message) == """Unable to compile generated sources:
   - File A.java, line: 2, reached end of file while parsing"""
     }
 
@@ -85,7 +87,7 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
 
         then:
         GeneratedClassCompilationException ex = thrown()
-        ex.message == """Unable to compile generated sources:
+        normaliseLineSeparators(ex.message) == """Unable to compile generated sources:
   - File A.java, line: 3, package org.gradle.api.internal.std does not exist
   - File A.java, line: 6, cannot find symbol
       symbol:   class AllDependenciesModel

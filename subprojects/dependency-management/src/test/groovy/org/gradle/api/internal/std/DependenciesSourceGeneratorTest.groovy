@@ -41,6 +41,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.std.AbstractSourceGenerator.toJavaName
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DependenciesSourceGeneratorTest extends Specification {
 
@@ -135,7 +136,7 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         ex = thrown()
-        ex.message == '''Cannot generate dependency accessors because:
+        normaliseLineSeparators(ex.message) == '''Cannot generate dependency accessors because:
   - dependency aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()
   - dependency aliases tada.one and tadaOne and tada_one are mapped to the same accessor name getTadaOne()'''
     }
@@ -151,7 +152,7 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == 'Cannot generate dependency accessors because dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()'
+        normaliseLineSeparators(ex.message) == 'Cannot generate dependency accessors because dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()'
 
         when:
         generate {
@@ -167,7 +168,7 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         ex = thrown()
-        ex.message == '''Cannot generate dependency accessors because:
+        normaliseLineSeparators(ex.message) == '''Cannot generate dependency accessors because:
   - dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()
   - dependency bundles other.cool and otherCool and other_cool are mapped to the same accessor name getOtherCoolBundle()'''
     }
@@ -192,7 +193,7 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         ex = thrown()
-        ex.message == """Cannot generate dependency accessors because:
+        normaliseLineSeparators(ex.message) == """Cannot generate dependency accessors because:
   - alias barBundle isn't a valid: it shouldn't end with 'Bundle'
   - alias bazBundle isn't a valid: it shouldn't end with 'Bundle'"""
     }
