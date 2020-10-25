@@ -16,26 +16,26 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory
-import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
-import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
-import org.gradle.api.internal.artifacts.transform.Transformation
-import org.gradle.api.internal.artifacts.transform.TransformationStep
+import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
+import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -52,9 +52,8 @@ class TransformedExternalArtifactSetCodec : Codec<TransformedExternalArtifactSet
             val files = mutableListOf<File>()
             value.visitArtifacts { files.add(file) }
             write(files)
-            write(value.transformation)
-            val unpacked = unpackTransformation(value.transformation, value.dependenciesResolver)
-            write(unpacked)
+            val steps = unpackTransformationSteps(value.steps)
+            writeCollection(steps)
         }
     }
 
@@ -63,26 +62,9 @@ class TransformedExternalArtifactSetCodec : Codec<TransformedExternalArtifactSet
             val ownerId = readNonNull<ComponentIdentifier>()
             val targetAttributes = readNonNull<ImmutableAttributes>()
             val files = readNonNull<List<File>>()
-            val transformation = readNonNull<Transformation>()
-            val dependencies = readNonNull<List<TransformDependencies>>()
-            val dependenciesPerTransformer = mutableMapOf<TransformationStep, TransformDependencies>()
-            transformation.visitTransformationSteps {
-                dependenciesPerTransformer[this] = dependencies[dependenciesPerTransformer.size]
-            }
-            TransformedExternalArtifactSet(ownerId, FixedFilesArtifactSet(ownerId, files), targetAttributes, transformation, FixedDependenciesResolverFactory(dependenciesPerTransformer))
+            val steps: List<TransformStepSpec> = readList().uncheckedCast()
+            TransformedExternalArtifactSet(ownerId, FixedFilesArtifactSet(ownerId, files), targetAttributes, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
         }
-    }
-}
-
-
-private
-class FixedDependenciesResolverFactory(private val dependencies: Map<TransformationStep, TransformDependencies>) : ExtraExecutionGraphDependenciesResolverFactory, TransformUpstreamDependenciesResolver {
-    override fun create(componentIdentifier: ComponentIdentifier, transformation: Transformation): TransformUpstreamDependenciesResolver {
-        return this
-    }
-
-    override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {
-        return dependencies.getValue(transformationStep).recreate().dependenciesFor(transformationStep)
     }
 }
 

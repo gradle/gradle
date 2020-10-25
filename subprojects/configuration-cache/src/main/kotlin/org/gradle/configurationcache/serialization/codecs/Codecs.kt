@@ -40,7 +40,7 @@ import org.gradle.configurationcache.serialization.codecs.transform.DefaultTrans
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.LegacyTransformerCodec
-import org.gradle.configurationcache.serialization.codecs.transform.TransformDependenciesCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformStepSpecCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationChainCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
@@ -134,7 +134,7 @@ class Codecs(
         bind(DefaultTransformerCodec(fileLookup, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
         bind(ResolvableArtifactCodec)
-        bind(TransformDependenciesCodec)
+        bind(TransformStepSpecCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
         bind(TransformedProjectArtifactSetCodec())
         bind(TransformedExternalArtifactSetCodec())
@@ -191,7 +191,7 @@ class Codecs(
         bind(ActionNodeCodec(userTypesCodec))
 
         bind(ResolvableArtifactCodec)
-        bind(TransformDependenciesCodec)
+        bind(TransformStepSpecCodec)
 
         bind(NotImplementedCodec)
     }

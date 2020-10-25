@@ -26,10 +26,10 @@ import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
 
 class TransformingAsyncArtifactListenerTest extends Specification {
-    def transformation = Mock(Transformation)
+    def transformation = Mock(TransformationStep)
     CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener = new TransformingAsyncArtifactListener(transformation, operationQueue, Maps.newHashMap(), Mock(TransformUpstreamDependenciesResolver))
+    def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], operationQueue, Maps.newHashMap())
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -37,7 +37,6 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         getId() >> artifactId
         getFile() >> artifactFile
     }
-    def node = Mock(TransformationNode)
 
     def "adds expensive artifact transformations to the build operation queue"() {
         when:
@@ -54,7 +53,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependenciesResolver, _) >> invocation
+        1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
         1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(file)))
     }
 }

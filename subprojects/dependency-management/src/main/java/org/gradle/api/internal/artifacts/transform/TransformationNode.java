@@ -55,18 +55,18 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     protected final ResolvedArtifactSet.LocalArtifactSet artifacts;
     protected final TransformUpstreamDependencies upstreamDependencies;
 
-    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, TransformUpstreamDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
-        return new ChainedTransformationNode(current, previous, dependenciesResolver, buildOperationExecutor);
+    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor) {
+        return new ChainedTransformationNode(current, previous, upstreamDependencies, buildOperationExecutor);
     }
 
-    public static InitialTransformationNode initial(TransformationStep initial, ResolvedArtifactSet.LocalArtifactSet localArtifacts, TransformUpstreamDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
-        return new InitialTransformationNode(initial, localArtifacts, dependenciesResolver, buildOperationExecutor);
+    public static InitialTransformationNode initial(TransformationStep initial, ResolvedArtifactSet.LocalArtifactSet localArtifacts, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor) {
+        return new InitialTransformationNode(initial, localArtifacts, upstreamDependencies, buildOperationExecutor);
     }
 
-    protected TransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, TransformUpstreamDependenciesResolver dependenciesResolver) {
+    protected TransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, TransformUpstreamDependencies upstreamDependencies) {
         this.transformationStep = transformationStep;
         this.artifacts = artifacts;
-        this.upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
+        this.upstreamDependencies = upstreamDependencies;
     }
 
     public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
@@ -177,8 +177,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     public static class InitialTransformationNode extends TransformationNode {
         private final CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> result;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, TransformUpstreamDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
-            super(transformationStep, artifacts, dependenciesResolver);
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet artifacts, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor) {
+            super(transformationStep, artifacts, upstreamDependencies);
             result = CalculatedValueContainer.of(Describables.of(this), new TransformInitialArtifact(buildOperationExecutor));
         }
 
@@ -243,8 +243,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         private final TransformationNode previousTransformationNode;
         private final CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> result;
 
-        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, TransformUpstreamDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor) {
-            super(transformationStep, previousTransformationNode.artifacts, dependenciesResolver);
+        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor) {
+            super(transformationStep, previousTransformationNode.artifacts, upstreamDependencies);
             this.previousTransformationNode = previousTransformationNode;
             result = CalculatedValueContainer.of(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
         }

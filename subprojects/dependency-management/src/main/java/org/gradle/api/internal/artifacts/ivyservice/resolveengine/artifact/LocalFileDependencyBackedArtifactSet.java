@@ -239,12 +239,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
      */
     private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
         private final SingletonFileResolvedVariant delegate;
-        private final Transformation transformation;
 
         public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, ImmutableAttributes attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver) {
             super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver);
             this.delegate = delegate;
-            this.transformation = transformation;
         }
 
         public ComponentIdentifier getOwnerId() {
@@ -253,10 +251,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         public File getFile() {
             return delegate.getFile();
-        }
-
-        public Transformation getTransformation() {
-            return transformation;
         }
 
         public DisplayName getTargetVariantName() {

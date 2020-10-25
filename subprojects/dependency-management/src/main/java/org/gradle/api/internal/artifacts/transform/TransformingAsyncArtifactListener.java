@@ -25,24 +25,21 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
+    private final List<BoundTransformationStep> transformationSteps;
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
-    private final TransformUpstreamDependenciesResolver dependenciesResolver;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
-    private final Transformation transformation;
 
     public TransformingAsyncArtifactListener(
-        Transformation transformation,
+        List<BoundTransformationStep> transformationSteps,
         BuildOperationQueue<RunnableBuildOperation> actions,
-        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
-        TransformUpstreamDependenciesResolver dependenciesResolver
-    ) {
+        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults) {
+        this.transformationSteps = transformationSteps;
         this.artifactResults = artifactResults;
         this.actions = actions;
-        this.transformation = transformation;
-        this.dependenciesResolver = dependenciesResolver;
     }
 
     @Override
@@ -67,7 +64,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.As
     }
 
     private TransformationResult createTransformationResult(TransformationSubject initialSubject) {
-        CacheableInvocation<TransformationSubject> invocation = transformation.createInvocation(initialSubject, dependenciesResolver, null);
+        CacheableInvocation<TransformationSubject> invocation = createInvocation(initialSubject);
         return invocation.getCachedResult()
             .<TransformationResult>map(PrecomputedTransformationResult::new)
             .orElseGet(() -> {
@@ -75,5 +72,15 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.As
                 actions.add(operation);
                 return operation;
             });
+    }
+
+    private CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject initialSubject) {
+        BoundTransformationStep initialStep = transformationSteps.get(0);
+        CacheableInvocation<TransformationSubject> invocation = initialStep.getTransformation().createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
+        for (int i = 1; i < transformationSteps.size(); i++) {
+            BoundTransformationStep nextStep = transformationSteps.get(i);
+            invocation = invocation.flatMap(intermediate -> nextStep.getTransformation().createInvocation(intermediate, nextStep.getUpstreamDependencies(), null));
+        }
+        return invocation;
     }
 }

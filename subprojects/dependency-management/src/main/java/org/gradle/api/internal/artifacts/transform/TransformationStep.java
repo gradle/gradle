@@ -73,11 +73,6 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return 1;
     }
 
-    @Override
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependenciesResolver upstreamDependenciesResolver, @Nullable NodeExecutionContext context) {
-        return createInvocation(subjectToTransform, upstreamDependenciesResolver.dependenciesFor(this), context);
-    }
-
     public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
@@ -117,7 +112,6 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
     }
 
-    @Override
     public void isolateParametersIfNotAlready() {
         transformer.isolateParametersIfNotAlready();
     }

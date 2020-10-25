@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -42,13 +43,24 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
         this.delegate = delegate;
     }
 
+    public TransformedExternalArtifactSet(ComponentIdentifier componentIdentifier,
+                                          ResolvedArtifactSet delegate,
+                                          ImmutableAttributes targetVariantAttributes,
+                                          ImmutableList<BoundTransformationStep> steps) {
+        super(delegate, targetVariantAttributes, steps);
+        this.componentIdentifier = componentIdentifier;
+        this.delegate = delegate;
+    }
+
     public ComponentIdentifier getOwnerId() {
         return componentIdentifier;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        getTransformation().visitTransformationSteps(step -> context.add(getDependenciesResolver().dependenciesFor(step)));
+        for (BoundTransformationStep step : getSteps()) {
+            context.add(step.getUpstreamDependencies());
+        }
     }
 
     public void visitArtifacts(Action<ResolvableArtifact> visitor) {
