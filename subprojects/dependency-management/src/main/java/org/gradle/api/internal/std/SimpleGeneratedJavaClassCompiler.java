@@ -48,9 +48,13 @@ class SimpleGeneratedJavaClassCompiler {
         try (StandardJavaFileManager mgr = compiler.getStandardFileManager(ds, null, null)) {
             List<String> options = buildOptions(dstDir, classPath);
             List<File> filesToCompile = outputSourceFilesToSourceDir(srcDir, classes);
-            Iterable<? extends JavaFileObject> sources = mgr.getJavaFileObjectsFromFiles(filesToCompile);
-            JavaCompiler.CompilationTask task = compiler.getTask(null, mgr, ds, options, null, sources);
-            task.call();
+            if (dstDir.exists() || dstDir.mkdirs()) {
+                Iterable<? extends JavaFileObject> sources = mgr.getJavaFileObjectsFromFiles(filesToCompile);
+                JavaCompiler.CompilationTask task = compiler.getTask(null, mgr, ds, options, null, sources);
+                task.call();
+            } else {
+                throw new GeneratedClassCompilationException("Unable to create output classes directory");
+            }
         } catch (IOException e) {
             throw new GeneratedClassCompilationException("Unable to compile generated classes", e);
         }
