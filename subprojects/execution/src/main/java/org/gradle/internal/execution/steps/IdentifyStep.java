@@ -26,6 +26,7 @@ import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
+import org.gradle.internal.execution.impl.InputFingerprintUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -60,19 +61,16 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Nonnull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
-        ImmutableSortedMap.Builder<String, ValueSnapshot> identityInputPropertiesBuilder = ImmutableSortedMap.naturalOrder();
-        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> identityInputFilePropertiesBuilder = ImmutableSortedMap.naturalOrder();
-        fingerprintInputProperties(
+        InputFingerprintUtil.Result inputs = fingerprintInputProperties(
             work,
             ImmutableSortedMap.of(),
             valueSnapshotter,
             ImmutableSortedMap.of(),
-            identityInputPropertiesBuilder,
             ImmutableSortedMap.of(),
-            identityInputFilePropertiesBuilder,
             (propertyName, type, identity) -> identity == IDENTITY);
-        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = identityInputPropertiesBuilder.build();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = identityInputFilePropertiesBuilder.build();
+        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
+
         Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
         return new IdentityContext() {
             @Override
