@@ -295,8 +295,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Override
-        public CachingResult execute(BeforeExecutionContext context) {
-            UpToDateResult result = delegate.execute(new CachingContext() {
+        public CachingResult execute(UnitOfWork work, BeforeExecutionContext context) {
+            UpToDateResult result = delegate.execute(work, new CachingContext() {
                 @Override
                 public CachingState getCachingState() {
                     return CachingState.NOT_DETERMINED;
@@ -335,11 +335,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 @Override
                 public Optional<BeforeExecutionState> getBeforeExecutionState() {
                     return context.getBeforeExecutionState();
-                }
-
-                @Override
-                public UnitOfWork getWork() {
-                    return context.getWork();
                 }
             });
             return new CachingResult() {

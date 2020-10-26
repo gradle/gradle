@@ -38,31 +38,24 @@ public class DefaultExecutionEngine implements ExecutionEngine {
 
     @Override
     public CachingResult execute(UnitOfWork work, @Nullable String rebuildReason) {
-        return executeStep.execute(new Request(work, rebuildReason));
+        return executeStep.execute(work, new Request(rebuildReason));
     }
 
     @Override
     public <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
-        return executeStep.executeDeferred(new Request(work, rebuildReason), cache, processor);
+        return executeStep.executeDeferred(work, new Request(rebuildReason), cache, processor);
     }
 
     private static class Request implements ExecutionRequestContext {
         private final String rebuildReason;
-        private final UnitOfWork work;
 
-        public Request(UnitOfWork work, @Nullable String rebuildReason) {
+        public Request(@Nullable String rebuildReason) {
             this.rebuildReason = rebuildReason;
-            this.work = work;
         }
 
         @Override
         public Optional<String> getRebuildReason() {
             return Optional.ofNullable(rebuildReason);
-        }
-
-        @Override
-        public UnitOfWork getWork() {
-            return work;
         }
     }
 }

@@ -40,10 +40,10 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     }
 
     @Override
-    public CurrentSnapshotResult execute(C context) {
-        CurrentSnapshotResult result = delegate.execute(context);
+    public CurrentSnapshotResult execute(UnitOfWork work, C context) {
+        CurrentSnapshotResult result = delegate.execute(work, context);
         UnitOfWork.Identity identity = context.getIdentity();
-        context.getWork().getHistory()
+        work.getHistory()
             .ifPresent(history -> storeState(context, history, identity.getUniqueId(), result));
         return result;
     }

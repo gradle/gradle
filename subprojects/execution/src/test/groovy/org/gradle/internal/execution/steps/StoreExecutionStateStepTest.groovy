@@ -62,11 +62,11 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
     def "output snapshots are stored after successful execution"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
@@ -80,11 +80,11 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
     def "output snapshots are stored after failed execution when there's no previous state available"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
@@ -103,11 +103,11 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
@@ -127,11 +127,11 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs

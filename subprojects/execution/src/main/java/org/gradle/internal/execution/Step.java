@@ -17,5 +17,5 @@
 package org.gradle.internal.execution;
 
 public interface Step<C extends Context, R extends Result> {
-    R execute(C context);
+    R execute(UnitOfWork work, C context);
 }

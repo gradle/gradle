@@ -61,20 +61,20 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
     }
 
     @Override
-    public CurrentSnapshotResult execute(C context) {
-        Result result = delegate.execute(context);
+    public CurrentSnapshotResult execute(UnitOfWork work, C context) {
+        Result result = delegate.execute(work, context);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = operation(
             operationContext -> {
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputSnapshots = captureOutputs(context);
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputSnapshots = captureOutputs(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return outputSnapshots;
             },
             BuildOperationDescriptor
-                .displayName("Snapshot outputs after executing " + context.getWork().getDisplayName())
+                .displayName("Snapshot outputs after executing " + work.getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
 
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), context.getWork().markExecutionTime());
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
 
         return new CurrentSnapshotResult() {
             @Override
@@ -99,9 +99,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
         };
     }
 
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(BeforeExecutionContext context) {
-        UnitOfWork work = context.getWork();
-
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(UnitOfWork work, BeforeExecutionContext context) {
         ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints = context.getAfterPreviousExecutionState()
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());

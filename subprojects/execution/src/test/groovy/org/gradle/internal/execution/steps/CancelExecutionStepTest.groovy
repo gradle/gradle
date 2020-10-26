@@ -28,12 +28,12 @@ class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
 
     def "executes normally when cancellation is not requested"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         0 *_
@@ -44,12 +44,12 @@ class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
         cancellationToken.cancel()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         thrown BuildCancelledException
 
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         0 *_
@@ -57,12 +57,12 @@ class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
 
     def "interrupts task worker when cancellation is requested"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         thrown BuildCancelledException
 
-        1 * delegate.execute(context) >>  {
+        1 * delegate.execute(work, context) >>  {
             cancellationToken.cancel()
             wait()
             delegateResult

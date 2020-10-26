@@ -55,9 +55,8 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     }
 
     @Override
-    public R execute(C context) {
+    public R execute(UnitOfWork work, C context) {
         if (!context.isIncrementalExecution()) {
-            UnitOfWork work = context.getWork();
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
                 boolean hasOverlappingOutputs = context.getBeforeExecutionState()
                     .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
@@ -69,7 +68,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
                 }
             }
         }
-        return delegate.execute(context);
+        return delegate.execute(work, context);
     }
 
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {

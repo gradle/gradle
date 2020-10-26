@@ -38,12 +38,11 @@ public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result
     }
 
     @Override
-    public R execute(C context) {
-        UnitOfWork work = context.getWork();
+    public R execute(UnitOfWork work, C context) {
         Identity identity = context.getIdentity();
         Optional<AfterPreviousExecutionState> afterPreviousExecutionState = work.getHistory()
             .flatMap(history -> history.load(identity.getUniqueId()));
-        return delegate.execute(new AfterPreviousExecutionContext() {
+        return delegate.execute(work, new AfterPreviousExecutionContext() {
             @Override
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                 return afterPreviousExecutionState;
@@ -72,11 +71,6 @@ public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();
-            }
-
-            @Override
-            public UnitOfWork getWork() {
-                return work;
             }
         });
     }

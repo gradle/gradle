@@ -68,16 +68,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     }
 
     @Override
-    public CurrentSnapshotResult execute(IncrementalChangesContext context) {
+    public CurrentSnapshotResult execute(UnitOfWork work, IncrementalChangesContext context) {
         CachingState cachingState = context.getCachingState();
         //noinspection OptionalGetWithoutIsPresent
         return cachingState.getDisabledReasons().isEmpty()
-            ? executeWithCache(context, cachingState.getKey().get())
-            : executeWithoutCache(context);
+            ? executeWithCache(work, context, cachingState.getKey().get())
+            : executeWithoutCache(work, context);
     }
 
-    private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
-        UnitOfWork work = context.getWork();
+    private CurrentSnapshotResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
@@ -149,11 +148,11 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
         });
     }
 
-    private CurrentSnapshotResult executeAndStoreInCache(CacheableWork work, BuildCacheKey cacheKey, IncrementalChangesContext context) {
-        CurrentSnapshotResult result = executeWithoutCache(context);
+    private CurrentSnapshotResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
+        CurrentSnapshotResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecutionResult().ifSuccessfulOrElse(
-            executionResult -> store(work, cacheKey, result),
-            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
+            executionResult -> store(cacheableWork, cacheKey, result),
+            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
     }
@@ -173,8 +172,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
         }
     }
 
-    private CurrentSnapshotResult executeWithoutCache(IncrementalChangesContext context) {
-        return delegate.execute(context);
+    private CurrentSnapshotResult executeWithoutCache(UnitOfWork work, IncrementalChangesContext context) {
+        return delegate.execute(work, context);
     }
 
     private static class CacheableWork implements CacheableEntity {
