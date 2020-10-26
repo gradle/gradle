@@ -62,7 +62,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         WatchLogging debugWatchLogging = startParameter.isWatchFileSystemDebugLogging()
             ? WatchLogging.DEBUG
             : WatchLogging.NORMAL;
-        boolean vfsDebugLogging = startParameter.isVfsDebugLogging();
 
         logMessageForDeprecatedWatchFileSystemProperty(startParameter);
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
@@ -70,7 +69,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         if (watchFileSystem) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
-        if (vfsDebugLogging) {
+        if (verboseVfsLogging == VfsLogging.VERBOSE) {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
@@ -79,7 +78,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
             virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
-            if (vfsDebugLogging) {
+            if (verboseVfsLogging == VfsLogging.VERBOSE) {
                 logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
             }
         }
