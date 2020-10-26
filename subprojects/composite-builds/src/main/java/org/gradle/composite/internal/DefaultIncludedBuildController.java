@@ -47,7 +47,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.FAILED;
-import static org.gradle.composite.internal.IncludedBuildTaskResource.State.NOT_SCHEDULED;
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.SUCCESS;
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.WAITING;
 
@@ -288,7 +287,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         try {
             TaskState state = tasks.get(taskPath);
             if (state == null) {
-                return NOT_SCHEDULED;
+                throw includedBuildTaskWasNeverScheduled(taskPath);
             }
             if (state.status == TaskStatus.FAILED) {
                 return FAILED;

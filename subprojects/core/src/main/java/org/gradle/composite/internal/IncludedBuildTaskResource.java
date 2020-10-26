@@ -21,7 +21,7 @@ package org.gradle.composite.internal;
  */
 public interface IncludedBuildTaskResource {
     enum State {
-        WAITING, SUCCESS, FAILED, NOT_SCHEDULED
+        WAITING, SUCCESS, FAILED
     }
 
     State getTaskState();
