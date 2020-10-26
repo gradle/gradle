@@ -16,7 +16,7 @@
       </states>
       <build-types enabled-for-all="true" enabled-for-subprojects="true" />
     </webhook>
-    <webhook url="http://gradlelegend.com:8080/teamcity" enabled="true" format="jsontemplate" template="slack.com-compact">
+    <webhook url="http://gradlelegend.com/teamcity" enabled="true" format="jsontemplate" template="slack.com-compact">
       <states>
         <state type="buildStarted" enabled="true" />
         <state type="buildSuccessful" enabled="true" />
