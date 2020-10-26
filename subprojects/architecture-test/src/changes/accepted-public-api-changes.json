@@ -511,6 +511,22 @@
             "changes": [
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
+        },
+        {
+            "type": "org.gradle.api.initialization.Settings",
+            "member": "Method org.gradle.api.initialization.Settings.getProviders()",
+            "acceptation": "Expose ProviderFactory in Settings",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.initialization.Settings",
+            "member": "Method org.gradle.api.initialization.Settings.provider(java.util.concurrent.Callable)",
+            "acceptation": "Expose ProviderFactory in Settings",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }
