@@ -319,7 +319,6 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
                 dependsOn gradle.includedBuild('buildB').task(':b')
             }
         """
-        // TODO: if I use mustRunAfter here, the build fails with "Included build task ':c' was never scheduled for execution."
         buildB.buildFile << """
             task b {
                 dependsOn gradle.includedBuild('buildC').task(':c')
@@ -354,7 +353,6 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
                 dependsOn gradle.includedBuild('buildB').task(':b')
             }
         """
-        // TODO: if I use mustRunAfter here, the build fails with "Included build task ':c' was never scheduled for execution."
         buildB.buildFile << """
             task b {
                 dependsOn gradle.includedBuild('buildC').task(':c')
@@ -363,7 +361,6 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         buildB.settingsFile << """
             includeBuild('../buildC')
         """
-        // TODO: if I use mustRunAfter here, the build fails with "Included build task ':d' was never scheduled for execution."
         buildC.buildFile << """
             task c {
                 dependsOn gradle.includedBuild('buildD').task(':d')
