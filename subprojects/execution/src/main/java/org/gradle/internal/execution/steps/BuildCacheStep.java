@@ -138,9 +138,6 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     private void cleanLocalState(File workspace, UnitOfWork work) {
         work.visitOutputProperties(workspace, new UnitOfWork.OutputPropertyVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {}
-
-            @Override
             public void visitLocalStateRoot(File localStateRoot) {
                 try {
                     outputChangeListener.beforeOutputChange(ImmutableList.of(localStateRoot.getAbsolutePath()));
@@ -149,9 +146,6 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                     throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateRoot), ex);
                 }
             }
-
-            @Override
-            public void visitDestroyableRoot(File destroyableRoot) {}
         });
     }
 
@@ -215,14 +209,6 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                 @Override
                 public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                     visitor.visitOutputTree(propertyName, type, root);
-                }
-
-                @Override
-                public void visitLocalStateRoot(File localStateRoot) {
-                }
-
-                @Override
-                public void visitDestroyableRoot(File destroyableRoot) {
                 }
             });
         }

@@ -50,9 +50,6 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
             public void visitLocalStateRoot(File localStateRoot) {
                 ensureOutput("local state", localStateRoot, TreeType.FILE);
             }
-
-            @Override
-            public void visitDestroyableRoot(File destroyableRoot) {}
         });
         return delegate.execute(context);
     }

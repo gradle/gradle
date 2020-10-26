@@ -114,9 +114,19 @@ public interface UnitOfWork extends Describable {
     void visitInputProperties(InputPropertyVisitor visitor);
 
     interface InputPropertyVisitor {
-        void visitInputProperty(String propertyName, IdentityKind identity, ValueSupplier value);
+        default void visitInputProperty(
+            String propertyName,
+            IdentityKind identity,
+            ValueSupplier value
+        ) {}
 
-        void visitInputFileProperty(String propertyName, InputPropertyType type, IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+        default void visitInputFileProperty(
+            String propertyName,
+            InputPropertyType type,
+            IdentityKind identity,
+            @Nullable Object value,
+            Supplier<CurrentFileCollectionFingerprint> fingerprinter
+        ) {}
     }
 
     interface ValueSupplier {
@@ -165,9 +175,16 @@ public interface UnitOfWork extends Describable {
     void visitOutputProperties(File workspace, OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents);
-        void visitLocalStateRoot(File localStateRoot);
-        void visitDestroyableRoot(File destroyableRoot);
+        default void visitOutputProperty(
+            String propertyName,
+            TreeType type,
+            File root,
+            FileCollection contents
+        ) {}
+
+        default void visitLocalStateRoot(File localStateRoot) {}
+
+        default void visitDestroyableRoot(File destroyableRoot) {}
     }
 
     default long markExecutionTime() {

@@ -92,12 +92,6 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
                             throw new AssertionError();
                     }
                 }
-
-                @Override
-                public void visitLocalStateRoot(File localStateRoot) {}
-
-                @Override
-                public void visitDestroyableRoot(File destroyableRoot) {}
             });
             OutputsCleaner cleaner = new OutputsCleaner(
                 deleter,
@@ -137,12 +131,6 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
                     }
                 }
             }
-
-            @Override
-            public void visitLocalStateRoot(File localStateRoot) {}
-
-            @Override
-            public void visitDestroyableRoot(File destroyableRoot) {}
         });
     }
 }

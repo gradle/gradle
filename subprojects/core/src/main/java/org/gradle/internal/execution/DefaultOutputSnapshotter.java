@@ -42,12 +42,6 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
                 List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
                 builder.put(propertyName, CompositeFileSystemSnapshot.of(results));
             }
-
-            @Override
-            public void visitLocalStateRoot(File localStateRoot) {}
-
-            @Override
-            public void visitDestroyableRoot(File destroyableRoot) {}
         });
         return builder.build();
     }

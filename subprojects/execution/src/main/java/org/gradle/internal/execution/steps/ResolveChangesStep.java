@@ -146,10 +146,6 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 work.visitInputProperties(new UnitOfWork.InputPropertyVisitor() {
                     @Override
-                    public void visitInputProperty(String propertyName, UnitOfWork.IdentityKind identity, UnitOfWork.ValueSupplier value) {
-                    }
-
-                    @Override
                     public void visitInputFileProperty(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter) {
                         if (type.isIncremental()) {
                             if (value == null) {
