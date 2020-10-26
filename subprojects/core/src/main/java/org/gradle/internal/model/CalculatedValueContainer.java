@@ -74,6 +74,8 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     /**
      * Returns the value, failing if it has not been calculated. Does not calculate the value on demand.
+     *
+     * <p>Rethrows any failure happened while calculating the value</p>
      */
     public T get() throws IllegalStateException {
         return getValue().get();
@@ -81,6 +83,8 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     /**
      * Returns the value, or null if it has not been calculated. Does not calculate the value on demand.
+     *
+     * <p>Rethrows any failure happened while calculating the value</p>
      */
     public T getOrNull() {
         Try<T> result = this.result;
@@ -92,7 +96,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     /**
-     * Returns the value, failing if it has not been calculated. Does not calculate the value on demand.
+     * Returns the result of calculating the value, failing if it has not been calculated. Does not calculate the value on demand.
      */
     public Try<T> getValue() throws IllegalStateException {
         Try<T> result = this.result;
