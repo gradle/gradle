@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class CalculatedValueContainerTest extends ConcurrentSpec {
     def "can create container with fixed value"() {
-        def container = CalculatedValueContainer.of(Describables.of("thing"), "value")
+        def container = new CalculatedValueContainer(Describables.of("thing"), "value")
 
         expect:
         container.get() == "value"
@@ -37,7 +37,7 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
         def calculator = Mock(ValueCalculator)
 
         when:
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), calculator)
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), calculator, Stub(NodeExecutionContext))
 
         then:
         0 * _
@@ -66,7 +66,7 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
         def calculator = Mock(ValueCalculator)
 
         when:
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), calculator)
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), calculator, Stub(NodeExecutionContext))
 
         then:
         0 * _
@@ -101,7 +101,7 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
 
     def "cannot get value before it has been calculated"() {
         def calculator = Mock(ValueCalculator)
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), calculator)
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), calculator, Stub(NodeExecutionContext))
 
         when:
         container.get()
@@ -120,13 +120,13 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
 
     def "at most one thread calculates the value"() {
         // Don't use a spock mock as these apply their own synchronization
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), new Calculator())
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), new Calculator(), Stub(NodeExecutionContext))
 
         when:
         async {
             10.times {
                 start {
-                    container.calculateIfNotAlready(null)
+                    container.finalizeIfNotAlready()
                     assert container.get() == 1
                 }
             }

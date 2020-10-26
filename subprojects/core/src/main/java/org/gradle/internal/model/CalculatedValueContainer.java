@@ -41,30 +41,29 @@ import javax.annotation.concurrent.ThreadSafe;
 public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements WorkNodeAction {
     private final DisplayName displayName;
     private volatile S supplier;
+    private final NodeExecutionContext defaultContext;
     private volatile Try<T> result;
-
-    private CalculatedValueContainer(DisplayName displayName, S supplier) {
-        this.displayName = displayName;
-        this.supplier = supplier;
-    }
-
-    private CalculatedValueContainer(DisplayName displayName, T value) {
-        this.displayName = displayName;
-        this.result = Try.successful(value);
-    }
 
     /**
      * Creates a container for a value that is yet to be produced.
+     *
+     * Note: this is package protected. Using {@link CalculatedValueContainerFactory} instead.
      */
-    public static <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> of(DisplayName displayName, S supplier) {
-        return new CalculatedValueContainer<>(displayName, supplier);
+    CalculatedValueContainer(DisplayName displayName, S supplier, NodeExecutionContext defaultContext) {
+        this.displayName = displayName;
+        this.supplier = supplier;
+        this.defaultContext = defaultContext;
     }
 
     /**
      * Creates a container for a value that has already been produced. For example, the value might have been restored from the configuration cache.
+     *
+     * Note: this is package protected. Using {@link CalculatedValueContainerFactory} instead.
      */
-    public static <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> of(DisplayName displayName, T value) {
-        return new CalculatedValueContainer<>(displayName, value);
+    CalculatedValueContainer(DisplayName displayName, T value) {
+        this.displayName = displayName;
+        this.result = Try.successful(value);
+        this.defaultContext = null;
     }
 
     @Override
@@ -155,17 +154,25 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      */
     @Override
     public void run(NodeExecutionContext context) {
-        calculateIfNotAlready(context);
+        finalizeIfNotAlready(context);
     }
 
     /**
      * Calculates the value, if not already calculated. Collects and does not rethrow failures.
      */
-    public void calculateIfNotAlready(@Nullable NodeExecutionContext context) {
+    public void finalizeIfNotAlready() {
+        finalizeIfNotAlready(null);
+    }
+
+    private void finalizeIfNotAlready(@Nullable NodeExecutionContext context) {
         synchronized (this) {
             if (result == null) {
                 result = Try.ofFailable(() -> {
-                    T value = supplier.calculateValue(context);
+                    NodeExecutionContext effectiveContext = context;
+                    if (effectiveContext == null) {
+                        effectiveContext = defaultContext;
+                    }
+                    T value = supplier.calculateValue(effectiveContext);
                     if (value == null) {
                         throw new IllegalStateException(String.format("Calculated value for %s cannot be null.", displayName));
                     }

@@ -37,6 +37,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
@@ -70,6 +71,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    def calculatedValueContainerFactory = new CalculatedValueContainerFactory(Stub(ServiceRegistry))
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def registryFactory = new DefaultTransformationRegistrationFactory(
         new TestBuildOperationExecutor(),
@@ -80,6 +82,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         fileCollectionFactory,
         Mock(FileLookup),
         fileCollectionFingerprinterRegistry,
+        calculatedValueContainerFactory,
         domainObjectContext,
         new ArtifactTransformParameterScheme(
             instantiatorFactory.injectScheme(),

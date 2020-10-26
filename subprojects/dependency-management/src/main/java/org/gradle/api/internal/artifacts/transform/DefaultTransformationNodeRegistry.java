@@ -20,6 +20,7 @@ import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Collection;
@@ -29,9 +30,11 @@ import java.util.Map;
 public class DefaultTransformationNodeRegistry implements TransformationNodeRegistry {
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
     private final BuildOperationExecutor buildOperationExecutor;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public DefaultTransformationNodeRegistry(BuildOperationExecutor buildOperationExecutor) {
+    public DefaultTransformationNodeRegistry(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
@@ -52,12 +55,12 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
             if (transformationChain.size() == 1) {
                 TransformationStep transformationStep = transformationChain.get(0).get();
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                transformationNode = TransformationNode.initial(transformationStep, localArtifacts, upstreamDependencies, buildOperationExecutor);
+                transformationNode = TransformationNode.initial(transformationStep, localArtifacts, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
             } else {
                 TransformationNode previous = getOrCreateInternal(localArtifacts, transformationChain.subList(0, transformationChain.size() - 1), dependenciesResolver);
                 TransformationStep transformationStep = transformationChain.get(transformationChain.size() - 1).get();
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                transformationNode = TransformationNode.chained(transformationStep, previous, upstreamDependencies, buildOperationExecutor);
+                transformationNode = TransformationNode.chained(transformationStep, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
             }
             transformations.put(key, transformationNode);
         }

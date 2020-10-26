@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 
 import java.util.Map;
 
@@ -37,5 +38,6 @@ public class TransformCompletion implements ResolvedArtifactSet.Completion {
     @Override
     public void visit(ArtifactVisitor visitor) {
         delegate.visit(new TransformingArtifactVisitor(visitor, attributes, artifactResults));
+        visitor.endVisitCollection(FileCollectionInternal.OTHER);
     }
 }

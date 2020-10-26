@@ -42,6 +42,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -67,6 +68,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final FileCollectionFactory fileCollectionFactory;
     private final FileLookup fileLookup;
     private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DomainObjectContext owner;
     private final InstantiationScheme actionInstantiationScheme;
     private final InstantiationScheme legacyActionInstantiationScheme;
@@ -80,6 +82,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         FileCollectionFactory fileCollectionFactory,
         FileLookup fileLookup,
         FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
         DomainObjectContext owner,
         ArtifactTransformParameterScheme parameterScheme,
         ArtifactTransformActionScheme actionScheme,
@@ -93,6 +96,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileLookup = fileLookup;
         this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.owner = owner;
         this.actionInstantiationScheme = actionScheme.getInstantiationScheme();
         this.actionMetadataStore = actionScheme.getInspectionScheme().getMetadataStore();
@@ -155,7 +159,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             parametersPropertyWalker,
             actionInstantiationScheme,
             owner,
-            fileCollectionFingerprinterRegistry,
+            calculatedValueContainerFactory,
             internalServices);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, fileCollectionFingerprinterRegistry));

@@ -22,13 +22,15 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withCodec
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
 class ChainedTransformationNodeCodec(
     private val userTypesCodec: Codec<Any?>,
-    private val buildOperationExecutor: BuildOperationExecutor
+    private val buildOperationExecutor: BuildOperationExecutor,
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
@@ -43,6 +45,6 @@ class ChainedTransformationNodeCodec(
             readNonNull<TransformStepSpec>()
         }
         val previousStep = readNonNull<TransformationNode>()
-        return TransformationNode.chained(transformationStep.transformation, previousStep, transformationStep.recreate(), buildOperationExecutor)
+        return TransformationNode.chained(transformationStep.transformation, previousStep, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }
