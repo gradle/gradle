@@ -40,14 +40,14 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
 
     @Override
     public R execute(C context) {
-        context.getWork().visitOutputProperties(context.getWorkspace(), new UnitOfWork.OutputPropertyVisitor() {
+        context.getWork().visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                 ensureOutput(propertyName, root, type);
             }
 
             @Override
-            public void visitLocalStateRoot(File localStateRoot) {
+            public void visitLocalState(File localStateRoot) {
                 ensureOutput("local state", localStateRoot, TreeType.FILE);
             }
         });

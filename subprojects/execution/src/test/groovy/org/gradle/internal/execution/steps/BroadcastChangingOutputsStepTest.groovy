@@ -44,10 +44,10 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         then:
         result == delegateResult
 
-        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
+        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
-            visitor.visitDestroyableRoot(destroyableDir)
-            visitor.visitLocalStateRoot(localStateDir)
+            visitor.visitDestroyable(destroyableDir)
+            visitor.visitLocalState(localStateDir)
         }
 
         then:

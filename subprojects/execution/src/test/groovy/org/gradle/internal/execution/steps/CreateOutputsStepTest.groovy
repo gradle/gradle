@@ -41,11 +41,11 @@ class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
         step.execute(context)
 
         then:
-        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
+        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputDir, TestFiles.fixed(outputDir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputFile, TestFiles.fixed(outputFile))
-            visitor.visitLocalStateRoot(localStateFile)
-            visitor.visitDestroyableRoot(destroyableFile)
+            visitor.visitLocalState(localStateFile)
+            visitor.visitDestroyable(destroyableFile)
         }
 
         then:
@@ -67,7 +67,7 @@ class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
         then:
         result == expected
 
-        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor)
+        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor)
         1 * delegate.execute(context) >> expected
         0 * _
     }

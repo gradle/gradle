@@ -99,7 +99,7 @@ public interface UnitOfWork extends Describable {
      * Capture the classloader of the work's implementation type.
      * There can be more than one type reported by the work; additional types are considered in visitation order.
      *
-     * TODO Move this to {@link #visitInputProperties(InputPropertyVisitor)}
+     * TODO Move this to {@link #visitInputs(InputVisitor)}
      */
     void visitImplementations(ImplementationVisitor visitor);
 
@@ -111,9 +111,9 @@ public interface UnitOfWork extends Describable {
     /**
      * Visit all inputs of the work.
      */
-    void visitInputProperties(InputPropertyVisitor visitor);
+    void visitInputs(InputVisitor visitor);
 
-    interface InputPropertyVisitor {
+    interface InputVisitor {
         default void visitInputProperty(
             String propertyName,
             IdentityKind identity,
@@ -172,9 +172,9 @@ public interface UnitOfWork extends Describable {
         NON_IDENTITY, IDENTITY
     }
 
-    void visitOutputProperties(File workspace, OutputPropertyVisitor visitor);
+    void visitOutputs(File workspace, OutputVisitor visitor);
 
-    interface OutputPropertyVisitor {
+    interface OutputVisitor {
         default void visitOutputProperty(
             String propertyName,
             TreeType type,
@@ -182,9 +182,9 @@ public interface UnitOfWork extends Describable {
             FileCollection contents
         ) {}
 
-        default void visitLocalStateRoot(File localStateRoot) {}
+        default void visitLocalState(File localStateRoot) {}
 
-        default void visitDestroyableRoot(File destroyableRoot) {}
+        default void visitDestroyable(File destroyableRoot) {}
     }
 
     default long markExecutionTime() {

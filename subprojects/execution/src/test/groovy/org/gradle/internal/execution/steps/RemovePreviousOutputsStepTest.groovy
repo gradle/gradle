@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
-import org.gradle.internal.execution.UnitOfWork.OutputPropertyVisitor
+import org.gradle.internal.execution.UnitOfWork.OutputVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.TreeType
@@ -184,7 +184,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
-        _ * work.visitOutputProperties(_, _) >> { File workspace, OutputPropertyVisitor visitor ->
+        _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }
@@ -199,7 +199,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
-        _ * work.visitOutputProperties(_, _) >> { File workspace, OutputPropertyVisitor visitor ->
+        _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }

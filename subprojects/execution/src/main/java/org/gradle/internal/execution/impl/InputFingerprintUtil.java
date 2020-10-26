@@ -42,7 +42,7 @@ public class InputFingerprintUtil {
     ) {
         valueSnapshotsBuilder.putAll(knownValueSnapshots);
         fingerprintsBuilder.putAll(knownFingerprints);
-        work.visitInputProperties(new UnitOfWork.InputPropertyVisitor() {
+        work.visitInputs(new UnitOfWork.InputVisitor() {
             @Override
             public void visitInputProperty(String propertyName, UnitOfWork.IdentityKind identity, UnitOfWork.ValueSupplier value) {
                 if (knownValueSnapshots.containsKey(propertyName)) {

@@ -136,9 +136,9 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     }
 
     private void cleanLocalState(File workspace, UnitOfWork work) {
-        work.visitOutputProperties(workspace, new UnitOfWork.OutputPropertyVisitor() {
+        work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitLocalStateRoot(File localStateRoot) {
+            public void visitLocalState(File localStateRoot) {
                 try {
                     outputChangeListener.beforeOutputChange(ImmutableList.of(localStateRoot.getAbsolutePath()));
                     deleter.deleteRecursively(localStateRoot);
@@ -205,7 +205,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            work.visitOutputProperties(workspace, new UnitOfWork.OutputPropertyVisitor() {
+            work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
                 @Override
                 public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                     visitor.visitOutputTree(propertyName, type, root);

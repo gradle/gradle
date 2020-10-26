@@ -165,14 +165,14 @@ class GenerateProjectAccessors(
         visitor.visitImplementation(GenerateProjectAccessors::class.java)
     }
 
-    override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
+    override fun visitInputs(visitor: UnitOfWork.InputVisitor) {
         visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, IDENTITY) { hashCodeFor(projectSchema) }
         visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, NON_INCREMENTAL, IDENTITY, classPath) {
             classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
         }
     }
 
-    override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
+    override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))

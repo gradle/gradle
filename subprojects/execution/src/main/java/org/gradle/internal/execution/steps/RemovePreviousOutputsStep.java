@@ -75,7 +75,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputProperties(context.getWorkspace(), new UnitOfWork.OutputPropertyVisitor() {
+            work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
                 @Override
                 public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                     switch (type) {
@@ -111,7 +111,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     }
 
     private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
-        work.visitOutputProperties(context.getWorkspace(), new UnitOfWork.OutputPropertyVisitor() {
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                 if (root.exists()) {

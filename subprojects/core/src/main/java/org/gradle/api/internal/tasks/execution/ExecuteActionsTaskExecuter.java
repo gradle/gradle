@@ -298,7 +298,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitInputProperties(InputPropertyVisitor visitor) {
+        public void visitInputs(InputVisitor visitor) {
             ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
             ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputPropertySpec inputProperty : inputProperties) {
@@ -323,7 +323,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitOutputProperties(File workspace, OutputPropertyVisitor visitor) {
+        public void visitOutputs(File workspace, OutputVisitor visitor) {
             for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
                 File outputFile = property.getOutputFile();
                 if (outputFile != null) {
@@ -331,10 +331,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
             }
             for (File localStateRoot : context.getTaskProperties().getLocalStateFiles()) {
-                visitor.visitLocalStateRoot(localStateRoot);
+                visitor.visitLocalState(localStateRoot);
             }
             for (File destroyableRoot : context.getTaskProperties().getDestroyableFiles()) {
-                visitor.visitDestroyableRoot(destroyableRoot);
+                visitor.visitDestroyable(destroyableRoot);
             }
         }
 

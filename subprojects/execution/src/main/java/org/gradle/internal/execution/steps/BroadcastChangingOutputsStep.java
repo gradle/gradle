@@ -44,19 +44,19 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
     public R execute(C context) {
         UnitOfWork work = context.getWork();
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        work.visitOutputProperties(context.getWorkspace(), new UnitOfWork.OutputPropertyVisitor() {
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                 builder.add(root.getAbsolutePath());
             }
 
             @Override
-            public void visitLocalStateRoot(File localStateRoot) {
+            public void visitLocalState(File localStateRoot) {
                 builder.add(localStateRoot.getAbsolutePath());
             }
 
             @Override
-            public void visitDestroyableRoot(File destroyableRoot) {
+            public void visitDestroyable(File destroyableRoot) {
                 builder.add(destroyableRoot.getAbsolutePath());
             }
         });

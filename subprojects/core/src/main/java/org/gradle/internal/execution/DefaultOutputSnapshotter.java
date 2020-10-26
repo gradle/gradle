@@ -36,7 +36,7 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
     @Override
     public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        work.visitOutputProperties(workspace, new UnitOfWork.OutputPropertyVisitor() {
+        work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                 List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
