@@ -46,9 +46,9 @@ import org.gradle.internal.Actions
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.plugin.management.internal.PluginRequests
