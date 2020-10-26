@@ -134,7 +134,7 @@ data class CIBuildModel(
             ),
             flameGraphs = listOf(
                 FlameGraphGeneration(14, "File System Watching", listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
-                    PerformanceScenario(Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching"), it)
+                    PerformanceScenario(Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching and configuration caching"), it)
                 })
             )),
         Stage(StageNames.EXPERIMENTAL_JDK,
