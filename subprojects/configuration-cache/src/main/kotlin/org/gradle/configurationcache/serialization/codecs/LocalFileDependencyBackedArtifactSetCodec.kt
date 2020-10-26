@@ -278,6 +278,9 @@ class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCo
         throw UnsupportedOperationException("Should not be called")
     }
 
+    override fun finalizeIfNotAlready() {
+    }
+
     override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
         return Try.successful(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
     }

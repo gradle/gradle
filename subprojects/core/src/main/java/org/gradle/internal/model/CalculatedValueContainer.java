@@ -115,20 +115,35 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     @Override
     public boolean usesMutableProjectState() {
-        return getSupplier().usesMutableProjectState();
+        S supplier = this.supplier;
+        if (supplier != null) {
+            return supplier.usesMutableProjectState();
+        } else {
+            // Value has already been calculated, so no longer needs project state
+            return false;
+        }
     }
 
     @Override
     public Project getOwningProject() {
-        return getSupplier().getOwningProject();
+        S supplier = this.supplier;
+        if (supplier != null) {
+            return supplier.getOwningProject();
+        } else {
+            // Value has already been calculated, so no longer needs project state
+            return null;
+        }
     }
 
+    /**
+     * Visits the dependencies required to calculate the value.
+     */
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         S supplier = this.supplier;
         if (supplier != null) {
             supplier.visitDependencies(context);
-        } // else, already calculated
+        } // else, already calculated so has no dependencies
     }
 
     /**

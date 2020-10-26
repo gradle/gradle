@@ -82,6 +82,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         // Isolate the transformation parameters, if not already done
         for (BoundTransformationStep step : steps) {
             step.getTransformation().isolateParametersIfNotAlready();
+            step.getUpstreamDependencies().finalizeIfNotAlready();
         }
 
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();

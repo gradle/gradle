@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.WorkNodeAction
@@ -29,12 +28,7 @@ import org.gradle.configurationcache.serialization.logNotImplemented
 
 object WorkNodeActionCodec : Codec<WorkNodeAction> {
     override suspend fun WriteContext.encode(value: WorkNodeAction) {
-        if (value is DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependencies) {
-            // Can ignore
-            return
-        } else {
-            logNotImplemented(value.javaClass)
-        }
+        logNotImplemented(value.javaClass)
     }
 
     override suspend fun ReadContext.decode(): WorkNodeAction {

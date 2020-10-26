@@ -118,6 +118,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     public void executeIfNotAlready() {
         transformationStep.isolateParametersIfNotAlready();
+        upstreamDependencies.finalizeIfNotAlready();
         getTransformedArtifacts().calculateIfNotAlready(null);
     }
 

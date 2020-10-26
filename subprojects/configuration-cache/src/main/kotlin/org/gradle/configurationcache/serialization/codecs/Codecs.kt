@@ -37,6 +37,7 @@ import org.gradle.configurationcache.problems.DocumentationSection.NotYetImpleme
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
+import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.LegacyTransformerCodec
@@ -141,6 +142,7 @@ class Codecs(
         bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory))
         bind(CalculatedValueContainerCodec())
         bind(IsolateTransformerParametersNodeCodec(fingerprinterRegistry, parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory))
+        bind(FinalizeTransformDependenciesNodeCodec())
         bind(WorkNodeActionCodec)
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))

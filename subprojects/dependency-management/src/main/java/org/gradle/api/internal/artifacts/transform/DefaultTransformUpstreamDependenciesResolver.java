@@ -28,18 +28,20 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.WorkNodeAction;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.ValueCalculator;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
-    public static final ArtifactTransformDependencies EMPTY_RESULT = new ArtifactTransformDependencies() {
+    public static final ArtifactTransformDependencies NO_RESULT = new ArtifactTransformDependencies() {
         @Override
         public FileCollection getFiles() {
             throw failure();
@@ -57,14 +59,17 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
 
         @Override
+        public void finalizeIfNotAlready() {
+        }
+
+        @Override
         public Try<ArtifactTransformDependencies> computeArtifacts() {
-            return Try.successful(EMPTY_RESULT);
+            return Try.successful(NO_RESULT);
         }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
         }
-
     };
 
     private final ComponentIdentifier componentIdentifier;
@@ -92,33 +97,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         if (!transformationStep.requiresDependencies()) {
             return NO_DEPENDENCIES;
         }
-        return new TransformUpstreamDependencies() {
-            @Override
-            public FileCollection selectedArtifacts() {
-                return selectedArtifactsFor(transformationStep.getFromAttributes());
-            }
-
-            @Override
-            public Try<ArtifactTransformDependencies> computeArtifacts() {
-                return resolvedArtifacts(transformationStep.getFromAttributes());
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                computeDependenciesFor(transformationStep.getFromAttributes(), context);
-            }
-
-            private Try<ArtifactTransformDependencies> resolvedArtifacts(ImmutableAttributes fromAttributes) {
-                try {
-                    FileCollection files = selectedArtifactsFor(fromAttributes);
-                    // Trigger resolution, including any failures
-                    files.getFiles();
-                    return Try.successful(new DefaultArtifactTransformDependencies(files));
-                } catch (Exception e) {
-                    return Try.failure(e);
-                }
-            }
-        };
+        return new TransformUpstreamDependenciesImpl(transformationStep);
     }
 
     private FileCollectionInternal selectedArtifactsFor(ImmutableAttributes fromAttributes) {
@@ -135,7 +114,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
         }
         FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, element -> buildDependencies.contains(element));
-        context.add(new FinalizeTransformDependencies(files, fromAttributes));
+        context.add(files);
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
@@ -174,13 +153,28 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     }
 
-    public class FinalizeTransformDependencies implements WorkNodeAction {
-        private final FileCollectionInternal files;
+    public static abstract class FinalizeTransformDependencies implements ValueCalculator<ArtifactTransformDependencies> {
+        public abstract FileCollection selectedArtifacts();
+
+        @Override
+        public ArtifactTransformDependencies calculateValue(NodeExecutionContext context) {
+            FileCollection files = selectedArtifacts();
+            // Trigger resolution, including any failures
+            files.getFiles();
+            return new DefaultArtifactTransformDependencies(files);
+        }
+    }
+
+    public class FinalizeTransformDependenciesFromSelectedArtifacts extends FinalizeTransformDependencies {
         private final ImmutableAttributes fromAttributes;
 
-        public FinalizeTransformDependencies(FileCollectionInternal files, ImmutableAttributes fromAttributes) {
-            this.files = files;
+        public FinalizeTransformDependenciesFromSelectedArtifacts(ImmutableAttributes fromAttributes) {
             this.fromAttributes = fromAttributes;
+        }
+
+        @Override
+        public FileCollection selectedArtifacts() {
+            return selectedArtifactsFor(fromAttributes);
         }
 
         @Override
@@ -195,12 +189,37 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(files);
+            computeDependenciesFor(fromAttributes, context);
+        }
+    }
+
+    private class TransformUpstreamDependenciesImpl implements TransformUpstreamDependencies {
+        private final CalculatedValueContainer<ArtifactTransformDependencies, FinalizeTransformDependencies> transformDependencies;
+        private final TransformationStep transformationStep;
+
+        public TransformUpstreamDependenciesImpl(TransformationStep transformationStep) {
+            this.transformationStep = transformationStep;
+            transformDependencies = CalculatedValueContainer.of(Describables.of("dependencies for", transformationStep), new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
         }
 
         @Override
-        public void run(NodeExecutionContext context) {
-            selectedArtifactsFor(fromAttributes);
+        public FileCollection selectedArtifacts() {
+            return selectedArtifactsFor(transformationStep.getFromAttributes());
+        }
+
+        @Override
+        public Try<ArtifactTransformDependencies> computeArtifacts() {
+            return transformDependencies.getValue();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(transformDependencies);
+        }
+
+        @Override
+        public void finalizeIfNotAlready() {
+            transformDependencies.calculateIfNotAlready(null);
         }
     }
 }

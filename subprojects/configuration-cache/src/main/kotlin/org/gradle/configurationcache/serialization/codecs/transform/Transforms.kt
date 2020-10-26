@@ -99,6 +99,9 @@ class FixedUpstreamDependencies(private val dependencies: ArtifactTransformDepen
         return dependencies.files
     }
 
+    override fun finalizeIfNotAlready() {
+    }
+
     override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
         return Try.successful(dependencies)
     }
