@@ -149,7 +149,7 @@ To sign off a single commit:
 
 To sign off one or multiple commits:
 
-`git filter-branch --msg-filter "cat - && echo && echo 'Signed-off-by: Your Name <Your.Name@example.com>'" HEAD`
+`git rebase --signoff origin/master`
 
 Then force push your branch:
 
