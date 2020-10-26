@@ -34,7 +34,6 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
-import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputFiles;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
@@ -61,16 +60,19 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Nonnull
     private IdentityContext createIdentityContext(C context) {
-        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = fingerprintInputProperties(
+        ImmutableSortedMap.Builder<String, ValueSnapshot> identityInputPropertiesBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> identityInputFilePropertiesBuilder = ImmutableSortedMap.naturalOrder();
+        fingerprintInputProperties(
             context.getWork(),
             ImmutableSortedMap.of(),
             valueSnapshotter,
             ImmutableSortedMap.of(),
-            (propertyName, identity) -> identity == IDENTITY);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = fingerprintInputFiles(
-            context.getWork(),
+            identityInputPropertiesBuilder,
             ImmutableSortedMap.of(),
+            identityInputFilePropertiesBuilder,
             (propertyName, type, identity) -> identity == IDENTITY);
+        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = identityInputPropertiesBuilder.build();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = identityInputFilePropertiesBuilder.build();
         Identity identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
         return new IdentityContext() {
             @Override

@@ -142,12 +142,12 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadExecutionStateStep;
+import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
@@ -280,7 +280,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new CreateOutputsStep<>(
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
-                new CleanupOutputsStep<>(deleter, outputChangeListener,
+                new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
                 new ExecuteStep<>(buildOperationExecutor
             ))))))))))))))))));
             // @formatter:on
