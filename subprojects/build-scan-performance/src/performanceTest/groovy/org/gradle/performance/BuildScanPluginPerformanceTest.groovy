@@ -66,7 +66,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 args(*jobArgs)
                 args("-DenableScan=true")
                 tasksToRun(*tasks)
-                gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
                 }
