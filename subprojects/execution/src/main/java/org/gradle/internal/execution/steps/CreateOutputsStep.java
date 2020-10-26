@@ -39,8 +39,8 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
     }
 
     @Override
-    public R execute(C context) {
-        context.getWork().visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+    public R execute(UnitOfWork work, C context) {
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
                 ensureOutput(propertyName, root, type);
@@ -51,7 +51,7 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
                 ensureOutput("local state", localStateRoot, TreeType.FILE);
             }
         });
-        return delegate.execute(context);
+        return delegate.execute(work, context);
     }
 
     private static void ensureOutput(String name, File outputRoot, TreeType type) {

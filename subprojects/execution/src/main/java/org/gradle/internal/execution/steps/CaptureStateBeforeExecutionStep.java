@@ -80,10 +80,10 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
     }
 
     @Override
-    public CachingResult execute(AfterPreviousExecutionContext context) {
-        Optional<BeforeExecutionState> beforeExecutionState = context.getWork().getHistory()
-            .map(executionHistoryStore -> captureExecutionStateOp(context));
-        return delegate.execute(new BeforeExecutionContext() {
+    public CachingResult execute(UnitOfWork work, AfterPreviousExecutionContext context) {
+        Optional<BeforeExecutionState> beforeExecutionState = work.getHistory()
+            .map(executionHistoryStore -> captureExecutionStateOp(work, context));
+        return delegate.execute(work, new BeforeExecutionContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return beforeExecutionState;
@@ -122,29 +122,23 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
             }
-
-            @Override
-            public UnitOfWork getWork() {
-                return context.getWork();
-            }
         });
     }
 
-    private BeforeExecutionState captureExecutionStateOp(AfterPreviousExecutionContext executionContext) {
+    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, AfterPreviousExecutionContext executionContext) {
         return operation(operationContext -> {
-                BeforeExecutionState beforeExecutionState = captureExecutionState(executionContext);
+                BeforeExecutionState beforeExecutionState = captureExecutionState(work, executionContext);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return beforeExecutionState;
             },
             BuildOperationDescriptor
-                .displayName("Snapshot inputs and outputs before executing " + executionContext.getWork().getDisplayName())
+                .displayName("Snapshot inputs and outputs before executing " + work.getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
     }
 
-    private BeforeExecutionState captureExecutionState(AfterPreviousExecutionContext context) {
+    private BeforeExecutionState captureExecutionState(UnitOfWork work, AfterPreviousExecutionContext context) {
         Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
-        UnitOfWork work = context.getWork();
 
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);

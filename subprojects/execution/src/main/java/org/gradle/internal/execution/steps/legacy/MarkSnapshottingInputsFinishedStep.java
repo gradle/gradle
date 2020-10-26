@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps.legacy;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 
 /**
  * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
@@ -31,8 +32,8 @@ public class MarkSnapshottingInputsFinishedStep<R extends Result> implements Ste
     }
 
     @Override
-    public R execute(CachingContext context) {
-        context.getWork().markLegacySnapshottingInputsFinished(context.getCachingState());
-        return delegate.execute(context);
+    public R execute(UnitOfWork work, CachingContext context) {
+        work.markLegacySnapshottingInputsFinished(context.getCachingState());
+        return delegate.execute(work, context);
     }
 }

@@ -38,7 +38,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
     def "skips when outputs are up to date"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result.executionResult.get().outcome == ExecutionOutcome.UP_TO_DATE
@@ -56,7 +56,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: EmptyCurrentFileCollectionFingerprint.EMPTY])
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result.executionReasons == ["change"]
@@ -64,7 +64,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
         _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of("change")
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         when:
@@ -88,13 +88,13 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
     def "executes when change tracking is disabled"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result.executionReasons == ["Change tracking is disabled."]
 
         _ * context.changes >> Optional.empty()
-        1 * delegate.execute(context)
+        1 * delegate.execute(work, context)
         0 * _
     }
 }

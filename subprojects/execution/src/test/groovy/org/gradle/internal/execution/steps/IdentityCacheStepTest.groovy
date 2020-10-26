@@ -48,7 +48,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
         }
 
         when:
-        def actual = step.executeDeferred(context, cache, processor)
+        def actual = step.executeDeferred(work, context, cache, processor)
 
         then:
         actual == processed
@@ -58,7 +58,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
         }
 
         then:
-        _ * delegate.execute(context) >> delegateResult
+        _ * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
@@ -69,7 +69,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
         cache.put(identity, cachedOutput)
 
         when:
-        def actual = step.executeDeferred(context, cache, processor)
+        def actual = step.executeDeferred(work, context, cache, processor)
 
         then:
         actual == processed

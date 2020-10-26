@@ -49,21 +49,21 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     }
 
     @Override
-    public R execute(C context) {
-        return delegate.execute(createIdentityContext(context));
+    public R execute(UnitOfWork work, C context) {
+        return delegate.execute(work, createIdentityContext(work, context));
     }
 
     @Override
-    public <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
-        return delegate.executeDeferred(createIdentityContext(context), cache, processor);
+    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+        return delegate.executeDeferred(work, createIdentityContext(work, context), cache, processor);
     }
 
     @Nonnull
-    private IdentityContext createIdentityContext(C context) {
+    private IdentityContext createIdentityContext(UnitOfWork work, C context) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> identityInputPropertiesBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> identityInputFilePropertiesBuilder = ImmutableSortedMap.naturalOrder();
         fingerprintInputProperties(
-            context.getWork(),
+            work,
             ImmutableSortedMap.of(),
             valueSnapshotter,
             ImmutableSortedMap.of(),
@@ -73,7 +73,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             (propertyName, type, identity) -> identity == IDENTITY);
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = identityInputPropertiesBuilder.build();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = identityInputFilePropertiesBuilder.build();
-        Identity identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
+        Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
         return new IdentityContext() {
             @Override
             public Optional<String> getRebuildReason() {
@@ -93,11 +93,6 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             @Override
             public Identity getIdentity() {
                 return identity;
-            }
-
-            @Override
-            public UnitOfWork getWork() {
-                return context.getWork();
             }
         };
     }

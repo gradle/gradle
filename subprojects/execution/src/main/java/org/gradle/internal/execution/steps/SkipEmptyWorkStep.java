@@ -39,8 +39,7 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
     }
 
     @Override
-    public CachingResult execute(C context) {
-        UnitOfWork work = context.getWork();
+    public CachingResult execute(UnitOfWork work, C context) {
         ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution = context.getAfterPreviousExecutionState()
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
@@ -86,6 +85,6 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
                     }
                 };
             })
-            .orElseGet(() -> delegate.execute(context));
+            .orElseGet(() -> delegate.execute(work, context));
     }
 }

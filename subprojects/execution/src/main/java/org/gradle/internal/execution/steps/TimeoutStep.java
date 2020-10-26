@@ -41,24 +41,23 @@ public class TimeoutStep<C extends Context> implements Step<C, Result> {
     }
 
     @Override
-    public Result execute(C context) {
-        UnitOfWork work = context.getWork();
+    public Result execute(UnitOfWork work, C context) {
         Optional<Duration> timeoutProperty = work.getTimeout();
         if (timeoutProperty.isPresent()) {
             Duration timeout = timeoutProperty.get();
             if (timeout.isNegative()) {
                 throw new InvalidUserDataException("Timeout of " + work.getDisplayName() + " must be positive, but was " + timeout.toString().substring(2));
             }
-            return executeWithTimeout(context, timeout);
+            return executeWithTimeout(work, context, timeout);
         } else {
-            return executeWithoutTimeout(context);
+            return executeWithoutTimeout(work, context);
         }
     }
 
-    private Result executeWithTimeout(C context, Duration timeout) {
+    private Result executeWithTimeout(UnitOfWork work, C context, Duration timeout) {
         Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout);
         try {
-            return executeWithoutTimeout(context);
+            return executeWithoutTimeout(work, context);
         } finally {
             if (taskTimeout.stop()) {
                 //noinspection ResultOfMethodCallIgnored
@@ -69,7 +68,7 @@ public class TimeoutStep<C extends Context> implements Step<C, Result> {
         }
     }
 
-    private Result executeWithoutTimeout(C context) {
-        return delegate.execute(context);
+    private Result executeWithoutTimeout(UnitOfWork work, C context) {
+        return delegate.execute(work, context);
     }
 }

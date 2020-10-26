@@ -38,13 +38,13 @@ class ResolveInputChangesStepTest extends StepSpec<IncrementalChangesContext> {
 
     def "resolves input changes when required"() {
         when:
-        def returnedResult = step.execute(context)
+        def returnedResult = step.execute(work, context)
         then:
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS
         _ * context.changes >> optionalChanges
         1 * changes.createInputChanges() >> inputChanges
         1 * inputChanges.incremental >> true
-        1 * delegate.execute(_) >> { InputChangesContext context ->
+        1 * delegate.execute(work, _ as InputChangesContext) >> { UnitOfWork work, InputChangesContext context ->
             assert context.inputChanges.get() == inputChanges
             return result
         }
@@ -55,10 +55,10 @@ class ResolveInputChangesStepTest extends StepSpec<IncrementalChangesContext> {
 
     def "do not resolve input changes when not required"() {
         when:
-        def returnedResult = step.execute(context)
+        def returnedResult = step.execute(work, context)
         then:
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
-        1 * delegate.execute(_) >> { InputChangesContext context ->
+        1 * delegate.execute(work, _ as InputChangesContext) >> { UnitOfWork work, InputChangesContext context ->
             assert context.inputChanges == Optional.empty()
             return result
         }

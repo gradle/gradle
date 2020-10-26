@@ -40,13 +40,13 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
 
     def "doesn't provide input file changes when rebuild is forced"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
-        1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
             try {
@@ -64,12 +64,12 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
 
     def "doesn't provide changes when change tracking is disabled"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
-        1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             assert !delegateContext.changes.present
             return delegateResult
         }
@@ -80,13 +80,13 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
 
     def "doesn't provide input file changes when no history is available"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
-        1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
             assert changes.allChangeMessages == ImmutableList.of("No history is available.")
@@ -105,12 +105,12 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         def changes = Mock(ExecutionStateChanges)
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
-        1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             assert delegateContext.changes.get() == changes
             return delegateResult
         }

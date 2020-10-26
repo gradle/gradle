@@ -66,11 +66,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
 
     def "no state is captured when task history is not maintained"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         assertNoOperation()
         _ * work.history >> Optional.empty()
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             assert !beforeExecution.beforeExecutionState.present
         }
         0 * _
@@ -83,7 +83,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         ]
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         _ * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
@@ -93,7 +93,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
             }
         }
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.implementation == implementationSnapshot
@@ -109,14 +109,14 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         def valueSnapshot = Mock(ValueSnapshot)
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
             visitor.visitInputProperty("inputString", NON_IDENTITY) { inputPropertyValue }
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
@@ -132,7 +132,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of("inputString", valueSnapshot)
@@ -142,7 +142,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue, valueSnapshot) >> valueSnapshot
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
@@ -156,14 +156,14 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         def fingerprint = Mock(CurrentFileCollectionFingerprint)
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         _ * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
             visitor.visitInputFileProperty("inputFile", NON_INCREMENTAL, NON_IDENTITY, "ignored", { -> fingerprint })
         }
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
@@ -177,12 +177,12 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         def outputFileSnapshot = Mock(FileSystemSnapshot)
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
@@ -198,7 +198,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         def outputFileSnapshot = Mock(FileSystemSnapshot)
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of()
@@ -208,7 +208,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         1 * outputFileSnapshot.accept(_)
 
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
@@ -226,7 +226,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         def beforeExecutionOutputFingerprints = ImmutableSortedMap.<String, FileSystemSnapshot> of("outputDir", beforeExecutionOutputFingerprint)
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
@@ -239,7 +239,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         1 * beforeExecutionOutputFingerprint.accept(_)
 
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
@@ -258,7 +258,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         def overlappingOutputs = new OverlappingOutputs("outputDir", "overlapping/path")
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
@@ -272,7 +272,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         1 * beforeExecutionOutputFingerprint.accept(_)
 
         interaction { fingerprintInputs() }
-        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert state.detectedOverlappingOutputs.get() == overlappingOutputs
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)

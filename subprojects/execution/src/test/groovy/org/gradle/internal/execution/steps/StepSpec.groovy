@@ -44,7 +44,6 @@ abstract class StepSpec<C extends Context> extends Specification {
     abstract protected C createContext()
 
     def setup() {
-        _ * context.work >> work
         _ * context.identity >> identity
         _ * work.displayName >> displayName
         _ * work.identify(_, _) >> identity

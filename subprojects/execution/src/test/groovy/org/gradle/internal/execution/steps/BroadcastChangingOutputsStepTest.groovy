@@ -39,7 +39,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         def destroyableDir = file("destroyable-dir")
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -58,7 +58,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         ])
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 }

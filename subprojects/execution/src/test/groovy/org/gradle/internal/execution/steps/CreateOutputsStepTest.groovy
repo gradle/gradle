@@ -38,7 +38,7 @@ class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
         def destroyableFile = file("destroyable/file.txt")
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
@@ -55,20 +55,20 @@ class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
         !destroyableFile.parentFile.exists()
 
         then:
-        1 * delegate.execute(context)
+        1 * delegate.execute(work, context)
         0 * _
     }
 
     def "result is preserved"() {
         def expected = Mock(Result)
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == expected
 
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor)
-        1 * delegate.execute(context) >> expected
+        1 * delegate.execute(work, context) >> expected
         0 * _
     }
 }

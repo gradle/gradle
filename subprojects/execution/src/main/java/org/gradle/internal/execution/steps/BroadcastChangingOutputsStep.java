@@ -41,8 +41,7 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
     }
 
     @Override
-    public R execute(C context) {
-        UnitOfWork work = context.getWork();
+    public R execute(UnitOfWork work, C context) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
@@ -61,6 +60,6 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
             }
         });
         outputChangeListener.beforeOutputChange(builder.build());
-        return delegate.execute(context);
+        return delegate.execute(work, context);
     }
 }

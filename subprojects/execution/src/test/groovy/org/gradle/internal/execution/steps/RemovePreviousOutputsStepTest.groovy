@@ -54,12 +54,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         outputs.dir.createDir("some/notOutput2")
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupOverlappingOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -77,12 +77,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         outputs.fingerprint()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupOverlappingOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -97,12 +97,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         outputs.fingerprint()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupOverlappingOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -115,12 +115,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         outputs.createContents()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupExclusiveOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -134,12 +134,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         outputs.file.parentFile.mkdirs()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupExclusiveOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -148,20 +148,20 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
 
     def "does not cleanup outputs when build is incremental"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.incrementalExecution >> true
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
     def "does not cleanup outputs when work does not opt-in"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.incrementalExecution >> false
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> false
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
@@ -170,12 +170,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         outputs.createContents()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupExclusiveOutputs(outputs, false)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
