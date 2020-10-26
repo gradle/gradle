@@ -46,7 +46,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocation {
                 args(*jobArgs)
                 tasksToRun(*tasks)
-                gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
                 }
