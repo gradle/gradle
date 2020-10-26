@@ -27,28 +27,48 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.WorkNodeAction;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.ValueCalculator;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraphDependenciesResolver {
-    public static final ArtifactTransformDependencies MISSING_DEPENDENCIES = new ArtifactTransformDependencies() {
+public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
+    public static final ArtifactTransformDependencies NO_RESULT = new ArtifactTransformDependencies() {
         @Override
         public FileCollection getFiles() {
-            throw new IllegalStateException("Transform does not use artifact dependencies.");
+            throw failure();
         }
 
         @Override
         public CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter) {
             return fingerprinter.empty();
+        }
+    };
+    public static final TransformUpstreamDependencies NO_DEPENDENCIES = new TransformUpstreamDependencies() {
+        @Override
+        public FileCollection selectedArtifacts() {
+            throw failure();
+        }
+
+        @Override
+        public void finalizeIfNotAlready() {
+        }
+
+        @Override
+        public Try<ArtifactTransformDependencies> computeArtifacts() {
+            return Try.successful(NO_RESULT);
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
     };
 
@@ -57,10 +77,10 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     private final Factory<ResolverResults> artifactResults;
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
+    private Set<ComponentIdentifier> buildDependencies;
     private Set<ComponentIdentifier> dependencies;
-    private TaskDependencyContainer taskDependencies;
 
-    public DefaultExecutionGraphDependenciesResolver(ComponentIdentifier componentIdentifier, Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, DomainObjectContext owner, FilteredResultFactory filteredResultFactory) {
+    public DefaultTransformUpstreamDependenciesResolver(ComponentIdentifier componentIdentifier, Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, DomainObjectContext owner, FilteredResultFactory filteredResultFactory) {
         this.componentIdentifier = componentIdentifier;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
@@ -68,55 +88,33 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         this.filteredResultFactory = filteredResultFactory;
     }
 
-    @Override
-    public FileCollection selectedArtifacts(Transformer transformer) {
-        if (!transformer.requiresDependencies()) {
-            return MISSING_DEPENDENCIES.getFiles();
-        }
-        return selectedArtifacts(transformer.getFromAttributes());
+    private static IllegalStateException failure() {
+        return new IllegalStateException("Transform does not use artifact dependencies.");
     }
 
     @Override
-    public Try<ArtifactTransformDependencies> computeArtifacts(Transformer transformer) {
-        if (!transformer.requiresDependencies()) {
-            return Try.successful(MISSING_DEPENDENCIES);
+    public TransformUpstreamDependencies dependenciesFor(TransformationStep transformationStep) {
+        if (!transformationStep.requiresDependencies()) {
+            return NO_DEPENDENCIES;
         }
-        return resolvedArtifacts(transformer.getFromAttributes());
+        return new TransformUpstreamDependenciesImpl(transformationStep);
     }
 
-    private Try<ArtifactTransformDependencies> resolvedArtifacts(ImmutableAttributes fromAttributes) {
-        try {
-            FileCollection files = selectedArtifacts(fromAttributes);
-            // Trigger resolution, including any failures
-            files.getFiles();
-            return Try.successful(new DefaultArtifactTransformDependencies(files));
-        } catch (Exception e) {
-            return Try.failure(e);
-        }
-    }
-
-    private FileCollectionInternal selectedArtifacts(ImmutableAttributes fromAttributes) {
-        ResolverResults results = artifactResults.create();
+    private FileCollectionInternal selectedArtifactsFor(ImmutableAttributes fromAttributes) {
         if (dependencies == null) {
+            ResolverResults results = artifactResults.create();
             dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), false);
         }
         return filteredResultFactory.resultsMatching(fromAttributes, element -> dependencies.contains(element));
     }
 
-    @Override
-    public TaskDependencyContainer computeDependencyNodes(TransformationStep transformationStep) {
-        if (!transformationStep.requiresDependencies()) {
-            return TaskDependencyContainer.EMPTY;
+    private void computeDependenciesFor(ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
+        if (buildDependencies == null) {
+            ResolverResults results = graphResults.create();
+            buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
         }
-        if (taskDependencies == null) {
-            taskDependencies = context -> {
-                ResolverResults results = graphResults.create();
-                Set<ComponentIdentifier> buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
-                FileCollectionInternal files = filteredResultFactory.resultsMatching(transformationStep.getFromAttributes(), element -> buildDependencies.contains(element));
-                context.add(new FinalizeTransformDependencies(files, transformationStep));
-            };
-        }
-        return taskDependencies;
+        FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, element -> buildDependencies.contains(element));
+        context.add(files);
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
@@ -155,28 +153,73 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         }
     }
 
-    public class FinalizeTransformDependencies implements WorkNodeAction {
-        private final FileCollectionInternal files;
-        private final TransformationStep transformationStep;
+    public static abstract class FinalizeTransformDependencies implements ValueCalculator<ArtifactTransformDependencies> {
+        public abstract FileCollection selectedArtifacts();
 
-        public FinalizeTransformDependencies(FileCollectionInternal files, TransformationStep transformationStep) {
-            this.files = files;
-            this.transformationStep = transformationStep;
+        @Override
+        public ArtifactTransformDependencies calculateValue(NodeExecutionContext context) {
+            FileCollection files = selectedArtifacts();
+            // Trigger resolution, including any failures
+            files.getFiles();
+            return new DefaultArtifactTransformDependencies(files);
+        }
+    }
+
+    public class FinalizeTransformDependenciesFromSelectedArtifacts extends FinalizeTransformDependencies {
+        private final ImmutableAttributes fromAttributes;
+
+        public FinalizeTransformDependenciesFromSelectedArtifacts(ImmutableAttributes fromAttributes) {
+            this.fromAttributes = fromAttributes;
         }
 
         @Override
-        public Project getProject() {
+        public FileCollection selectedArtifacts() {
+            return selectedArtifactsFor(fromAttributes);
+        }
+
+        @Override
+        public boolean usesMutableProjectState() {
+            return owner.getProject() != null;
+        }
+
+        @Override
+        public Project getOwningProject() {
             return owner.getProject();
         }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(files);
+            computeDependenciesFor(fromAttributes, context);
+        }
+    }
+
+    private class TransformUpstreamDependenciesImpl implements TransformUpstreamDependencies {
+        private final CalculatedValueContainer<ArtifactTransformDependencies, FinalizeTransformDependencies> transformDependencies;
+        private final TransformationStep transformationStep;
+
+        public TransformUpstreamDependenciesImpl(TransformationStep transformationStep) {
+            this.transformationStep = transformationStep;
+            transformDependencies = CalculatedValueContainer.of(Describables.of("dependencies for", transformationStep), new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
         }
 
         @Override
-        public void run(NodeExecutionContext context) {
-            resolvedArtifacts(transformationStep.getFromAttributes());
+        public FileCollection selectedArtifacts() {
+            return selectedArtifactsFor(transformationStep.getFromAttributes());
+        }
+
+        @Override
+        public Try<ArtifactTransformDependencies> computeArtifacts() {
+            return transformDependencies.getValue();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(transformDependencies);
+        }
+
+        @Override
+        public void finalizeIfNotAlready() {
+            transformDependencies.calculateIfNotAlready(null);
         }
     }
 }

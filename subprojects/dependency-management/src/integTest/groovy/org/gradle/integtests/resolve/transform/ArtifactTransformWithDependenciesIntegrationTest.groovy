@@ -528,10 +528,10 @@ project(':common') {
 
         then:
         output.count("transform") == 3
-        outputContains("transform external test-1.2.jar")
-        outputContains("transform local test2-1.5.thing using [test-1.2.jar.external]")
-        outputContains("transform local test3-1.5.thing using [test-1.2.jar.external]")
-        outputContains("artifacts = [test2-1.5.thing.local (test:test2:1.5), test3-1.5.thing.local (test:test3:1.5)]")
+        output.count("transform external test-1.2.jar") == 1
+        output.count("transform local test2-1.5.thing using [test-1.2.jar.external]") == 1
+        output.count("transform local test3-1.5.thing using [test-1.2.jar.external]") == 1
+        output.count("artifacts = [test2-1.5.thing.local (test:test2:1.5), test3-1.5.thing.local (test:test3:1.5)]") == 1
 
         when:
         run(":resolveArtifacts")

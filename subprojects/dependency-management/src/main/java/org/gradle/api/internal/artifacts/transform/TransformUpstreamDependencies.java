@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,20 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.internal.Try;
 
-import java.util.Collection;
+public interface TransformUpstreamDependencies extends TaskDependencyContainer {
+    /**
+     * Returns a collection containing the future artifacts for the given transformation step.
+     */
+    FileCollection selectedArtifacts();
 
-public interface TransformationNodeRegistry {
-    TransformationNodeRegistry EMPTY = (artifactSet, transformation, dependenciesResolver) -> {
-        throw new UnsupportedOperationException();
-    };
+    /**
+     * Computes the finalized dependency artifacts for the given transformation step.
+     */
+    Try<ArtifactTransformDependencies> computeArtifacts();
 
-    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver);
+    void finalizeIfNotAlready();
 }

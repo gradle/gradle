@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -36,35 +37,39 @@ import java.util.Map;
 public abstract class AbstractTransformedArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source {
     private final ResolvedArtifactSet delegate;
     private final ImmutableAttributes targetVariantAttributes;
-    private final Transformation transformation;
-    private final TransformationNodeRegistry transformationNodeRegistry;
-    private final ExecutionGraphDependenciesResolver dependenciesResolver;
+    private final ImmutableList<BoundTransformationStep> steps;
 
     public AbstractTransformedArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         ImmutableAttributes targetVariantAttributes,
         Transformation transformation,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
     ) {
         this.delegate = delegate;
         this.targetVariantAttributes = targetVariantAttributes;
-        this.transformation = transformation;
-        this.transformationNodeRegistry = transformationNodeRegistry;
-        this.dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier);
+        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformation);
+        ImmutableList.Builder<BoundTransformationStep> builder = ImmutableList.builder();
+        transformation.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformationStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
+        this.steps = builder.build();
+    }
+
+    public AbstractTransformedArtifactSet(
+        ResolvedArtifactSet delegate,
+        ImmutableAttributes targetVariantAttributes,
+        ImmutableList<BoundTransformationStep> steps
+    ) {
+        this.delegate = delegate;
+        this.targetVariantAttributes = targetVariantAttributes;
+        this.steps = steps;
     }
 
     public ImmutableAttributes getTargetVariantAttributes() {
         return targetVariantAttributes;
     }
 
-    public Transformation getTransformation() {
-        return transformation;
-    }
-
-    public ExecutionGraphDependenciesResolver getDependenciesResolver() {
-        return dependenciesResolver;
+    public ImmutableList<BoundTransformationStep> getSteps() {
+        return steps;
     }
 
     @Override
@@ -75,10 +80,13 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         }
 
         // Isolate the transformation parameters, if not already done
-        transformation.isolateParameters();
+        for (BoundTransformationStep step : steps) {
+            step.getTransformation().isolateParametersIfNotAlready();
+            step.getUpstreamDependencies().finalizeIfNotAlready();
+        }
 
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver, transformationNodeRegistry));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(steps, actions, artifactResults));
         return new TransformCompletion(result, targetVariantAttributes, artifactResults);
     }
 

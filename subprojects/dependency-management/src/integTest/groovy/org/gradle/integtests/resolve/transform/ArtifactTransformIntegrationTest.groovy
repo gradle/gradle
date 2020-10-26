@@ -2119,12 +2119,8 @@ Found the following transforms:
         fails "resolve"
         then:
         Matcher<String> matchesCannotIsolate = matchesRegexp("Could not isolate parameters Custom\\\$Parameters_Decorated@.* of artifact transform Custom")
-        if (scheduled) {
-            failure.assertThatDescription(matchesCannotIsolate)
-        } else {
-            failure.assertHasDescription("Execution failed for task ':resolve'.")
-            failure.assertThatCause(matchesCannotIsolate)
-        }
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertThatCause(matchesCannotIsolate)
         failure.assertHasCause("Could not serialize value of type CustomType")
 
         where:
