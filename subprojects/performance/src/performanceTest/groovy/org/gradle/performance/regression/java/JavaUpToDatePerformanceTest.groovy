@@ -36,9 +36,8 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "up-to-date assemble (parallel #parallel)"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201022220054+0000"]
         runner.args += ["-Dorg.gradle.parallel=$parallel"]
 
         when:
@@ -58,7 +57,6 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "up-to-date assemble with local build cache enabled (parallel #parallel)"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ["6.7-20200824220048+0000"]
         runner.minimumBaseVersion = "3.5"

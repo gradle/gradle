@@ -95,29 +95,43 @@ public interface UnitOfWork extends Describable {
         return InputChangeTrackingStrategy.NONE;
     }
 
+    /**
+     * Capture the classloader of the work's implementation type.
+     * There can be more than one type reported by the work; additional types are considered in visitation order.
+     *
+     * TODO Move this to {@link #visitInputs(InputVisitor)}
+     */
     void visitImplementations(ImplementationVisitor visitor);
 
     interface ImplementationVisitor {
         void visitImplementation(Class<?> implementation);
         void visitImplementation(ImplementationSnapshot implementation);
-        void visitAdditionalImplementation(ImplementationSnapshot implementation);
     }
 
-    void visitInputProperties(InputPropertyVisitor visitor);
+    /**
+     * Visit all inputs of the work.
+     */
+    void visitInputs(InputVisitor visitor);
 
-    interface InputPropertyVisitor {
-        void visitInputProperty(String propertyName, IdentityKind identity, ValueSupplier value);
+    interface InputVisitor {
+        default void visitInputProperty(
+            String propertyName,
+            IdentityKind identity,
+            ValueSupplier value
+        ) {}
+
+        default void visitInputFileProperty(
+            String propertyName,
+            InputPropertyType type,
+            IdentityKind identity,
+            @Nullable Object value,
+            Supplier<CurrentFileCollectionFingerprint> fingerprinter
+        ) {}
     }
 
     interface ValueSupplier {
         @Nullable
         Object getValue();
-    }
-
-    void visitInputFileProperties(InputFilePropertyVisitor visitor);
-
-    interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String propertyName, InputPropertyType type, IdentityKind identity, @Nullable Object value, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
     }
 
     enum InputPropertyType {
@@ -158,22 +172,19 @@ public interface UnitOfWork extends Describable {
         NON_IDENTITY, IDENTITY
     }
 
-    void visitOutputProperties(File workspace, OutputPropertyVisitor visitor);
+    void visitOutputs(File workspace, OutputVisitor visitor);
 
-    interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents);
-    }
+    interface OutputVisitor {
+        default void visitOutputProperty(
+            String propertyName,
+            TreeType type,
+            File root,
+            FileCollection contents
+        ) {}
 
-    default void visitLocalState(LocalStateVisitor visitor) {}
+        default void visitLocalState(File localStateRoot) {}
 
-    interface LocalStateVisitor {
-        void visitLocalStateRoot(File localStateRoot);
-    }
-
-    default void visitDestroyableRoots(DestroyableVisitor visitor) {}
-
-    interface DestroyableVisitor {
-        void visitDestroyableRoot(File destroyableRoot);
+        default void visitDestroyable(File destroyableRoot) {}
     }
 
     default long markExecutionTime() {

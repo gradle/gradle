@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.NodeExecutionContext;
 
 /**
  * A series of {@link TransformationStep}s.
@@ -65,12 +64,6 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context) {
-        CacheableInvocation<TransformationSubject> invocation = first.createInvocation(subjectToTransform, dependenciesResolver, context);
-        return invocation.flatMap(intermediate -> second.createInvocation(intermediate, dependenciesResolver, context));
-    }
-
-    @Override
     public boolean requiresDependencies() {
         return first.requiresDependencies() || second.requiresDependencies();
     }
@@ -84,11 +77,5 @@ public class TransformationChain implements Transformation {
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
         first.visitTransformationSteps(action);
         second.visitTransformationSteps(action);
-    }
-
-    @Override
-    public void isolateParameters() {
-        first.isolateParameters();
-        second.isolateParameters();
     }
 }

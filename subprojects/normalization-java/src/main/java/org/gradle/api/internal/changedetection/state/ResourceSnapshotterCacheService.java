@@ -17,11 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 
 public interface ResourceSnapshotterCacheService {
     @Nullable
-    HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash);
+    HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash);
 }

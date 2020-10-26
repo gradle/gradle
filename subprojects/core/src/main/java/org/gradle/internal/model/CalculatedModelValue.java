@@ -45,7 +45,7 @@ public interface CalculatedModelValue<T> {
      * Updates the current value. The function is passed the current value or {@code null} if there is no value, and the function's return value is
      * used as the new value.
      *
-     * <p>The calling thread must own the mutable state from which the value is calculated (via {@link ModelContainer#withMutableState(Function)}). At most a single thread
+     * <p>The calling thread must own the mutable state from which the value is calculated (via {@link ModelContainer#fromMutableState(Function)}). At most a single thread
      * will run the update function at a given time. This additional guarantee is because the mutable state lock may be released
      * while the function is running or while waiting to access the value.
      */

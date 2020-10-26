@@ -210,7 +210,7 @@ let package = Package(
         lib2Repo?.close()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution and composite builds")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for Swift component with dependencies on libraries provided by included builds"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))

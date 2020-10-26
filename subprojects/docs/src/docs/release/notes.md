@@ -4,6 +4,7 @@ We would like to thank the following community contributors to this release of G
 
 [Jeff](https://github.com/mathjeff),
 [jdai8](https://github.com/jdai8),
+[David Burström](https://github.com/davidburstrom),
 [Björn Kautler](https://github.com/Vampire).
 
 <!-- 
@@ -50,6 +51,7 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
+<<<<<<< HEAD
 ### Compilation avoidance for Kotlin DSL scripts
 
 Until now, any changes to build logic in [buildSrc](userguide/organizing_gradle_projects.html#sec:build_sources) required all the build scripts in the project to be recompiled.
@@ -70,6 +72,23 @@ A non-ABI change can [eliminate build script recompilation altogether now](https
 While changes to `buildSrc` immediately affect the classpath of all the scripts, this improvement is more general and applies to changes in
 any jar on the scripts classpath that can be added by a plugin applied from an included build or added directly via `buildscript {}` block.
 
+### Improved cache hits when normalizing runtime classpaths
+
+For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first [normalizes](userguide/more_about_tasks.html#sec:configure_input_normalization) both inputs and then compares the result.
+
+Runtime classpath analysis now smartly inspects all properties files, ignoring changes to comments, whitespace, and differences in property order.  Moreover, you can selectively ignore properties that don't impact the runtime classpath.
+
+```
+normalization {
+    properties('**/build-info.properties') {
+        ignoreProperty('timestamp')
+    }
+}
+```
+
+This improves the likelihood of up-to-date and build cache hits when any properties file on the classpath is regenerated or only differs by unimportant values.
+
+See [the userguide](userguide/more_about_tasks.html#sec:property_file_normalization) for further information.
 
 ### Configuration cache improvements
 
@@ -85,6 +104,63 @@ In this release a number of core Gradle plugins got improved to support the conf
 * [`jacoco`](userguide/jacoco_plugin.html)
 
 See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
+
+## Dependency resolution improvements
+
+### Central declaration of repositories
+
+Traditionally in a Gradle build, repositories used for dependency resolution are declared in every project.
+However, in most cases, the same repositories should be used in every project of a single build.
+This led to the common pattern of using an `allprojects { ... }` block to declare the repositories.
+In Gradle 6.8, this pattern can be replaced with a conventional block in `settings.gradle(.kts)`:
+
+```
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+There are several advantages in using this new construct instead of using `allprojects` or repeating the declaration in every build script.
+
+Learn more by reading how to [declare repositories for the whole build](userguide/declaring_repositories.html#sub:centralized-repository-declaration).
+
+### Central declaration of component metadata rules
+
+[Component metadata rules](userguide/component_metadata_rules.html) are a powerful tool to fix bad metadata published on remote repositories.
+However, similarly to repositories, rules traditionnally had to be applied on each project.
+Starting from this release, it is possible to declare component metadata rules at a central place in `settings.gradle(.kts)`:
+
+```
+dependencyResolutionManagement {
+    components {
+        withModule('com.google.guava:guava', GuavaRule)
+    }
+}
+```
+
+You can learn more about declaring rules globally in the [user manual](userguide/component_metadata_rules.html#sec:rules_in_settings).
+
+### Consistent dependency resolution
+
+It's a common problem that the dependencies resolved for the runtime have different versions than the dependencies resolved for compile time.
+This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
+
+To mitigate this problem, Gradle now introduces an API which lets you declare consistency between dependency configurations.
+For example, in the Java ecosystem, you can write:
+
+```
+java {
+    consistentResolution {
+        useCompileClasspathVersions()
+    }
+}
+```
+
+which tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
+
+There are many options to configure this feature which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
 
 ## New features and usability improvements
 

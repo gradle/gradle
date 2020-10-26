@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.TaskInternal;
 
 import java.util.Collection;
 
@@ -29,4 +30,6 @@ public interface IncludedBuildTaskGraph {
     void awaitTaskCompletion(Collection<? super Throwable> taskFailures);
 
     IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath);
+
+    TaskInternal getTask(BuildIdentifier targetBuild, String taskPath);
 }

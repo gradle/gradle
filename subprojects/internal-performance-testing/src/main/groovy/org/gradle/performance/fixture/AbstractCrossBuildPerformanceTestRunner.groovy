@@ -80,10 +80,6 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         measuredBuildOperations << operation
     }
 
-    List<String> getProjectMemoryOptions() {
-        TestProjects.getProjectMemoryOptions(testProject)
-    }
-
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.measuredBuildOperations.addAll(measuredBuildOperations)
         builder.measureGarbageCollection(measureGarbageCollection)
@@ -131,8 +127,8 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         assert !specs.empty
         assert testId
 
-        // TODO: Make sure cross build scenarios only run on one test project
         Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
+        TestProjects.validateTestProject(testProject)
 
         def results = newResult()
 

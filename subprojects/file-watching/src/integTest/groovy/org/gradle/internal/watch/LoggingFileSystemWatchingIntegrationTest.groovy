@@ -37,12 +37,22 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         then:
         !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
+        result.output =~ /VFS> Statistics since last build:/
+        result.output =~ /VFS> > Stat: Executed stat\(\) x 0. getUnixMode\(\) x 0/
+        result.output =~ /VFS> > FileHasher: Hashed 0 files \(0 bytes\)/
+        result.output =~ /VFS> > DirectorySnapshotter: Snapshot 0 directory hierarchies \(visited 0 directories, 0 files and 0 failed files\)/
         result.output =~ /Received \d+ file system events during the current build while watching \d+ hierarchies/
         result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
+        result.output =~ /VFS> Statistics during current build:/
+        result.output =~ /VFS> > Stat: Executed stat\(\) x .*. getUnixMode\(\) x .*/
+        result.output =~ /VFS> > FileHasher: Hashed .* files \(.* bytes\)/
+        result.output =~ /VFS> > DirectorySnapshotter: Snapshot .* directory hierarchies \(visited .* directories, .* files and .* failed files\)/
 
         when:
         withWatchFs().run("assemble", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true")
         then:
+        result.output =~ /VFS> Statistics since last build:/
+        result.output =~ /VFS> Statistics during current build:/
         result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/
         result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/
         result.output =~ /Received \d+ file system events during the current build while watching \d+ hierarchies/
@@ -51,6 +61,8 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         when:
         withWatchFs().run("assemble", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=false")
         then:
+        !(result.output =~ /VFS> Statistics since last build:/)
+        !(result.output =~ /VFS> Statistics during current build:/)
         !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
         !(result.output =~ /Received \d+ file system events during the current build while watching \d+ hierarchies/)

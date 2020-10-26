@@ -19,6 +19,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -35,8 +36,8 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     private final IncludedBuildControllers includedBuilds;
 
     public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds) {
-            this.includedBuilds = includedBuilds;
-        }
+        this.includedBuilds = includedBuilds;
+    }
 
     @Override
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
@@ -45,7 +46,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
             checkNoCycles(requestingBuild, targetBuild, newArrayList());
         }
 
-        getBuildController(targetBuild).queueForExecution(taskPath);
+        buildControllerFor(targetBuild).queueForExecution(taskPath);
     }
 
     @Override
@@ -59,11 +60,15 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
 
     @Override
     public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
-        IncludedBuildController controller = getBuildController(targetBuild);
-        return controller.getTaskState(taskPath);
+        return buildControllerFor(targetBuild).getTaskState(taskPath);
     }
 
-    private IncludedBuildController getBuildController(BuildIdentifier buildId) {
+    @Override
+    public TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
+        return buildControllerFor(targetBuild).getTask(taskPath);
+    }
+
+    private IncludedBuildController buildControllerFor(BuildIdentifier buildId) {
         return includedBuilds.getBuildController(buildId);
     }
 

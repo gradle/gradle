@@ -42,7 +42,6 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def setupGradleOpts() {
-        runner.gradleOpts = runner.projectMemoryOptions
         useG1GarbageCollectorOnJava8(runner)
     }
 

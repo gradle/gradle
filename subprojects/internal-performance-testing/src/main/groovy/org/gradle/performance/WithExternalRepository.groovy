@@ -30,7 +30,7 @@ trait WithExternalRepository {
     int serverPort
 
     File getRepoDir() {
-        new File(new TestProjectLocator().findProjectDir(runner.testProject), 'repository')
+        new File(TestProjectLocator.findProjectDir(runner.testProject), 'repository')
     }
 
     abstract CrossVersionPerformanceTestRunner getRunner()

@@ -26,7 +26,9 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.initialization.DependencyResolutionManagement;
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
+import org.gradle.api.initialization.resolve.RepositoriesMode;
+import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -39,6 +41,8 @@ import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -54,16 +58,19 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     private final Lazy<DependencyResolutionServices> dependencyResolutionServices;
     private final UserCodeApplicationContext context;
     private final ComponentMetadataHandler registar = new ComponentMetadataRulesRegistar();
+    private final Property<RepositoriesMode> repositoryMode;
+    private final Property<RulesMode> rulesMode;
     private boolean mutable = true;
-    private RepositoryMode repositoryMode = RepositoryMode.PREFER_PROJECT;
-    private RulesMode rulesMode = RulesMode.PREFER_PROJECT;
 
     public DefaultDependencyResolutionManagement(UserCodeApplicationContext context,
                                                  DependencyManagementServices dependencyManagementServices,
                                                  FileResolver fileResolver,
                                                  FileCollectionFactory fileCollectionFactory,
-                                                 DependencyMetaDataProvider dependencyMetaDataProvider) {
+                                                 DependencyMetaDataProvider dependencyMetaDataProvider,
+                                                 ObjectFactory objects) {
         this.context = context;
+        this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
+        this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
         this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
     }
 
@@ -89,39 +96,33 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
-    public RepositoryMode getRepositoryMode() {
+    public Property<RepositoriesMode> getRepositoriesMode() {
         return repositoryMode;
     }
 
     @Override
-    public void preferProjectRules() {
-        assertMutable();
-        this.rulesMode = RulesMode.PREFER_PROJECT;
-    }
-
-    @Override
-    public void preferSettingsRules() {
-        assertMutable();
-        this.rulesMode = RulesMode.PREFER_SETTINGS;
-    }
-
-    @Override
-    public void enforceSettingsRules() {
-        assertMutable();
-        this.rulesMode = RulesMode.FAIL_ON_PROJECT_RULES;
-    }
-
-    @Override
-    public RulesMode getRulesMode() {
+    public Property<RulesMode> getRulesMode() {
         return rulesMode;
     }
 
     @Override
+    public RepositoriesModeInternal getConfiguredRepositoriesMode() {
+        repositoryMode.finalizeValue();
+        return RepositoriesModeInternal.of(repositoryMode.get());
+    }
+
+    @Override
+    public RulesModeInternal getConfiguredRulesMode() {
+        rulesMode.finalizeValue();
+        return RulesModeInternal.of(rulesMode.get());
+    }
+
+    @Override
     public void configureProject(ProjectInternal project) {
-        if (!repositoryMode.useProjectRepositories()) {
+        if (!getConfiguredRepositoriesMode().useProjectRepositories()) {
             project.getRepositories().whenObjectAdded(this::repoMutationDisallowedOnProject);
         }
-        if (!rulesMode.useProjectRules()) {
+        if (!getConfiguredRulesMode().useProjectRules()) {
             ComponentMetadataHandlerInternal components = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
             components.onAddRule(this::ruleMutationDisallowedOnProject);
         }
@@ -152,7 +153,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
             displayName = UNKNOWN_CODE;
         }
         String message = "Build was configured to prefer settings repositories over project repositories but repository '" + artifactRepository.getName() + "' was added by " + displayName;
-        switch (repositoryMode) {
+        switch (getConfiguredRepositoriesMode()) {
             case FAIL_ON_PROJECT_REPOS:
                 throw new InvalidUserCodeException(message);
             case PREFER_SETTINGS:
@@ -168,31 +169,13 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
             displayName = UNKNOWN_CODE;
         }
         String message = "Build was configured to prefer settings component metadata rules over project rules but rule '" + ruleName + "' was added by " + displayName;
-        switch (rulesMode) {
+        switch (getConfiguredRulesMode()) {
             case FAIL_ON_PROJECT_RULES:
                 throw new InvalidUserCodeException(message);
             case PREFER_SETTINGS:
                 LOGGER.warn(message);
                 break;
         }
-    }
-
-    @Override
-    public void preferProjectRepositories() {
-        assertMutable();
-        repositoryMode = RepositoryMode.PREFER_PROJECT;
-    }
-
-    @Override
-    public void preferSettingsRepositories() {
-        assertMutable();
-        repositoryMode = RepositoryMode.PREFER_SETTINGS;
-    }
-
-    @Override
-    public void enforceSettingsRepositories() {
-        assertMutable();
-        repositoryMode = RepositoryMode.FAIL_ON_PROJECT_REPOS;
     }
 
     private static ProjectFinder makeUnknownProjectFinder() {

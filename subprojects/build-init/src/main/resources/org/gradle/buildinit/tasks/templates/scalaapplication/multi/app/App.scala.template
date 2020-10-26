@@ -4,9 +4,12 @@
 ${packageDecl.statement}
 import ${basePackageName.raw}.utilities.StringUtils
 
+import org.apache.commons.text.WordUtils
+
 object App {
    def main(args: Array[String]): Unit = {
         val tokens = StringUtils.split(MessageUtils.getMessage())
-        println(StringUtils.join(tokens))
+        val result = StringUtils.join(tokens)
+        println(WordUtils.capitalize(result))
     }
 }

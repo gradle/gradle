@@ -70,7 +70,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         assertWatchableHierarchies([ImmutableSet.of(testDirectory)] * 2)
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite build not yet supported")
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {

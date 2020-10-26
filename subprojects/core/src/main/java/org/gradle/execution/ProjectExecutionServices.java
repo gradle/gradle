@@ -173,7 +173,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             fileCollectionSnapshotter,
             inputNormalizationHandler.getRuntimeClasspath().getClasspathResourceFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
-            inputNormalizationHandler.getRuntimeClasspath().getManifestPropertyResourceEntryFilter(),
+            inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner
         );
     }

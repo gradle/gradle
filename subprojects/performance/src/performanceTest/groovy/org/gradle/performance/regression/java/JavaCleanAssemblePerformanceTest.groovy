@@ -30,7 +30,6 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
 
     def "clean assemble"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.warmUpRuns = 2
         runner.runs = 6
         runner.tasksToRun = ["clean", "assemble"]

@@ -44,7 +44,7 @@ class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceT
         runner.minimumBaseVersion = "6.7"
         runner.targetVersions = ["6.8-20201007220043+0000"]
         runner.useToolingApi = true
-        runner.args = ["-Dorg.gradle.workers.max=8", "--no-build-cache", "--no-scan"]
+        runner.args = ["--no-build-cache", "--no-scan"]
         if (OperatingSystem.current().windows) {
             // Reduce the number of iterations on Windows, since the test takes 3 times as long (10s vs 3s).
             runner.warmUpRuns = 5

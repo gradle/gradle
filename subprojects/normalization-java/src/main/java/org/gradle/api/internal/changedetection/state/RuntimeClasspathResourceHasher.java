@@ -22,7 +22,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -36,8 +35,8 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        return fileSnapshot.getHash();
+    public HashCode hash(RegularFileSnapshotContext fileSnapshotContext) {
+        return fileSnapshotContext.getSnapshot().getHash();
     }
 
     @Override

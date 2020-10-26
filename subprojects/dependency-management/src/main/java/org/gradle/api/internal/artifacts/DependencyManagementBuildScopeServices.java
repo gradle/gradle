@@ -127,6 +127,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -206,13 +207,15 @@ class DependencyManagementBuildScopeServices {
                                                                                     DependencyManagementServices dependencyManagementServices,
                                                                                     FileResolver fileResolver,
                                                                                     FileCollectionFactory fileCollectionFactory,
-                                                                                    DependencyMetaDataProvider dependencyMetaDataProvider) {
+                                                                                    DependencyMetaDataProvider dependencyMetaDataProvider,
+                                                                                    ObjectFactory objects) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
-            dependencyMetaDataProvider);
+            dependencyMetaDataProvider,
+            objects);
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {

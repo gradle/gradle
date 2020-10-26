@@ -170,7 +170,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
         IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(builder, AGP_TARGET_VERSION)
         builder.invocation.args(
-            "-Dorg.gradle.workers.max=8",
             "--no-build-cache",
             "--no-scan"
         )

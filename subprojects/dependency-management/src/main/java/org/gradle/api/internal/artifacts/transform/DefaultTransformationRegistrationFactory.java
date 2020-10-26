@@ -142,7 +142,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
-            null,
             from,
             FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
             FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
@@ -155,7 +154,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             fileLookup,
             parametersPropertyWalker,
             actionInstantiationScheme,
-            owner.getModel(),
+            owner,
+            fileCollectionFingerprinterRegistry,
             internalServices);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, fileCollectionFingerprinterRegistry));

@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.Set;
 
+import static java.lang.String.format;
+
 /**
  * <p>A {@link TaskDependencyResolveContext} which caches the dependencies for each {@link
  * org.gradle.api.tasks.TaskDependency} and {@link org.gradle.api.Buildable} instance during traversal of task
@@ -66,7 +68,7 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             walker.add(dependencies);
             return walker.findValues();
         } catch (Exception e) {
-            throw new TaskDependencyResolveException(String.format("Could not determine the dependencies of %s.", task), e);
+            throw new TaskDependencyResolveException(format("Could not determine the dependencies of %s.", task), e);
         } finally {
             queue.clear();
             this.task = null;
@@ -134,8 +136,11 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
                 }
             }
             throw new IllegalArgumentException(
-                String.format("Cannot resolve object of unknown type %s to a Task.",
-                    node.getClass().getSimpleName()));
+                format(
+                    "Cannot resolve object of unknown type %s to a Task.",
+                    node.getClass().getSimpleName()
+                )
+            );
         }
     }
 }

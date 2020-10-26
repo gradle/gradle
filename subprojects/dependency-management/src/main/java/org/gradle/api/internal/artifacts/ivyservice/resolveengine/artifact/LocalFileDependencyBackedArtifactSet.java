@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.Transformation;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -129,7 +128,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     @Override
     public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, targetAttributes, transformation, dependenciesResolver, TransformationNodeRegistry.EMPTY);
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, targetAttributes, transformation, dependenciesResolver);
     }
 
     @Override
@@ -240,12 +239,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
      */
     private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
         private final SingletonFileResolvedVariant delegate;
-        private final Transformation transformation;
 
-        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, ImmutableAttributes attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
-            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
+        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, ImmutableAttributes attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver) {
+            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver);
             this.delegate = delegate;
-            this.transformation = transformation;
         }
 
         public ComponentIdentifier getOwnerId() {
@@ -254,10 +251,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         public File getFile() {
             return delegate.getFile();
-        }
-
-        public Transformation getTransformation() {
-            return transformation;
         }
 
         public DisplayName getTargetVariantName() {

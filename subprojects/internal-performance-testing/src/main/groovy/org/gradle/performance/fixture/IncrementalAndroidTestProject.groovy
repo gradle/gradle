@@ -28,14 +28,12 @@ class IncrementalAndroidTestProject extends AndroidTestProject implements Increm
 
     static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
-        memory: '1g',
         pathToChange: 'common/src/main/java/com/google/android/apps/santatracker/AudioPlayer.kt',
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )
 
     static final SANTA_TRACKER_JAVA = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidJavaBuild',
-        memory: '1g',
         pathToChange: 'village/src/main/java/com/google/android/apps/santatracker/village/SnowFlake.java',
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )

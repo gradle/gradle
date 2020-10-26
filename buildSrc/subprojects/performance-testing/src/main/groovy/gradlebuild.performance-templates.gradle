@@ -52,18 +52,20 @@ performanceTest.registerTestProject("withVerboseTestNG", JvmProjectGeneratorTask
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-testng'
+    daemonMemory = '256m'
 }
 performanceTest.registerTestProject("withVerboseJUnit", JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-junit'
+    daemonMemory = '256m'
 }
 
 //TODO replace with direct task objects creation in test
 performanceTest.registerTestProject("createLotsOfTasks", JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 0
-    subProjectTemplates = ['task-creation']
+    subProjectTemplates = ['task-creation', 'gradle-properties']
     templateArgs = [
         taskCount: 15000
     ]
@@ -72,6 +74,7 @@ performanceTest.registerTestProject("createLotsOfTasks", JvmProjectGeneratorTask
     }
 
     numberOfExternalDependencies = 0
+    daemonMemory = '1G'
 }
 
 performanceTest.registerTestProject("generateLotsOfDeprecationWarnings", Copy) {
@@ -84,9 +87,11 @@ performanceTest.registerTestProject("generateLotsOfDeprecationWarnings", Copy) {
 performanceTest.registerTestProject("ktsManyProjects", KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
+    daemonMemory = '512m'
 }
 
 performanceTest.registerTestProject("ktsSmall", KtsProjectGeneratorTask) {
+    daemonMemory = '512m'
 }
 
 // === Native Software Model ===
@@ -97,7 +102,8 @@ performanceTest.registerTestProject("smallNative", NativeProjectGeneratorTask) {
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-source', 'native-component']
+    subProjectTemplates = ['native-source', 'native-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumNative", NativeProjectGeneratorTask) {
@@ -107,7 +113,8 @@ performanceTest.registerTestProject("mediumNative", NativeProjectGeneratorTask) 
         moduleCount: 1,
         functionCount: 20
     ]
-    subProjectTemplates = ['native-source', 'native-component']
+    subProjectTemplates = ['native-source', 'native-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigNative", NativeProjectGeneratorTask) {
@@ -117,7 +124,8 @@ performanceTest.registerTestProject("bigNative", NativeProjectGeneratorTask) {
         moduleCount: 1,
         functionCount: 50
     ]
-    subProjectTemplates = ['native-source', 'native-component']
+    subProjectTemplates = ['native-source', 'native-component', 'gradle-properties']
+    daemonMemory = '1G'
 }
 
 performanceTest.registerTestProject("multiNative", NativeProjectGeneratorTask) {
@@ -128,6 +136,7 @@ performanceTest.registerTestProject("multiNative", NativeProjectGeneratorTask) {
         functionCount: 20
     ]
     subProjectTemplates = ['native-source', 'native-component']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("manyProjectsNative", NativeProjectGeneratorTask) {
@@ -138,6 +147,8 @@ performanceTest.registerTestProject("manyProjectsNative", NativeProjectGenerator
         functionCount: 1
     ]
     subProjectTemplates = ['native-source', 'native-component']
+    daemonMemory = '1G'
+    maxWorkers = 12
 }
 
 performanceTest.registerTestProject("smallPCHNative", NativeProjectGeneratorTask) {
@@ -147,7 +158,8 @@ performanceTest.registerTestProject("smallPCHNative", NativeProjectGeneratorTask
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+    subProjectTemplates = ['native-pch-source', 'native-pch-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumPCHNative", NativeProjectGeneratorTask) {
@@ -157,7 +169,8 @@ performanceTest.registerTestProject("mediumPCHNative", NativeProjectGeneratorTas
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+    subProjectTemplates = ['native-pch-source', 'native-pch-component', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigPCHNative", NativeProjectGeneratorTask) {
@@ -167,7 +180,8 @@ performanceTest.registerTestProject("bigPCHNative", NativeProjectGeneratorTask) 
         moduleCount: 1,
         functionCount: 1
     ]
-    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+    subProjectTemplates = ['native-pch-source', 'native-pch-component', 'gradle-properties']
+    daemonMemory = '1G'
 }
 
 performanceTest.registerTestProject("nativeMonolithicOverlapping", MonolithicNativeProjectGeneratorTask) {
@@ -176,24 +190,28 @@ performanceTest.registerTestProject("nativeMonolithicOverlapping", MonolithicNat
     // number of source files to generate in each project of each type
     // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
     sourceFiles = 200
+    daemonMemory = '2560m'
 }
 
 performanceTest.registerTestProject("nativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 100
     sourceFiles = 200
+    daemonMemory = '2560m'
 }
 
 performanceTest.registerTestProject("smallNativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 2
     sourceFiles = 100
+    daemonMemory = '512m'
 }
 
 performanceTest.registerTestProject("mediumNativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 10
     sourceFiles = 200
+    daemonMemory = '512m'
 }
 
 ["nativeMonolithicOverlapping", "nativeMonolithic", "smallNativeMonolithic", "mediumNativeMonolithic"].collect { tasks.withType(MonolithicNativeProjectGeneratorTask).named(it) }*.configure {
@@ -209,20 +227,23 @@ performanceTest.registerTestProject("mediumNativeMonolithic", MonolithicNativePr
         // number of 'common' headers each source file includes
         includedCommonHeaderCount: 10,
     ]
-    rootProjectTemplates = ['native-monolithic']
+    rootProjectTemplates = ['native-monolithic', 'gradle-properties']
     subProjectTemplates = []
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
+    maxWorkers = 12
 }
 
 performanceTest.registerTestProject("nativeDependents", NativeProjectWithDepsGeneratorTask) {
     resources.from(fileTree(resolveTemplate("native-dependents-resources")))
     resources.from(resolveTemplate("init.gradle"))
+    daemonMemory = '3G'
 }
 
 performanceTest.registerTestProject("nativeDependentsDeep", NativeProjectWithDepsGeneratorTask) {
     resources.from(fileTree(resolveTemplate("native-dependents-resources")))
     resources.from(resolveTemplate("init.gradle"))
     generateDeepHierarchy = true
+    daemonMemory = '3G'
 }
 
 // === Native Current Model Plugins ===
@@ -232,7 +253,8 @@ performanceTest.registerTestProject("smallCppApp", CppMultiProjectGeneratorTask)
     templateArgs = [
         functionCount: 2
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppApp", CppMultiProjectGeneratorTask) {
@@ -241,7 +263,8 @@ performanceTest.registerTestProject("mediumCppApp", CppMultiProjectGeneratorTask
     templateArgs = [
         functionCount: 20
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppAppWithMacroIncludes", CppMultiProjectGeneratorTask) {
@@ -252,7 +275,8 @@ performanceTest.registerTestProject("mediumCppAppWithMacroIncludes", CppMultiPro
         useMacroIncludes: true
 
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigCppApp", CppMultiProjectGeneratorTask) {
@@ -261,7 +285,8 @@ performanceTest.registerTestProject("bigCppApp", CppMultiProjectGeneratorTask) {
     templateArgs = [
         functionCount: 50
     ]
-    subProjectTemplates = ['cpp-source', 'cpp-project']
+    subProjectTemplates = ['cpp-source', 'cpp-project', 'gradle-properties']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("smallCppMulti", CppMultiProjectGeneratorTask) {
@@ -271,6 +296,7 @@ performanceTest.registerTestProject("smallCppMulti", CppMultiProjectGeneratorTas
         functionCount: 1
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppMulti", CppMultiProjectGeneratorTask) {
@@ -280,6 +306,7 @@ performanceTest.registerTestProject("mediumCppMulti", CppMultiProjectGeneratorTa
         functionCount: 2
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("mediumCppMultiWithMacroIncludes", CppMultiProjectGeneratorTask) {
@@ -290,6 +317,7 @@ performanceTest.registerTestProject("mediumCppMultiWithMacroIncludes", CppMultiP
         useMacroIncludes: true
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '256m'
 }
 
 performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask) {
@@ -299,6 +327,7 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
         functionCount: 3
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+    daemonMemory = '1G'
 }
 
 // Build-builder projects
@@ -324,6 +353,12 @@ performanceTest.registerTestProject("mediumSwiftMulti", BuildBuilderGenerator) {
     projects = 100
     sourceFiles = 4
     description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
+    doLast {
+        def projectDirectory = generatedDir.get().asFile
+        setMaxWorkers(projectDirectory, 6)
+        setMaxHeap(projectDirectory, "1G")
+        setParallel(projectDirectory, true)
+    }
 }
 
 performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
@@ -333,7 +368,11 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
     description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
 
     doLast {
-        def buildFile = generatedDir.file("build.gradle").get().asFile
+        def projectDirectory = generatedDir.get().asFile
+        setMaxWorkers(projectDirectory, 6)
+        setMaxHeap(projectDirectory, "1G")
+        setParallel(projectDirectory, true)
+        def buildFile = new File(projectDirectory, "build.gradle")
         buildFile << """
             tasks.withType(SwiftCompile) {
                 compilerArgs.addAll provider {
@@ -349,6 +388,9 @@ performanceTest.registerTestProject("k9AndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
     // From android-31 branch
     ref = "d9776762e7da63cd9b2925efa2b7d8bcdc373600"
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
 }
 
 performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
@@ -360,7 +402,7 @@ performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
 performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0
-    ref = '3122343674246eaa56a5dd6365ea137edb021780'
+    ref = '9855911d336f77db708540ce936c3ea0321e3ddb'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -369,10 +411,25 @@ performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
 performanceTest.registerTestProject("santaTrackerAndroidJavaBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0-java
-    ref = 'd8543e51ac5a4803a8ac57f0639229736f11e0a8'
+    ref = 'e40ae59e5e5342cad4f8288c1bd46d69267d7156'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
+}
+
+private void setMaxWorkers(File projectDirectory, int maxWorkers) {
+    new File(projectDirectory, "gradle.properties") << "\norg.gradle.workers.max=${maxWorkers}\n"
+
+}
+
+private void setMaxHeap(File projectDirectory, String maxHeap) {
+    new File(projectDirectory, "gradle.properties") << "\norg.gradle.jvmargs=-Xmx${maxHeap}\n"
+
+}
+
+private void setParallel(File projectDirectory, boolean parallel) {
+    new File(projectDirectory, "gradle.properties") << "\norg.gradle.parallel=${parallel}\n"
+
 }
 
 private void addGoogleServicesJson(File outputDirectory) {
@@ -456,21 +513,21 @@ private void addGoogleServicesJson(File outputDirectory) {
 performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
+    ref = "3b5a0ddbf3c598d939f3047cffc440810d788e5e"
     subdirectory = 'exclude-merging'
 }
 
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "cbfe4c63fa570200624575c75bafb556d3eb4bdd"
+    ref = "e9fdc0afef15efc082f1712865e92312125ba6d0"
     subdirectory = 'parallel-downloads'
 }
 
 performanceTest.registerTestProject("largeNativeBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
     // From master branch
-    ref = "71c9ea2616677a09515aef34365993dd368ca19e"
+    ref = "af00fd258fbe9c7d274f386e46847fe12062cc71"
     finalizedBy 'largeNativeBuildPrebuilt'
 }
 

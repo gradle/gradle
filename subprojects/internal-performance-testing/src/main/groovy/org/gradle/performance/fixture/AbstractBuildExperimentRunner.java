@@ -111,7 +111,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
 
     private static void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
         try {
-            File templateDir = new TestProjectLocator().findProjectDir(experiment.getProjectName());
+            File templateDir = TestProjectLocator.findProjectDir(experiment.getProjectName());
             FileUtils.cleanDirectory(workingDir);
             FileUtils.copyDirectory(templateDir, workingDir);
         } catch (IOException ex) {
