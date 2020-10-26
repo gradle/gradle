@@ -17,11 +17,14 @@
 package org.gradle.integtests.resolve.central
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest implements PluginDslSupport {
 
@@ -479,5 +482,71 @@ $pluginId="$pluginVersion"
 
         then:
         outputContains message
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.configCache })
+    // This test explicitly checks the configuration cache behavior
+    def "changing the TOML file invalidates the configuration cache"() {
+        def cc = newConfigurationCacheFixture()
+        tomlFile << """[dependencies]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile.text = """
+            plugins {
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation libs.myLib
+            }
+
+            tasks.register("checkDeps", CheckDeps) {
+                input.from(configurations.runtimeClasspath)
+            }
+
+            class CheckDeps extends DefaultTask {
+                @InputFiles
+                final ConfigurableFileCollection input = project.objects.fileCollection()
+
+                @TaskAction
+                void doSomething() {
+                    println input.files.name
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        withConfigurationCache()
+        succeeds ':checkDeps'
+
+        then:
+        cc.assertStateStored()
+
+        when:
+        withConfigurationCache()
+        succeeds ':checkDeps'
+
+        then:
+        cc.assertStateLoaded()
+
+        when:
+        tomlFile << """
+my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
+"""
+        withConfigurationCache()
+        succeeds ':checkDeps'
+
+        then:
+        cc.assertStateStored()
+        outputContains "Calculating task graph as configuration cache cannot be reused because file 'gradle${File.separatorChar}dependencies.toml' has changed."
+    }
+
+    private GradleExecuter withConfigurationCache() {
+        executer.withArgument("--configuration-cache")
     }
 }
