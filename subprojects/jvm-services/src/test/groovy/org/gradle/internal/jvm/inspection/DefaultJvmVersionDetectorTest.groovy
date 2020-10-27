@@ -22,7 +22,7 @@ import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
 class DefaultJvmVersionDetectorTest extends Specification {
-    def detector = new DefaultJvmVersionDetector(TestFiles.execHandleFactory())
+    def detector = new DefaultJvmVersionDetector(new DefaultJvmMetadataDetector(TestFiles.execHandleFactory()))
 
     def "can determine version of current jvm"() {
         expect:
