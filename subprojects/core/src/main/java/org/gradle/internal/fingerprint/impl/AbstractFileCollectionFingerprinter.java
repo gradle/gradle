@@ -44,8 +44,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        List<FileSystemSnapshot> roots = fileCollectionSnapshotter.snapshot(files);
-        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
+        return fingerprint(fileCollectionSnapshotter.snapshot(files));
     }
 
     @Override
