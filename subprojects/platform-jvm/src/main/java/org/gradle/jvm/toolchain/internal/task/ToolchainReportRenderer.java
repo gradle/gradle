@@ -18,11 +18,12 @@ package org.gradle.jvm.toolchain.internal.task;
 
 import com.google.common.base.Strings;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 
 import java.util.List;
 
+import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
@@ -31,12 +32,12 @@ public class ToolchainReportRenderer extends TextReportRenderer {
 
     public void printToolchain(ReportableToolchain toolchain) {
         StyledTextOutput output = getTextOutput();
-        JavaInstallationProbe.ProbeResult probe = toolchain.probe;
-        String displayName = probe.getImplementationName() + " " + probe.getImplementationJavaVersion();
-        output.withStyle(Identifier).println(" + " + displayName);
-        printAttribute("Location", probe.getJavaHome().toString());
-        printAttribute("Language Version", probe.getJavaVersion().getMajorVersion());
-        printAttribute("Is JDK", String.valueOf(probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK));
+        JvmInstallationMetadata metadata = toolchain.metadata;
+        String displayName = metadata.getDisplayName();
+        output.withStyle(Identifier).println(" + " + displayName + " " + metadata.getImplementationVersion());
+        printAttribute("Location", metadata.getJavaHome().toString());
+        printAttribute("Language Version", metadata.getLangageVersion().getMajorVersion());
+        printAttribute("Is JDK", String.valueOf(metadata.getCapabilities().contains(JAVA_COMPILER)));
         printAttribute("Detected by", toolchain.location.getSource());
         output.println();
     }
@@ -52,10 +53,11 @@ public class ToolchainReportRenderer extends TextReportRenderer {
             StyledTextOutput output = getTextOutput();
             output.withStyle(Identifier).println(" + Invalid toolchains");
             for (ReportableToolchain toolchain : invalidToolchains) {
-                JavaInstallationProbe.ProbeResult probe = toolchain.probe;
-                final String paddedErrorType = Strings.padEnd(probe.getInstallType().name() + ":", 20, ' ');
-                getTextOutput().withStyle(Normal).format("     - %s", paddedErrorType);
-                getTextOutput().withStyle(Description).println(probe.getError());
+                JvmInstallationMetadata metadata = toolchain.metadata;
+                output.withStyle(Identifier).println("     + " + metadata.getJavaHome());
+                final String paddedErrorType = Strings.padEnd("Error:", 20, ' ');
+                getTextOutput().withStyle(Normal).format("       | %s", paddedErrorType);
+                getTextOutput().withStyle(Description).println(metadata.getErrorMessage());
             }
             output.println();
         }

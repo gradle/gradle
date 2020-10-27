@@ -18,10 +18,11 @@ package org.gradle.jvm.toolchain.internal.task;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 
 import javax.inject.Inject;
@@ -30,14 +31,11 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType;
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.ProbeResult;
-
 public class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
-        .<ReportableToolchain, String>comparing(t -> t.probe.getImplementationName())
-        .thenComparing(t -> t.probe.getJavaVersion());
+        .<ReportableToolchain, String>comparing(t -> t.metadata.getDisplayName())
+        .thenComparing(t -> t.metadata.getLangageVersion());
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
@@ -65,10 +63,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private Predicate<? super ReportableToolchain> isValidToolchain() {
-        return t -> {
-            InstallType installType = t.probe.getInstallType();
-            return installType == InstallType.IS_JDK || installType == InstallType.IS_JRE;
-        };
+        return t -> t.metadata.isValidInstallation();
     }
 
     private List<ReportableToolchain> allReportableToolchains() {
@@ -78,8 +73,8 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        ProbeResult result = getProbeService().checkJdk(location.getLocation());
-        return new ReportableToolchain(result, location);
+        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location.getLocation());
+        return new ReportableToolchain(metadata, location);
     }
 
     @Inject
@@ -88,7 +83,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     @Inject
-    protected JavaInstallationProbe getProbeService() {
+    protected JvmMetadataDetector getMetadataDetector() {
         throw new UnsupportedOperationException();
     }
 
