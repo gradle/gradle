@@ -22,14 +22,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.resources.ResourceDeadlockException;
@@ -49,6 +44,7 @@ public class LocalTaskNode extends TaskNode {
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
+    private TaskProperties taskProperties;
 
     public LocalTaskNode(TaskInternal task) {
         this.task = task;
@@ -95,6 +91,10 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public Action<? super Task> getPostAction() {
         return postAction;
+    }
+
+    public TaskProperties getTaskProperties() {
+        return taskProperties;
     }
 
     @Override
@@ -190,58 +190,38 @@ public class LocalTaskNode extends TaskNode {
         final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
-                @Override
-                public void visitOutputFileProperty(final String propertyName, boolean optional, final PropertyValue value, final OutputFilePropertyType filePropertyType) {
-                    withDeadlockHandling(
-                        taskNode,
-                        "an output",
-                        "output property '" + propertyName + "'",
-                        () -> FileParameterUtils.resolveOutputFilePropertySpecs(
-                            task.toString(),
-                            propertyName,
-                            value,
-                            filePropertyType,
-                            fileCollectionFactory,
-                            true,
-                            outputFilePropertySpec -> {
-                                File outputLocation = outputFilePropertySpec.getOutputFile();
-                                if (outputLocation != null) {
-                                    mutations.outputPaths.add(outputLocation.getAbsolutePath());
-                                }
-                            }
-                        )
-                    );
-                    mutations.hasOutputs = true;
-                }
+            taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
+            taskProperties.getOutputFileProperties()
+                .forEach(spec -> withDeadlockHandling(
+                    taskNode,
+                    "an output",
+                    "output property '" + spec.getPropertyName() + "'",
+                    () -> {
+                        File outputLocation = spec.getOutputFile();
+                        if (outputLocation != null) {
+                            mutations.outputPaths.add(outputLocation.getAbsolutePath());
+                        }
+                        mutations.hasOutputs = true;
+                    }
+                ));
 
-                @Override
-                public void visitLocalStateProperty(final Object value) {
-                    withDeadlockHandling(
-                        taskNode,
-                        "a local state", "local state properties",
-                        () -> fileCollectionFactory.resolving(value)
-                            .forEach(file -> mutations.outputPaths.add(file.getAbsolutePath()))
-                    );
-                    mutations.hasLocalState = true;
-                }
+            withDeadlockHandling(
+                taskNode,
+                "a local state", "local state properties",
+                () -> taskProperties.getLocalStateFiles()
+                    .forEach(file -> {
+                        mutations.outputPaths.add(file.getAbsolutePath());
+                        mutations.hasLocalState = true;
+                    })
+            );
 
-                @Override
-                public void visitDestroyableProperty(final Object value) {
-                    withDeadlockHandling(
-                        taskNode,
-                        "a destroyable",
-                        "destroyables",
-                        () -> fileCollectionFactory.resolving(value)
-                            .forEach(file -> mutations.destroyablePaths.add(file.getAbsolutePath()))
-                    );
-                }
-
-                @Override
-                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    mutations.hasFileInputs = true;
-                }
-            });
+            withDeadlockHandling(
+                taskNode,
+                "a destroyable", "destroyables",
+                () -> taskProperties.getDestroyableFiles()
+                    .forEach(file -> mutations.destroyablePaths.add(file.getAbsolutePath()))
+            );
+            mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }

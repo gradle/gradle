@@ -54,7 +54,7 @@ public class DefaultTaskProperties implements TaskProperties {
         String beanName = task.toString();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
-        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, fileCollectionFactory);
+        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, fileCollectionFactory, true);
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
         ValidationVisitor validationVisitor = new ValidationVisitor();
