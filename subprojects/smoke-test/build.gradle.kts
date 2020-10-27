@@ -23,7 +23,7 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
-val smokeTest: SourceSet by sourceSets.creating {
+val smokeTestSourceSet = sourceSets.create("smokeTest") {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
 }
@@ -56,31 +56,26 @@ dependencies {
 
 fun SmokeTest.configureForSmokeTest() {
     group = "Verification"
-    testClassesDirs = smokeTest.output.classesDirs
-    classpath = smokeTest.runtimeClasspath
+    testClassesDirs = smokeTestSourceSet.output.classesDirs
+    classpath = smokeTestSourceSet.runtimeClasspath
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
+    inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
 }
 
-tasks.register<SmokeTest>("smokeTest") {
+val smokeTest by tasks.registering(SmokeTest::class) {
     description = "Runs Smoke tests"
     configureForSmokeTest()
 }
 
-tasks.register<SmokeTest>("configCacheSmokeTest") {
-    description = "Runs Smoke tests with instant execution"
+val configCacheSmokeTest by tasks.registering(SmokeTest::class) {
+    description = "Runs Smoke tests with the configuration cache"
     configureForSmokeTest()
     systemProperty("org.gradle.integtest.executer", "configCache")
 }
 
-plugins.withType<IdeaPlugin>().configureEach {
-    val smokeTestCompileClasspath: Configuration by configurations.getting
-    val smokeTestRuntimeClasspath: Configuration by configurations.getting
-    model.module {
-        testSourceDirs = testSourceDirs + smokeTest.groovy.srcDirs
-        testResourceDirs = testResourceDirs + smokeTest.resources.srcDirs
-        scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
-        scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
-    }
+val gradleBuildSmokeTest by tasks.registering(SmokeTest::class) {
+    description = "Runs Smoke tests against the Gradle build"
+    configureForSmokeTest()
 }
 
 tasks {
@@ -111,6 +106,8 @@ tasks {
     }
 
     val remoteProjects = withType<RemoteProject>()
+    val santaProjects = remoteProjects.matching { it.name.startsWith("santa") }
+    val gradleBuildProjects = remoteProjects.matching { it.name.startsWith("gradleBuild") }
 
     if (BuildEnvironment.isCiServer) {
         remoteProjects.configureEach {
@@ -122,11 +119,35 @@ tasks {
         delete(remoteProjects.map { it.outputDirectory })
     }
 
-    withType<SmokeTest>().configureEach {
+    val santaSmokeTests = withType<SmokeTest>().matching { !it.name.startsWith("gradleBuild") }
+    val gradleBuildSmokeTests = withType<SmokeTest>().matching { it.name.startsWith("gradleBuild") }
+    val gradleBuildTestPattern = "**/GradleBuild*SmokeTest*"
+
+    fun SmokeTest.configureForRemoteProjects(remoteProjects: TaskCollection<RemoteProject>) {
         dependsOn(remoteProjects)
-        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
         inputs.files(Callable { remoteProjects.map { it.outputDirectory } })
             .withPropertyName("remoteProjectsSource")
             .withPathSensitivity(PathSensitivity.RELATIVE)
+    }
+
+    santaSmokeTests.configureEach {
+        configureForRemoteProjects(santaProjects)
+        exclude(gradleBuildTestPattern)
+    }
+
+    gradleBuildSmokeTests.configureEach {
+        configureForRemoteProjects(gradleBuildProjects)
+        include(gradleBuildTestPattern)
+    }
+}
+
+plugins.withType<IdeaPlugin>().configureEach {
+    val smokeTestCompileClasspath: Configuration by configurations.getting
+    val smokeTestRuntimeClasspath: Configuration by configurations.getting
+    model.module {
+        testSourceDirs = testSourceDirs + smokeTestSourceSet.groovy.srcDirs
+        testResourceDirs = testResourceDirs + smokeTestSourceSet.resources.srcDirs
+        scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
+        scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
     }
 }
