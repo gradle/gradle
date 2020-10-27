@@ -39,13 +39,14 @@ class ToolchainReportRendererTest extends Specification {
             new File("path"),
             "1.8.0",
             "vendorName",
-            "");
+            "")
         installation.source >> "SourceSupplier"
 
         expect:
         assertOutput(metadata, """{identifier} + vendorName JRE 1.8.0{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
+     | Vendor:             {description}vendorName{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}SourceSupplier{normal}
 
@@ -59,7 +60,7 @@ class ToolchainReportRendererTest extends Specification {
             javaHome,
             "1.8.0",
             "adoptopenjdk",
-            "");
+            "")
         installation.source >> "SourceSupplier"
 
         def binDir = new File(javaHome, "bin")
@@ -72,6 +73,7 @@ class ToolchainReportRendererTest extends Specification {
         assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0{normal}
      | Location:           {description}$javaHome{normal}
      | Language Version:   {description}8{normal}
+     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}true{normal}
      | Detected by:        {description}SourceSupplier{normal}
 
