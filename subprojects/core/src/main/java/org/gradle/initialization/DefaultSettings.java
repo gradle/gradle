@@ -250,11 +250,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public <T> Provider<T> provider(Callable<T> value) {
-        return getProviders().provider(value);
-    }
-
     @Inject
     public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
         throw new UnsupportedOperationException();

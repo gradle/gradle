@@ -132,9 +132,6 @@ abstract class SettingsDelegate : Settings {
     override fun getSourceControl(): SourceControl =
         delegate.sourceControl
 
-    override fun <T : Any?> provider(value: Callable<T>): Provider<T> =
-        delegate.provider(value)
-
     override fun getProviders(): ProviderFactory =
         delegate.providers
 

@@ -213,21 +213,11 @@ public interface Settings extends PluginAware, ExtensionAware {
     StartParameter getStartParameter();
 
     /**
-     * Creates a {@code Provider} implementation based on the provided value.
-     *
-     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
-     * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
-     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
-     * @since 6.8
-     */
-    <T> Provider<T> provider(Callable<T> value);
-
-    /**
      * Provides access to methods to create various kinds of {@link Provider} instances.
      *
      * @since 6.8
      */
+    @Incubating
     ProviderFactory getProviders();
 
     /**

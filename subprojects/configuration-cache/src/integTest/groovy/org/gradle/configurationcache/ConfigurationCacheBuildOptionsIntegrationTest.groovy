@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -740,6 +741,47 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         outputContains 'sys prop value at configuration time = 37'
         outputContains 'sys prop value at execution time = 37'
         configurationCache.assertStateStored()
+    }
+
+    @Issue("gradle/gradle#14465")
+    def "configuration is cacheable when providers are used in settings"() {
+
+        given:
+        settingsFile << """
+            providers.systemProperty("org.gradle.booleanProperty").forUseAtConfigurationTime().orElse(false).get()
+        """
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
+        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
+            .replaceAll(/Configuration cache entry stored.\n/, '')
+
+        when:
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
+        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Reusing configuration cache.\n/, '')
+            .replaceAll(/Configuration cache entry reused.\n/, '')
+
+        then:
+        firstRunOutput == secondRunOutput
+    }
+
+    @Issue("gradle/gradle#14465")
+    def "configuration cache is invalidated after property change when providers are used in settings"() {
+
+        given:
+        settingsFile << """
+            providers.systemProperty("org.gradle.booleanProperty").forUseAtConfigurationTime().orElse(false).get()
+        """
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
+
+        when:
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=false"
+        def secondRunOutput = result.normalizedOutput
+        println(secondRunOutput)
+
+        then:
+        secondRunOutput.contains("Configuration cache entry stored.")
+        secondRunOutput.contains("Calculating task graph as configuration cache cannot be reused because system property 'org.gradle.booleanProperty' has changed.")
     }
 
     private static String getGreetTask() {
