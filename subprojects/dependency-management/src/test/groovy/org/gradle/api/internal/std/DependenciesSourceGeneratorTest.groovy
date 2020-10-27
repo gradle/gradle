@@ -35,6 +35,7 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.service.scopes.Scopes
+import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -238,7 +239,7 @@ class DependenciesSourceGeneratorTest extends Specification {
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependenciesModelBuilder) Closure<Void> spec) {
-        DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner())
+        DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()

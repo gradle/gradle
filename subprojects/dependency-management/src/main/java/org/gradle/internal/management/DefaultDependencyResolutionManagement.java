@@ -52,11 +52,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.lazy.Lazy;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.use.PluginDependenciesSpec;
 
 import java.util.List;
 import java.util.Map;
@@ -80,8 +82,10 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     private final Property<String> projectsExtensionName;
     private final Map<String, DependenciesModelBuilderInternal> dependenciesModelBuilders = Maps.newHashMap();
     private final ObjectFactory objects;
+    private final ProviderFactory providers;
     private final Interner<String> strings = Interners.newStrongInterner();
     private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
+    private PluginDependenciesSpec plugins;
     private boolean mutable = true;
 
     public DefaultDependencyResolutionManagement(UserCodeApplicationContext context,
@@ -89,12 +93,13 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
                                                  FileResolver fileResolver,
                                                  FileCollectionFactory fileCollectionFactory,
                                                  DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                 Instantiator instantiator,
-                                                 ObjectFactory objects) {
+                                                 ObjectFactory objects,
+                                                 ProviderFactory providers) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
         this.objects = objects;
+        this.providers = providers;
         this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
@@ -141,7 +146,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     public void dependenciesModel(String name, Action<? super DependenciesModelBuilder> spec) {
         validateName(name);
         DependenciesModelBuilderInternal model = dependenciesModelBuilders.computeIfAbsent(name, n ->
-            objects.newInstance(DefaultDependenciesModelBuilder.class, n, strings, versions));
+            objects.newInstance(DefaultDependenciesModelBuilder.class, n, strings, versions, objects, providers, plugins));
         spec.execute(model);
     }
 
@@ -235,6 +240,11 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private static ProjectFinder makeUnknownProjectFinder() {
         return new UnknownProjectFinder("Project dependencies are not allowed in shared dependency resolution services");
+    }
+
+    @Override
+    public void setPluginsSpec(PluginManagementSpec pluginManagementSpec) {
+        this.plugins = pluginManagementSpec.getPlugins();
     }
 
     @Override

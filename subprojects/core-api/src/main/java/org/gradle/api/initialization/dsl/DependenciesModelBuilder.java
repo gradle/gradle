@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -33,6 +34,15 @@ import java.util.List;
 @Incubating
 @HasInternalProtocol
 public interface DependenciesModelBuilder {
+
+    /**
+     * Configures the model by reading it from a local file.
+     * Currently the only supported format is a .toml file, any attempt
+     * to read another format would fail.
+     *
+     * @param modelFile the model file
+     */
+    void from(File modelFile);
 
     /**
      * Configures a dependency version which can then be referenced using

@@ -90,7 +90,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.startParameter = startParameter;
         this.services = serviceRegistryFactory.createFor(this);
         this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
-        this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
+        this.dependencyResolutionManagement = createDependencyResolutionManagement();
+    }
+
+    private DependencyResolutionManagementInternal createDependencyResolutionManagement() {
+        DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
+        drm.setPluginsSpec(getPluginManagement());
+        return drm;
     }
 
     @Override

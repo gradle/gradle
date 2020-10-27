@@ -127,9 +127,10 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.internal.std.DefaultDependenciesAccessors;
 import org.gradle.api.internal.std.DependenciesAccessorsWorkspace;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -211,15 +212,17 @@ class DependencyManagementBuildScopeServices {
                                                                                     FileResolver fileResolver,
                                                                                     FileCollectionFactory fileCollectionFactory,
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                                                    ObjectFactory objects) {
+                                                                                    ObjectFactory objects,
+                                                                                    ProviderFactory providers) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
             dependencyMetaDataProvider,
-            instantiator,
-            objects);
+            objects,
+            providers
+        );
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {

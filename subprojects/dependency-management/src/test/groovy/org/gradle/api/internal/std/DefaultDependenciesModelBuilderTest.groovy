@@ -21,6 +21,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -28,7 +30,7 @@ import spock.lang.Unroll
 class DefaultDependenciesModelBuilderTest extends Specification {
 
     @Subject
-    DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner())
+    DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
 
     @Unroll("#notation is an invalid notation")
     def "reasonable error message if notation is invalid"() {
