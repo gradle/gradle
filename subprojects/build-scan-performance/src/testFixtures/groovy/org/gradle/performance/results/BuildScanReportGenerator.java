@@ -17,9 +17,24 @@
 package org.gradle.performance.results;
 
 import org.gradle.performance.results.report.AbstractReportGenerator;
+import org.gradle.performance.results.report.PerformanceExecutionDataProvider;
+import org.gradle.performance.results.report.PerformanceFlakinessDataProvider;
 
 public class BuildScanReportGenerator extends AbstractReportGenerator<BuildScanResultsStore> {
     public static void main(String[] args) {
         new BuildScanReportGenerator().generateReport(args);
     }
+
+    @Override
+    protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
+        executionDataProvider.getScenarioExecutionData()
+            .forEach(scenario -> {
+                if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isBuildFailed)) {
+                    failureCollector.scenarioFailed();
+                } else if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isRegressed)) {
+                    failureCollector.scenarioRegressed();
+                }
+            });
+    }
+
 }
