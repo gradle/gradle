@@ -16,18 +16,25 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.api.JavaVersion;
+enum ProbedSystemProperty {
 
-public class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
+    JAVA_HOME("java.home"),
+    VERSION("java.version"),
+    VENDOR("java.vendor"),
+    ARCH("os.arch"),
+    VM("java.vm.name"),
+    VM_VERSION("java.vm.version"),
+    RUNTIME("java.runtime.name"),
+    Z_ERROR("Internal"); // This line MUST be last!
 
-    private JavaVersion languageVersion;
+    private final String key;
 
-    public DefaultJvmInstallationMetadata(JavaVersion languageVersion) {
-        this.languageVersion = languageVersion;
+    ProbedSystemProperty(String key) {
+        this.key = key;
     }
 
-    @Override
-    public JavaVersion getLangageVersion() {
-        return languageVersion;
+    String getSystemPropertyKey() {
+        return key;
     }
+
 }
