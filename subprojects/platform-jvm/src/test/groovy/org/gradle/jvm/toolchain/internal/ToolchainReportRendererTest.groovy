@@ -16,29 +16,34 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.JavaVersion
+
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.task.ReportableToolchain
 import org.gradle.jvm.toolchain.internal.task.ToolchainReportRenderer
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
-
-import java.nio.file.Paths
 
 class ToolchainReportRendererTest extends Specification {
 
-    JavaInstallationProbe.ProbeResult probe = Mock(JavaInstallationProbe.ProbeResult)
+    @Rule
+    TemporaryFolder temporaryFolder
+
     InstallationLocation installation = Mock(InstallationLocation)
 
     def "jre is rendered properly"() {
         given:
-        probe.implementationName >> "toolchainName"
-        probe.implementationJavaVersion >> "1.8.0"
-        probe.javaHome >> Paths.get("path")
-        probe.javaVersion >> JavaVersion.VERSION_1_8
+        def metadata = JvmInstallationMetadata.from(
+            new File("path"),
+            "1.8.0",
+            "vendorName",
+            "");
         installation.source >> "SourceSupplier"
 
         expect:
-        assertOutput("""{identifier} + toolchainName 1.8.0{normal}
+        assertOutput(metadata, """{identifier} + vendorName JRE 1.8.0{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}false{normal}
@@ -49,16 +54,23 @@ class ToolchainReportRendererTest extends Specification {
 
     def "jdk is rendered properly"() {
         given:
-        probe.implementationName >> "toolchainName"
-        probe.implementationJavaVersion >> "1.8.0"
-        probe.javaHome >> Paths.get("path")
-        probe.installType >> JavaInstallationProbe.InstallType.IS_JDK
-        probe.javaVersion >> JavaVersion.VERSION_1_8
+        File javaHome = temporaryFolder.newFolder("javahome")
+        def metadata = JvmInstallationMetadata.from(
+            javaHome,
+            "1.8.0",
+            "adoptopenjdk",
+            "");
         installation.source >> "SourceSupplier"
 
+        def binDir = new File(javaHome, "bin")
+        if (binDir.mkdir()) {
+            File javac = new File(binDir, OperatingSystem.current().getExecutableName('javac'))
+            javac << 'dummy'
+        }
+
         expect:
-        assertOutput("""{identifier} + toolchainName 1.8.0{normal}
-     | Location:           {description}path{normal}
+        assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0{normal}
+     | Location:           {description}$javaHome{normal}
      | Language Version:   {description}8{normal}
      | Is JDK:             {description}true{normal}
      | Detected by:        {description}SourceSupplier{normal}
@@ -66,11 +78,11 @@ class ToolchainReportRendererTest extends Specification {
 """)
     }
 
-    void assertOutput(String expectedOutput) {
+    void assertOutput(JvmInstallationMetadata metadata, String expectedOutput) {
         def renderer = new ToolchainReportRenderer()
         def output = new TestStyledTextOutput()
         renderer.output = output
-        renderer.printToolchain(new ReportableToolchain(probe, installation))
+        renderer.printToolchain(new ReportableToolchain(metadata, installation))
         assert output.value == expectedOutput
     }
 }
