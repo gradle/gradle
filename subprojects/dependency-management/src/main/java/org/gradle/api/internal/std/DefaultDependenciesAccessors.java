@@ -102,11 +102,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 AllDependenciesModel model = ((DependenciesModelBuilderInternal) builder).build();
                 models.add(model);
             }
-            if (!models.isEmpty()) {
+            if (models.stream().anyMatch(AllDependenciesModel::isNotEmpty)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe dependency accessors");
-            }
-            for (AllDependenciesModel model : models) {
-                writeDependenciesAccessors(model);
+                for (AllDependenciesModel model : models) {
+                    if (model.isNotEmpty()) {
+                        writeDependenciesAccessors(model);
+                    }
+                }
             }
             if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
@@ -122,8 +124,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         hash.putString(model.getName());
         List<String> dependencyAliases = model.getDependencyAliases();
         List<String> bundles = model.getBundleAliases();
+        List<String> versions = model.getVersionAliases();
         dependencyAliases.forEach(hash::putString);
         bundles.forEach(hash::putString);
+        versions.forEach(hash::putString);
         String keysHash = hash.hash().toString();
         workspace.withWorkspace(keysHash, (workspace, executionHistoryStore) -> {
             File srcDir = new File(workspace, "sources");

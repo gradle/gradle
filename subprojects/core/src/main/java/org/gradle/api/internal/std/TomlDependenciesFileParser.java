@@ -41,10 +41,12 @@ public class TomlDependenciesFileParser {
     private static final String DEPENDENCIES_KEY = "dependencies";
     private static final String BUNDLES_KEY = "bundles";
     private static final String PLUGINS_KEY = "plugins";
+    private static final String VERSIONS_KEY = "versions";
     private static final Set<String> TOP_LEVEL_ELEMENTS = ImmutableSet.of(
         DEPENDENCIES_KEY,
         BUNDLES_KEY,
-        PLUGINS_KEY
+        PLUGINS_KEY,
+        VERSIONS_KEY
     );
 
     public static void parse(InputStream in, DependenciesModelBuilder builder, PluginDependenciesSpec plugins) throws IOException {
@@ -52,14 +54,15 @@ public class TomlDependenciesFileParser {
         TomlTable dependenciesTable = result.getTable(DEPENDENCIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
         TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
+        TomlTable versionsTable = result.getTable(VERSIONS_KEY);
         Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
         if (!unknownTle.isEmpty()) {
             throw new InvalidUserDataException("Unknown top level elements " + unknownTle);
         }
-
         parseDependencies(dependenciesTable, builder);
         parseBundles(bundlesTable, builder);
         parsePlugins(pluginsTable, plugins);
+        parseVersions(versionsTable, builder);
     }
 
     private static void parseDependencies(@Nullable TomlTable dependenciesTable, DependenciesModelBuilder builder) {
@@ -73,6 +76,20 @@ public class TomlDependenciesFileParser {
             .collect(Collectors.toList());
         for (String alias : keys) {
             parseDependency(alias, dependenciesTable, builder);
+        }
+    }
+
+    private static void parseVersions(@Nullable TomlTable versionsTable, DependenciesModelBuilder builder) {
+        if (versionsTable == null) {
+            return;
+        }
+        List<String> keys = versionsTable.keySet()
+            .stream()
+            .peek(TomlDependenciesFileParser::validateAlias)
+            .sorted(Comparator.comparing(String::length))
+            .collect(Collectors.toList());
+        for (String alias : keys) {
+            parseVersion(alias, versionsTable, builder);
         }
     }
 
@@ -144,6 +161,7 @@ public class TomlDependenciesFileParser {
                 throw new InvalidUserDataException("Invalid module notation '" + mi + "' for alias '" + alias + "': it must consist of 2 parts separated by colons, eg: my.group:artifact");
             }
         }
+        String versionRef = null;
         String require = null;
         String strictly = null;
         String prefer = null;
@@ -164,6 +182,7 @@ public class TomlDependenciesFileParser {
             require = notEmpty((String) version, "version", alias);
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
+            versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
             strictly = notEmpty(versionTable.getString("strictly"), "strict version", alias);
@@ -182,7 +201,33 @@ public class TomlDependenciesFileParser {
         if (name == null) {
             throw new InvalidUserDataException("Name for alias '" + alias + "' wasn't set");
         }
-        registerDependency(builder, alias, group, name, require, strictly, prefer, rejectedVersions, rejectAll);
+        registerDependency(builder, alias, group, name, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
+    }
+
+    private static void parseVersion(String alias, TomlTable versionsTable, DependenciesModelBuilder builder) {
+        String require = null;
+        String strictly = null;
+        String prefer = null;
+        List<String> rejectedVersions = null;
+        Boolean rejectAll = null;
+        Object version = versionsTable.get(alias);
+        if (version instanceof String) {
+            require = notEmpty((String) version, "version", alias);
+        } else if (version instanceof TomlTable) {
+            TomlTable versionTable = (TomlTable) version;
+            require = notEmpty(versionTable.getString("require"), "required version", alias);
+            prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
+            strictly = notEmpty(versionTable.getString("strictly"), "strict version", alias);
+            TomlArray rejectedArray = expectArray("alias", alias, versionTable, "reject");
+            rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
+                .map(String::valueOf)
+                .map(v -> notEmpty(v, "rejected version", alias))
+                .collect(Collectors.toList()) : null;
+            rejectAll = expectBoolean("alias", alias, versionTable, "rejectAll");
+        } else if (version != null) {
+            throw new InvalidUserDataException("On alias '" + alias + "' expected a version as a String or a table but got " + version.getClass().getSimpleName());
+        }
+        registerVersion(builder, alias, require, strictly, prefer, rejectedVersions, rejectAll);
     }
 
     @Nullable
@@ -200,12 +245,43 @@ public class TomlDependenciesFileParser {
                                            String alias,
                                            String group,
                                            String name,
+                                           @Nullable String versionRef,
                                            @Nullable String require,
                                            @Nullable String strictly,
                                            @Nullable String prefer,
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
+        if (versionRef != null) {
+            builder.aliasWithVersionRef(alias, group, name, versionRef);
+            return;
+        }
         builder.alias(alias, group, name, v -> {
+            if (require != null) {
+                v.require(require);
+            }
+            if (strictly != null) {
+                v.strictly(strictly);
+            }
+            if (prefer != null) {
+                v.prefer(prefer);
+            }
+            if (rejectedVersions != null) {
+                v.reject(rejectedVersions.toArray(new String[0]));
+            }
+            if (rejectAll != null && rejectAll) {
+                v.rejectAll();
+            }
+        });
+    }
+
+    private static void registerVersion(DependenciesModelBuilder builder,
+                                        String alias,
+                                        @Nullable String require,
+                                        @Nullable String strictly,
+                                        @Nullable String prefer,
+                                        @Nullable List<String> rejectedVersions,
+                                        @Nullable Boolean rejectAll) {
+        builder.version(alias, v -> {
             if (require != null) {
                 v.require(require);
             }
