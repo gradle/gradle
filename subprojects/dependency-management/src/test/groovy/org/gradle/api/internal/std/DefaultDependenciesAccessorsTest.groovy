@@ -26,7 +26,9 @@ import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -171,7 +173,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
     }
 
     void model(@DelegatesTo(value = DefaultDependenciesModelBuilder, strategy = Closure.DELEGATE_FIRST) Closure spec) {
-        builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner())
+        builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()

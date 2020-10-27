@@ -276,7 +276,7 @@ lib.gav = "org.gradle.test:lib:1.0"
 """
         file("buildSrc/build.gradle") << """
             dependencies {
-                classpath libs.lib
+                implementation libs.lib
             }
         """
 
@@ -285,6 +285,35 @@ lib.gav = "org.gradle.test:lib:1.0"
 
         then: "extension is not generated if there are no libraries defined"
         failure.assertHasCause("Could not get unknown property 'libs' for object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
+    }
+
+    def "libraries extension can be made visible to buildSrc"() {
+        tomlFile << """[dependencies]
+lib.gav = "org.gradle.test:lib:1.0"
+"""
+        file("buildSrc/settings.gradle") << """
+            dependencyResolutionManagement {
+                dependenciesModel("libs") {
+                    from(file("../gradle/dependencies.toml"))
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            dependencies {
+                implementation libs.lib
+            }
+        """
+
+        when:
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.0').publish()
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then: "extension is not generated if there are no libraries defined"
+        succeeds 'help'
     }
 
     def "buildSrc and main project have different libraries extensions"() {

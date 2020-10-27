@@ -22,16 +22,26 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.DependenciesModelBuilderInternal;
+import org.gradle.plugin.use.PluginDependenciesSpec;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -42,17 +52,28 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
 
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
+    private final ObjectFactory objects;
+    private final ProviderFactory providers;
+    private final PluginDependenciesSpec plugins;
+    private final String name;
     private final Map<String, ImmutableVersionConstraint> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
     private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
     private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
-    private final String name;
 
     @Inject
-    public DefaultDependenciesModelBuilder(String name, Interner<String> strings, Interner<ImmutableVersionConstraint> versionConstraintInterner) {
+    public DefaultDependenciesModelBuilder(String name,
+                                           Interner<String> strings,
+                                           Interner<ImmutableVersionConstraint> versionConstraintInterner,
+                                           ObjectFactory objects,
+                                           ProviderFactory providers,
+                                           PluginDependenciesSpec plugins) {
         this.name = name;
         this.strings = strings;
         this.versionConstraintInterner = versionConstraintInterner;
+        this.objects = objects;
+        this.providers = providers;
+        this.plugins = plugins;
     }
 
     @Override
@@ -80,6 +101,21 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
             realizedDeps.put(entry.getKey(), entry.getValue().get());
         }
         return new AllDependenciesModel(name, realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
+    }
+
+    @Override
+    public void from(File modelFile) {
+        if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
+            throw new InvalidUserDataException("Unsupported file format: please use a TOML file");
+        }
+        RegularFileProperty srcProp = objects.fileProperty();
+        srcProp.set(modelFile);
+        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
+        try {
+            TomlDependenciesFileParser.parse(new ByteArrayInputStream(dataSource.get()), this, plugins);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
