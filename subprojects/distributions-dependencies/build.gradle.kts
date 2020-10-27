@@ -141,7 +141,7 @@ dependencies {
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.simple)                { version { strictly("4.1.21") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
-        api(libs.snakeyaml)             { version { strictly("1.17") }}
+        api(libs.snakeyaml)             { version { strictly("1.27") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
         api(libs.trove4j)               { version { strictly("1.0.20181211") }}
