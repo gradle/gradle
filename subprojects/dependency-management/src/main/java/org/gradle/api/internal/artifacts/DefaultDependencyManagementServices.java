@@ -659,6 +659,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        GlobalDependencyResolutionRules metadataHandler,
                                                        ComponentIdentifierFactory componentIdentifierFactory,
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
+                                                       StartParameter startParameter,
                                                        AttributesSchemaInternal attributesSchema,
                                                        VariantTransformRegistry variantTransforms,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -678,6 +679,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         repositoriesSupplier,
                         metadataHandler,
                         resolutionResultsStoreFactory,
+                        startParameter.isBuildProjectDependencies(),
                         attributesSchema,
                         new DefaultArtifactTransforms(
                             new ConsumerProvidedVariantFinder(

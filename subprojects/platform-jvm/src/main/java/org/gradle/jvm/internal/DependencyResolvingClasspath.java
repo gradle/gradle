@@ -18,6 +18,7 @@ package org.gradle.jvm.internal;
 
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -68,6 +69,7 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
     private final ResolveContext resolveContext;
     private final AttributesSchemaInternal attributesSchema;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildIdentifier thisBuild;
 
     private final String descriptor;
     private ResolveResult resolveResult;
@@ -79,7 +81,8 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
         RepositoriesSupplier repositoriesSupplier,
         ResolveContext resolveContext,
         AttributesSchemaInternal attributesSchema,
-        BuildOperationExecutor buildOperationExecutor) {
+        BuildOperationExecutor buildOperationExecutor,
+        BuildIdentifier thisBuild) {
         this.binary = binarySpec;
         this.descriptor = descriptor;
         this.dependencyResolver = dependencyResolver;
@@ -87,6 +90,7 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
         this.resolveContext = resolveContext;
         this.attributesSchema = attributesSchema;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.thisBuild = thisBuild;
     }
 
     @Override
@@ -170,8 +174,8 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
     }
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
-        public final List<Throwable> notFound = new LinkedList<>();
-        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(ResolutionStrategy.SortOrder.DEFAULT);
+        public final List<Throwable> notFound = new LinkedList<Throwable>();
+        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(thisBuild, true, ResolutionStrategy.SortOrder.DEFAULT);
         public SelectedArtifactResults artifactsResults;
 
         @Override
