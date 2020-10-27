@@ -17,10 +17,14 @@ package org.gradle.internal.management;
 
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Property;
+
+import java.util.List;
 
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement {
     RepositoryHandler getRepositoryHandler();
@@ -35,9 +39,9 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
 
     RulesModeInternal getConfiguredRulesMode();
 
-    String getLibrariesExtensionName();
+    Property<String> getDefaultProjectsExtensionName();
 
-    String getProjectsExtensionName();
+    List<DependenciesModelBuilder> getDependenciesModelBuilders();
 
     enum RepositoriesModeInternal {
         PREFER_PROJECT(true),

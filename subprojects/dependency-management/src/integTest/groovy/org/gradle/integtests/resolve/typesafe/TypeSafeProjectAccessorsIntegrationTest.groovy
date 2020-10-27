@@ -97,9 +97,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractIntegrationSpec {
             include 'two:other'
 
             dependencyResolutionManagement {
-                dependenciesModel {
-                    projectsExtensionName.set("ts")
-                }
+                defaultProjectsExtensionName.set("ts")
             }
         """
 

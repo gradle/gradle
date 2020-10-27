@@ -21,15 +21,21 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AllDependenciesModel implements Serializable {
+    private final String name;
     private final Map<String, DependencyModel> aliasToDependency;
     private final Map<String, List<String>> bundles;
     private final int hashCode;
 
-    public AllDependenciesModel(Map<String, DependencyModel> aliasToDependency,
+    public AllDependenciesModel(String name, Map<String, DependencyModel> aliasToDependency,
                                 Map<String, List<String>> bundles) {
+        this.name = name;
         this.aliasToDependency = aliasToDependency;
         this.bundles = bundles;
         this.hashCode = doComputeHashCode();
+    }
+
+    public String getName() {
+        return name;
     }
 
     public List<String> getDependencyAliases() {

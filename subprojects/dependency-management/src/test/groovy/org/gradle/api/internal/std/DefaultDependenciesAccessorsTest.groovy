@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.std
 
+import com.google.common.collect.Interners
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.SettingsInternal
@@ -26,7 +27,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -44,7 +44,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
         getProjectRegistry() >> Stub(ProjectRegistry)
     }
 
-    def builder = new DefaultDependenciesModelBuilder(TestUtil.objectFactory())
+    DefaultDependenciesModelBuilder builder
     FeaturePreviews featurePreviews = new FeaturePreviews()
 
     @Subject
@@ -57,87 +57,108 @@ class DefaultDependenciesAccessorsTest extends Specification {
     )
 
     def "generates accessors only if the model keys change"() {
-        builder.alias("foo", "g:a:v")
+        model {
+            alias("foo", "g:a:v")
+        }
+
         when:
-        accessors.generateAccessors(builder, scope, settings)
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _)
+        1 * workspace.withWorkspace('6d80945bb0fc58a3bcc8b465b50ded192e8d884c', _)
         0 * _
 
         when:
-        builder.alias("foo", "g:a:v2")
-        accessors.generateAccessors(builder, scope, settings)
+        model {
+            alias("foo", "g:a:v2")
+        }
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _)
+        1 * workspace.withWorkspace('6d80945bb0fc58a3bcc8b465b50ded192e8d884c', _)
         0 * _
 
         when:
-        builder.alias("foo", "other:a:v2")
-        accessors.generateAccessors(builder, scope, settings)
+        model {
+            alias("foo", "other:a:v2")
+        }
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _)
+        1 * workspace.withWorkspace('6d80945bb0fc58a3bcc8b465b50ded192e8d884c', _)
         0 * _
 
         when:
-        builder.alias("bar", "changes:key:1.0")
-        accessors.generateAccessors(builder, scope, settings)
+        model {
+            alias("bar", "changes:key:1.0")
+        }
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('839737519c42bb6246e5ca35781e55d9203d89b4', _)
+        1 * workspace.withWorkspace('8a3d01a1f4acf9f4daee71fe66771f1d3eb87eaf', _)
         0 * _
 
         when:
-        builder.bundle("myBundle", ["foo"])
-        accessors.generateAccessors(builder, scope, settings)
+        model {
+            alias("foo", "my:key:1.0")
+            alias("bar", "my:key:1.0")
+            bundle("myBundle", ["foo"])
+        }
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('f7c536cbfe187f080fbd7c8e3eb8107fe633c72c', _)
+        1 * workspace.withWorkspace('ace9386fd246744074c8b00cd051303ff9f52582', _)
         0 * _
 
         when:
-        builder.bundle("myBundle", ["bar"])
-        accessors.generateAccessors(builder, scope, settings)
+        model {
+            alias("foo", "my:key:1.0")
+            alias("bar", "my:key:1.0")
+            bundle("myBundle", ["bar"])
+        }
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('f7c536cbfe187f080fbd7c8e3eb8107fe633c72c', _)
+        1 * workspace.withWorkspace('ace9386fd246744074c8b00cd051303ff9f52582', _)
         0 * _
     }
 
     def "accessors key is order-independent"() {
-        builder.alias("foo", "g:a:v")
-        builder.alias("bar", "g2:a2:v2")
+        model {
+            alias("foo", "g:a:v")
+            alias("bar", "g2:a2:v2")
+        }
 
         when:
-        accessors.generateAccessors(builder, scope, settings)
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('839737519c42bb6246e5ca35781e55d9203d89b4', _)
+        1 * workspace.withWorkspace('07db55b1b1ded5e0912f2cd9e128aed46cbb9262', _)
         0 * _
 
         when:
-        builder = new DefaultDependenciesModelBuilder(TestUtil.objectFactory())
-        builder.alias("bar", "g2:a2:v2")
-        builder.alias("foo", "g:a:v")
-
-        accessors.generateAccessors(builder, scope, settings)
+        model {
+            alias("bar", "g2:a2:v2")
+            alias("foo", "g:a:v")
+        }
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('839737519c42bb6246e5ca35781e55d9203d89b4', _)
+        1 * workspace.withWorkspace('07db55b1b1ded5e0912f2cd9e128aed46cbb9262', _)
         0 * _
     }
 
     def "generates accessors if workspace is missing"() {
         def workspaceDir = tmpDir.createDir("id")
-        builder.alias("foo", "g:a:v")
+        model {
+            alias("foo", "g:a:v")
+        }
 
         when:
-        accessors.generateAccessors(builder, scope, settings)
+        accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('a1af22ee922e33036e07736dcbe383acb2134a3d', _) >> { args ->
+        1 * workspace.withWorkspace('6d80945bb0fc58a3bcc8b465b50ded192e8d884c', _) >> { args ->
             args[1].executeInWorkspace(workspaceDir, Stub(ExecutionHistoryStore))
         }
         1 * buildOperationExecutor._
@@ -147,5 +168,12 @@ class DefaultDependenciesAccessorsTest extends Specification {
         and:
         accessors.sources.asFiles == [new File(workspaceDir, "sources")]
         accessors.classes.asFiles == [new File(workspaceDir, "classes")]
+    }
+
+    void model(@DelegatesTo(value = DefaultDependenciesModelBuilder, strategy = Closure.DELEGATE_FIRST) Closure spec) {
+        builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner())
+        spec.delegate = builder
+        spec.resolveStrategy = Closure.DELEGATE_FIRST
+        spec()
     }
 }

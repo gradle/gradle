@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.std
 
+import com.google.common.collect.Interners
 import groovy.transform.Canonical
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder
@@ -237,7 +238,7 @@ class DependenciesSourceGeneratorTest extends Specification {
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependenciesModelBuilder) Closure<Void> spec) {
-        DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder(TestUtil.objectFactory())
+        DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner())
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
