@@ -312,6 +312,36 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         assertTaskExecuted(":", ":jar")
     }
 
+    def "cross-build resolve jars without task cycle"() {
+        given:
+        buildA.buildFile << """
+            task resolveJars {
+                dependsOn gradle.includedBuild('buildB').task(':b1:resolveJars')
+            }
+        """
+        buildB.buildFile << """
+            project(':b1') {
+                dependencies {
+                    implementation "org.test:buildC:1.0"
+                }
+                task resolveJars(type: Copy) {
+                    from configurations.runtimeClasspath
+                    into "\$buildDir/jars"
+                }
+            }
+        """
+        dependency buildC, "org.test:b2:1.0"
+
+        when:
+        resolveSucceeds(':resolveJars')
+
+        then:
+        assertTaskExecuted(':buildB', ":b2:jar")
+        assertTaskExecuted(':buildC', ":jar")
+        assertTaskExecuted(':buildB', ":b1:resolveJars")
+        assertTaskExecuted(':', ":resolveJars")
+    }
+
     def "direct mustRunAfter cycle between included builds"() {
         given:
         buildA.buildFile << """
