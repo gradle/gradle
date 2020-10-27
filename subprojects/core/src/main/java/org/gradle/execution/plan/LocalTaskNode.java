@@ -16,10 +16,8 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -40,9 +38,7 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -50,14 +46,12 @@ import java.util.Set;
  */
 public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
-    private final Map<File, String> canonicalizedFileCache;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
 
-    public LocalTaskNode(TaskInternal task, Map<File, String> canonicalizedFileCache) {
+    public LocalTaskNode(TaskInternal task) {
         this.task = task;
-        this.canonicalizedFileCache = canonicalizedFileCache;
     }
 
     /**
@@ -213,7 +207,7 @@ public class LocalTaskNode extends TaskNode {
                             outputFilePropertySpec -> {
                                 File outputLocation = outputFilePropertySpec.getOutputFile();
                                 if (outputLocation != null) {
-                                    mutations.outputPaths.add(canonicalizePath(outputLocation, canonicalizedFileCache));
+                                    mutations.outputPaths.add(outputLocation.getAbsolutePath());
                                 }
                             }
                         )
@@ -226,7 +220,9 @@ public class LocalTaskNode extends TaskNode {
                     withDeadlockHandling(
                         taskNode,
                         "a local state", "local state properties",
-                        () -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, fileCollectionFactory.resolving(value))));
+                        () -> fileCollectionFactory.resolving(value)
+                            .forEach(file -> mutations.outputPaths.add(file.getAbsolutePath()))
+                    );
                     mutations.hasLocalState = true;
                 }
 
@@ -236,7 +232,9 @@ public class LocalTaskNode extends TaskNode {
                         taskNode,
                         "a destroyable",
                         "destroyables",
-                        () -> mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, fileCollectionFactory.resolving(value))));
+                        () -> fileCollectionFactory.resolving(value)
+                            .forEach(file -> mutations.destroyablePaths.add(file.getAbsolutePath()))
+                    );
                 }
 
                 @Override
@@ -260,27 +258,6 @@ public class LocalTaskNode extends TaskNode {
             if (mutations.hasLocalState) {
                 throw new IllegalStateException("Task " + taskNode + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
             }
-        }
-    }
-
-    private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
-        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-        for (File file : files) {
-            builder.add(canonicalizePath(file, cache));
-        }
-        return builder.build();
-    }
-
-    private static String canonicalizePath(File file, Map<File, String> cache) {
-        try {
-            String path = cache.get(file);
-            if (path == null) {
-                path = file.getCanonicalPath();
-                cache.put(file, path);
-            }
-            return path;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 
