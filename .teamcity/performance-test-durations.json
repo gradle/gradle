@@ -189,7 +189,33 @@
     "macOs" : 1269000
   } ]
 }, {
+  "scenario" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for abi change with file system watching and configuration caching",
+  "durations" : [ {
+    "testProject" : "largeJavaMultiProject",
+    "linux" : 455000,
+    "windows" : 954000,
+    "macOs" : 887000
+  }, {
+    "testProject" : "santaTrackerAndroidBuild",
+    "linux" : 757000,
+    "windows" : 1002000,
+    "macOs" : 1269000
+  } ]
+}, {
   "scenario" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for non-abi change with file system watching",
+  "durations" : [ {
+    "testProject" : "largeJavaMultiProject",
+    "linux" : 433000,
+    "windows" : 821000,
+    "macOs" : 836000
+  }, {
+    "testProject" : "santaTrackerAndroidBuild",
+    "linux" : 390000,
+    "windows" : 612000,
+    "macOs" : 723000
+  } ]
+}, {
+  "scenario" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for non-abi change with file system watching and configuration caching",
   "durations" : [ {
     "testProject" : "largeJavaMultiProject",
     "linux" : 433000,
