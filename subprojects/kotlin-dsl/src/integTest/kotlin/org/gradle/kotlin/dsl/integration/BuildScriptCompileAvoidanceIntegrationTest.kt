@@ -291,7 +291,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     @Ignore
     fun `recompiles buildscript on inline lambda function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
-                """
+            """
             inline fun foo() {
                 val sum: (Int, Int) -> Int = { x, y -> x + y }
                 println("foo = " + sum(2, 2))
@@ -302,7 +302,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 4")
 
         givenKotlinClassInBuildSrcContains(
-                """
+            """
             inline fun foo() {
                 val sum: (Int, Int) -> Int = { x, y -> x - y }
                 println("foo = " + sum(2, 2))
