@@ -89,7 +89,8 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
     override fun writeMethod(method: MethodMember) {
         when {
             method.isInternal() -> return
-            method.isInline() -> inlineMethodWriter.writeMethod(method)
+            // TODO: detect lambdas in public inline methods and treat them as ABI, then inlineMethodWriter.writeMethod(method)
+            method.isInline() -> throw GradleException("Can't use compile avoidance with inline functions")
             else -> super.writeMethod(method)
         }
     }
