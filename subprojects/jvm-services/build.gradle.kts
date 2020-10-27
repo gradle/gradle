@@ -12,6 +12,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.nativePlatform)
     implementation(libs.guava)
+    implementation(libs.asm)
 
     testImplementation(project(":native"))
     testImplementation(project(":file-collections"))
