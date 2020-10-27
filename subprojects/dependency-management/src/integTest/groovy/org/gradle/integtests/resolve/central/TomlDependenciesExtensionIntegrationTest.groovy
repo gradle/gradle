@@ -579,6 +579,44 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         }
     }
 
+    def "can use version references"() {
+        tomlFile << """[versions]
+lib = "1.0"
+rich = { strictly = "[1.0, 2.0]", prefer = "1.1" }
+
+[dependencies]
+my-lib = {group = "org.gradle.test", name="lib", version.ref="lib"}
+my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.myLib
+                implementation libs.myOtherLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.rootMetaData.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                edge('org.gradle.test:lib2:{strictly [1.0, 2.0]; prefer 1.1}', 'org.gradle.test:lib2:1.1')
+            }
+        }
+    }
 
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")

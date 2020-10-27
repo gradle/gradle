@@ -33,6 +33,27 @@ import java.util.List;
 @Incubating
 @HasInternalProtocol
 public interface DependenciesModelBuilder {
+
+    /**
+     * Configures a dependency version which can then be referenced using
+     * the {@link #aliasWithVersionRef(String, String, String, String)} )} method.
+     *
+     * @param name an identifier for the version
+     * @param versionSpec the dependency version spec
+     */
+    void version(String name, Action<? super MutableVersionConstraint> versionSpec);
+
+    /**
+     * Configures a dependency version which can then be referenced using
+     * the {@link #aliasWithVersionRef(String, String, String, String)} method.
+     *
+     * @param name an identifier for the version
+     * @param requiredVersion the version string, interpreted as a required version
+     */
+    default void version(String name, String requiredVersion) {
+        version(name, vc -> vc.require(requiredVersion));
+    }
+
     /**
      * Declares an alias for a dependency
      * @param alias the alias for the dependency
@@ -60,6 +81,16 @@ public interface DependenciesModelBuilder {
             throw new InvalidUserDataException("Invalid dependency notation: it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
         }
     }
+
+    /**
+     * Configures an alias, using the supplied group and name, and a version which corresponds
+     * to a version name created by {@link #version(String, Action)}.
+     * @param alias the alias for the dependency
+     * @param group the group of the dependency
+     * @param name the name of the dependency
+     * @param versionRef the name of a version declared via the  {@link #version(String, Action)} method.
+     */
+    void aliasWithVersionRef(String alias, String group, String name, String versionRef);
 
     /**
      * Declares a bundle of dependencies. A bundle consists of a name for the bundle,

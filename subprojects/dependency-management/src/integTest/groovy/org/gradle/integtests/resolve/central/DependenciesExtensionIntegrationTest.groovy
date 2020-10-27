@@ -536,4 +536,89 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         }
     }
 
+    def "can declare a version with a name and reference it"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                dependenciesModel("libs") {
+                    version("myVersion") {
+                        require "1.0"
+                    }
+                    aliasWithVersionRef("myLib", "org.gradle.test", "lib", "myVersion")
+                    aliasWithVersionRef("myOtherLib", "org.gradle.test", "lib2", "myOtherVersion")
+                    version("myOtherVersion") {
+                        // intentionnally declared AFTER
+                        strictly "1.1"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.myLib
+                implementation libs.myOtherLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                edge('org.gradle.test:lib2:{strictly 1.1}', 'org.gradle.test:lib2:1.1')
+            }
+        }
+    }
+
+    def "multiple libraries can use the same version reference"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                dependenciesModel("libs") {
+                    version("myVersion") {
+                        require "1.0"
+                    }
+                    aliasWithVersionRef("myLib", "org.gradle.test", "lib", "myVersion")
+                    aliasWithVersionRef("myOtherLib", "org.gradle.test", "lib2", "myVersion")
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.myLib
+                implementation libs.myOtherLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
 }

@@ -34,23 +34,25 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class DefaultDependenciesModelBuilder implements DependenciesModelBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesModelBuilder.class);
 
     private final Interner<String> strings;
-    private final Interner<ImmutableVersionConstraint> versions;
-    private final Map<String, DependencyModel> dependencies = Maps.newLinkedHashMap();
+    private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
+    private final Map<String, ImmutableVersionConstraint> versionConstraints = Maps.newLinkedHashMap();
+    private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
     private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
     private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
     private final String name;
 
     @Inject
-    public DefaultDependenciesModelBuilder(String name, Interner<String> strings, Interner<ImmutableVersionConstraint> versions) {
+    public DefaultDependenciesModelBuilder(String name, Interner<String> strings, Interner<ImmutableVersionConstraint> versionConstraintInterner) {
         this.name = name;
         this.strings = strings;
-        this.versions = versions;
+        this.versionConstraintInterner = versionConstraintInterner;
     }
 
     @Override
@@ -73,7 +75,20 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
                 }
             }
         }
-        return new AllDependenciesModel(name, ImmutableMap.copyOf(dependencies), ImmutableMap.copyOf(bundles));
+        ImmutableMap.Builder<String, DependencyModel> realizedDeps = ImmutableMap.builderWithExpectedSize(dependencies.size());
+        for (Map.Entry<String, Supplier<DependencyModel>> entry : dependencies.entrySet()) {
+            realizedDeps.put(entry.getKey(), entry.getValue().get());
+        }
+        return new AllDependenciesModel(name, realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
+    }
+
+    @Override
+    public void version(String name, Action<? super MutableVersionConstraint> versionSpec) {
+        validateName("name", name);
+        MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
+        versionSpec.execute(versionBuilder);
+        ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
+        versionConstraints.put(name, version);
     }
 
     @Override
@@ -81,11 +96,20 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         validateName("alias", alias);
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
-        ImmutableVersionConstraint version = versions.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
+        ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
         DependencyModel model = new DependencyModel(intern(group), intern(name), version);
-        DependencyModel previous = dependencies.put(intern(alias), model);
+        Supplier<DependencyModel> previous = dependencies.put(intern(alias), () -> model);
         if (previous != null) {
-            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous, model);
+            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
+        }
+    }
+
+    @Override
+    public void aliasWithVersionRef(String alias, String group, String name, String versionRef) {
+        validateName("alias", alias);
+        Supplier<DependencyModel> previous = dependencies.put(intern(alias), new VersionReferencingDependencyModel(group, name, versionRef));
+        if (previous != null) {
+            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
         }
     }
 
@@ -110,5 +134,26 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
             return null;
         }
         return strings.intern(value);
+    }
+
+    private class VersionReferencingDependencyModel implements Supplier<DependencyModel> {
+        private final String group;
+        private final String name;
+        private final String versionRef;
+
+        private VersionReferencingDependencyModel(String group, String name, String versionRef) {
+            this.group = group;
+            this.name = name;
+            this.versionRef = versionRef;
+        }
+
+        @Override
+        public DependencyModel get() {
+            ImmutableVersionConstraint constraint = versionConstraints.get(versionRef);
+            if (constraint == null) {
+                throw new InvalidUserDataException("Referenced version '" + versionRef + "' doesn't exist on dependency " + group + ":" + name);
+            }
+            return new DependencyModel(group, name, constraint);
+        }
     }
 }

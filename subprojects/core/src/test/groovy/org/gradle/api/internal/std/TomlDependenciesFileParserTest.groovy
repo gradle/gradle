@@ -72,6 +72,14 @@ class TomlDependenciesFileParserTest extends Specification {
         hasPlugin('org.gradle.test.my-plugin', '1.0')
     }
 
+    def "parses a file with a single version and nothing else"() {
+        when:
+        parse('one-version')
+
+        then:
+        hasVersion('guava', '17')
+    }
+
     def "parses dependencies with various notations"() {
         when:
         parse 'dependency-notations'
@@ -145,6 +153,21 @@ class TomlDependenciesFileParserTest extends Specification {
                 prefer '1.5'
             }
         }
+        hasDependency('groovy-with-ref') {
+            withGroup 'org.codehaus.groovy'
+            withName 'groovy'
+            withVersion {
+                require '2.5.6'
+            }
+        }
+        hasDependency('groovy-with-ref2') {
+            withGroup 'org.codehaus.groovy'
+            withName 'groovy'
+            withVersion {
+                strictly '[2.5, 3.0['
+                prefer '2.5.6'
+            }
+        }
     }
 
     def "parses bundles"() {
@@ -189,6 +212,7 @@ class TomlDependenciesFileParserTest extends Specification {
         'invalid12' | "Unknown top level elements [toto, tata]"
         'invalid13' | "On bundle 'groovy' expected an array but value of 'groovy' is a string"
         'invalid14' | "On plugin 'my.awesome.plugin' expected a string but value of 'my.awesome.plugin' is a boolean"
+        'invalid15' | "Referenced version 'nope' doesn't exist on dependency com:foo"
     }
 
     void hasDependency(String name, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependencySpec) Closure<Void> spec) {
@@ -208,6 +232,13 @@ class TomlDependenciesFileParserTest extends Specification {
 
     void hasPlugin(String id, String version = '1.0') {
         assert plugins.containsKey(id) && plugins[id].version == version
+    }
+
+    void hasVersion(String id, String version) {
+        def versionConstraint = model.getVersion(id)
+        assert versionConstraint != null : "Expected a version constraint with name $id but didn't find one"
+        def actual = versionConstraint.toString()
+        assert actual == version
     }
 
     private void parse(String name) {
