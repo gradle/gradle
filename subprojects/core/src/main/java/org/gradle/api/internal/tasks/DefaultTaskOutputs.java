@@ -53,8 +53,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
-    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
+    private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
+    private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
     private FileCollection previousOutputFiles;
     private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
