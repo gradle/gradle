@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.std
 
+import com.google.common.collect.Interners
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -28,7 +28,7 @@ import spock.lang.Unroll
 class DefaultDependenciesModelBuilderTest extends Specification {
 
     @Subject
-    DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder(TestUtil.objectFactory())
+    DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner())
 
     @Unroll("#notation is an invalid notation")
     def "reasonable error message if notation is invalid"() {
@@ -143,12 +143,6 @@ class DefaultDependenciesModelBuilderTest extends Specification {
         model.getDependencyData("groovy").version.strictVersion == '3.0.5'
         model.getDependencyData("groovy-json").version.strictVersion == ''
         model.getDependencyData("groovy-json").version.preferredVersion == '3.0.5'
-    }
-
-    def "extension name defaults"() {
-        expect:
-        builder.librariesExtensionName.get() == 'libs'
-        builder.projectsExtensionName.get() == 'projects'
     }
 
     def "strings are interned"() {

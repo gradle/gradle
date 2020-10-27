@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.std
 
+import com.google.common.collect.Interners
 import groovy.transform.CompileStatic
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.MutableVersionConstraint
@@ -24,14 +25,13 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.annotation.Nullable
 
 class TomlDependenciesFileParserTest extends Specification {
-    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder(TestUtil.objectFactory())
+    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner())
     final Map<String, TestPlugin> plugins = [:].withDefault { new TestPlugin() }
     final PluginDependenciesSpec pluginsSpec = new PluginDependenciesSpec() {
         @Override

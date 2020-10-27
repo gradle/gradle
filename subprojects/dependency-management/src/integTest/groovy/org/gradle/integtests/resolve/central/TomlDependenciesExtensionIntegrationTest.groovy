@@ -63,13 +63,13 @@ foo.gav = 'org.gradle.test:lib:1.0'
         run 'verifyExtension'
 
         then:
-        operations.hasOperation("Generate dependency accessors")
+        operations.hasOperation("Generate dependency accessors for libs")
 
         when: "no change in settings"
         run 'verifyExtension'
 
         then: "extension is not regenerated"
-        !operations.hasOperation("Generate dependency accessors")
+        !operations.hasOperation("Generate dependency accessors for libs")
 
         when: "adding a library to the model"
         tomlFile << """
@@ -77,14 +77,14 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
 """
         run 'verifyExtension'
         then: "extension is regenerated"
-        operations.hasOperation("Generate dependency accessors")
+        operations.hasOperation("Generate dependency accessors for libs")
 
         when: "updating a version in the model"
         tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '.gav="org.gradle.test:bar:1.1"')
         run 'verifyExtension'
 
         then: "extension is not regenerated"
-        !operations.hasOperation("Generate dependency accessors")
+        !operations.hasOperation("Generate dependency accessors for libs")
         outputContains 'Type-safe dependency accessors is an incubating feature.'
     }
 
@@ -386,7 +386,7 @@ from-included.gav="org.gradle.test:other:1.1"
         }
     }
 
-    def "model from TOML file and settings is merged"() {
+    def "model from TOML file and settings is merged if settings use the same extension name"() {
         tomlFile << """[dependencies]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
@@ -402,7 +402,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         """
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias('other', 'org.gradle.test:other:1.0')
                 }
             }
@@ -440,7 +440,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
         """
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias('my-lib', 'org.gradle.test:lib:1.0')
                 }
             }
@@ -545,6 +545,40 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
         cc.assertStateStored()
         outputContains "Calculating task graph as configuration cache cannot be reused because file 'gradle${File.separatorChar}dependencies.toml' has changed."
     }
+
+    def "can change the default extension name"() {
+        tomlFile << """[dependencies]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        settingsFile << """
+            dependencyResolutionManagement {
+                defaultLibrariesExtensionName = 'libraries'
+            }
+        """
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libraries.myLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
 
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")

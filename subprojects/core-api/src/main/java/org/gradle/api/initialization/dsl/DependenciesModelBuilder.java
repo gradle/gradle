@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.List;
@@ -73,21 +72,7 @@ public interface DependenciesModelBuilder {
     void bundle(String name, List<String> aliases);
 
     /**
-     * Let's the user configure what name is used to expose the type-safe
-     * library accessors.
-     *
-     * Defaults to `libs`
-     *
+     * Returns the name of the extension configured by this builder
      */
-    Property<String> getLibrariesExtensionName();
-
-    /**
-     * Let's the user configure what name is used to expose the type-safe
-     * projects accessors.
-     *
-     * Defaults to `projects`
-     *
-     */
-    Property<String> getProjectsExtensionName();
-
+    String getLibrariesExtensionName();
 }

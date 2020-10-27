@@ -26,7 +26,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
     def "dependencies declared in settings trigger the creation of an extension (notation=#notation)"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     $notation
                 }
             }
@@ -52,32 +52,32 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         run 'verifyExtension'
 
         then:
-        operations.hasOperation("Generate dependency accessors")
+        operations.hasOperation("Generate dependency accessors for libs")
 
         when: "no change in settings"
         run 'verifyExtension'
 
         then: "extension is not regenerated"
-        !operations.hasOperation("Generate dependency accessors")
+        !operations.hasOperation("Generate dependency accessors for libs")
 
         when: "adding a library to the model"
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("bar", "org.gradle.test:bar:1.0")
                 }
             }
         """
         run 'verifyExtension'
         then: "extension is regenerated"
-        operations.hasOperation("Generate dependency accessors")
+        operations.hasOperation("Generate dependency accessors for libs")
 
         when: "updating a version in the model"
         settingsFile.text = settingsFile.text.replace('org.gradle.test:bar:1.0', 'org.gradle.test:bar:1.1')
         run 'verifyExtension'
 
         then: "extension is not regenerated"
-        !operations.hasOperation("Generate dependency accessors")
+        !operations.hasOperation("Generate dependency accessors for libs")
         outputContains 'Type-safe dependency accessors is an incubating feature.'
 
         where:
@@ -90,7 +90,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
     def "can use the generated extension to declare a dependency"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("myLib", "org.gradle.test", "lib") {
                         require "1.0"
                     }
@@ -124,7 +124,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
     def "can use the generated extension to declare a dependency and override the version"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("myLib", "org.gradle.test", "lib") {
                         require "1.0"
                     }
@@ -162,7 +162,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
     void "can add several dependencies at once using a bundle"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("lib", "org.gradle.test", "lib") {
                         require "1.0"
                     }
@@ -202,7 +202,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
     void "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("lib", "org.gradle.test", "lib") {
                         require "1.0"
                     }
@@ -243,11 +243,10 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         }
     }
 
-    def "can change the name of the libraries extension"() {
+    def "can configure a different libraries extension"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
-                    librariesExtensionName.set("libraries")
+                dependenciesModel("libraries") {
                     alias("myLib", "org.gradle.test", "lib") {
                         require "1.0"
                     }
@@ -278,10 +277,96 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         }
     }
 
+    def "can configure multiple libraries extension"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                dependenciesModel("libraries") {
+                    alias("myLib", "org.gradle.test", "lib") {
+                        require "1.0"
+                    }
+                }
+                dependenciesModel("other") {
+                    alias("great", "org.gradle.test", "lib2") {
+                        require "1.1"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libraries.myLib
+                implementation other.great
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.1')
+            }
+        }
+    }
+
+    // makes sure the extension with a different name is created even if a
+    // different one with same contents exists
+    def "can configure multiple libraries extension with same contents"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                dependenciesModel("libraries") {
+                    alias("myLib", "org.gradle.test", "lib") {
+                        require "1.0"
+                    }
+                }
+                dependenciesModel("other") {
+                    alias("myLib", "org.gradle.test", "lib") {
+                        require "1.0"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libraries.myLib
+                implementation other.myLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
     def "extension can be used in any subproject"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("lib", "org.gradle.test:lib:1.0")
                 }
             }
@@ -326,7 +411,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
     def "libraries extension is not visible in buildSrc"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("lib", "org.gradle.test:lib:1.0")
                 }
             }
@@ -347,7 +432,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
     def "buildSrc and main project have different libraries extensions"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("lib", "org.gradle.test:lib:1.0")
                 }
             }
@@ -363,7 +448,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         """
         file("buildSrc/settings.gradle") << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("build-src-lib", "org.gradle.test:buildsrc-lib:1.0")
                 }
             }
@@ -415,7 +500,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
                 repositories {
                     maven { url "${mavenHttpRepo.uri}" }
                 }
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias('from-included', 'org.gradle.test:other:1.1')
                 }
             }

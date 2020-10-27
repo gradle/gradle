@@ -18,7 +18,6 @@ package org.gradle.api.internal.std;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -28,8 +27,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.DependenciesModelBuilderInternal;
 
 import javax.annotation.Nullable;
@@ -41,31 +39,31 @@ import java.util.stream.Collectors;
 public class DefaultDependenciesModelBuilder implements DependenciesModelBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesModelBuilder.class);
 
-    private final Interner<String> strings = Interners.newStrongInterner();
-    private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
+    private final Interner<String> strings;
+    private final Interner<ImmutableVersionConstraint> versions;
     private final Map<String, DependencyModel> dependencies = Maps.newLinkedHashMap();
     private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
-    private final Property<String> librariesExtensionName;
-    private final Property<String> projectsExtensionName;
+    private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
+    private final String name;
 
     @Inject
-    public DefaultDependenciesModelBuilder(ObjectFactory objects) {
-        this.librariesExtensionName = objects.property(String.class).convention("libs");
-        this.projectsExtensionName = objects.property(String.class).convention("projects");
+    public DefaultDependenciesModelBuilder(String name, Interner<String> strings, Interner<ImmutableVersionConstraint> versions) {
+        this.name = name;
+        this.strings = strings;
+        this.versions = versions;
     }
 
     @Override
-    public Property<String> getLibrariesExtensionName() {
-        return librariesExtensionName;
-    }
-
-    @Override
-    public Property<String> getProjectsExtensionName() {
-        return projectsExtensionName;
+    public String getLibrariesExtensionName() {
+        return name;
     }
 
     @Override
     public AllDependenciesModel build() {
+        return model.get();
+    }
+
+    private AllDependenciesModel doBuild() {
         for (Map.Entry<String, List<String>> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
             List<String> aliases = entry.getValue();
@@ -75,7 +73,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
                 }
             }
         }
-        return new AllDependenciesModel(ImmutableMap.copyOf(dependencies), ImmutableMap.copyOf(bundles));
+        return new AllDependenciesModel(name, ImmutableMap.copyOf(dependencies), ImmutableMap.copyOf(bundles));
     }
 
     @Override

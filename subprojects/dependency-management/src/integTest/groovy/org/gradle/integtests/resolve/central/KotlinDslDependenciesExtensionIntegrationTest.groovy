@@ -45,7 +45,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
         def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
         settingsKotlinFile << """
             dependencyResolutionManagement {
-                dependenciesModel {
+                dependenciesModel("libs") {
                     alias("my-lib", "org.gradle.test:lib:1.0")
                 }
             }

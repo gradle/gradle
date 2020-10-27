@@ -16,6 +16,8 @@
 package org.gradle.api.internal.std;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
@@ -30,6 +32,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
@@ -50,6 +53,7 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -61,7 +65,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String KEBAB_CASE = "[a-z]([a-z0-9\\-])*";
     private final static Pattern KEBAB_PATTERN = Pattern.compile(KEBAB_CASE);
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
-    private final static String ACCESSORS_CLASSNAME = "Libraries";
+    private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
 
     private final ClassPath classPath;
@@ -69,10 +73,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final DefaultProjectDependencyFactory projectDependencyFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final FeaturePreviews featurePreviews;
+    private final List<AllDependenciesModel> models = Lists.newArrayList();
+    private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
 
-    private AllDependenciesModel dependenciesConfiguration;
     private ClassLoaderScope classLoaderScope;
-    private Class<? extends ExternalModuleDependencyFactory> generatedDependenciesFactory;
     private Class<? extends TypeSafeProjectDependencyFactory> generatedProjectFactory;
     private ClassPath sources = DefaultClassPath.of();
     private ClassPath classes = DefaultClassPath.of();
@@ -90,13 +94,19 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Override
-    public void generateAccessors(DependenciesModelBuilder builder, ClassLoaderScope classLoaderScope, Settings settings) {
+    public void generateAccessors(List<DependenciesModelBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings) {
         try {
-            this.dependenciesConfiguration = ((DependenciesModelBuilderInternal) builder).build();
             this.classLoaderScope = classLoaderScope;
-            if (dependenciesConfiguration.isNotEmpty()) {
+            this.models.clear(); // this is used in tests only, shouldn't happen in real context
+            for (DependenciesModelBuilder builder : builders) {
+                AllDependenciesModel model = ((DependenciesModelBuilderInternal) builder).build();
+                models.add(model);
+            }
+            if (!models.isEmpty()) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe dependency accessors");
-                writeDependenciesAccessors();
+            }
+            for (AllDependenciesModel model : models) {
+                writeDependenciesAccessors(model);
             }
             if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
@@ -107,10 +117,11 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
     }
 
-    private void writeDependenciesAccessors() {
+    private void writeDependenciesAccessors(AllDependenciesModel model) {
         Hasher hash = Hashing.sha1().newHasher();
-        List<String> dependencyAliases = dependenciesConfiguration.getDependencyAliases();
-        List<String> bundles = dependenciesConfiguration.getBundleAliases();
+        hash.putString(model.getName());
+        List<String> dependencyAliases = model.getDependencyAliases();
+        List<String> bundles = model.getBundleAliases();
         dependencyAliases.forEach(hash::putString);
         bundles.forEach(hash::putString);
         String keysHash = hash.hash().toString();
@@ -118,11 +129,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             File srcDir = new File(workspace, "sources");
             File dstDir = new File(workspace, "classes");
             if (!srcDir.exists() || !dstDir.exists()) {
-                buildOperationExecutor.run(new DependencyAccessorCompilationOperation(dependenciesConfiguration, srcDir, dstDir, classPath));
+                buildOperationExecutor.run(new DependencyAccessorCompilationOperation(model, srcDir, dstDir, classPath));
             }
-            sources = DefaultClassPath.of(srcDir);
-            classes = DefaultClassPath.of(dstDir);
-            classLoaderScope.export(DefaultClassPath.of(dstDir));
+            ClassPath generatedClasses = DefaultClassPath.of(dstDir);
+            sources = sources.plus(DefaultClassPath.of(srcDir));
+            classes = classes.plus(generatedClasses);
+            classLoaderScope.export(generatedClasses);
             return null;
         });
     }
@@ -199,36 +211,41 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     @Override
     public void createExtensions(ProjectInternal project) {
-        if (dependenciesConfiguration != null) {
-            ExtensionContainer container = project.getExtensions();
-            ServiceRegistry services = project.getServices();
-            DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
-            ProjectFinder projectFinder = services.get(ProjectFinder.class);
-            try {
-                if (dependenciesConfiguration.isNotEmpty()) {
-                    if (generatedDependenciesFactory == null) {
+        ExtensionContainer container = project.getExtensions();
+        try {
+            if (!models.isEmpty()) {
+                for (AllDependenciesModel model : models) {
+                    if (model.isNotEmpty()) {
+                        Class<? extends ExternalModuleDependencyFactory> factory;
                         synchronized (this) {
-                            generatedDependenciesFactory = loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME);
+                            factory = factories.computeIfAbsent(model.getName(), n -> loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(n)));
+                        }
+                        if (factory != null) {
+                            container.create(model.getName(), factory, model);
                         }
                     }
-                    container.create(drm.getLibrariesExtensionName(), generatedDependenciesFactory, dependenciesConfiguration);
                 }
-            } finally {
+            }
+        } finally {
+            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+                ServiceRegistry services = project.getServices();
+                DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
+                ProjectFinder projectFinder = services.get(ProjectFinder.class);
                 createProjectsExtension(container, drm, projectFinder);
             }
         }
     }
 
     private void createProjectsExtension(ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
-        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
-            if (generatedProjectFactory == null) {
-                synchronized (this) {
-                    generatedProjectFactory = loadFactory(classLoaderScope, ROOT_PROJECT_ACCESSOR_FQCN);
-                }
+        if (generatedProjectFactory == null) {
+            synchronized (this) {
+                generatedProjectFactory = loadFactory(classLoaderScope, ROOT_PROJECT_ACCESSOR_FQCN);
             }
-            if (generatedProjectFactory != null) {
-                container.create(drm.getProjectsExtensionName(), generatedProjectFactory, projectDependencyFactory, projectFinder);
-            }
+        }
+        if (generatedProjectFactory != null) {
+            Property<String> defaultProjectsExtensionName = drm.getDefaultProjectsExtensionName();
+            defaultProjectsExtensionName.finalizeValue();
+            container.create(defaultProjectsExtensionName.get(), generatedProjectFactory, projectDependencyFactory, projectFinder);
         }
     }
 
@@ -244,14 +261,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private static class DependencyAccessorCompilationOperation implements RunnableBuildOperation {
 
-        private static final BuildOperationDescriptor.Builder GENERATE_DEPENDENCY_ACCESSORS = BuildOperationDescriptor.displayName("Generate dependency accessors");
-        private final AllDependenciesModel dependenciesConfiguration;
+        private final AllDependenciesModel model;
         private final File srcDir;
         private final File dstDir;
         private final ClassPath classPath;
 
-        private DependencyAccessorCompilationOperation(AllDependenciesModel dependenciesConfiguration, File srcDir, File dstDir, ClassPath classPath) {
-            this.dependenciesConfiguration = dependenciesConfiguration;
+        private DependencyAccessorCompilationOperation(AllDependenciesModel model, File srcDir, File dstDir, ClassPath classPath) {
+            this.model = model;
             this.srcDir = srcDir;
             this.dstDir = dstDir;
             this.classPath = classPath;
@@ -259,21 +275,23 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public void run(BuildOperationContext context) {
-            List<ClassSource> sources = Collections.singletonList(new DependenciesAccessorClassSource(dependenciesConfiguration));
+            List<ClassSource> sources = Collections.singletonList(new DependenciesAccessorClassSource(model.getName(), model));
             compile(srcDir, dstDir, sources, classPath);
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return GENERATE_DEPENDENCY_ACCESSORS;
+            return BuildOperationDescriptor.displayName("Generate dependency accessors for " + model.getName());
         }
     }
 
     private static class DependenciesAccessorClassSource implements ClassSource {
 
+        private final String name;
         private final AllDependenciesModel model;
 
-        private DependenciesAccessorClassSource(AllDependenciesModel model) {
+        private DependenciesAccessorClassSource(String name, AllDependenciesModel model) {
+            this.name = name;
             this.model = model;
         }
 
@@ -284,13 +302,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public String getSimpleClassName() {
-            return ACCESSORS_CLASSNAME;
+            return ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(name);
         }
 
         @Override
         public String getSource() {
             StringWriter writer = new StringWriter();
-            DependenciesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
+            DependenciesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
             return writer.toString();
         }
     }

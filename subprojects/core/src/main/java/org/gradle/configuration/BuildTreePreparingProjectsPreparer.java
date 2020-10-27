@@ -20,6 +20,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.std.TomlDependenciesFileParser;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -28,7 +29,6 @@ import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.api.internal.std.TomlDependenciesFileParser;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -85,7 +85,9 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         ObjectFactory objects = services.get(ObjectFactory.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
         DependencyResolutionManagementInternal dm = services.get(DependencyResolutionManagementInternal.class);
-        dm.dependenciesModel(builder -> {
+        dm.getDefaultLibrariesExtensionName().finalizeValue();
+        String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
+        dm.dependenciesModel(defaultLibrary, builder -> {
             File dependenciesFile = new File(settings.getSettingsDir(), "gradle/dependencies.toml");
             if (dependenciesFile.exists()) {
                 RegularFileProperty srcProp = objects.fileProperty();
@@ -97,8 +99,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
                     throw new UncheckedIOException(e);
                 }
             }
-            accessors.generateAccessors(builder, classLoaderScope, settings);
         });
-
+        accessors.generateAccessors(dm.getDependenciesModelBuilders(), classLoaderScope, settings);
     }
 }
