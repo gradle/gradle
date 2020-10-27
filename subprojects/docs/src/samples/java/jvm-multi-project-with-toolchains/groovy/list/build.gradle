@@ -9,7 +9,7 @@ tasks.withType(JavaCompile).configureEach {
         languageVersion = JavaLanguageVersion.of(8)
     }
 }
-task('testsOn14', type: Copy) {
+task('testsOn14', type: Test) {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(14)
     }
