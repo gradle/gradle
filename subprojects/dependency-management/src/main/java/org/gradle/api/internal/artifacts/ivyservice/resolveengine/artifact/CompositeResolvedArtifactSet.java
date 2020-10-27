@@ -49,12 +49,10 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        List<Completion> results = new ArrayList<>(sets.size());
+    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
         for (ResolvedArtifactSet set : sets) {
-            results.add(set.startVisit(actions, listener));
+            set.visit(actions, visitor);
         }
-        return new CompositeResult(results);
     }
 
     @Override
@@ -75,21 +73,6 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     public void visitDependencies(TaskDependencyResolveContext context) {
         for (ResolvedArtifactSet set : sets) {
             set.visitDependencies(context);
-        }
-    }
-
-    private static class CompositeResult implements Completion {
-        private final List<Completion> results;
-
-        CompositeResult(List<Completion> results) {
-            this.results = results;
-        }
-
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            for (Completion result : results) {
-                result.visit(visitor);
-            }
         }
     }
 }

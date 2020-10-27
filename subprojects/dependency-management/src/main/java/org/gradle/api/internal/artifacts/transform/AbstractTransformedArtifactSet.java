@@ -17,10 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -28,8 +27,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.Map;
 
 /**
  * Transformed artifact set that performs the transformation itself when visited.
@@ -73,10 +70,11 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
+    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+        FileCollectionStructureVisitor.VisitType visitType = visitor.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return visitor -> visitor.endVisitCollection(this);
+            visitor.visitArtifacts(new EmptyArtifacts(this));
+            return;
         }
 
         // Isolate the transformation parameters, if not already done
@@ -85,9 +83,9 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
             step.getUpstreamDependencies().finalizeIfNotAlready();
         }
 
-        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(steps, actions, artifactResults));
-        return new TransformCompletion(result, targetVariantAttributes, artifactResults);
+        delegate.visit(actions, new TransformingAsyncArtifactListener(steps, actions, targetVariantAttributes, visitor));
+        // Need to fire an "end collection" event. Should clean this up
+        visitor.visitArtifacts(new EmptyArtifacts(this));
     }
 
     @Override

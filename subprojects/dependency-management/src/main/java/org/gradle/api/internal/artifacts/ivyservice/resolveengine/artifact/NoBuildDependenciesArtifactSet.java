@@ -48,8 +48,8 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            return selectedArtifacts.startVisit(actions, listener);
+        public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+            selectedArtifacts.visit(actions, visitor);
         }
 
         @Override

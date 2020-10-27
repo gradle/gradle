@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
 import org.gradle.api.internal.artifacts.transform.TransformationSubject;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -93,7 +92,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         return attributes;
     }
 
-    private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
+    private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
         private final ResolvableArtifact artifact;
@@ -106,17 +105,17 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public ResolvedArtifactSet.Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            if (listener.requireArtifactFiles()) {
+        public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+            if (visitor.requireArtifactFiles()) {
                 if (artifact.isResolveSynchronously()) {
                     // Resolve it now
-                    new DownloadArtifactFile(artifact, this, listener).run(null);
+                    new DownloadArtifactFile(artifact, this).run(null);
                 } else {
                     // Resolve it later
-                    actions.add(new DownloadArtifactFile(artifact, this, listener));
+                    actions.add(new DownloadArtifactFile(artifact, this));
                 }
             }
-            return this;
+            visitor.visitArtifacts(this);
         }
 
         @Override
@@ -194,19 +193,16 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private static class DownloadArtifactFile implements RunnableBuildOperation {
         private final ResolvableArtifact artifact;
         private final SingleArtifactSet owner;
-        private final AsyncArtifactListener listener;
 
-        DownloadArtifactFile(ResolvableArtifact artifact, SingleArtifactSet owner, AsyncArtifactListener visitor) {
+        DownloadArtifactFile(ResolvableArtifact artifact, SingleArtifactSet owner) {
             this.artifact = artifact;
             this.owner = owner;
-            this.listener = visitor;
         }
 
         @Override
         public void run(BuildOperationContext context) {
             try {
                 artifact.getFile();
-                listener.artifactAvailable(artifact);
 
                 // This method is sometimes called directly (i.e. not via an operation executor).
                 // In these cases, the context is null.

@@ -213,7 +213,7 @@ Found the following transforms:
     def visit(ResolvedArtifactSet set) {
         def visitor = Stub(ArtifactVisitor)
         _ * visitor.visitFailure(_) >> { Throwable t -> throw t }
-        set.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), Stub(ResolvedArtifactSet.AsyncArtifactListener)).visit(visitor)
+        set.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), Stub(ResolvedArtifactSet.Visitor)).visit(visitor)
     }
 
     private static AttributeContainerInternal typeAttributes(String artifactType) {

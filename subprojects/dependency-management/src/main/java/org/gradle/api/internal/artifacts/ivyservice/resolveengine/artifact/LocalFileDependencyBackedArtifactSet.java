@@ -81,15 +81,17 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor listener) {
         FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return visitor -> visitor.endVisitCollection(this);
+            listener.visitArtifacts(new EmptyArtifacts(this));
+            return;
         }
 
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
         if (componentIdentifier != null && !componentFilter.isSatisfiedBy(componentIdentifier)) {
-            return EMPTY_RESULT;
+            listener.visitArtifacts(new EmptyArtifacts(this));
+            return;
         }
 
         FileCollectionInternal fileCollection = dependencyMetadata.getFiles();
@@ -97,7 +99,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         try {
             files = fileCollection.getFiles();
         } catch (Exception throwable) {
-            return new BrokenResolvedArtifactSet(throwable);
+            listener.visitArtifacts(new BrokenArtifacts(throwable));
+            return;
         }
 
         ImmutableList.Builder<ResolvedArtifactSet> selectedArtifacts = ImmutableList.builderWithExpectedSize(files.size());
@@ -116,14 +119,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant, this));
         }
-        Completion result = CompositeResolvedArtifactSet.of(selectedArtifacts.build()).startVisit(actions, listener);
+        CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(actions, listener);
         if (visitType == FileCollectionStructureVisitor.VisitType.Spec) {
-            return visitor -> {
-                result.visit(visitor);
-                visitor.visitSpec(fileCollection);
-            };
+            listener.visitArtifacts(visitor -> visitor.visitSpec(fileCollection));
         }
-        return result;
     }
 
     @Override
@@ -145,7 +144,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         context.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Artifacts, ResolvedVariantSet {
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
         private final ImmutableAttributes variantAttributes;
@@ -204,9 +203,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            listener.artifactAvailable(artifact);
-            return this;
+        public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+            visitor.visitArtifacts(this);
         }
 
         @Override

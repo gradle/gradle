@@ -75,15 +75,12 @@ class FixedFilesArtifactSet(private val ownerId: ComponentIdentifier, private va
         throw UnsupportedOperationException("should not be called")
     }
 
-    override fun startVisit(actions: BuildOperationQueue<RunnableBuildOperation>, listener: ResolvedArtifactSet.AsyncArtifactListener): ResolvedArtifactSet.Completion {
+    override fun visit(actions: BuildOperationQueue<RunnableBuildOperation>, visitor: ResolvedArtifactSet.Visitor) {
         val artifacts = artifacts
-        for (artifact in artifacts) {
-            listener.artifactAvailable(artifact)
-        }
-        return ResolvedArtifactSet.Completion { visitor ->
+        visitor.visitArtifacts { artifactVisitor ->
             val displayName = Describables.of(ownerId)
             for (artifact in artifacts) {
-                visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
+                artifactVisitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
             }
         }
     }

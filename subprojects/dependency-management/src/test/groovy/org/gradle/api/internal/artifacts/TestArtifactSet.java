@@ -54,15 +54,15 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        return new Completion() {
+    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+        visitor.visitArtifacts(new Artifacts() {
             @Override
             public void visit(ArtifactVisitor visitor) {
                 for (final ResolvedArtifact artifact : artifacts) {
                     visitor.visitArtifact(variantName, variant, new Adapter(artifact));
                 }
             }
-        };
+        });
     }
 
     @Override

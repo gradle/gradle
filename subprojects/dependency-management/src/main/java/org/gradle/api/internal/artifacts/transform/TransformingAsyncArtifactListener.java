@@ -17,38 +17,66 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
-public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
+public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformationStep> transformationSteps;
-    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    private final ResolvedArtifactSet.Visitor visitor;
+    private final AttributeContainerInternal target;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
 
     public TransformingAsyncArtifactListener(
         List<BoundTransformationStep> transformationSteps,
         BuildOperationQueue<RunnableBuildOperation> actions,
-        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults) {
+        AttributeContainerInternal target,
+        ResolvedArtifactSet.Visitor visitor) {
         this.transformationSteps = transformationSteps;
-        this.artifactResults = artifactResults;
+        this.target = target;
+        this.visitor = visitor;
         this.actions = actions;
     }
 
     @Override
-    public void artifactAvailable(ResolvableArtifact artifact) {
-        ComponentArtifactIdentifier artifactId = artifact.getId();
-        File file = artifact.getFile();
-        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
-        TransformationResult result = createTransformationResult(initialSubject);
-        artifactResults.put(artifactId, result);
+    public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
+        artifacts.visit(new ArtifactVisitor() {
+            @Override
+            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+                ComponentArtifactIdentifier artifactId = artifact.getId();
+                File file;
+                try {
+                    file = artifact.getFile();
+                } catch (Throwable t) {
+                    visitor.visitArtifacts(new BrokenArtifacts(t));
+                    return;
+                }
+                TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
+                TransformationResult result = createTransformationResult(initialSubject);
+                visitor.visitArtifacts(new ArtifactsImpl(result, variantName, artifact, target));
+            }
+
+            @Override
+            public boolean requireArtifactFiles() {
+                return false;
+            }
+
+            @Override
+            public void visitFailure(Throwable failure) {
+                visitor.visitArtifacts(new BrokenArtifacts(failure));
+            }
+        });
     }
 
     @Override
@@ -59,8 +87,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.As
 
     @Override
     public boolean requireArtifactFiles() {
-        // Always need the files, as we need to run the transform in order to calculate the output artifacts.
-        return true;
+        // Don't get the files, they will be queried on demand
+        return false;
     }
 
     private TransformationResult createTransformationResult(TransformationSubject initialSubject) {
@@ -82,5 +110,34 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.As
             invocation = invocation.flatMap(intermediate -> nextStep.getTransformation().createInvocation(intermediate, nextStep.getUpstreamDependencies(), null));
         }
         return invocation;
+    }
+
+    private final class ArtifactsImpl implements ResolvedArtifactSet.Artifacts {
+        private final TransformationResult result;
+        private final DisplayName variantName;
+        private final ResolvableArtifact artifact;
+        private final AttributeContainerInternal target;
+
+        public ArtifactsImpl(TransformationResult result, DisplayName variantName, ResolvableArtifact artifact, AttributeContainerInternal target) {
+            this.result = result;
+            this.variantName = variantName;
+            this.artifact = artifact;
+            this.target = target;
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            result.getTransformedSubject().ifSuccessfulOrElse(
+                transformedSubject -> {
+                    for (File output : transformedSubject.getFiles()) {
+                        ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
+                        visitor.visitArtifact(variantName, target, resolvedArtifact);
+                    }
+                },
+                failure -> visitor.visitFailure(
+                    new TransformException(String.format("Failed to transform %s to match attributes %s.", artifact.getId(), target), failure))
+            );
+
+        }
     }
 }

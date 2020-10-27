@@ -60,7 +60,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     }
 
     def "does not visit files when visitor does not require them"() {
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def visitor = Mock(ArtifactVisitor)
 
         when:
@@ -74,7 +74,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
     def "does not visit files when filtered"() {
         def id = Stub(ComponentIdentifier)
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def visitor = Mock(ArtifactVisitor)
 
         when:
@@ -97,7 +97,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def "does not visit files when no id provided and assigned id is filtered"() {
         def f1 = new File("a.jar")
         def f2 = new File("a.dll")
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def visitor = Mock(ArtifactVisitor)
         def files = Mock(FileCollectionInternal)
 
@@ -117,7 +117,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def f1 = new File("a.jar")
         def f2 = new File("a.dll")
         def id = Stub(ComponentIdentifier)
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def visitor = Mock(ArtifactVisitor)
         def files = Mock(FileCollectionInternal)
         def attrs1 = attributesFactory.of(Attribute.of('attr', String), 'value1')
@@ -173,7 +173,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def "assigns an id when none provided"() {
         def f1 = new File("a.jar")
         def f2 = new File("a.dll")
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def visitor = Mock(ArtifactVisitor)
         def files = Mock(FileCollectionInternal)
         def attrs1 = attributesFactory.of(Attribute.of('attr', String), 'value1')
@@ -204,7 +204,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     }
 
     def "reports failure to list files"() {
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def visitor = Mock(ArtifactVisitor)
         def files = Mock(FileCollectionInternal)
         def failure = new RuntimeException()

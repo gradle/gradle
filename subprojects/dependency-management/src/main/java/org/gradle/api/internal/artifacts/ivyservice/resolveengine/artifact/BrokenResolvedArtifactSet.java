@@ -22,7 +22,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
+public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     private final Throwable failure;
 
     public BrokenResolvedArtifactSet(Throwable failure) {
@@ -35,8 +35,8 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        return this;
+    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+        visitor.visitArtifacts(this);
     }
 
     @Override

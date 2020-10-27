@@ -39,7 +39,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
     def "visits empty variant"() {
         def visitor = Mock(ArtifactVisitor)
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def set1 = of([])
 
         when:
@@ -62,7 +62,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
     def "visits artifacts and retains order when artifact files are not required"() {
         def visitor = Mock(ArtifactVisitor)
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def set1 = of([artifact1, artifact2])
         def set2 = of([artifact1])
 
@@ -91,7 +91,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
     def "visits artifacts when artifact files are required"() {
         def visitor = Mock(ArtifactVisitor)
-        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def listener = Mock(ResolvedArtifactSet.Visitor)
         def f1 = new File("f1")
         def f2 = new File("f2")
         def set1 = of([artifact1, artifact2])

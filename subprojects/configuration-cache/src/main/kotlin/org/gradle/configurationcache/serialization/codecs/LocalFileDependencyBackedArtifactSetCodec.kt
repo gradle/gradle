@@ -181,7 +181,7 @@ class RecordingVariantSet(
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun startVisit(actions: BuildOperationQueue<RunnableBuildOperation>, listener: ResolvedArtifactSet.AsyncArtifactListener): ResolvedArtifactSet.Completion {
+    override fun visit(actions: BuildOperationQueue<RunnableBuildOperation>, visitor: ResolvedArtifactSet.Visitor) {
         throw UnsupportedOperationException("Should not be called")
     }
 

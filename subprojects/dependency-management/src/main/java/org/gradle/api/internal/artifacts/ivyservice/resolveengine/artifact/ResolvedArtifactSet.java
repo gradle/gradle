@@ -32,11 +32,9 @@ import java.io.File;
  */
 public interface ResolvedArtifactSet extends TaskDependencyContainer {
     /**
-     * Starts preparing the result of this set for later visiting. To visit the final result, call {@link Completion#visit(ArtifactVisitor)} after all work added to the supplied queue has completed.
-     *
-     * The implementation should notify the provided listener as soon as individual artifacts become available.
+     * Visits the contents of the set, adding any remaining work to finalise the set of artifacts to the given queue.
      */
-    Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener);
+    void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor);
 
     /**
      * Visits the local artifacts of this set, if known without further resolution. Ignores artifacts that are not build locally and local artifacts that cannot be determined without further resolution.
@@ -48,13 +46,9 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      */
     void visitExternalArtifacts(Action<ResolvableArtifact> visitor);
 
-    Completion EMPTY_RESULT = visitor -> {
-    };
-
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
         @Override
-        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            return EMPTY_RESULT;
+        public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
         }
 
         @Override
@@ -70,10 +64,9 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         }
     };
 
-    interface Completion {
+    interface Artifacts {
         /**
          * Invoked once all async work as completed, to visit the final result. The result is visited using the current thread and in the relevant order.
-         * This differs from the notifications passed to {@link AsyncArtifactListener}, which are done from multiple threads and in arbitrary order.
          */
         void visit(ArtifactVisitor visitor);
     }
@@ -81,16 +74,16 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
     /**
      * A listener that is notified as artifacts are made available while visiting the contents of a set. Implementations must be thread safe as they are notified from multiple threads concurrently.
      */
-    interface AsyncArtifactListener {
+    interface Visitor {
         /**
          * Called prior to scheduling resolution of a set of the given type. Should be called in result order.
          */
         FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source);
 
         /**
-         * Visits an artifact once its file is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
+         * Visits zero or more artifacts.
          */
-        void artifactAvailable(ResolvableArtifact artifact);
+        void visitArtifacts(Artifacts artifacts);
 
         /**
          * Should the file for each artifacts be made available when visiting the result?

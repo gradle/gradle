@@ -38,7 +38,7 @@ class CompositeResolvedArtifactSetTest extends Specification {
         def set1 = Mock(ResolvedArtifactSet)
         def set2 = Mock(ResolvedArtifactSet)
 
-        def asyncListener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def asyncListener = Mock(ResolvedArtifactSet.Visitor)
         def queue = Stub(BuildOperationQueue)
         def visitor = Mock(ArtifactVisitor)
         def result1 = Mock(ResolvedArtifactSet.Completion)

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -31,9 +32,7 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * An artifact set containing transformed project artifacts.
@@ -75,36 +74,29 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
+    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+        FileCollectionStructureVisitor.VisitType visitType = visitor.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return visitor -> visitor.endVisitCollection(this);
+            visitor.visitArtifacts(new EmptyArtifacts(this));
+            return;
         }
 
-        List<ResolvableArtifact> result = new ArrayList<>(transformedArtifacts.size());
-        List<Throwable> failures = new ArrayList<>(1);
-        for (TransformationNode node : transformedArtifacts) {
-            node.executeIfNotAlready();
-            Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
-            if (transformedSubject.isSuccessful()) {
-                for (File file : transformedSubject.get().getFiles()) {
-                    result.add(node.getInputArtifacts().transformedTo(file));
-                }
-            } else {
-                Throwable failure = transformedSubject.getFailure().get();
-                failures.add(new TransformException(String.format("Failed to transform %s to match attributes %s.", node.getInputArtifacts().getDisplayName(), targetAttributes), failure));
-            }
-        }
-        return visitor -> {
+        visitor.visitArtifacts(artifactVisitor -> {
             DisplayName displayName = Describables.of(componentIdentifier);
-            for (ResolvableArtifact artifact : result) {
-                visitor.visitArtifact(displayName, targetAttributes, artifact);
+            for (TransformationNode node : transformedArtifacts) {
+                node.executeIfNotAlready();
+                Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
+                if (transformedSubject.isSuccessful()) {
+                    for (File file : transformedSubject.get().getFiles()) {
+                        artifactVisitor.visitArtifact(displayName, targetAttributes, node.getInputArtifacts().transformedTo(file));
+                    }
+                } else {
+                    Throwable failure = transformedSubject.getFailure().get();
+                    artifactVisitor.visitFailure(new TransformException(String.format("Failed to transform %s to match attributes %s.", node.getInputArtifacts().getDisplayName(), targetAttributes), failure));
+                }
             }
-            for (Throwable failure : failures) {
-                visitor.visitFailure(failure);
-            }
-            visitor.endVisitCollection(this);
-        };
+            artifactVisitor.endVisitCollection(this);
+        });
     }
 
     @Override
