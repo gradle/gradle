@@ -96,7 +96,7 @@ See [the userguide](userguide/more_about_tasks.html#sec:property_file_normalizat
 
 #### Composite builds
 
-Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache and thus will no longer be reported as problems.
+Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
 
 #### Supported core plugins
 
