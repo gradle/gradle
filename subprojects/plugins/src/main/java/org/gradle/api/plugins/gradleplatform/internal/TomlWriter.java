@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal.gradleplatform;
+package org.gradle.api.plugins.gradleplatform.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;

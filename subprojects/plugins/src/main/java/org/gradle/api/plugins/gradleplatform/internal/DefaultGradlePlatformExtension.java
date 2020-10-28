@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal.gradleplatform;
+package org.gradle.api.plugins.gradleplatform.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.std.AllDependenciesModel;
-import org.gradle.api.internal.std.DefaultDependenciesModelBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -39,23 +37,23 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class DefaultGradlePlatformExtension implements GradlePlatformExtensionInternal {
-    private final DefaultDependenciesModelBuilder builder;
+    private final GradlePlatformDependenciesModelBuilder builder;
     private final SimplifiedPluginDependenciesSpec plugins;
     private final Provider<AllDependenciesModel> model;
     private final Provider<Map<String, String>> pluginsModel;
-    private final Map<ModuleIdentifier, String> explicitAliases = Maps.newHashMap();
 
     @Inject
-    public DefaultGradlePlatformExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs) {
+    public DefaultGradlePlatformExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs, Configuration dependenciesConfiguration) {
         this.plugins = new SimplifiedPluginDependenciesSpec();
-        this.builder = objects.newInstance(DefaultDependenciesModelBuilder.class,
+        this.builder = objects.newInstance(GradlePlatformDependenciesModelBuilder.class,
             "gradlePlatform",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             objects,
             providers,
             plugins,
-            (Supplier<DependencyResolutionServices>) () -> drs
+            (Supplier<DependencyResolutionServices>) () -> drs,
+            dependenciesConfiguration
         );
         this.model = providers.provider(builder::build);
         this.pluginsModel = providers.provider(() -> ImmutableMap.copyOf(plugins.pluginVersions));
@@ -73,7 +71,7 @@ public class DefaultGradlePlatformExtension implements GradlePlatformExtensionIn
 
     @Override
     public void configureExplicitAlias(String alias, String group, String name) {
-        explicitAliases.put(DefaultModuleIdentifier.newId(group, name), alias);
+        builder.configureExplicitAlias(DefaultModuleIdentifier.newId(group, name), alias);
     }
 
     @Override
@@ -84,19 +82,6 @@ public class DefaultGradlePlatformExtension implements GradlePlatformExtensionIn
     @Override
     public Provider<Map<String, String>> getPluginVersions() {
         return pluginsModel;
-    }
-
-    @Override
-    public void tryGenericAlias(String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
-        if (builder.containsDependencyAlias(name)) {
-            throw new InvalidUserDataException("A dependency with alias '" + name + "' already exists for module '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
-        }
-        builder.alias(name, group, name, versionSpec);
-    }
-
-    @Override
-    public Map<ModuleIdentifier, String> getExplicitAliases() {
-        return ImmutableMap.copyOf(explicitAliases);
     }
 
     private static class SimplifiedPluginDependenciesSpec implements PluginDependenciesSpec {

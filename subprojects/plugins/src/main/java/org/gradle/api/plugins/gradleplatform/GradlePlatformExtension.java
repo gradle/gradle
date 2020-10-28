@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
+package org.gradle.api.plugins.gradleplatform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;

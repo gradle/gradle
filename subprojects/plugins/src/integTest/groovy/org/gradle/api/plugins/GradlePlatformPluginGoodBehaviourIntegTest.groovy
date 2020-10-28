@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.plugins.gradleplatform.GradlePlatformPlugin
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class GradlePlatformPluginGoodBehaviourIntegTest extends WellBehavedPluginTest {

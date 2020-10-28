@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal.gradleplatform;
+package org.gradle.api.plugins.gradleplatform.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.std.AllDependenciesModel;
-import org.gradle.api.plugins.GradlePlatformExtension;
+import org.gradle.api.plugins.gradleplatform.GradlePlatformExtension;
 import org.gradle.api.provider.Provider;
 
 import java.util.Map;
@@ -27,7 +24,4 @@ import java.util.Map;
 public interface GradlePlatformExtensionInternal extends GradlePlatformExtension {
     Provider<AllDependenciesModel> getDependenciesModel();
     Provider<Map<String, String>> getPluginVersions();
-
-    void tryGenericAlias(String group, String name, Action<? super MutableVersionConstraint> versionSpec);
-    Map<ModuleIdentifier, String> getExplicitAliases();
 }

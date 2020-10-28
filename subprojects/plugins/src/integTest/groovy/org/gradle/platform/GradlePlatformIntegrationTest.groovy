@@ -17,6 +17,7 @@
 package org.gradle.platform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements GradlePlatformSupport {
     def setup() {
@@ -112,6 +113,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         expectPlatformContents 'expected3'
     }
 
+    @ToBeFixedForConfigurationCache(because="doesn't failing test yet")
     def "reasonable error message if there's a name clash between two dependencies"() {
         buildFile << """
             dependencies {
@@ -184,6 +186,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         expectPlatformContents 'expected6'
     }
 
+    @ToBeFixedForConfigurationCache(because="doesn't failing test yet")
     def "can detect name clash between dependencies and constraints"() {
         buildFile << """
             dependencies {

@@ -30,9 +30,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.annotation.Nullable
+import java.util.function.Supplier
 
 class TomlDependenciesFileParserTest extends Specification {
-    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
+    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
     final Map<String, TestPlugin> plugins = [:].withDefault { new TestPlugin() }
     final PluginDependenciesSpec pluginsSpec = new PluginDependenciesSpec() {
         @Override

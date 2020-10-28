@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.gradleplatform.GradlePlatformPlugin;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.internal.component.external.model.DefaultShadowedCapability;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
