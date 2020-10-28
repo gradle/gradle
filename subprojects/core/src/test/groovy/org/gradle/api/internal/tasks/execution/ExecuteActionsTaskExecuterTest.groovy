@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
@@ -101,6 +102,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def taskProperties = Stub(TaskProperties) {
         getInputPropertyValues() >> { { -> ImmutableSortedMap.of() } as Supplier }
         getInputFileProperties() >> ImmutableSortedSet.of()
+        getInputFiles() >> Stub(FileCollectionInternal)
+        getSourceFiles() >> Stub(FileCollectionInternal)
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
     def previousState = Stub(AfterPreviousExecutionState) {

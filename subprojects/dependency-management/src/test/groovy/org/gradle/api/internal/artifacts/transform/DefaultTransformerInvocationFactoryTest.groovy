@@ -37,11 +37,13 @@ import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.DefaultOutputSnapshotter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
@@ -75,6 +77,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         getClassLoaderHash(_ as ClassLoader) >> HashCode.fromInt(1234)
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHasher, null)
+    def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
 
     def executionHistoryStore = new TestExecutionHistoryStore()
     def fileSystemAccess = TestFiles.fileSystemAccess()
@@ -83,6 +86,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
+    def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileCollectionSnapshotter)
@@ -125,10 +129,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         cancellationToken,
         buildInvocationScopeId,
         buildOperationExecutor,
+        buildOutputCleanupRegistry,
         new GradleEnterprisePluginManager(),
         classloaderHasher,
         deleter,
         new DefaultExecutionStateChangeDetector(),
+        inputFingerprinter,
         outputChangeListener,
         outputFilesRepository,
         outputSnapshotter,
@@ -138,8 +144,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             .willBeRemovedInGradle7()
             .undocumented()
             .nagUser()
-        },
-        valueSnapshotter
+        }
     )
 
     def invoker = new DefaultTransformerInvocationFactory(
