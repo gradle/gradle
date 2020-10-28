@@ -114,6 +114,15 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         project.getComponents().add(component);
         component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
         component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
+
+        project.getPluginManager().withPlugin("gradle-platform", id -> {
+            // If the Gradle Platform is also applied, then the publication will also publish the Gradle platform
+            // and we configure it to inherit from the runtimeElement dependencies
+            Configuration gradlePlatformElements = project.getConfigurations().getByName(GradlePlatformPlugin.GRADLE_PLATFORM_ELEMENTS);
+            Configuration gradleDependencies = project.getConfigurations().getByName(GradlePlatformPlugin.GRADLE_PLATFORM_DEPENDENCIES);
+            gradleDependencies.extendsFrom(runtimeElements);
+            component.addVariantsFromConfiguration(gradlePlatformElements, new JavaConfigurationVariantMapping("compile", false));
+        });
     }
 
     private void createConfigurations(Project project) {

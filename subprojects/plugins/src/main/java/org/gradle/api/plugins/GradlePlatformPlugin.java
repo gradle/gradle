@@ -86,7 +86,6 @@ public class GradlePlatformPlugin implements Plugin<Project> {
             cnf.setDescription("Artifacts for the Gradle platform");
             cnf.setCanBeConsumed(true);
             cnf.setCanBeResolved(false);
-            cnf.extendsFrom(dependencies);
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));

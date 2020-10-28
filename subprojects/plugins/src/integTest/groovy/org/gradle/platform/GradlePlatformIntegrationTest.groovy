@@ -47,22 +47,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec {
 
     def "can publish a Gradle platform"() {
         withSamplePlatform()
-        buildFile << """
-            apply plugin: 'maven-publish'
-
-            publishing {
-                repositories {
-                    maven {
-                        url "$mavenRepo.uri"
-                    }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.gradlePlatform
-                    }
-                }
-            }
-        """
+        withPublishing()
 
         when:
         succeeds ':publish'
@@ -277,6 +262,45 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec {
         expectPlatformContents 'expected8'
     }
 
+    def "can publish a Java platform as a Gradle platform"() {
+        buildFile << """apply plugin:'java-platform'
+"""
+        withPublishing 'javaPlatform'
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    api 'org:api-dep:1.0'
+                    runtime 'org:runtime-dep:1.4'
+                }
+            }
+        """
+
+        when:
+        succeeds ':publish'
+
+        then:
+        executedAndNotSkipped ':generatePlatformToml',
+            ':generateMetadataFileForMavenPublication',
+            ':generatePomFileForMavenPublication',
+            ':publishMavenPublicationToMavenRepository'
+        def module = mavenRepo.module("org.gradle", "test", "1.0")
+            .withModuleMetadata()
+        module.assertPublished()
+        def metadata = module.parsedModuleMetadata
+        metadata.variant("gradlePlatformElements") {
+            noMoreDependencies()
+            assert attributes == [
+                'org.gradle.category': 'platform',
+                'org.gradle.usage': 'gradle-recommendations'
+            ]
+            assert files.name == ['test-1.0.toml']
+        }
+
+        and:
+        expectPlatformContents 'expected9'
+    }
+
     private void withSamplePlatform() {
         buildFile << """
             gradlePlatform {
@@ -292,6 +316,25 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec {
                 }
                 plugins {
                     id("my.awesome.plugin") version "1.5"
+                }
+            }
+        """
+    }
+
+    private void withPublishing(String component = 'gradlePlatform') {
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            publishing {
+                repositories {
+                    maven {
+                        url "$mavenRepo.uri"
+                    }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.$component
+                    }
                 }
             }
         """
