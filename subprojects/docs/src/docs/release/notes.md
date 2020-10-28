@@ -184,18 +184,21 @@ Output of `gradle -q javaToolchains`:
  + AdoptOpenJDK 1.8.0_242
      | Location:           /path/to/8.0.242.hs-adpt/jre
      | Language Version:   8
+     | Vendor:             AdoptOpenJDK
      | Is JDK:             true
      | Detected by:        SDKMAN!
 
  + OpenJDK 15-ea
      | Location:           /path/to/java/15.ea.21-open
      | Language Version:   15
+     | Vendor:             AdoptOpenJDK
      | Is JDK:             true
      | Detected by:        SDKMAN!
 
  + Oracle JDK 1.7.0_80
      | Location:           /Library/Java/jdk1.7.0_80.jdk/jre
      | Language Version:   7
+     | Vendor:             Oracle
      | Is JDK:             true
      | Detected by:        macOS java_home
 ```
