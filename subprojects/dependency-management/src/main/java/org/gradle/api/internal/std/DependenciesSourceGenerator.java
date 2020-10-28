@@ -70,11 +70,15 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
         List<String> dependencies = config.getDependencyAliases();
         List<String> bundles = config.getBundleAliases();
-        performValidation(dependencies, bundles);
-        for (String alias : dependencies) {
-            String coordinates = coordinatesDescriptorFor(config.getDependencyData(alias));
-            writeAccessor(alias, coordinates);
-        }
+        List<String> versions = config.getVersionAliases();
+        performValidation(dependencies, bundles, versions);
+        writeDependencyAccessors(dependencies);
+        writeBundleAccessors(bundles);
+        writeVersionAccessors(versions);
+        writeLn("}");
+    }
+
+    private void writeBundleAccessors(List<String> bundles) throws IOException {
         for (String alias : bundles) {
             List<String> coordinates = config.getBundle(alias).stream()
                 .map(config::getDependencyData)
@@ -82,14 +86,33 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
                 .collect(Collectors.toList());
             writeBundle(alias, coordinates);
         }
-        writeLn("}");
     }
 
-    private static void performValidation(List<String> dependencies, List<String> bundles) {
+    private void writeDependencyAccessors(List<String> dependencies) throws IOException {
+        for (String alias : dependencies) {
+            String coordinates = coordinatesDescriptorFor(config.getDependencyData(alias));
+            writeAccessor(alias, coordinates);
+        }
+    }
+
+    private void writeVersionAccessors(List<String> versions) throws IOException {
+        for (String version : versions) {
+            writeLn("    /**");
+            writeLn("     * Returns the version associated to this alias: " + version);
+            writeLn("     * If the version is a rich version and that its not expressable as a");
+            writeLn("     * single version string, then an empty string is returned.");
+            writeLn("     */");
+            writeLn("    public String get" + toJavaName(version) + "Version() { return getVersion(\"" + version + "\"); }");
+            writeLn();
+        }
+    }
+
+    private static void performValidation(List<String> dependencies, List<String> bundles, List<String> versions) {
         assertDependencyAliases(dependencies);
         assertUnique(dependencies, "dependency aliases", "");
         assertUnique(bundles, "dependency bundles", "Bundle");
-        int size = dependencies.size() + bundles.size();
+        assertUnique(versions, "dependency versions", "Version");
+        int size = dependencies.size() + bundles.size() + versions.size();
         if (size > MAX_ENTRIES) {
             maybeThrowValidationError(ImmutableList.of("model contains too many entries (" + size + "), maximum is " + MAX_ENTRIES));
         }
@@ -97,8 +120,8 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
 
     private static void assertDependencyAliases(List<String> names) {
         List<String> errors = names.stream()
-            .filter(n -> n.toLowerCase().endsWith("bundle"))
-            .map(n -> "alias " + n + " isn't a valid: it shouldn't end with 'Bundle'")
+            .filter(n -> n.toLowerCase().endsWith("bundle") || n.toLowerCase().endsWith("version"))
+            .map(n -> "alias " + n + " isn't a valid: it shouldn't end with 'Bundle' or 'Version'")
             .collect(Collectors.toList());
         maybeThrowValidationError(errors);
     }

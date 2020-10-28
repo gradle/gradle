@@ -17,6 +17,7 @@ package org.gradle.api.internal.std;
 
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
@@ -31,6 +32,25 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                                                 ProviderFactory providers) {
         this.config = config;
         this.providers = providers;
+    }
+
+    /**
+     * Returns a single version string from a rich version
+     * constraint, assuming the user knows what they are doing.
+     * @param name the name of the version alias
+     * @return a single version string or an empty string
+     */
+    protected String getVersion(String name) {
+        ImmutableVersionConstraint version = config.getVersion(name);
+        String requiredVersion = version.getRequiredVersion();
+        if (!requiredVersion.isEmpty()) {
+            return requiredVersion;
+        }
+        String strictVersion = version.getStrictVersion();
+        if (!strictVersion.isEmpty()) {
+            return strictVersion;
+        }
+        return version.getPreferredVersion();
     }
 
     protected Provider<MinimalExternalModuleDependency> create(String alias) {
