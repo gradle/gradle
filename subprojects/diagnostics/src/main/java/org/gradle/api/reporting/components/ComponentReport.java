@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.components;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
@@ -42,7 +41,7 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap;
 /**
  * Displays some details about the software components produced by the project.
  */
-@Incubating
+@Deprecated
 public class ComponentReport extends DefaultTask {
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {

@@ -17,10 +17,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.reporting.components.ComponentReport
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask
 import org.gradle.api.tasks.diagnostics.ProjectReportTask
 import org.gradle.api.tasks.diagnostics.PropertyReportTask
 import org.gradle.api.tasks.diagnostics.TaskReportTask
@@ -41,7 +41,7 @@ class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
         hasHelpTask(ProjectInternal.PROJECTS_TASK, ProjectReportTask)
         hasHelpTask(ProjectInternal.TASKS_TASK, TaskReportTask)
         hasHelpTask(HelpTasksPlugin.PROPERTIES_TASK, PropertyReportTask)
-        hasHelpTask(HelpTasksPlugin.COMPONENTS_TASK, ComponentReport)
+        hasHelpTask(HelpTasksPlugin.OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask)
         hasHelpTask(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask)
     }
 

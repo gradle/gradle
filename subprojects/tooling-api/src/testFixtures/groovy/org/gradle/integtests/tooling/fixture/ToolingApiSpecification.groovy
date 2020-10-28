@@ -238,7 +238,13 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of invisible implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitInvisibleTasks() {
-        return targetVersion >= GradleVersion.version("5.3") ? ['prepareKotlinBuildScriptModel'] : []
+        if (targetVersion >= GradleVersion.version("6.8")) {
+            return ['prepareKotlinBuildScriptModel', 'components', 'dependentComponents', 'model']
+        } else if (targetVersion >= GradleVersion.version("5.3")) {
+            return ['prepareKotlinBuildScriptModel']
+        } else {
+            return []
+        }
     }
 
     /**
