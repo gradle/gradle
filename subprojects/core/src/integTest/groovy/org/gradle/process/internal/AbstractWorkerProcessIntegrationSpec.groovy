@@ -31,6 +31,8 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.internal.id.LongIdGenerator
+import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
@@ -76,7 +78,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final JavaExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()
     DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.DEBUG), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(),
-        execHandleFactory, new DefaultJvmVersionDetector(execHandleFactory), outputEventListener, Stub(MemoryManager))
+        execHandleFactory, new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory))), outputEventListener, Stub(MemoryManager))
 
     def setup() {
         CurrentBuildOperationRef.instance().set(new DefaultBuildOperationRef(new OperationIdentifier(123), null))

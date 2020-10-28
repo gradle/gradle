@@ -22,6 +22,8 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Actions
 import org.gradle.internal.id.LongIdGenerator
+import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.remote.ObjectConnectionBuilder
 import org.gradle.process.internal.health.memory.MemoryManager
@@ -91,7 +93,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         String expectedLogStatement = "[[INFO] [org.gradle.process.internal.LogSerializableLogAction] info log statement]"
 
         when:
-        workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.LIFECYCLE), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new DefaultJvmVersionDetector(execHandleFactory), outputEventListener, Stub(MemoryManager))
+        workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.LIFECYCLE), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory))), outputEventListener, Stub(MemoryManager))
         and:
         execute(worker(loggingProcess))
 
@@ -99,7 +101,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         !outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators(expectedLogStatement))
 
         when:
-        workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.INFO), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new DefaultJvmVersionDetector(execHandleFactory), outputEventListener, Stub(MemoryManager))
+        workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.INFO), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory))), outputEventListener, Stub(MemoryManager))
         and:
         execute(worker(loggingProcess))
 
