@@ -42,6 +42,7 @@ public class RootProjectAccessorSourceGenerator extends AbstractProjectAccessors
 
     private void generate(String packageName, String className, ProjectDescriptor current) throws IOException {
         writeHeader(packageName);
+        writeLn("@NonNullApi");
         writeLn("public class " + className + " extends TypeSafeProjectDependencyFactory {\n");
         writeLn();
         writeLn("    @Inject");

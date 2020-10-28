@@ -60,6 +60,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         }
         if (name.equals("DEPENDENCIES-EXTENSION-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-base-annotations").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-core-api").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
