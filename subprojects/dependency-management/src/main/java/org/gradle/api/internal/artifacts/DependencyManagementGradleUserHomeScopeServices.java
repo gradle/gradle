@@ -26,6 +26,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.event.ListenerManager;
@@ -89,11 +90,14 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheRepository cacheRepository,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore, ListenerManager listenerManager) {
+        HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
         return new ImmutableTransformationWorkspaceProvider(
             artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
             cacheRepository,
             fileAccessTimeJournal,
-            executionHistoryStore
+            executionHistoryStore,
+            // Santa tracker Android stores about 1500 transforms in the identity cache and uses 1G.
+            cacheSizer.scaleCacheSize(5000)
         );
     }
 
