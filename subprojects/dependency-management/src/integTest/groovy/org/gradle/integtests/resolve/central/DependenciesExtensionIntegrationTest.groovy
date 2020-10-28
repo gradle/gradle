@@ -527,7 +527,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included","com.acme:included:zloubi") {
+                edge("com.acme:included:1.0", "project :included", "com.acme:included:zloubi") {
                     compositeSubstitute()
                     configuration = "runtimeElements"
                     module('org.gradle.test:other:1.1')
@@ -620,5 +620,50 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
                 module('org.gradle.test:lib2:1.0')
             }
         }
+    }
+
+    @Unroll
+    def "can generate a version accessor and use it in a build script"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                dependenciesModel("libs") {
+                    version("lib") {
+                        $notation
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation "org.gradle.test:lib:\${libs.libVersion}"
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                // always 1.0 because calling `getLibVersion` will always loose the rich aspect
+                // of the version model
+                module("org.gradle.test:lib:1.0")
+            }
+        }
+
+        where:
+        notation << [
+            "require '1.0'",
+            "strictly '1.0'",
+            "prefer '1.0'"
+        ]
+
     }
 }

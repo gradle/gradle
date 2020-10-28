@@ -115,6 +115,25 @@ class DependenciesSourceGeneratorTest extends Specification {
         'a.b'       | 'getABBundle'
     }
 
+    @Unroll
+    def "generates an accessor for #name as version #method"() {
+        when:
+        generate {
+            version(name, '1.0')
+        }
+
+        then:
+        sources.hasVersion(name, method)
+
+        where:
+        name          | method
+        'groovy'      | 'getGroovyVersion'
+        'groovy-json' | 'getGroovyJsonVersion'
+        'groovy.json' | 'getGroovyJsonVersion'
+        'groovyJson'  | 'getGroovyJsonVersion'
+        'lang3'       | 'getLang3Version'
+    }
+
     def "reasonable error message if methods have the same name"() {
         when:
         generate {
@@ -184,7 +203,7 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "Cannot generate dependency accessors because alias barBundle isn't a valid: it shouldn't end with 'Bundle'"
+        ex.message == "Cannot generate dependency accessors because alias barBundle isn't a valid: it shouldn't end with 'Bundle' or 'Version'"
 
         when:
         generate {
@@ -196,8 +215,8 @@ class DependenciesSourceGeneratorTest extends Specification {
         then:
         ex = thrown()
         normaliseLineSeparators(ex.message) == """Cannot generate dependency accessors because:
-  - alias barBundle isn't a valid: it shouldn't end with 'Bundle'
-  - alias bazBundle isn't a valid: it shouldn't end with 'Bundle'"""
+  - alias barBundle isn't a valid: it shouldn't end with 'Bundle' or 'Version'
+  - alias bazBundle isn't a valid: it shouldn't end with 'Bundle' or 'Version'"""
     }
 
     def "generated sources can be compiled"() {
@@ -277,6 +296,13 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle") {
             def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() { return createBundle(\"$name\"); }"
+            assert lines.find {
+                it.contains(lookup)
+            }
+        }
+
+        void hasVersion(String name, String methodName = "get${toJavaName(name)}Version") {
+            def lookup = "public String $methodName() { return getVersion(\"$name\"); }"
             assert lines.find {
                 it.contains(lookup)
             }
