@@ -158,6 +158,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -535,7 +536,8 @@ class DependencyManagementBuildScopeServices {
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                               RepositoryDisabler repositoryBlacklister,
                                               VersionParser versionParser,
-                                              ListenerManager listenerManager) {
+                                              ListenerManager listenerManager,
+                                              CalculatedValueContainerFactory calculatedValueContainerFactory) {
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
             startParameterResolutionOverride,
@@ -545,8 +547,8 @@ class DependencyManagementBuildScopeServices {
             moduleIdentifierFactory,
             repositoryBlacklister,
             versionParser,
-            listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class)
-        );
+            listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class),
+            calculatedValueContainerFactory);
     }
 
     ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
@@ -567,7 +569,8 @@ class DependencyManagementBuildScopeServices {
                                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                                                 InstantiatorFactory instantiatorFactory,
                                                                 ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                                                FeaturePreviews featurePreviews) {
+                                                                FeaturePreviews featurePreviews,
+                                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -583,7 +586,8 @@ class DependencyManagementBuildScopeServices {
             componentMetadataSupplierRuleExecutor,
             instantiatorFactory,
             componentSelectionDescriptorFactory,
-            featurePreviews);
+            featurePreviews,
+            calculatedValueContainerFactory);
     }
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {

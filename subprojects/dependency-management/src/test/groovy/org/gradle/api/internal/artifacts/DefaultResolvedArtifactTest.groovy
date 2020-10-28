@@ -17,102 +17,34 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.tasks.TaskDependencyContainer
-import org.gradle.internal.Factory
 import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.model.CalculatedValue
 import org.gradle.util.Matchers
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultResolvedArtifactTest extends Specification {
+    def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
 
     def "artifacts are equal when artifact identifier is equal"() {
         def dependency = dep("group", "module1", "1.2")
         def dependencySameModule = dep("group", "module1", "1.2")
         def dependency2 = dep("group", "module2", "1-beta")
-        def artifactSource = Stub(Factory)
+        def artifactSource = Stub(CalculatedValue)
         def ivyArt = Stub(IvyArtifactName)
         def artifactId = Stub(ComponentArtifactIdentifier)
         def otherArtifactId = Stub(ComponentArtifactIdentifier)
         def buildDependencies = Stub(TaskDependencyContainer)
 
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependencyContainer), Stub(Factory))
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource)
-        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource)
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependencyContainer), Stub(CalculatedValue), calculatedValueContainerFactory)
+        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)
         artifact Matchers.strictlyEqual(differentModule)
         artifact != differentId
-    }
-
-    def "resolves file once and reuses result"() {
-        def dependency = dep("group", "module1", "1.2")
-        def artifactSource = Mock(Factory)
-        def ivyArt = Stub(IvyArtifactName)
-        def artifactId = Stub(ComponentArtifactIdentifier)
-        def buildDependencies = Stub(TaskDependencyContainer)
-        def file = new File("result")
-
-        when:
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
-
-        then:
-        !artifact.resolveSynchronously
-
-        when:
-        def result = artifact.file
-
-        then:
-        result == file
-        artifact.resolveSynchronously
-
-        and:
-        1 * artifactSource.create() >> file
-        0 * artifactSource._
-
-        when:
-        result = artifact.file
-
-        then:
-        result == file
-        0 * artifactSource._
-    }
-
-    def "resolves file once and reuses failure"() {
-        def dependency = dep("group", "module1", "1.2")
-        def artifactSource = Mock(Factory)
-        def ivyArt = Stub(IvyArtifactName)
-        def artifactId = Stub(ComponentArtifactIdentifier)
-        def buildDependencies = Stub(TaskDependencyContainer)
-        def failure = new RuntimeException()
-
-        when:
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
-
-        then:
-        !artifact.resolveSynchronously
-
-        when:
-        artifact.file
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        artifact.resolveSynchronously
-
-        and:
-        1 * artifactSource.create() >> { throw failure }
-        0 * artifactSource._
-
-        when:
-        artifact.file
-
-        then:
-        def e2 = thrown(RuntimeException)
-        e2 == failure
-        0 * artifactSource._
     }
 
     def dep(String group, String moduleName, String version) {

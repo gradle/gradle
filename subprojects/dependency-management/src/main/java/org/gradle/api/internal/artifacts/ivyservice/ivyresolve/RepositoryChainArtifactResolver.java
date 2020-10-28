@@ -27,6 +27,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -41,6 +42,11 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifac
 
 class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifactSelector {
     private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<>();
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+
+    public RepositoryChainArtifactResolver(CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+    }
 
     void add(ModuleComponentRepository repository) {
         repositories.put(repository.getId(), repository);
@@ -81,7 +87,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
             sourceRepository.getRemoteAccess().resolveArtifacts(component, configuration, result);
         }
         if (result.hasResult()) {
-            return result.getResult().getArtifactsFor(component, configuration, this, sourceRepository.getArtifactCache(), artifactTypeRegistry, exclusions, overriddenAttributes);
+            return result.getResult().getArtifactsFor(component, configuration, this, sourceRepository.getArtifactCache(), artifactTypeRegistry, exclusions, overriddenAttributes, calculatedValueContainerFactory);
         }
         return null;
     }

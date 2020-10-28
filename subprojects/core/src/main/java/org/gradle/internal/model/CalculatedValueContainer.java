@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents a calculated immutable value that should be calculated once and then consumed by multiple threads.
+ * Represents a calculated immutable value that is calculated once and then consumed by multiple threads.
  *
  * <p>This type is intended to contain values that are calculated as nodes in the work graph, but which may also be calculated
  * on demand. An instance of this type can be used as a node in the work graph.
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements WorkNodeAction {
+public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
     private final DisplayName displayName;
     private volatile S supplier;
     private final NodeExecutionContext defaultContext;
@@ -71,20 +71,12 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         return displayName.getCapitalizedDisplayName();
     }
 
-    /**
-     * Returns the value, failing if it has not been calculated. Does not calculate the value on demand.
-     *
-     * <p>Rethrows any failure happened while calculating the value</p>
-     */
+    @Override
     public T get() throws IllegalStateException {
         return getValue().get();
     }
 
-    /**
-     * Returns the value, or null if it has not been calculated. Does not calculate the value on demand.
-     *
-     * <p>Rethrows any failure happened while calculating the value</p>
-     */
+    @Override
     public T getOrNull() {
         Try<T> result = this.result;
         if (result != null) {
@@ -94,15 +86,18 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         }
     }
 
-    /**
-     * Returns the result of calculating the value, failing if it has not been calculated. Does not calculate the value on demand.
-     */
+    @Override
     public Try<T> getValue() throws IllegalStateException {
         Try<T> result = this.result;
         if (result == null) {
             throw new IllegalStateException(String.format("Value for %s has not been calculated yet.", displayName));
         }
         return result;
+    }
+
+    @Override
+    public boolean isFinalized() {
+        return supplier == null;
     }
 
     /**
@@ -157,9 +152,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         finalizeIfNotAlready(context);
     }
 
-    /**
-     * Calculates the value, if not already calculated. Collects and does not rethrow failures.
-     */
+    @Override
     public void finalizeIfNotAlready() {
         finalizeIfNotAlready(null);
     }

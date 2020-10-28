@@ -96,7 +96,6 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
         private final ResolvableArtifact artifact;
-        private volatile Throwable failure;
 
         SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
             this.variantName = variantName;
@@ -109,10 +108,10 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (visitor.requireArtifactFiles()) {
                 if (artifact.isResolveSynchronously()) {
                     // Resolve it now
-                    new DownloadArtifactFile(artifact, this).run(null);
+                    artifact.getFileSource().finalizeIfNotAlready();
                 } else {
                     // Resolve it later
-                    actions.add(new DownloadArtifactFile(artifact, this));
+                    actions.add(new DownloadArtifactFile(artifact));
                 }
             }
             visitor.visitArtifacts(this);
@@ -120,8 +119,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            if (failure != null) {
-                visitor.visitFailure(failure);
+            if (visitor.requireArtifactFiles() && !artifact.getFileSource().getValue().isSuccessful()) {
+                visitor.visitFailure(artifact.getFileSource().getValue().getFailure().get());
             } else {
                 visitor.visitArtifact(variantName, variantAttributes, artifact);
                 visitor.endVisitCollection(FileCollectionInternal.OTHER);
@@ -192,26 +191,15 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
     private static class DownloadArtifactFile implements RunnableBuildOperation {
         private final ResolvableArtifact artifact;
-        private final SingleArtifactSet owner;
 
-        DownloadArtifactFile(ResolvableArtifact artifact, SingleArtifactSet owner) {
+        DownloadArtifactFile(ResolvableArtifact artifact) {
             this.artifact = artifact;
-            this.owner = owner;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            try {
-                artifact.getFile();
-
-                // This method is sometimes called directly (i.e. not via an operation executor).
-                // In these cases, the context is null.
-                if (context != null) {
-                    context.setResult(DownloadArtifactBuildOperationType.RESULT);
-                }
-            } catch (Exception t) {
-                owner.failure = t;
-            }
+            artifact.getFileSource().finalizeIfNotAlready();
+            context.setResult(DownloadArtifactBuildOperationType.RESULT);
         }
 
         @Override

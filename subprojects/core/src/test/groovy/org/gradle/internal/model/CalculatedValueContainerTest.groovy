@@ -136,6 +136,39 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
         container.get() == 1
     }
 
+    def "threads that attempt to calculate the value block until after value is finalized"() {
+        // Don't use a spock mock as these apply their own synchronization
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), new DelayingCalculator(), Stub(NodeExecutionContext))
+
+        when:
+        async {
+            start {
+                instant.start1
+                container.finalizeIfNotAlready()
+                instant.finish1
+                assert container.get() == 1
+            }
+            start {
+                instant.start2
+                container.finalizeIfNotAlready()
+                instant.finish2
+                assert container.get() == 1
+            }
+            start {
+                instant.start3
+                container.finalizeIfNotAlready()
+                instant.finish3
+                assert container.get() == 1
+            }
+        }
+
+        then:
+        container.get() == 1
+        instant.finish1 > instant.finishCalculation
+        instant.finish2 > instant.finishCalculation
+        instant.finish3 > instant.finishCalculation
+    }
+
     static class Calculator implements ValueCalculator<Integer> {
         private final AtomicInteger value = new AtomicInteger()
 
@@ -158,6 +191,18 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
 
         @Override
         void visitDependencies(TaskDependencyResolveContext context) {
+        }
+    }
+
+    class DelayingCalculator extends Calculator {
+        @Override
+        Integer calculateValue(NodeExecutionContext context) {
+            thread.blockUntil.start1
+            thread.blockUntil.start2
+            thread.blockUntil.start3
+            thread.block()
+            instant.finishCalculation
+            return super.calculateValue(context)
         }
     }
 }

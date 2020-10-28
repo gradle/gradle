@@ -47,6 +47,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
@@ -106,6 +107,10 @@ class TestUtil {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
         return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)
+    }
+
+    static CalculatedValueContainerFactory calculatedValueContainerFactory() {
+        return new CalculatedValueContainerFactory(services())
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {

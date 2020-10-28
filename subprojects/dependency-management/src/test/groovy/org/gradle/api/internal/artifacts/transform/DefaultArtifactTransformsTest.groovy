@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -211,9 +210,11 @@ Found the following transforms:
     }
 
     def visit(ResolvedArtifactSet set) {
-        def visitor = Stub(ArtifactVisitor)
-        _ * visitor.visitFailure(_) >> { Throwable t -> throw t }
-        set.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), Stub(ResolvedArtifactSet.Visitor)).visit(visitor)
+        def artifactVisitor = Stub(ArtifactVisitor)
+        _ * artifactVisitor.visitFailure(_) >> { Throwable t -> throw t }
+        def visitor = Stub(ResolvedArtifactSet.Visitor)
+        _ * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        set.visit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), visitor)
     }
 
     private static AttributeContainerInternal typeAttributes(String artifactType) {

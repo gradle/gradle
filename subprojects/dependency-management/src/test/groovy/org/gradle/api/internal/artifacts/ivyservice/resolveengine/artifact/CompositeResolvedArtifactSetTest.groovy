@@ -40,26 +40,13 @@ class CompositeResolvedArtifactSetTest extends Specification {
 
         def asyncListener = Mock(ResolvedArtifactSet.Visitor)
         def queue = Stub(BuildOperationQueue)
-        def visitor = Mock(ArtifactVisitor)
-        def result1 = Mock(ResolvedArtifactSet.Completion)
-        def result2 = Mock(ResolvedArtifactSet.Completion)
 
         when:
-        def result = CompositeResolvedArtifactSet.of([set1, set2]).startVisit(queue, asyncListener)
+        CompositeResolvedArtifactSet.of([set1, set2]).visit(queue, asyncListener)
 
         then:
-        1 * set1.startVisit(queue, asyncListener) >> result1
-        1 * set2.startVisit(queue, asyncListener) >> result2
-        0 * _
-
-        when:
-        result.visit(visitor)
-
-        then:
-        1 * result1.visit(visitor)
-
-        then:
-        1 * result2.visit(visitor)
+        1 * set1.visit(queue, asyncListener)
+        1 * set2.visit(queue, asyncListener)
         0 * _
     }
 }

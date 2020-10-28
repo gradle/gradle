@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -85,6 +86,11 @@ public class TestArtifactSet implements ResolvedArtifactSet {
 
         Adapter(ResolvedArtifact artifact) {
             this.artifact = artifact;
+        }
+
+        @Override
+        public CalculatedValue<File> getFileSource() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

@@ -39,12 +39,15 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.RunnableBuildOperation
 import java.io.File
 
 
-class TransformedExternalArtifactSetCodec : Codec<TransformedExternalArtifactSet> {
+class TransformedExternalArtifactSetCodec(
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : Codec<TransformedExternalArtifactSet> {
     override suspend fun WriteContext.encode(value: TransformedExternalArtifactSet) {
         encodePreservingSharedIdentityOf(value) {
             write(value.ownerId)
@@ -63,14 +66,18 @@ class TransformedExternalArtifactSetCodec : Codec<TransformedExternalArtifactSet
             val targetAttributes = readNonNull<ImmutableAttributes>()
             val files = readNonNull<List<File>>()
             val steps: List<TransformStepSpec> = readList().uncheckedCast()
-            TransformedExternalArtifactSet(ownerId, FixedFilesArtifactSet(ownerId, files), targetAttributes, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
+            TransformedExternalArtifactSet(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
         }
     }
 }
 
 
 private
-class FixedFilesArtifactSet(private val ownerId: ComponentIdentifier, private val files: List<File>) : ResolvedArtifactSet {
+class FixedFilesArtifactSet(
+    private val ownerId: ComponentIdentifier,
+    private val files: List<File>,
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : ResolvedArtifactSet {
     override fun visitDependencies(context: TaskDependencyResolveContext) {
         throw UnsupportedOperationException("should not be called")
     }
@@ -97,5 +104,8 @@ class FixedFilesArtifactSet(private val ownerId: ComponentIdentifier, private va
 
     private
     val artifacts: List<ResolvableArtifact>
-        get() = files.map { file -> PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), ComponentFileArtifactIdentifier(ownerId, file.name), file, TaskDependencyContainer.EMPTY) }
+        get() = files.map { file ->
+            val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
+            PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
+        }
 }

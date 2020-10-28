@@ -30,6 +30,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,16 +43,18 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     private final List<OriginArtifactSelector> selectors;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public DefaultArtifactSelector(List<OriginArtifactSelector> selectors, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry) {
+    public DefaultArtifactSelector(List<OriginArtifactSelector> selectors, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.selectors = selectors;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
     public ArtifactSet resolveArtifacts(LocalFileDependencyMetadata fileDependencyMetadata) {
-        return new FileDependencyArtifactSet(fileDependencyMetadata, artifactTypeRegistry);
+        return new FileDependencyArtifactSet(fileDependencyMetadata, artifactTypeRegistry, calculatedValueContainerFactory);
     }
 
     @Override
@@ -71,6 +74,6 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return DefaultArtifactSet.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, component.getAttributes(), overriddenAttributes);
+        return DefaultArtifactSet.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, component.getAttributes(), overriddenAttributes, calculatedValueContainerFactory);
     }
 }

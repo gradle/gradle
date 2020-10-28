@@ -55,14 +55,12 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             @Override
             public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
                 ComponentArtifactIdentifier artifactId = artifact.getId();
-                File file;
-                try {
-                    file = artifact.getFile();
-                } catch (Throwable t) {
-                    visitor.visitArtifacts(new BrokenArtifacts(t));
+                artifact.getFileSource().finalizeIfNotAlready();
+                if (!artifact.getFileSource().getValue().isSuccessful()) {
+                    visitor.visitArtifacts(new BrokenArtifacts(artifact.getFileSource().getValue().getFailure().get()));
                     return;
                 }
-                TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
+                TransformationSubject initialSubject = TransformationSubject.initial(artifactId, artifact.getFile());
                 TransformationResult result = createTransformationResult(initialSubject);
                 visitor.visitArtifacts(new ArtifactsImpl(result, variantName, artifact, target));
             }

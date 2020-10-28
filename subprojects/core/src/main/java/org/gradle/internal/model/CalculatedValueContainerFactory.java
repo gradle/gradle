@@ -16,8 +16,11 @@
 
 package org.gradle.internal.model;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -34,7 +37,41 @@ public class CalculatedValueContainerFactory {
         return new CalculatedValueContainer<>(displayName, supplier, globalContext);
     }
 
+    /**
+     * A convenience to create a calculated value which has no dependencies and which does not access any mutable model state.
+     */
+    public <T> CalculatedValueContainer<T, ?> create(DisplayName displayName, Factory<T> supplier) {
+        return new CalculatedValueContainer<>(displayName, new FactoryBackedCalculator<>(supplier), globalContext);
+    }
+
     public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, T value) {
         return new CalculatedValueContainer<>(displayName, value);
+    }
+
+    private static class FactoryBackedCalculator<T> implements ValueCalculator<T> {
+        private final Factory<T> supplier;
+
+        public FactoryBackedCalculator(Factory<T> supplier) {
+            this.supplier = supplier;
+        }
+
+        @Override
+        public boolean usesMutableProjectState() {
+            return false;
+        }
+
+        @Override
+        public Project getOwningProject() {
+            return null;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+        }
+
+        @Override
+        public T calculateValue(NodeExecutionContext context) {
+            return supplier.create();
+        }
     }
 }

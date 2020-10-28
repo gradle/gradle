@@ -42,6 +42,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -56,12 +57,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final VariantSelector selector;
     private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
         this.selector = selector;
         this.artifactTypeRegistry = artifactTypeRegistry;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     public LocalFileDependencyMetadata getDependencyMetadata() {
@@ -116,7 +119,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
-            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
             selectedArtifacts.add(selector.select(variant, this));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(actions, listener);
@@ -151,12 +154,12 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         private final LocalFileDependencyMetadata dependencyMetadata;
         private final ResolvableArtifact artifact;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata, CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.artifactIdentifier = artifactIdentifier;
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
-            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, file, this.dependencyMetadata.getFiles());
+            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file), this.dependencyMetadata.getFiles(), calculatedValueContainerFactory);
         }
 
         @Override

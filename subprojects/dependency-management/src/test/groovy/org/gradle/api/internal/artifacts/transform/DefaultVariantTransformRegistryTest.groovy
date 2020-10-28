@@ -71,7 +71,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-    def calculatedValueContainerFactory = new CalculatedValueContainerFactory(Stub(ServiceRegistry))
+    def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def registryFactory = new DefaultTransformationRegistrationFactory(
         new TestBuildOperationExecutor(),
