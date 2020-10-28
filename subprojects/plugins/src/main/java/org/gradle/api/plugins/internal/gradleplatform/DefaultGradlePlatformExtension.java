@@ -20,7 +20,10 @@ import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.std.AllDependenciesModel;
 import org.gradle.api.internal.std.DefaultDependenciesModelBuilder;
 import org.gradle.api.model.ObjectFactory;
@@ -38,6 +41,7 @@ public class DefaultGradlePlatformExtension implements GradlePlatformExtensionIn
     private final SimplifiedPluginDependenciesSpec plugins;
     private final Provider<AllDependenciesModel> model;
     private final Provider<Map<String, String>> pluginsModel;
+    private final Map<ModuleIdentifier, String> explicitAliases = Maps.newHashMap();
 
     @Inject
     public DefaultGradlePlatformExtension(ObjectFactory objects, ProviderFactory providers) {
@@ -65,6 +69,11 @@ public class DefaultGradlePlatformExtension implements GradlePlatformExtensionIn
     }
 
     @Override
+    public void configureExplicitAlias(String alias, String group, String name) {
+        explicitAliases.put(DefaultModuleIdentifier.newId(group, name), alias);
+    }
+
+    @Override
     public Provider<AllDependenciesModel> getDependenciesModel() {
         return model;
     }
@@ -72,6 +81,19 @@ public class DefaultGradlePlatformExtension implements GradlePlatformExtensionIn
     @Override
     public Provider<Map<String, String>> getPluginVersions() {
         return pluginsModel;
+    }
+
+    @Override
+    public void tryGenericAlias(String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
+        if (builder.containsDependencyAlias(name)) {
+            throw new InvalidUserDataException("A dependency with alias '" + name + "' already exists for module '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
+        }
+        builder.alias(name, group, name, versionSpec);
+    }
+
+    @Override
+    public Map<ModuleIdentifier, String> getExplicitAliases() {
+        return ImmutableMap.copyOf(explicitAliases);
     }
 
     private static class SimplifiedPluginDependenciesSpec implements PluginDependenciesSpec {

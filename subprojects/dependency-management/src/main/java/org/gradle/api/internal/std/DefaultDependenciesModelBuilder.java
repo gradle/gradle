@@ -176,6 +176,10 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         return strings.intern(value);
     }
 
+    public boolean containsDependencyAlias(String name) {
+        return dependencies.containsKey(name);
+    }
+
     private class VersionReferencingDependencyModel implements Supplier<DependencyModel> {
         private final String group;
         private final String name;

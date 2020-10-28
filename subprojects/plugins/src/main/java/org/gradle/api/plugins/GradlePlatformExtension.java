@@ -43,4 +43,9 @@ public interface GradlePlatformExtension {
      * @param spec the spec used to configure the plugins
      */
     void plugins(Action<? super PluginDependenciesSpec> spec);
+
+    /**
+     * Configures an explicit alias for a dependency in case of name clash
+     */
+    void configureExplicitAlias(String alias, String group, String name);
 }

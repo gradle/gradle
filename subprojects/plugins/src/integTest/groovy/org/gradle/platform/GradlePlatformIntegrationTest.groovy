@@ -86,6 +86,197 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "can generate a Gradle platform file from a dependencies configuration"() {
+        buildFile << """
+            dependencies {
+                gradlePlatform 'org:foo:1.0'
+                gradlePlatform('org:bar') {
+                    version {
+                        strictly '1.5'
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':generatePlatformToml'
+
+        then:
+        expectPlatformContents 'expected2'
+    }
+
+    def "can generate a Gradle platform file from a dependencies configuration and the extension"() {
+        buildFile << """
+            gradlePlatform {
+                dependenciesModel {
+                    bundle('my', ['foo', 'bar'])
+                }
+            }
+            dependencies {
+                gradlePlatform 'org:foo:1.0'
+                gradlePlatform('org:bar') {
+                    version {
+                        strictly '1.5'
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':generatePlatformToml'
+
+        then:
+        expectPlatformContents 'expected3'
+    }
+
+    def "reasonable error message if there's a name clash between two dependencies"() {
+        buildFile << """
+            dependencies {
+                gradlePlatform 'org1:foo:1.0'
+                gradlePlatform 'org2:foo:1.0'
+            }
+        """
+
+        when:
+        fails ':generatePlatformToml'
+
+        then:
+        failure.assertHasCause "A dependency with alias 'foo' already exists for module 'org2:foo'. Please configure an explicit alias for this dependency."
+    }
+
+    def "can declare a different alias in case of name clash"() {
+        buildFile << """
+            gradlePlatform {
+               configureExplicitAlias 'foo2', 'org2', 'foo'
+            }
+            dependencies {
+                gradlePlatform 'org1:foo:1.0'
+                gradlePlatform 'org2:foo:1.0'
+            }
+        """
+
+        when:
+        succeeds ':generatePlatformToml'
+
+        then:
+        expectPlatformContents 'expected4'
+    }
+
+    def "can declare a explicit alias without name clash"() {
+        buildFile << """
+            gradlePlatform {
+               configureExplicitAlias 'other', 'org', 'bar'
+            }
+            dependencies {
+                gradlePlatform 'org:foo:1.0'
+                gradlePlatform 'org:bar:1.0'
+            }
+        """
+
+        when:
+        succeeds ':generatePlatformToml'
+
+        then:
+        expectPlatformContents 'expected5'
+    }
+
+    def "can use either dependencies or constraints"() {
+        buildFile << """
+            dependencies {
+                gradlePlatform 'org:foo:1.0'
+                constraints {
+                    gradlePlatform('org:bar') {
+                        version {
+                            require '1.2'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':generatePlatformToml'
+
+        then:
+        expectPlatformContents 'expected6'
+    }
+
+    def "can detect name clash between dependencies and constraints"() {
+        buildFile << """
+            dependencies {
+                gradlePlatform 'org:foo:1.0'
+                constraints {
+                    gradlePlatform('org2:foo') {
+                        version {
+                            require '1.2'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':generatePlatformToml'
+
+        then:
+        failure.assertHasCause "A dependency with alias 'foo' already exists for module 'org2:foo'. Please configure an explicit alias for this dependency."
+    }
+
+    def "can fix name clash between dependencies and constraints"() {
+        buildFile << """
+            gradlePlatform {
+                configureExplicitAlias 'foo2', 'org2', 'foo'
+            }
+            dependencies {
+                gradlePlatform 'org:foo:1.0'
+                constraints {
+                    gradlePlatform('org2:foo') {
+                        version {
+                            require '1.2'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':generatePlatformToml'
+
+        then:
+        expectPlatformContents 'expected7'
+    }
+
+    def "can mix plugins, dependencies, constraints and model to create a platform"() {
+        buildFile << """
+            gradlePlatform {
+                configureExplicitAlias 'foo2', 'org', 'foo'
+                dependenciesModel {
+                    alias('foo', 'org:from-model:1.0')
+                    bundle('my', ['foo', 'foo2', 'from-script'])
+                }
+                plugins {
+                    id('my.plugin') version '1.7'
+                }
+            }
+            dependencies {
+                gradlePlatform 'org:from-script:1.0'
+                constraints {
+                    gradlePlatform('org:foo') {
+                        version {
+                            require '1.2'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':generatePlatformToml'
+
+        then:
+        expectPlatformContents 'expected8'
+    }
+
     private void withSamplePlatform() {
         buildFile << """
             gradlePlatform {
