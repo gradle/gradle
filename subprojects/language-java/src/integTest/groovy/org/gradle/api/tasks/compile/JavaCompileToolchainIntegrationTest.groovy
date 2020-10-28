@@ -99,7 +99,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         when:
         failure = executer
-            .withArgument("-Porg.gradle.java.installations.auto-download=false")
+            .withToolchainDetectionEnabled()
             .withTasks("compileJava")
             .runWithFailure()
 

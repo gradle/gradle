@@ -540,7 +540,7 @@ public interface GradleExecuter extends Stoppable {
 
     GradleExecuter ignoreCleanupAssertions();
 
-    GradleExecuter withToolchainDetectedEnabled();
+    GradleExecuter withToolchainDetectionEnabled();
 
     GradleExecuter withToolchainDownloadEnabled();
 

@@ -99,7 +99,7 @@ class AbstractGradleExecuterTest extends Specification {
 
     def "toolchain detection can be enabled"() {
         when:
-        executer.withToolchainDetectedEnabled()
+        executer.withToolchainDetectionEnabled()
         def allArgs = executer.getAllArgs()
 
         then:
