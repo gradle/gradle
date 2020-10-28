@@ -44,7 +44,6 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
         .incrementedIn("3.2-rc-1")
         .incrementedIn("3.5-rc-1")
         .changedTo(8, "6.5-rc-1")
-        .changedTo(10, "6.8-rc-1")
         .build();
     @VisibleForTesting
     static final String CACHE_NAME = "jars";
