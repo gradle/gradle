@@ -26,8 +26,6 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.List;
-
 /**
  * Responsible for calculating a {@link FileCollectionFingerprint} for a particular {@link FileCollection}.
  */
