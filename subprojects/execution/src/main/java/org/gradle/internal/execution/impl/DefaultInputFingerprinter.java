@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -111,19 +112,26 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         public Result complete() {
-            ImmutableSortedMap<String, ValueSnapshot> valueSnapshots = valueSnapshotsBuilder.build();
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints = fingerprintsBuilder.build();
-            return new Result() {
-                @Override
-                public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
-                    return valueSnapshots;
-                }
+            return new InputFingerprints(valueSnapshotsBuilder.build(), fingerprintsBuilder.build());
+        }
+    }
 
-                @Override
-                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints() {
-                    return fileFingerprints;
-                }
-            };
+    @VisibleForTesting
+    public static class InputFingerprints implements InputFingerprinter.Result {
+        private final ImmutableSortedMap<String, ValueSnapshot> valueSnapshots;
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints;
+
+        public InputFingerprints(ImmutableSortedMap<String, ValueSnapshot> valueSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints) {
+            this.valueSnapshots = valueSnapshots;
+            this.fileFingerprints = fileFingerprints;
+        }
+
+        public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
+            return valueSnapshots;
+        }
+
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints() {
+            return fileFingerprints;
         }
     }
 }
