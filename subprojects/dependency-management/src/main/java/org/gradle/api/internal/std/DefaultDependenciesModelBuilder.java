@@ -18,11 +18,18 @@ package org.gradle.api.internal.std;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
@@ -60,6 +67,8 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
     private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
     private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
+    private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
+    private final List<Object> importedPlatforms = Lists.newArrayList();
     private final StrictVersionParser strictVersionParser;
 
     @Inject
@@ -68,13 +77,15 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
                                            Interner<ImmutableVersionConstraint> versionConstraintInterner,
                                            ObjectFactory objects,
                                            ProviderFactory providers,
-                                           PluginDependenciesSpec plugins) {
+                                           PluginDependenciesSpec plugins,
+                                           Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier) {
         this.name = name;
         this.strings = strings;
         this.versionConstraintInterner = versionConstraintInterner;
         this.objects = objects;
         this.providers = providers;
         this.plugins = plugins;
+        this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
     }
 
@@ -89,6 +100,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     private AllDependenciesModel doBuild() {
+        maybeImportPlatforms();
         for (Map.Entry<String, List<String>> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
             List<String> aliases = entry.getValue();
@@ -103,6 +115,27 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
             realizedDeps.put(entry.getKey(), entry.getValue().get());
         }
         return new AllDependenciesModel(name, realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
+    }
+
+    private void maybeImportPlatforms() {
+        if (importedPlatforms.isEmpty()) {
+            return;
+        }
+        DependencyResolutionServices drs = dependencyResolutionServicesSupplier.get();
+        Configuration cnf = drs.getConfigurationContainer().create("incomingPlatformsFor" + StringUtils.capitalize(name));
+        for (Object importedPlatform : importedPlatforms) {
+            Dependency dependency = drs.getDependencyHandler().create(importedPlatform);
+            cnf.getDependencies().add(dependency);
+
+        }
+        cnf.getResolutionStrategy().activateDependencyLocking();
+        cnf.attributes(attrs -> {
+            attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.GRADLE_RECOMMENDATIONS));
+        });
+        cnf.setCanBeResolved(true);
+        cnf.setCanBeConsumed(false);
+        cnf.getFiles().forEach(this::from);
     }
 
     @Override
@@ -121,8 +154,18 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     @Override
+    public void fromGradlePlatform(Object dependencyNotation) {
+        importedPlatforms.add(dependencyNotation);
+    }
+
+    @Override
     public String version(String name, Action<? super MutableVersionConstraint> versionSpec) {
         validateName("name", name);
+        if (versionConstraints.containsKey(name)) {
+            // For versions, in order to allow overriding whatever is declared by
+            // a platform, we want to silence overrides
+            return name;
+        }
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
         ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));

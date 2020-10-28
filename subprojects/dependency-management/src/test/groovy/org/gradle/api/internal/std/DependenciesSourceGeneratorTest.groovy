@@ -42,6 +42,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Supplier
+
 import static org.gradle.api.internal.std.AbstractSourceGenerator.toJavaName
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -258,7 +260,7 @@ class DependenciesSourceGeneratorTest extends Specification {
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependenciesModelBuilder) Closure<Void> spec) {
-        DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
+        DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()

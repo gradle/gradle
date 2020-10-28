@@ -29,6 +29,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.util.function.Supplier
+
 class TomlWriterTest extends Specification {
 
     private StringWriter output = new StringWriter()
@@ -88,7 +90,8 @@ class TomlWriterTest extends Specification {
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
             TestUtil.providerFactory(),
-            pluginsSpec)
+            pluginsSpec,
+            Stub(Supplier))
         ins.withCloseable {
             TomlDependenciesFileParser.parse(it, builder, pluginsSpec)
         }

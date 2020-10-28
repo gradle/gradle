@@ -33,6 +33,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.function.Supplier
+
 class DefaultDependenciesAccessorsTest extends Specification {
     @Rule
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -173,7 +175,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
     }
 
     void model(@DelegatesTo(value = DefaultDependenciesModelBuilder, strategy = Closure.DELEGATE_FIRST) Closure spec) {
-        builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
+        builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()

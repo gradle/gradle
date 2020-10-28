@@ -146,7 +146,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     public void dependenciesModel(String name, Action<? super DependenciesModelBuilder> spec) {
         validateName(name);
         DependenciesModelBuilderInternal model = dependenciesModelBuilders.computeIfAbsent(name, n ->
-            objects.newInstance(DefaultDependenciesModelBuilder.class, n, strings, versions, objects, providers, plugins));
+            objects.newInstance(DefaultDependenciesModelBuilder.class, n, strings, versions, objects, providers, plugins, dependencyResolutionServices));
         spec.execute(model);
     }
 

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.std.AllDependenciesModel;
 import org.gradle.api.internal.std.DefaultDependenciesModelBuilder;
 import org.gradle.api.model.ObjectFactory;
@@ -35,6 +36,7 @@ import org.gradle.plugin.use.PluginDependencySpec;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class DefaultGradlePlatformExtension implements GradlePlatformExtensionInternal {
     private final DefaultDependenciesModelBuilder builder;
@@ -44,7 +46,7 @@ public class DefaultGradlePlatformExtension implements GradlePlatformExtensionIn
     private final Map<ModuleIdentifier, String> explicitAliases = Maps.newHashMap();
 
     @Inject
-    public DefaultGradlePlatformExtension(ObjectFactory objects, ProviderFactory providers) {
+    public DefaultGradlePlatformExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs) {
         this.plugins = new SimplifiedPluginDependenciesSpec();
         this.builder = objects.newInstance(DefaultDependenciesModelBuilder.class,
             "gradlePlatform",
@@ -52,7 +54,8 @@ public class DefaultGradlePlatformExtension implements GradlePlatformExtensionIn
             Interners.newStrongInterner(),
             objects,
             providers,
-            plugins
+            plugins,
+            (Supplier<DependencyResolutionServices>) () -> drs
         );
         this.model = providers.provider(builder::build);
         this.pluginsModel = providers.provider(() -> ImmutableMap.copyOf(plugins.pluginVersions));

@@ -18,9 +18,7 @@ package org.gradle.platform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
-
-class GradlePlatformIntegrationTest extends AbstractIntegrationSpec {
+class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements GradlePlatformSupport {
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
@@ -338,12 +336,5 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-    }
-
-    private void expectPlatformContents(File expectedTomlFile = file("build/gradle-platform/dependencies.toml"), String resultFile) {
-        assert expectedTomlFile.exists()
-        def generated = normaliseLineSeparators(expectedTomlFile.getText("utf-8"))
-        def expected = normaliseLineSeparators(this.class.getResourceAsStream("${resultFile}.toml").getText("utf-8"))
-        assert generated == expected
     }
 }
