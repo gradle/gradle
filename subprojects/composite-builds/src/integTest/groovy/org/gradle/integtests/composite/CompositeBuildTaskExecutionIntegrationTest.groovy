@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class TaskExecutionInCompositeIntegrationTest extends AbstractIntegrationSpec {
+class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "Can run included root project task"() {
         setup:
