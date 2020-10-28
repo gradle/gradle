@@ -21,8 +21,6 @@ import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public interface TaskSelector {
     Spec<Task> getFilter(String path);
@@ -30,30 +28,4 @@ public interface TaskSelector {
     TaskSelection getSelection(String path);
 
     TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path);
-
-    class TaskSelection {
-        private final String projectPath;
-        private final String taskName;
-        private final TaskSelectionResult taskSelectionResult;
-
-        public TaskSelection(String projectPath, String taskName, TaskSelectionResult tasks) {
-            this.projectPath = projectPath;
-            this.taskName = taskName;
-            this.taskSelectionResult = tasks;
-        }
-
-        public String getProjectPath() {
-            return projectPath;
-        }
-
-        public String getTaskName() {
-            return taskName;
-        }
-
-        public Set<Task> getTasks() {
-            LinkedHashSet<Task> result = new LinkedHashSet<Task>();
-            taskSelectionResult.collectTasks(result);
-            return result;
-        }
-    }
 }

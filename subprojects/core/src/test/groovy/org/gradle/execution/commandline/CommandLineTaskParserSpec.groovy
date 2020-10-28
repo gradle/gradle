@@ -17,6 +17,7 @@
 package org.gradle.execution.commandline
 
 import org.gradle.api.Task
+import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelectionResult
 import org.gradle.execution.DefaultTaskSelector
 import org.gradle.internal.DefaultTaskExecutionRequest
@@ -39,7 +40,7 @@ class CommandLineTaskParserSpec extends Specification {
     def "parses a single task selector"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo'], 'project')
-        def selection = new DefaultTaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task))
+        def selection = new TaskSelection(':project', ':foo', asTaskSelectionResults(task))
 
         selector.getSelection('project', null, 'foo') >> selection
 
@@ -53,8 +54,8 @@ class CommandLineTaskParserSpec extends Specification {
     def "parses multiple tasks selectors"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo', 'bar'])
-        def selection1 = new DefaultTaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task, task2))
-        def selection2 = new DefaultTaskSelector.TaskSelection(':project', ':bar', asTaskSelectionResults(task3))
+        def selection1 = new TaskSelection(':project', ':foo', asTaskSelectionResults(task, task2))
+        def selection2 = new TaskSelection(':project', ':bar', asTaskSelectionResults(task3))
 
         selector.getSelection(null, null, 'foo') >> selection1
         selector.getSelection(null, null, 'bar') >> selection2
@@ -69,9 +70,9 @@ class CommandLineTaskParserSpec extends Specification {
     def "configures tasks if configuration options specified"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo', '--all', 'bar', '--include', 'stuff', 'lastTask'])
-        selector.getSelection(null, null, 'foo') >> new DefaultTaskSelector.TaskSelection(':project', 'foo task', asTaskSelectionResults(task, task2))
-        selector.getSelection(null, null, 'bar') >> new DefaultTaskSelector.TaskSelection(':project', 'bar task', asTaskSelectionResults(task3))
-        selector.getSelection(null, null, 'lastTask') >> new DefaultTaskSelector.TaskSelection(':project', 'last task', asTaskSelectionResults(task3))
+        selector.getSelection(null, null, 'foo') >> new TaskSelection(':project', 'foo task', asTaskSelectionResults(task, task2))
+        selector.getSelection(null, null, 'bar') >> new TaskSelection(':project', 'bar task', asTaskSelectionResults(task3))
+        selector.getSelection(null, null, 'lastTask') >> new TaskSelection(':project', 'last task', asTaskSelectionResults(task3))
 
         when:
         def out = parser.parseTasks(request)
