@@ -17,12 +17,10 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.BuildType;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.CompositeAwareTaskSelector;
-import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskPathProjectEvaluator;

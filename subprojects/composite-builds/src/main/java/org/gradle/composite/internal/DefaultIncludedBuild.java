@@ -18,7 +18,6 @@ package org.gradle.composite.internal;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.component.BuildIdentifier;
