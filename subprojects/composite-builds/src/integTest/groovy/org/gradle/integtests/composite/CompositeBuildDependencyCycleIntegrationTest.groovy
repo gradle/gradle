@@ -379,7 +379,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
     // TODO: this ends up in a deadlock. Figure out if this is a valid use case and what to do with it.
     @Ignore
-    def "direct mustRunAfter cycle between included builds"() {
+    def "direct mustRunAfter cycle between included builds including one another"() {
         given:
         buildA.buildFile << """
             task a {
@@ -415,7 +415,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
     // TODO: this ends up in a deadlock. Figure out if this is a valid use case and what to do with it.
     @Ignore
-    def "indirect mustRunAfter cycle between included builds"() {
+    def "indirect mustRunAfter cycle between included builds including one another"() {
         given:
         buildA.buildFile << """
             task a {
@@ -459,6 +459,43 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 \\--- :buildC:c
      \\--- :buildD:d
           \\--- :buildB:b (*)""")
+    }
+
+    // TODO: this does not respect the finalizer from buildC which should cause a cycle.
+    // Instead, :buildC:c, :buildB:b and :a are executed.
+    @Ignore
+    def "direct finalizedBy cycle between included builds including one another"() {
+        given:
+        buildA.buildFile << """
+            task a {
+                dependsOn gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        buildB.buildFile << """
+            task b {
+                dependsOn gradle.includedBuild('buildC').task(':c')
+            }
+        """
+        buildB.settingsFile << """
+            includeBuild('../buildC')
+        """
+        buildC.buildFile << """
+            task c {
+                finalizedBy gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        buildC.settingsFile << """
+            includeBuild('../buildB')
+        """
+
+        when:
+        resolveFails(":a")
+
+        then:
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:b
+\\--- :buildC:c
+     \\--- :buildB:b (*)""")
     }
 
     protected void resolveSucceeds(String task) {
