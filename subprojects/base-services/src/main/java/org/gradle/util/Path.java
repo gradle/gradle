@@ -241,7 +241,7 @@ public class Path implements Comparable<Path> {
     public Path removeFirstSegments(int n) {
         if (n == 0) {
             return this;
-        } else if (n > segments.length) {
+        } else if (n < 0 || n >= segments.length) {
             throw new IllegalArgumentException("Cannot remove " + n + " segments from path " + getPath());
         }
 
@@ -250,7 +250,7 @@ public class Path implements Comparable<Path> {
 
     public String segment(int index) {
         if (index < 0 || index >= segments.length) {
-            throw new IllegalArgumentException("Invalid segment index" + index + " for path " + getPath());
+            throw new IllegalArgumentException("Segment index " + index + " is invalid for path " + getPath());
         }
 
         return segments[index];

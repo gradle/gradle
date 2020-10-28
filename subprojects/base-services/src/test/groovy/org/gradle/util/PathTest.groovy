@@ -19,6 +19,7 @@ package org.gradle.util
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.strictlyEquals
+import static org.gradle.util.Path.ROOT
 import static org.gradle.util.Path.path
 
 class PathTest extends Specification {
@@ -154,6 +155,73 @@ class PathTest extends Specification {
         paths([':a', ':b', ':b:a', ':B:a', ':', ':B', ':a:a']).sort() == paths([':', ':a', ':a:a', ':B', ':B:a', ':b', ':b:a'])
         paths(['b', 'b:a', 'a', 'a:a']).sort() == paths(['a', 'a:a', 'b', 'b:a'])
         paths([':', ':a', 'a']).sort() == paths(['a', ':', ':a'])
+    }
+
+    def "counts segments"() {
+        expect:
+        ROOT.segmentCount() == 0
+        path(":").segmentCount() == 0
+        path("a").segmentCount() == 1
+        path(":a").segmentCount() == 1
+        path(":a:b").segmentCount() == 2
+        path("a:b").segmentCount() == 2
+        path(":a:b:c").segmentCount() == 3
+        path("a:b:c").segmentCount() == 3
+    }
+
+    def "removes invalid segments"() {
+        when:
+        path(":a:b").removeFirstSegments(segmentCount)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot remove $segmentCount segments from path :a:b"
+
+        where:
+        segmentCount << [-1, 2]
+    }
+
+    def "removes zero segments"() {
+        expect:
+        ROOT.removeFirstSegments(0) == ROOT
+        path(":").removeFirstSegments(0) == path(":")
+        path("a").removeFirstSegments(0) ==  path("a")
+        path(":a").removeFirstSegments(0) == path(":a")
+        path(":a:b").removeFirstSegments(0) == path(":a:b")
+        path("a:b").removeFirstSegments(0) == path("a:b")
+        path(":a:b:c").removeFirstSegments(0) == path(":a:b:c")
+        path("a:b:c").removeFirstSegments(0) == path("a:b:c")
+    }
+
+    def "removes one segment"() {
+        expect:
+        path(":a:b").removeFirstSegments(1) == path(":b")
+        path("a:b").removeFirstSegments(1) == path("b")
+        path(":a:b:c").removeFirstSegments(1) == path(":b:c")
+        path("a:b:c").removeFirstSegments(1) == path("b:c")
+    }
+
+    def "removes two segments"() {
+        expect:
+        path(":a:b:c").removeFirstSegments(2) == path(":c")
+        path("a:b:c").removeFirstSegments(2) == path("c")
+    }
+
+    def "retrieves segment"() {
+        expect:
+        path(":a:b:c").segment(0) == "a"
+        path(":a:b:c").segment(1) == "b"
+        path(":a:b:c").segment(2) == "c"
+        path("a:b:c").segment(0) == "a"
+        path("a:b:c").segment(1) == "b"
+        path("a:b:c").segment(2) == "c"
+
+        when:
+        path(":a:b:c").segment(3)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Segment index 3 is invalid for path :a:b:c"
     }
 
     def paths(List<String> paths) {
