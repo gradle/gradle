@@ -23,7 +23,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
 
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
-    private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
+    private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + NORMALIZED_BUILD_JVM_OPTS
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
