@@ -21,7 +21,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
-import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
@@ -29,6 +28,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -41,14 +41,12 @@ import java.io.IOException;
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
 
-    private final CopyingClasspathFileTransformer copyingClasspathFileTransformer;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
     private final CachedClasspathTransformer.Transform transform;
     private final HashCode configHash;
 
-    public InstrumentingClasspathFileTransformer(GlobalCacheLocations globalCacheLocations, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, CachedClasspathTransformer.Transform transform) {
-        this.copyingClasspathFileTransformer = new CopyingClasspathFileTransformer(globalCacheLocations);
+    public InstrumentingClasspathFileTransformer(ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, CachedClasspathTransformer.Transform transform) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.transform = transform;
@@ -67,18 +65,17 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         HashCode fileHash = hasher.hash();
         File transformed = new File(cacheDir, fileHash.toString() + '/' + name);
         if (!transformed.isFile()) {
-            transformed = transform(source, transformed, sourceSnapshot, cacheDir);
+            transform(source, transformed);
         }
         return transformed;
     }
 
-    private File transform(File source, File dest, CompleteFileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+    private void transform(File source, File dest) {
         if (isSignedJar(source)) {
             LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
-            return copyingClasspathFileTransformer.transform(source, sourceSnapshot, cacheDir);
+            GFileUtils.copyFile(source, dest);
         } else {
             instrument(source, dest);
-            return dest;
         }
     }
 
