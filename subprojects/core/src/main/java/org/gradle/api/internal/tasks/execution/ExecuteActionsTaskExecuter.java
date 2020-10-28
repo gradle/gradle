@@ -16,11 +16,11 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
@@ -44,7 +44,6 @@ import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
@@ -125,9 +124,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ExecutionEngine executionEngine;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
-    private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileOperations fileOperations;
+    private final TaskInputsListeners taskInputsListeners;
 
     public ExecuteActionsTaskExecuter(
         BuildCacheState buildCacheState,
@@ -143,9 +142,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ExecutionEngine executionEngine,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        EmptySourceTaskSkipper emptySourceTaskSkipper,
         FileCollectionFactory fileCollectionFactory,
-        FileOperations fileOperations
+        FileOperations fileOperations,
+        TaskInputsListeners taskInputsListeners
     ) {
         this.buildCacheState = buildCacheState;
         this.scanPluginState = scanPluginState;
@@ -160,14 +159,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.executionEngine = executionEngine;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
-        this.emptySourceTaskSkipper = emptySourceTaskSkipper;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileOperations = fileOperations;
+        this.taskInputsListeners = taskInputsListeners;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher);
+        TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher, taskInputsListeners);
         try {
             return executeIfValid(task, state, context, work);
         } catch (WorkValidationException ex) {
@@ -213,28 +212,27 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         private final ExecutionHistoryStore executionHistoryStore;
         private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+        private final TaskInputsListeners taskInputsListeners;
 
         public TaskExecution(
             TaskInternal task,
             TaskExecutionContext context,
             ExecutionHistoryStore executionHistoryStore,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
-            ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            TaskInputsListeners taskInputsListeners
+        ) {
             this.task = task;
             this.context = context;
             this.executionHistoryStore = executionHistoryStore;
             this.fingerprinterRegistry = fingerprinterRegistry;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+            this.taskInputsListeners = taskInputsListeners;
         }
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new Identity() {
-                @Override
-                public String getUniqueId() {
-                    return task.getPath();
-                }
-            };
+            return task::getPath;
         }
 
         @Override
@@ -432,12 +430,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {
-            TaskProperties properties = context.getTaskProperties();
-            FileCollection inputFiles = properties.getInputFiles();
-            FileCollection sourceFiles = properties.getSourceFiles();
-            boolean hasSourceFiles = properties.hasSourceFiles();
-            return emptySourceTaskSkipper.skipIfEmptySources(task, hasSourceFiles, inputFiles, sourceFiles, outputFilesAfterPreviousExecution);
+        public void broadcastRelevantFileSystemInputs(@Nullable ExecutionOutcome skipOutput) {
+            FileCollection relevantInputs = skipOutput == null
+                ? context.getTaskProperties().getInputFiles()
+                : context.getTaskProperties().getSourceFiles();
+            taskInputsListeners.broadcastFileSystemInputsOf(task, (FileCollectionInternal) relevantInputs);
         }
 
         @Override

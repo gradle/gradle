@@ -32,6 +32,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -139,6 +140,7 @@ public class ExecutionGradleServices {
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
@@ -158,7 +160,7 @@ public class ExecutionGradleServices {
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyWorkStep<>(
+            new SkipEmptyWorkStep(buildOutputCleanupRegistry, deleter, inputFingerprinter, outputChangeListener,
             new ValidateStep<>(validationWarningReporter,
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),

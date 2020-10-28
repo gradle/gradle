@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -25,7 +24,6 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -209,13 +207,14 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
-     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#SHORT_CIRCUITED} is
-     * returned depending on whether cleanup of existing outputs had to be performed.
+     * Tell consumers about outputs to watch during the next build.
+     *
+     * @param skipOutput {@code null} if the work is not skipped because of empty sources,
+     * or the outcome of how it was skipped.
+     *
+     * @see org.gradle.internal.execution.steps.SkipEmptyWorkStep
      */
-    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {
-        return Optional.empty();
-    }
+    default void broadcastRelevantFileSystemInputs(@Nullable ExecutionOutcome skipOutput) {}
 
     /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.

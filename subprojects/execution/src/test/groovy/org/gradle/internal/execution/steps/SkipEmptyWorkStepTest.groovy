@@ -17,64 +17,330 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.AfterPreviousExecutionContext
-import org.gradle.internal.execution.CachingResult
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.ExecutionOutcome
+import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import spock.lang.Unroll
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.file.Deleter
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.snapshot.ValueSnapshot
+
+import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
-    def step = new SkipEmptyWorkStep<>(delegate)
-    def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
 
-    def delegateResult = Mock(CachingResult)
-    def outputFingerprints = ImmutableSortedMap.<String, FileCollectionFingerprint>of()
+    def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
+    def deleter = Mock(Deleter)
     def executionHistoryStore = Mock(ExecutionHistoryStore)
+    def outputChangeListener = Mock(OutputChangeListener)
+    def inputFingerprinter = Mock(InputFingerprinter)
+    def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
+
+    def step = new SkipEmptyWorkStep(
+        buildOutputCleanupRegistry,
+        deleter,
+        inputFingerprinter,
+        outputChangeListener,
+        delegate)
+
+    def knownSnapshot = Mock(ValueSnapshot)
+    def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+    def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+    Optional skipOutcome
 
     @Override
     protected AfterPreviousExecutionContext createContext() {
-        Stub(AfterPreviousExecutionContext)
+        Stub(AfterPreviousExecutionContext) {
+            getInputProperties() >> ImmutableSortedMap.of()
+            getInputFileProperties() >> ImmutableSortedMap.of()
+        }
     }
 
     def setup() {
         _ * work.history >> Optional.of(executionHistoryStore)
+        _ * work.broadcastRelevantFileSystemInputs(_) >> { ExecutionOutcome outcome -> assert skipOutcome == null; skipOutcome = Optional.ofNullable(outcome) }
     }
 
-    def "delegates when work is not skipped"() {
+    def "delegates when work has no source properties"() {
         when:
-        def result = step.execute(work, context)
+        step.execute(work, context)
 
         then:
-        result == delegateResult
+        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
+        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
+        1 * inputFingerprinter.fingerprintInputProperties(
+            work,
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("known", knownSnapshot),
+            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of())
 
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.empty()
-
-        then:
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work, _ as AfterPreviousExecutionContext) >> { UnitOfWork work, AfterPreviousExecutionContext delegateContext ->
+            assert delegateContext.inputProperties as Map == ["known": knownSnapshot]
+            assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint]
+        }
         0 * _
-    }
-
-    @Unroll
-    def "removes execution history when empty work is skipped (outcome: #outcome)"() {
-        when:
-        def result = step.execute(work, context)
 
         then:
-        result.executionResult.get().outcome == outcome
+        !skipOutcome.present
+    }
 
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.of(outcome)
+    def "delegates when work has sources"() {
+        when:
+        step.execute(work, context)
+
+        then:
+        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
+        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
+        1 * inputFingerprinter.fingerprintInputProperties(
+            work,
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("known", knownSnapshot),
+            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
+
+        then:
+        1 * sourceFileFingerprint.empty >> false
+
+        then:
+        1 * delegate.execute(work, _ as AfterPreviousExecutionContext) >> { UnitOfWork work, AfterPreviousExecutionContext delegateContext ->
+            assert delegateContext.inputProperties as Map == ["known": knownSnapshot]
+            assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint, "source-file": sourceFileFingerprint]
+        }
+        0 * _
+
+        then:
+        !skipOutcome.present
+    }
+
+    def "skips when work has empty sources"() {
+        when:
+        step.execute(work, context)
+
+        then:
+        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
+        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
+        1 * inputFingerprinter.fingerprintInputProperties(
+            work,
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("known", knownSnapshot),
+            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
+
+        then:
+        1 * sourceFileFingerprint.empty >> true
 
         then:
         1 * executionHistoryStore.remove(identity.uniqueId)
         0 * _
 
-        where:
-        outcome << [ExecutionOutcome.SHORT_CIRCUITED, ExecutionOutcome.EXECUTED_NON_INCREMENTALLY]
+        then:
+        skipOutcome.get() == SHORT_CIRCUITED
+    }
+
+    def "skips when work has empty sources and removes previous outputs"() {
+        def afterPreviousExecutionState = Stub(AfterPreviousExecutionState)
+        def previousOutputFile = file("output.txt").createFile()
+
+        when:
+        step.execute(work, context)
+
+        then:
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
+        _ * afterPreviousExecutionState.outputFileProperties >> fingerprint(previousOutputFile)
+        1 * inputFingerprinter.fingerprintInputProperties(
+            work,
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
+
+        1 * sourceFileFingerprint.empty >> true
+
+        1 * executionHistoryStore.remove(identity.uniqueId)
+
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
+
+        1 * buildOutputCleanupRegistry.isOutputOwnedByBuild(previousOutputFile) >> true
+        1 * buildOutputCleanupRegistry.isOutputOwnedByBuild(previousOutputFile.parentFile) >> false
+
+        1 * deleter.delete(previousOutputFile)
+        0 * _
+
+        then:
+        skipOutcome.get() == EXECUTED_NON_INCREMENTALLY
+    }
+
+    // TODO Convert these tests
+/*
+    def "does not delete previous output when they are not safe to delete"() {
+        given:
+        def previousFile = temporaryFolder.createFile("output.txt")
+        def previousOutputFiles = fingerprint(previousFile)
+
+        when:
+        def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
+
+        then:
+        outcome.get() == ExecutionOutcome.SHORT_CIRCUITED
+
+        and:
+        1 * sourceFiles.empty >> true
+
+        then:
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
+
+        then:
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
+
+        then:
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
+
+        then:
+        previousFile.exists()
+        0 * _
+    }
+
+    def "does not delete non-empty directories"() {
+        given:
+        def outputFiles = []
+
+        def outputDir = temporaryFolder.createDir("rootDir")
+        outputFiles << outputDir.file("some-output.txt")
+
+        def subDir = outputDir.createDir("subDir")
+        outputFiles << subDir.file("in-subdir.txt")
+
+        def outputFile = temporaryFolder.createFile("output.txt")
+        outputFiles << outputFile
+
+        outputFiles.each {
+            it << "output ${it.name}"
+        }
+
+        def previousOutputFiles = fingerprint(outputDir, outputFile)
+
+        def overlappingFile = subDir.file("overlap")
+        overlappingFile << "overlapping file"
+
+        when:
+        def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
+
+        then:
+        outcome.get() == ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+
+        and:
+        1 * sourceFiles.empty >> true
+
+        then:
+        1 * outputChangeListener.beforeOutputChange(rootPaths(outputDir, outputFile))
+
+        then:
+        _ * cleanupRegistry.isOutputOwnedByBuild(subDir) >> true
+        _ * cleanupRegistry.isOutputOwnedByBuild(outputDir) >> true
+        _ * cleanupRegistry.isOutputOwnedByBuild(outputDir.parentFile) >> false
+        outputFiles.each {
+            1 * cleanupRegistry.isOutputOwnedByBuild(it) >> true
+        }
+        outputDir.exists()
+        subDir.exists()
+        overlappingFile.exists()
+        outputFiles.each {
+            assert !it.exists()
+        }
+
+        then:
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
+
+        then:
+        0 * _
+    }
+
+    def "exception thrown when sourceFiles are empty and deletes previous output, but delete fails"() {
+        given:
+        def previousFile = temporaryFolder.createFile("output.txt")
+        def previousOutputFiles = fingerprint(previousFile)
+
+        when:
+        skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
+
+        then:
+        def ex = thrown Exception
+        ex.message.contains("Couldn't delete ${previousFile.absolutePath}")
+
+        and:
+        1 * sourceFiles.empty >> true
+
+        then:
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
+
+        then: "deleting the previous file fails"
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> {
+            // Convert file into directory here, so that deletion in DefaultEmptySourceTaskSkipper fails
+            assert previousFile.delete()
+            previousFile.file("subdir/inSubdir.txt") << "inSubdir"
+            return true
+        }
+    }
+
+    def "does not skip when sourceFiles are not empty"() {
+        when:
+        def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, [:])
+
+        then:
+        !outcome.present
+
+        and:
+        1 * sourceFiles.empty >> false
+
+        then:
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, inputFiles)
+        0 * _
+    }
+
+    def "does not skip when it has not declared any source files"() {
+        when:
+        def outcome = skipper.skipIfEmptySources(task, false, inputFiles, sourceFiles, [:])
+
+        then:
+        !outcome.present
+
+        and:
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, inputFiles)
+        0 * _
+    }
+
+ */
+
+    private static Set<String> rootPaths(File... files) {
+        files*.absolutePath as Set
+    }
+
+    private def fingerprint(File... files) {
+        ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of(
+            "output", fingerprinter.fingerprint(TestFiles.fixed(files))
+        )
     }
 }
