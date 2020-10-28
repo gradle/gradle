@@ -43,10 +43,10 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     @Override
     public Spec<Task> getFilter(String path) {
-        TaskPath taskPath = TaskPath.from(path);
+        Path taskPath = Path.from(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {
-            return getSelector(build).getFilter(taskPath.dropBuildName());
+            return getSelector(build).getFilter(taskPath.removeFirstSegment().toString());
         } else {
             return getRootBuildSelector().getFilter(path);
         }
@@ -54,10 +54,10 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     @Override
     public TaskSelection getSelection(String path) {
-        TaskPath taskPath = TaskPath.from(path);
+        Path taskPath = Path.from(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {
-            return getSelector(build).getSelection(taskPath.dropBuildName());
+            return getSelector(build).getSelection(taskPath.removeFirstSegment().toString());
         } else {
             return getRootBuildSelector().getSelection(path);
         }
@@ -65,23 +65,23 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     @Override
     public TaskSelection getSelection(String projectPath, File root, String path) {
-        TaskPath taskPath = TaskPath.from(path);
+        Path taskPath = Path.from(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {
-            return getSelector(build).getSelection(projectPath, root, taskPath.dropBuildName());
+            return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegment().toString());
         } else {
             return getRootBuildSelector().getSelection(projectPath, root, path);
         }
     }
 
-    private BuildState findIncludedBuild(TaskPath taskPath) {
-        if (buildStateRegistry.getIncludedBuilds().isEmpty() || !taskPath.hasBuildName()) {
+    private BuildState findIncludedBuild(Path taskPath) {
+        if (buildStateRegistry.getIncludedBuilds().isEmpty() || taskPath.segmentCount() <= 1) {
             return null;
         }
 
         Map<String, BuildState> builds = buildStateRegistry.getIncludedBuilds().stream().collect(Collectors.toMap(IncludedBuildState::getName, Function.identity()));
         NameMatcher matcher = new NameMatcher();
-        return matcher.find(taskPath.getBuildName(), builds);
+        return matcher.find(taskPath.getFirstSegment(), builds);
     }
 
     private TaskSelector getSelector(BuildState buildState) {
@@ -92,30 +92,35 @@ public class CompositeAwareTaskSelector implements TaskSelector {
         return getSelector(buildStateRegistry.getRootBuild());
     }
 
-    private static class TaskPath {
-        private final String[] parts;
+    private static class Path {
+        private final String[] segments;
 
-        private TaskPath(String[] parts) {
-            this.parts = parts;
+        private Path(String[] segments) {
+            this.segments = segments;
         }
 
-        boolean hasBuildName() {
-            return parts.length > 1;
+        int segmentCount() {
+            return segments.length;
         }
 
-        String getBuildName() {
-            return parts[0];
+        String getFirstSegment() {
+            return segments[0];
         }
 
-        String dropBuildName() {
-            return String.join(Project.PATH_SEPARATOR, Arrays.copyOfRange(parts, 1, parts.length));
+        Path removeFirstSegment() {
+            return new Path(Arrays.copyOfRange(segments, 1, segments.length));
         }
 
-        static TaskPath from(String path) {
+        @Override
+        public String toString() {
+            return String.join(Project.PATH_SEPARATOR, segments);
+        }
+
+        static Path from(String path) {
             if (path.startsWith(Project.PATH_SEPARATOR)) {
-                return new TaskPath(path.substring(Project.PATH_SEPARATOR.length()).split(Project.PATH_SEPARATOR));
+                return new Path(path.substring(Project.PATH_SEPARATOR.length()).split(Project.PATH_SEPARATOR));
             } else {
-                return new TaskPath(path.split(Project.PATH_SEPARATOR));
+                return new Path(path.split(Project.PATH_SEPARATOR));
             }
         }
     }
