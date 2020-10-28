@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "Can run included root project task"() {
+    def "can run included root project task"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -37,7 +37,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":other-build:doSomething")
     }
 
-    def "Can run included subproject task"() {
+    def "can run included subproject task"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
@@ -56,7 +56,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":other-build:sub:doSomething")
     }
 
-    def "Selects only the exact task and ignores tasks with the same name in subprojects"() {
+    def "selects only the exact task and ignores tasks with the same name in subprojects"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
@@ -88,7 +88,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         task << ["other-build:sub:doSomething", ":other-build:sub:doSomething"]
     }
 
-    def "Can run task from included build with applied plugin"() {
+    def "can run task from included build with applied plugin"() {
         setup:
         buildFile << """
             plugins {
@@ -139,7 +139,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
     }
 
     @NotYetImplemented
-    def "Can exclude tasks coming from included builds"() {
+    def "can exclude tasks coming from included builds"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -162,7 +162,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         output.contains(":other-build:setupTask SKIPPED")
     }
 
-    def "Can pass options to task in included build"() {
+    def "can pass options to task in included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -187,7 +187,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":other-build:doSomething", "--content", "do something")
     }
 
-    def "Can call help on task from included build"() {
+    def "can call help on task from included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -205,7 +205,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         output.contains("Prints the message 'do something'")
     }
 
-    def "Can use pattern matching to address tasks"() {
+    def "can use pattern matching to address tasks"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -223,7 +223,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         output.contains("do something")
     }
 
-    def "Can run tasks from transitive included builds"() {
+    def "can run tasks from transitive included builds"() {
         setup:
         settingsFile << """
             rootProject.name = 'root-project'
@@ -250,7 +250,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":third-build:sub:doSomething")
     }
 
-    def "Can use abbreviated names to reference included build"() {
+    def "can use abbreviated names to reference included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -266,7 +266,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":oB:doSo")
     }
 
-    def "Gives reasonable error message when a task does not exist in the referenced included build"() {
+    def "gives reasonable error message when a task does not exist in the referenced included build"() {
         setup:
         settingsFile << """
             rootProject.name = 'root-project'
@@ -280,7 +280,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         fails(":other-build:nonexistent").assertHasDescription("Task 'nonexistent' not found in project ':other-build'")
     }
 
-    def "Gives reasonable error message when a project does not exist in the referenced included build"() {
+    def "gives reasonable error message when a project does not exist in the referenced included build"() {
         setup:
         settingsFile << """
             rootProject.name = 'root-project'
