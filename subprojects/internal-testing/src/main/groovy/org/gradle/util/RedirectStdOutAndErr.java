@@ -17,13 +17,13 @@
 package org.gradle.util;
 
 import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.io.output.ProxyOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FilterOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
@@ -84,7 +84,7 @@ public class RedirectStdOutAndErr implements MethodRule {
         return stdoutContent.toString();
     }
 
-    private static class RedirectingOutputStream extends FilterOutputStream {
+    private static class RedirectingOutputStream extends ProxyOutputStream {
         RedirectingOutputStream(OutputStream out) {
             super(out);
         }
