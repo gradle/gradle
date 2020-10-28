@@ -25,6 +25,7 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.NameMatcher;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,54 +43,45 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     @Override
     public Spec<Task> getFilter(String path) {
-        String[] parts = path.split(Project.PATH_SEPARATOR);
-        if (parts.length > 1) {
-            String buildName = path.startsWith(Project.PATH_SEPARATOR) ? parts[1] : parts[0];
-            BuildState build = findIncludedBuild(buildName);
-            if (build != null) {
-                return getSelector(build).getFilter(dropBuildName(buildName, parts));
-            }
+        TaskPath taskPath = TaskPath.from(path);
+        BuildState build = findIncludedBuild(taskPath);
+        if (build != null) {
+            return getSelector(build).getFilter(taskPath.dropBuildName());
+        } else {
+            return getRootBuildSelector().getFilter(path);
         }
-        return getRootBuildSelector().getFilter(path);
     }
 
     @Override
     public TaskSelection getSelection(String path) {
-
-        String[] parts = path.split(Project.PATH_SEPARATOR);
-        if (parts.length > 1) {
-            String buildName = path.startsWith(Project.PATH_SEPARATOR) ? parts[1] : parts[0];
-            BuildState build = findIncludedBuild(buildName);
-            if (build != null) {
-                return getSelector(build).getSelection(dropBuildName(buildName, parts));
-            }
+        TaskPath taskPath = TaskPath.from(path);
+        BuildState build = findIncludedBuild(taskPath);
+        if (build != null) {
+            return getSelector(build).getSelection(taskPath.dropBuildName());
+        } else {
+            return getRootBuildSelector().getSelection(path);
         }
-
-        return getRootBuildSelector().getSelection(path);
     }
 
     @Override
     public TaskSelection getSelection(String projectPath, File root, String path) {
-        String[] parts = path.split(Project.PATH_SEPARATOR);
-        if (parts.length > 1) {
-            String buildName = path.startsWith(Project.PATH_SEPARATOR) ? parts[1] : parts[0];
-            BuildState build = findIncludedBuild(buildName);
-            if (build != null) {
-                return getSelector(build).getSelection(projectPath, root, dropBuildName(buildName, parts));
-            }
+        TaskPath taskPath = TaskPath.from(path);
+        BuildState build = findIncludedBuild(taskPath);
+        if (build != null) {
+            return getSelector(build).getSelection(projectPath, root, taskPath.dropBuildName());
+        } else {
+            return getRootBuildSelector().getSelection(projectPath, root, path);
         }
-
-        return getRootBuildSelector().getSelection(projectPath, root, path);
     }
 
-    private BuildState findIncludedBuild(String name) {
-        if (buildStateRegistry.getIncludedBuilds().isEmpty()) {
+    private BuildState findIncludedBuild(TaskPath taskPath) {
+        if (buildStateRegistry.getIncludedBuilds().isEmpty() || !taskPath.hasBuildName()) {
             return null;
         }
 
         Map<String, BuildState> builds = buildStateRegistry.getIncludedBuilds().stream().collect(Collectors.toMap(IncludedBuildState::getName, Function.identity()));
         NameMatcher matcher = new NameMatcher();
-        return matcher.find(name, builds);
+        return matcher.find(taskPath.getBuildName(), builds);
     }
 
     private TaskSelector getSelector(BuildState buildState) {
@@ -100,19 +92,31 @@ public class CompositeAwareTaskSelector implements TaskSelector {
         return getSelector(buildStateRegistry.getRootBuild());
     }
 
-    private String dropBuildName(String buildName, String[] parts) {
-        StringBuilder sb = new StringBuilder();
-        int start = 0;
-        for (String part : parts) {
-            start++;
-            if (buildName.equals(part)) {
-                break;
+    private static class TaskPath {
+        private final String[] parts;
+
+        private TaskPath(String[] parts) {
+            this.parts = parts;
+        }
+
+        boolean hasBuildName() {
+            return parts.length > 1;
+        }
+
+        String getBuildName() {
+            return parts[0];
+        }
+
+        String dropBuildName() {
+            return String.join(Project.PATH_SEPARATOR, Arrays.copyOfRange(parts, 1, parts.length));
+        }
+
+        static TaskPath from(String path) {
+            if (path.startsWith(Project.PATH_SEPARATOR)) {
+                return new TaskPath(path.substring(Project.PATH_SEPARATOR.length()).split(Project.PATH_SEPARATOR));
+            } else {
+                return new TaskPath(path.split(Project.PATH_SEPARATOR));
             }
         }
-        for (int i=start; i<parts.length; i++) {
-            sb.append(Project.PATH_SEPARATOR);
-            sb.append(parts[i]);
-        }
-        return sb.toString();
     }
 }
