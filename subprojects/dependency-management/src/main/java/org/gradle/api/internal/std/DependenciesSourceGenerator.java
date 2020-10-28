@@ -51,6 +51,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
     private void generate(String packageName, String className) throws IOException {
         writeLn("package " + packageName + ";");
         writeLn();
+        addImport("org.gradle.api.NonNullApi");
         addImport("org.gradle.api.artifacts.MinimalExternalModuleDependency");
         addImport("org.gradle.api.artifacts.ExternalModuleDependencyBundle");
         addImport("org.gradle.api.artifacts.MutableVersionConstraint");
@@ -61,6 +62,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         addImport("java.util.Map");
         addImport("javax.inject.Inject");
         writeLn();
+        writeLn("@NonNullApi");
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
         writeLn();
         writeLn("    @Inject");
