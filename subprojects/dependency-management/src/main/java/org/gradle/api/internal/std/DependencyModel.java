@@ -24,14 +24,17 @@ public class DependencyModel implements Serializable {
     private final String group;
     private final String name;
     private final ImmutableVersionConstraint version;
+    private final String versionRef;
     private final int hashCode;
 
     public DependencyModel(String group,
                            String name,
-                           @Nullable ImmutableVersionConstraint version) {
+                           @Nullable String versionRef,
+                           ImmutableVersionConstraint version) {
         this.group = group;
         this.name = name;
         this.version = version;
+        this.versionRef = versionRef;
         this.hashCode = doComputeHashCode();
     }
 
@@ -45,6 +48,11 @@ public class DependencyModel implements Serializable {
 
     public ImmutableVersionConstraint getVersion() {
         return version;
+    }
+
+    @Nullable
+    public String getVersionRef() {
+        return versionRef;
     }
 
     @Override
@@ -64,7 +72,10 @@ public class DependencyModel implements Serializable {
         if (!name.equals(that.name)) {
             return false;
         }
-        return version != null ? version.equals(that.version) : that.version == null;
+        if (version != null ? !version.equals(that.version) : that.version != null) {
+            return false;
+        }
+        return versionRef != null ? versionRef.equals(that.versionRef) : that.versionRef == null;
     }
 
     @Override
@@ -76,6 +87,7 @@ public class DependencyModel implements Serializable {
         int result = group.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + (version != null ? version.hashCode() : 0);
+        result = 31 * result + (versionRef != null ? versionRef.hashCode() : 0);
         return result;
     }
 
