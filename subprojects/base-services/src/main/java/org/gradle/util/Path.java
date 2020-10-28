@@ -51,7 +51,7 @@ public class Path implements Comparable<Path> {
     private final boolean absolute;
     private String fullPath;
 
-    private Path(String[] segments, boolean absolute) {
+    protected Path(String[] segments, boolean absolute) {
         this.segments = segments;
         this.absolute = absolute;
     }
@@ -167,7 +167,7 @@ public class Path implements Comparable<Path> {
             return absolute ? ROOT : null;
         }
         String[] parentPath = new String[segments.length - 1];
-        System.arraycopy(segments, 0, parentPath, 0, parentPath.length);
+            System.arraycopy(segments, 0, parentPath, 0, parentPath.length);
         return new Path(parentPath, absolute);
     }
 
@@ -232,5 +232,27 @@ public class Path implements Comparable<Path> {
         }
         String[] newSegments = Arrays.copyOfRange(path.segments, segments.length, path.segments.length);
         return new Path(newSegments, false);
+    }
+
+    public int segmentCount() {
+        return segments.length;
+    }
+
+    public Path removeFirstSegments(int n) {
+        if (n == 0) {
+            return this;
+        } else if (n > segments.length) {
+            throw new IllegalArgumentException("Cannot remove " + n + " segments from path " + getPath());
+        }
+
+        return new Path(Arrays.copyOfRange(segments, n, segments.length), absolute);
+    }
+
+    public String segment(int index) {
+        if (index < 0 || index >= segments.length) {
+            throw new IllegalArgumentException("Invalid segment index" + index + " for path " + getPath());
+        }
+
+        return segments[index];
     }
 }

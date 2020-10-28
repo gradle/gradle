@@ -16,16 +16,15 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.NameMatcher;
+import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,10 +42,10 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     @Override
     public Spec<Task> getFilter(String path) {
-        Path taskPath = Path.from(path);
+        Path taskPath = Path.path(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {
-            return getSelector(build).getFilter(taskPath.removeFirstSegment().toString());
+            return getSelector(build).getFilter(taskPath.removeFirstSegments(1).toString());
         } else {
             return getRootBuildSelector().getFilter(path);
         }
@@ -54,10 +53,10 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     @Override
     public TaskSelection getSelection(String path) {
-        Path taskPath = Path.from(path);
+        Path taskPath = Path.path(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {
-            return getSelector(build).getSelection(taskPath.removeFirstSegment().toString());
+            return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
         } else {
             return getRootBuildSelector().getSelection(path);
         }
@@ -65,10 +64,10 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     @Override
     public TaskSelection getSelection(String projectPath, File root, String path) {
-        Path taskPath = Path.from(path);
+        Path taskPath = Path.path(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {
-            return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegment().toString());
+            return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
         } else {
             return getRootBuildSelector().getSelection(projectPath, root, path);
         }
@@ -81,7 +80,7 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
         Map<String, BuildState> builds = buildStateRegistry.getIncludedBuilds().stream().collect(Collectors.toMap(IncludedBuildState::getName, Function.identity()));
         NameMatcher matcher = new NameMatcher();
-        return matcher.find(taskPath.getFirstSegment(), builds);
+        return matcher.find(taskPath.segment(0), builds);
     }
 
     private TaskSelector getSelector(BuildState buildState) {
@@ -90,38 +89,5 @@ public class CompositeAwareTaskSelector implements TaskSelector {
 
     private TaskSelector getRootBuildSelector() {
         return getSelector(buildStateRegistry.getRootBuild());
-    }
-
-    private static class Path {
-        private final String[] segments;
-
-        private Path(String[] segments) {
-            this.segments = segments;
-        }
-
-        int segmentCount() {
-            return segments.length;
-        }
-
-        String getFirstSegment() {
-            return segments[0];
-        }
-
-        Path removeFirstSegment() {
-            return new Path(Arrays.copyOfRange(segments, 1, segments.length));
-        }
-
-        @Override
-        public String toString() {
-            return String.join(Project.PATH_SEPARATOR, segments);
-        }
-
-        static Path from(String path) {
-            if (path.startsWith(Project.PATH_SEPARATOR)) {
-                return new Path(path.substring(Project.PATH_SEPARATOR.length()).split(Project.PATH_SEPARATOR));
-            } else {
-                return new Path(path.split(Project.PATH_SEPARATOR));
-            }
-        }
     }
 }
