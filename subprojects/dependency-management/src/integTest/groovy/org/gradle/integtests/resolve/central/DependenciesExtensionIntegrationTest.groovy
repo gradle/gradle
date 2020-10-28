@@ -585,11 +585,11 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    version("myVersion") {
+                    def myVersion = version("myVersion") {
                         require "1.0"
                     }
                     aliasWithVersionRef("myLib", "org.gradle.test", "lib", "myVersion")
-                    aliasWithVersionRef("myOtherLib", "org.gradle.test", "lib2", "myVersion")
+                    aliasWithVersionRef("myOtherLib", "org.gradle.test", "lib2", myVersion)
                 }
             }
         """

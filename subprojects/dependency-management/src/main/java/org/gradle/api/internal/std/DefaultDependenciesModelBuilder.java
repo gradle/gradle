@@ -119,12 +119,13 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     @Override
-    public void version(String name, Action<? super MutableVersionConstraint> versionSpec) {
+    public String version(String name, Action<? super MutableVersionConstraint> versionSpec) {
         validateName("name", name);
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
         ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
         versionConstraints.put(name, version);
+        return name;
     }
 
     @Override

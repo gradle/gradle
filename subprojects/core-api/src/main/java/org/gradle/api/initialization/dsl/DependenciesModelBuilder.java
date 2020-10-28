@@ -50,8 +50,9 @@ public interface DependenciesModelBuilder {
      *
      * @param name an identifier for the version
      * @param versionSpec the dependency version spec
+     * @return the version alias name
      */
-    void version(String name, Action<? super MutableVersionConstraint> versionSpec);
+    String version(String name, Action<? super MutableVersionConstraint> versionSpec);
 
     /**
      * Configures a dependency version which can then be referenced using
@@ -60,8 +61,8 @@ public interface DependenciesModelBuilder {
      * @param name an identifier for the version
      * @param requiredVersion the version string, interpreted as a required version
      */
-    default void version(String name, String requiredVersion) {
-        version(name, vc -> vc.require(requiredVersion));
+    default String version(String name, String requiredVersion) {
+        return version(name, vc -> vc.require(requiredVersion));
     }
 
     /**
