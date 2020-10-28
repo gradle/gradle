@@ -539,4 +539,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter ignoreMissingSettingsFile();
 
     GradleExecuter ignoreCleanupAssertions();
+
+    GradleExecuter withToolchainDetectedEnabled();
+
+    GradleExecuter withToolchainDownloadEnabled();
+
 }

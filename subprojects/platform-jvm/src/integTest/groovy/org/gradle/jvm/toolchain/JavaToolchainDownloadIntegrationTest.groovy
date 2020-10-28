@@ -40,6 +40,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
             .withTasks("compileJava")
             .requireOwnGradleUserHomeDir()
+            .withToolchainDownloadEnabled()
             .runWithFailure()
         result = failure
 
@@ -104,6 +105,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         failure = executer
             .withTasks("compileJava")
             .requireOwnGradleUserHomeDir()
+            .withToolchainDownloadEnabled()
             .runWithFailure()
         result = failure
 
