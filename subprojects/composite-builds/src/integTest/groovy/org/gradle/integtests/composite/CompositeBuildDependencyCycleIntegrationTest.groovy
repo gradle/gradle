@@ -343,6 +343,40 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         assertTaskExecuted(':', ":resolveJars")
     }
 
+    def "direct dependsOn cycle between builds including one another"() {
+        given:
+        buildA.buildFile << """
+            task a {
+                dependsOn gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        buildB.buildFile << """
+            task b {
+                dependsOn gradle.includedBuild('buildC').task(':c')
+            }
+        """
+        buildB.settingsFile << """
+            includeBuild('../buildC')
+        """
+        buildC.buildFile << """
+            task c {
+                dependsOn gradle.includedBuild('buildB').task(':b')
+            }
+        """
+        buildC.settingsFile << """
+            includeBuild('../buildB')
+        """
+
+        when:
+        resolveFails(":a")
+
+        then:
+        failure.assertHasDescription("""Circular dependency between the following tasks:
+:buildB:b
+\\--- :buildC:c
+     \\--- :buildB:b (*)""")
+    }
+
     // TODO: this ends up in a deadlock. Figure out if this is a valid use case and what to do with it.
     @Ignore
     def "direct mustRunAfter cycle between included builds"() {
