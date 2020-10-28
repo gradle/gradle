@@ -422,10 +422,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withWelcomeMessageEnabled();
         }
 
-        if(!disableToolchainDetection) {
-            executer.withToolchainDetectedEnabled();
+        if (!disableToolchainDetection) {
+            executer.withToolchainDetectionEnabled();
         }
-        if(!disableToolchainDownload) {
+        if (!disableToolchainDownload) {
             executer.withToolchainDownloadEnabled();
         }
 
@@ -831,14 +831,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withToolchainDetectedEnabled() {
+    public GradleExecuter withToolchainDetectionEnabled() {
         disableToolchainDetection = false;
         return this;
     }
 
     @Override
     public GradleExecuter withToolchainDownloadEnabled() {
-        withToolchainDetectedEnabled();
+        withToolchainDetectionEnabled();
         disableToolchainDownload = false;
         return this;
     }
@@ -1022,10 +1022,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("--warning-mode=" + warningMode.toString().toLowerCase(Locale.ENGLISH));
         }
 
-        if(disableToolchainDownload) {
+        if (disableToolchainDownload) {
             allArgs.add("-Porg.gradle.java.installations.auto-download=false");
         }
-        if(disableToolchainDetection) {
+        if (disableToolchainDetection) {
             allArgs.add("-Porg.gradle.java.installations.auto-detect=false");
         }
 
