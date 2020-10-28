@@ -30,14 +30,12 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
-import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.vcs.SourceControl
 
 import java.io.File
-import java.util.concurrent.Callable
 
 
 /**

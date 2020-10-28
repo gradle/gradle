@@ -34,7 +34,6 @@ import org.gradle.vcs.SourceControl;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * <p>Declares the configuration required to instantiate and configure the hierarchy of {@link
