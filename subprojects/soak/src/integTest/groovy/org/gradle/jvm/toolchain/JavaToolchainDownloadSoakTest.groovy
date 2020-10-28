@@ -37,6 +37,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         result = executer
             .withArguments("--info")
             .withTasks("compileJava")
+            .withToolchainDownloadEnabled()
             .requireOwnGradleUserHomeDir()
             .run()
 

@@ -99,8 +99,6 @@ class AbstractIntegrationSpec extends Specification {
             if (maxUploadAttempts != null) {
                 withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
             }
-            withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            withArgument("-Porg.gradle.java.installations.auto-download=false")
         }
     }
 
