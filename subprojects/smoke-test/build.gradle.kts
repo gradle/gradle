@@ -54,30 +54,6 @@ dependencies {
     smokeTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-fun SmokeTest.configureForSmokeTest() {
-    group = "Verification"
-    testClassesDirs = smokeTestSourceSet.output.classesDirs
-    classpath = smokeTestSourceSet.runtimeClasspath
-    maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
-    inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
-}
-
-val smokeTest by tasks.registering(SmokeTest::class) {
-    description = "Runs Smoke tests"
-    configureForSmokeTest()
-}
-
-val configCacheSmokeTest by tasks.registering(SmokeTest::class) {
-    description = "Runs Smoke tests with the configuration cache"
-    configureForSmokeTest()
-    systemProperty("org.gradle.integtest.executer", "configCache")
-}
-
-val gradleBuildSmokeTest by tasks.registering(SmokeTest::class) {
-    description = "Runs Smoke tests against the Gradle build"
-    configureForSmokeTest()
-}
-
 tasks {
 
     /**
@@ -88,56 +64,77 @@ tasks {
      */
     val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
 
-    register<RemoteProject>("santaTrackerKotlin") {
+    val santaTrackerKotlin by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
         // Pinned from branch agp-3.6.0
         ref.set("3122343674246eaa56a5dd6365ea137edb021780")
     }
 
-    register<RemoteProject>("santaTrackerJava") {
+    val santaTrackerJava by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
         // Pinned from branch agp-3.6.0-java
         ref.set("d8543e51ac5a4803a8ac57f0639229736f11e0a8")
     }
 
-    register<RemoteProject>("gradleBuildCurrent") {
+    val gradleBuildCurrent by registering(RemoteProject::class) {
         remoteUri.set(rootDir.absolutePath)
         ref.set(moduleIdentity.gradleBuildCommitId)
     }
 
-    val remoteProjects = withType<RemoteProject>()
-    val santaProjects = remoteProjects.matching { it.name.startsWith("santa") }
-    val gradleBuildProjects = remoteProjects.matching { it.name.startsWith("gradleBuild") }
+    val santaProjects = arrayOf(santaTrackerKotlin, santaTrackerJava)
+    val remoteProjects = santaProjects + gradleBuildCurrent
 
     if (BuildEnvironment.isCiServer) {
-        remoteProjects.configureEach {
-            outputs.upToDateWhen { false }
+        remoteProjects.forEach { remoteProject ->
+            remoteProject {
+                outputs.upToDateWhen { false }
+            }
         }
     }
 
     register<Delete>("cleanRemoteProjects") {
-        delete(remoteProjects.map { it.outputDirectory })
+        remoteProjects.forEach { remoteProject ->
+            delete(remoteProject.map { it.outputDirectory })
+        }
     }
 
-    val santaSmokeTests = withType<SmokeTest>().matching { !it.name.startsWith("gradleBuild") }
-    val gradleBuildSmokeTests = withType<SmokeTest>().matching { it.name.startsWith("gradleBuild") }
-    val gradleBuildTestPattern = "**/GradleBuild*SmokeTest*"
-
-    fun SmokeTest.configureForRemoteProjects(remoteProjects: TaskCollection<RemoteProject>) {
-        dependsOn(remoteProjects)
-        inputs.files(Callable { remoteProjects.map { it.outputDirectory } })
+    fun SmokeTest.configureForSmokeTest(vararg remoteProjects: TaskProvider<RemoteProject>) {
+        group = "Verification"
+        testClassesDirs = smokeTestSourceSet.output.classesDirs
+        classpath = smokeTestSourceSet.runtimeClasspath
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
+        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
+        dependsOn(*remoteProjects)
+        inputs.files(Callable { remoteProjects.map { it.map { it.outputDirectory } } })
             .withPropertyName("remoteProjectsSource")
             .withPathSensitivity(PathSensitivity.RELATIVE)
     }
 
-    santaSmokeTests.configureEach {
-        configureForRemoteProjects(santaProjects)
-        exclude(gradleBuildTestPattern)
+    val gradleBuildCategory = "org.gradle.smoketests.GradleBuild"
+
+    register<SmokeTest>("smokeTest") {
+        description = "Runs Smoke tests"
+        configureForSmokeTest(*santaProjects)
+        useJUnit {
+            excludeCategories(gradleBuildCategory)
+        }
     }
 
-    gradleBuildSmokeTests.configureEach {
-        configureForRemoteProjects(gradleBuildProjects)
-        include(gradleBuildTestPattern)
+    register<SmokeTest>("configCacheSmokeTest") {
+        description = "Runs Smoke tests with the configuration cache"
+        configureForSmokeTest(*santaProjects)
+        systemProperty("org.gradle.integtest.executer", "configCache")
+        useJUnit {
+            excludeCategories(gradleBuildCategory)
+        }
+    }
+
+    register<SmokeTest>("gradleBuildSmokeTest") {
+        description = "Runs Smoke tests against the Gradle build"
+        configureForSmokeTest(gradleBuildCurrent)
+        useJUnit {
+            includeCategories(gradleBuildCategory)
+        }
     }
 }
 
