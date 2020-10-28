@@ -18,6 +18,7 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.process.internal.ExecException;
 
 import java.io.File;
 
@@ -36,7 +37,11 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
 
     @Override
     public JavaVersion getJavaVersion(String javaCommand) {
-        return detector.getMetadata(new File(javaCommand).getParentFile().getParentFile()).getLangageVersion();
+        final File executable = new File(javaCommand);
+        if(!executable.exists()) {
+            throw new ExecException("A problem occurred starting process 'command 'does-not-exist''");
+        }
+        return detector.getMetadata(executable.getParentFile().getParentFile()).getLangageVersion();
     }
 
 }
