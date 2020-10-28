@@ -170,8 +170,6 @@ abstract class AbstractUserTypeCodecTest {
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
-        transformListener = mock(),
-        transformationNodeRegistry = mock(),
         valueSourceProviderFactory = mock(),
         patternSetFactory = mock(),
         fileOperations = mock(),

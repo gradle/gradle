@@ -36,14 +36,8 @@ public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> im
     }
 
     @Override
-    public R execute(C context) {
-        UnitOfWork work = context.getWork();
-        return work.withWorkspace(context.getIdentity().getUniqueId(), workspace -> delegate.execute(new WorkspaceContext() {
-            @Override
-            public UnitOfWork getWork() {
-                return work;
-            }
-
+    public R execute(UnitOfWork work, C context) {
+        return work.withWorkspace(context.getIdentity().getUniqueId(), workspace -> delegate.execute(work, new WorkspaceContext() {
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();

@@ -34,13 +34,13 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
+import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
@@ -151,7 +151,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(
             new ResolveInputChangesStep<>(
-            new CleanupOutputsStep<>(deleter, outputChangeListener,
+            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
         ))))))))))))))))))
         // @formatter:on
@@ -833,14 +833,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void visitInputProperties(UnitOfWork.InputPropertyVisitor visitor) {
+                void visitInputs(UnitOfWork.InputVisitor visitor) {
                     inputProperties.each { propertyName, value ->
                         visitor.visitInputProperty(propertyName, NON_IDENTITY, { -> value } as UnitOfWork.ValueSupplier)
                     }
-                }
-
-                @Override
-                void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(
                             entry.key,
@@ -853,7 +849,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void visitOutputProperties(File workspace, UnitOfWork.OutputPropertyVisitor visitor) {
+                void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
                     outputs.forEach { name, spec ->
                         visitor.visitOutputProperty(name, spec.treeType, spec.root, TestFiles.fixed(spec.root))
                     }

@@ -44,8 +44,12 @@ import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -182,11 +186,23 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
         GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
         List<String> cleanTasks = invocationSpec.getCleanTasks();
+        File gradlePropertiesFile = new File(invocationSettings.getProjectDir(), "gradle.properties");
+        Properties gradleProperties = new Properties();
+        try (InputStream inputStream = Files.newInputStream(gradlePropertiesFile.toPath())) {
+            gradleProperties.load(inputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        String[] jvmOptsFromGradleProperties = gradleProperties.getProperty("org.gradle.jvmargs").split(" ");
+        final ImmutableList<String> actualJvmArgs = ImmutableList.<String>builder()
+            .add(jvmOptsFromGradleProperties)
+            .addAll(invocationSpec.getJvmOpts())
+            .build();
         return new GradleScenarioDefinition(
             safeScenarioName(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
-            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), invocationSpec.getJvmOpts(), false),
+            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false),
             experimentSpec.getInvocation().getBuildAction(),
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP

@@ -2,6 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[Danny Thomas](https://github.com/DanielThomas),
 [Jeff](https://github.com/mathjeff),
 [jdai8](https://github.com/jdai8),
 [David Burström](https://github.com/davidburstrom),
@@ -94,6 +95,10 @@ See [the userguide](userguide/more_about_tasks.html#sec:property_file_normalizat
 
 [//]: # (TODO context and overview of improvements)
 
+#### Composite builds
+
+Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
+
 #### Supported core plugins
 
 In this release a number of core Gradle plugins got improved to support the configuration cache:
@@ -163,6 +168,33 @@ which tells Gradle that the common dependencies between the runtime classpath an
 There are many options to configure this feature which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
 
 ## New features and usability improvements
+
+### Viewing all available toolchains
+
+Gradle can now provide a list of all detected toolchains including their metadata.
+Output of `gradle -q javaToolchains`:
+```
+ + AdoptOpenJDK 1.8.0_242
+     | Location:           /path/to/8.0.242.hs-adpt/jre
+     | Language Version:   8
+     | Is JDK:             true
+     | Detected by:        SDKMAN!
+
+ + OpenJDK 15-ea
+     | Location:           /path/to/java/15.ea.21-open
+     | Language Version:   15
+     | Is JDK:             true
+     | Detected by:        SDKMAN!
+
+ + Oracle JDK 1.7.0_80
+     | Location:           /Library/Java/jdk1.7.0_80.jdk/jre
+     | Language Version:   7
+     | Is JDK:             true
+     | Detected by:        macOS java_home
+```
+
+This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.
+See the [toolchain documentation](userguide/toolchains.html) for more in-depth information on toolchain detection and usage.
 
 ### Implicit imports
 

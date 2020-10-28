@@ -16,7 +16,6 @@
 
 package gradlebuild.performance.generator.tasks
 
-
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory

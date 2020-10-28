@@ -32,11 +32,10 @@ public class MarkSnapshottingInputsStartedStep<C extends Context, R extends Resu
     }
 
     @Override
-    public R execute(C context) {
-        UnitOfWork work = context.getWork();
+    public R execute(UnitOfWork work, C context) {
         work.markLegacySnapshottingInputsStarted();
         try {
-            return delegate.execute(context);
+            return delegate.execute(work, context);
         } finally {
             work.ensureLegacySnapshottingInputsClosed();
         }

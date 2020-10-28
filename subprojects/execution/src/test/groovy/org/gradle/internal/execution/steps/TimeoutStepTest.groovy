@@ -31,7 +31,7 @@ class TimeoutStepTest extends ContextInsensitiveStepSpec {
 
     def "negative timeout is reported"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         thrown InvalidUserDataException
@@ -42,7 +42,7 @@ class TimeoutStepTest extends ContextInsensitiveStepSpec {
 
     def "executing without timeout succeeds"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -50,7 +50,7 @@ class TimeoutStepTest extends ContextInsensitiveStepSpec {
         _ * work.timeout >> Optional.empty()
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
@@ -59,7 +59,7 @@ class TimeoutStepTest extends ContextInsensitiveStepSpec {
         def timeout = Mock(Timeout)
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -70,7 +70,7 @@ class TimeoutStepTest extends ContextInsensitiveStepSpec {
         timeoutHandler.start(_ as Thread, duration) >> timeout
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         1 * timeout.stop() >> false
@@ -82,7 +82,7 @@ class TimeoutStepTest extends ContextInsensitiveStepSpec {
         def timeout = Mock(Timeout)
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         _ * work.timeout >> Optional.of(duration)
@@ -91,7 +91,7 @@ class TimeoutStepTest extends ContextInsensitiveStepSpec {
         1 * timeoutHandler.start(_ as Thread, duration) >> timeout
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         1 * timeout.stop() >> true

@@ -18,7 +18,7 @@
 :meta-name-twitter_card: summary
 :meta-name-twitter_site: @gradle
 :meta-name-twitter_creator: @gradle
-:meta-name-twitter_title: {doctitle}
+:meta-name-twitter_title: Gradle User Manual: Version {gradleVersion}
 :meta-name-twitter_description: {description}
 :meta-name-twitter_url: {docsUrl}/{gradleVersion}/userguide/{docname}.html
 :meta-name-twitter_image: {website}/images/gradle-256x256.png

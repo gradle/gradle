@@ -70,8 +70,8 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     @Override
-    public void forceAccessToMutableState(Consumer<? super Object> action) {
-        action.accept(MODEL);
+    public <S> S forceAccessToMutableState(Function<? super Object, ? extends S> factory) {
+        return factory.apply(MODEL);
     }
 
     @Override

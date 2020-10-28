@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -25,6 +26,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.io.File;
@@ -33,13 +35,16 @@ import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CleanupOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
+/**
+ * When executed non-incrementally remove previous outputs owned by the work unit.
+ */
+public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends R> delegate;
 
-    public CleanupOutputsStep(
+    public RemovePreviousOutputsStep(
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         Step<? super C, ? extends R> delegate
@@ -50,9 +55,8 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     }
 
     @Override
-    public R execute(C context) {
+    public R execute(UnitOfWork work, C context) {
         if (!context.isIncrementalExecution()) {
-            UnitOfWork work = context.getWork();
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
                 boolean hasOverlappingOutputs = context.getBeforeExecutionState()
                     .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
@@ -60,29 +64,32 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                 if (hasOverlappingOutputs) {
                     cleanupOverlappingOutputs(context, work);
                 } else {
-                    cleanupExclusiveOutputs(context, work);
+                    cleanupExclusivelyOwnedOutputs(context, work);
                 }
             }
         }
-        return delegate.execute(context);
+        return delegate.execute(work, context);
     }
 
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> {
-                switch (type) {
-                    case FILE:
-                        File parentFile = root.getParentFile();
-                        if (parentFile != null) {
-                            outputDirectoriesToPreserve.add(parentFile);
-                        }
-                        break;
-                    case DIRECTORY:
-                        outputDirectoriesToPreserve.add(root);
-                        break;
-                    default:
-                        throw new AssertionError();
+            work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+                @Override
+                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                    switch (type) {
+                        case FILE:
+                            File parentFile = root.getParentFile();
+                            if (parentFile != null) {
+                                outputDirectoriesToPreserve.add(parentFile);
+                            }
+                            break;
+                        case DIRECTORY:
+                            outputDirectoriesToPreserve.add(root);
+                            break;
+                        default:
+                            throw new AssertionError();
+                    }
                 }
             });
             OutputsCleaner cleaner = new OutputsCleaner(
@@ -102,22 +109,25 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         });
     }
 
-    private void cleanupExclusiveOutputs(BeforeExecutionContext context, UnitOfWork work) {
-        work.visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> {
-            if (root.exists()) {
-                try {
-                    switch (type) {
-                        case FILE:
-                            deleter.delete(root);
-                            break;
-                        case DIRECTORY:
-                            deleter.ensureEmptyDirectory(root);
-                            break;
-                        default:
-                            throw new AssertionError();
+    private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                if (root.exists()) {
+                    try {
+                        switch (type) {
+                            case FILE:
+                                deleter.delete(root);
+                                break;
+                            case DIRECTORY:
+                                deleter.ensureEmptyDirectory(root);
+                                break;
+                            default:
+                                throw new AssertionError();
+                        }
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
                     }
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
                 }
             }
         });

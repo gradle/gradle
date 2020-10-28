@@ -16,8 +16,10 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkspaceContext;
 import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;
@@ -37,9 +39,19 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
     }
 
     @Override
-    public R execute(C context) {
-        context.getWork().visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> ensureOutput(name, root, type));
-        return delegate.execute(context);
+    public R execute(UnitOfWork work, C context) {
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                ensureOutput(propertyName, root, type);
+            }
+
+            @Override
+            public void visitLocalState(File localStateRoot) {
+                ensureOutput("local state", localStateRoot, TreeType.FILE);
+            }
+        });
+        return delegate.execute(work, context);
     }
 
     private static void ensureOutput(String name, File outputRoot, TreeType type) {

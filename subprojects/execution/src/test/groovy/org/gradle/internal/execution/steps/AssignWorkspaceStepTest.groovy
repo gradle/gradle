@@ -33,7 +33,7 @@ class AssignWorkspaceStepTest extends StepSpec<IdentityContext> {
     def "delegates with assigned workspace"() {
         def workspace = file("workspace")
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -41,7 +41,7 @@ class AssignWorkspaceStepTest extends StepSpec<IdentityContext> {
             def actionResult = action.executeInWorkspace(workspace)
             return actionResult
         }
-        1 * delegate.execute(_) >> { WorkspaceContext context ->
+        1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
             assert context.workspace == workspace
             return delegateResult
         }

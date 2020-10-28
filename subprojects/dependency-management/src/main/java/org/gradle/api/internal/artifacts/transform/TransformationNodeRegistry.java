@@ -16,26 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public interface TransformationNodeRegistry {
-    TransformationNodeRegistry EMPTY = new TransformationNodeRegistry() {
-        @Override
-        public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
-            return Optional.empty();
-        }
+    TransformationNodeRegistry EMPTY = (artifactSet, transformation, dependenciesResolver) -> {
+        throw new UnsupportedOperationException();
     };
 
-    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver);
-
-    Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation);
+    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver);
 }

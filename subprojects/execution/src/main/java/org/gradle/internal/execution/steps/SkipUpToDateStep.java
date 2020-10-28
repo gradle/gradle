@@ -48,8 +48,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
     }
 
     @Override
-    public UpToDateResult execute(C context) {
-        final UnitOfWork work = context.getWork();
+    public UpToDateResult execute(UnitOfWork work, C context) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Determining if {} is up-to-date", work.getDisplayName());
         }
@@ -93,14 +92,14 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     }
                 };
             } else {
-                return executeBecause(reasons, context);
+                return executeBecause(work, reasons, context);
             }
-        }).orElseGet(() -> executeBecause(CHANGE_TRACKING_DISABLED, context));
+        }).orElseGet(() -> executeBecause(work, CHANGE_TRACKING_DISABLED, context));
     }
 
-    private UpToDateResult executeBecause(ImmutableList<String> reasons, C context) {
-        logExecutionReasons(reasons, context.getWork());
-        CurrentSnapshotResult result = delegate.execute(context);
+    private UpToDateResult executeBecause(UnitOfWork work, ImmutableList<String> reasons, C context) {
+        logExecutionReasons(reasons, work);
+        CurrentSnapshotResult result = delegate.execute(work, context);
         return new UpToDateResult() {
             @Override
             public ImmutableList<String> getExecutionReasons() {

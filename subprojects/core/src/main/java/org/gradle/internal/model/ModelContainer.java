@@ -36,7 +36,7 @@ public interface ModelContainer<T> {
     /**
      * DO NOT USE THIS METHOD. It is here to provide some specific backwards compatibility.
      */
-    void forceAccessToMutableState(Consumer<? super T> action);
+    <S> S forceAccessToMutableState(Function<? super T, ? extends S> factory);
 
     /**
      * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.

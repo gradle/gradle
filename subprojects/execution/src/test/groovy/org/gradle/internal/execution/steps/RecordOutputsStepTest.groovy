@@ -30,11 +30,11 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Finger
 
     def "outputs are recorded after execution"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs

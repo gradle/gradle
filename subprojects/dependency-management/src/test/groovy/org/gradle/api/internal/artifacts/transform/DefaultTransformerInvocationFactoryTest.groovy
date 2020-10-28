@@ -216,7 +216,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+        void isolateParametersIfNotAlready() {
         }
 
         @Override

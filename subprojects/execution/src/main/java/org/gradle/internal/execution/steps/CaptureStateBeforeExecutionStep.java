@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
-import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputFiles;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
@@ -81,10 +80,10 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
     }
 
     @Override
-    public CachingResult execute(AfterPreviousExecutionContext context) {
-        Optional<BeforeExecutionState> beforeExecutionState = context.getWork().getHistory()
-            .map(executionHistoryStore -> captureExecutionStateOp(context));
-        return delegate.execute(new BeforeExecutionContext() {
+    public CachingResult execute(UnitOfWork work, AfterPreviousExecutionContext context) {
+        Optional<BeforeExecutionState> beforeExecutionState = work.getHistory()
+            .map(executionHistoryStore -> captureExecutionStateOp(work, context));
+        return delegate.execute(work, new BeforeExecutionContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return beforeExecutionState;
@@ -123,29 +122,23 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
             }
-
-            @Override
-            public UnitOfWork getWork() {
-                return context.getWork();
-            }
         });
     }
 
-    private BeforeExecutionState captureExecutionStateOp(AfterPreviousExecutionContext executionContext) {
+    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, AfterPreviousExecutionContext executionContext) {
         return operation(operationContext -> {
-                BeforeExecutionState beforeExecutionState = captureExecutionState(executionContext);
+                BeforeExecutionState beforeExecutionState = captureExecutionState(work, executionContext);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return beforeExecutionState;
             },
             BuildOperationDescriptor
-                .displayName("Snapshot inputs and outputs before executing " + executionContext.getWork().getDisplayName())
+                .displayName("Snapshot inputs and outputs before executing " + work.getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
     }
 
-    private BeforeExecutionState captureExecutionState(AfterPreviousExecutionContext context) {
+    private BeforeExecutionState captureExecutionState(UnitOfWork work, AfterPreviousExecutionContext context) {
         Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
-        UnitOfWork work = context.getWork();
 
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);
@@ -178,16 +171,22 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
                 throw new AssertionError();
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = fingerprintInputProperties(
+        ImmutableSortedMap<String, ValueSnapshot> alreadyKnownInputProperties = context.getInputProperties();
+        ImmutableSortedMap.Builder<String, ValueSnapshot> inputPropertiesBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownInputFileProperties = context.getInputFileProperties();
+        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+        fingerprintInputProperties(
             work,
             previousInputProperties,
             valueSnapshotter,
-            context.getInputProperties(),
-            (propertyName, identity) -> identity == NON_IDENTITY);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = fingerprintInputFiles(
-            work,
-            context.getInputFileProperties(),
+            alreadyKnownInputProperties,
+            inputPropertiesBuilder,
+            alreadyKnownInputFileProperties,
+            inputFileFingerprintsBuilder,
             (propertyName, type, identity) -> identity == NON_IDENTITY);
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesBuilder.build();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = inputFileFingerprintsBuilder.build();
+
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileFingerprints = fingerprintOutputFiles(
             outputSnapshotsAfterPreviousExecution,
             outputFileSnapshots,
@@ -244,15 +243,11 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
 
         @Override
         public void visitImplementation(ImplementationSnapshot implementation) {
-            if (this.implementation != null) {
-                throw new IllegalStateException("Implementation already set");
+            if (this.implementation == null) {
+                this.implementation = implementation;
+            } else {
+                this.additionalImplementations.add(implementation);
             }
-            this.implementation = implementation;
-        }
-
-        @Override
-        public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
-            additionalImplementations.add(implementation);
         }
 
         public ImplementationSnapshot getImplementation() {

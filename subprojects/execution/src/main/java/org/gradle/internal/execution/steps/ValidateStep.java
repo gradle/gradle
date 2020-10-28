@@ -45,9 +45,9 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
     }
 
     @Override
-    public R execute(C context) {
+    public R execute(UnitOfWork work, C context) {
         DefaultWorkValidationContext validationContext = new DefaultWorkValidationContext();
-        context.getWork().validate(validationContext);
+        work.validate(validationContext);
 
         ImmutableMultimap<Severity, String> problems = validationContext.getProblems();
         ImmutableCollection<String> warnings = problems.get(Severity.WARNING);
@@ -61,7 +61,7 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
                     errors.size() == 1
                         ? "A problem was"
                         : "Some problems were",
-                    context.getWork().getDisplayName(),
+                    work.getDisplayName(),
                     describeTypesChecked(validationContext.getTypes())
                 ),
                 errors.stream()
@@ -71,7 +71,7 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
                     .collect(Collectors.toList())
             );
         }
-        return delegate.execute(context);
+        return delegate.execute(work, context);
     }
 
     private static String describeTypesChecked(ImmutableList<Class<?>> types) {

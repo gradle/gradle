@@ -61,7 +61,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def localStateFile = file("local-state.txt") << "local state"
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
@@ -77,8 +77,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
         then:
-        _ * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
-            visitor.visitLocalStateRoot(localStateFile)
+        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
+            visitor.visitLocalState(localStateFile)
         }
         1 * outputChangeListener.beforeOutputChange([localStateFile.getAbsolutePath()])
         1 * deleter.deleteRecursively(_) >> { File root ->
@@ -95,7 +95,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     def "executes work and stores in cache on cache miss"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -108,7 +108,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
 
         then:
@@ -122,7 +122,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def loadedOutputDir = file("output")
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         def ex = thrown Exception
@@ -147,7 +147,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     def "does not store result of failed execution in cache"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -161,7 +161,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("failure"))
 
         then:
@@ -171,7 +171,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     def "does not load but stores when loading is disabled"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -182,7 +182,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         _ * work.allowedToLoadFromCache >> false
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
 
         then:
@@ -194,7 +194,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def failure = new RuntimeException("store failure")
 
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         def ex = thrown Exception
@@ -207,7 +207,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         _ * work.allowedToLoadFromCache >> false
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
 
         then:
@@ -217,7 +217,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     def "executes and doesn't store when caching is disabled"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -225,7 +225,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         _ * context.cachingState >> cachingState
         1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 

@@ -45,12 +45,11 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
     }
 
     @Override
-    public Result execute(C context) {
-        UnitOfWork work = context.getWork();
+    public Result execute(UnitOfWork work, C context) {
         Optional<InputChangesInternal> inputChanges = work.getInputChangeTrackingStrategy().requiresInputChanges()
             ? Optional.of(determineInputChanges(work, context))
             : Optional.empty();
-        return delegate.execute(new InputChangesContext() {
+        return delegate.execute(work, new InputChangesContext() {
             @Override
             public Optional<InputChangesInternal> getInputChanges() {
                 return inputChanges;
@@ -94,11 +93,6 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return context.getBeforeExecutionState();
-            }
-
-            @Override
-            public UnitOfWork getWork() {
-                return work;
             }
         });
     }

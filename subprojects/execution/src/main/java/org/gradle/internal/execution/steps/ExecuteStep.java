@@ -40,8 +40,7 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
     }
 
     @Override
-    public Result execute(C context) {
-        UnitOfWork work = context.getWork();
+    public Result execute(UnitOfWork work, C context) {
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {

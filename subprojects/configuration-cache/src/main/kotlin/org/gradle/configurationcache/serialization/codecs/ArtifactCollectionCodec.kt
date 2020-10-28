@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.component.Artifact
@@ -27,11 +26,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
-import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
 import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -41,10 +39,8 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.writeCollection
-import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import java.io.File
-import java.util.concurrent.Callable
 
 
 internal
@@ -68,11 +64,7 @@ class ArtifactCollectionCodec(
             elements.map { element ->
                 when (element) {
                     is FixedFileArtifactSpec -> element.file
-                    is TransformedProjectVariantSpec -> Callable {
-                        element.nodes.flatMap { it.transformedSubject.get().files }
-                    }
-                    is LocalFileDependencyBackedArtifactSet -> artifactSetConverter.asFileCollection(element)
-                    is TransformedExternalArtifactSet -> artifactSetConverter.asFileCollection(element)
+                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
             }
@@ -89,14 +81,6 @@ class FixedFileArtifactSpec(
     val variantAttributes: AttributeContainer,
     val variantDisplayName: DisplayName,
     val file: File
-)
-
-
-private
-class TransformedProjectVariantSpec(
-    val ownerId: ComponentIdentifier,
-    val variantAttributes: ImmutableAttributes,
-    val nodes: Collection<TransformationNode>
 )
 
 
@@ -132,7 +116,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
         if (source is TransformedProjectArtifactSet) {
-            elements.add(TransformedProjectVariantSpec(source.ownerId, source.targetVariantAttributes, source.scheduledNodes))
+            elements.add(source)
         } else if (source is LocalFileDependencyBackedArtifactSet) {
             elements.add(source)
         } else if (source is TransformedExternalArtifactSet) {
@@ -184,27 +168,7 @@ class FixedArtifactCollection(
                         )
                     )
                 }
-                is TransformedProjectVariantSpec -> {
-                    val displayName = Describables.of(element.ownerId, element.variantAttributes)
-                    for (node in element.nodes) {
-                        for (output in node.transformedSubject.get().files) {
-                            val resolvedArtifact: ResolvableArtifact = node.inputArtifacts.transformedTo(output)
-                            result.add(
-                                DefaultResolvedArtifactResult(
-                                    resolvedArtifact.id,
-                                    element.variantAttributes,
-                                    displayName,
-                                    Artifact::class.java,
-                                    output
-                                )
-                            )
-                        }
-                    }
-                }
-                is TransformedExternalArtifactSet -> {
-                    result.addAll(artifactSetConverter.asResolvedArtifactSupplier(element).get())
-                }
-                is LocalFileDependencyBackedArtifactSet -> {
+                is ResolvedArtifactSet -> {
                     result.addAll(artifactSetConverter.asResolvedArtifactSupplier(element).get())
                 }
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")

@@ -41,16 +41,14 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
 
     def "delegates with assigned workspace"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
-        _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
+        _ * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
             visitor.visitInputProperty("non-identity", NON_IDENTITY) { Mock(Object) }
             visitor.visitInputProperty("identity", UnitOfWork.IdentityKind.IDENTITY) { 123 }
-        }
-        _ * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
             visitor.visitInputFileProperty(
                 "non-identity-file",
                 UnitOfWork.InputPropertyType.NON_INCREMENTAL,
@@ -65,7 +63,7 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
                 { -> Mock(CurrentFileCollectionFingerprint) })
         }
 
-        1 * delegate.execute(_) >> { IdentityContext delegateContext ->
+        1 * delegate.execute(work, _ as IdentityContext) >> { UnitOfWork work, IdentityContext delegateContext ->
             assert delegateContext.inputProperties.keySet() == ["identity"] as Set
             assert delegateContext.inputFileProperties.keySet() == ["identity-file"] as Set
             delegateResult
