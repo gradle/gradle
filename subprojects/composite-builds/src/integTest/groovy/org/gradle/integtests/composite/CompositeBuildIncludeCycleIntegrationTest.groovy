@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -30,6 +31,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         includedBuilds << buildC
     }
 
+    @ToBeFixedForConfigurationCache(because = "configuration cache serialization issue")
     def "two included builds can include each other"() {
         when:
         buildB.settingsFile << "includeBuild '../buildC'"
