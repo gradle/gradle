@@ -1,0 +1,10 @@
+pull_request_rules:
+  - name: Integration with @gradle-bot
+    conditions:
+      - check-success=Bot Says OK
+      - check-success=Ready for Nightly (Trigger) (Check)
+    actions:
+      merge:
+        method: merge
+        strict_method: rebase
+        strict: true

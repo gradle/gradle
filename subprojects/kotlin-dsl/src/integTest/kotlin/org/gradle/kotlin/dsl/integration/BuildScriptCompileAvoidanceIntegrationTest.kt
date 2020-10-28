@@ -10,6 +10,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import java.util.UUID
 import java.util.regex.Pattern
@@ -283,6 +284,32 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    @Ignore
+    fun `recompiles buildscript on inline lambda function change in buildSrc class`() {
+        val className = givenKotlinClassInBuildSrcContains(
+            """
+            inline fun foo() {
+                val sum: (Int, Int) -> Int = { x, y -> x + y }
+                println("foo = " + sum(2, 2))
+            }
+            """
+        )
+        withBuildScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 4")
+
+        givenKotlinClassInBuildSrcContains(
+            """
+            inline fun foo() {
+                val sum: (Int, Int) -> Int = { x, y -> x - y }
+                println("foo = " + sum(2, 2))
+            }
+            """
+        )
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 0")
     }
 
     @ToBeFixedForConfigurationCache

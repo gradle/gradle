@@ -111,7 +111,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             model,
             stage,
             flameGraphGenerationBuildSpec,
-            description = "Flame graphs with $profiler for ${performanceScenario.scenario} | ${performanceScenario.testProject} on ${os.asName()} (bucket $bucketIndex)",
+            description = "Flame graphs with $profiler for ${performanceScenario.scenario.scenario} | ${performanceScenario.testProject} on ${os.asName()} (bucket $bucketIndex)",
             performanceSubProject = "performance",
             bucketIndex = bucketIndex,
             extraParameters = "--profiler $profiler --tests \"${performanceScenario.scenario.className}.${performanceScenario.scenario.scenario}\"",

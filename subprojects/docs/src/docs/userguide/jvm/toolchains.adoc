@@ -142,6 +142,48 @@ Only secure protocols like `https` are accepted.
 This is required to make sure no one can tamper with the download in flight.
 ====
 
+[[sub:viewing_toolchains]]
+=== Viewing and debugging toolchains
+
+Gradle can display the list of all detected toolchains including their metadata.
+
+For example, to show all toolchains of a project, run:
+
+```
+gradle -q javaToolchains
+```
+
+.Output of **`gradle -q javaToolchains`**
+----
+> gradle -q javaToolchains
+
+ + AdoptOpenJDK 1.8.0_242
+     | Location:           /Users/username/myJavaInstalls/8.0.242.hs-adpt/jre
+     | Language Version:   8
+     | Is JDK:             true
+     | Detected by:        system property 'org.gradle.java.installations.paths'
+
+ + OpenJDK 15-ea
+     | Location:           /Users/username/.sdkman/candidates/java/15.ea.21-open
+     | Language Version:   15
+     | Is JDK:             true
+     | Detected by:        SDKMAN!
+
+ + OpenJDK 16
+     | Location:           /Users/user/customJdks/16.ea.20-open
+     | Language Version:   16
+     | Is JDK:             true
+     | Detected by:        environment variable 'JDK16'
+
+ + Oracle JDK 1.7.0_80
+     | Location:           /Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre
+     | Language Version:   7
+     | Is JDK:             true
+     | Detected by:        macOS java_home
+----
+
+This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.
+
 [[sub:disable_auto_provision]]
 === How to disable auto provisioning
 
