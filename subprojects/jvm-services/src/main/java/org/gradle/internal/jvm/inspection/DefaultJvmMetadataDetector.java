@@ -16,17 +16,23 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
+import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.EnumMap;
+import java.util.Map;
+
+import static java.lang.String.format;
+
 
 
 public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
@@ -74,7 +80,22 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             exec.setStandardOutput(out);
             exec.setErrorOutput(errorOutput);
             exec.setIgnoreExitValue(true);
-            ExecResult result = exec.build().start().waitForFinish();
+            ExecHandle execHandle = exec.build();
+            ExecResult result = execHandle.start().waitForFinish();
+
+            // TODO [bm] remove
+            Map<String, String> environment = execHandle.getEnvironment();
+            System.out.println("Detector executed: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
+            System.out.println("Classfile: " + classfile.getAbsolutePath());
+            System.out.println("Working directory: " + execHandle.getDirectory());
+            System.out.println("Environment vars:");
+            System.out.println(format("    JAVA_HOME: %s", environment.get("JAVA_HOME")));
+            System.out.println(format("    GRADLE_HOME: %s", environment.get("GRADLE_HOME")));
+            System.out.println(format("    GRADLE_USER_HOME: %s", environment.get("GRADLE_USER_HOME")));
+            System.out.println(format("    JAVA_OPTS: %s", environment.get("JAVA_OPTS")));
+            System.out.println(format("    GRADLE_OPTS: %s", environment.get("GRADLE_OPTS")));
+
+
             int exitValue = result.getExitValue();
             if (exitValue == 0) {
                 return parseExecOutput(out.toString());
