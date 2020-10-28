@@ -29,7 +29,7 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         // Gradle Plugins
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.4.1")
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.5")
         api("org.gradle.guides:gradle-guides-plugin:0.16.8")
         api("com.gradle.publish:plugin-publish-plugin:0.11.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7")

@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.4.1")
+    id("com.gradle.enterprise").version("3.5")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.1")
 }
 
