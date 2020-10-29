@@ -207,11 +207,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     protected void scheduleTasks(Iterable<String> tasks) {
-        Collection<String> paths = new ArrayList<>();
-        for (String task : tasks) {
-            paths.add(getGradle().getIdentityPath() + task);
-        }
-        gradleLauncher.scheduleTasks(paths);
+        gradleLauncher.scheduleTasks(tasks);
     }
 
     protected final GradleLauncher getGradleLauncher() {

@@ -17,6 +17,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -30,11 +31,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CompositeAwareTaskSelector extends TaskSelector {
+    private final GradleInternal gradle;
     private final BuildStateRegistry buildStateRegistry;
     private final ProjectConfigurer projectConfigurer;
     private final TaskNameResolver taskNameResolver;
 
-    public CompositeAwareTaskSelector(BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer, TaskNameResolver taskNameResolver) {
+    public CompositeAwareTaskSelector(GradleInternal gradle, BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer, TaskNameResolver taskNameResolver) {
+        this.gradle = gradle;
         this.buildStateRegistry = buildStateRegistry;
         this.projectConfigurer = projectConfigurer;
         this.taskNameResolver = taskNameResolver;
@@ -47,7 +50,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         if (build != null) {
             return getSelector(build).getFilter(taskPath.removeFirstSegments(1).toString());
         } else {
-            return getRootBuildSelector().getFilter(path);
+            return getUnqualifiedBuildSelector().getFilter(path);
         }
     }
 
@@ -58,7 +61,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         if (build != null) {
             return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
         } else {
-            return getRootBuildSelector().getSelection(path);
+            return getUnqualifiedBuildSelector().getSelection(path);
         }
     }
 
@@ -69,7 +72,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         if (build != null) {
             return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
         } else {
-            return getRootBuildSelector().getSelection(projectPath, root, path);
+            return getUnqualifiedBuildSelector().getSelection(projectPath, root, path);
         }
     }
 
@@ -87,7 +90,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         return new DefaultTaskSelector(buildState.getBuild(), taskNameResolver, projectConfigurer);
     }
 
-    private TaskSelector getRootBuildSelector() {
-        return getSelector(buildStateRegistry.getRootBuild());
+    private TaskSelector getUnqualifiedBuildSelector() {
+        return getSelector(gradle.getOwner());
     }
 }
