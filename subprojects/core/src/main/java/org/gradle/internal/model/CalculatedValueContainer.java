@@ -22,9 +22,11 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents a calculated immutable value that is calculated once and then consumed by multiple threads.
@@ -40,8 +42,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
     private final DisplayName displayName;
-    private volatile S supplier;
-    private final NodeExecutionContext defaultContext;
+    // Null when the value has been calculated and assigned to the result field. When not null the result has not been calculated
+    // or is currently being calculated or has just been calculated. It is possible for both this field and the result field to be
+    // non-null at the same time for a brief period just after the result has been calculated
+    @Nullable
+    private volatile CalculationState<T, S> calculationState;
+    // Not null when the value has been calculated. When not null the result has not been calculated or is currently being calculated
+    @Nullable
     private volatile Try<T> result;
 
     /**
@@ -49,10 +56,9 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      *
      * Note: this is package protected. Using {@link CalculatedValueContainerFactory} instead.
      */
-    CalculatedValueContainer(DisplayName displayName, S supplier, NodeExecutionContext defaultContext) {
+    CalculatedValueContainer(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
         this.displayName = displayName;
-        this.supplier = supplier;
-        this.defaultContext = defaultContext;
+        this.calculationState = new CalculationState<>(displayName, supplier, projectLeaseRegistry, defaultContext);
     }
 
     /**
@@ -63,7 +69,6 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     CalculatedValueContainer(DisplayName displayName, T value) {
         this.displayName = displayName;
         this.result = Try.successful(value);
-        this.defaultContext = null;
     }
 
     @Override
@@ -97,25 +102,27 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     @Override
     public boolean isFinalized() {
-        return supplier == null;
+        return result != null;
     }
 
     /**
      * Returns the supplier of the value, failing if the value has already been calculated and the supplier no longer available.
+     *
+     * Note: some other thread may currently be calculating the value
      */
     public S getSupplier() throws IllegalStateException {
-        S supplier = this.supplier;
-        if (supplier == null) {
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState == null) {
             throw new IllegalStateException(String.format("Value for %s has already been calculated.", displayName));
         }
-        return supplier;
+        return calculationState.supplier;
     }
 
     @Override
     public boolean usesMutableProjectState() {
-        S supplier = this.supplier;
-        if (supplier != null) {
-            return supplier.usesMutableProjectState();
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            return calculationState.supplier.usesMutableProjectState();
         } else {
             // Value has already been calculated, so no longer needs project state
             return false;
@@ -124,9 +131,9 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     @Override
     public Project getOwningProject() {
-        S supplier = this.supplier;
-        if (supplier != null) {
-            return supplier.getOwningProject();
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            return calculationState.supplier.getOwningProject();
         } else {
             // Value has already been calculated, so no longer needs project state
             return null;
@@ -138,9 +145,9 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      */
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        S supplier = this.supplier;
-        if (supplier != null) {
-            supplier.visitDependencies(context);
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            calculationState.supplier.visitDependencies(context);
         } // else, already calculated so has no dependencies
     }
 
@@ -158,9 +165,43 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     private void finalizeIfNotAlready(@Nullable NodeExecutionContext context) {
-        synchronized (this) {
-            if (result == null) {
-                result = Try.ofFailable(() -> {
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState == null) {
+            // Already calculated
+            return;
+        }
+        Try<T> result = calculationState.getValue(context);
+        if (result != null) {
+            // Attach the result and discard calculation state
+            this.result = result;
+            this.calculationState = null;
+        } // Else already calculated
+    }
+
+    private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
+        final ReentrantLock lock = new ReentrantLock();
+        final DisplayName displayName;
+        final S supplier;
+        final ProjectLeaseRegistry projectLeaseRegistry;
+        final NodeExecutionContext defaultContext;
+        boolean done;
+
+        public CalculationState(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
+            this.displayName = displayName;
+            this.supplier = supplier;
+            this.projectLeaseRegistry = projectLeaseRegistry;
+            this.defaultContext = defaultContext;
+        }
+
+        // Returns null if already calculated
+        Try<T> getValue(@Nullable NodeExecutionContext context) {
+            acquireLock();
+            try {
+                if (done) {
+                    return null;
+                }
+                done = true;
+                return Try.ofFailable(() -> {
                     NodeExecutionContext effectiveContext = context;
                     if (effectiveContext == null) {
                         effectiveContext = defaultContext;
@@ -171,9 +212,22 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                     }
                     return value;
                 });
-                // Discard the supplier
-                supplier = null;
+            } finally {
+                releaseLock();
             }
+        }
+
+        private void acquireLock() {
+            if (lock.tryLock()) {
+                // Lock not contended - can proceed
+                return;
+            }
+            // Lock is contended, so release project locks while waiting to accquire the lock
+            projectLeaseRegistry.withoutProjectLock(lock::lock);
+        }
+
+        private void releaseLock() {
+            lock.unlock();
         }
     }
 }

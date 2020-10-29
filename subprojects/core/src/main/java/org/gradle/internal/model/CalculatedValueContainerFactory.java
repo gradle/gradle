@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -28,21 +29,23 @@ import java.util.function.Supplier;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class CalculatedValueContainerFactory {
+    private final ProjectLeaseRegistry projectLeaseRegistry;
     private final NodeExecutionContext globalContext;
 
-    public CalculatedValueContainerFactory(ServiceRegistry buildScopeServices) {
+    public CalculatedValueContainerFactory(ProjectLeaseRegistry projectLeaseRegistry, ServiceRegistry buildScopeServices) {
+        this.projectLeaseRegistry = projectLeaseRegistry;
         globalContext = buildScopeServices::get;
     }
 
     public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, S supplier) {
-        return new CalculatedValueContainer<>(displayName, supplier, globalContext);
+        return new CalculatedValueContainer<>(displayName, supplier, projectLeaseRegistry, globalContext);
     }
 
     /**
      * A convenience to create a calculated value which has no dependencies and which does not access any mutable model state.
      */
     public <T> CalculatedValueContainer<T, ?> create(DisplayName displayName, Supplier<? extends T> supplier) {
-        return new CalculatedValueContainer<>(displayName, new SupplierBackedCalculator<>(supplier), globalContext);
+        return new CalculatedValueContainer<>(displayName, new SupplierBackedCalculator<>(supplier), projectLeaseRegistry, globalContext);
     }
 
     public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, T value) {

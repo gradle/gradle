@@ -53,6 +53,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
@@ -110,7 +111,7 @@ class TestUtil {
     }
 
     static CalculatedValueContainerFactory calculatedValueContainerFactory() {
-        return new CalculatedValueContainerFactory(services())
+        return new CalculatedValueContainerFactory(new TestWorkerLeaseService(), services())
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
