@@ -60,6 +60,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
     private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
     private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
+    private final StrictVersionParser strictVersionParser;
 
     @Inject
     public DefaultDependenciesModelBuilder(String name,
@@ -74,6 +75,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         this.objects = objects;
         this.providers = providers;
         this.plugins = plugins;
+        this.strictVersionParser = new StrictVersionParser(strings);
     }
 
     @Override
@@ -138,6 +140,28 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         Supplier<DependencyModel> previous = dependencies.put(intern(alias), () -> model);
         if (previous != null) {
             LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
+        }
+    }
+
+    @Override
+    public void alias(String alias, String gavCoordinates) {
+        String[] coordinates = gavCoordinates.split(":");
+        if (coordinates.length == 3) {
+            alias(alias, coordinates[0], coordinates[1], vc -> {
+                String version = coordinates[2];
+                StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(version);
+                if (richVersion.require != null) {
+                    vc.require(richVersion.require);
+                }
+                if (richVersion.prefer != null) {
+                    vc.prefer(richVersion.prefer);
+                }
+                if (richVersion.strictly != null) {
+                    vc.strictly(richVersion.strictly);
+                }
+            });
+        } else {
+            throw new InvalidUserDataException("Invalid dependency notation: it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
         }
     }
 
