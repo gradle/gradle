@@ -287,6 +287,31 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         noExceptionThrown()
     }
 
+    def "classpath can contain signed jar"() {
+        given:
+        buildFile << """
+            buildscript {
+                ${mavenCentralRepository()}
+                dependencies {
+                    classpath("org.bouncycastle:bcprov-jdk15on:1.66")
+                }
+            }
+
+            tasks.register('checkSignature') {
+                doLast {
+                    def signedClass = org.bouncycastle.jce.provider.BouncyCastleProvider.class
+                    assert signedClass.signers != null
+                }
+            }
+        """
+
+        when:
+        succeeds 'checkSignature'
+
+        then:
+        noExceptionThrown()
+    }
+
     void notInJarCache(String filename) {
         inJarCache(filename, false)
     }

@@ -16,7 +16,11 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
@@ -24,24 +28,18 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final Attributes.Name DIGEST_ATTRIBUTE = new Attributes.Name("SHA1-Digest");
 
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
@@ -73,6 +71,15 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private void transform(File source, File dest) {
+        if (isSignedJar(source)) {
+            LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
+            GFileUtils.copyFile(source, dest);
+        } else {
+            instrument(source, dest);
+        }
+    }
+
+    private void instrument(File source, File dest) {
         classpathBuilder.jar(dest, builder -> {
             try {
                 visitEntries(source, builder);
@@ -92,27 +99,28 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 reader.accept(chain.right, 0);
                 byte[] bytes = classWriter.toByteArray();
                 builder.put(chain.left.getPathString(), bytes);
-            } else if (entry.getName().equals("META-INF/MANIFEST.MF")) {
-                // Remove the signature from the manifest, as the classes may have been instrumented
-                Manifest manifest = new Manifest(new ByteArrayInputStream(entry.getContent()));
-                manifest.getMainAttributes().remove(Attributes.Name.SIGNATURE_VERSION);
-                Iterator<Map.Entry<String, Attributes>> entries = manifest.getEntries().entrySet().iterator();
-                while (entries.hasNext()) {
-                    Map.Entry<String, Attributes> manifestEntry = entries.next();
-                    Attributes attributes = manifestEntry.getValue();
-                    attributes.remove(DIGEST_ATTRIBUTE);
-                    if (attributes.isEmpty()) {
-                        entries.remove();
-                    }
-                }
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                manifest.write(outputStream);
-                builder.put(entry.getName(), outputStream.toByteArray());
-            } else if (!entry.getName().startsWith("META-INF/") || !entry.getName().endsWith(".SF")) {
-                // Discard signature files, as the classes may have been instrumented
-                // Else, copy resource
+            } else {
                 builder.put(entry.getName(), entry.getContent());
             }
         });
+    }
+
+    private boolean isSignedJar(File source) {
+        if (!source.isFile()) {
+            return false;
+        }
+        try (ZipInput entries = FileZipInput.create(source)) {
+            for (ZipEntry entry : entries) {
+                String entryName = entry.getName();
+                if (entryName.startsWith("META-INF/") && entryName.endsWith(".SF")) {
+                    return true;
+                }
+            }
+        } catch (FileException e) {
+            // Ignore malformed archive
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return false;
     }
 }
