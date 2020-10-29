@@ -18,12 +18,15 @@ package org.gradle.language.base.plugins;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -49,6 +52,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.RuleTarget;
 import org.gradle.model.Rules;
 import org.gradle.model.internal.core.Hidden;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.ApplicationSpec;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
@@ -228,6 +232,27 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
                 File baseDir = projectIdentifier.getProjectDir();
                 String defaultSourceDir = Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
                 languageSourceSet.getSource().srcDir(defaultSourceDir);
+            }
+        }
+
+        @Finalize
+        public void defineBinariesCheckTasks(@Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
+            if (binary.isLegacyBinary()) {
+                return;
+            }
+            TaskInternal binaryLifecycleTask = taskInstantiator.create(binary.getNamingScheme().getTaskName("check"), DefaultTask.class);
+            binaryLifecycleTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+            binaryLifecycleTask.setDescription("Check " + binary);
+            binary.setCheckTask(binaryLifecycleTask);
+        }
+
+        @Finalize
+        void copyBinariesCheckTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
+            for (BinarySpec binary : binaries) {
+                Task checkTask = binary.getCheckTask();
+                if (checkTask != null) {
+                    ((TaskContainerInternal)tasks).addInternal(checkTask);
+                }
             }
         }
 
