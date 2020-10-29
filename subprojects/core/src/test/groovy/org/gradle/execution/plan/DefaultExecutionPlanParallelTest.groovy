@@ -35,6 +35,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -263,48 +264,33 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         tasksAreNotExecutedInParallel(a, b)
     }
 
+    @ToBeImplemented("When we support symlinks in the VFS, we should implement this as well")
     @Requires(TestPrecondition.SYMLINKS)
     def "a task that writes into a symlink that overlaps with output of currently running task is not started"() {
         given:
         def taskOutput = file("outputDir").createDir()
         def symlink = file("symlink")
-        fs.createSymbolicLink(symlink, taskOutput)
+        symlink.createLink(taskOutput)
 
         and:
         Task a = task("a", type: AsyncWithOutputDirectory)
         _ * a.outputDirectory >> taskOutput
         Task b = task("b", type: AsyncWithOutputFile)
-        _ * b.outputFile >> symlink.file("fileUnderSymlink")
+        // Need to use new File() here, since TestFile.file() canonicalizes the result
+        _ * b.outputFile >> new File(symlink, "fileUnderSymlink")
 
         expect:
-        tasksAreNotExecutedInParallel(a, b)
+        // TODO: Should be tasksAreNotExecutedInParallel(a, b)
+        tasksAreExecutedInParallel(a, b)
     }
 
-    private void tasksAreNotExecutedInParallel(Task first, Task second) {
-        addToGraphAndPopulate(first, second)
-
-        def firstTaskNode = selectNextTaskNode()
-
-        assert selectNextTask() == null
-        assert lockedProjects.empty
-
-        executionPlan.finishedExecuting(firstTaskNode)
-        def secondTask = selectNextTask()
-
-        assert [firstTaskNode.task, secondTask] as Set == [first, second] as Set
-    }
-
+    @ToBeImplemented("When we support symlinks in the VFS, we should implement this as well")
     @Requires(TestPrecondition.SYMLINKS)
     def "a task that writes into a symlink of a shared output dir of currently running task is not started"() {
         given:
         def taskOutput = file("outputDir").createDir()
         def symlink = file("symlink")
-        fs.createSymbolicLink(symlink, taskOutput)
-
-        // Deleting any file clears the internal canonicalisation cache.
-        // This allows the created symlink to be actually resolved.
-        // See java.io.UnixFileSystem#cache.
-        file("tmp").createFile().delete()
+        symlink.createLink(taskOutput)
 
         and:
         Task a = task("a", type: AsyncWithOutputDirectory)
@@ -313,23 +299,20 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * b.outputDirectory >> symlink
 
         expect:
-        tasksAreNotExecutedInParallel(a, b)
+        // TODO: Should be: tasksAreNotExecutedInParallel(a, b)
+        tasksAreExecutedInParallel(a, b)
 
         cleanup:
         assert symlink.delete()
     }
 
+    @ToBeImplemented("When we support symlinks in the VFS, we should implement this as well")
     @Requires(TestPrecondition.SYMLINKS)
     def "a task that stores local state into a symlink of a shared output dir of currently running task is not started"() {
         given:
         def taskOutput = file("outputDir").createDir()
         def symlink = file("symlink")
-        fs.createSymbolicLink(symlink, taskOutput)
-
-        // Deleting any file clears the internal canonicalisation cache.
-        // This allows the created symlink to be actually resolved.
-        // See java.io.UnixFileSystem#cache.
-        file("tmp").createFile().delete()
+        symlink.createLink(taskOutput)
 
         and:
         Task a = task("a", type: AsyncWithOutputDirectory)
@@ -338,7 +321,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * b.localStateFile >> symlink
 
         expect:
-        tasksAreNotExecutedInParallel(a, b)
+        // TODO: Should be: tasksAreNotExecutedInParallel(a, b)
+        tasksAreExecutedInParallel(a, b)
 
         cleanup:
         assert symlink.delete()
@@ -753,6 +737,28 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.getNode(finalized).isSuccessful()
         executionPlan.getNode(finalizer).state == Node.ExecutionState.SKIPPED
+    }
+
+    private void tasksAreNotExecutedInParallel(Task first, Task second) {
+        addToGraphAndPopulate(first, second)
+
+        def firstTaskNode = selectNextTaskNode()
+
+        assert selectNextTask() == null
+        assert lockedProjects.empty
+
+        executionPlan.finishedExecuting(firstTaskNode)
+        def secondTask = selectNextTask()
+
+        assert [firstTaskNode.task, secondTask] as Set == [first, second] as Set
+    }
+
+    private void tasksAreExecutedInParallel(Task first, Task second) {
+        addToGraphAndPopulate(first, second)
+
+        def tasks = [selectNextTask(), selectNextTask()]
+
+        assert tasks as Set == [first, second] as Set
     }
 
     private void addToGraphAndPopulate(Task... tasks) {

@@ -28,15 +28,16 @@ import java.util.Optional;
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
+    private final TaskProperties properties;
     private TaskExecutionMode taskExecutionMode;
-    private TaskProperties properties;
     private Long executionTime;
     private BuildOperationContext snapshotTaskInputsBuildOperationContext;
 
     private final Timer executionTimer;
 
-    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode) {
+    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties) {
         this.localTaskNode = localTaskNode;
+        this.properties = taskProperties;
         this.executionTimer = Time.startTimer();
     }
 
@@ -62,11 +63,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         }
 
         return this.executionTime = executionTimer.getElapsedMillis();
-    }
-
-    @Override
-    public void setTaskProperties(TaskProperties properties) {
-        this.properties = properties;
     }
 
     @Override

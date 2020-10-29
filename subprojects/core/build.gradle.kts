@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.nativePlatformFileEvents)
     implementation(libs.commonsCompress)
     implementation(libs.xmlApis)
+    implementation(libs.tomlj)
 
     testImplementation(project(":plugins"))
     testImplementation(project(":testing-base"))
