@@ -48,18 +48,19 @@ public class ShowToolchainsTask extends DefaultTask {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
         toolchainRenderer.setOutput(output);
         output.println();
-        List<ReportableToolchain> validToolchains = validToolchains();
-        List<ReportableToolchain> invalidToolchains = invalidToolchains();
+        List<ReportableToolchain> toolchains = allReportableToolchains();
+        List<ReportableToolchain> validToolchains = validToolchains(toolchains);
+        List<ReportableToolchain> invalidToolchains = invalidToolchains(toolchains);
         validToolchains.forEach(toolchainRenderer::printToolchain);
         toolchainRenderer.printInvalidToolchains(invalidToolchains);
     }
 
-    private List<ReportableToolchain> invalidToolchains() {
-        return allReportableToolchains().stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
+    private List<ReportableToolchain> invalidToolchains(List<ReportableToolchain> toolchains) {
+        return toolchains.stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
     }
 
-    private List<ReportableToolchain> validToolchains() {
-        return allReportableToolchains().stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
+    private List<ReportableToolchain> validToolchains(List<ReportableToolchain> toolchains) {
+        return toolchains.stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
     }
 
     private Predicate<? super ReportableToolchain> isValidToolchain() {
@@ -67,7 +68,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private List<ReportableToolchain> allReportableToolchains() {
-        return getInstallationRegistry().listInstallations().stream()
+        return getInstallationRegistry().listInstallations().parallelStream()
             .map(this::asReportableToolchain)
             .collect(Collectors.toList());
     }
