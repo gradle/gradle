@@ -133,7 +133,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         def appliesBasePlugin = !(pluginName in [
             'build-dashboard', 'build-init', 'help-tasks', 'wrapper',
             'ivy-publish', 'maven-publish', 'publishing',
-            'eclipse', 'idea',
+            'eclipse', 'idea', 'gradle-platform'
         ])
         if (GradleContextualExecuter.isConfigCache() && appliesBasePlugin) {
             assert output.count("configuring :") == 2
