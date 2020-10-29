@@ -27,7 +27,7 @@ class ModelReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help", "--task", "model"
 
         then:
-        output.contains("Displays the configuration model of root project '${getTestDirectory().name}'. [incubating]")
+        output.contains("Displays the configuration model of root project '${getTestDirectory().name}'. [deprecated]")
     }
 
 }
