@@ -432,7 +432,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias('other', 'org.gradle.test:other:1.0')
+                    alias('other').to('org.gradle.test:other:1.0')
                 }
             }
         """
@@ -470,7 +470,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias('my-lib', 'org.gradle.test:lib:1.0')
+                    alias('my-lib').to('org.gradle.test:lib:1.0')
                 }
             }
         """

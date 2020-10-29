@@ -264,11 +264,12 @@ public class TomlDependenciesFileParser {
                                            @Nullable String prefer,
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
+        DependenciesModelBuilder.LibraryAliasBuilder aliasBuilder = builder.alias(alias).to(group, name);
         if (versionRef != null) {
-            builder.aliasWithVersionRef(alias, group, name, versionRef);
+            aliasBuilder.versionRef(versionRef);
             return;
         }
-        builder.alias(alias, group, name, v -> {
+        aliasBuilder.version(v -> {
             if (require != null) {
                 v.require(require);
             }
