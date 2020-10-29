@@ -15,12 +15,14 @@
  */
 package org.gradle.execution;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -38,11 +40,14 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
         GradleInternal gradle = context.getGradle();
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
         if (!excludedTaskNames.isEmpty()) {
-            final Set<Spec<Task>> filters = new HashSet<Spec<Task>>();
+            Multimap<GradleInternal, Spec<Task>> filters = MultimapBuilder.linkedHashKeys().hashSetValues().build();
             for (String taskName : excludedTaskNames) {
-                filters.add(taskSelector.getFilter(taskName));
+                TaskFilter filter = taskSelector.getFilter(taskName);
+                filters.put(filter.getGradle(), filter.getTask());
             }
-            gradle.getTaskGraph().useFilter(Specs.intersect(filters));
+            for (GradleInternal gradleInternal : filters.keySet()) {
+                gradleInternal.getTaskGraph().useFilter(Specs.intersect(filters.get(gradleInternal)));
+            }
         }
 
         context.proceed();

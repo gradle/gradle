@@ -16,13 +16,25 @@
 
 package org.gradle.execution;
 
-import javax.annotation.Nullable;
-import java.io.File;
+import org.gradle.api.Task;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.specs.Spec;
 
-public abstract class TaskSelector {
-    public abstract TaskFilter getFilter(String path);
+public class TaskFilter {
 
-    public abstract TaskSelection getSelection(String path);
+    private final GradleInternal gradle;
+    private final Spec<Task> task;
 
-    public abstract TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path);
+    TaskFilter(GradleInternal gradle, Spec<Task> task) {
+        this.gradle = gradle;
+        this.task = task;
+    }
+
+    GradleInternal getGradle() {
+        return gradle;
+    }
+
+    Spec<Task> getTask() {
+        return task;
+    }
 }
