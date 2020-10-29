@@ -373,7 +373,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         outputContains("taskFromPluginBuild")
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "can co-develop published plugin applied via plugins block"() {
         given:
         publishPlugin()
