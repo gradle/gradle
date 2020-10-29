@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Issue
 
 /**
@@ -445,7 +446,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildC-buildA", "buildA-b1", "buildB-b1"
     }
 
-    @ToBeImplemented
+    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/2526")
     @ToBeFixedForConfigurationCache
     def "de-duplicates module names when not all projects have IDEA plugin applied"() {
