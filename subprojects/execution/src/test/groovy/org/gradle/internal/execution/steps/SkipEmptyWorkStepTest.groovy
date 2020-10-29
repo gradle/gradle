@@ -54,7 +54,6 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
     def knownSnapshot = Mock(ValueSnapshot)
     def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
-    def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
     Optional skipOutcome
 
     @Override
@@ -98,6 +97,10 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def "delegates when work has sources"() {
+        given:
+        def sourceFile = file("source.txt").createFile()
+        def sourceFileFingerprint = fingerprint(sourceFile)
+
         when:
         step.execute(work, context)
 
@@ -112,10 +115,8 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
-
-        then:
-        1 * sourceFileFingerprint.empty >> false
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint)
+        )
 
         then:
         1 * delegate.execute(work, _ as AfterPreviousExecutionContext) >> { UnitOfWork work, AfterPreviousExecutionContext delegateContext ->
@@ -129,6 +130,9 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def "skips when work has empty sources"() {
+        given:
+        def emptySourceFileFingerprint = fingerprint()
+
         when:
         step.execute(work, context)
 
@@ -143,10 +147,8 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
-
-        then:
-        1 * sourceFileFingerprint.empty >> true
+            ImmutableSortedMap.of("source-file", emptySourceFileFingerprint)
+        )
 
         then:
         1 * executionHistoryStore.remove(identity.uniqueId)
@@ -157,8 +159,10 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def "skips when work has empty sources and removes previous outputs"() {
+        given:
         def afterPreviousExecutionState = Stub(AfterPreviousExecutionState)
         def previousOutputFile = file("output.txt").createFile()
+        def emptySourceFileFingerprint = fingerprint()
 
         when:
         step.execute(work, context)
@@ -166,7 +170,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         _ * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
-        _ * afterPreviousExecutionState.outputFileProperties >> fingerprint(previousOutputFile)
+        _ * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.of("output", fingerprint(previousOutputFile))
         1 * inputFingerprinter.fingerprintInputProperties(
             work,
             ImmutableSortedMap.of(),
@@ -175,9 +179,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
-
-        1 * sourceFileFingerprint.empty >> true
+            ImmutableSortedMap.of("source-file", emptySourceFileFingerprint))
 
         1 * executionHistoryStore.remove(identity.uniqueId)
 
@@ -339,8 +341,6 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     private def fingerprint(File... files) {
-        ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of(
-            "output", fingerprinter.fingerprint(TestFiles.fixed(files))
-        )
+        fingerprinter.fingerprint(TestFiles.fixed(files))
     }
 }
