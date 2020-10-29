@@ -147,6 +147,20 @@ class DefaultDependenciesModelBuilderTest extends Specification {
         model.getDependencyData("groovy-json").version.preferredVersion == '3.0.5'
     }
 
+    def "can use rich versions in short-hand notation"() {
+        builder.alias("dummy", "g:a:1.5!!")
+        builder.alias("alias", "g:a:[1.0,2.0[!!1.7")
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.dependencyAliases == ["alias", "dummy"]
+        model.getDependencyData("dummy").version.strictVersion == '1.5'
+        model.getDependencyData("alias").version.strictVersion == '[1.0,2.0['
+        model.getDependencyData("alias").version.preferredVersion == '1.7'
+    }
+
     def "strings are interned"() {
         builder.alias("foo", "bar", "baz") {
             it.require "1.0"

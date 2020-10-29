@@ -17,7 +17,6 @@ package org.gradle.api.initialization.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.internal.HasInternalProtocol;
@@ -84,14 +83,7 @@ public interface DependenciesModelBuilder {
      * @param alias the alias for the dependency
      * @param gavCoordinates the gav coordinates notation
      */
-    default void alias(String alias, String gavCoordinates) {
-        String[] coordinates = gavCoordinates.split(":");
-        if (coordinates.length == 3) {
-            alias(alias, coordinates[0], coordinates[1], vc -> vc.require(coordinates[2]));
-        } else {
-            throw new InvalidUserDataException("Invalid dependency notation: it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
-        }
-    }
+    void alias(String alias, String gavCoordinates);
 
     /**
      * Configures an alias, using the supplied group and name, and a version which corresponds
