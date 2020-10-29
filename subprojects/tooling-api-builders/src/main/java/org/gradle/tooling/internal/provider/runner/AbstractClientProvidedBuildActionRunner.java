@@ -68,8 +68,10 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
     private void forceFullConfiguration(GradleInternal gradle) {
         gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-            GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
-            forceFullConfiguration(build);
+            if (includedBuild instanceof IncludedBuildState) {
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                forceFullConfiguration(build);
+            }
         }
     }
 

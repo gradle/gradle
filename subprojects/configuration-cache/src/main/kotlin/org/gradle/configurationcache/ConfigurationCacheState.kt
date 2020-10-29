@@ -57,7 +57,6 @@ import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.ArrayList
 
 
 internal
@@ -254,20 +253,21 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeIncludedBuildState(includedBuild: IncludedBuild, storedBuilds: StoredBuilds) {
-        val buildState = includedBuild as IncludedBuildState
-        val includedGradle = buildState.configuredBuild
-        val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
-        writeBuildDefinition(buildDefinition)
-        when {
-            storedBuilds.store(buildDefinition) -> {
-                writeBoolean(true)
-                includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
-                    stateFileFor(buildDefinition),
-                    storedBuilds
-                )
-            }
-            else -> {
-                writeBoolean(false)
+        if (includedBuild is IncludedBuildState) {
+            val includedGradle = includedBuild.configuredBuild
+            val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
+            writeBuildDefinition(buildDefinition)
+            when {
+                storedBuilds.store(buildDefinition) -> {
+                    writeBoolean(true)
+                    includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+                        stateFileFor(buildDefinition),
+                        storedBuilds
+                    )
+                }
+                else -> {
+                    writeBoolean(false)
+                }
             }
         }
     }
