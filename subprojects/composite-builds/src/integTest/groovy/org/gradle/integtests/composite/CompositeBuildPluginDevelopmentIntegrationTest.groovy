@@ -350,7 +350,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava (*)"))
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "can co-develop plugin applied via plugins block with resolution strategy applied"() {
         given:
         applyPluginFromRepo(buildA, """
