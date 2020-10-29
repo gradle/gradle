@@ -7,7 +7,7 @@ simple-with-rich4 = { group = "foo", name = "bar", version.strictly = "1.0" }
 simple-with-rich5 = { group = "foo", name = "bar", version = { rejectAll = true } }
 simple-with-rich6 = { group = "foo", name = "bar", version = { require = "1.0", reject = ["1.1", "1.2"] } }
 
-shortcut.gav = "g:a:1.0"
+shortcut = "g:a:1.0!!"
 
 indirect.module = "g:b"
 indirect.version = "1.2"

@@ -5,7 +5,7 @@ groovy = "2.5.6"
 groovy = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
 groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
 
-guava.gav = "com.google.guava:guava:17.0-jre"
+guava = "com.google.guava:guava:17.0-jre"
 
 [bundles]
 groovy = ["groovy", "groovy-json"]
