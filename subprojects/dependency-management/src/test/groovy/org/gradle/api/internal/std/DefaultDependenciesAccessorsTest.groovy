@@ -60,7 +60,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
     def "generates accessors only if the model keys change"() {
         model {
-            alias("foo", "g:a:v")
+            alias("foo") to "g:a:v"
         }
 
         when:
@@ -72,7 +72,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         when:
         model {
-            alias("foo", "g:a:v2")
+            alias("foo") to "g:a:v2"
         }
         accessors.generateAccessors([builder], scope, settings)
 
@@ -82,7 +82,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         when:
         model {
-            alias("foo", "other:a:v2")
+            alias("foo") to "other:a:v2"
         }
         accessors.generateAccessors([builder], scope, settings)
 
@@ -92,7 +92,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         when:
         model {
-            alias("bar", "changes:key:1.0")
+            alias("bar").to "changes:key:1.0"
         }
         accessors.generateAccessors([builder], scope, settings)
 
@@ -102,8 +102,8 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         when:
         model {
-            alias("foo", "my:key:1.0")
-            alias("bar", "my:key:1.0")
+            alias("foo") to "my:key:1.0"
+            alias("bar") to "my:key:1.0"
             bundle("myBundle", ["foo"])
         }
         accessors.generateAccessors([builder], scope, settings)
@@ -114,8 +114,8 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         when:
         model {
-            alias("foo", "my:key:1.0")
-            alias("bar", "my:key:1.0")
+            alias("foo") to "my:key:1.0"
+            alias("bar") to "my:key:1.0"
             bundle("myBundle", ["bar"])
         }
         accessors.generateAccessors([builder], scope, settings)
@@ -127,8 +127,8 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
     def "accessors key is order-independent"() {
         model {
-            alias("foo", "g:a:v")
-            alias("bar", "g2:a2:v2")
+            alias("foo") to "g:a:v"
+            alias("bar") to "g2:a2:v2"
         }
 
         when:
@@ -140,8 +140,8 @@ class DefaultDependenciesAccessorsTest extends Specification {
 
         when:
         model {
-            alias("bar", "g2:a2:v2")
-            alias("foo", "g:a:v")
+            alias("bar") to "g2:a2:v2"
+            alias("foo") to "g:a:v"
         }
         accessors.generateAccessors([builder], scope, settings)
 
@@ -153,7 +153,7 @@ class DefaultDependenciesAccessorsTest extends Specification {
     def "generates accessors if workspace is missing"() {
         def workspaceDir = tmpDir.createDir("id")
         model {
-            alias("foo", "g:a:v")
+            alias("foo") to "g:a:v"
         }
 
         when:
