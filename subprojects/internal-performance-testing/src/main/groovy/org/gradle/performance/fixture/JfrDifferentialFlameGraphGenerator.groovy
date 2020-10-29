@@ -36,6 +36,9 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
     @Override
     File getJfrOutputDirectory(BuildExperimentSpec spec) {
         def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
+        // When the path is too long on Windows, then JProfiler can't write to the JPS file
+        // Length 40 seems to work.
+        // It may be better to create the flame graph in the tmp directory, and then move it to the right place after the build.
         def outputDir = new File(flamesBaseDirectory, shortenPath(fileSafeName, 40))
         outputDir.mkdirs()
         return outputDir
