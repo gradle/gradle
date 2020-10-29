@@ -86,19 +86,17 @@ public class SkipEmptyWorkStep implements Step<AfterPreviousExecutionContext, Ca
         // We don't currently have any non-file source properties
         assert sourceInputs.getValueSnapshots().isEmpty();
 
-        if (!sourceInputs.getFileFingerprints().isEmpty()) {
-            ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), sourceInputs.getValueSnapshots());
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(context.getInputFileProperties(), sourceInputs.getFileFingerprints());
-
-            if (sourceInputs.getFileFingerprints().values().stream()
-                .noneMatch(SkipEmptyWorkStep::hasContent)
-            ) {
-                return skipExecutionWithEmptySources(work, context);
-            } else {
-                return executeWithNoEmptySources(work, withSources(context, inputProperties, inputFileProperties));
-            }
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileFingerprints = sourceInputs.getFileFingerprints();
+        boolean hasSourceProperties = !sourceFileFingerprints.isEmpty();
+        if (hasSourceProperties && sourceFileFingerprints.values().stream()
+            .noneMatch(SkipEmptyWorkStep::hasContent)
+        ) {
+            return skipExecutionWithEmptySources(work, context);
         } else {
-            return executeWithNoEmptySources(work, context);
+            ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), sourceInputs.getValueSnapshots());
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(context.getInputFileProperties(), sourceFileFingerprints);
+
+            return executeWithNoEmptySources(work, withSources(context, inputProperties, inputFileProperties));
         }
     }
 
