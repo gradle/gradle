@@ -148,6 +148,19 @@ public class TomlDependenciesFileParser {
     }
 
     private static void parseDependency(String alias, TomlTable dependenciesTable, DependenciesModelBuilder builder) {
+        Object gav = dependenciesTable.get(alias);
+        if (gav instanceof String) {
+            List<String> splitted = SPLITTER.splitToList((String) gav);
+            if (splitted.size() == 3) {
+                String group = notEmpty(splitted.get(0), "group", alias);
+                String name = notEmpty(splitted.get(1), "name", alias);
+                String require = notEmpty(splitted.get(2), "version", alias);
+                registerDependency(builder, alias, group, name, null, require, null, null, null, null);
+                return;
+            } else {
+                throw new InvalidUserDataException("Invalid GAV notation '" + gav + "' for alias '" + alias + "': it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
+            }
+        }
         String group = expectString("alias", alias, dependenciesTable, "group");
         String name = expectString("alias", alias, dependenciesTable, "name");
         Object version = dependenciesTable.get(alias + ".version");
@@ -167,17 +180,6 @@ public class TomlDependenciesFileParser {
         String prefer = null;
         List<String> rejectedVersions = null;
         Boolean rejectAll = null;
-        String gav = expectString("alias", alias, dependenciesTable, "gav");
-        if (gav != null) {
-            List<String> splitted = SPLITTER.splitToList(gav);
-            if (splitted.size() == 3) {
-                group = notEmpty(splitted.get(0), "group", alias);
-                name = notEmpty(splitted.get(1), "name", alias);
-                require = notEmpty(splitted.get(2), "version", alias);
-            } else {
-                throw new InvalidUserDataException("Invalid GAV notation '" + gav + "' for alias '" + alias + "': it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
-            }
-        }
         if (version instanceof String) {
             require = notEmpty((String) version, "version", alias);
         } else if (version instanceof TomlTable) {
