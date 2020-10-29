@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static org.gradle.api.internal.std.DependenciesModelHelper.ALIAS_PATTERN;
+
 public class GradlePlatformDependenciesModelBuilder extends DefaultDependenciesModelBuilder {
     private final static Logger LOGGER = Logging.getLogger(GradlePlatformDependenciesModelBuilder.class);
 
@@ -79,10 +81,18 @@ public class GradlePlatformDependenciesModelBuilder extends DefaultDependenciesM
     }
 
     void tryGenericAlias(String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
-        if (containsDependencyAlias(name)) {
-            throw new InvalidUserDataException("A dependency with alias '" + name + "' already exists for module '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
+        String alias = normalizeName(name);
+        if (containsDependencyAlias(alias)) {
+            throw new InvalidUserDataException("A dependency with alias '" + alias + "' already exists for module '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
         }
-        alias(name, group, name, versionSpec);
+        if (!ALIAS_PATTERN.matcher(alias).matches()) {
+            throw new InvalidUserDataException("Unable to generate an automatic alias for '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
+        }
+        alias(alias, group, name, versionSpec);
+    }
+
+    private static String normalizeName(String name) {
+        return name.replace('.', '-');
     }
 
     private void collectDependencies(DependencySet allDependencies, Set<ModuleIdentifier> seen) {
