@@ -54,16 +54,18 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
-            Set<IncludedBuild> children = new LinkedHashSet<IncludedBuild>(includedBuilds.size());
+            Set<IncludedBuild> children = new LinkedHashSet<>(includedBuilds.size());
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
-                children.add(includedBuild.getModel());
+                if (!includedBuildSpec.rootDir.equals(buildRegistry.getRootBuild().getBuildRootDir())) {
+                    IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
+                    children.add(includedBuild.getModel());
+                }
             }
 
             // Set the visible included builds
             gradle.setIncludedBuilds(children);
         } else {
-            gradle.setIncludedBuilds(Collections.<IncludedBuild>emptyList());
+            gradle.setIncludedBuilds(Collections.emptyList());
         }
 
         return settings;

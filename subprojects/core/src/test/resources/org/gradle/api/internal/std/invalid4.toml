@@ -1,0 +1,2 @@
+[dependencies]
+module.gav = ":bar:1.0"

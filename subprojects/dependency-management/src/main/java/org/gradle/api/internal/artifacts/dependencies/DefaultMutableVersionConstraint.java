@@ -133,4 +133,44 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     public String getVersion() {
         return requiredVersion.isEmpty() ? preferredVersion : requiredVersion;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultMutableVersionConstraint that = (DefaultMutableVersionConstraint) o;
+
+        if (requiredVersion != null ? !requiredVersion.equals(that.requiredVersion) : that.requiredVersion != null) {
+            return false;
+        }
+        if (preferredVersion != null ? !preferredVersion.equals(that.preferredVersion) : that.preferredVersion != null) {
+            return false;
+        }
+        if (strictVersion != null ? !strictVersion.equals(that.strictVersion) : that.strictVersion != null) {
+            return false;
+        }
+        if (branch != null ? !branch.equals(that.branch) : that.branch != null) {
+            return false;
+        }
+        return rejectedVersions.equals(that.rejectedVersions);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (requiredVersion != null ? requiredVersion.hashCode() : 0);
+        result = 31 * result + (preferredVersion != null ? preferredVersion.hashCode() : 0);
+        result = 31 * result + (strictVersion != null ? strictVersion.hashCode() : 0);
+        result = 31 * result + (branch != null ? branch.hashCode() : 0);
+        result = 31 * result + rejectedVersions.hashCode();
+        return result;
+    }
 }

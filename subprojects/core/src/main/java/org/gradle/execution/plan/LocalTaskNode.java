@@ -16,22 +16,15 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.resources.ResourceDeadlockException;
@@ -40,9 +33,7 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -50,14 +41,13 @@ import java.util.Set;
  */
 public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
-    private final Map<File, String> canonicalizedFileCache;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
+    private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, Map<File, String> canonicalizedFileCache) {
+    public LocalTaskNode(TaskInternal task) {
         this.task = task;
-        this.canonicalizedFileCache = canonicalizedFileCache;
     }
 
     /**
@@ -101,6 +91,10 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public Action<? super Task> getPostAction() {
         return postAction;
+    }
+
+    public TaskProperties getTaskProperties() {
+        return taskProperties;
     }
 
     @Override
@@ -196,54 +190,38 @@ public class LocalTaskNode extends TaskNode {
         final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
-                @Override
-                public void visitOutputFileProperty(final String propertyName, boolean optional, final PropertyValue value, final OutputFilePropertyType filePropertyType) {
-                    withDeadlockHandling(
-                        taskNode,
-                        "an output",
-                        "output property '" + propertyName + "'",
-                        () -> FileParameterUtils.resolveOutputFilePropertySpecs(
-                            task.toString(),
-                            propertyName,
-                            value,
-                            filePropertyType,
-                            fileCollectionFactory,
-                            true,
-                            outputFilePropertySpec -> {
-                                File outputLocation = outputFilePropertySpec.getOutputFile();
-                                if (outputLocation != null) {
-                                    mutations.outputPaths.add(canonicalizePath(outputLocation, canonicalizedFileCache));
-                                }
-                            }
-                        )
-                    );
-                    mutations.hasOutputs = true;
-                }
+            taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
+            taskProperties.getOutputFileProperties()
+                .forEach(spec -> withDeadlockHandling(
+                    taskNode,
+                    "an output",
+                    "output property '" + spec.getPropertyName() + "'",
+                    () -> {
+                        File outputLocation = spec.getOutputFile();
+                        if (outputLocation != null) {
+                            mutations.outputPaths.add(outputLocation.getAbsolutePath());
+                        }
+                        mutations.hasOutputs = true;
+                    }
+                ));
 
-                @Override
-                public void visitLocalStateProperty(final Object value) {
-                    withDeadlockHandling(
-                        taskNode,
-                        "a local state", "local state properties",
-                        () -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, fileCollectionFactory.resolving(value))));
-                    mutations.hasLocalState = true;
-                }
+            withDeadlockHandling(
+                taskNode,
+                "a local state", "local state properties",
+                () -> taskProperties.getLocalStateFiles()
+                    .forEach(file -> {
+                        mutations.outputPaths.add(file.getAbsolutePath());
+                        mutations.hasLocalState = true;
+                    })
+            );
 
-                @Override
-                public void visitDestroyableProperty(final Object value) {
-                    withDeadlockHandling(
-                        taskNode,
-                        "a destroyable",
-                        "destroyables",
-                        () -> mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, fileCollectionFactory.resolving(value))));
-                }
-
-                @Override
-                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    mutations.hasFileInputs = true;
-                }
-            });
+            withDeadlockHandling(
+                taskNode,
+                "a destroyable", "destroyables",
+                () -> taskProperties.getDestroyableFiles()
+                    .forEach(file -> mutations.destroyablePaths.add(file.getAbsolutePath()))
+            );
+            mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }
@@ -260,27 +238,6 @@ public class LocalTaskNode extends TaskNode {
             if (mutations.hasLocalState) {
                 throw new IllegalStateException("Task " + taskNode + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
             }
-        }
-    }
-
-    private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
-        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-        for (File file : files) {
-            builder.add(canonicalizePath(file, cache));
-        }
-        return builder.build();
-    }
-
-    private static String canonicalizePath(File file, Map<File, String> cache) {
-        try {
-            String path = cache.get(file);
-            if (path == null) {
-                path = file.getCanonicalPath();
-                cache.put(file, path);
-            }
-            return path;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 
