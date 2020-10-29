@@ -64,6 +64,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .withStacktraceDisabled()
             .noDeprecationChecks()
             .withWarningMode(warningMode)
+            .withToolchainDetectionEnabled()
             .withArguments(filteredFlags)
             .withTasks(args);
         try {
