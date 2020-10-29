@@ -41,6 +41,7 @@ import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
@@ -158,7 +159,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         ExecutorFactory executorFactory,
-        GlobalCacheLocations globalCacheLocations
+        GlobalCacheLocations globalCacheLocations,
+        ParallelismConfiguration parallelismConfiguration
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
@@ -168,7 +170,9 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             classpathBuilder,
             fileSystemAccess,
             executorFactory,
-            globalCacheLocations);
+            globalCacheLocations,
+            parallelismConfiguration
+        );
     }
 
     ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
