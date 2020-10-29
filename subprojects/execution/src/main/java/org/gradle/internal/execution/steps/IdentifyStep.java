@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
@@ -54,7 +54,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     }
 
     @Override
-    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+    public <T, O> T executeDeferred(UnitOfWork work, C context, CrossBuildInMemoryCache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache, processor);
     }
 

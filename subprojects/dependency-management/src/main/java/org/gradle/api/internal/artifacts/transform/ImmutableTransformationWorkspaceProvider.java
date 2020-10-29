@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -24,6 +23,7 @@ import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Try;
@@ -43,7 +43,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
+    private final ConcurrentMapBasedCrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
@@ -60,9 +60,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
             .open();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.executionHistoryStore = executionHistoryStore;
-        this.identityCache = com.google.common.cache.CacheBuilder.newBuilder()
-            .maximumSize(identityCacheMaximumSize)
-            .build();
+        this.identityCache = new ConcurrentMapBasedCrossBuildInMemoryCache<>();
     }
 
     private CleanupAction createCleanupAction(File baseDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
@@ -77,7 +75,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
+    public CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
         return identityCache;
     }
 
