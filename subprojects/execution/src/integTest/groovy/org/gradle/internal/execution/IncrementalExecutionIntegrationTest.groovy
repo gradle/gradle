@@ -16,13 +16,12 @@
 
 package org.gradle.internal.execution
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
 import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
@@ -573,7 +572,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def "results are loaded from identity cache"() {
         def work = builder.build()
-        def cache = CacheBuilder.newBuilder().<UnitOfWork.Identity, Try<Object>>build()
+        def cache = new TestCrossBuildInMemoryCache<UnitOfWork.Identity, Try<Object>>()
 
         when:
         def executedResult = executeDeferred(work, cache)
@@ -651,7 +650,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         executor.execute(unitOfWork, null)
     }
 
-    String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
+    String executeDeferred(UnitOfWork unitOfWork, CrossBuildInMemoryCache<UnitOfWork.Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
         executor.executeDeferred(unitOfWork, null, cache, new DeferredResultProcessor<Object, String>() {
             @Override
