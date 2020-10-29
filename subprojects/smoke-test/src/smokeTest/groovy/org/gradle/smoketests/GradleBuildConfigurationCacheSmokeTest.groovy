@@ -30,6 +30,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.experimental.categories.Category
 
 import java.text.SimpleDateFormat
 
@@ -38,10 +39,8 @@ import java.text.SimpleDateFormat
  * Smoke test building gradle/gradle with configuration cache enabled.
  *
  * gradle/gradle requires Java >=9 and <=11 to build, see {@link GradleBuildJvmSpec}.
- *
- * This test takes a while to run so is disabled for the Java 8 smoke test CI job and
- * only run on the Java 14 smoke test CI job, see the {@link Requires} annotation below.
  */
+@Category(GradleBuild)
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })
