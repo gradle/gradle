@@ -37,7 +37,6 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry

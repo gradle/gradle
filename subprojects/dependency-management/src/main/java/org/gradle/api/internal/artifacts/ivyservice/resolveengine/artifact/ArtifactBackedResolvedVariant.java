@@ -20,10 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
-import org.gradle.api.internal.artifacts.transform.TransformationSubject;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -33,7 +31,6 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -104,8 +101,13 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
-            if (visitor.requireArtifactFiles()) {
+        public void visit(Visitor visitor) {
+            visitor.visitArtifacts(this);
+        }
+
+        @Override
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+            if (requireFiles) {
                 if (artifact.isResolveSynchronously()) {
                     // Resolve it now
                     artifact.getFileSource().finalizeIfNotAlready();
@@ -114,7 +116,13 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
                     actions.add(new DownloadArtifactFile(artifact));
                 }
             }
-            visitor.visitArtifacts(this);
+        }
+
+        @Override
+        public void finalizeNow(boolean requireFiles) {
+            if (requireFiles) {
+                artifact.getFileSource().finalizeIfNotAlready();
+            }
         }
 
         @Override
@@ -130,7 +138,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
             if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
-                visitor.visitArtifact(new SingleLocalArtifactSet(artifact));
+                visitor.visitArtifact(artifact);
             }
         }
 
@@ -149,43 +157,6 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public String toString() {
             return artifact.getId().getDisplayName();
-        }
-    }
-
-    public static class SingleLocalArtifactSet implements ResolvedArtifactSet.LocalArtifactSet {
-        private final ResolvableArtifact artifact;
-
-        public SingleLocalArtifactSet(ResolvableArtifact artifact) {
-            this.artifact = artifact;
-        }
-
-        public ResolvableArtifact getArtifact() {
-            return artifact;
-        }
-
-        @Override
-        public Object getId() {
-            return artifact.getId();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return artifact.getId().getDisplayName();
-        }
-
-        @Override
-        public TaskDependencyContainer getTaskDependencies() {
-            return artifact;
-        }
-
-        @Override
-        public TransformationSubject calculateSubject() {
-            return TransformationSubject.initial(artifact.getId(), artifact.getFile());
-        }
-
-        @Override
-        public ResolvableArtifact transformedTo(File output) {
-            return artifact.transformedTo(output);
         }
     }
 

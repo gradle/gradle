@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
@@ -98,7 +100,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def projectStateRegistry = Stub(ProjectStateRegistry) {
         stateFor(_ as ProjectComponentIdentifier) >> Stub(ProjectState) {
-            getMutableModel()>> childProject
+            getMutableModel() >> childProject
         }
     }
 
@@ -134,10 +136,11 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),
         new DefaultTimeoutHandler(null),
-        { String behavior -> DeprecationLogger.deprecateBehaviour(behavior)
-            .willBeRemovedInGradle7()
-            .undocumented()
-            .nagUser()
+        { String behavior ->
+            DeprecationLogger.deprecateBehaviour(behavior)
+                .willBeRemovedInGradle7()
+                .undocumented()
+                .nagUser()
         },
         valueSnapshotter
     )
@@ -263,7 +266,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         when:
-        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
 
         then:
         transformerInvocations == 1
@@ -271,7 +274,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
 
         when:
-        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 1
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -295,7 +298,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         when:
-        def result = invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        def result = invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
 
         then:
         transformerInvocations == 1
@@ -305,7 +308,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         wrappedFailure.cause == failure
 
         when:
-        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 2
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -326,7 +329,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         when:
-        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 1
         outputFile?.isFile()
@@ -334,7 +337,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         when:
         fileSystemAccess.write([outputFile.absolutePath], { -> outputFile.text = "changed" })
 
-        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 2
     }
@@ -385,7 +388,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        fileSystemAccess.write([inputArtifact1.absolutePath], { -> inputArtifact1.text = "changed"})
+        fileSystemAccess.write([inputArtifact1.absolutePath], { -> inputArtifact1.text = "changed" })
         invoke(transformer, inputArtifact2, dependencies, dependency(transformationType, inputArtifact2), fingerprinterRegistry)
 
         then:
@@ -414,7 +417,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        fileSystemAccess.write([inputArtifact.absolutePath], { -> inputArtifact.text = "changed"})
+        fileSystemAccess.write([inputArtifact.absolutePath], { -> inputArtifact.text = "changed" })
         invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
         then:
@@ -440,7 +443,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        fileSystemAccess.write([inputArtifact.absolutePath], { -> inputArtifact.text = "changed"})
+        fileSystemAccess.write([inputArtifact.absolutePath], { -> inputArtifact.text = "changed" })
         invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
         then:
@@ -451,7 +454,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         MUTABLE, IMMUTABLE
     }
 
-    private static dependency(TransformationType type, File file) {
+    private dependency(TransformationType type, File file) {
         return type == TransformationType.MUTABLE ? mutableDependency(file) : immutableDependency(file)
     }
 
@@ -459,11 +462,11 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         return type == TransformationType.MUTABLE ? mutableTransformsStoreDirectory : immutableTransformsStoreDirectory
     }
 
-    private static TransformationSubject immutableDependency(File file) {
-        return TransformationSubject.initial(file)
+    private TransformationSubject immutableDependency(File file) {
+        return TransformationSubject.initial(artifact(Stub(ComponentArtifactIdentifier), file))
     }
 
-    private static TransformationSubject mutableDependency(File file) {
+    private TransformationSubject mutableDependency(File file) {
         def artifactIdentifier = new ComponentFileArtifactIdentifier(
             new DefaultProjectComponentIdentifier(
                 DefaultBuildIdentifier.ROOT,
@@ -471,8 +474,13 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
                 Path.path(":child"),
                 "child"
             ), file.getName())
-        return TransformationSubject.initial(artifactIdentifier,
-            file)
+        return TransformationSubject.initial(artifact(artifactIdentifier, file))
+    }
+
+    private ResolvableArtifact artifact(ComponentArtifactIdentifier id, File file) {
+        return Stub(ResolvableArtifact) {
+            getId() >> id
+        }
     }
 
     private Try<ImmutableList<File>> invoke(

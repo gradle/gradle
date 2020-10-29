@@ -25,10 +25,8 @@ import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
-import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class RepositoryChainArtifactResolverTest extends Specification {

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -41,23 +42,23 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
     public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver) {
         final List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
-        artifactSet.visitLocalArtifacts(localArtifacts -> {
-            TransformationNode transformationNode = getOrCreateInternal(localArtifacts, transformationChain, dependenciesResolver);
+        artifactSet.visitLocalArtifacts(artifact -> {
+            TransformationNode transformationNode = getOrCreateInternal(artifact, transformationChain, dependenciesResolver);
             builder.add(transformationNode);
         });
         return builder.build();
     }
 
-    private TransformationNode getOrCreateInternal(ResolvedArtifactSet.LocalArtifactSet localArtifacts, List<Equivalence.Wrapper<TransformationStep>> transformationChain, TransformUpstreamDependenciesResolver dependenciesResolver) {
-        ArtifactTransformKey key = new ArtifactTransformKey(localArtifacts.getId(), transformationChain);
+    private TransformationNode getOrCreateInternal(ResolvableArtifact artifact, List<Equivalence.Wrapper<TransformationStep>> transformationChain, TransformUpstreamDependenciesResolver dependenciesResolver) {
+        ArtifactTransformKey key = new ArtifactTransformKey(artifact.getId(), transformationChain);
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
                 TransformationStep transformationStep = transformationChain.get(0).get();
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                transformationNode = TransformationNode.initial(transformationStep, localArtifacts, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                transformationNode = TransformationNode.initial(transformationStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
             } else {
-                TransformationNode previous = getOrCreateInternal(localArtifacts, transformationChain.subList(0, transformationChain.size() - 1), dependenciesResolver);
+                TransformationNode previous = getOrCreateInternal(artifact, transformationChain.subList(0, transformationChain.size() - 1), dependenciesResolver);
                 TransformationStep transformationStep = transformationChain.get(transformationChain.size() - 1).get();
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
                 transformationNode = TransformationNode.chained(transformationStep, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);

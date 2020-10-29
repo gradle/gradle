@@ -17,15 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.artifacts.transform.TransformationSubject;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.io.File;
 
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
@@ -34,7 +31,7 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
     /**
      * Visits the contents of the set, adding any remaining work to finalise the set of artifacts to the given queue.
      */
-    void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor);
+    void visit(Visitor visitor);
 
     /**
      * Visits the local artifacts of this set, if known without further resolution. Ignores artifacts that are not build locally and local artifacts that cannot be determined without further resolution.
@@ -48,7 +45,7 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
 
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
         @Override
-        public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+        public void visit(Visitor visitor) {
         }
 
         @Override
@@ -65,6 +62,16 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
     };
 
     interface Artifacts {
+        /**
+         * Queues up any work still remaining to finalize the set of artifacts contained in this set.
+         */
+        void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles);
+
+        /**
+         * Finalize the set of artifacts now.
+         */
+        void finalizeNow(boolean requireFiles);
+
         /**
          * Invoked once all async work as completed, to visit the final result. The result is visited using the current thread and in the relevant order.
          */
@@ -84,28 +91,9 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
          * Visits zero or more artifacts.
          */
         void visitArtifacts(Artifacts artifacts);
-
-        /**
-         * Should the file for each artifacts be made available when visiting the result?
-         *
-         * Returns true here allows the collection to preemptively resolve the files in parallel.
-         */
-        boolean requireArtifactFiles();
-    }
-
-    interface LocalArtifactSet {
-        Object getId();
-
-        String getDisplayName();
-
-        TaskDependencyContainer getTaskDependencies();
-
-        TransformationSubject calculateSubject();
-
-        ResolvableArtifact transformedTo(File output);
     }
 
     interface LocalArtifactVisitor {
-        void visitArtifact(LocalArtifactSet artifactSet);
+        void visitArtifact(ResolvableArtifact artifact);
     }
 }

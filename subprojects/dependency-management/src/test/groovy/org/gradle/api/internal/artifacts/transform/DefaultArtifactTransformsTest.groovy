@@ -29,8 +29,6 @@ import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
-import org.gradle.internal.operations.RunnableBuildOperation
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -214,7 +212,7 @@ Found the following transforms:
         _ * artifactVisitor.visitFailure(_) >> { Throwable t -> throw t }
         def visitor = Stub(ResolvedArtifactSet.Visitor)
         _ * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
-        set.visit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), visitor)
+        set.visit(visitor)
     }
 
     private static AttributeContainerInternal typeAttributes(String artifactType) {

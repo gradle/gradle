@@ -34,7 +34,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
@@ -53,6 +52,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Contains zero or more variants of a particular component.
@@ -229,7 +229,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         }
     }
 
-    private static class LazyArtifactSource implements Factory<File> {
+    private static class LazyArtifactSource implements Supplier<File> {
         private final ArtifactResolver artifactResolver;
         private final ModuleSources moduleSources;
         private final ComponentArtifactMetadata artifact;
@@ -241,7 +241,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         }
 
         @Override
-        public File create() {
+        public File get() {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifact, moduleSources, result);
             return result.getResult();

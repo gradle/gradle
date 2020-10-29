@@ -17,12 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class EmptyArtifacts implements ResolvedArtifactSet.Artifacts {
+public class EndCollection implements ResolvedArtifactSet.Artifacts {
     private final FileCollectionInternal.Source source;
 
-    public EmptyArtifacts(FileCollectionInternal.Source source) {
+    public EndCollection(FileCollectionInternal.Source source) {
         this.source = source;
+    }
+
+    @Override
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+    }
+
+    @Override
+    public void finalizeNow(boolean requireFiles) {
     }
 
     @Override

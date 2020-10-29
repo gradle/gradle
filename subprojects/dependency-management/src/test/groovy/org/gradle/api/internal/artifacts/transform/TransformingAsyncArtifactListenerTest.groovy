@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform
 
 
-import com.google.common.collect.Maps
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -35,7 +34,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def visitor = Mock(ResolvedArtifactSet.Visitor)
     CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], operationQueue, targetAttributes, visitor)
+    def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], targetAttributes, visitor)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -57,6 +56,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, artifact) }
         1 * transformation.createInvocation(_, _, _) >> invocation
         1 * invocation.getCachedResult() >> Optional.empty()
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.startFinalization(operationQueue, true) }
         1 * operationQueue.add(_ as BuildOperation)
     }
 
@@ -67,7 +67,8 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         then:
         1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, artifact) }
         1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(file)))
+        1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.startFinalization(operationQueue, true) }
         0 * operationQueue._
     }
 }

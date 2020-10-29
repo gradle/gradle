@@ -44,7 +44,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         def set1 = of([])
 
         when:
-        set1.artifacts.visit(queue, visitor)
+        set1.artifacts.visit(visitor)
 
         then:
         0 * _
@@ -68,29 +68,35 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         def set2 = of([artifact1])
 
         when:
-        set1.artifacts.visit(queue, visitor)
+        set1.artifacts.visit(visitor)
 
         then:
-        1 * visitor.requireArtifactFiles() >> false
-        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts ->
+            artifacts.startFinalization(queue, false)
+            artifacts.visit(artifactVisitor)
+        }
         1 * artifactVisitor.requireArtifactFiles() >> false
         1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER) // each artifact is treated as a separate collection, the entire variant could instead be treated as a collection
 
         then:
-        1 * visitor.requireArtifactFiles() >> false
-        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts ->
+            artifacts.startFinalization(queue, false)
+            artifacts.visit(artifactVisitor)
+        }
         1 * artifactVisitor.requireArtifactFiles() >> false
         1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
         when:
-        set2.artifacts.visit(queue, visitor)
+        set2.artifacts.visit(visitor)
 
         then:
-        1 * visitor.requireArtifactFiles() >> false
-        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts ->
+            artifacts.startFinalization(queue, false)
+            artifacts.visit(artifactVisitor)
+        }
         1 * artifactVisitor.requireArtifactFiles() >> false
         1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
@@ -108,44 +114,50 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         def set2 = of([artifact1])
 
         when:
-        set1.artifacts.visit(queue, visitor)
+        set1.artifacts.visit(visitor)
 
         then:
-        1 * visitor.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
         1 * artifact1.resolveSynchronously >> false
         _ * artifact1.fileSource >> source1
         1 * source1.finalizeIfNotAlready()
         _ * source1.value >> Try.successful(f1)
-        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts ->
+            artifacts.startFinalization(queue, true)
+            artifacts.visit(artifactVisitor)
+        }
         1 * artifactVisitor.requireArtifactFiles() >> true
         1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
 
         then:
-        1 * visitor.requireArtifactFiles() >> true
         _ * artifact2.id >> Stub(ComponentArtifactIdentifier)
         1 * artifact2.resolveSynchronously >> false
         _ * artifact2.fileSource >> source2
         1 * source2.finalizeIfNotAlready()
         _ * source2.value >> Try.successful(f2)
-        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts ->
+            artifacts.startFinalization(queue, true)
+            artifacts.visit(artifactVisitor)
+        }
         1 * artifactVisitor.requireArtifactFiles() >> true
         1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
         when:
-        set2.artifacts.visit(queue, visitor)
+        set2.artifacts.visit(visitor)
 
         then:
-        1 * visitor.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
         1 * artifact1.resolveSynchronously >> false
         _ * artifact1.fileSource >> source1
         1 * source1.finalizeIfNotAlready()
         _ * source1.value >> Try.successful(f1)
-        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts ->
+            artifacts.startFinalization(queue, true)
+            artifacts.visit(artifactVisitor)
+        }
         1 * artifactVisitor.requireArtifactFiles() >> true
         1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
@@ -163,7 +175,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
         1 * artifact2.id >> new ComponentFileArtifactIdentifier(Stub(ModuleComponentIdentifier), "some-file")
-        1 * visitor.visitArtifact({ it.artifact == artifact1 })
+        1 * visitor.visitArtifact(artifact1)
         0 * _
 
         when:
@@ -171,7 +183,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
-        1 * visitor.visitArtifact({ it.artifact == artifact1 })
+        1 * visitor.visitArtifact(artifact1)
         0 * _
     }
 

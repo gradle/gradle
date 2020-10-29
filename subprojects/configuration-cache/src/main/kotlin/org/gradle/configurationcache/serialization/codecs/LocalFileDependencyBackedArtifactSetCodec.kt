@@ -68,8 +68,6 @@ import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationQueue
-import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.reflect.Instantiator
 import java.io.File
 
@@ -183,7 +181,7 @@ class RecordingVariantSet(
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun visit(actions: BuildOperationQueue<RunnableBuildOperation>, visitor: ResolvedArtifactSet.Visitor) {
+    override fun visit(visitor: ResolvedArtifactSet.Visitor) {
         throw UnsupportedOperationException("Should not be called")
     }
 

@@ -30,7 +30,6 @@ import org.gradle.internal.DisplayName
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
-import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -65,7 +64,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def artifactVisitor = Mock(ArtifactVisitor)
 
         when:
-        set.visit(Stub(BuildOperationQueue), listener)
+        set.visit(listener)
 
         then:
         1 * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.NoContents
@@ -80,7 +79,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def artifactVisitor = Mock(ArtifactVisitor)
 
         when:
-        set.visit(Stub(BuildOperationQueue), visitor)
+        set.visit(visitor)
 
         then:
         _ * dep.componentId >> id
@@ -99,7 +98,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def files = Mock(FileCollectionInternal)
 
         when:
-        set.visit(Stub(BuildOperationQueue), listener)
+        set.visit(listener)
 
         then:
         _ * dep.componentId >> null
@@ -121,7 +120,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def attrs2 = attributesFactory.of(Attribute.of('attr', String), 'value2')
 
         when:
-        set.visit(Stub(BuildOperationQueue), visitor)
+        set.visit(visitor)
 
         then:
         _ * dep.componentId >> id
@@ -161,7 +160,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def attrs2 = attributesFactory.of(Attribute.of('attr', String), 'value2')
 
         when:
-        set.visit(Stub(BuildOperationQueue), visitor)
+        set.visit(visitor)
 
         then:
         _ * dep.componentId >> null
@@ -192,7 +191,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        set.visit(Stub(BuildOperationQueue), visitor)
+        set.visit(visitor)
 
         then:
         _ * dep.componentId >> null

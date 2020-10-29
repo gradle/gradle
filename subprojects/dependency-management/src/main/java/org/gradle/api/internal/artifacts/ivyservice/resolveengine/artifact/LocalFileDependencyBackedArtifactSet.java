@@ -84,16 +84,16 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor listener) {
+    public void visit(Visitor listener) {
         FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            listener.visitArtifacts(new EmptyArtifacts(this));
+            listener.visitArtifacts(new EndCollection(this));
             return;
         }
 
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
         if (componentIdentifier != null && !componentFilter.isSatisfiedBy(componentIdentifier)) {
-            listener.visitArtifacts(new EmptyArtifacts(this));
+            listener.visitArtifacts(new EndCollection(this));
             return;
         }
 
@@ -122,9 +122,9 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
             selectedArtifacts.add(selector.select(variant, this));
         }
-        CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(actions, listener);
+        CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
         if (visitType == FileCollectionStructureVisitor.VisitType.Spec) {
-            listener.visitArtifacts(visitor -> visitor.visitSpec(fileCollection));
+            listener.visitArtifacts(new CollectionSpec(fileCollection));
         }
     }
 
@@ -206,7 +206,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+        public void visit(Visitor visitor) {
             visitor.visitArtifacts(this);
         }
 
@@ -216,6 +216,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
+        }
+
+        @Override
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+        }
+
+        @Override
+        public void finalizeNow(boolean requireFiles) {
         }
 
         @Override
@@ -262,6 +270,27 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         public void visitDependencies(TaskDependencyResolveContext context) {
             // Should not be called
             throw new IllegalStateException();
+        }
+    }
+
+    private static class CollectionSpec implements Artifacts {
+        private final FileCollectionInternal fileCollection;
+
+        public CollectionSpec(FileCollectionInternal fileCollection) {
+            this.fileCollection = fileCollection;
+        }
+
+        @Override
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+        }
+
+        @Override
+        public void finalizeNow(boolean requireFiles) {
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            visitor.visitSpec(fileCollection);
         }
     }
 }

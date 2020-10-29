@@ -18,7 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyArtifacts;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -37,7 +38,7 @@ import java.util.Collection;
 /**
  * An artifact set containing transformed project artifacts.
  */
-public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source {
+public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
     private final ComponentIdentifier componentIdentifier;
     private final ImmutableAttributes targetAttributes;
     private final Collection<TransformationNode> transformedArtifacts;
@@ -74,29 +75,41 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     }
 
     @Override
-    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+    public void visit(Visitor visitor) {
         FileCollectionStructureVisitor.VisitType visitType = visitor.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            visitor.visitArtifacts(new EmptyArtifacts(this));
+            visitor.visitArtifacts(new EndCollection(this));
             return;
         }
 
-        visitor.visitArtifacts(artifactVisitor -> {
-            DisplayName displayName = Describables.of(componentIdentifier);
-            for (TransformationNode node : transformedArtifacts) {
-                node.executeIfNotAlready();
-                Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
-                if (transformedSubject.isSuccessful()) {
-                    for (File file : transformedSubject.get().getFiles()) {
-                        artifactVisitor.visitArtifact(displayName, targetAttributes, node.getInputArtifacts().transformedTo(file));
-                    }
-                } else {
-                    Throwable failure = transformedSubject.getFailure().get();
-                    artifactVisitor.visitFailure(new TransformException(String.format("Failed to transform %s to match attributes %s.", node.getInputArtifacts().getDisplayName(), targetAttributes), failure));
+        visitor.visitArtifacts(this);
+    }
+
+    @Override
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+        // TODO - should add any nodes that have not been executed
+    }
+
+    @Override
+    public void finalizeNow(boolean requireFiles) {
+    }
+
+    @Override
+    public void visit(ArtifactVisitor visitor) {
+        DisplayName displayName = Describables.of(componentIdentifier);
+        for (TransformationNode node : transformedArtifacts) {
+            node.executeIfNotAlready();
+            Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
+            if (transformedSubject.isSuccessful()) {
+                for (File file : transformedSubject.get().getFiles()) {
+                    visitor.visitArtifact(displayName, targetAttributes, node.getInputArtifact().transformedTo(file));
                 }
+            } else {
+                Throwable failure = transformedSubject.getFailure().get();
+                visitor.visitFailure(new TransformException(String.format("Failed to transform %s to match attributes %s.", node.getInputArtifact().getId().getDisplayName(), targetAttributes), failure));
             }
-            artifactVisitor.endVisitCollection(this);
-        });
+        }
+        visitor.endVisitCollection(this);
     }
 
     @Override

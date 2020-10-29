@@ -35,7 +35,7 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+    public void visit(Visitor visitor) {
         visitor.visitArtifacts(this);
     }
 
@@ -47,6 +47,14 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     @Override
     public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
         throw UncheckedException.throwAsUncheckedException(failure);
+    }
+
+    @Override
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+    }
+
+    @Override
+    public void finalizeNow(boolean requireFiles) {
     }
 
     @Override

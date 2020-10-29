@@ -71,6 +71,7 @@ public abstract class ParallelResolveArtifactSet {
         private class StartVisitAction implements Action<BuildOperationQueue<RunnableBuildOperation>>, ResolvedArtifactSet.Visitor {
             private final ArtifactVisitor visitor;
             private final List<ResolvedArtifactSet.Artifacts> results = new ArrayList<>();
+            private BuildOperationQueue<RunnableBuildOperation> queue;
 
             StartVisitAction(ArtifactVisitor visitor) {
                 this.visitor = visitor;
@@ -83,17 +84,14 @@ public abstract class ParallelResolveArtifactSet {
 
             @Override
             public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
+                artifacts.startFinalization(queue, visitor.requireArtifactFiles());
                 results.add(artifacts);
             }
 
             @Override
-            public boolean requireArtifactFiles() {
-                return visitor.requireArtifactFiles();
-            }
-
-            @Override
             public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                artifacts.visit(buildOperationQueue, this);
+                this.queue = buildOperationQueue;
+                artifacts.visit(this);
             }
 
             public void visitResults() {

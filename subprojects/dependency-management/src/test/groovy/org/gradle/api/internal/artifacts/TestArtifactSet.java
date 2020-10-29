@@ -34,7 +34,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.io.File;
 import java.util.Collection;
 
-public class TestArtifactSet implements ResolvedArtifactSet {
+public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     public static final String DEFAULT_TEST_VARIANT = "test variant";
     private final DisplayName variantName;
     private final AttributeContainer variant;
@@ -55,15 +55,23 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
-        visitor.visitArtifacts(new Artifacts() {
-            @Override
-            public void visit(ArtifactVisitor visitor) {
-                for (final ResolvedArtifact artifact : artifacts) {
-                    visitor.visitArtifact(variantName, variant, new Adapter(artifact));
-                }
-            }
-        });
+    public void visit(Visitor visitor) {
+        visitor.visitArtifacts(this);
+    }
+
+    @Override
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+    }
+
+    @Override
+    public void finalizeNow(boolean requireFiles) {
+    }
+
+    @Override
+    public void visit(ArtifactVisitor visitor) {
+        for (final ResolvedArtifact artifact : artifacts) {
+            visitor.visitArtifact(variantName, variant, new Adapter(artifact));
+        }
     }
 
     @Override

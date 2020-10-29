@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
@@ -77,18 +78,25 @@ class FixedFilesArtifactSet(
     private val ownerId: ComponentIdentifier,
     private val files: List<File>,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
-) : ResolvedArtifactSet {
+) : ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     override fun visitDependencies(context: TaskDependencyResolveContext) {
         throw UnsupportedOperationException("should not be called")
     }
 
-    override fun visit(actions: BuildOperationQueue<RunnableBuildOperation>, visitor: ResolvedArtifactSet.Visitor) {
-        val artifacts = artifacts
-        visitor.visitArtifacts { artifactVisitor ->
-            val displayName = Describables.of(ownerId)
-            for (artifact in artifacts) {
-                artifactVisitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
-            }
+    override fun visit(visitor: ResolvedArtifactSet.Visitor) {
+        visitor.visitArtifacts(this)
+    }
+
+    override fun startFinalization(actions: BuildOperationQueue<RunnableBuildOperation>, requireFiles: Boolean) {
+    }
+
+    override fun finalizeNow(requireFiles: Boolean) {
+    }
+
+    override fun visit(visitor: ArtifactVisitor) {
+        val displayName = Describables.of(ownerId)
+        for (artifact in artifacts) {
+            visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
         }
     }
 
@@ -103,9 +111,10 @@ class FixedFilesArtifactSet(
     }
 
     private
-    val artifacts: List<ResolvableArtifact>
-        get() = files.map { file ->
+    val artifacts by lazy {
+        files.map { file ->
             val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
             PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         }
+    }
 }

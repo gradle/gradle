@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
@@ -30,23 +29,21 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformationStep> transformationSteps;
     private final ResolvedArtifactSet.Visitor visitor;
     private final AttributeContainerInternal target;
-    private final BuildOperationQueue<RunnableBuildOperation> actions;
 
     public TransformingAsyncArtifactListener(
         List<BoundTransformationStep> transformationSteps,
-        BuildOperationQueue<RunnableBuildOperation> actions,
         AttributeContainerInternal target,
         ResolvedArtifactSet.Visitor visitor) {
         this.transformationSteps = transformationSteps;
         this.target = target;
         this.visitor = visitor;
-        this.actions = actions;
     }
 
     @Override
@@ -54,15 +51,13 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         artifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-                ComponentArtifactIdentifier artifactId = artifact.getId();
                 artifact.getFileSource().finalizeIfNotAlready();
                 if (!artifact.getFileSource().getValue().isSuccessful()) {
                     visitor.visitArtifacts(new BrokenArtifacts(artifact.getFileSource().getValue().getFailure().get()));
                     return;
                 }
-                TransformationSubject initialSubject = TransformationSubject.initial(artifactId, artifact.getFile());
-                TransformationResult result = createTransformationResult(initialSubject);
-                visitor.visitArtifacts(new ArtifactsImpl(result, variantName, artifact, target));
+                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, artifact);
+                visitor.visitArtifacts(transformedArtifact);
             }
 
             @Override
@@ -83,44 +78,47 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         return FileCollectionStructureVisitor.VisitType.Visit;
     }
 
-    @Override
-    public boolean requireArtifactFiles() {
-        // Don't get the files, they will be queried on demand
-        return false;
-    }
-
-    private TransformationResult createTransformationResult(TransformationSubject initialSubject) {
-        CacheableInvocation<TransformationSubject> invocation = createInvocation(initialSubject);
-        return invocation.getCachedResult()
-            .<TransformationResult>map(PrecomputedTransformationResult::new)
-            .orElseGet(() -> {
-                TransformationOperation operation = new TransformationOperation(invocation);
-                actions.add(operation);
-                return operation;
-            });
-    }
-
-    private CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject initialSubject) {
-        BoundTransformationStep initialStep = transformationSteps.get(0);
-        CacheableInvocation<TransformationSubject> invocation = initialStep.getTransformation().createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
-        for (int i = 1; i < transformationSteps.size(); i++) {
-            BoundTransformationStep nextStep = transformationSteps.get(i);
-            invocation = invocation.flatMap(intermediate -> nextStep.getTransformation().createInvocation(intermediate, nextStep.getUpstreamDependencies(), null));
-        }
-        return invocation;
-    }
-
-    private final class ArtifactsImpl implements ResolvedArtifactSet.Artifacts {
-        private final TransformationResult result;
+    private final class TransformedArtifact implements ResolvedArtifactSet.Artifacts {
         private final DisplayName variantName;
         private final ResolvableArtifact artifact;
         private final AttributeContainerInternal target;
+        private final TransformationResult result;
+        private final List<TransformationOperation> pending = new ArrayList<>();
 
-        public ArtifactsImpl(TransformationResult result, DisplayName variantName, ResolvableArtifact artifact, AttributeContainerInternal target) {
-            this.result = result;
+        public TransformedArtifact(DisplayName variantName, AttributeContainerInternal target, ResolvableArtifact artifact) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
+            TransformationSubject initialSubject = TransformationSubject.initial(artifact);
+            CacheableInvocation<TransformationSubject> invocation = createInvocation(initialSubject);
+            result = invocation.getCachedResult()
+                .<TransformationResult>map(PrecomputedTransformationResult::new)
+                .orElseGet(() -> {
+                    TransformationOperation operation = new TransformationOperation(invocation);
+                    pending.add(operation);
+                    return operation;
+                });
+        }
+
+        private CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject initialSubject) {
+            BoundTransformationStep initialStep = transformationSteps.get(0);
+            CacheableInvocation<TransformationSubject> invocation = initialStep.getTransformation().createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
+            for (int i = 1; i < transformationSteps.size(); i++) {
+                BoundTransformationStep nextStep = transformationSteps.get(i);
+                invocation = invocation.flatMap(intermediate -> nextStep.getTransformation().createInvocation(intermediate, nextStep.getUpstreamDependencies(), null));
+            }
+            return invocation;
+        }
+
+        @Override
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+            for (TransformationOperation operation : pending) {
+                actions.add(operation);
+            }
+        }
+
+        @Override
+        public void finalizeNow(boolean requireFiles) {
         }
 
         @Override
@@ -135,7 +133,6 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 failure -> visitor.visitFailure(
                     new TransformException(String.format("Failed to transform %s to match attributes %s.", artifact.getId(), target), failure))
             );
-
         }
     }
 }

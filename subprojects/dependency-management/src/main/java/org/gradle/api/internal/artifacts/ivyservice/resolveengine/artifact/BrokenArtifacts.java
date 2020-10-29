@@ -16,11 +16,22 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
+
 public class BrokenArtifacts implements ResolvedArtifactSet.Artifacts {
     private final Throwable failure;
 
     public BrokenArtifacts(Throwable failure) {
         this.failure = failure;
+    }
+
+    @Override
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+    }
+
+    @Override
+    public void finalizeNow(boolean requireFiles) {
     }
 
     @Override

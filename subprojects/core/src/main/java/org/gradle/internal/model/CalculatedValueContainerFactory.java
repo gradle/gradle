@@ -20,10 +20,11 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+
+import java.util.function.Supplier;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class CalculatedValueContainerFactory {
@@ -40,18 +41,18 @@ public class CalculatedValueContainerFactory {
     /**
      * A convenience to create a calculated value which has no dependencies and which does not access any mutable model state.
      */
-    public <T> CalculatedValueContainer<T, ?> create(DisplayName displayName, Factory<T> supplier) {
-        return new CalculatedValueContainer<>(displayName, new FactoryBackedCalculator<>(supplier), globalContext);
+    public <T> CalculatedValueContainer<T, ?> create(DisplayName displayName, Supplier<? extends T> supplier) {
+        return new CalculatedValueContainer<>(displayName, new SupplierBackedCalculator<>(supplier), globalContext);
     }
 
     public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, T value) {
         return new CalculatedValueContainer<>(displayName, value);
     }
 
-    private static class FactoryBackedCalculator<T> implements ValueCalculator<T> {
-        private final Factory<T> supplier;
+    private static class SupplierBackedCalculator<T> implements ValueCalculator<T> {
+        private final Supplier<T> supplier;
 
-        public FactoryBackedCalculator(Factory<T> supplier) {
+        public SupplierBackedCalculator(Supplier<T> supplier) {
             this.supplier = supplier;
         }
 
@@ -71,7 +72,7 @@ public class CalculatedValueContainerFactory {
 
         @Override
         public T calculateValue(NodeExecutionContext context) {
-            return supplier.create();
+            return supplier.get();
         }
     }
 }

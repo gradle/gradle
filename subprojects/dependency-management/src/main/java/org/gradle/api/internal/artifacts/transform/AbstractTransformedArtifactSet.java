@@ -19,14 +19,12 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyArtifacts;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 
 /**
  * Transformed artifact set that performs the transformation itself when visited.
@@ -70,10 +68,10 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
     }
 
     @Override
-    public void visit(BuildOperationQueue<RunnableBuildOperation> actions, Visitor visitor) {
+    public void visit(Visitor visitor) {
         FileCollectionStructureVisitor.VisitType visitType = visitor.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            visitor.visitArtifacts(new EmptyArtifacts(this));
+            visitor.visitArtifacts(new EndCollection(this));
             return;
         }
 
@@ -83,9 +81,9 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
             step.getUpstreamDependencies().finalizeIfNotAlready();
         }
 
-        delegate.visit(actions, new TransformingAsyncArtifactListener(steps, actions, targetVariantAttributes, visitor));
-        // Need to fire an "end collection" event. Should clean this up
-        visitor.visitArtifacts(new EmptyArtifacts(this));
+        delegate.visit(new TransformingAsyncArtifactListener(steps, targetVariantAttributes, visitor));
+        // Need to fire an "end collection" event. Should clean this up so it is not necessary
+        visitor.visitArtifacts(new EndCollection(this));
     }
 
     @Override
