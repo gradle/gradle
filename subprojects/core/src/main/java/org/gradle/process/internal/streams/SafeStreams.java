@@ -16,17 +16,16 @@
 
 package org.gradle.process.internal.streams;
 
-import java.io.*;
+import org.apache.commons.io.output.CloseShieldOutputStream;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class SafeStreams {
 
     public static OutputStream systemErr() {
-        return new FilterOutputStream(System.err) {
-            @Override
-            public void close() throws IOException {
-                // Ignore
-            }
-        };
+        return new CloseShieldOutputStream(System.err);
     }
 
     public static InputStream emptyInput() {
@@ -34,11 +33,6 @@ public class SafeStreams {
     }
 
     public static OutputStream systemOut() {
-        return new FilterOutputStream(System.out) {
-            @Override
-            public void close() throws IOException {
-                // Ignore
-            }
-        };
+        return new CloseShieldOutputStream(System.out);
     }
 }

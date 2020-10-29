@@ -16,11 +16,11 @@
 
 package org.gradle.internal.logging.sink;
 
+import org.apache.commons.io.output.ProxyOutputStream;
 import org.fusesource.jansi.AnsiOutputStream;
 import org.fusesource.jansi.WindowsAnsiPrintStream;
 import org.gradle.internal.os.OperatingSystem;
 
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -85,7 +85,7 @@ final class AnsiConsoleUtil {
             if (stdOutputHandle != INVALID_HANDLE_VALUE
                 && 0 != GetConsoleMode(stdOutputHandle, mode)
                 && 0 != SetConsoleMode(stdOutputHandle, mode[0] | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN)) {
-                return new FilterOutputStream(stream) {
+                return new ProxyOutputStream(stream) {
                     @Override
                     public void close() throws IOException {
                         write(AnsiOutputStream.RESET_CODE);
@@ -129,7 +129,7 @@ final class AnsiConsoleUtil {
         // By default we assume your Unix tty can handle ANSI codes.
         // Just wrap it up so that when we get closed, we reset the
         // attributes.
-        return new FilterOutputStream(stream) {
+        return new ProxyOutputStream(stream) {
             @Override
             public void close() throws IOException {
                 write(AnsiOutputStream.RESET_CODE);
