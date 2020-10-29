@@ -54,6 +54,7 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.vcs.internal.VcsMappingsStore
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.ArrayList
@@ -64,6 +65,16 @@ interface ConfigurationCacheStateFile {
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
+}
+
+
+internal
+interface StoredBuilds {
+    /**
+     * Returns true if this is the first time the given [build] is seen and its state should be stored to the cache.
+     * Returns false if the build has already been stored to the cache.
+     */
+    fun store(build: BuildDefinition): Boolean
 }
 
 
@@ -92,8 +103,19 @@ class ConfigurationCacheState(
             writeString(gradle.rootProject.name)
             writeBuildTreeState(gradle)
         }
-        writeBuildState(build)
+        writeBuildState(
+            build,
+            storedBuilds()
+        )
     }
+
+    private
+    fun storedBuilds(): StoredBuilds =
+        object : StoredBuilds {
+            val stored = hashSetOf<File>()
+            override fun store(build: BuildDefinition): Boolean =
+                stored.add(build.buildRootDir!!)
+        }
 
     private
     suspend fun DefaultReadContext.readRootBuild(createBuild: (String) -> ConfigurationCacheBuild) {
@@ -105,9 +127,9 @@ class ConfigurationCacheState(
     }
 
     internal
-    suspend fun DefaultWriteContext.writeBuildState(build: VintageGradleBuild) {
+    suspend fun DefaultWriteContext.writeBuildState(build: VintageGradleBuild, storedBuilds: StoredBuilds) {
         withDebugFrame({ "Gradle" }) {
-            writeGradleState(build.gradle)
+            writeGradleState(build.gradle, storedBuilds)
         }
         withDebugFrame({ "Work Graph" }) {
             val scheduledNodes = build.scheduledWork
@@ -160,11 +182,12 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
+    suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal, storedBuilds: StoredBuilds) {
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
+            writeStartParameterOf(gradle)
             withDebugFrame({ "included builds" }) {
-                writeChildBuilds(gradle)
+                writeChildBuilds(gradle, storedBuilds)
             }
             withDebugFrame({ "cleanup registrations" }) {
                 writeBuildOutputCleanupRegistrations(gradle)
@@ -177,15 +200,30 @@ class ConfigurationCacheState(
         val gradle = build.gradle
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
+            readStartParameterOf(gradle)
             readChildBuildsOf(build)
             readBuildOutputCleanupRegistrations(gradle)
         }
     }
 
     private
-    suspend fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal) {
+    fun DefaultWriteContext.writeStartParameterOf(gradle: GradleInternal) {
+        val startParameterTaskNames = gradle.startParameter.taskNames
+        writeStrings(startParameterTaskNames)
+    }
+
+    private
+    fun DefaultReadContext.readStartParameterOf(gradle: GradleInternal) {
+        // Restore startParameter.taskNames to enable `gradle.startParameter.setTaskNames(...)` idiom in included build scripts
+        // See org/gradle/caching/configuration/internal/BuildCacheCompositeConfigurationIntegrationTest.groovy:134
+        val startParameterTaskNames = readStrings()
+        gradle.startParameter.setTaskNames(startParameterTaskNames)
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal, storedBuilds: StoredBuilds) {
         writeCollection(gradle.includedBuilds) {
-            writeIncludedBuildState(it)
+            writeIncludedBuildState(it, storedBuilds)
         }
         if (gradle.serviceOf<VcsMappingsStore>().asResolver().hasRules()) {
             logNotImplemented(
@@ -215,30 +253,57 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeIncludedBuildState(includedBuild: IncludedBuild) {
+    suspend fun DefaultWriteContext.writeIncludedBuildState(includedBuild: IncludedBuild, storedBuilds: StoredBuilds) {
         val buildState = includedBuild as IncludedBuildState
         val includedGradle = buildState.configuredBuild
         val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
-        val startParameterTaskNames = includedGradle.startParameter.taskNames
-        buildDefinition.run {
-            writeString(name!!)
-            writeFile(buildRootDir)
-            write(fromBuild)
-            writeStrings(startParameterTaskNames)
+        writeBuildDefinition(buildDefinition)
+        when {
+            storedBuilds.store(buildDefinition) -> {
+                writeBoolean(true)
+                includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+                    stateFileFor(buildDefinition),
+                    storedBuilds
+                )
+            }
+            else -> {
+                writeBoolean(false)
+            }
         }
-        includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
-            stateFileFor(buildDefinition)
-        )
     }
 
     private
     suspend fun DefaultReadContext.readIncludedBuildState(parentBuild: ConfigurationCacheBuild): IncludedBuildState {
+        val buildDefinition = readIncludedBuildDefinition(parentBuild)
+        val includedBuild = parentBuild.addIncludedBuild(buildDefinition)
+        val stored = readBoolean()
+        if (stored) {
+            val confCacheBuild = includedBuild.withState { includedGradle ->
+                includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
+            }
+            confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
+                stateFileFor(buildDefinition),
+                confCacheBuild
+            )
+        }
+        return includedBuild
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeBuildDefinition(buildDefinition: BuildDefinition) {
+        buildDefinition.run {
+            writeString(name!!)
+            writeFile(buildRootDir)
+            write(fromBuild)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readIncludedBuildDefinition(parentBuild: ConfigurationCacheBuild): BuildDefinition {
         val includedBuildName = readString()
         val includedBuildRootDir = readFile()
         val fromBuild = readNonNull<PublicBuildPath>()
-        val startParameterTaskNames = readStrings()
-
-        val buildDefinition = BuildDefinition.fromStartParameterForBuild(
+        return BuildDefinition.fromStartParameterForBuild(
             parentBuild.gradle.startParameter,
             includedBuildName,
             includedBuildRootDir,
@@ -246,16 +311,6 @@ class ConfigurationCacheState(
             Actions.doNothing(),
             fromBuild
         )
-
-        val (includedBuild, confCacheBuild) = parentBuild.addIncludedBuild(buildDefinition)
-        // Restore startParameter.taskNames to enable `gradle.startParameter.setTaskNames(...)` idiom in included build scripts
-        // See org/gradle/caching/configuration/internal/BuildCacheCompositeConfigurationIntegrationTest.groovy:134
-        includedBuild.configuredBuild.gradle.startParameter.setTaskNames(startParameterTaskNames)
-        confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
-            stateFileFor(buildDefinition),
-            confCacheBuild
-        )
-        return includedBuild
     }
 
     private

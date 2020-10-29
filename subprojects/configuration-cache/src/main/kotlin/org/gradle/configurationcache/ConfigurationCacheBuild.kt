@@ -38,5 +38,5 @@ interface ConfigurationCacheBuild {
 
     fun prepareForTaskExecution()
 
-    fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild>
+    fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState
 }
