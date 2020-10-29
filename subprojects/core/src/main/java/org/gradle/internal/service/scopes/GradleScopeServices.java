@@ -53,7 +53,6 @@ import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.CompositeAwareTaskSelector;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
 import org.gradle.execution.DefaultBuildWorkExecutor;
-import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DeprecateUndefinedBuildWorkExecutor;
 import org.gradle.execution.DryRunBuildExecutionAction;
