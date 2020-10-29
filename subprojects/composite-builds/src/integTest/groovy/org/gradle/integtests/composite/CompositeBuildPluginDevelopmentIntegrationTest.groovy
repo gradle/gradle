@@ -266,7 +266,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
         publishPluginWithDependency()
