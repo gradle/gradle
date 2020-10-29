@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class CompositeAwareTaskSelector implements TaskSelector {
+public class CompositeAwareTaskSelector extends TaskSelector {
     private final BuildStateRegistry buildStateRegistry;
     private final ProjectConfigurer projectConfigurer;
     private final TaskNameResolver taskNameResolver;

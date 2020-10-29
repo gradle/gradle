@@ -22,10 +22,10 @@ import org.gradle.api.specs.Spec;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public interface TaskSelector {
-    Spec<Task> getFilter(String path);
+public abstract class TaskSelector {
+    public abstract Spec<Task> getFilter(String path);
 
-    TaskSelection getSelection(String path);
+    public abstract TaskSelection getSelection(String path);
 
-    TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path);
+    public abstract TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path);
 }

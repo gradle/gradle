@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultTaskSelector implements TaskSelector {
+public class DefaultTaskSelector extends TaskSelector {
     private final TaskNameResolver taskNameResolver;
     private final GradleInternal gradle;
     private final ProjectConfigurer configurer;
