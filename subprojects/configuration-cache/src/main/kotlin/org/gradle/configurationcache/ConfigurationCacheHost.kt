@@ -28,7 +28,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
-import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
@@ -206,11 +205,8 @@ class ConfigurationCacheHost internal constructor(
             }
         }
 
-        override fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild> {
-            val includedBuild = service<BuildStateRegistry>().addIncludedBuildOf(this, buildDefinition) as IncludedBuildState
-            return includedBuild to includedBuild.withState { includedGradle ->
-                includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
-            }
+        override fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState {
+            return service<BuildStateRegistry>().addIncludedBuildOf(this, buildDefinition)
         }
 
         override fun createBuild(
