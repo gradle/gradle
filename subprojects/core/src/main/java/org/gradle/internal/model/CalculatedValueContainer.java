@@ -170,12 +170,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
             // Already calculated
             return;
         }
-        Try<T> result = calculationState.getValue(context);
-        if (result != null) {
-            // Attach the result and discard calculation state
-            this.result = result;
-            this.calculationState = null;
-        } // Else already calculated
+        calculationState.attachValue(this, context);
     }
 
     private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
@@ -193,15 +188,16 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
             this.defaultContext = defaultContext;
         }
 
-        // Returns null if already calculated
-        Try<T> getValue(@Nullable NodeExecutionContext context) {
+        // Can be called multiple times
+        void attachValue(CalculatedValueContainer<T, ?> owner, @Nullable NodeExecutionContext context) {
             acquireLock();
             try {
                 if (done) {
-                    return null;
+                    // Already calculated
+                    return;
                 }
                 done = true;
-                return Try.ofFailable(() -> {
+                Try<T> result = Try.ofFailable(() -> {
                     NodeExecutionContext effectiveContext = context;
                     if (effectiveContext == null) {
                         effectiveContext = defaultContext;
@@ -212,6 +208,10 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                     }
                     return value;
                 });
+
+                // Attach result and discard calculation state
+                owner.result = result;
+                owner.calculationState = null;
             } finally {
                 releaseLock();
             }

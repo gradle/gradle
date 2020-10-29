@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import org.gradle.internal.operations.BuildOperationQueue
+
 import spock.lang.Specification
 
 class CompositeResolvedArtifactSetTest extends Specification {
@@ -39,14 +39,13 @@ class CompositeResolvedArtifactSetTest extends Specification {
         def set2 = Mock(ResolvedArtifactSet)
 
         def asyncListener = Mock(ResolvedArtifactSet.Visitor)
-        def queue = Stub(BuildOperationQueue)
 
         when:
-        CompositeResolvedArtifactSet.of([set1, set2]).visit(queue, asyncListener)
+        CompositeResolvedArtifactSet.of([set1, set2]).visit(asyncListener)
 
         then:
-        1 * set1.visit(queue, asyncListener)
-        1 * set2.visit(queue, asyncListener)
+        1 * set1.visit(asyncListener)
+        1 * set2.visit(asyncListener)
         0 * _
     }
 }

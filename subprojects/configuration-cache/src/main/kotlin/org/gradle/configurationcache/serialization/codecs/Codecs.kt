@@ -35,6 +35,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
+import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
@@ -140,7 +141,8 @@ class Codecs(
         bind(TransformStepSpecCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
         bind(TransformedProjectArtifactSetCodec())
-        bind(TransformedExternalArtifactSetCodec(calculatedValueContainerFactory))
+        bind(TransformedExternalArtifactSetCodec())
+        bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
         bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory, calculatedValueContainerFactory))
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
         bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory))

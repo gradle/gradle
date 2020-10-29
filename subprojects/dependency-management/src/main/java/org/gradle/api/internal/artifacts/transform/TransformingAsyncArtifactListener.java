@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
@@ -37,16 +38,16 @@ import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformationStep> transformationSteps;
-    private final ResolvedArtifactSet.Visitor visitor;
     private final AttributeContainerInternal target;
+    private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
         List<BoundTransformationStep> transformationSteps,
         AttributeContainerInternal target,
-        ResolvedArtifactSet.Visitor visitor) {
+        ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result) {
         this.transformationSteps = transformationSteps;
         this.target = target;
-        this.visitor = visitor;
+        this.result = result;
     }
 
     @Override
@@ -55,7 +56,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             @Override
             public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
                 TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, artifact);
-                visitor.visitArtifacts(transformedArtifact);
+                result.add(transformedArtifact);
             }
 
             @Override
@@ -65,7 +66,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
             @Override
             public void visitFailure(Throwable failure) {
-                visitor.visitArtifacts(new BrokenArtifacts(failure));
+                result.add(new BrokenArtifacts(failure));
             }
         });
     }

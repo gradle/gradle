@@ -130,7 +130,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     @Override
     public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, targetAttributes, transformation, dependenciesResolver);
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, targetAttributes, transformation, dependenciesResolver, calculatedValueContainerFactory);
     }
 
     @Override
@@ -249,8 +249,12 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
         private final SingletonFileResolvedVariant delegate;
 
-        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, ImmutableAttributes attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver) {
-            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver);
+        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate,
+                                               ImmutableAttributes attributes,
+                                               Transformation transformation,
+                                               ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver,
+                                               CalculatedValueContainerFactory calculatedValueContainerFactory) {
+            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver, calculatedValueContainerFactory);
             this.delegate = delegate;
         }
 
@@ -264,12 +268,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         public DisplayName getTargetVariantName() {
             return delegate.variantName;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            // Should not be called
-            throw new IllegalStateException();
         }
     }
 
