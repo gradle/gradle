@@ -46,6 +46,30 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         javaClassFile("Foo.class").exists()
     }
 
+    def "skips execution when source directory is non-existent"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        when:
+        run("compileJava")
+        then:
+        skipped(":compileJava")
+    }
+
+    def "skips execution when source directory is empty"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        file("src/main/java").mkdirs()
+
+        when:
+        run("compileJava")
+        then:
+        skipped(":compileJava")
+    }
+
     def "don't implicitly compile source files from classpath"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
