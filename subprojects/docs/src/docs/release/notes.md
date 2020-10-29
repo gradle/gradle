@@ -6,7 +6,8 @@ We would like to thank the following community contributors to this release of G
 [Jeff](https://github.com/mathjeff),
 [jdai8](https://github.com/jdai8),
 [David Burström](https://github.com/davidburstrom),
-[Björn Kautler](https://github.com/Vampire).
+[Björn Kautler](https://github.com/Vampire),
+[Stefan Oehme](https://github.com/oehme).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -52,7 +53,6 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
-<<<<<<< HEAD
 ### Compilation avoidance for Kotlin DSL scripts
 
 Until now, any changes to build logic in [buildSrc](userguide/organizing_gradle_projects.html#sec:build_sources) required all the build scripts in the project to be recompiled.
