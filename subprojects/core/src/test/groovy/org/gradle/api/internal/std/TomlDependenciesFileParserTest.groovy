@@ -169,6 +169,28 @@ class TomlDependenciesFileParserTest extends Specification {
                 prefer '2.5.6'
             }
         }
+        hasDependency('groovy-with-ref3') {
+            withGroup 'org.codehaus.groovy'
+            withName 'groovy'
+            withVersion {
+                strictly '1.7'
+            }
+        }
+        hasDependency('strict-with-bang') {
+            withGroup('g')
+            withName('a')
+            withVersion {
+                strictly '1.1'
+            }
+        }
+        hasDependency('strict-with-bang-and-range') {
+            withGroup('g')
+            withName('a')
+            withVersion {
+                strictly '[1.0,2.0]'
+                prefer '1.1'
+            }
+        }
     }
 
     def "parses bundles"() {
