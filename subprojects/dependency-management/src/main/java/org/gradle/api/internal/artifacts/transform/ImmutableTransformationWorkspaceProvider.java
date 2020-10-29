@@ -49,7 +49,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public ImmutableTransformationWorkspaceProvider(File baseDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore, int identityCacheMaximumSize) {
+    public ImmutableTransformationWorkspaceProvider(File baseDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
         this.baseDirectory = baseDirectory;
         this.cache = cacheRepository
             .cache(baseDirectory)

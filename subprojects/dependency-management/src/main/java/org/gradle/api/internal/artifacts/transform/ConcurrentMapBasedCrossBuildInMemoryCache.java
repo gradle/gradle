@@ -18,30 +18,57 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Transformer;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.initialization.SessionLifecycleListener;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ConcurrentMapBasedCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V> {
+public class ConcurrentMapBasedCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
     private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>();
+    private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
+    private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
 
     @Override
     public V get(K key, Transformer<V, K> factory) {
+        keysFromCurrentBuild.put(key, Boolean.TRUE);
         return map.computeIfAbsent(key, factory::transform);
     }
 
     @Override
     public V get(K key) {
+        keysFromCurrentBuild.put(key, Boolean.TRUE);
         return map.get(key);
     }
 
     @Override
     public void put(K key, V value) {
+        keysFromCurrentBuild.put(key, Boolean.TRUE);
         map.put(key, value);
     }
 
     @Override
     public void clear() {
         map.clear();
+        keysFromCurrentBuild.clear();
+        keysFromPreviousBuild.clear();
+    }
+
+    @Override
+    public void afterStart() {
+    }
+
+    @Override
+    public void beforeComplete() {
+        final Set<K> keysToRetain = new HashSet<>();
+        keysToRetain.addAll(keysFromPreviousBuild.keySet());
+        keysToRetain.addAll(keysFromCurrentBuild.keySet());
+
+        map.keySet().retainAll(keysToRetain);
+
+        keysFromPreviousBuild.clear();
+        keysFromPreviousBuild.putAll(keysFromCurrentBuild);
+        keysFromCurrentBuild.clear();
     }
 }
