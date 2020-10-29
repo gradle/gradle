@@ -34,11 +34,6 @@ public abstract class PerformanceTestResult {
     private List<String> previousTestIds;
     private String versionUnderTest;
     private String channel;
-    private Throwable whereAmI;
-
-    public PerformanceTestResult() {
-        whereAmI = new Throwable();
-    }
 
     /**
      * Returns true if regression checks is enabled.
