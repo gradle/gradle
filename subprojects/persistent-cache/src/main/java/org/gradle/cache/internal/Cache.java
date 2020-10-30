@@ -15,8 +15,13 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.Transformer;
+
+import java.util.function.Supplier;
 
 public interface Cache<K, V>  {
-    V get(K key, Factory<V> factory);
+    V get(K key, Supplier<V> supplier);
+    default V get(K key, Transformer<V, K> supplier) {
+        return get(key, () -> supplier.transform(key));
+    }
 }

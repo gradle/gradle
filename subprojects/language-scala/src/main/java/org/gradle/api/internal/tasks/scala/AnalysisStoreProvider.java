@@ -18,25 +18,17 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.MapBackedCache;
-import org.gradle.internal.Factory;
 import xsbti.compile.AnalysisStore;
 import xsbti.compile.FileAnalysisStore;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AnalysisStoreProvider {
 
-    private final Cache<File, AnalysisStore> cache = new MapBackedCache<File, AnalysisStore>(new ConcurrentHashMap<>());
+    private final Cache<File, AnalysisStore> cache = new MapBackedCache<>(new ConcurrentHashMap<>());
 
     AnalysisStore get(final File analysisFile) {
-        return AnalysisStore.getCachedStore(cache.get(analysisFile, new Factory<AnalysisStore>() {
-            @Nullable
-            @Override
-            public AnalysisStore create() {
-                return AnalysisStore.getThreadSafeStore(FileAnalysisStore.getDefault(analysisFile));
-            }
-        }));
+        return AnalysisStore.getCachedStore(cache.get(analysisFile, () -> AnalysisStore.getThreadSafeStore(FileAnalysisStore.getDefault(analysisFile))));
     }
 }

@@ -15,8 +15,9 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Synchronizer;
+
+import java.util.function.Supplier;
 
 public class CacheAccessSerializer<K, V> implements Cache<K, V> {
 
@@ -28,13 +29,8 @@ public class CacheAccessSerializer<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(final K key, final Factory<V> factory) {
-        return synchronizer.synchronize(new Factory<V>() {
-            @Override
-            public V create() {
-                return cache.get(key, factory);
-            }
-        });
+    public V get(final K key, final Supplier<V> supplier) {
+        return synchronizer.synchronize(() -> cache.get(key, supplier));
     }
 
 }

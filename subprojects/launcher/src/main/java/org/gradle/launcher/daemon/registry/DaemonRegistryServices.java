@@ -19,7 +19,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.CacheAccessSerializer;
 import org.gradle.cache.internal.MapBackedCache;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.Chmod;
 
 import java.io.File;
@@ -34,9 +33,9 @@ public class DaemonRegistryServices {
     private final File daemonBaseDir;
     private final Cache<File, DaemonRegistry> daemonRegistryCache;
 
-    private static final Map<File, DaemonRegistry> REGISTRY_STORAGE = new HashMap<File, DaemonRegistry>();
-    private static final Cache<File, DaemonRegistry> REGISTRY_CACHE = new CacheAccessSerializer<File, DaemonRegistry>(
-            new MapBackedCache<File, DaemonRegistry>(REGISTRY_STORAGE)
+    private static final Map<File, DaemonRegistry> REGISTRY_STORAGE = new HashMap<>();
+    private static final Cache<File, DaemonRegistry> REGISTRY_CACHE = new CacheAccessSerializer<>(
+        new MapBackedCache<>(REGISTRY_STORAGE)
     );
 
     public DaemonRegistryServices(File daemonBaseDir) {
@@ -54,12 +53,7 @@ public class DaemonRegistryServices {
 
     DaemonRegistry createDaemonRegistry(DaemonDir daemonDir, final FileLockManager fileLockManager, final Chmod chmod) {
         final File daemonRegistryFile = daemonDir.getRegistry();
-        return daemonRegistryCache.get(daemonRegistryFile, new Factory<DaemonRegistry>() {
-            @Override
-            public DaemonRegistry create() {
-                return new PersistentDaemonRegistry(daemonRegistryFile, fileLockManager, chmod);
-            }
-        });
+        return daemonRegistryCache.get(daemonRegistryFile, () -> new PersistentDaemonRegistry(daemonRegistryFile, fileLockManager, chmod));
     }
 
     Properties createProperties() {
