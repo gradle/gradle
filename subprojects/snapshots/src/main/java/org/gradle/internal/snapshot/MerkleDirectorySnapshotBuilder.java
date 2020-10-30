@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileMetadata.AccessType;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -63,9 +62,20 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotHierarc
 
     @Override
     public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-        if (snapshot.getType() == FileType.Directory) {
-            return;
-        }
+        snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+            @Override
+            public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                visitNonDirectoryEntry(snapshot);
+            }
+
+            @Override
+            public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                visitNonDirectoryEntry(snapshot);
+            }
+        });
+    }
+
+    private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
         if (relativePathSegmentsTracker.isRoot()) {
             result = snapshot;
         } else {
