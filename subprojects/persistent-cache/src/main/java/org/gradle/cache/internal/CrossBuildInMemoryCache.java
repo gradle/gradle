@@ -20,23 +20,19 @@ import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.function.Supplier;
 
 /**
  * An in-memory cache of calculated values that are used across builds. The implementation takes care of cleaning up state that is no longer required.
  */
 @ThreadSafe
-public interface CrossBuildInMemoryCache<K, V> {
+public interface CrossBuildInMemoryCache<K, V> extends Cache<K, V> {
     /**
      * Locates the given entry, using the supplied factory when the entry is not present or has been discarded, to recreate the entry in the cache.
      *
      * <p>Implementations must prevent more than one thread calculating the same key at the same time.
      */
+    @Override
     V get(K key, Transformer<V, K> factory);
-
-    default V get(K key, Supplier<V> factory) {
-        return get(key, __ -> factory.get());
-    }
 
     /**
      * Locates the given entry, if present. Returns {@code null} when missing.

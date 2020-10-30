@@ -20,8 +20,14 @@ import org.gradle.api.Transformer;
 import java.util.function.Supplier;
 
 public interface Cache<K, V>  {
-    V get(K key, Supplier<V> supplier);
-    default V get(K key, Transformer<V, K> supplier) {
-        return get(key, () -> supplier.transform(key));
+    /**
+     * Locates the given entry, using the supplied factory when the entry is not present or has been discarded, to recreate the entry in the cache.
+     *
+     * <p>Implementations may prevent more than one thread calculating the same key at the same time or not.
+     */
+    V get(K key, Transformer<V, K> supplier);
+
+    default V get(K key, Supplier<V> supplier) {
+        return get(key, __ -> supplier.get());
     }
 }

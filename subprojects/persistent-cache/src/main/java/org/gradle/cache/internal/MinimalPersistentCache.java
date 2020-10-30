@@ -16,8 +16,10 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentIndexedCache;
 
+import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public class MinimalPersistentCache<K, V> implements Cache<K, V> {
@@ -41,6 +43,21 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
         return value;
     }
 
+    @Override
+    public V get(K key, Transformer<V, K> supplier) {
+        V cached = cache.get(key);
+        if (cached != null) {
+            return cached;
+        }
+
+        V value = supplier.transform(key); //don't synchronize value creation
+        //we could potentially avoid creating value that is already being created by a different thread.
+
+        cache.put(key, value);
+        return value;
+    }
+
+    @Nullable
     public V get(K value) {
         return cache.get(value);
     }

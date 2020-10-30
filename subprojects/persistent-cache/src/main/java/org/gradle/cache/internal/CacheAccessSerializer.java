@@ -15,9 +15,8 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.internal.concurrent.Synchronizer;
-
-import java.util.function.Supplier;
 
 public class CacheAccessSerializer<K, V> implements Cache<K, V> {
 
@@ -29,7 +28,7 @@ public class CacheAccessSerializer<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(final K key, final Supplier<V> supplier) {
+    public V get(final K key, final Transformer<V, K> supplier) {
         return synchronizer.synchronize(() -> cache.get(key, supplier));
     }
 
