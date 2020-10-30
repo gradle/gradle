@@ -67,7 +67,7 @@ class MavenInvocationSpec implements InvocationSpec {
         builder
     }
 
-    static class InvocationBuilder implements InvocationSpec.Builder {
+    static class InvocationBuilder implements Builder {
         String mavenVersion
         File mavenHome
         File workingDirectory
@@ -132,7 +132,7 @@ class MavenInvocationSpec implements InvocationSpec {
         }
 
         @Override
-        InvocationSpec.Builder expectFailure() {
+        Builder expectFailure() {
             throw new UnsupportedOperationException()
         }
 

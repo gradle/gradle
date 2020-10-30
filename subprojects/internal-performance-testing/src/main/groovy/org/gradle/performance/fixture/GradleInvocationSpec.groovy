@@ -99,7 +99,7 @@ class GradleInvocationSpec implements InvocationSpec {
         return builder.build()
     }
 
-    static class InvocationBuilder implements InvocationSpec.Builder {
+    static class InvocationBuilder implements Builder {
         GradleDistribution gradleDistribution
         File workingDirectory
         List<String> tasksToRun = []
@@ -186,7 +186,7 @@ class GradleInvocationSpec implements InvocationSpec {
         }
 
         @Override
-        InvocationSpec.Builder expectFailure() {
+        Builder expectFailure() {
             expectFailure = true
             this
         }
