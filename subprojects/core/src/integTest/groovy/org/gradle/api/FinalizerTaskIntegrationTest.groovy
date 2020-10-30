@@ -203,6 +203,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/2293")
     void 'circular dependency is detected on cycle within chained finalizers'() {
         buildFile << """
             task a {
@@ -226,6 +227,38 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 (*) - details omitted (listed previously)"""
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/2293")
+    def "circular dependency detected with complex finalizedBy cycle in the graph"() {
+        buildFile << """
+            task a
+            task b
+            task c
+            task d
+            task e
+            task f
+
+            a.dependsOn b
+            b.dependsOn c
+            b.finalizedBy d
+            d.dependsOn f
+            e.dependsOn d
+            f.dependsOn e
+        """
+
+        expect:
+        2.times {
+            fails 'a'
+            failure.assertHasDescription """Circular dependency between the following tasks:
+:d
+\\--- :f
+     \\--- :e
+          \\--- :d (*)
+
+(*) - details omitted (listed previously)"""
+        }
+    }
+
 
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile << """
