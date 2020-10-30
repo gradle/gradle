@@ -39,9 +39,11 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
 
@@ -365,28 +367,31 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             boolean isRoot = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(snapshot);
             String targetPath = getTargetPath(isRoot);
-            switch (snapshot.getType()) {
-                case Missing:
-                    if (!isRoot) {
-                        throw new RuntimeException(String.format("Couldn't read content of file '%s'", snapshot.getAbsolutePath()));
-                    }
-                    storeMissingTree(targetPath, tarOutput);
-                    break;
-                case Directory:
+            snapshot.accept(new FileSystemLocationSnapshotVisitor() {
+                @Override
+                public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     assertCorrectType(isRoot, snapshot);
                     File dir = new File(snapshot.getAbsolutePath());
                     int dirMode = isRoot ? UnixPermissions.DEFAULT_DIR_PERM : filePermissionAccess.getUnixMode(dir);
                     storeDirectoryEntry(targetPath, dirMode, tarOutput);
-                    break;
-                case RegularFile:
+                }
+
+                @Override
+                public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
                     assertCorrectType(isRoot, snapshot);
                     File file = new File(snapshot.getAbsolutePath());
                     int fileMode = filePermissionAccess.getUnixMode(file);
                     storeFileEntry(file, targetPath, file.length(), fileMode, tarOutput);
-                    break;
-                default:
-                    throw new AssertionError();
-            }
+                }
+
+                @Override
+                public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                    if (!isRoot) {
+                        throw new RuntimeException(String.format("Couldn't read content of file '%s'", snapshot.getAbsolutePath()));
+                    }
+                    storeMissingTree(targetPath, tarOutput);
+                }
+            });
             relativePathStringTracker.leave();
             entries++;
         }
