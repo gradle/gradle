@@ -56,11 +56,13 @@ public class CompositeAwareTaskSelector extends TaskSelector {
 
     @Override
     public TaskSelection getSelection(String path) {
-        Path taskPath = Path.path(path);
-        if (taskPath.isAbsolute()) {
-            BuildState build = findIncludedBuild(taskPath);
-            if (build != null) {
-                return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
+        if (gradle.isRootBuild()) {
+            Path taskPath = Path.path(path);
+            if (taskPath.isAbsolute()) {
+                BuildState build = findIncludedBuild(taskPath);
+                if (build != null) {
+                    return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
+                }
             }
         }
 
@@ -69,13 +71,16 @@ public class CompositeAwareTaskSelector extends TaskSelector {
 
     @Override
     public TaskSelection getSelection(String projectPath, File root, String path) {
-        Path taskPath = Path.path(path);
-        if (taskPath.isAbsolute()) {
-            BuildState build = findIncludedBuild(taskPath);
-            if (build != null) {
-                return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
+        if (gradle.isRootBuild()) {
+            Path taskPath = Path.path(path);
+            if (taskPath.isAbsolute()) {
+                BuildState build = findIncludedBuild(taskPath);
+                if (build != null) {
+                    return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
+                }
             }
         }
+
         return getUnqualifiedBuildSelector().getSelection(projectPath, root, path);
     }
 
