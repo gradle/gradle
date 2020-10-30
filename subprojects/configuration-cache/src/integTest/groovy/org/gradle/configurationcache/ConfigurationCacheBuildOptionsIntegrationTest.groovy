@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -740,6 +741,46 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         outputContains 'sys prop value at configuration time = 37'
         outputContains 'sys prop value at execution time = 37'
         configurationCache.assertStateStored()
+    }
+
+    @Issue("gradle/gradle#14465")
+    def "configuration is cacheable when providers are used in settings"() {
+
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            providers.systemProperty("org.gradle.booleanProperty").forUseAtConfigurationTime().orElse(false).get()
+        """
+
+        when:
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
+        
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    @Issue("gradle/gradle#14465")
+    def "configuration cache is invalidated after property change when providers are used in settings"() {
+
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            providers.systemProperty("org.gradle.booleanProperty").forUseAtConfigurationTime().orElse(false).get()
+        """
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
+
+        when:
+        configurationCacheRun "help", "-Dorg.gradle.booleanProperty=false"
+
+        then:
+        configurationCache.assertStateStored()
+        output.contains("because system property 'org.gradle.booleanProperty' has changed.")
     }
 
     private static String getGreetTask() {
