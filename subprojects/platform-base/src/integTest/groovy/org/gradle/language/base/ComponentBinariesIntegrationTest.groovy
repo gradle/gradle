@@ -172,4 +172,24 @@ model {
         expect:
         succeeds "verify"
     }
+
+    def "binary has check task"() {
+        given:
+        buildFile << '''
+model {
+    tasks {
+        verify(Task) {
+            doLast {
+                def binaries = $.components.mylib.binaries
+                assert binaries.main.checkTask != null
+                assert binaries.test.checkTask != null
+            }
+        }
+    }
+}
+'''
+
+        expect:
+        succeeds "verify"
+    }
 }

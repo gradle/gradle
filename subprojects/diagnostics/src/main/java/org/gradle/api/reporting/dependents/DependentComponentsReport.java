@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.dependents.internal.TextDependentComponentsReportRenderer;
@@ -44,7 +43,7 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
 /**
  * Displays dependent components.
  */
-@Incubating
+@Deprecated
 public class DependentComponentsReport extends DefaultTask {
 
     private boolean showNonBuildable;

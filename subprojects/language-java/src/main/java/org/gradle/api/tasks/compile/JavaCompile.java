@@ -69,6 +69,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -401,11 +402,24 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             if (compileOptions.getRelease().isPresent()) {
                 spec.setRelease(compileOptions.getRelease().get());
             } else {
+                boolean isSourceOrTargetConfigured = false;
                 if (super.getSourceCompatibility() != null) {
                     spec.setSourceCompatibility(getSourceCompatibility());
+                    isSourceOrTargetConfigured = true;
                 }
                 if (super.getTargetCompatibility() != null) {
                     spec.setTargetCompatibility(getTargetCompatibility());
+                    isSourceOrTargetConfigured = true;
+                }
+                if (!isSourceOrTargetConfigured) {
+                    JavaLanguageVersion languageVersion = toolchain.getLanguageVersion();
+                    if (languageVersion.canCompileOrRun(10)) {
+                        spec.setRelease(languageVersion.asInt());
+                    } else {
+                        String version = languageVersion.toString();
+                        spec.setSourceCompatibility(version);
+                        spec.setTargetCompatibility(version);
+                    }
                 }
             }
         } else if (compileOptions.getRelease().isPresent()) {

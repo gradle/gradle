@@ -32,11 +32,10 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
     def "test for non-abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.warmUpRuns = 2
         runner.runs = 6
         runner.tasksToRun = ['test']
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
         // Pre-4.0 versions run into memory problems with this test
         runner.minimumBaseVersion = "4.0"
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }

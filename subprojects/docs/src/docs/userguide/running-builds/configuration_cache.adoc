@@ -912,14 +912,6 @@ Builds reusing the configuration cache might see build cache misses but will sta
 
 See link:{gradle-issues}13706[gradle/gradle#13706].
 
-[[config_cache:not_yet_implemented:composite_builds]]
-=== Composite builds
-
-When using the configuration cache on a <<composite_builds#composite_builds,composite build>> a problem will be reported.
-If you <<configuration_cache#config_cache:usage:ignore_problems,ignore problems>> then the included builds will be skipped when reusing the configuration cache.
-
-See link:{gradle-issues}13503[gradle/gradle#13503].
-
 [[config_cache:not_yet_implemented:source_dependencies]]
 === Source dependencies
 

@@ -30,7 +30,9 @@ import java.util.concurrent.ConcurrentMap;
 @ThreadSafe
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
     private final TransformationNodeRegistry transformationNodeRegistry;
-    private final ConcurrentMap<VariantWithOverloadAttributes, TransformedExternalArtifactSet> variants = new ConcurrentHashMap<>();
+    private final ConcurrentMap<VariantWithOverloadAttributes, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
+    private final Factory externalFactory = this::doCreateExternal;
+    private final Factory projectFactory = this::doCreateProject;
 
     public DefaultTransformedVariantFactory(TransformationNodeRegistry transformationNodeRegistry) {
         this.transformationNodeRegistry = transformationNodeRegistry;
@@ -38,16 +40,32 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
 
     @Override
     public ResolvedArtifactSet transformedExternalArtifacts(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
-        if (identifier == null) {
-            // An ad hoc variant, do not cache the result
-            return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
-        }
-        return variants.computeIfAbsent(new VariantWithOverloadAttributes(identifier, target), key -> new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, transformationNodeRegistry));
+        return locateOrCreate(externalFactory, componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory);
     }
 
     @Override
     public ResolvedArtifactSet transformedProjectArtifacts(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        return locateOrCreate(projectFactory, componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory);
+    }
+
+    private ResolvedArtifactSet locateOrCreate(Factory factory, ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
+        if (identifier == null) {
+            // An ad hoc variant, do not cache the result
+            return factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory);
+        }
+        return variants.computeIfAbsent(new VariantWithOverloadAttributes(identifier, target), key -> factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory));
+    }
+
+    private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory);
+    }
+
+    private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         return new TransformedProjectArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
+    }
+
+    private interface Factory {
+        ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
     }
 }

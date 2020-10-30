@@ -36,11 +36,21 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
     @Override
     File getJfrOutputDirectory(BuildExperimentSpec spec) {
         def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        def outputDir = new File(flamesBaseDirectory, fileSafeName)
+        // When the path is too long on Windows, then JProfiler can't write to the JPS file
+        // Length 40 seems to work.
+        // It may be better to create the flame graph in the tmp directory, and then move it to the right place after the build.
+        def outputDir = new File(flamesBaseDirectory, shortenPath(fileSafeName, 40))
         outputDir.mkdirs()
         return outputDir
     }
 
+    private static String shortenPath(String longName, int expectedMaxLength) {
+        if (longName.length() <= expectedMaxLength) {
+            return longName
+        } else {
+            return longName.substring(0, expectedMaxLength - 10) + "." + longName.substring(longName.length() - 9)
+        }
+    }
 
     @Override
     void generateDifferentialGraphs(BuildExperimentSpec experimentSpec) {
@@ -74,7 +84,7 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
         diff
     }
 
-    private File stacksFileName(File baseDir, EventType type, DetailLevel level) {
+    private static File stacksFileName(File baseDir, EventType type, DetailLevel level) {
         new File(baseDir, "${type.id}/${level.name().toLowerCase()}/stacks.txt")
     }
 
@@ -104,14 +114,14 @@ class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator 
         MONITOR_BLOCKED("monitor-blocked", "Java Monitor Blocked", "ms"),
         IO("io", "File and Socket IO", "ms");
 
-        private final String id;
-        private final String displayName;
-        private final String unitOfMeasure;
+        private final String id
+        private final String displayName
+        private final String unitOfMeasure
 
         EventType(String id, String displayName, String unitOfMeasure) {
-            this.id = id;
-            this.displayName = displayName;
-            this.unitOfMeasure = unitOfMeasure;
+            this.id = id
+            this.displayName = displayName
+            this.unitOfMeasure = unitOfMeasure
         }
     }
 

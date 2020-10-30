@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
@@ -33,6 +34,7 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,16 +68,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     }
 
     @Override
-    public CurrentSnapshotResult execute(IncrementalChangesContext context) {
+    public CurrentSnapshotResult execute(UnitOfWork work, IncrementalChangesContext context) {
         CachingState cachingState = context.getCachingState();
         //noinspection OptionalGetWithoutIsPresent
         return cachingState.getDisabledReasons().isEmpty()
-            ? executeWithCache(context, cachingState.getKey().get())
-            : executeWithoutCache(context);
+            ? executeWithCache(work, context, cachingState.getKey().get())
+            : executeWithoutCache(work, context);
     }
 
-    private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
-        UnitOfWork work = context.getWork();
+    private CurrentSnapshotResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
@@ -87,7 +88,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         LOGGER.info("Loaded cache entry for {} with cache key {}",
                             work.getDisplayName(), cacheKey.getHashCode());
                     }
-                    cleanLocalState(work);
+                    cleanLocalState(context.getWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
@@ -133,22 +134,25 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
             });
     }
 
-    private void cleanLocalState(UnitOfWork work) {
-        work.visitLocalState(localStateFile -> {
-            try {
-                outputChangeListener.beforeOutputChange(ImmutableList.of(localStateFile.getAbsolutePath()));
-                deleter.deleteRecursively(localStateFile);
-            } catch (IOException ex) {
-                throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateFile), ex);
+    private void cleanLocalState(File workspace, UnitOfWork work) {
+        work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
+            @Override
+            public void visitLocalState(File localStateRoot) {
+                try {
+                    outputChangeListener.beforeOutputChange(ImmutableList.of(localStateRoot.getAbsolutePath()));
+                    deleter.deleteRecursively(localStateRoot);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateRoot), ex);
+                }
             }
         });
     }
 
-    private CurrentSnapshotResult executeAndStoreInCache(CacheableWork work, BuildCacheKey cacheKey, IncrementalChangesContext context) {
-        CurrentSnapshotResult result = executeWithoutCache(context);
+    private CurrentSnapshotResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
+        CurrentSnapshotResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecutionResult().ifSuccessfulOrElse(
-            executionResult -> store(work, cacheKey, result),
-            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
+            executionResult -> store(cacheableWork, cacheKey, result),
+            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
     }
@@ -168,8 +172,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
         }
     }
 
-    private CurrentSnapshotResult executeWithoutCache(IncrementalChangesContext context) {
-        return delegate.execute(context);
+    private CurrentSnapshotResult executeWithoutCache(UnitOfWork work, IncrementalChangesContext context) {
+        return delegate.execute(work, context);
     }
 
     private static class CacheableWork implements CacheableEntity {
@@ -200,7 +204,12 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            work.visitOutputProperties(workspace, (propertyName, type, root, contents) -> visitor.visitOutputTree(propertyName, type, root));
+            work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
+                @Override
+                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                    visitor.visitOutputTree(propertyName, type, root);
+                }
+            });
         }
     }
 }

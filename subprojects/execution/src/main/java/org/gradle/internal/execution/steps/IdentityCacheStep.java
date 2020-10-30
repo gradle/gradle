@@ -24,6 +24,7 @@ import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
 import java.util.concurrent.ExecutionException;
@@ -37,12 +38,12 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
     }
 
     @Override
-    public R execute(C context) {
-        return delegate.execute(context);
+    public R execute(UnitOfWork work, C context) {
+        return delegate.execute(work, context);
     }
 
     @Override
-    public <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
         Identity identity = context.getIdentity();
         Try<O> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {
@@ -50,7 +51,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
         } else {
             return processor.processDeferredOutput(() -> {
                 try {
-                    return cache.get(identity, () -> execute(context).getExecutionResult()
+                    return cache.get(identity, () -> execute(work, context).getExecutionResult()
                         .map(Result.ExecutionResult::getOutput)
                         .map(Cast::<O>uncheckedNonnullCast));
                 } catch (ExecutionException e) {

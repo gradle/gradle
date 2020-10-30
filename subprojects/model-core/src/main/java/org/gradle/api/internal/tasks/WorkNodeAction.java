@@ -25,10 +25,16 @@ import javax.annotation.Nullable;
  */
 public interface WorkNodeAction {
     /**
-     * Returns the project which the action requires access to, if any.
+     * Does this action require exclusive access to the mutable state of its owning project?
+     */
+    boolean usesMutableProjectState();
+
+    /**
+     * Returns the project which the action belongs to. This is used to determine the services to expose to {@link #run(NodeExecutionContext)} via the context.
+     * Returning non-null here does not imply any kind of exclusive access to the project, unless {@link #usesMutableProjectState()} returns true.
      */
     @Nullable
-    Project getProject();
+    Project getOwningProject();
 
     void visitDependencies(TaskDependencyResolveContext context);
 

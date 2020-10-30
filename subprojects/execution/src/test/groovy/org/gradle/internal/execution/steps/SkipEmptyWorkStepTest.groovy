@@ -44,7 +44,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
     def "delegates when work is not skipped"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
@@ -54,14 +54,14 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.empty()
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
     @Unroll
     def "removes execution history when empty work is skipped (outcome: #outcome)"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result.executionResult.get().outcome == outcome

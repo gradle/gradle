@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
-import org.gradle.internal.execution.UnitOfWork.OutputPropertyVisitor
+import org.gradle.internal.execution.UnitOfWork.OutputVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.TreeType
@@ -30,7 +30,7 @@ import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements FingerprinterFixture {
+class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements FingerprinterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
@@ -39,7 +39,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
     def outputChangeListener = Mock(OutputChangeListener)
     def deleter = TestFiles.deleter()
 
-    def step = new CleanupOutputsStep<>(deleter, outputChangeListener, delegate)
+    def step = new RemovePreviousOutputsStep<>(deleter, outputChangeListener, delegate)
 
     @Override
     protected InputChangesContext createContext() {
@@ -54,12 +54,12 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         outputs.dir.createDir("some/notOutput2")
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupOverlappingOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -77,12 +77,12 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         outputs.fingerprint()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupOverlappingOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -97,12 +97,12 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         outputs.fingerprint()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupOverlappingOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -115,12 +115,12 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         outputs.createContents()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupExclusiveOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -134,12 +134,12 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         outputs.file.parentFile.mkdirs()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupExclusiveOutputs(outputs)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
         !outputs.file.exists()
@@ -148,20 +148,20 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
 
     def "does not cleanup outputs when build is incremental"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.incrementalExecution >> true
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
     def "does not cleanup outputs when work does not opt-in"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * context.incrementalExecution >> false
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> false
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
@@ -170,12 +170,12 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         outputs.createContents()
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         interaction {
             cleanupExclusiveOutputs(outputs, false)
         }
-        1 * delegate.execute(_) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
@@ -184,7 +184,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
-        _ * work.visitOutputProperties(_, _) >> { File workspace, OutputPropertyVisitor visitor ->
+        _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }
@@ -199,7 +199,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
-        _ * work.visitOutputProperties(_, _) >> { File workspace, OutputPropertyVisitor visitor ->
+        _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }

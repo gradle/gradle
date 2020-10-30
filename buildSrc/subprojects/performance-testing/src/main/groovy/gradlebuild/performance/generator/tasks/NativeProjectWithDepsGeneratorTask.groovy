@@ -16,9 +16,7 @@
 
 package gradlebuild.performance.generator.tasks
 
-import org.gradle.api.Action
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
@@ -27,6 +25,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
+
 /**
  * Generates a multi-project native build that has project dependencies and tests.
  */
@@ -100,6 +99,9 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
     @Input
     String projectTemplateName = "native-dependents"
 
+    @Input
+    String daemonMemory
+
     /**
      * @return Template directory with source and build file templates
      */
@@ -118,32 +120,39 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
 
     void generateRootProject() {
         generateSettings()
+        generateGradleProperties()
     }
 
     // TODO: This could be made more generic by passing a list of subproject names
     // that includes 'googleTest'.
     void generateSettings() {
-        project.copy(new Action<CopySpec>() {
-            @Override
-            void execute(CopySpec copySpec) {
-                copySpec.from(new File(projectTemplate, "settings.gradle"))
-                copySpec.into(destDir)
-                copySpec.expand([
-                        rootProjectName: name,
-                        subprojects: subprojectNames
-                ])
-            }
-        })
+        project.copy {
+            from(new File(projectTemplate, "settings.gradle"))
+            into(destDir)
+            expand([
+                rootProjectName: name,
+                subprojects: subprojectNames
+            ])
+        }
+    }
+
+    void generateGradleProperties() {
+        project.copy{
+            from(new File(resolveTemplate("gradle-properties"), "gradle.properties"))
+            into(destDir)
+            expand([
+                daemonMemory: daemonMemory,
+                maxWorkers: 4,
+                parallel: true
+            ])
+        }
     }
 
     void copyResources() {
-        project.copy(new Action<CopySpec>() {
-            @Override
-            void execute(CopySpec copySpec) {
-                copySpec.into(destDir)
-                copySpec.from(resources)
-            }
-        })
+        project.copy {
+            into(destDir)
+            from(resources)
+        }
     }
 
     void generateSubprojects() {
@@ -248,14 +257,11 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
     }
 
     void generateBuildFile(String projectPath, File templateDir, Map<String, ?> properties) {
-        project.copy(new Action<CopySpec>() {
-            @Override
-            void execute(CopySpec copySpec) {
-                copySpec.from(new File(templateDir, "build.gradle"))
-                copySpec.into(new File(destDir, projectPath))
-                copySpec.expand(properties)
-            }
-        })
+        project.copy {
+            from(new File(templateDir, "build.gradle"))
+            into(new File(destDir, projectPath))
+            expand(properties)
+        }
     }
 
     void generateSources(String generatedId, String projectPath, File sourceFile, File headerFile, File testFile, Map<String, ?> sourceProperties) {
@@ -265,26 +271,23 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
 
         // TODO: Make it so we can have test sources for executables.
         // This doesn't work out of the box with just the google-test plugin (you need to exclude main.cpp).
-        project.copy(new Action<CopySpec>() {
-            @Override
-            void execute(CopySpec copySpec) {
-                copySpec.from(sourceFile) {
-                    it.into "src/${generatedId}/cpp"
-                }
-                if (headerFile) {
-                    copySpec.from(headerFile) {
-                        it.into "src/${generatedId}/headers/${generatedId}"
-                    }
-                }
-                if (testFile) {
-                    copySpec.from(testFile) {
-                        it.into "src/${generatedId}Test/cpp"
-                    }
-                }
-                copySpec.into(new File(destDir, projectPath))
-                copySpec.expand(sourceProperties)
+        project.copy {
+            from(sourceFile) {
+                into "src/${generatedId}/cpp"
             }
-        })
+            if (headerFile) {
+                from(headerFile) {
+                    into "src/${generatedId}/headers/${generatedId}"
+                }
+            }
+            if (testFile) {
+                from(testFile) {
+                    into "src/${generatedId}Test/cpp"
+                }
+            }
+            into(new File(destDir, projectPath))
+            expand(sourceProperties)
+        }
     }
 
     // TODO: Make the number of projects configurable?

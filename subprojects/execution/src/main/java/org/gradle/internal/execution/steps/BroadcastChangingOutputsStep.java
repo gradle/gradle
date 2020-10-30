@@ -17,11 +17,15 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkspaceContext;
+import org.gradle.internal.file.TreeType;
+
+import java.io.File;
 
 public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
 
@@ -37,13 +41,25 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
     }
 
     @Override
-    public R execute(C context) {
-        UnitOfWork work = context.getWork();
+    public R execute(UnitOfWork work, C context) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        work.visitOutputProperties(context.getWorkspace(), (propertyName, type, root, contents) -> builder.add(root.getAbsolutePath()));
-        work.visitDestroyableRoots(file -> builder.add(file.getAbsolutePath()));
-        work.visitLocalState(file -> builder.add(file.getAbsolutePath()));
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                builder.add(root.getAbsolutePath());
+            }
+
+            @Override
+            public void visitLocalState(File localStateRoot) {
+                builder.add(localStateRoot.getAbsolutePath());
+            }
+
+            @Override
+            public void visitDestroyable(File destroyableRoot) {
+                builder.add(destroyableRoot.getAbsolutePath());
+            }
+        });
         outputChangeListener.beforeOutputChange(builder.build());
-        return delegate.execute(context);
+        return delegate.execute(work, context);
     }
 }

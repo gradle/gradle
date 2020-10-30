@@ -17,6 +17,7 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
@@ -25,24 +26,27 @@ import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.fixture.IncrementalTestProject
 import org.gradle.performance.fixture.TestProjects
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
+@Unroll
 @RunFor(
     @Scenario(type = TEST, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild", "largeJavaMultiProject"])
 )
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.2"
+    private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
 
     def setup() {
         runner.minimumBaseVersion = "6.7"
-        runner.targetVersions = ["6.8-20201007220043+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
         runner.useToolingApi = true
-        runner.args = ["-Dorg.gradle.workers.max=8", "--no-build-cache", "--no-scan"]
+        runner.args = ["--no-build-cache", "--no-scan"]
         if (OperatingSystem.current().windows) {
             // Reduce the number of iterations on Windows, since the test takes 3 times as long (10s vs 3s).
             runner.warmUpRuns = 5
@@ -53,18 +57,22 @@ class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceT
         }
     }
 
-    def "assemble for non-abi change with file system watching"() {
-        IncrementalTestProject testProject = findTestProjectAndSetupRunnerForFsWatching()
+    def "assemble for non-abi change with file system watching#configurationCaching"() {
+        IncrementalTestProject testProject = findTestProjectAndSetupRunnerForFsWatching(configurationCachingEnabled)
         testProject.configureForNonAbiChange(runner)
 
         when:
         def result = runner.run()
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        configurationCachingEnabled << [true, false]
+        configurationCaching = configurationCachingEnabled ? " and configuration caching" : ""
     }
 
-    def "assemble for abi change with file system watching"() {
-        IncrementalTestProject testProject = findTestProjectAndSetupRunnerForFsWatching()
+    def "assemble for abi change with file system watching#configurationCaching"() {
+        IncrementalTestProject testProject = findTestProjectAndSetupRunnerForFsWatching(configurationCachingEnabled)
 
         testProject.configureForAbiChange(runner)
 
@@ -72,14 +80,21 @@ class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceT
         def result = runner.run()
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        configurationCachingEnabled << [true, false]
+        configurationCaching = configurationCachingEnabled ? " and configuration caching" : ""
     }
 
-    IncrementalTestProject findTestProjectAndSetupRunnerForFsWatching() {
+    IncrementalTestProject findTestProjectAndSetupRunnerForFsWatching(boolean enableConfigurationCaching) {
         IncrementalTestProject testProject = TestProjects.projectFor(runner.testProject)
         if (testProject instanceof IncrementalAndroidTestProject) {
             IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, AGP_TARGET_VERSION)
+            runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
+            runner.args.add("-DkotlinVersion=${KOTLIN_TARGET_VERSION}")
         }
         runner.args.add("--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}")
+        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME}=${enableConfigurationCaching}")
         testProject
     }
 }

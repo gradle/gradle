@@ -68,12 +68,13 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
     private void runBuildViaTAPI() {
         withConnection {
             def build = newBuild()
+            build.setJvmArguments(NORMALIZED_BUILD_JVM_OPTS)
             build.forTasks("help")
             build.run()
         }
     }
 
     private void runBuildViaCLI() {
-        executer.withTasks("help").run()
+        executer.withArguments("-Dorg.gradle.jvmargs=${NORMALIZED_BUILD_JVM_OPTS.join(" ")}").withTasks("help").run()
     }
 }

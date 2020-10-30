@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import junit.framework.AssertionFailedError
+import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
@@ -161,8 +162,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
         def reg1 = registration(c1, c3, { throw new AssertionFailedError() })
-        def reg2 = registration(c1, c2, { File f -> [new File(f.name + ".2a"), new File(f.name + ".2b")]})
-        def reg3 = registration(c4, c5, { File f -> [new File(f.name + ".5")]})
+        def reg2 = registration(c1, c2, { File f -> [new File(f.name + ".2a"), new File(f.name + ".2b")] })
+        def reg3 = registration(c4, c5, { File f -> [new File(f.name + ".5")] })
 
         given:
         transformRegistrations.transforms >> [reg1, reg2, reg3]
@@ -171,8 +172,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def matchResult = matchingCache.collectConsumerVariants(source, requested)
 
         then:
-        def transformer = matchResult.matches.first()
-        transformer != null
+        def match = matchResult.matches.first()
+        match != null
 
         and:
         _ * schema.matcher() >> matcher
@@ -189,11 +190,24 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transformation.createInvocation(initialSubject("in.txt"), Mock(ExecutionGraphDependenciesResolver), null).invoke().get()
+        def result = run(match.transformation, initialSubject("in.txt"))
 
         then:
         result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
         0 * _
+    }
+
+    TransformationSubject run(Transformation transformation, TransformationSubject initialSubject) {
+        def steps = []
+        transformation.visitTransformationSteps { step ->
+            steps.add(step)
+        }
+        def first = steps.first()
+        def invocation = first.createInvocation(initialSubject, Mock(TransformUpstreamDependencies), null)
+        steps.drop(1).forEach { step ->
+            invocation = invocation.flatMap { subject -> step.createInvocation(subject, Mock(TransformUpstreamDependencies), null) }
+        }
+        return invocation.invoke().get()
     }
 
     def "prefers direct transformation over indirect"() {
@@ -201,9 +215,9 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def c5 = attributes().attribute(a1, "5")
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
-        def reg1 = registration(c1, c3, { })
-        def reg2 = registration(c1, c2, { })
-        def reg3 = registration(c4, c5, { })
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
+        def reg3 = registration(c4, c5, {})
 
         def concat = immutableAttributesFactory.concat(source.asImmutable(), c5.asImmutable())
 
@@ -272,7 +286,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformation.createInvocation(initialSubject("a"), Mock(ExecutionGraphDependenciesResolver), null).invoke().get().files
+        def files = run(result.matches.first().transformation, initialSubject("a")).files
 
         then:
         files == [new File("d"), new File("e")]
@@ -325,8 +339,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "returns empty list when no transforms are available to produce requested variant"() {
-        def reg1 = registration(c1, c3, { })
-        def reg2 = registration(c1, c2, { })
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -422,11 +436,12 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def reg = Stub(ArtifactTransformRegistration)
         reg.from >> from
         reg.to >> to
-        reg.transformationStep >> Stub(TransformationStep) {
-            _ * createInvocation(_ as TransformationSubject, _ as ExecutionGraphDependenciesResolver, null) >> { TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver, services ->
-                return CacheableInvocation.cached(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
-            }
+        def transformationStep = Stub(TransformationStep)
+        _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
+        _ * transformationStep.createInvocation(_ as TransformationSubject, _ as TransformUpstreamDependencies, null) >> { TransformationSubject subject, TransformUpstreamDependencies dependenciesResolver, services ->
+            return CacheableInvocation.cached(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
         }
+        _ * reg.transformationStep >> transformationStep
         reg
     }
 }

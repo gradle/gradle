@@ -26,7 +26,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
     }
 
     @RunFor([
@@ -51,7 +51,6 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
         def iterations = runner.testProject in ['smallNative', 'smallCppApp', 'smallCppMulti'] ? 40 : null
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.runs = iterations
         runner.warmUpRuns = iterations
 

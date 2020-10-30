@@ -30,9 +30,17 @@ import java.util.Set;
 
 public class ActionNode extends Node implements SelfExecutingNode {
     private final WorkNodeAction action;
+    private final ProjectInternal owningProject;
+    private final ProjectInternal projectToLock;
 
     public ActionNode(WorkNodeAction action) {
         this.action = action;
+        this.owningProject = (ProjectInternal) action.getOwningProject();
+        if (owningProject != null && action.usesMutableProjectState()) {
+            this.projectToLock = owningProject;
+        } else {
+            this.projectToLock = null;
+        }
     }
 
     @Nullable
@@ -95,9 +103,8 @@ public class ActionNode extends Node implements SelfExecutingNode {
     @Nullable
     @Override
     public ResourceLock getProjectToLock() {
-        ProjectInternal project = (ProjectInternal) action.getProject();
-        if (project != null) {
-            return project.getMutationState().getAccessLock();
+        if (projectToLock != null) {
+            return projectToLock.getMutationState().getAccessLock();
         }
         return null;
     }
@@ -105,7 +112,7 @@ public class ActionNode extends Node implements SelfExecutingNode {
     @Nullable
     @Override
     public ProjectInternal getOwningProject() {
-        return (ProjectInternal) action.getProject();
+        return owningProject;
     }
 
     @Override

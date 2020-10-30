@@ -30,6 +30,7 @@ import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.TestUtil
@@ -64,6 +65,7 @@ class DefaultSettingsTest extends Specification {
         settingsServices.get(FeaturePreviews) >> previews
         settingsServices.get(DefaultPluginManager) >>> [pluginManager, null]
         settingsServices.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
+        settingsServices.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
 
         serviceRegistryFactory = Mock(ServiceRegistryFactory) {
            1 * createFor(_) >> settingsServices

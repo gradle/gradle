@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
@@ -25,17 +24,15 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.build.BuildState;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class TaskNodeFactory {
-    private final Map<Task, TaskNode> nodes = new HashMap<Task, TaskNode>();
+    private final Map<Task, TaskNode> nodes = new HashMap<>();
     private final IncludedBuildTaskGraph taskGraph;
     private final GradleInternal thisBuild;
     private final BuildIdentifier currentBuildId;
-    private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
 
     public TaskNodeFactory(GradleInternal thisBuild, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
@@ -51,7 +48,7 @@ public class TaskNodeFactory {
         TaskNode node = nodes.get(task);
         if (node == null) {
             if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task, canonicalizedFileCache);
+                node = new LocalTaskNode((TaskInternal) task);
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, currentBuildId, taskGraph);
             }

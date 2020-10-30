@@ -17,20 +17,25 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.internal.tasks.WorkNodeAction
-import org.gradle.execution.plan.ActionNode
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.withCodec
+import org.gradle.execution.plan.ActionNode
 
 
-object ActionNodeCodec : Codec<ActionNode> {
+class ActionNodeCodec(
+    private val userTypesCodec: Codec<Any?>,
+) : Codec<ActionNode> {
     override suspend fun WriteContext.encode(value: ActionNode) {
-        write(value.action)
+        withCodec(userTypesCodec) {
+            write(value.action)
+        }
     }
 
     override suspend fun ReadContext.decode(): ActionNode? {
-        val action = readNonNull<WorkNodeAction>()
+        val action = withCodec(userTypesCodec) { readNonNull<WorkNodeAction>() }
         return ActionNode(action)
     }
 }

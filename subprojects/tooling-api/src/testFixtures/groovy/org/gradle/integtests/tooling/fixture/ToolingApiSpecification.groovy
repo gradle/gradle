@@ -62,6 +62,11 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification {
+    /**
+     * See https://github.com/gradle/gradle-private/issues/3216
+     * To avoid flakiness when reusing daemons between CLI and TAPI
+     */
+    public static final List NORMALIZED_BUILD_JVM_OPTS = ["-Dfile.encoding=UTF-8", "-Duser.country=US", "-Duser.language=en", "-Duser.variant"]
 
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
@@ -233,7 +238,13 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of invisible implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitInvisibleTasks() {
-        return targetVersion >= GradleVersion.version("5.3") ? ['prepareKotlinBuildScriptModel'] : []
+        if (targetVersion >= GradleVersion.version("6.8")) {
+            return ['prepareKotlinBuildScriptModel', 'components', 'dependentComponents', 'model']
+        } else if (targetVersion >= GradleVersion.version("5.3")) {
+            return ['prepareKotlinBuildScriptModel']
+        } else {
+            return []
+        }
     }
 
     /**

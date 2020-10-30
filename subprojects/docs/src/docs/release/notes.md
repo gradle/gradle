@@ -2,12 +2,15 @@ The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[Danny Thomas](https://github.com/DanielThomas),
 [Jeff](https://github.com/mathjeff),
 [jdai8](https://github.com/jdai8),
 [David Burström](https://github.com/davidburstrom),
-[Björn Kautler](https://github.com/Vampire).
+[Björn Kautler](https://github.com/Vampire),
+[Stefan Oehme](https://github.com/oehme),
+[Thad House](https://github.com/ThadHouse).
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
@@ -18,13 +21,13 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-<!-- 
+<!--
 Add release features here!
 ## 1
 
@@ -51,17 +54,16 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
-<<<<<<< HEAD
 ### Compilation avoidance for Kotlin DSL scripts
 
 Until now, any changes to build logic in [buildSrc](userguide/organizing_gradle_projects.html#sec:build_sources) required all the build scripts in the project to be recompiled.
 
-This release introduces compilation avoidance for [Gradle Kotlin DSL](userguide/kotlin_dsl.html) scripts. 
-This feature will cause the scripts to be recompiled only if a change to shared build logic impacts the 
+This release introduces compilation avoidance for [Gradle Kotlin DSL](userguide/kotlin_dsl.html) scripts.
+This feature will cause the scripts to be recompiled only if a change to shared build logic impacts the
 ABI (application binary interface) of the resulting artifact.
-In simpler terms, changes to private implementation details of build logic, such as private methods or classes, 
+In simpler terms, changes to private implementation details of build logic, such as private methods or classes,
 bodies of non-private methods or classes,
-as well as internal changes to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) 
+as well as internal changes to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins)
 such as configuration of tasks will no longer trigger recompilation of the project's build scripts.
 
 On a sample build with 100 subprojects, full recompilation of build scripts caused by a change in `buildSrc` can take [~20 seconds](https://scans.gradle.com/s/haymxorigozha/performance/configuration?showScriptCompilationTimes).
@@ -93,6 +95,10 @@ See [the userguide](userguide/more_about_tasks.html#sec:property_file_normalizat
 ### Configuration cache improvements
 
 [//]: # (TODO context and overview of improvements)
+
+#### Composite builds
+
+Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
 
 #### Supported core plugins
 
@@ -164,6 +170,33 @@ There are many options to configure this feature which are described in the [use
 
 ## New features and usability improvements
 
+### Viewing all available toolchains
+
+Gradle can now provide a list of all detected toolchains including their metadata.
+Output of `gradle -q javaToolchains`:
+```
+ + AdoptOpenJDK 1.8.0_242
+     | Location:           /path/to/8.0.242.hs-adpt/jre
+     | Language Version:   8
+     | Is JDK:             true
+     | Detected by:        SDKMAN!
+
+ + OpenJDK 15-ea
+     | Location:           /path/to/java/15.ea.21-open
+     | Language Version:   15
+     | Is JDK:             true
+     | Detected by:        SDKMAN!
+
+ + Oracle JDK 1.7.0_80
+     | Location:           /Library/Java/jdk1.7.0_80.jdk/jre
+     | Language Version:   7
+     | Is JDK:             true
+     | Detected by:        macOS java_home
+```
+
+This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.
+See the [toolchain documentation](userguide/toolchains.html) for more in-depth information on toolchain detection and usage.
+
 ### Implicit imports
 
 When using [dependency injection](userguide/custom_gradle_types.html#service_injection) when developing plugins, tasks or project extensions, it is now possible to use the `@Inject` annotation without explicitly importing it into your build scripts the
@@ -176,7 +209,7 @@ same way it works for other Gradle API classes.
 This version of Gradle removes TLS protocols v1.0 and v1.1 from the default list of allowed protocols. Gradle will no longer fallback to TLS v1.0 or v1.1 by default when resolving dependencies. Only TLS v1.2 or TLS v1.3 are allowed by default.
 
 These TLS versions can be re-enabled by manually specifying the system property `https.protocols` with
-a comma separated list of protocols required by your build. 
+a comma separated list of protocols required by your build.
 
 The vast majority of builds should not need to change in any way. [Maven Central](https://central.sonatype.org/articles/2018/May/04/discontinued-support-for-tlsv11-and-below/) and [JCenter/Bintray](https://jfrog.com/knowledge-base/why-am-i-failing-to-work-with-jfrog-cloud-services-with-tls-1-0-1-1/) dropped support for TLS v1.0 and TLS v1.1 two years ago. Java has had TLS v1.2+ available for several years. Disabling these protocols in Gradle protects builds from downgrade attacks.
 
@@ -188,7 +221,7 @@ we recommend updating to the latest minor JDK version.
 
 ## IDE integration
 
-### Importing projects with custom source sets into Eclipse 
+### Importing projects with custom source sets into Eclipse
 
 This version of Gradle fixes problems with projects that use custom source sets, like additional functional test source sets.
 
@@ -215,7 +248,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting Problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

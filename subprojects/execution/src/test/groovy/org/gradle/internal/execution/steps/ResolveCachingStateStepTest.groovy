@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.CachingContext
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 
@@ -34,11 +35,11 @@ class ResolveCachingStateStepTest extends StepSpec<BeforeExecutionContext> {
 
     def "build cache disabled reason is reported when build cache is disabled"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * buildCache.enabled >> false
         _ * context.beforeExecutionState >> Optional.empty()
-        1 * delegate.execute(_) >> { CachingContext context ->
+        1 * delegate.execute(work, _ as CachingContext) >> { UnitOfWork work, CachingContext context ->
             assert context.cachingState.disabledReasons.get(0).category == CachingDisabledReasonCategory.BUILD_CACHE_DISABLED
         }
     }
@@ -47,12 +48,12 @@ class ResolveCachingStateStepTest extends StepSpec<BeforeExecutionContext> {
         def disabledReason = new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "Something disabled")
 
         when:
-        step.execute(context)
+        step.execute(work, context)
         then:
         _ * buildCache.enabled >> true
         _ * context.beforeExecutionState >> Optional.empty()
         _ * work.shouldDisableCaching(null) >> Optional.of(disabledReason)
-        1 * delegate.execute(_) >> { CachingContext context ->
+        1 * delegate.execute(work, _ as CachingContext) >> { UnitOfWork work, CachingContext context ->
             assert context.cachingState.disabledReasons.get(0) == disabledReason
         }
     }

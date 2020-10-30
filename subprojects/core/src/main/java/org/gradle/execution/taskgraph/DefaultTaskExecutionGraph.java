@@ -65,6 +65,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 @NonNullApi
 public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
@@ -127,7 +129,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void useFilter(Spec<? super Task> filter) {
-        Spec<? super Task> castFilter = Cast.uncheckedNonnullCast(filter != null ? filter : Specs.SATISFIES_ALL);
+        Spec<? super Task> castFilter = filter != null ? filter : uncheckedNonnullCast(Specs.SATISFIES_ALL);
         executionPlan.useFilter(castFilter);
         graphState = GraphState.DIRTY;
     }
@@ -160,8 +162,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public void populate() {
         ensurePopulated();
         if (!hasFiredWhenReady) {
-            // We know that we're running single-threaded here, so we can use coarse grained project locks
-            projectStateRegistry.withMutableStateOfAllProjects(() -> buildOperationExecutor.run(new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)));
+            fireWhenReady();
             hasFiredWhenReady = true;
         } else if (!graphListeners.isEmpty()) {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
@@ -181,7 +182,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
         Timer clock = Time.startTimer();
         try {
-            planExecutor.process(executionPlan, failures,
+            planExecutor.process(
+                executionPlan,
+                failures,
                 new BuildOperationAwareExecutionAction(
                     buildOperationExecutor.getCurrentOperation(),
                     new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
@@ -198,7 +201,17 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        graphListeners.add(listenerBuildOperationDecorator.decorate("TaskExecutionGraph.addTaskExecutionGraphListener", TaskExecutionGraphListener.class, listener));
+        graphListeners.add(
+            decorateListener("TaskExecutionGraph.addTaskExecutionGraphListener", listener)
+        );
+    }
+
+    private TaskExecutionGraphListener decorateListener(String registrationPoint, TaskExecutionGraphListener listener) {
+        return listenerBuildOperationDecorator.decorate(
+            registrationPoint,
+            TaskExecutionGraphListener.class,
+            listener
+        );
     }
 
     @Override
@@ -208,12 +221,22 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void whenReady(final Closure closure) {
-        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", Cast.<Closure<?>>uncheckedCast(closure))));
+        graphListeners.add(
+            new ClosureBackedMethodInvocationDispatch(
+                "graphPopulated",
+                listenerBuildOperationDecorator.decorate(
+                    "TaskExecutionGraph.whenReady",
+                    Cast.<Closure<?>>uncheckedCast(closure)
+                )
+            )
+        );
     }
 
     @Override
     public void whenReady(final Action<TaskExecutionGraph> action) {
-        graphListeners.add(listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", TaskExecutionGraphListener.class, action::execute));
+        graphListeners.add(
+            decorateListener("TaskExecutionGraph.whenReady", action::execute)
+        );
     }
 
     @Override
@@ -400,6 +423,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         return executionPlan.getFilteredTasks();
     }
 
+    private void fireWhenReady() {
+        // We know that we're running single-threaded here, so we can use coarse grained project locks
+        projectStateRegistry.withMutableStateOfAllProjects(
+            () -> buildOperationExecutor.run(
+                new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)
+            )
+        );
+    }
+
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {
 
         private final TaskExecutionGraph taskExecutionGraph;
@@ -420,10 +452,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(gradleInternal.contextualize("Notify task graph whenReady listeners"))
-                .details(new NotifyTaskGraphWhenReadyBuildOperationType.DetailsImpl(
-                    gradleInternal.getIdentityPath()
-                ));
+            return BuildOperationDescriptor.displayName(
+                gradleInternal.contextualize("Notify task graph whenReady listeners"))
+                .details(
+                    new NotifyTaskGraphWhenReadyBuildOperationType.DetailsImpl(
+                        gradleInternal.getIdentityPath()
+                    )
+                );
         }
     }
 }

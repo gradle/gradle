@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.internal.Factory;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
+    public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformationStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
+
     private final Factory<ResolverResults> graphResults;
     private final Factory<ResolverResults> artifactResults;
     private final DomainObjectContext owner;
@@ -35,7 +37,10 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     }
 
     @Override
-    public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
-        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, graphResults, artifactResults, owner, filteredResultFactory);
+    public TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation) {
+        if (!transformation.requiresDependencies()) {
+            return NO_DEPENDENCIES_RESOLVER;
+        }
+        return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, graphResults, artifactResults, owner, filteredResultFactory);
     }
 }

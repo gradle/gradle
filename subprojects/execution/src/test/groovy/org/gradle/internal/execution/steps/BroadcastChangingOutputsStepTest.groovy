@@ -39,19 +39,15 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         def destroyableDir = file("destroyable-dir")
 
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
-        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
+        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
-        }
-        _ * work.visitDestroyableRoots(_ as UnitOfWork.DestroyableVisitor) >> { UnitOfWork.DestroyableVisitor visitor ->
-            visitor.visitDestroyableRoot(destroyableDir)
-        }
-        _ * work.visitLocalState(_ as UnitOfWork.LocalStateVisitor) >> { UnitOfWork.LocalStateVisitor visitor ->
-            visitor.visitLocalStateRoot(localStateDir)
+            visitor.visitDestroyable(destroyableDir)
+            visitor.visitLocalState(localStateDir)
         }
 
         then:
@@ -62,7 +58,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         ])
 
         then:
-        1 * delegate.execute(context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 }

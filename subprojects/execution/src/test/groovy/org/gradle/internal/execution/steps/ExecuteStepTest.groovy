@@ -35,7 +35,7 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
     @Unroll
     def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result.executionResult.get().outcome == expectedOutcome
@@ -55,7 +55,7 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
     @Unroll
     def "failure #failure.class.simpleName is handled"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         !result.executionResult.successful
@@ -72,7 +72,7 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
     @Unroll
     def "incremental work with result #workResult yields outcome #outcome (executed incrementally: #incrementalExecution)"() {
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result.executionResult.get().outcome == expectedOutcome

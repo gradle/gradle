@@ -21,7 +21,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.BuildCancelledException;
@@ -51,12 +50,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Sets.newIdentityHashSet;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
@@ -67,8 +71,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
-    private final List<Node> executionQueue = Lists.newLinkedList();
-    private final Set<ResourceLock> projectLocks = Sets.newHashSet();
+    private final List<Node> executionQueue = new LinkedList<>();
+    private final Set<ResourceLock> projectLocks = new HashSet<>();
     private final FailureCollector failureCollector = new FailureCollector();
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
@@ -76,11 +80,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean continueOnFailure;
 
-    private final Set<Node> runningNodes = Sets.newIdentityHashSet();
-    private final Set<Node> filteredNodes = Sets.newIdentityHashSet();
-    private final Set<Node> producedButNotYetConsumed = Sets.newIdentityHashSet();
-    private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
-    private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
+    private final Set<Node> runningNodes = newIdentityHashSet();
+    private final Set<Node> filteredNodes = newIdentityHashSet();
+    private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
+    private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
+    private final List<Node> dependenciesWhichRequireMonitoring = new ArrayList<>();
     private boolean maybeNodesReady;
     private final GradleInternal gradle;
 
@@ -139,7 +143,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private void doAddNodes(Deque<Node> queue) {
         Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
-        final Set<Node> visiting = Sets.newHashSet();
+        final Set<Node> visiting = new HashSet<>();
 
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
@@ -197,7 +201,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private void resolveNodesInUnknownState(Set<Node> nodesInUnknownState) {
         Deque<Node> queue = new ArrayDeque<>(nodesInUnknownState);
-        Set<Node> visiting = Sets.newHashSet();
+        Set<Node> visiting = new HashSet<>();
 
         while (!queue.isEmpty()) {
             Node node = queue.peekFirst();
@@ -237,7 +241,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public void determineExecutionPlan() {
-        LinkedList<NodeInVisitingSegment> nodeQueue = Lists.newLinkedList(
+        LinkedList<NodeInVisitingSegment> nodeQueue = newLinkedList(
             Iterables.transform(entryNodes, new Function<Node, NodeInVisitingSegment>() {
                 private int index;
 
@@ -249,12 +253,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             })
         );
         int visitingSegmentCounter = nodeQueue.size();
-        Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
+        Set<Node> dependenciesWhichRequireMonitoring = new HashSet<>();
 
         HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
         Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
         Deque<Node> path = new ArrayDeque<>();
-        Map<Node, Integer> planBeforeVisiting = Maps.newHashMap();
+        Map<Node, Integer> planBeforeVisiting = new HashMap<>();
 
         while (!nodeQueue.isEmpty()) {
             NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.peekFirst();
@@ -332,7 +336,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         dependencyResolver.clear();
-        Iterables.addAll(executionQueue, nodeMapping);
+        nodeMapping.removeIf(Node::requiresMonitoring);
+        executionQueue.addAll(nodeMapping);
         for (Node node : executionQueue) {
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
         }
@@ -415,7 +420,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private Set<Node> getAllPrecedingNodes(Node finalizer) {
-        Set<Node> precedingNodes = Sets.newHashSet();
+        Set<Node> precedingNodes = new HashSet<>();
         Deque<Node> candidateNodes = new ArrayDeque<>();
 
         // Consider every node that must run before the finalizer
@@ -792,27 +797,28 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private static void enforceFinalizers(Node node) {
         for (Node finalizerNode : node.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
-                Set<Node> enforcedNodes = Sets.newHashSet();
-                enforceWithDependencies(finalizerNode, enforcedNodes);
+                enforceWithDependencies(finalizerNode);
             }
         }
     }
 
-    private static void enforceWithDependencies(Node nodeInfo, Set<Node> enforcedNodes) {
-        Deque<Node> candidateNodes = new ArrayDeque<>();
-        candidateNodes.add(nodeInfo);
+    private static void enforceWithDependencies(Node node) {
+        Set<Node> enforcedNodes = new HashSet<>();
 
-        while (!candidateNodes.isEmpty()) {
-            Node node = candidateNodes.pop();
-            if (!enforcedNodes.contains(node)) {
-                enforcedNodes.add(node);
+        Deque<Node> candidates = new ArrayDeque<>();
+        candidates.add(node);
 
-                candidateNodes.addAll(node.getDependencySuccessors());
+        while (!candidates.isEmpty()) {
+            Node candidate = candidates.pop();
+            if (!enforcedNodes.contains(candidate)) {
+                enforcedNodes.add(candidate);
 
-                if (node.isMustNotRun() || node.isRequired()) {
-                    node.enforceRun();
+                candidates.addAll(candidate.getDependencySuccessors());
+
+                if (candidate.isMustNotRun() || candidate.isRequired()) {
+                    candidate.enforceRun();
                     // Completed changed from true to false - inform all nodes depending on this one.
-                    for (Node predecessor : node.getAllPredecessors()) {
+                    for (Node predecessor : candidate.getAllPredecessors()) {
                         predecessor.forceAllDependenciesCompleteUpdate();
                     }
                 }

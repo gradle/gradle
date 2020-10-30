@@ -24,9 +24,6 @@ import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.reporting.components.ComponentReport;
-import org.gradle.api.reporting.dependents.DependentComponentsReport;
-import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
@@ -70,14 +67,19 @@ public class HelpTasksPlugin implements Plugin<Project> {
         tasks.register(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
         tasks.register(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
         tasks.register(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
-        tasks.register(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
-        tasks.register(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
-        tasks.register(DEPENDENT_COMPONENTS_TASK, DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
+        registerDeprecatedTasks(tasks, projectName);
         tasks.register(OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
+    }
+
+    @SuppressWarnings("deprecation")
+    private void registerDeprecatedTasks(TaskContainer tasks, String projectName) {
+        tasks.register(COMPONENTS_TASK, org.gradle.api.reporting.components.ComponentReport.class, new ComponentReportAction(projectName));
+        tasks.register(MODEL_TASK, org.gradle.api.reporting.model.ModelReport.class, new ModelReportAction(projectName));
+        tasks.register(DEPENDENT_COMPONENTS_TASK, org.gradle.api.reporting.dependents.DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
     }
 
     private static class HelpAction implements Action<Help> {
@@ -191,7 +193,8 @@ public class HelpTasksPlugin implements Plugin<Project> {
         }
     }
 
-    private static class ComponentReportAction implements Action<ComponentReport> {
+    @SuppressWarnings("deprecation")
+    private static class ComponentReportAction implements Action<org.gradle.api.reporting.components.ComponentReport> {
         private final String projectName;
 
         public ComponentReportAction(String projectName) {
@@ -199,14 +202,14 @@ public class HelpTasksPlugin implements Plugin<Project> {
         }
 
         @Override
-        public void execute(ComponentReport task) {
-            task.setDescription("Displays the components produced by " + projectName + ". [incubating]");
-            task.setGroup(HELP_GROUP);
+        public void execute(org.gradle.api.reporting.components.ComponentReport task) {
+            task.setDescription("Displays the components produced by " + projectName + ". [deprecated]");
             task.setImpliesSubProjects(true);
         }
     }
 
-    private static class ModelReportAction implements Action<ModelReport> {
+    @SuppressWarnings("deprecation")
+    private static class ModelReportAction implements Action<org.gradle.api.reporting.model.ModelReport> {
         private final String projectName;
 
         public ModelReportAction(String projectName) {
@@ -214,14 +217,14 @@ public class HelpTasksPlugin implements Plugin<Project> {
         }
 
         @Override
-        public void execute(ModelReport task) {
-            task.setDescription("Displays the configuration model of " + projectName + ". [incubating]");
-            task.setGroup(HELP_GROUP);
+        public void execute(org.gradle.api.reporting.model.ModelReport task) {
+            task.setDescription("Displays the configuration model of " + projectName + ". [deprecated]");
             task.setImpliesSubProjects(true);
         }
     }
 
-    private static class DependentComponentsReportAction implements Action<DependentComponentsReport> {
+    @SuppressWarnings("deprecation")
+    private static class DependentComponentsReportAction implements Action<org.gradle.api.reporting.dependents.DependentComponentsReport> {
         private final String projectName;
 
         public DependentComponentsReportAction(String projectName) {
@@ -229,9 +232,8 @@ public class HelpTasksPlugin implements Plugin<Project> {
         }
 
         @Override
-        public void execute(DependentComponentsReport task) {
-            task.setDescription("Displays the dependent components of components in " + projectName + ". [incubating]");
-            task.setGroup(HELP_GROUP);
+        public void execute(org.gradle.api.reporting.dependents.DependentComponentsReport task) {
+            task.setDescription("Displays the dependent components of components in " + projectName + ". [deprecated]");
             task.setImpliesSubProjects(true);
         }
     }

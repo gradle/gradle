@@ -36,9 +36,8 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
     def "assemble for non-abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
         boolean isGroovyProject = testProject.name().contains("GROOVY")
         runner.addBuildMutator {
             def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])

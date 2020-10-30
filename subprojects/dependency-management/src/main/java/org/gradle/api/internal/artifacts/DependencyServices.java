@@ -45,6 +45,7 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.add(ArtifactSetToFileCollectionFactory.class);
+        registration.addProvider(new DependencyManagementBuildSessionScopeServices());
     }
 
     @Override
@@ -63,8 +64,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return listenerManager.getBroadcaster(ArtifactTransformListener.class);
         }
 
-        TransformationNodeRegistry createTransformationNodeRegistry(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            return new DefaultTransformationNodeRegistry(buildOperationExecutor, transformListener);
+        TransformationNodeRegistry createTransformationNodeRegistry(BuildOperationExecutor buildOperationExecutor) {
+            return new DefaultTransformationNodeRegistry(buildOperationExecutor);
         }
 
         TransformationNodeDependencyResolver createTransformationNodeDependencyResolver() {

@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 
 public class CancelExecutionStep<C extends Context> implements Step<C, Result> {
     private final BuildCancellationToken cancellationToken;
@@ -35,17 +36,17 @@ public class CancelExecutionStep<C extends Context> implements Step<C, Result> {
     }
 
     @Override
-    public Result execute(C context) {
+    public Result execute(UnitOfWork work, C context) {
         Thread thread = Thread.currentThread();
         Runnable interrupt = thread::interrupt;
         try {
             cancellationToken.addCallback(interrupt);
-            return delegate.execute(context);
+            return delegate.execute(work, context);
         } finally {
             cancellationToken.removeCallback(interrupt);
             if (cancellationToken.isCancellationRequested()) {
                 Thread.interrupted();
-                throw new BuildCancelledException("Build cancelled while executing " + context.getWork().getDisplayName());
+                throw new BuildCancelledException("Build cancelled while executing " + work.getDisplayName());
             }
         }
     }

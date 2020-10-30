@@ -1,0 +1,2 @@
+[dependencies]
+module = ":bar:1.0"

@@ -31,6 +31,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public abstract class TaskInAnotherBuild extends TaskNode {
 
@@ -135,11 +136,6 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     }
 
     @Override
-    public void require() {
-        // Ignore
-    }
-
-    @Override
     public boolean isSuccessful() {
         return state == IncludedBuildTaskResource.State.SUCCESS;
     }
@@ -208,6 +204,17 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         @Override
         public String getTaskPath() {
             return task.getPath();
+        }
+
+        @Override
+        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+            Set<Node> dependencies = dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
+            for (Node targetNode : dependencies) {
+                if (targetNode instanceof TaskNode) {
+                    addDependencySuccessor(targetNode);
+                    processHardSuccessor.execute(targetNode);
+                }
+            }
         }
     }
 

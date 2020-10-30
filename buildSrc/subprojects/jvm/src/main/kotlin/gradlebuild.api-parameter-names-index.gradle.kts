@@ -36,6 +36,7 @@ val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
         project.layout.buildDirectory.file(moduleIdentity.baseName.map { "generated-resources/$it-parameter-names/$it-parameter-names.properties" })
     )
 }
+
 tasks.withType<GroovyCompile>() {
     if (name == "compileGroovy") {
         val compileGroovy = this

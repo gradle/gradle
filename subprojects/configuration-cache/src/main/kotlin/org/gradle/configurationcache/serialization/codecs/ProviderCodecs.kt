@@ -51,7 +51,11 @@ import org.gradle.configurationcache.serialization.readClassOf
  * This is not used directly when encoding or decoding the object graph. This codec takes care of substituting a provider whose
  * value is known at configuration time with a fixed value.
  */
-class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourceProviderFactory, buildServiceRegistry: BuildServiceRegistryInternal) {
+internal
+class FixedValueReplacingProviderCodec(
+    valueSourceProviderFactory: ValueSourceProviderFactory,
+    buildServiceRegistry: BuildServiceRegistryInternal
+) {
     private
     val providerWithChangingValueCodec = BindingsBackedCodec {
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
@@ -76,19 +80,23 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
     }
 
     suspend fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {
-        if (value.isMissing) {
-            // Can serialize a fixed value and discard the provider
-            // TODO - should preserve information about the source, for diagnostics at execution time
-            writeByte(1)
-        } else if (value.isFixedValue) {
-            // Can serialize a fixed value and discard the provider
-            // TODO - should preserve information about the source, for diagnostics at execution time
-            writeByte(2)
-            write(value.fixedValue)
-        } else {
-            // Cannot write a fixed value, so write the provider itself
-            writeByte(3)
-            providerWithChangingValueCodec.run { encode(value.changingValue) }
+        when {
+            value.isMissing -> {
+                // Can serialize a fixed value and discard the provider
+                // TODO - should preserve information about the source, for diagnostics at execution time
+                writeByte(1)
+            }
+            value.isFixedValue -> {
+                // Can serialize a fixed value and discard the provider
+                // TODO - should preserve information about the source, for diagnostics at execution time
+                writeByte(2)
+                write(value.fixedValue)
+            }
+            else -> {
+                // Cannot write a fixed value, so write the provider itself
+                writeByte(3)
+                providerWithChangingValueCodec.run { encode(value.changingValue) }
+            }
         }
     }
 
@@ -96,8 +104,8 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
         return decodeValue().toProvider()
     }
 
-    suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> {
-        return when (readByte()) {
+    suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> =
+        when (readByte()) {
             0.toByte() -> {
                 val value = read() as BrokenValue
                 ValueSupplier.ExecutionTimeValue.changingValue(DefaultProvider { value.rethrow() })
@@ -107,26 +115,32 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
             3.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue<Any>(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
             else -> throw IllegalStateException("Unexpected provider value")
         }
-    }
 }
 
 
 /**
  * Handles Provider instances seen in the object graph, and delegates to another codec that handles the value.
  */
-class
-ProviderCodec(private val providerCodec: FixedValueReplacingProviderCodec) : Codec<ProviderInternal<*>> {
+internal
+class ProviderCodec(
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<ProviderInternal<*>> {
+
     override suspend fun WriteContext.encode(value: ProviderInternal<*>) {
         // TODO - should write the provider value type
         providerCodec.run { encodeProvider(value) }
     }
 
-    override suspend fun ReadContext.decode() = providerCodec.run { decodeProvider() }
+    override suspend fun ReadContext.decode() =
+        providerCodec.run { decodeProvider() }
 }
 
 
-class
-BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInternal) : Codec<BuildServiceProvider<*, *>> {
+internal
+class BuildServiceProviderCodec(
+    private val serviceRegistry: BuildServiceRegistryInternal
+) : Codec<BuildServiceProvider<*, *>> {
+
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
             writeString(value.name)
@@ -147,8 +161,8 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
 }
 
 
-class
-ValueSourceProviderCodec(
+internal
+class ValueSourceProviderCodec(
     private val valueSourceProviderFactory: ValueSourceProviderFactory
 ) : Codec<ValueSourceProvider<*, *>> {
 
@@ -205,8 +219,12 @@ ValueSourceProviderCodec(
 }
 
 
-class
-PropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultProperty<*>> {
+internal
+class PropertyCodec(
+    private val propertyFactory: PropertyFactory,
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultProperty<*>> {
+
     override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
         writeClass(value.type as Class<*>)
         providerCodec.run { encodeProvider(value.provider) }
@@ -220,8 +238,12 @@ PropertyCodec(private val propertyFactory: PropertyFactory, private val provider
 }
 
 
-class
-DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultDirectoryVar> {
+internal
+class DirectoryPropertyCodec(
+    private val filePropertyFactory: FilePropertyFactory,
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultDirectoryVar> {
+
     override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
         providerCodec.run { encodeProvider(value.provider) }
     }
@@ -233,8 +255,12 @@ DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory, pri
 }
 
 
-class
-RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultRegularFileVar> {
+internal
+class RegularFilePropertyCodec(
+    private val filePropertyFactory: FilePropertyFactory,
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultRegularFileVar> {
+
     override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
         providerCodec.run { encodeProvider(value.provider) }
     }
@@ -246,8 +272,12 @@ RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory, p
 }
 
 
-class
-ListPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultListProperty<*>> {
+internal
+class ListPropertyCodec(
+    private val propertyFactory: PropertyFactory,
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultListProperty<*>> {
+
     override suspend fun WriteContext.encode(value: DefaultListProperty<*>) {
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
@@ -263,8 +293,12 @@ ListPropertyCodec(private val propertyFactory: PropertyFactory, private val prov
 }
 
 
-class
-SetPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultSetProperty<*>> {
+internal
+class SetPropertyCodec(
+    private val propertyFactory: PropertyFactory,
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultSetProperty<*>> {
+
     override suspend fun WriteContext.encode(value: DefaultSetProperty<*>) {
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
@@ -280,8 +314,12 @@ SetPropertyCodec(private val propertyFactory: PropertyFactory, private val provi
 }
 
 
-class
-MapPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultMapProperty<*, *>> {
+internal
+class MapPropertyCodec(
+    private val propertyFactory: PropertyFactory,
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultMapProperty<*, *>> {
+
     override suspend fun WriteContext.encode(value: DefaultMapProperty<*, *>) {
         writeClass(value.keyType)
         writeClass(value.valueType)

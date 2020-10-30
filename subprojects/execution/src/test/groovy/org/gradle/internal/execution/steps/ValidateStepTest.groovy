@@ -31,14 +31,12 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
     def "executes work when there are no violations"() {
         boolean validated = false
         when:
-        def result = step.execute(context)
+        def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
-        1 * delegate.execute(_) >> { ctx ->
-            delegateResult
-        }
+        1 * delegate.execute(work, context) >> delegateResult
         _ * work.validate(_ as  WorkValidationContext) >> { validated = true }
 
         then:
@@ -48,7 +46,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
     def "fails when there is a single violation"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         def ex = thrown WorkValidationException
@@ -64,7 +62,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
     def "fails when there are multiple violations"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         def ex = thrown WorkValidationException
@@ -82,7 +80,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
     def "reports deprecation warning for validation warning"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
@@ -93,13 +91,13 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         1 * warningReporter.reportValidationWarning("Type '$Object.simpleName': Validation warning.")
 
         then:
-        1 * delegate.execute(context)
+        1 * delegate.execute(work, context)
         0 * _
     }
 
     def "reports deprecation warning even when there's also an error"() {
         when:
-        step.execute(context)
+        step.execute(work, context)
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->

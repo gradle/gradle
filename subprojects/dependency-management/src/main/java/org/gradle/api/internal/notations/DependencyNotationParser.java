@@ -19,6 +19,7 @@ package org.gradle.api.internal.notations;
 import com.google.common.collect.Interner;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
@@ -26,21 +27,45 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 public class DependencyNotationParser {
     public static NotationParser<Object, Dependency> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, ClassPathRegistry classPathRegistry, FileCollectionFactory fileCollectionFactory, RuntimeShadedJarFactory runtimeShadedJarFactory, CurrentGradleInstallation currentGradleInstallation, Interner<String> stringInterner) {
         return NotationParserBuilder
             .toType(Dependency.class)
             .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner))
+            .fromType(MinimalExternalModuleDependency.class, new MinimalExternalDependencyNotationConverter(instantiator))
             .converter(new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class))
             .fromType(FileCollection.class, new DependencyFilesNotationConverter(instantiator))
             .fromType(Project.class, new DependencyProjectNotationConverter(dependencyFactory))
             .fromType(DependencyFactory.ClassPathNotation.class, new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation))
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
+    }
+
+    private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, DefaultExternalModuleDependency> {
+        private final Instantiator instantiator;
+
+        public MinimalExternalDependencyNotationConverter(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super DefaultExternalModuleDependency> result) throws TypeConversionException {
+            result.converted(instantiator.newInstance(DefaultExternalModuleDependency.class, notation.getModule(), notation.getVersionConstraint()));
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+        }
+
+
     }
 }

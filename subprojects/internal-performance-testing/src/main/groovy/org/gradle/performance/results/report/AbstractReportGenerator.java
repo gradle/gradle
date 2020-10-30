@@ -17,9 +17,11 @@
 package org.gradle.performance.results.report;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.GradleException;
 import org.gradle.performance.results.FileRenderer;
 import org.gradle.performance.results.NoResultsStore;
 import org.gradle.performance.results.PerformanceDatabase;
+import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
@@ -89,6 +91,66 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     }
 
     protected void checkResult(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
+        boolean onlyOneTestExecuted = executionDataProvider.getScenarioExecutionData().size() == 1;
+        FailureCollector failureCollector = new FailureCollector();
+        collectFailures(flakinessDataProvider, executionDataProvider, failureCollector);
+        String resultString = onlyOneTestExecuted
+            ? formatSingleResultString(executionDataProvider, failureCollector)
+            : formatResultString(failureCollector);
+        if (failureCollector.isFailBuild()) {
+            String failedMessage = "Performance test failed" + resultString;
+            if (onlyOneTestExecuted) {
+                System.out.println("##teamcity[buildStatus text='" + failedMessage + "']");
+            }
+            throw new GradleException(failedMessage);
+        }
+        String successMessage = "Performance test passed" + resultString;
+        System.out.println(successMessage);
+        markBuildAsSuccessful(successMessage);
+    }
+
+    protected abstract void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector);
+
+
+    private void markBuildAsSuccessful(String successMessage) {
+        System.out.println("##teamcity[buildStatus status='SUCCESS' text='" + successMessage + "']");
+    }
+
+    private String formatResultString(FailureCollector failureCollector) {
+        StringBuilder sb = new StringBuilder();
+        if (failureCollector.getBuildFailures() != 0) {
+            sb.append(", ").append(failureCollector.getBuildFailures()).append(" scenario(s) failed");
+        }
+        if (failureCollector.getRegressedScenarios() != 0) {
+            sb.append(", ").append(failureCollector.getRegressedScenarios()).append(" stable scenario(s) regressed");
+        }
+        if (failureCollector.getFlakyScenarioBigRegressions() != 0) {
+            sb.append(", ").append(failureCollector.getFlakyScenarioBigRegressions()).append(" flaky scenario(s) regressed badly");
+        }
+
+        if (failureCollector.getFlakyScenarioSmallRegressions() != 0) {
+            sb.append(", ").append(failureCollector.getFlakyScenarioSmallRegressions()).append(" flaky scenarios(s) regressed slightly");
+        }
+
+        sb.append('.');
+        return sb.toString();
+    }
+
+    private String formatSingleResultString(PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
+        PerformanceExperiment performanceExperiment = executionDataProvider.getScenarioExecutionData().first().getPerformanceExperiment();
+        String messageTemplate;
+        if (failureCollector.getBuildFailures() != 0) {
+            messageTemplate = ", scenario %s failed.";
+        } else if (failureCollector.getRegressedScenarios() != 0) {
+            messageTemplate = ", stable scenario %s regressed.";
+        } else if (failureCollector.getFlakyScenarioBigRegressions() != 0) {
+            messageTemplate = ", flaky scenario %s regressed badly.";
+        } else if (failureCollector.getFlakyScenarioSmallRegressions() != 0) {
+            messageTemplate = ", flaky scenario %s regressed slightly.";
+        } else {
+            messageTemplate = ", scenario %s succeeded.";
+        }
+        return String.format(messageTemplate, performanceExperiment.getDisplayName());
     }
 
     protected void renderScenarioPage(String projectName, File outputDirectory, PerformanceTestHistory testResults) {
@@ -116,5 +178,52 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         URL resource = getClass().getClassLoader().getResource("org/gradle/reporting/" + resourceName);
         String dir = StringUtils.substringAfterLast(resourceName, ".");
         GFileUtils.copyURLToFile(resource, new File(outputDirectory, dir + "/" + resourceName));
+    }
+
+    public static class FailureCollector {
+        private int buildFailures = 0;
+        private int regressedScenarios = 0;
+        private int flakyScenarioBigRegressions = 0;
+        private int flakyScenarioSmallRegressions = 0;
+        private boolean failBuild;
+
+        public void scenarioFailed() {
+            buildFailures++;
+            failBuild = true;
+        }
+
+        public void scenarioRegressed() {
+            regressedScenarios++;
+            failBuild = true;
+        }
+
+        public void flakyScenarioWithBigRegression() {
+            flakyScenarioBigRegressions++;
+            failBuild = true;
+        }
+
+        public void flakyScenarioWithSmallRegression() {
+            flakyScenarioSmallRegressions++;
+        }
+
+        public boolean isFailBuild() {
+            return failBuild;
+        }
+
+        public int getBuildFailures() {
+            return buildFailures;
+        }
+
+        public int getRegressedScenarios() {
+            return regressedScenarios;
+        }
+
+        public int getFlakyScenarioBigRegressions() {
+            return flakyScenarioBigRegressions;
+        }
+
+        public int getFlakyScenarioSmallRegressions() {
+            return flakyScenarioSmallRegressions;
+        }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.performance.regression.nativeplatform
 
-import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
@@ -31,15 +30,13 @@ class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest
 
     def setup() {
         runner.minimumBaseVersion = '4.6'
-        runner.targetVersions = ["6.7-20200824220048+0000"]
-        runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
     }
 
     def "clean assemble (swift)"() {
         given:
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()

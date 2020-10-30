@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -35,10 +36,18 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
         ResolvedArtifactSet delegate,
         ImmutableAttributes target,
         Transformation transformation,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
     ) {
-        super(componentIdentifier, delegate, target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
+        super(componentIdentifier, delegate, target, transformation, dependenciesResolverFactory);
+        this.componentIdentifier = componentIdentifier;
+        this.delegate = delegate;
+    }
+
+    public TransformedExternalArtifactSet(ComponentIdentifier componentIdentifier,
+                                          ResolvedArtifactSet delegate,
+                                          ImmutableAttributes targetVariantAttributes,
+                                          ImmutableList<BoundTransformationStep> steps) {
+        super(delegate, targetVariantAttributes, steps);
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
     }
@@ -49,7 +58,9 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        getTransformation().visitTransformationSteps(step -> context.add(getDependenciesResolver().computeDependencyNodes(step)));
+        for (BoundTransformationStep step : getSteps()) {
+            context.add(step.getUpstreamDependencies());
+        }
     }
 
     public void visitArtifacts(Action<ResolvableArtifact> visitor) {

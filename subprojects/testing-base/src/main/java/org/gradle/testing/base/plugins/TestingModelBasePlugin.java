@@ -17,24 +17,17 @@
 package org.gradle.testing.base.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.Each;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
@@ -74,27 +67,6 @@ public class TestingModelBasePlugin implements Plugin<Project> {
             for (TestSuiteSpec testSuite : testSuites.values()) {
                 for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
                     binaries.put(binary.getProjectScopedName(), binary);
-                }
-            }
-        }
-
-        @Finalize
-        public void defineBinariesCheckTasks(@Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
-            if (binary.isLegacyBinary()) {
-                return;
-            }
-            TaskInternal binaryLifecycleTask = taskInstantiator.create(binary.getNamingScheme().getTaskName("check"), DefaultTask.class);
-            binaryLifecycleTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-            binaryLifecycleTask.setDescription("Check " + binary);
-            binary.setCheckTask(binaryLifecycleTask);
-        }
-
-        @Finalize
-        void copyBinariesCheckTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
-            for (BinarySpec binary : binaries) {
-                Task checkTask = binary.getCheckTask();
-                if (checkTask != null) {
-                    ((TaskContainerInternal)tasks).addInternal(checkTask);
                 }
             }
         }

@@ -30,9 +30,8 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "tasks"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['tasks']
-        runner.targetVersions = ["6.8-20200917220028+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
 
         when:
         def result = runner.run()
@@ -43,9 +42,8 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "tasks --all"() {
         given:
-        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['tasks', '--all']
-        runner.targetVersions = ["6.8-20200917220028+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
 
         when:
         def result = runner.run()

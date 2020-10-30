@@ -68,8 +68,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
     }
 
     @Override
-    public CachingResult execute(BeforeExecutionContext context) {
-        UnitOfWork work = context.getWork();
+    public CachingResult execute(UnitOfWork work, BeforeExecutionContext context) {
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
             cachingState = BUILD_CACHE_DISABLED_STATE;
@@ -93,7 +92,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             logDisabledReasons(disabledReasons, work);
         }
 
-        UpToDateResult result = delegate.execute(new CachingContext() {
+        UpToDateResult result = delegate.execute(work, new CachingContext() {
             @Override
             public CachingState getCachingState() {
                 return cachingState;
@@ -132,11 +131,6 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return context.getBeforeExecutionState();
-            }
-
-            @Override
-            public UnitOfWork getWork() {
-                return work;
             }
         });
         return new CachingResult() {

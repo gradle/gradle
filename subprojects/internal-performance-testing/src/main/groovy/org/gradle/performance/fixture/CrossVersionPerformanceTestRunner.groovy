@@ -108,10 +108,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return measuredBuildOperations
     }
 
-    List<String> getProjectMemoryOptions() {
-        TestProjects.getProjectMemoryOptions(testProject)
-    }
-
     CrossVersionPerformanceResults run() {
         assumeShouldRun()
 
@@ -168,6 +164,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
+        TestProjects.validateTestProject(testProject)
     }
 
     private File perVersionWorkingDirectory(int runIndex) {
@@ -179,10 +176,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             FileUtils.cleanDirectory(perVersion)
         }
         perVersion
-    }
-
-    private static String sanitizeVersionWorkingDir(String version) {
-        version.replace('+', '')
     }
 
     private static String resolveVersion(String version, ReleasedVersionDistributions releases) {

@@ -82,6 +82,58 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         output.count("Transforming") == 2
     }
 
+    def "cross-build dependency with with transform in another build"() {
+        given:
+        def buildB = multiProjectBuild('buildB', ['app', 'lib'])
+        buildB.buildFile << """
+            subprojects {
+                apply plugin: "java-library"
+            }
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, input.name + '.txt')
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+            def artifactType = Attribute.of('artifactType', String)
+            project(':app') {
+                dependencies {
+                    implementation(project(':lib'))
+                    registerTransform {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'size')
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve(type: Copy) {
+                    from configurations.runtimeClasspath.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts.artifactFiles
+                    into "\$buildDir/libs"
+                }
+            }
+        """
+        includedBuilds << buildB
+
+        buildA.buildFile << """
+            task run {
+                dependsOn gradle.includedBuild('buildB').task(':app:resolve')
+            }
+        """
+
+        when:
+        execute(buildA, 'run')
+
+        then:
+        assertTaskExecuted(':buildB', ':lib:compileJava')
+        assertTaskExecuted(':buildB', ':lib:classes')
+        assertTaskExecuted(':buildB', ':lib:jar')
+        assertTaskExecuted(':buildB', ':app:resolve')
+        assertTaskExecuted(':', ':run')
+    }
+
+
     private String expectedWorkspaceLocation(TestFile includedBuild) {
         includedBuild.file("build/.transforms")
     }

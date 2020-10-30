@@ -98,15 +98,28 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         failure.assertHasDescription("Included build in ${buildB} has name 'buildB' which is the same as a project of the main build.")
     }
 
-    def "reports failure for included build name that conflicts with root project name"() {
-        def buildC = singleProjectBuild("buildC")
-        buildC.settingsFile.text = "rootProject.name = 'buildA'"
-        includedBuilds << buildC
+    def "included build name can be the same as root project name"() {
+        given:
+        buildB.settingsFile.text = "rootProject.name = 'buildA'"
 
         when:
-        fails(buildA, "help")
+        includedBuilds << buildB
 
         then:
-        failure.assertHasDescription("Included build in ${buildC} has the same root project name 'buildA' as the main build.")
+        execute(buildA, "help")
     }
+
+    def "allows to rename included build that conflicts with subproject name"() {
+        given:
+        buildA.settingsFile << """
+            include 'buildB'
+        """
+
+        when:
+        includeBuildAs(buildB, "buildB-build")
+
+        then:
+        execute(buildA, "help")
+    }
+
 }

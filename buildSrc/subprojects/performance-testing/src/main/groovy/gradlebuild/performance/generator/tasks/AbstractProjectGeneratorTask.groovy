@@ -53,6 +53,12 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     @Input
     int numberOfScriptPlugins = 0
 
+    @Input
+    String daemonMemory
+
+    @Input
+    int maxWorkers = 8
+
     @Nested
     final gradlebuild.performance.generator.DependencyGraph dependencyGraph = new gradlebuild.performance.generator.DependencyGraph()
 
@@ -199,6 +205,9 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
             projectDir: destDir,
             files: rootProjectFiles,
             templates: effectiveRootProjectTemplates,
+            daemonMemory: daemonMemory,
+            parallel: true,
+            maxWorkers: maxWorkers,
             includeSource: subprojectNames.empty)
 
         project.copy {
@@ -220,7 +229,7 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
 
     @Input
     List<String> getRootProjectFiles() {
-        subprojectNames.empty ? ['settings.gradle'] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
+        subprojectNames.empty ? ['settings.gradle', 'gradle.properties'] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
     }
 
     def generateSubProject(TestProject testProject) {

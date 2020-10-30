@@ -22,13 +22,11 @@ import javax.annotation.Nullable
 class AndroidTestProject implements TestProject {
 
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
-        templateName: 'largeAndroidBuild',
-        memory: '5g',
+        templateName: 'largeAndroidBuild'
     )
 
     public static final K9_ANDROID = new AndroidTestProject(
-        templateName: 'k9AndroidBuild',
-        memory: '1g',
+        templateName: 'k9AndroidBuild'
     )
 
     public static final List<AndroidTestProject> ANDROID_TEST_PROJECTS = [
@@ -39,7 +37,6 @@ class AndroidTestProject implements TestProject {
     ]
 
     String templateName
-    String memory
 
     static AndroidTestProject projectFor(String testProject) {
         def foundProject = findProjectFor(testProject)
@@ -56,14 +53,10 @@ class AndroidTestProject implements TestProject {
 
     @Override
     void configure(CrossVersionPerformanceTestRunner runner) {
-        runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
     }
 
     @Override
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
-        builder.invocation {
-            gradleOpts("-Xms$memory", "-Xmx$memory")
-        }
     }
 
     @Override

@@ -19,6 +19,8 @@ package org.gradle.integtests.fixtures;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.util.GradleVersion;
 
+import java.util.Objects;
+
 public class GradleDistributionTool implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
     private final GradleDistribution distribution;
     private final String ignored;
@@ -43,5 +45,22 @@ public class GradleDistributionTool implements AbstractContextualMultiVersionSpe
 
     public String getIgnored() {
         return ignored;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        GradleDistributionTool that = (GradleDistributionTool) o;
+        return Objects.equals(distribution.getVersion(), that.distribution.getVersion());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(distribution.getVersion());
     }
 }

@@ -16,26 +16,54 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
-import org.gradle.api.internal.artifacts.transform.TransformationStep
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.DefaultTransformer
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.codecs.BindingsBackedCodec
-import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.withCodec
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.snapshot.ValueSnapshotter
 
 
 class IsolateTransformerParametersNodeCodec(
-    val userTypesCodec: BindingsBackedCodec
-) : Codec<TransformationStep.IsolateTransformerParametersNode> {
-    override suspend fun WriteContext.encode(value: TransformationStep.IsolateTransformerParametersNode) {
-        withCodec(userTypesCodec) {
-            write(value.transformationStep)
-        }
+    val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    val parameterScheme: ArtifactTransformParameterScheme,
+    val isolatableFactory: IsolatableFactory,
+    val buildOperationExecutor: BuildOperationExecutor,
+    val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+    val valueSnapshotter: ValueSnapshotter,
+    val fileCollectionFactory: FileCollectionFactory
+) : Codec<DefaultTransformer.IsolateTransformerParameters> {
+    override suspend fun WriteContext.encode(value: DefaultTransformer.IsolateTransformerParameters) {
+        write(value.parameterObject)
+        writeClass(value.implementationClass)
+        writeBoolean(value.isCacheable)
     }
 
-    override suspend fun ReadContext.decode(): TransformationStep.IsolateTransformerParametersNode? {
-        val step = withCodec(userTypesCodec) { readNonNull<TransformationStep>() }
-        return TransformationStep.IsolateTransformerParametersNode(step)
+    override suspend fun ReadContext.decode(): DefaultTransformer.IsolateTransformerParameters? {
+        val parameterObject: TransformParameters? = read()?.uncheckedCast()
+        val implementationClass = readClass()
+        val cacheable = readBoolean()
+
+        return DefaultTransformer.IsolateTransformerParameters(
+            parameterObject,
+            implementationClass,
+            cacheable,
+            RootScriptDomainObjectContext.INSTANCE,
+            parameterScheme.inspectionScheme.propertyWalker,
+            isolatableFactory,
+            buildOperationExecutor,
+            classLoaderHierarchyHasher,
+            valueSnapshotter,
+            fileCollectionFactory,
+            fingerprinterRegistry
+        )
     }
 }

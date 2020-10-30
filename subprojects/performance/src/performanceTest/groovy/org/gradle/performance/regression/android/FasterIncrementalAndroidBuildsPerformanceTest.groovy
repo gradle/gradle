@@ -21,6 +21,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
@@ -37,7 +38,6 @@ import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
-import static org.gradle.performance.fixture.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
@@ -47,6 +47,7 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 )
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.2"
+    private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
     private static final String BASELINE_VERSION = "6.8-milestone-1"
 
     def setup() {
@@ -84,20 +85,22 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         given:
         runner.measureBuildOperation(ExecuteTaskActionBuildOperationType.name)
         runner.buildSpec {
-            displayName("with file system watching - baseline")
+            displayName("with file system watching and configuration caching - baseline")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
                 args.addAll(Optimization.WATCH_FS.arguments)
+                args.addAll(Optimization.CONFIGURATION_CACHING.arguments)
                 distribution(buildContext.distribution(BASELINE_VERSION))
             }
         }
         runner.buildSpec {
-            displayName("with file system watching")
+            displayName("with file system watching and configuration caching")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
                 args.addAll(Optimization.WATCH_FS.arguments)
+                args.addAll(Optimization.CONFIGURATION_CACHING.arguments)
             }
         }
         runner.buildSpec {
@@ -152,12 +155,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     private static Map<String, Set<Optimization>> supportedOptimizations(IncrementalTestProject testProject) {
         // Kotlin is not supported for configuration caching
-        return testProject == SANTA_TRACKER_KOTLIN
-            ? [
-            "no optimizations": EnumSet.noneOf(Optimization),
-            "FS watching": EnumSet.of(Optimization.WATCH_FS)
-        ]
-            : [
+        return [
             "no optimizations": EnumSet.noneOf(Optimization),
             "FS watching": EnumSet.of(Optimization.WATCH_FS),
             "configuration caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
@@ -170,9 +168,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
         IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(builder, AGP_TARGET_VERSION)
         builder.invocation.args(
-            "-Dorg.gradle.workers.max=8",
             "--no-build-cache",
-            "--no-scan"
+            "--no-scan",
+            "-DkotlinVersion=${KOTLIN_TARGET_VERSION}"
         )
         builder.invocation.useToolingApi()
         builder.warmUpCount(1)

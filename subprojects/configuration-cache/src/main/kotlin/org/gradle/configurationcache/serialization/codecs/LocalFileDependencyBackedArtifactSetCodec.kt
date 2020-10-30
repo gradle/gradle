@@ -37,12 +37,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
-import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
@@ -52,7 +52,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.configurationcache.serialization.Codec
@@ -262,21 +261,28 @@ class FixedFileMetadata(
 
 
 private
-class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCollectionFactory) : ExtraExecutionGraphDependenciesResolverFactory {
-    override fun create(componentIdentifier: ComponentIdentifier): ExecutionGraphDependenciesResolver {
-        return object : ExecutionGraphDependenciesResolver {
-            override fun computeDependencyNodes(transformationStep: TransformationStep): TaskDependencyContainer {
-                throw UnsupportedOperationException("Should not be called")
-            }
+class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCollectionFactory) : ExtraExecutionGraphDependenciesResolverFactory, TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
+    override fun create(componentIdentifier: ComponentIdentifier, transformation: Transformation): TransformUpstreamDependenciesResolver {
+        return this
+    }
 
-            override fun selectedArtifacts(transformer: Transformer): FileCollection {
-                throw UnsupportedOperationException("Should not be called")
-            }
+    override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {
+        return this
+    }
 
-            override fun computeArtifacts(transformer: Transformer): Try<ArtifactTransformDependencies> {
-                return Try.successful(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
-            }
-        }
+    override fun visitDependencies(context: TaskDependencyResolveContext) {
+        throw UnsupportedOperationException("Should not be called")
+    }
+
+    override fun selectedArtifacts(): FileCollection {
+        throw UnsupportedOperationException("Should not be called")
+    }
+
+    override fun finalizeIfNotAlready() {
+    }
+
+    override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
+        return Try.successful(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
     }
 }
 

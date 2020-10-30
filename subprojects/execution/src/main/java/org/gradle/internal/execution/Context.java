@@ -17,5 +17,4 @@
 package org.gradle.internal.execution;
 
 public interface Context {
-    UnitOfWork getWork();
 }

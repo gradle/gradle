@@ -127,7 +127,10 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.api.internal.std.DefaultDependenciesAccessors;
+import org.gradle.api.internal.std.DependenciesAccessorsWorkspace;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -135,8 +138,7 @@ import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.internal.management.DefaultDependencyResolutionManagement;
-import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
@@ -156,6 +158,8 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.management.DefaultDependencyResolutionManagement;
+import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -208,14 +212,17 @@ class DependencyManagementBuildScopeServices {
                                                                                     FileResolver fileResolver,
                                                                                     FileCollectionFactory fileCollectionFactory,
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                                                    ObjectFactory objects) {
+                                                                                    ObjectFactory objects,
+                                                                                    ProviderFactory providers) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
             dependencyMetaDataProvider,
-            objects);
+            objects,
+            providers
+        );
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
@@ -238,20 +245,26 @@ class DependencyManagementBuildScopeServices {
         return defaultVersionComparator;
     }
 
+    DefaultProjectDependencyFactory createProjectDependencyFactory(
+        Instantiator instantiator,
+        StartParameter startParameter,
+        ProjectAccessListener projectAccessListener,
+        ImmutableAttributesFactory attributesFactory) {
+        NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
+        return new DefaultProjectDependencyFactory(
+            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
+    }
+
     DependencyFactory createDependencyFactory(
         Instantiator instantiator,
-        ListenerManager listenerManager,
-        StartParameter startParameter,
+        DefaultProjectDependencyFactory factory,
         ClassPathRegistry classPathRegistry,
         CurrentGradleInstallation currentGradleInstallation,
         FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
-        ProjectAccessListener projectAccessListener,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
@@ -677,4 +690,13 @@ class DependencyManagementBuildScopeServices {
             }
         });
     }
+
+    DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry,
+                                                              DependenciesAccessorsWorkspace workspace,
+                                                              DefaultProjectDependencyFactory factory,
+                                                              BuildOperationExecutor buildOperationExecutor,
+                                                              FeaturePreviews featurePreviews) {
+        return new DefaultDependenciesAccessors(registry, workspace, factory, buildOperationExecutor, featurePreviews);
+    }
+
 }

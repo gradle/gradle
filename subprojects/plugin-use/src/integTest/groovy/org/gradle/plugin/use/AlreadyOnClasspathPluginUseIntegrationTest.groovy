@@ -17,7 +17,6 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
@@ -58,7 +57,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForConfigurationCache(because = "maven-publish plugin")
     def "can request non-core plugin already applied to parent project"() {
 
         given:
@@ -87,7 +85,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForConfigurationCache(because = "maven-publish plugin")
     def "can request non-core plugin already applied to grand-parent project"() {
 
         given:
@@ -118,7 +115,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a:b'")
     }
 
-    @ToBeFixedForConfigurationCache(because = "maven-publish plugin")
     def "can request non-core plugin already requested on parent project but not applied"() {
 
         given:
@@ -147,7 +143,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForConfigurationCache(because = "maven-publish plugin")
     def "can request non-core plugin already on the classpath when a plugin resolution strategy sets a version"() {
 
         given:
@@ -194,7 +189,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         succeeds "test"
     }
 
-    @ToBeFixedForConfigurationCache(because = "maven-publish plugin")
     def "cannot request plugin version of plugin already requested on parent project"() {
 
         given:

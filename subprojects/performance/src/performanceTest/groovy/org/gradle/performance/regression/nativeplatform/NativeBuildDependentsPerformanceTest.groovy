@@ -27,7 +27,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
         runner.minimumBaseVersion = "4.0"
     }
 
@@ -43,8 +43,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         // 'nativeDependentsDeep' | 'libA0:buildDependentsLibA0'
         given:
         runner.tasksToRun = [task]
-        runner.args += ["--parallel", "--max-workers=4"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
@@ -68,8 +66,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         // 'nativeDependentsDeep' | 'libA0'
         given:
         runner.tasksToRun = ["$subprojectPath:dependentComponents"]
-        runner.args += ["--parallel", "--max-workers=4"]
-        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
