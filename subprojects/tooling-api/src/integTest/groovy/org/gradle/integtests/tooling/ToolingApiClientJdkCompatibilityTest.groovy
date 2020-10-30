@@ -237,8 +237,7 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
         }
 
         when:
-        succeeds("" +
-            "buildAction",
+        succeeds("buildAction",
                 "-PclientJdk=" + clientJdkVersion.majorVersion,
                 "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
                 "-PgradleVersion=" + gradleVersion)
