@@ -23,18 +23,44 @@ public interface FileSystemSnapshotHierarchyVisitor {
 
     /**
      * Called before visiting the contents of a directory.
-     *
-     * @return Whether the subtree should be visited.
      */
-    boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot);
+    default void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {}
 
     /**
      * Called for each regular file/directory/missing/unavailable file.
+     *
+     * @return whether the subtree should be visited.
      */
-    void visitEntry(CompleteFileSystemLocationSnapshot snapshot);
+    SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot);
 
     /**
      * Called when leaving a directory.
      */
-    void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot);
+    default void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {}
+
+    /**
+     * @see java.nio.file.FileVisitResult
+     */
+    enum SnapshotVisitResult {
+
+        /**
+         * Continue. When returned from a {@link FileVisitor#preVisitDirectory
+         * preVisitDirectory} method then the entries in the directory should also
+         * be visited.
+         */
+        CONTINUE,
+
+        /**
+         * Terminate.
+         */
+        TERMINATE,
+
+        /**
+         * Continue without visiting the entries in this directory. This result
+         * is only meaningful when returned from the {@link
+         * FileVisitor#preVisitDirectory preVisitDirectory} method; otherwise
+         * this result type is the same as returning {@link #CONTINUE}.
+         */
+        SKIP_SUBTREE
+    }
 }

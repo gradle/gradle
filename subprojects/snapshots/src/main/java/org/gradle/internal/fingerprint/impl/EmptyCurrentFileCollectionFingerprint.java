@@ -23,6 +23,7 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult;
 
 import java.util.Collections;
 import java.util.Map;
@@ -53,7 +54,8 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
-    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
+    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
+        return SnapshotVisitResult.CONTINUE;
     }
 
     @Override

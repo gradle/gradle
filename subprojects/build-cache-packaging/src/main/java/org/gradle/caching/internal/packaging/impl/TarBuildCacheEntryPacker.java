@@ -353,17 +353,16 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             if (seenRoot) {
                 relativePathStringTracker.enter(directorySnapshot);
             } else {
                 seenRoot = true;
             }
-            return true;
         }
 
         @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             boolean isRoot = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(snapshot);
             String targetPath = getTargetPath(isRoot);
@@ -394,6 +393,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             });
             relativePathStringTracker.leave();
             entries++;
+            return SnapshotVisitResult.CONTINUE;
         }
 
         @Override

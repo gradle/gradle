@@ -36,6 +36,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+
 @CleanupTestDirectory
 class FileSystemSnapshotFilterTest extends Specification {
     @Rule
@@ -73,9 +75,10 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root directory is always matched"() {
         def root = temporaryFolder.createFile("root")
+        def unfiltered = new CompleteDirectorySnapshot(root.absolutePath, root.name, AccessType.DIRECT, HashCode.fromInt(789), [])
 
         expect:
-        filteredPaths(new CompleteDirectorySnapshot(root.absolutePath, root.name, AccessType.DIRECT, HashCode.fromInt(789), []), include("different")) == [root] as Set
+        filteredPaths(unfiltered, include("different")) == [root] as Set
     }
 
     def "root file can be filtered"() {
@@ -98,28 +101,20 @@ class FileSystemSnapshotFilterTest extends Specification {
         fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
         def unfiltered = result.get()
 
-        expect:
-        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered).is(unfiltered)
+        when:
+        def filtered = FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered)
+
+        then:
+        filtered.is(unfiltered)
     }
 
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered).accept(new FileSystemSnapshotHierarchyVisitor() {
-            @Override
-            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                result << new File(directorySnapshot.absolutePath)
-                return true
-            }
-
-            @Override
-            void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                result << new File(snapshot.absolutePath)
-            }
-
-            @Override
-            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            }
-        })
+        def filtered = FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered)
+        filtered.accept({ CompleteFileSystemLocationSnapshot snapshot ->
+            result << new File(snapshot.absolutePath)
+            return CONTINUE
+        } as FileSystemSnapshotHierarchyVisitor)
         return result
     }
 

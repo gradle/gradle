@@ -156,13 +156,13 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.enter(directorySnapshot);
-            return delegate.preVisitDirectory(directorySnapshot);
+            delegate.preVisitDirectory(directorySnapshot);
         }
 
         @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                 @Override
                 public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
@@ -179,6 +179,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                     }
                 }
             });
+            return SnapshotVisitResult.CONTINUE;
         }
 
         @Nullable
@@ -234,9 +235,8 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
             this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
-        public boolean preVisitDirectory(CompleteFileSystemLocationSnapshot directorySnapshot) {
+        public void preVisitDirectory(CompleteFileSystemLocationSnapshot directorySnapshot) {
             relativePathStringTracker.enter(directorySnapshot);
-            return true;
         }
 
         public void visit(CompleteFileSystemLocationSnapshot fileSnapshot, HashCode normalizedContentHash) {

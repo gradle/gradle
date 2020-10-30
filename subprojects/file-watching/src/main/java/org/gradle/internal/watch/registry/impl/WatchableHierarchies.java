@@ -19,7 +19,6 @@ package org.gradle.internal.watch.registry.impl;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -131,28 +130,18 @@ public class WatchableHierarchies {
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (shouldBeRemoved(directorySnapshot)) {
-                invalidateUnwatchedFile(directorySnapshot);
-                return false;
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            if (shouldBeRemoved(snapshot)) {
+                invalidateUnwatchedFile(snapshot);
+                return SnapshotVisitResult.SKIP_SUBTREE;
+            } else {
+                return SnapshotVisitResult.CONTINUE;
             }
-            return true;
         }
 
         private boolean shouldBeRemoved(CompleteFileSystemLocationSnapshot snapshot) {
             return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
                 (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
-        }
-
-        @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            if (shouldBeRemoved(snapshot)) {
-                invalidateUnwatchedFile(snapshot);
-            }
-        }
-
-        @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
         }
 
         private void invalidateUnwatchedFile(CompleteFileSystemLocationSnapshot snapshot) {

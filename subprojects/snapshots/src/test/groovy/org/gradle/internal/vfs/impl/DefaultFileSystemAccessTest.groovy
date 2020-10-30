@@ -22,6 +22,8 @@ import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+
 @Unroll
 class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
@@ -252,24 +254,22 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
             private boolean seenRoot = false
 
             @Override
-            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
                     relativePath.addLast(directorySnapshot.name)
-                    relativePaths.add(relativePath.join("/"))
                 }
-                return true
             }
 
             @Override
-            void visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
-                if (!seenRoot) {
-                    return
+            FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
+                if (seenRoot) {
+                    relativePath.addLast(entrySnapshot.name)
+                    relativePaths.add(relativePath.join("/"))
+                    relativePath.removeLast()
                 }
-                relativePath.addLast(entrySnapshot.name)
-                relativePaths.add(relativePath.join("/"))
-                relativePath.removeLast()
+                return CONTINUE
             }
 
             @Override

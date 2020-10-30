@@ -320,16 +320,16 @@ class DirectorySnapshotterTest extends Specification {
         private Deque<String> relativePath = new ArrayDeque<String>()
 
         @Override
-        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePath.addLast(directorySnapshot.name)
-            return true
         }
 
         @Override
-        void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             relativePath.addLast(snapshot.name)
             visit(snapshot.absolutePath, relativePath)
             relativePath.removeLast()
+            return SnapshotVisitResult.CONTINUE
         }
 
         @Override

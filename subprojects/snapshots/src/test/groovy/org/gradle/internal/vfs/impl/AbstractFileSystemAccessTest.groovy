@@ -199,23 +199,22 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         private final List<String> relativePaths = []
 
         @Override
-        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             if (!seenRoot) {
                 seenRoot = true
             } else {
                 relativePath.addLast(directorySnapshot.name)
             }
-            return true
         }
 
         @Override
-        void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            if (!seenRoot) {
-                return
+        SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            if (seenRoot) {
+                relativePath.addLast(snapshot.name)
+                relativePaths.add(relativePath.join("/"))
+                relativePath.removeLast()
             }
-            relativePath.addLast(snapshot.name)
-            relativePaths.add(relativePath.join("/"))
-            relativePath.removeLast()
+            return SnapshotVisitResult.CONTINUE
         }
 
         @Override

@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
@@ -25,6 +24,8 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -51,23 +52,42 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
     @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
-        final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
-        final HashSet<String> processedEntries = new HashSet<String>();
+        ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
+        HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new FileSystemSnapshotHierarchyVisitor() {
                 private int treeDepth = 0;
 
                 @Override
-                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     treeDepth++;
-                    return true;
                 }
 
                 @Override
-                public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                    if (!includeMissingRoots && isRoot() && snapshot.getType() == FileType.Missing) {
-                        return;
-                    }
+                public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                    snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+                        @Override
+                        public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                            doVisitEntry(directorySnapshot);
+                        }
+
+                        @Override
+                        public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                            doVisitEntry(fileSnapshot);
+                        }
+
+                        @Override
+                        public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                            if (!includeMissingRoots && isRoot()) {
+                                return;
+                            }
+                            doVisitEntry(missingSnapshot);
+                        }
+                    });
+                    return SnapshotVisitResult.CONTINUE;
+                }
+
+                private void doVisitEntry(CompleteFileSystemLocationSnapshot snapshot) {
                     String absolutePath = snapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));

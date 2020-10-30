@@ -26,6 +26,8 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -113,17 +115,9 @@ public class OutputFilterUtil {
         private final Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            return true;
-        }
-
-        @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             snapshots.put(snapshot.getAbsolutePath(), snapshot);
-        }
-
-        @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            return SnapshotVisitResult.CONTINUE;
         }
 
         public Map<String, CompleteFileSystemLocationSnapshot> getSnapshots() {
@@ -146,22 +140,37 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth++;
-            if (merkleBuilder == null) {
-                merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-                currentRoot = directorySnapshot;
-                currentRootFiltered = false;
-            }
             merkleBuilder.preVisitDirectory(directorySnapshot);
-            return true;
         }
 
         @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            if (snapshot.getType() == FileType.Directory) {
-                return;
-            }
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+                @Override
+                public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    if (merkleBuilder == null) {
+                        merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+                        currentRoot = directorySnapshot;
+                        currentRootFiltered = false;
+                    }
+                }
+
+                @Override
+                public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                    visitNonDirectoryEntry(snapshot);
+                }
+
+                @Override
+                public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                    visitNonDirectoryEntry(snapshot);
+                }
+            });
+            return SnapshotVisitResult.CONTINUE;
+        }
+
+        private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
             if (!predicate.test(snapshot, isRoot())) {
                 hasBeenFiltered = true;
                 currentRootFiltered = true;

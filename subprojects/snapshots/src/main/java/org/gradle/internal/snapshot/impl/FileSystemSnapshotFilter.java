@@ -22,6 +22,8 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
@@ -56,36 +58,50 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathTracker.enter(directorySnapshot);
-            boolean root = relativePathTracker.isRoot();
-            if (root || predicate.test(directorySnapshot, relativePathTracker.getRelativePath())) {
-                builder.preVisitDirectory(directorySnapshot);
-                return true;
-            } else {
-                hasBeenFiltered.set(true);
-                relativePathTracker.leave();
-                return false;
-            }
+            builder.preVisitDirectory(directorySnapshot);
         }
 
         @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             boolean root = relativePathTracker.isRoot();
             relativePathTracker.enter(snapshot);
-            Iterable<String> relativePathForFiltering = root ? ImmutableList.of(snapshot.getName()) : relativePathTracker.getRelativePath();
-            if (predicate.test(snapshot, relativePathForFiltering)) {
+            Iterable<String> relativePathForFiltering = root
+                ? ImmutableList.of(snapshot.getName())
+                : relativePathTracker.getRelativePath();
+            SnapshotVisitResult result;
+            boolean forceInclude = snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<Boolean>() {
+                @Override
+                public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    return root;
+                }
+
+                @Override
+                public Boolean visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                    return false;
+                }
+
+                @Override
+                public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
+                    return false;
+                }
+            });
+            if (forceInclude || predicate.test(snapshot, relativePathForFiltering)) {
                 builder.visitEntry(snapshot);
+                result = SnapshotVisitResult.CONTINUE;
             } else {
                 hasBeenFiltered.set(true);
+                result = SnapshotVisitResult.SKIP_SUBTREE;
             }
             relativePathTracker.leave();
+            return result;
         }
 
         @Override
         public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePathTracker.leave();
             builder.postVisitDirectory(true, directorySnapshot.getAccessType());
+            relativePathTracker.leave();
         }
     }
 }

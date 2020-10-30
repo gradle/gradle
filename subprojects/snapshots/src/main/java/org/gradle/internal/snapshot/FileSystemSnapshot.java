@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult;
+
 /**
  * A snapshot of a part of the file system.
  */
@@ -23,12 +25,12 @@ public interface FileSystemSnapshot {
     /**
      * An empty snapshot.
      */
-    FileSystemSnapshot EMPTY = visitor -> {};
+    FileSystemSnapshot EMPTY = visitor -> SnapshotVisitResult.CONTINUE;
 
     /**
      * Walks the whole hierarchy represented by this snapshot.
      *
      * The walk is depth first.
      */
-    void accept(FileSystemSnapshotHierarchyVisitor visitor);
+    SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor);
 }

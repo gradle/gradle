@@ -20,12 +20,14 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
+import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE;
 
 /**
  * A complete snapshot of an existing directory.
@@ -64,13 +66,21 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
-        visitor.visitEntry(this);
-        if (!visitor.preVisitDirectory(this)) {
-            return;
+    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
+        SnapshotVisitResult result = visitor.visitEntry(this);
+        switch (result) {
+            case CONTINUE:
+                visitor.preVisitDirectory(this);
+                children.visitChildren((name, child) -> child.accept(visitor));
+                visitor.postVisitDirectory(this);
+                return CONTINUE;
+            case SKIP_SUBTREE:
+                return CONTINUE;
+            case TERMINATE:
+                return SnapshotVisitResult.TERMINATE;
+            default:
+                throw new AssertionError();
         }
-        children.visitChildren((__, child) -> child.accept(visitor));
-        visitor.postVisitDirectory(this);
     }
 
     @Override

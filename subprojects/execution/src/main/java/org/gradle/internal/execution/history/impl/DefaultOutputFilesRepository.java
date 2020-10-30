@@ -21,11 +21,12 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import java.io.Closeable;
 import java.io.File;
@@ -65,39 +66,34 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     @Override
     public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
         for (FileSystemSnapshot outputFileFingerprint : outputFileFingerprints) {
-            // TODO This should use a snapshot visitor instead
-            outputFileFingerprint.accept(new FileSystemSnapshotHierarchyVisitor() {
-                @Override
-                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                    recordOutputSnapshot(directorySnapshot);
-                    return false;
-                }
-
-                @Override
-                public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                    if (snapshot.getType() == FileType.RegularFile) {
-                        recordOutputSnapshot(snapshot);
+            outputFileFingerprint.accept(entrySnapshot -> {
+                entrySnapshot.accept(new FileSystemLocationSnapshotVisitor() {
+                    @Override
+                    public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                        recordOutputSnapshot(directorySnapshot);
                     }
-                }
 
-                private void recordOutputSnapshot(CompleteFileSystemLocationSnapshot directorySnapshot) {
-                    String outputFilePath = directorySnapshot.getAbsolutePath();
-                    File outputFile = new File(outputFilePath);
-                    outputFiles.put(outputFilePath, Boolean.TRUE);
-                    File outputFileParent = outputFile.getParentFile();
-                    while (outputFileParent != null) {
-                        String parentPath = outputFileParent.getPath();
-                        if (outputFiles.get(parentPath) != null) {
-                            break;
+                    @Override
+                    public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                        recordOutputSnapshot(fileSnapshot);
+                    }
+
+                    private void recordOutputSnapshot(CompleteFileSystemLocationSnapshot directorySnapshot) {
+                        String outputFilePath = directorySnapshot.getAbsolutePath();
+                        File outputFile = new File(outputFilePath);
+                        outputFiles.put(outputFilePath, Boolean.TRUE);
+                        File outputFileParent = outputFile.getParentFile();
+                        while (outputFileParent != null) {
+                            String parentPath = outputFileParent.getPath();
+                            if (outputFiles.get(parentPath) != null) {
+                                break;
+                            }
+                            outputFiles.put(parentPath, Boolean.FALSE);
+                            outputFileParent = outputFileParent.getParentFile();
                         }
-                        outputFiles.put(parentPath, Boolean.FALSE);
-                        outputFileParent = outputFileParent.getParentFile();
                     }
-                }
-
-                @Override
-                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                }
+                });
+                return FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.SKIP_SUBTREE;
             });
         }
     }

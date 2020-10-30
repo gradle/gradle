@@ -39,6 +39,8 @@ import spock.lang.Specification
 
 import javax.annotation.Nullable
 
+import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+
 class DefaultFileCollectionSnapshotterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -236,17 +238,16 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         int count = 0
         tree.accept(new FileSystemSnapshotHierarchyVisitor() {
             @Override
-            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (rootPath == null) {
                     rootPath = directorySnapshot.absolutePath
                 }
-                count++
-                return true
             }
 
             @Override
-            void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
                 count++
+                return CONTINUE
             }
 
             @Override

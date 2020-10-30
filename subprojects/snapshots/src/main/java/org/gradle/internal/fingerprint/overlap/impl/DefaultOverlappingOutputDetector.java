@@ -78,41 +78,41 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth++;
-            return overlappingPath == null;
         }
 
         @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            if (overlappingPath == null) {
-                boolean newContent = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
-                    @Override
-                    public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                        // Check if a new directory appeared. For matching directories don't check content
-                        // hash as we should detect individual entries that are different instead)
-                        return hasNewContent(directorySnapshot, null);
-                    }
-
-                    @Override
-                    public Boolean visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                        // Check if a new file has appeared, or if an existing file's content has changed
-                        return hasNewContent(fileSnapshot, fileSnapshot.getHash());
-                    }
-
-                    @Override
-                    public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
-                        // If the root has gone missing then we don't have overlaps
-                        if (isRoot()) {
-                            return false;
-                        }
-                        // Otherwise check for newly added broken symlinks and unreadable files
-                        return hasNewContent(missingSnapshot, null);
-                    }
-                });
-                if (newContent) {
-                    overlappingPath = snapshot.getAbsolutePath();
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            boolean newContent = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
+                @Override
+                public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    // Check if a new directory appeared. For matching directories don't check content
+                    // hash as we should detect individual entries that are different instead)
+                    return hasNewContent(directorySnapshot, null);
                 }
+
+                @Override
+                public Boolean visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                    // Check if a new file has appeared, or if an existing file's content has changed
+                    return hasNewContent(fileSnapshot, fileSnapshot.getHash());
+                }
+
+                @Override
+                public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
+                    // If the root has gone missing then we don't have overlaps
+                    if (isRoot()) {
+                        return false;
+                    }
+                    // Otherwise check for newly added broken symlinks and unreadable files
+                    return hasNewContent(missingSnapshot, null);
+                }
+            });
+            if (newContent) {
+                overlappingPath = snapshot.getAbsolutePath();
+                return SnapshotVisitResult.TERMINATE;
+            } else {
+                return SnapshotVisitResult.CONTINUE;
             }
         }
 

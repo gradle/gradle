@@ -37,6 +37,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
 class FileSystemSnapshotBuilderTest extends Specification {
@@ -70,20 +72,19 @@ class FileSystemSnapshotBuilderTest extends Specification {
             private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
-            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 relativePathTracker.enter(directorySnapshot)
-                return true
             }
 
             @Override
-            void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                if (relativePathTracker.root) {
-                    return
+            FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                if (!relativePathTracker.root) {
+                    files.add(snapshot.absolutePath)
+                    relativePathTracker.enter(snapshot)
+                    relativePaths.add(relativePathTracker.relativePath.join("/"))
+                    relativePathTracker.leave()
                 }
-                files.add(snapshot.absolutePath)
-                relativePathTracker.enter(snapshot)
-                relativePaths.add(relativePathTracker.relativePath.join("/"))
-                relativePathTracker.leave()
+                return CONTINUE
             }
 
             @Override

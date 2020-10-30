@@ -137,7 +137,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot physicalSnapshot) {
+        public void preVisitDirectory(CompleteDirectorySnapshot physicalSnapshot) {
             this.path = physicalSnapshot.getAbsolutePath();
             this.name = physicalSnapshot.getName();
             this.hash = null;
@@ -147,14 +147,12 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             }
 
             visitor.preDirectory(this);
-
-            return true;
         }
 
         @Override
-        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             if (snapshot.getType() == FileType.Directory) {
-                return;
+                return SnapshotVisitResult.CONTINUE;
             }
 
             this.path = snapshot.getAbsolutePath();
@@ -162,7 +160,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
             FileSystemLocationFingerprint fingerprint = fingerprints.get(path);
             if (fingerprint == null) {
-                return;
+                return SnapshotVisitResult.CONTINUE;
             }
 
             this.hash = fingerprint.getNormalizedContentHash();
@@ -177,6 +175,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             if (isRoot) {
                 visitor.postRoot();
             }
+            return SnapshotVisitResult.CONTINUE;
         }
 
         @Override

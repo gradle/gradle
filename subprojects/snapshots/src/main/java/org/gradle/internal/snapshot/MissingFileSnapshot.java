@@ -20,6 +20,7 @@ import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult;
 
 import java.util.Optional;
 
@@ -53,8 +54,8 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
-        visitor.visitEntry(this);
+    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
+        return visitor.visitEntry(this);
     }
 
     @Override

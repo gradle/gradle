@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,9 +41,13 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
     }
 
     @Override
-    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
+    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
         for (FileSystemSnapshot snapshot : snapshots) {
-            snapshot.accept(visitor);
+            SnapshotVisitResult result = snapshot.accept(visitor);
+            if (result == SnapshotVisitResult.TERMINATE) {
+                return SnapshotVisitResult.TERMINATE;
+            }
         }
+        return SnapshotVisitResult.CONTINUE;
     }
 }

@@ -63,13 +63,12 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
 
                 @Override
-                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     relativePathStringTracker.enter(directorySnapshot);
-                    return true;
                 }
 
                 @Override
-                public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
                     String absolutePath = snapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         FileSystemLocationFingerprint fingerprint;
@@ -84,6 +83,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                         }
                         builder.put(absolutePath, fingerprint);
                     }
+                    return SnapshotVisitResult.CONTINUE;
                 }
 
                 private FileSystemLocationFingerprint createFingerprint(CompleteFileSystemLocationSnapshot snapshot) {
