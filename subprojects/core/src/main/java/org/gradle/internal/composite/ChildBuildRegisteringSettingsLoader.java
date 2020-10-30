@@ -59,6 +59,8 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
                 if (!includedBuildSpec.rootDir.equals(buildRegistry.getRootBuild().getBuildRootDir())) {
                     IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
                     children.add(includedBuild.getModel());
+                } else {
+                    children.add(new IncludedRootBuild(buildRegistry.getRootBuild()));
                 }
             }
 

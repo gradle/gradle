@@ -60,9 +60,11 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
         }
 
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-            Gradle includedGradle = ((IncludedBuildState) includedBuild).getConfiguredBuild();
-            DefaultGradleBuild convertedIncludedBuild = convert(includedGradle, all);
-            model.addIncludedBuild(convertedIncludedBuild);
+            if (includedBuild instanceof IncludedBuildState) {
+                Gradle includedGradle = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                DefaultGradleBuild convertedIncludedBuild = convert(includedGradle, all);
+                model.addIncludedBuild(convertedIncludedBuild);
+            }
         }
 
         if (gradle.getParent() == null) {
