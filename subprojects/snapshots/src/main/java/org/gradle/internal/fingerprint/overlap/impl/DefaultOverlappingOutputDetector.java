@@ -88,9 +88,6 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth++;
-            if (overlappingPath == null) {
-                overlappingPath = detectOverlappingPath(directorySnapshot);
-            }
             return overlappingPath == null;
         }
 
