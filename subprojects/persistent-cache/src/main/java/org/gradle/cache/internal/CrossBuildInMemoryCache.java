@@ -16,9 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.function.Function;
 
 /**
  * An in-memory cache of calculated values that are used across builds. The implementation takes care of cleaning up state that is no longer required.
@@ -31,7 +30,7 @@ public interface CrossBuildInMemoryCache<K, V> extends Cache<K, V> {
      * <p>Implementations must prevent more than one thread calculating the same key at the same time.
      */
     @Override
-    V get(K key, Transformer<? extends V, ? super K> factory);
+    V get(K key, Function<? super K, ? extends V> factory);
 
     /**
      * Removes all entries from this cache.

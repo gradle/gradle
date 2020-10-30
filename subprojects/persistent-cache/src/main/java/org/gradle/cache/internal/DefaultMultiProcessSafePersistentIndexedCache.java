@@ -15,13 +15,14 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.internal.Factory;
+
+import java.util.function.Function;
 
 public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final FileAccess fileAccess;
@@ -42,22 +43,17 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     public V get(final K key) {
         final BTreePersistentIndexedCache<K, V> cache = getCache();
         try {
-            return fileAccess.readFile(new Factory<V>() {
-                @Override
-                public V create() {
-                    return cache.get(key);
-                }
-            });
+            return fileAccess.readFile((Factory<V>) () -> cache.get(key));
         } catch (FileIntegrityViolationException e) {
             return null;
         }
     }
 
     @Override
-    public V get(K key, Transformer<? extends V, ? super K> producer) {
+    public V get(K key, Function<? super K, ? extends V> producer) {
         V value = get(key);
         if (value == null) {
-            value = producer.transform(key);
+            value = producer.apply(key);
             put(key, value);
         }
         return value;
@@ -68,12 +64,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         final BTreePersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
         // corruption, so we don't care at this level if it's corrupt
-        fileAccess.writeFile(new Runnable() {
-            @Override
-            public void run() {
-                cache.put(key, value);
-            }
-        });
+        fileAccess.writeFile(() -> cache.put(key, value));
     }
 
     @Override
@@ -81,12 +72,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         final BTreePersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
         // corruption, so we don't care at this level if it's corrupt
-        fileAccess.writeFile(new Runnable() {
-            @Override
-            public void run() {
-                cache.remove(key);
-            }
-        });
+        fileAccess.writeFile(() -> cache.remove(key));
     }
 
     @Override
@@ -97,12 +83,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     public void finishWork() {
         if (cache != null) {
             try {
-                fileAccess.writeFile(new Runnable() {
-                    @Override
-                    public void run() {
-                        cache.close();
-                    }
-                });
+                fileAccess.writeFile(() -> cache.close());
             } finally {
                 cache = null;
             }
@@ -117,12 +98,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         if (cache == null) {
             // Use writeFile because the cache can internally recover from datafile
             // corruption, so we don't care at this level if it's corrupt
-            fileAccess.writeFile(new Runnable() {
-                @Override
-                public void run() {
-                    cache = factory.create();
-                }
-            });
+            fileAccess.writeFile(() -> cache = factory.create());
         }
         return cache;
     }

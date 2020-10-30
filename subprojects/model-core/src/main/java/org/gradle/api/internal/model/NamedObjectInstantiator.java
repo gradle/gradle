@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
-import org.gradle.api.Transformer;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -44,6 +43,7 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.function.Function;
 
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -74,7 +74,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
     private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
     private final String factorySuffix;
-    private final Transformer<LoadingCache<String, Object>, Class<?>> cacheFactory = type -> CacheBuilder.newBuilder().build(loaderFor(type));
+    private final Function<Class<?>, LoadingCache<String, Object>> cacheFactory = type -> CacheBuilder.newBuilder().build(loaderFor(type));
 
     public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
         implSuffix = ClassGeneratorSuffixRegistry.assign("$Impl");

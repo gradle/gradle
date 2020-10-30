@@ -15,9 +15,8 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
-
 import javax.annotation.Nullable;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface Cache<K, V>  {
@@ -26,7 +25,7 @@ public interface Cache<K, V>  {
      *
      * <p>Implementations may prevent more than one thread calculating the same key at the same time or not.
      */
-    V get(K key, Transformer<? extends V, ? super K> supplier);
+    V get(K key, Function<? super K, ? extends V> factory);
 
     default V get(K key, Supplier<? extends V> supplier) {
         return get(key, __ -> supplier.get());

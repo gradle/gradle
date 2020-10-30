@@ -15,10 +15,10 @@
  */
 package org.gradle.cache;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.internal.Cache;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * A persistent store of objects of type V indexed by a key of type K.
@@ -47,7 +47,7 @@ public interface PersistentIndexedCache<K, V> extends Cache<K, V> {
      * @return The value.
      */
     @Override
-    V get(K key, Transformer<? extends V, ? super K> producer);
+    V get(K key, Function<? super K, ? extends V> producer);
 
     /**
      * Maps the given value to the given key, replacing any existing value.

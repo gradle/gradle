@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
@@ -36,13 +35,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @NonNullApi
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     private final CrossBuildInMemoryCache<Class<?>, TaskClassInfo> classInfos;
-    private final Transformer<TaskClassInfo, Class<?>> taskClassInfoFactory = aClass -> createTaskClassInfo(aClass.asSubclass(Task.class));
+    private final Function<Class<?>, TaskClassInfo> taskClassInfoFactory = aClass -> createTaskClassInfo(aClass.asSubclass(Task.class));
 
     public DefaultTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         this.classInfos = cacheFactory.newClassCache();

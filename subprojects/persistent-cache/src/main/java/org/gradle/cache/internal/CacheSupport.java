@@ -15,15 +15,15 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
+import java.util.function.Function;
 
 public abstract class CacheSupport<K, V> implements Cache<K, V> {
 
     @Override
-    public V get(K key, Transformer<? extends V, ? super K> supplier) {
+    public V get(K key, Function<? super K, ? extends V> factory) {
         V value = doGet(key);
         if (value == null) {
-            value = supplier.transform(key);
+            value = factory.apply(key);
             doCache(key, value);
         }
 

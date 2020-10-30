@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
@@ -30,6 +29,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Function;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -112,7 +112,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         @Override
-        public V get(K key, Transformer<? extends V, ? super K> factory) {
+        public V get(K key, Function<? super K, ? extends V> factory) {
             synchronized (lock) {
                 V v = getIfPresent(key);
                 if (v != null) {
@@ -120,7 +120,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
                 }
 
                 // TODO - do not hold lock while computing value
-                v = factory.transform(key);
+                v = factory.apply(key);
 
                 retainValue(key, v);
 
