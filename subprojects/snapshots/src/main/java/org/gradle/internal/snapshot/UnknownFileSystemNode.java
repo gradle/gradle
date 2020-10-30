@@ -24,9 +24,9 @@ import java.util.Optional;
  * The snapshot must have children.
  * It is created when we store missing files underneath it, so that we don’t have to query them again and again.
  */
-public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
+public class UnknownFileSystemNode extends AbstractIncompleteFileSystemNode {
 
-    public UnknownSnapshot(ChildMap<? extends FileSystemNode> children) {
+    public UnknownFileSystemNode(ChildMap<? extends FileSystemNode> children) {
         super(children);
         assert !children.isEmpty();
     }
@@ -38,7 +38,7 @@ public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
 
     @Override
     protected FileSystemNode withIncompleteChildren(ChildMap<? extends FileSystemNode> merged) {
-        return new UnknownSnapshot(merged);
+        return new UnknownFileSystemNode(merged);
     }
 
     @Override

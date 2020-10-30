@@ -23,19 +23,19 @@ import java.util.Optional;
  *
  * May include some of its children.
  */
-public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren {
+public class PartialDirectoryNode extends AbstractIncompleteFileSystemNode {
 
-    public static PartialDirectorySnapshot withoutKnownChildren() {
-        return new PartialDirectorySnapshot(EmptyChildMap.getInstance());
+    public static PartialDirectoryNode withoutKnownChildren() {
+        return new PartialDirectoryNode(EmptyChildMap.getInstance());
     }
 
-    public PartialDirectorySnapshot(ChildMap<? extends FileSystemNode> children) {
+    public PartialDirectoryNode(ChildMap<? extends FileSystemNode> children) {
         super(children);
     }
 
     @Override
     protected FileSystemNode withIncompleteChildren(ChildMap<? extends FileSystemNode> newChildren) {
-        return new PartialDirectorySnapshot(newChildren);
+        return new PartialDirectoryNode(newChildren);
     }
 
     @Override

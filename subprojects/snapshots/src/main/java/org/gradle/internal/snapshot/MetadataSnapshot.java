@@ -31,7 +31,7 @@ public interface MetadataSnapshot {
 
         @Override
         public FileSystemNode asFileSystemNode() {
-            return PartialDirectorySnapshot.withoutKnownChildren();
+            return PartialDirectoryNode.withoutKnownChildren();
         }
     };
 
