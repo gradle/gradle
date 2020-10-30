@@ -28,9 +28,9 @@ import java.util.Set;
 public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private PartialBasicGradleProject rootProject;
     private DefaultBuildIdentifier buildIdentifier;
-    private Set<PartialBasicGradleProject> projects = new LinkedHashSet<PartialBasicGradleProject>();
-    private Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<DefaultGradleBuild>();
-    private Set<DefaultGradleBuild> allBuilds = new LinkedHashSet<DefaultGradleBuild>();
+    private final Set<PartialBasicGradleProject> projects = new LinkedHashSet<>();
+    private final Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<>();
+    private final Set<DefaultGradleBuild> allBuilds = new LinkedHashSet<>();
 
     public PartialBasicGradleProject getRootProject() {
         return rootProject;

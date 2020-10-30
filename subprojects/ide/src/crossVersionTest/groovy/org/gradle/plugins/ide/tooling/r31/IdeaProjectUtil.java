@@ -37,23 +37,32 @@ public class IdeaProjectUtil {
             result.rootBuild = buildModel;
             result.rootIdeaProject = controller.getModel(IdeaProject.class);
 
-            for (GradleBuild includedBuild : buildModel.getIncludedBuilds()) {
-                IdeaProject includedBuildProject = controller.getModel(includedBuild, IdeaProject.class);
-                result.includedBuildIdeaProjects.put(includedBuild, includedBuildProject);
-            }
+            collectAllNestedBuilds(buildModel, controller, result);
 
             result.allIdeaProjects.add(result.rootIdeaProject);
-            result.allIdeaProjects.addAll(result.includedBuildIdeaProjects.values());
+            LinkedHashMap<GradleBuild, IdeaProject> includedWithoutRoot = new LinkedHashMap<>(result.includedBuildIdeaProjects);
+            includedWithoutRoot.remove(buildModel);
+            result.allIdeaProjects.addAll(includedWithoutRoot.values());
 
             return result;
+        }
+
+        private void collectAllNestedBuilds(GradleBuild buildModel, BuildController controller, AllProjects result) {
+            for (GradleBuild includedBuild : buildModel.getIncludedBuilds()) {
+                if (!result.includedBuildIdeaProjects.containsKey(includedBuild)) {
+                    IdeaProject includedBuildProject = controller.getModel(includedBuild, IdeaProject.class);
+                    result.includedBuildIdeaProjects.put(includedBuild, includedBuildProject);
+                    collectAllNestedBuilds(includedBuild, controller, result);
+                }
+            }
         }
     }
 
     public static class AllProjects implements Serializable {
         public GradleBuild rootBuild;
         public IdeaProject rootIdeaProject;
-        public List<IdeaProject> allIdeaProjects = new ArrayList<IdeaProject>();
-        public final Map<GradleBuild, IdeaProject> includedBuildIdeaProjects = new LinkedHashMap<GradleBuild, IdeaProject>();
+        public List<IdeaProject> allIdeaProjects = new ArrayList<>();
+        public final Map<GradleBuild, IdeaProject> includedBuildIdeaProjects = new LinkedHashMap<>();
 
         public IdeaProject getIdeaProject(String name) {
             for (IdeaProject ideaProject : allIdeaProjects) {

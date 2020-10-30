@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
@@ -148,7 +149,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         Project root = project.getRootProject();
         rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
-        applyEclipsePlugin(root);
+        applyEclipsePlugin(root, new ArrayList<>());
         deduplicateProjectNames(root);
         buildHierarchy(root);
         populate(root);
@@ -165,14 +166,19 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         }
     }
 
-    private void applyEclipsePlugin(Project root) {
+    private void applyEclipsePlugin(Project root, List<GradleInternal> alreadyProcessed) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
         for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
-            IncludedBuildState includedBuildInternal = (IncludedBuildState) includedBuild;
-            applyEclipsePlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
+            if (includedBuild instanceof IncludedBuildState) {
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                if (!alreadyProcessed.contains(build)) {
+                    alreadyProcessed.add(build);
+                    applyEclipsePlugin(build.getRootProject(), alreadyProcessed);
+                }
+            }
         }
     }
 
