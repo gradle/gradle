@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.DefaultGroupTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.RuleDetails;
 import org.gradle.api.tasks.diagnostics.internal.SingleProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
 
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * <p>Displays a list of tasks in the project. An instance of this type is used when you execute the {@code tasks} task
@@ -91,10 +93,10 @@ public class TaskReportTask extends AbstractReportTask {
 
     @Override
     public void generate(Project project) {
-        renderer.showDetail(isDetail());
-        renderer.addDefaultTasks(project.getDefaultTasks());
+        boolean detail = isDetail();
+        List<String> defaultTasks = project.getDefaultTasks();
 
-        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail(), isDetail(), getDisplayGroup());
+        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup());
         final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
@@ -106,8 +108,10 @@ public class TaskReportTask extends AbstractReportTask {
 
         aggregateModel.build();
 
-        DefaultGroupTaskReportModel model = new DefaultGroupTaskReportModel();
-        model.build(aggregateModel);
+        DefaultGroupTaskReportModel model = DefaultGroupTaskReportModel.of(aggregateModel);
+
+        renderer.showDetail(detail);
+        renderer.addDefaultTasks(defaultTasks);
 
         for (String group : model.getGroups()) {
             renderer.startTaskGroup(group);
@@ -119,7 +123,7 @@ public class TaskReportTask extends AbstractReportTask {
 
         if (Strings.isNullOrEmpty(group)) {
             for (Rule rule : project.getTasks().getRules()) {
-                renderer.addRule(rule);
+                renderer.addRule(() -> rule.getDescription());
             }
         }
     }

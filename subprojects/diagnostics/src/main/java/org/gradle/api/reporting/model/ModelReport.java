@@ -22,6 +22,7 @@ import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
 import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -94,7 +95,8 @@ public class ModelReport extends DefaultTask {
         TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
 
         textModelReportRenderer.setOutput(textOutput);
-        textModelReportRenderer.startProject(project);
+        ProjectDetails projectDetails = ProjectDetails.of(project);
+        textModelReportRenderer.startProject(projectDetails);
 
         ModelRegistry modelRegistry = getModelRegistry();
         ModelNode rootNode = modelRegistry.realizeNode(ModelPath.ROOT);
@@ -102,7 +104,7 @@ public class ModelReport extends DefaultTask {
         modelRegistry.bindAllReferences();
         textModelReportRenderer.render(rootNode);
 
-        textModelReportRenderer.completeProject(project);
+        textModelReportRenderer.completeProject(projectDetails);
         textModelReportRenderer.complete();
     }
 }

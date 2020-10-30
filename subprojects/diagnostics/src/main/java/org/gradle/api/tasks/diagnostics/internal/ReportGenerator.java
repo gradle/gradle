@@ -55,9 +55,10 @@ public class ReportGenerator {
                 renderer.setOutput(getTextOutputFactory().create(getClass()));
             }
             for (Project project : projects) {
-                renderer.startProject(project);
+                ProjectDetails projectDetails = ProjectDetails.of(project);
+                renderer.startProject(projectDetails);
                 projectReportGenerator.generateReport(project);
-                renderer.completeProject(project);
+                renderer.completeProject(projectDetails);
             }
             renderer.complete();
         } catch (IOException e) {

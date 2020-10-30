@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
@@ -61,26 +60,27 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     @Override
-    public void startProject(Project project) {
+    public void startProject(ProjectDetails project) {
         String header = createHeader(project);
         builder.heading(header);
     }
 
-    protected String createHeader(Project project) {
+    protected String createHeader(ProjectDetails project) {
         String header;
-        if (project.getRootProject() == project) {
+        if (project.isRootProject()) {
             header = "Root project";
         } else {
             header = "Project " + project.getPath();
         }
-        if (GUtil.isTrue(project.getDescription())) {
-            header = header + " - " + project.getDescription();
+        String description = project.getDescription();
+        if (GUtil.isTrue(description)) {
+            header = header + " - " + description;
         }
         return header;
     }
 
     @Override
-    public void completeProject(Project project) {
+    public void completeProject(ProjectDetails project) {
     }
 
     @Override
