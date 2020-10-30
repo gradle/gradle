@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.platform
+package org.gradle.catalog
 
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 
-class GradlePlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements GradlePlatformSupport {
+class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements VersionCatalogSupport {
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
@@ -55,7 +55,7 @@ class GradlePlatformResolveIntegrationTest extends AbstractHttpDependencyResolut
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromGradlePlatform("org.gradle.test:my-platform:1.0")
+                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
                 }
             }
         """
@@ -90,7 +90,7 @@ class GradlePlatformResolveIntegrationTest extends AbstractHttpDependencyResolut
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromGradlePlatform("org.gradle.test:my-platform:1.0")
+                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
                     version('lib', '1.1') // override version declared in the platform, this is order sensitive
                 }
             }
@@ -134,7 +134,7 @@ class GradlePlatformResolveIntegrationTest extends AbstractHttpDependencyResolut
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromGradlePlatform("org.gradle.test:my-platform:+")
+                    fromVersionCatalog("org.gradle.test:my-platform:+")
                 }
             }
         """
@@ -164,7 +164,7 @@ unspecified:unspecified:unspecified
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromGradlePlatform("org.gradle.test:my-platform:1.0")
+                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
                 }
             }
         """
@@ -180,7 +180,7 @@ unspecified:unspecified:unspecified
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    fromGradlePlatform("org.gradle.test:my-platform:1.0")
+                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
                 }
             }
         """
@@ -192,7 +192,7 @@ unspecified:unspecified:unspecified
         failure.assertHasCause "Cannot resolve external dependency org.gradle.test:my-platform:1.0 because no repositories are defined."
     }
 
-    def "can compose platforms via the gradle-platform plugin"() {
+    def "can compose platforms via the version-catalog plugin"() {
         def module = mavenHttpRepo.module('org.gradle.test', 'my-platform', '1.0')
             .withModuleMetadata()
 
@@ -213,16 +213,16 @@ unspecified:unspecified:unspecified
 
         buildFile.text = """
             plugins {
-                id 'gradle-platform'
+                id 'version-catalog'
                 id 'maven-publish'
             }
 
             group = 'org.gradle.platform'
             version = '1.0'
 
-            gradlePlatform {
+            versionCatalog {
                 dependenciesModel {
-                    fromGradlePlatform('org.gradle.test:my-platform:1.0')
+                    fromVersionCatalog('org.gradle.test:my-platform:1.0')
                     alias('other').to('org:other:1.5')
                 }
                 plugins {
@@ -236,7 +236,7 @@ unspecified:unspecified:unspecified
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components.gradlePlatform
+                        from components.versionCatalog
                     }
                 }
             }
@@ -267,7 +267,7 @@ unspecified:unspecified:unspecified
         """
         platformDir.file("build.gradle").text = """
             plugins {
-                id 'gradle-platform'
+                id 'version-catalog'
                 id 'maven-publish'
             }
 
@@ -284,12 +284,12 @@ unspecified:unspecified:unspecified
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components.gradlePlatform
+                        from components.versionCatalog
                     }
                 }
             }
 
-            gradlePlatform {
+            versionCatalog {
                 $platformSpec
             }
         """

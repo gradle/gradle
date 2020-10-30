@@ -111,11 +111,11 @@ public interface Usage extends Named {
     String SWIFT_API = "swift-api";
 
     /**
-     * A Gradle platform, packaged as TOML files, for use as recommendations
+     * A version catalog, packaged as TOML files, for use as recommendations
      * for dependency and plugin versions.
      *
      * @since 6.8
      */
     @Incubating
-    String GRADLE_RECOMMENDATIONS = "gradle-recommendations";
+    String VERSION_CATALOG = "version-catalog";
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.gradleplatform.internal;
+package org.gradle.api.plugins.catalog.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interners;
@@ -36,17 +36,17 @@ import javax.inject.Inject;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class DefaultGradlePlatformExtension implements GradlePlatformExtensionInternal {
-    private final GradlePlatformDependenciesModelBuilder builder;
+public class DefaultVersionCatalogExtension implements VersionCatalogExtensionInternal {
+    private final VersionCatalogDependenciesModelBuilder builder;
     private final SimplifiedPluginDependenciesSpec plugins;
     private final Provider<AllDependenciesModel> model;
     private final Provider<Map<String, String>> pluginsModel;
 
     @Inject
-    public DefaultGradlePlatformExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs, Configuration dependenciesConfiguration) {
+    public DefaultVersionCatalogExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs, Configuration dependenciesConfiguration) {
         this.plugins = new SimplifiedPluginDependenciesSpec();
-        this.builder = objects.newInstance(GradlePlatformDependenciesModelBuilder.class,
-            "gradlePlatform",
+        this.builder = objects.newInstance(VersionCatalogDependenciesModelBuilder.class,
+            "versionCatalog",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             objects,

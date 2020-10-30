@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.plugins.catalog.internal;
 
-package org.gradle.api.plugins
+import org.gradle.api.internal.std.AllDependenciesModel;
+import org.gradle.api.plugins.catalog.VersionCatalogExtension;
+import org.gradle.api.provider.Provider;
 
-import org.gradle.api.plugins.gradleplatform.GradlePlatformPlugin
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import java.util.Map;
 
-class GradlePlatformPluginGoodBehaviourIntegTest extends WellBehavedPluginTest {
-    @Override
-    String getMainTask() {
-        GradlePlatformPlugin.GENERATE_PLATFORM_FILE_TASKNAME
-    }
+public interface VersionCatalogExtensionInternal extends VersionCatalogExtension {
+    Provider<AllDependenciesModel> getDependenciesModel();
+    Provider<Map<String, String>> getPluginVersions();
 }

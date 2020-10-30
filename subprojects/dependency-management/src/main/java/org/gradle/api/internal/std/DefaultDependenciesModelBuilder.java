@@ -131,7 +131,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
-            attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.GRADLE_RECOMMENDATIONS));
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
         });
         cnf.setCanBeResolved(true);
         cnf.setCanBeConsumed(false);
@@ -154,7 +154,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     @Override
-    public void fromGradlePlatform(Object dependencyNotation) {
+    public void fromVersionCatalog(Object dependencyNotation) {
         importedPlatforms.add(dependencyNotation);
     }
 

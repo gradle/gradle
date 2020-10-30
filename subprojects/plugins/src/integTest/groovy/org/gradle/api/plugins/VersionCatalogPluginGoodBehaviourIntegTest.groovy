@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.platform
+package org.gradle.api.plugins
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import org.gradle.api.plugins.catalog.VersionCatalogPlugin
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-trait GradlePlatformSupport {
-    void expectPlatformContents(File expectedTomlFile = file("build/gradle-platform/dependencies.toml"), String resultFile) {
-        assert expectedTomlFile.exists()
-        def generated = normaliseLineSeparators(expectedTomlFile.getText("utf-8"))
-        def expected = normaliseLineSeparators(this.class.getResourceAsStream("${resultFile}.toml").getText("utf-8"))
-        assert generated == expected
+class VersionCatalogPluginGoodBehaviourIntegTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        VersionCatalogPlugin.GENERATE_CATALOG_FILE_TASKNAME
     }
 }

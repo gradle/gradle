@@ -17,9 +17,9 @@
 /**
  * Implementation classes for the Gradle platform plugin.
  *
- * @see org.gradle.api.plugins.gradleplatform.GradlePlatformPlugin
+ * @see org.gradle.api.plugins.catalog.VersionCatalogPlugin
  */
 @NonNullApi
-package org.gradle.api.plugins.gradleplatform.internal;
+package org.gradle.api.plugins.catalog.internal;
 
 import org.gradle.api.NonNullApi;

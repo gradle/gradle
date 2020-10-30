@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.gradleplatform;
+package org.gradle.api.plugins.catalog;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -26,9 +26,9 @@ import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.gradleplatform.internal.DefaultGradlePlatformExtension;
-import org.gradle.api.plugins.gradleplatform.internal.GradlePlatformExtensionInternal;
-import org.gradle.api.plugins.gradleplatform.internal.TomlFileGenerator;
+import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogExtension;
+import org.gradle.api.plugins.catalog.internal.VersionCatalogExtensionInternal;
+import org.gradle.api.plugins.catalog.internal.TomlFileGenerator;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.tasks.TaskProvider;
 
@@ -41,42 +41,42 @@ import javax.inject.Inject;
  * @since 6.8
  */
 @Incubating
-public class GradlePlatformPlugin implements Plugin<Project> {
-    private final static Logger LOGGER = Logging.getLogger(GradlePlatformPlugin.class);
+public class VersionCatalogPlugin implements Plugin<Project> {
+    private final static Logger LOGGER = Logging.getLogger(VersionCatalogPlugin.class);
 
-    public static final String GENERATE_PLATFORM_FILE_TASKNAME = "generatePlatformToml";
-    public static final String GRADLE_PLATFORM_DEPENDENCIES = "gradlePlatform";
-    public static final String GRADLE_PLATFORM_ELEMENTS = "gradlePlatformElements";
+    public static final String GENERATE_CATALOG_FILE_TASKNAME = "generateCatalogAsToml";
+    public static final String GRADLE_PLATFORM_DEPENDENCIES = "versionCatalog";
+    public static final String VERSION_CATALOG_ELEMENTS = "versionCatalogElements";
 
     private final SoftwareComponentFactory softwareComponentFactory;
 
     @Inject
-    public GradlePlatformPlugin(SoftwareComponentFactory softwareComponentFactory) {
+    public VersionCatalogPlugin(SoftwareComponentFactory softwareComponentFactory) {
         this.softwareComponentFactory = softwareComponentFactory;
     }
 
     @Override
     public void apply(Project project) {
         Configuration dependenciesConfiguration = createDependenciesConfiguration(project);
-        GradlePlatformExtensionInternal extension = createExtension(project, dependenciesConfiguration);
+        VersionCatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
         createPublication(project, generator);
     }
 
     private void createPublication(Project project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().create(GRADLE_PLATFORM_ELEMENTS, cnf -> {
-            cnf.setDescription("Artifacts for the Gradle platform");
+        Configuration exported = project.getConfigurations().create(VERSION_CATALOG_ELEMENTS, cnf -> {
+            cnf.setDescription("Artifacts for the version catalog");
             cnf.setCanBeConsumed(true);
             cnf.setCanBeResolved(false);
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
-                attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.GRADLE_RECOMMENDATIONS));
+                attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.VERSION_CATALOG));
             });
         });
-        AdhocComponentWithVariants gradlePlatform = softwareComponentFactory.adhoc("gradlePlatform");
-        project.getComponents().add(gradlePlatform);
-        gradlePlatform.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
+        AdhocComponentWithVariants versionCatalog = softwareComponentFactory.adhoc("versionCatalog");
+        project.getComponents().add(versionCatalog);
+        versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
     }
 
     private Configuration createDependenciesConfiguration(Project project) {
@@ -87,21 +87,21 @@ public class GradlePlatformPlugin implements Plugin<Project> {
         });
     }
 
-    private TaskProvider<TomlFileGenerator> createGenerator(Project project, GradlePlatformExtensionInternal extension) {
-        return project.getTasks().register(GENERATE_PLATFORM_FILE_TASKNAME, TomlFileGenerator.class, t -> configureTask(project, extension, t));
+    private TaskProvider<TomlFileGenerator> createGenerator(Project project, VersionCatalogExtensionInternal extension) {
+        return project.getTasks().register(GENERATE_CATALOG_FILE_TASKNAME, TomlFileGenerator.class, t -> configureTask(project, extension, t));
     }
 
-    private void configureTask(Project project, GradlePlatformExtensionInternal extension, TomlFileGenerator task) {
+    private void configureTask(Project project, VersionCatalogExtensionInternal extension, TomlFileGenerator task) {
         task.setGroup(BasePlugin.BUILD_GROUP);
-        task.setDescription("Generates a TOML file for a Gradle platform");
-        task.getOutputFile().convention(project.getLayout().getBuildDirectory().file("gradle-platform/dependencies.toml"));
+        task.setDescription("Generates a TOML file for a version catalog");
+        task.getOutputFile().convention(project.getLayout().getBuildDirectory().file("version-catalog/dependencies.toml"));
         task.getDependenciesModel().convention(extension.getDependenciesModel());
         task.getPluginVersions().convention(extension.getPluginVersions());
     }
 
-    private GradlePlatformExtensionInternal createExtension(Project project, Configuration dependenciesConfiguration) {
-        return (GradlePlatformExtensionInternal) project.getExtensions()
-            .create(GradlePlatformExtension.class, "gradlePlatform", DefaultGradlePlatformExtension.class, dependenciesConfiguration);
+    private VersionCatalogExtensionInternal createExtension(Project project, Configuration dependenciesConfiguration) {
+        return (VersionCatalogExtensionInternal) project.getExtensions()
+            .create(VersionCatalogExtension.class, "versionCatalog", DefaultVersionCatalogExtension.class, dependenciesConfiguration);
     }
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.gradleplatform.internal
+package org.gradle.api.plugins.catalog.internal
 
 import com.google.common.collect.Interners
 import groovy.transform.Canonical

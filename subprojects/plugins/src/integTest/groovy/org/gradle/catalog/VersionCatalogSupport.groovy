@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.gradleplatform.internal;
 
-import org.gradle.api.internal.std.AllDependenciesModel;
-import org.gradle.api.plugins.gradleplatform.GradlePlatformExtension;
-import org.gradle.api.provider.Provider;
+package org.gradle.catalog
 
-import java.util.Map;
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-public interface GradlePlatformExtensionInternal extends GradlePlatformExtension {
-    Provider<AllDependenciesModel> getDependenciesModel();
-    Provider<Map<String, String>> getPluginVersions();
+trait VersionCatalogSupport {
+    void expectPlatformContents(File expectedTomlFile = file("build/version-catalog/dependencies.toml"), String resultFile) {
+        assert expectedTomlFile.exists()
+        def generated = normaliseLineSeparators(expectedTomlFile.getText("utf-8"))
+        def expected = normaliseLineSeparators(this.class.getResourceAsStream("${resultFile}.toml").getText("utf-8"))
+        assert generated == expected
+    }
 }

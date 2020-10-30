@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.gradleplatform.internal;
+package org.gradle.api.plugins.catalog.internal;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
@@ -47,15 +47,15 @@ import java.util.function.Supplier;
 
 import static org.gradle.api.internal.std.DependenciesModelHelper.ALIAS_PATTERN;
 
-public class GradlePlatformDependenciesModelBuilder extends DefaultDependenciesModelBuilder {
-    private final static Logger LOGGER = Logging.getLogger(GradlePlatformDependenciesModelBuilder.class);
+public class VersionCatalogDependenciesModelBuilder extends DefaultDependenciesModelBuilder {
+    private final static Logger LOGGER = Logging.getLogger(VersionCatalogDependenciesModelBuilder.class);
 
     private final Configuration dependenciesConfiguration;
     private final Map<ModuleIdentifier, String> explicitAliases = Maps.newHashMap();
     private boolean shouldAmendModel = true;
 
     @Inject
-    public GradlePlatformDependenciesModelBuilder(String name,
+    public VersionCatalogDependenciesModelBuilder(String name,
                                                   Interner<String> strings,
                                                   Interner<ImmutableVersionConstraint> versionConstraintInterner,
                                                   ObjectFactory objects,

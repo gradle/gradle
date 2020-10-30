@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.platform
+package org.gradle.catalog
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements GradlePlatformSupport {
+class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements VersionCatalogSupport {
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
         """
         buildFile << """
             plugins {
-                id 'gradle-platform'
+                id 'version-catalog'
             }
 
             group = 'org.gradle'
@@ -38,7 +38,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         withSamplePlatform()
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected1'
@@ -52,7 +52,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         succeeds ':publish'
 
         then:
-        executedAndNotSkipped ':generatePlatformToml',
+        executedAndNotSkipped ':generateCatalogAsToml',
             ':generateMetadataFileForMavenPublication',
             ':generatePomFileForMavenPublication',
             ':publishMavenPublicationToMavenRepository'
@@ -60,11 +60,11 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
             .withModuleMetadata()
         module.assertPublished()
         def metadata = module.parsedModuleMetadata
-        metadata.variant("gradlePlatformElements") {
+        metadata.variant("versionCatalogElements") {
             noMoreDependencies()
             assert attributes == [
                 'org.gradle.category': 'platform',
-                'org.gradle.usage': 'gradle-recommendations'
+                'org.gradle.usage': 'version-catalog'
             ]
             assert files.name == ['test-1.0.toml']
         }
@@ -73,8 +73,8 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
     def "can generate a Gradle platform file from a dependencies configuration"() {
         buildFile << """
             dependencies {
-                gradlePlatform 'org:foo:1.0'
-                gradlePlatform('org:bar') {
+                versionCatalog 'org:foo:1.0'
+                versionCatalog('org:bar') {
                     version {
                         strictly '1.5'
                     }
@@ -83,7 +83,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         """
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected2'
@@ -91,14 +91,14 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
 
     def "can generate a Gradle platform file from a dependencies configuration and the extension"() {
         buildFile << """
-            gradlePlatform {
+            versionCatalog {
                 dependenciesModel {
                     bundle('my', ['foo', 'bar'])
                 }
             }
             dependencies {
-                gradlePlatform 'org:foo:1.0'
-                gradlePlatform('org:bar') {
+                versionCatalog 'org:foo:1.0'
+                versionCatalog('org:bar') {
                     version {
                         strictly '1.5'
                     }
@@ -107,7 +107,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         """
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected3'
@@ -117,13 +117,13 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
     def "reasonable error message if there's a name clash between two dependencies"() {
         buildFile << """
             dependencies {
-                gradlePlatform 'org1:foo:1.0'
-                gradlePlatform 'org2:foo:1.0'
+                versionCatalog 'org1:foo:1.0'
+                versionCatalog 'org2:foo:1.0'
             }
         """
 
         when:
-        fails ':generatePlatformToml'
+        fails ':generateCatalogAsToml'
 
         then:
         failure.assertHasCause "A dependency with alias 'foo' already exists for module 'org2:foo'. Please configure an explicit alias for this dependency."
@@ -131,17 +131,17 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
 
     def "can declare a different alias in case of name clash"() {
         buildFile << """
-            gradlePlatform {
+            versionCatalog {
                configureExplicitAlias 'foo2', 'org2', 'foo'
             }
             dependencies {
-                gradlePlatform 'org1:foo:1.0'
-                gradlePlatform 'org2:foo:1.0'
+                versionCatalog 'org1:foo:1.0'
+                versionCatalog 'org2:foo:1.0'
             }
         """
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected4'
@@ -149,17 +149,17 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
 
     def "can declare a explicit alias without name clash"() {
         buildFile << """
-            gradlePlatform {
+            versionCatalog {
                configureExplicitAlias 'other', 'org', 'bar'
             }
             dependencies {
-                gradlePlatform 'org:foo:1.0'
-                gradlePlatform 'org:bar:1.0'
+                versionCatalog 'org:foo:1.0'
+                versionCatalog 'org:bar:1.0'
             }
         """
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected5'
@@ -168,9 +168,9 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
     def "can use either dependencies or constraints"() {
         buildFile << """
             dependencies {
-                gradlePlatform 'org:foo:1.0'
+                versionCatalog 'org:foo:1.0'
                 constraints {
-                    gradlePlatform('org:bar') {
+                    versionCatalog('org:bar') {
                         version {
                             require '1.2'
                         }
@@ -180,7 +180,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         """
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected6'
@@ -190,9 +190,9 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
     def "can detect name clash between dependencies and constraints"() {
         buildFile << """
             dependencies {
-                gradlePlatform 'org:foo:1.0'
+                versionCatalog 'org:foo:1.0'
                 constraints {
-                    gradlePlatform('org2:foo') {
+                    versionCatalog('org2:foo') {
                         version {
                             require '1.2'
                         }
@@ -202,7 +202,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         """
 
         when:
-        fails ':generatePlatformToml'
+        fails ':generateCatalogAsToml'
 
         then:
         failure.assertHasCause "A dependency with alias 'foo' already exists for module 'org2:foo'. Please configure an explicit alias for this dependency."
@@ -210,13 +210,13 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
 
     def "can fix name clash between dependencies and constraints"() {
         buildFile << """
-            gradlePlatform {
+            versionCatalog {
                 configureExplicitAlias 'foo2', 'org2', 'foo'
             }
             dependencies {
-                gradlePlatform 'org:foo:1.0'
+                versionCatalog 'org:foo:1.0'
                 constraints {
-                    gradlePlatform('org2:foo') {
+                    versionCatalog('org2:foo') {
                         version {
                             require '1.2'
                         }
@@ -226,7 +226,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         """
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected7'
@@ -234,7 +234,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
 
     def "can mix plugins, dependencies, constraints and model to create a platform"() {
         buildFile << """
-            gradlePlatform {
+            versionCatalog {
                 configureExplicitAlias 'foo2', 'org', 'foo'
                 dependenciesModel {
                     alias('foo').to('org:from-model:1.0')
@@ -245,9 +245,9 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
                 }
             }
             dependencies {
-                gradlePlatform 'org:from-script:1.0'
+                versionCatalog 'org:from-script:1.0'
                 constraints {
-                    gradlePlatform('org:foo') {
+                    versionCatalog('org:foo') {
                         version {
                             require '1.2'
                         }
@@ -257,7 +257,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         """
 
         when:
-        succeeds ':generatePlatformToml'
+        succeeds ':generateCatalogAsToml'
 
         then:
         expectPlatformContents 'expected8'
@@ -281,7 +281,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         succeeds ':publish'
 
         then:
-        executedAndNotSkipped ':generatePlatformToml',
+        executedAndNotSkipped ':generateCatalogAsToml',
             ':generateMetadataFileForMavenPublication',
             ':generatePomFileForMavenPublication',
             ':publishMavenPublicationToMavenRepository'
@@ -289,11 +289,11 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
             .withModuleMetadata()
         module.assertPublished()
         def metadata = module.parsedModuleMetadata
-        metadata.variant("gradlePlatformElements") {
+        metadata.variant("versionCatalogElements") {
             noMoreDependencies()
             assert attributes == [
                 'org.gradle.category': 'platform',
-                'org.gradle.usage': 'gradle-recommendations'
+                'org.gradle.usage': 'version-catalog'
             ]
             assert files.name == ['test-1.0.toml']
         }
@@ -304,7 +304,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
 
     private void withSamplePlatform() {
         buildFile << """
-            gradlePlatform {
+            versionCatalog {
                 dependenciesModel {
                     alias("my-lib").to("org:foo:1.0")
                     alias("junit4").to("junit", "junit").version {
@@ -322,7 +322,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         """
     }
 
-    private void withPublishing(String component = 'gradlePlatform') {
+    private void withPublishing(String component = 'versionCatalog') {
         buildFile << """
             apply plugin: 'maven-publish'
 

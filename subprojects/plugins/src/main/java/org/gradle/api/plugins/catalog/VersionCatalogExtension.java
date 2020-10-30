@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.gradleplatform;
+package org.gradle.api.plugins.catalog;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -22,21 +22,21 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 
 /**
- * Allows configuring a Gradle platform.
+ * Allows configuring a version catalog.
  *
  * @since 6.8
  */
 @Incubating
 @HasInternalProtocol
-public interface GradlePlatformExtension {
+public interface VersionCatalogExtension {
     /**
-     * Configures the dependency model of this platform.
+     * Configures the dependency model of this catalog.
      * @param spec the spec used to configure the dependencies
      */
     void dependenciesModel(Action<? super DependenciesModelBuilder> spec);
 
     /**
-     * Configures the plugins model of this platform.
+     * Configures the plugins model of this catalog.
      * Currently it's only possible to configure the default versions
      * of plugins.
      *

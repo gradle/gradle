@@ -43,12 +43,12 @@ public interface DependenciesModelBuilder {
     void from(File modelFile);
 
     /**
-     * Configures the model by reading it from a published Gradle platform.
-     * A Gradle platform is a component published using the `gradle-platform` plugin.
+     * Configures the model by reading it from a published version catalog.
+     * A version catalog is a component published using the `version-catalog` plugin.
      *
-     * @param dependencyNotation the notation for the dependency coordinates of the platform
+     * @param dependencyNotation the notation for the dependency coordinates of the catalog
      */
-    void fromGradlePlatform(Object dependencyNotation);
+    void fromVersionCatalog(Object dependencyNotation);
 
     /**
      * Configures a dependency version which can then be referenced using
