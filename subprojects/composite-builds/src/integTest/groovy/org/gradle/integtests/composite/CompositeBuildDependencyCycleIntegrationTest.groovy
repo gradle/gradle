@@ -473,7 +473,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         """
         buildB.buildFile << """
             task b {
-                dependsOn gradle.includedBuild('buildC').task(':c')
+                finalizedBy gradle.includedBuild('buildC').task(':c')
             }
         """
         buildB.settingsFile << """
