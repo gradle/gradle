@@ -45,12 +45,12 @@ public class FileSystemSnapshotFilter {
     private static class FilteringVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final RelativePathSegmentsTracker relativePathTracker;
         private final SnapshottingFilter.FileSystemSnapshotPredicate predicate;
-        private final FileSystemSnapshotHierarchyVisitor delegate;
+        private final MerkleDirectorySnapshotBuilder builder;
         private final AtomicBoolean hasBeenFiltered;
 
-        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshotHierarchyVisitor delegate, AtomicBoolean hasBeenFiltered) {
+        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, MerkleDirectorySnapshotBuilder builder, AtomicBoolean hasBeenFiltered) {
             this.predicate = predicate;
-            this.delegate = delegate;
+            this.builder = builder;
             this.hasBeenFiltered = hasBeenFiltered;
             this.relativePathTracker = new RelativePathSegmentsTracker();
         }
@@ -60,7 +60,7 @@ public class FileSystemSnapshotFilter {
             relativePathTracker.enter(directorySnapshot);
             boolean root = relativePathTracker.isRoot();
             if (root || predicate.test(directorySnapshot, relativePathTracker.getRelativePath())) {
-                delegate.preVisitDirectory(directorySnapshot);
+                builder.preVisitDirectory(directorySnapshot);
                 return true;
             } else {
                 hasBeenFiltered.set(true);
@@ -75,7 +75,7 @@ public class FileSystemSnapshotFilter {
             relativePathTracker.enter(snapshot);
             Iterable<String> relativePathForFiltering = root ? ImmutableList.of(snapshot.getName()) : relativePathTracker.getRelativePath();
             if (predicate.test(snapshot, relativePathForFiltering)) {
-                delegate.visitEntry(snapshot);
+                builder.visitEntry(snapshot);
             } else {
                 hasBeenFiltered.set(true);
             }
@@ -85,7 +85,7 @@ public class FileSystemSnapshotFilter {
         @Override
         public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathTracker.leave();
-            delegate.postVisitDirectory(directorySnapshot);
+            builder.postVisitDirectory(true, directorySnapshot.getAccessType());
         }
     }
 }

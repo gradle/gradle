@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotHierarchyVisitor {
+public class MerkleDirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
@@ -54,13 +54,10 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotHierarc
         directoryAbsolutePaths.addLast(absolutePath);
     }
 
-    @Override
-    public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+    public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
         preVisitDirectory(directorySnapshot.getAbsolutePath(), directorySnapshot.getName());
-        return true;
     }
 
-    @Override
     public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
         snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
             @Override
@@ -81,11 +78,6 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotHierarc
         } else {
             levelHolder.peekLast().add(snapshot);
         }
-    }
-
-    @Override
-    public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        postVisitDirectory(true, directorySnapshot.getAccessType());
     }
 
     public void postVisitDirectory(AccessType accessType) {
