@@ -16,27 +16,26 @@
 
 package org.gradle.internal.snapshot
 
-import org.gradle.internal.file.FileType
 import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 @Unroll
-class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<PartialDirectorySnapshot> {
+class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<UnknownFileSystemNode> {
 
     @Override
-    protected PartialDirectorySnapshot createInitialRootNode(ChildMap<FileSystemNode> children) {
-        return new PartialDirectorySnapshot(children)
+    protected UnknownFileSystemNode createInitialRootNode(ChildMap<FileSystemNode> children) {
+        return new UnknownFileSystemNode(children)
     }
 
     @Override
     protected boolean isSameNodeType(FileSystemNode node) {
-        node instanceof PartialDirectorySnapshot
+        return node instanceof UnknownFileSystemNode
     }
 
     @Override
     boolean isAllowEmptyChildren() {
-        return true
+        return false
     }
 
     def "invalidate #vfsSpec.searchedPath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -52,7 +51,22 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << IS_PREFIX_OF_CHILD + SAME_PATH
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() > 1 }
+    }
+
+    def "invalidating the only child by #vfsSpec.searchedPath removes the node (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener)
+        then:
+        !resultRoot.present
+        removedNodes == [selectedChild]
+        addedNodes.empty
+        interaction { noMoreInteractions() }
+
+        where:
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() == 1 }
     }
 
     def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -66,7 +80,6 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         isSameNodeType(resultRoot)
         removedNodes.empty
         addedNodes.empty
-
         interaction {
             invalidateDescendantOfSelectedChild(invalidatedChild)
             noMoreInteractions()
@@ -92,13 +105,31 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         }
 
         where:
-        vfsSpec << CHILD_IS_PREFIX
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() > 1 }
     }
 
-    def "returns Directory for snapshot"() {
-        def node = new PartialDirectorySnapshot(EmptyChildMap.getInstance())
+    def "invalidate #vfsSpec.searchedPath removes the child #vfsSpec.selectedChildPath and the node with it (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener)
+        then:
+        !resultRoot.present
+        removedNodes.empty
+        addedNodes.empty
+        interaction {
+            invalidateDescendantOfSelectedChild(null)
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() == 1 }
+    }
+
+    def "returns empty for snapshot"() {
+        def node = new UnknownFileSystemNode(createChildren(["myFile.txt"]))
 
         expect:
-        node.getSnapshot().get().type == FileType.Directory
+        !node.getSnapshot().present
     }
 }

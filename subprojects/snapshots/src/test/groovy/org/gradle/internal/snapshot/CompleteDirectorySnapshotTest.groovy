@@ -41,7 +41,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         when:
         def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
-        resultRoot instanceof PartialDirectorySnapshot
+        resultRoot instanceof PartialDirectoryNode
         resultRoot.children == children
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == children.values()
@@ -57,7 +57,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         when:
         def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
-        resultRoot instanceof PartialDirectorySnapshot
+        resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildRemoved()
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == childrenWithSelectedChildRemoved().values()
@@ -74,7 +74,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         when:
         def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
-        resultRoot instanceof PartialDirectorySnapshot
+        resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == childrenWithSelectedChildRemoved().values()
@@ -94,7 +94,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         when:
         def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
-        resultRoot instanceof PartialDirectorySnapshot
+        resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildRemoved()
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == childrenWithSelectedChildRemoved().values()

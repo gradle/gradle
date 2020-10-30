@@ -22,11 +22,11 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-public abstract class AbstractIncompleteSnapshotWithChildren implements FileSystemNode {
+public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode {
     protected final ChildMap<FileSystemNode> children;
 
     @SuppressWarnings("unchecked")
-    public AbstractIncompleteSnapshotWithChildren(ChildMap<? extends FileSystemNode> children) {
+    public AbstractIncompleteFileSystemNode(ChildMap<? extends FileSystemNode> children) {
         this.children = (ChildMap<FileSystemNode>) children;
     }
 
@@ -104,7 +104,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
             @Override
             public FileSystemNode createNodeFromChildren(ChildMap<FileSystemNode> children) {
                 boolean isDirectory = anyChildMatches(children, node -> node.getSnapshot().map(this::isRegularFileOrDirectory).orElse(false));
-                return isDirectory ? new PartialDirectorySnapshot(children) : new UnknownSnapshot(children);
+                return isDirectory ? new PartialDirectoryNode(children) : new UnknownFileSystemNode(children);
             }
 
             private boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {

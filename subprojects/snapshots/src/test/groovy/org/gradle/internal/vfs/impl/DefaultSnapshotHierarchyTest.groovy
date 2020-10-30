@@ -22,7 +22,7 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.AbstractIncompleteSnapshotWithChildren
+import org.gradle.internal.snapshot.AbstractIncompleteFileSystemNode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemNode
@@ -818,7 +818,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
             children.forEach { child ->
                 collectPrefixes(child.name, child, 0, prefixes)
             }
-        } else if (unpackedNode instanceof AbstractIncompleteSnapshotWithChildren) {
+        } else if (unpackedNode instanceof AbstractIncompleteFileSystemNode) {
             def children = unpackedNode.children
             children.visitChildren { path, child ->
                 collectPrefixes(path, child, 0, prefixes)
@@ -839,7 +839,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
             children.forEach { child ->
                 collectPrefixes(child.name, child, depth + 1, prefixes)
             }
-        } else if (unpackedNode instanceof AbstractIncompleteSnapshotWithChildren) {
+        } else if (unpackedNode instanceof AbstractIncompleteFileSystemNode) {
             def children = unpackedNode.children
             children.visitChildren { childPath, child ->
                 collectPrefixes(childPath, child, depth + 1, prefixes)

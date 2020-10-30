@@ -22,7 +22,7 @@ import spock.lang.Unroll
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 @Unroll
-abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNode> extends AbstractSnapshotWithChildrenTest<T, FileSystemNode> {
+abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> extends AbstractSnapshotWithChildrenTest<T, FileSystemNode> {
 
     abstract protected boolean isSameNodeType(FileSystemNode node)
 
@@ -48,7 +48,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
         when:
         def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot, diffListener)
-        AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteSnapshotWithChildren
+        AbstractIncompleteFileSystemNode newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteFileSystemNode
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(commonPrefix, newChild)
         newChild.children == sortedChildren(
@@ -80,7 +80,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
         when:
         def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot, diffListener)
-        AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteSnapshotWithChildren
+        AbstractIncompleteFileSystemNode newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteFileSystemNode
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(commonPrefix, newChild)
         newChild.children == sortedChildren(
