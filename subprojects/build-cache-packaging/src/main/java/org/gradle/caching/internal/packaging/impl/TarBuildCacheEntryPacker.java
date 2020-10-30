@@ -73,11 +73,11 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     @SuppressWarnings("OctalInteger")
     private interface UnixPermissions {
-        int FILE_FLAG =         0100000;
-        int DEFAULT_FILE_PERM =    0644;
-        int DIR_FLAG =           040000;
-        int DEFAULT_DIR_PERM =     0755;
-        int PERM_MASK           = 07777;
+        int FILE_FLAG = 0100000;
+        int DEFAULT_FILE_PERM = 0644;
+        int DIR_FLAG = 040000;
+        int DEFAULT_DIR_PERM = 0755;
+        int PERM_MASK = 07777;
     }
 
     private static final Charset ENCODING = StandardCharsets.UTF_8;
@@ -365,16 +365,19 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             boolean isRoot = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(fileSnapshot);
             String targetPath = getTargetPath(isRoot);
-            if (fileSnapshot.getType() == FileType.Missing) {
-                if (!isRoot) {
-                    throw new RuntimeException(String.format("Couldn't read content of file '%s'", fileSnapshot.getAbsolutePath()));
-                }
-                storeMissingTree(targetPath, tarOutput);
-            } else {
-                assertCorrectType(isRoot, fileSnapshot);
-                File file = new File(fileSnapshot.getAbsolutePath());
-                int mode = filePermissionAccess.getUnixMode(file);
-                storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
+            switch (fileSnapshot.getType()) {
+                case Missing:
+                    if (!isRoot) {
+                        throw new RuntimeException(String.format("Couldn't read content of file '%s'", fileSnapshot.getAbsolutePath()));
+                    }
+                    storeMissingTree(targetPath, tarOutput);
+                    break;
+                default:
+                    assertCorrectType(isRoot, fileSnapshot);
+                    File file = new File(fileSnapshot.getAbsolutePath());
+                    int mode = filePermissionAccess.getUnixMode(file);
+                    storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
+                    break;
             }
             relativePathStringTracker.leave();
             entries++;
@@ -428,6 +431,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 throw new UncheckedIOException(e);
             }
         }
+
         private void storeDirectoryEntry(String path, int mode, TarArchiveOutputStream tarOutput) {
             try {
                 createTarEntry(path + "/", 0, UnixPermissions.DIR_FLAG | mode, tarOutput);
