@@ -311,4 +311,32 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":lib:lib:doSomething")
         output.contains("do something")
     }
+
+    def "can run task from included build via task reference"() {
+        setup:
+        settingsFile << """
+            rootProject.name = 'root-project'
+            includeBuild('lib')
+        """
+        buildFile << """
+            tasks.register('doSomething') {
+                dependsOn gradle.includedBuild('lib').task(':lib:doSomething')
+            }
+        """
+
+        file('lib/settings.gradle') << """
+            include('lib')
+        """
+        file('lib/lib/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        succeeds("doSomething")
+        output.contains("do something")
+    }
 }
