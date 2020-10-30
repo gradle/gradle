@@ -143,6 +143,6 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 children.visitChildren((__, child) -> diffListener.nodeAdded(child));
             }
         });
-        return Optional.of(new PartialDirectorySnapshot(newChildren));
+        return Optional.of(new PartialDirectoryNode(newChildren));
     }
 }

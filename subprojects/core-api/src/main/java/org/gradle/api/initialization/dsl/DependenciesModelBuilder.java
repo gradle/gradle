@@ -17,9 +17,7 @@ package org.gradle.api.initialization.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -46,7 +44,7 @@ public interface DependenciesModelBuilder {
 
     /**
      * Configures a dependency version which can then be referenced using
-     * the {@link #aliasWithVersionRef(String, String, String, String)} )} method.
+     * the {@link DependenciesModelBuilder.LibraryAliasBuilder#versionRef(String)} )} method.
      *
      * @param name an identifier for the version
      * @param versionSpec the dependency version spec
@@ -56,57 +54,24 @@ public interface DependenciesModelBuilder {
 
     /**
      * Configures a dependency version which can then be referenced using
-     * the {@link #aliasWithVersionRef(String, String, String, String)} method.
+     * the {@link DependenciesModelBuilder.LibraryAliasBuilder#versionRef(String)} method.
      *
      * @param name an identifier for the version
-     * @param requiredVersion the version string, interpreted as a required version
+     * @param version the version string
      */
-    default String version(String name, String requiredVersion) {
-        return version(name, vc -> vc.require(requiredVersion));
-    }
+    String version(String name, String version);
 
     /**
-     * Declares an alias for a dependency
-     * @param alias the alias for the dependency
-     * @param group the group of the dependency
-     * @param name the module name of the dependency
-     * @param versionSpec the version specification
+     * Entry point for registering an alias for a library
+     * @param alias the alias identifer
+     * @return a builder for this alias
      */
-    void alias(String alias, String group, String name, Action<? super MutableVersionConstraint> versionSpec);
-
-    /**
-     * A shorthand notation to declare a simple dependency with group,
-     * artifact, version coordinates. The notation must consist of 3 colon
-     * separated parts: group:artifact:version.
-     *
-     * The version is implicity {@link VersionConstraint#getRequiredVersion() required}.
-     *
-     * @param alias the alias for the dependency
-     * @param gavCoordinates the gav coordinates notation
-     */
-    default void alias(String alias, String gavCoordinates) {
-        String[] coordinates = gavCoordinates.split(":");
-        if (coordinates.length == 3) {
-            alias(alias, coordinates[0], coordinates[1], vc -> vc.require(coordinates[2]));
-        } else {
-            throw new InvalidUserDataException("Invalid dependency notation: it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
-        }
-    }
-
-    /**
-     * Configures an alias, using the supplied group and name, and a version which corresponds
-     * to a version name created by {@link #version(String, Action)}.
-     * @param alias the alias for the dependency
-     * @param group the group of the dependency
-     * @param name the name of the dependency
-     * @param versionRef the name of a version declared via the  {@link #version(String, Action)} method.
-     */
-    void aliasWithVersionRef(String alias, String group, String name, String versionRef);
+    AliasBuilder alias(String alias);
 
     /**
      * Declares a bundle of dependencies. A bundle consists of a name for the bundle,
      * and a list of aliases. The aliases must correspond to aliases defined via
-     * the {@link #alias(String, String, String, Action)} method.
+     * the {@link #alias(String)} method.
      *
      * @param name the name of the bundle
      * @param aliases the aliases of the dependencies included in the bundle
@@ -117,4 +82,52 @@ public interface DependenciesModelBuilder {
      * Returns the name of the extension configured by this builder
      */
     String getLibrariesExtensionName();
+
+    /**
+     * Allows configuring an alias
+     *
+     * @since 6.8
+     */
+    @Incubating
+    interface AliasBuilder {
+        /**
+         * Sets GAV coordinates for this alias
+         * @param groupArtifactVersion the GAV coordinates, in the group:artifact:version form
+         */
+        void to(String groupArtifactVersion);
+
+        /**
+         * Sets the group and name of this alias
+         * @param group the group
+         * @param name the name (or artifact id)
+         * @return a builder to configure the version
+         */
+        LibraryAliasBuilder to(String group, String name);
+    }
+
+    /**
+     * Allows configuring the version of a library
+     *
+     * @since 6.8
+     */
+    @Incubating
+    interface LibraryAliasBuilder {
+        /**
+         * Configures the version for this alias
+         */
+        void version(Action<? super MutableVersionConstraint> versionSpec);
+
+        /**
+         * Configures the required version for this alias
+         */
+        void version(String version);
+
+        /**
+         * Configures this alias to use a version reference, created
+         * via the {@link #version(String, Action)} method.
+         *
+         * @param versionRef the version reference
+         */
+        void versionRef(String versionRef);
+    }
 }

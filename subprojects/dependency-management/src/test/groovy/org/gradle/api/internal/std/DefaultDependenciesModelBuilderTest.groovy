@@ -35,7 +35,7 @@ class DefaultDependenciesModelBuilderTest extends Specification {
     @Unroll("#notation is an invalid notation")
     def "reasonable error message if notation is invalid"() {
         when:
-        builder.alias("foo", notation)
+        builder.alias("foo").to(notation)
 
         then:
         InvalidUserDataException ex = thrown()
@@ -48,7 +48,7 @@ class DefaultDependenciesModelBuilderTest extends Specification {
     @Unroll("#notation is an invalid alias")
     def "reasonable error message if alias is invalid"() {
         when:
-        builder.alias(notation, "org:foo:1.0")
+        builder.alias(notation).to("org:foo:1.0")
 
         then:
         InvalidUserDataException ex = thrown()
@@ -79,10 +79,10 @@ class DefaultDependenciesModelBuilderTest extends Specification {
         loggingManager.addStandardOutputListener(listener)
         loggingManager.start()
 
-        builder.alias("foo", "a:b:1.0")
+        builder.alias("foo").to("a:b:1.0")
 
         when:
-        builder.alias("foo", "e:f:1.1")
+        builder.alias("foo").to("e:f:1.1")
 
         then:
         1 * listener.onOutput("Duplicate entry for alias 'foo': dependency {group='a', name='b', version='1.0'} is replaced with dependency {group='e', name='f', version='1.1'}")
@@ -112,7 +112,7 @@ class DefaultDependenciesModelBuilderTest extends Specification {
     }
 
     def "fails building the model if a bundle references a non-existing alias"() {
-        builder.alias("guava", "com.google.guava:guava:17.0")
+        builder.alias("guava").to("com.google.guava:guava:17.0")
         builder.bundle("toto", ["foo"])
 
         when:
@@ -124,11 +124,11 @@ class DefaultDependenciesModelBuilderTest extends Specification {
     }
 
     def "model reflects what is declared"() {
-        builder.alias("guava", "com.google.guava:guava:17.0")
-        builder.alias("groovy", "org.codehaus.groovy", "groovy") {
+        builder.alias("guava").to("com.google.guava:guava:17.0")
+        builder.alias("groovy").to("org.codehaus.groovy", "groovy").version {
             it.strictly("3.0.5")
         }
-        builder.alias("groovy-json", "org.codehaus.groovy", "groovy-json") {
+        builder.alias("groovy-json").to("org.codehaus.groovy", "groovy-json").version {
             it.prefer("3.0.5")
         }
         builder.bundle("groovy", ["groovy", "groovy-json"])
@@ -147,11 +147,25 @@ class DefaultDependenciesModelBuilderTest extends Specification {
         model.getDependencyData("groovy-json").version.preferredVersion == '3.0.5'
     }
 
+    def "can use rich versions in short-hand notation"() {
+        builder.alias("dummy").to("g:a:1.5!!")
+        builder.alias("alias").to("g:a:[1.0,2.0[!!1.7")
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.dependencyAliases == ["alias", "dummy"]
+        model.getDependencyData("dummy").version.strictVersion == '1.5'
+        model.getDependencyData("alias").version.strictVersion == '[1.0,2.0['
+        model.getDependencyData("alias").version.preferredVersion == '1.7'
+    }
+
     def "strings are interned"() {
-        builder.alias("foo", "bar", "baz") {
+        builder.alias("foo").to("bar", "baz").version {
             it.require "1.0"
         }
-        builder.alias("baz", "foo", "bar") {
+        builder.alias("baz").to("foo", "bar").version {
             it.prefer "1.0"
         }
         when:
@@ -162,5 +176,27 @@ class DefaultDependenciesModelBuilderTest extends Specification {
         model.getDependencyData("foo").group.is(model.getDependencyData("baz").name)
         model.getDependencyData("foo").name.is(bazKey)
         model.getDependencyData("foo").version.requiredVersion.is(model.getDependencyData("baz").version.preferredVersion)
+    }
+
+    def "can create an alias to a referenced version"() {
+        builder.version("ver", "1.7!!")
+        builder.alias("foo").to("org", "foo").versionRef("ver")
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.getDependencyData("foo").version.strictVersion == "1.7"
+    }
+
+    def "reasonable error message if referenced version doesn't exist"() {
+        builder.alias("foo").to("org", "foo").versionRef("nope")
+
+        when:
+        builder.build()
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "Referenced version 'nope' doesn't exist on dependency org:foo"
     }
 }

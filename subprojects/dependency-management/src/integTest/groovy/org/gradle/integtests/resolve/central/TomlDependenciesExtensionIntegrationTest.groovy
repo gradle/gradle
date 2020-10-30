@@ -40,7 +40,7 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenci
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
         tomlFile << """[dependencies]
-foo.gav = 'org.gradle.test:lib:1.0'
+foo = 'org.gradle.test:lib:1.0'
 """
 
         buildFile << """
@@ -80,7 +80,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
         operations.hasOperation("Generate dependency accessors for libs")
 
         when: "updating a version in the model"
-        tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '.gav="org.gradle.test:bar:1.1"')
+        tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '="org.gradle.test:bar:1.1"')
         run 'verifyExtension'
 
         then: "extension is not regenerated"
@@ -272,7 +272,7 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 
     def "libraries extension is not visible in buildSrc"() {
         tomlFile << """[dependencies]
-lib.gav = "org.gradle.test:lib:1.0"
+lib = "org.gradle.test:lib:1.0"
 """
         file("buildSrc/build.gradle") << """
             dependencies {
@@ -289,7 +289,7 @@ lib.gav = "org.gradle.test:lib:1.0"
 
     def "libraries extension can be made visible to buildSrc"() {
         tomlFile << """[dependencies]
-lib.gav = "org.gradle.test:lib:1.0"
+lib = "org.gradle.test:lib:1.0"
 """
         file("buildSrc/settings.gradle") << """
             dependencyResolutionManagement {
@@ -318,10 +318,10 @@ lib.gav = "org.gradle.test:lib:1.0"
 
     def "buildSrc and main project have different libraries extensions"() {
         tomlFile << """[dependencies]
-lib.gav="org.gradle.test:lib:1.0"
+lib="org.gradle.test:lib:1.0"
 """
         file("buildSrc/gradle/dependencies.toml") << """[dependencies]
-build-src-lib.gav="org.gradle.test:buildsrc-lib:1.0"
+build-src-lib="org.gradle.test:buildsrc-lib:1.0"
 """
         file("buildSrc/build.gradle") << """
             repositories {
@@ -373,7 +373,7 @@ build-src-lib.gav="org.gradle.test:buildsrc-lib:1.0"
             }
         """
         file("included/gradle/dependencies.toml") << """[dependencies]
-from-included.gav="org.gradle.test:other:1.1"
+from-included="org.gradle.test:other:1.1"
 """
         file("included/settings.gradle") << """
             rootProject.name = 'included'
@@ -432,7 +432,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias('other', 'org.gradle.test:other:1.0')
+                    alias('other').to('org.gradle.test:other:1.0')
                 }
             }
         """
@@ -470,7 +470,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias('my-lib', 'org.gradle.test:lib:1.0')
+                    alias('my-lib').to('org.gradle.test:lib:1.0')
                 }
             }
         """

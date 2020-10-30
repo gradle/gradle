@@ -266,7 +266,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
         publishPluginWithDependency()
@@ -343,7 +342,12 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "tasks")
 
         then:
-        failure.assertHasDescription("Included build dependency cycle: build 'pluginDependencyA' -> build 'pluginDependencyB' -> build 'pluginDependencyA'")
+        failure.assertHasDescription("Circular dependency between the following tasks:")
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:jar"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:classes"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:compileJava"))
+        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava (*)"))
     }
 
     @ToBeFixedForConfigurationCache
@@ -374,7 +378,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         outputContains("taskFromPluginBuild")
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "can co-develop published plugin applied via plugins block"() {
         given:
         publishPlugin()

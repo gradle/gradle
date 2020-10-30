@@ -17,6 +17,7 @@ package org.gradle.api.internal.std;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
@@ -50,6 +51,7 @@ public class TomlDependenciesFileParser {
     );
 
     public static void parse(InputStream in, DependenciesModelBuilder builder, PluginDependenciesSpec plugins) throws IOException {
+        StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
         TomlTable dependenciesTable = result.getTable(DEPENDENCIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
@@ -59,13 +61,13 @@ public class TomlDependenciesFileParser {
         if (!unknownTle.isEmpty()) {
             throw new InvalidUserDataException("Unknown top level elements " + unknownTle);
         }
-        parseDependencies(dependenciesTable, builder);
+        parseDependencies(dependenciesTable, builder, strictVersionParser);
         parseBundles(bundlesTable, builder);
         parsePlugins(pluginsTable, plugins);
-        parseVersions(versionsTable, builder);
+        parseVersions(versionsTable, builder, strictVersionParser);
     }
 
-    private static void parseDependencies(@Nullable TomlTable dependenciesTable, DependenciesModelBuilder builder) {
+    private static void parseDependencies(@Nullable TomlTable dependenciesTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
         if (dependenciesTable == null) {
             return;
         }
@@ -75,11 +77,11 @@ public class TomlDependenciesFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            parseDependency(alias, dependenciesTable, builder);
+            parseDependency(alias, dependenciesTable, builder, strictVersionParser);
         }
     }
 
-    private static void parseVersions(@Nullable TomlTable versionsTable, DependenciesModelBuilder builder) {
+    private static void parseVersions(@Nullable TomlTable versionsTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
         if (versionsTable == null) {
             return;
         }
@@ -89,7 +91,7 @@ public class TomlDependenciesFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            parseVersion(alias, versionsTable, builder);
+            parseVersion(alias, versionsTable, builder, strictVersionParser);
         }
     }
 
@@ -147,7 +149,21 @@ public class TomlDependenciesFileParser {
         }
     }
 
-    private static void parseDependency(String alias, TomlTable dependenciesTable, DependenciesModelBuilder builder) {
+    private static void parseDependency(String alias, TomlTable dependenciesTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
+        Object gav = dependenciesTable.get(alias);
+        if (gav instanceof String) {
+            List<String> splitted = SPLITTER.splitToList((String) gav);
+            if (splitted.size() == 3) {
+                String group = notEmpty(splitted.get(0), "group", alias);
+                String name = notEmpty(splitted.get(1), "name", alias);
+                String version = notEmpty(splitted.get(2), "version", alias);
+                StrictVersionParser.RichVersion rich = strictVersionParser.parse(version);
+                registerDependency(builder, alias, group, name, null, rich.require, rich.strictly, rich.prefer, null, null);
+                return;
+            } else {
+                throw new InvalidUserDataException("Invalid GAV notation '" + gav + "' for alias '" + alias + "': it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
+            }
+        }
         String group = expectString("alias", alias, dependenciesTable, "group");
         String name = expectString("alias", alias, dependenciesTable, "name");
         Object version = dependenciesTable.get(alias + ".version");
@@ -167,19 +183,12 @@ public class TomlDependenciesFileParser {
         String prefer = null;
         List<String> rejectedVersions = null;
         Boolean rejectAll = null;
-        String gav = expectString("alias", alias, dependenciesTable, "gav");
-        if (gav != null) {
-            List<String> splitted = SPLITTER.splitToList(gav);
-            if (splitted.size() == 3) {
-                group = notEmpty(splitted.get(0), "group", alias);
-                name = notEmpty(splitted.get(1), "name", alias);
-                require = notEmpty(splitted.get(2), "version", alias);
-            } else {
-                throw new InvalidUserDataException("Invalid GAV notation '" + gav + "' for alias '" + alias + "': it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
-            }
-        }
         if (version instanceof String) {
             require = notEmpty((String) version, "version", alias);
+            StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(require);
+            require = richVersion.require;
+            prefer = richVersion.prefer;
+            strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
             versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
@@ -204,7 +213,7 @@ public class TomlDependenciesFileParser {
         registerDependency(builder, alias, group, name, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
     }
 
-    private static void parseVersion(String alias, TomlTable versionsTable, DependenciesModelBuilder builder) {
+    private static void parseVersion(String alias, TomlTable versionsTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
         String require = null;
         String strictly = null;
         String prefer = null;
@@ -213,6 +222,10 @@ public class TomlDependenciesFileParser {
         Object version = versionsTable.get(alias);
         if (version instanceof String) {
             require = notEmpty((String) version, "version", alias);
+            StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(require);
+            require = richVersion.require;
+            prefer = richVersion.prefer;
+            strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
             require = notEmpty(versionTable.getString("require"), "required version", alias);
@@ -251,11 +264,12 @@ public class TomlDependenciesFileParser {
                                            @Nullable String prefer,
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
+        DependenciesModelBuilder.LibraryAliasBuilder aliasBuilder = builder.alias(alias).to(group, name);
         if (versionRef != null) {
-            builder.aliasWithVersionRef(alias, group, name, versionRef);
+            aliasBuilder.versionRef(versionRef);
             return;
         }
-        builder.alias(alias, group, name, v -> {
+        aliasBuilder.version(v -> {
             if (require != null) {
                 v.require(require);
             }

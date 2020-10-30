@@ -22,14 +22,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Transformers;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
@@ -101,8 +99,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
             ModelSchemaStore schemaStore = serviceRegistry.get(ModelSchemaStore.class);
-            BuildIdentifier currentBuild = serviceRegistry.get(BuildState.class).getBuildIdentifier();
-            languages.add(new Java(schemaStore, currentBuild));
+            languages.add(new Java(schemaStore));
         }
     }
 
@@ -112,8 +109,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
         private final JavaSourceTransformTaskConfig config;
 
-        public Java(ModelSchemaStore schemaStore, BuildIdentifier currentBuild) {
-            this.config = new JavaSourceTransformTaskConfig(schemaStore, currentBuild);
+        public Java(ModelSchemaStore schemaStore) {
+            this.config = new JavaSourceTransformTaskConfig(schemaStore);
         }
 
         @Override
@@ -149,11 +146,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private static class JavaSourceTransformTaskConfig implements SourceTransformTaskConfig {
 
             private final ModelSchemaStore schemaStore;
-            private final BuildIdentifier currentBuild;
 
-            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, BuildIdentifier currentBuild) {
+            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore) {
                 this.schemaStore = schemaStore;
-                this.currentBuild = currentBuild;
             }
 
             @Override
@@ -185,7 +180,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 compile.setTargetCompatibility(targetCompatibility);
                 compile.setSourceCompatibility(targetCompatibility);
 
-                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore, currentBuild);
+                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore);
                 compile.setClasspath(classpath);
             }
 
@@ -193,7 +188,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 return first(assembly.getClassDirectories());
             }
 
-            private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, BuildIdentifier thisBuild) {
+            private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore) {
                 Iterable<DependencySpec> dependencies = compileDependencies(binary, javaSourceSet);
 
                 ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
@@ -205,7 +200,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
                 BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
 
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, () -> resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationExecutor, thisBuild);
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, () -> resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationExecutor);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

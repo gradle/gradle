@@ -1,2 +1,2 @@
 [dependencies]
-module.gav = "foo::1.0"
+module = "foo::1.0"

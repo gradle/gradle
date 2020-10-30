@@ -24,6 +24,7 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -35,7 +36,7 @@ import java.util.function.BiFunction;
  *
  * <p>
  * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
- * It is also available via {@link org.gradle.api.Project#getProviders()}.
+ * It is also available via {@link org.gradle.api.Project#getProviders()} and {@link Settings#getProviders()}.
  *
  * @since 4.0
  */

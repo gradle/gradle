@@ -56,6 +56,7 @@ import org.gradle.internal.classpath.ClasspathTransformerCacheFactory;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -168,7 +169,9 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             classpathBuilder,
             fileSystemAccess,
             executorFactory,
-            globalCacheLocations);
+            globalCacheLocations,
+            new DefaultParallelismConfiguration()
+        );
     }
 
     ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

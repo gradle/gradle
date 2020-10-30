@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -31,7 +30,6 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         includedBuilds << buildC
     }
 
-    @ToBeFixedForConfigurationCache(because = "configuration cache serialization issue")
     def "two included builds can include each other"() {
         when:
         buildB.settingsFile << "includeBuild '../buildC'"
@@ -57,5 +55,75 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         execute(buildA, 'help')
+    }
+
+    def "included build can see included root build"() {
+        when:
+        buildA.settingsFile << """
+            rootProject.name = 'theNameOfBuildA'
+        """
+        buildB.settingsFile << "includeBuild '../buildA'"
+        buildB.buildFile << """
+            assert gradle.includedBuilds.collect { it.name } == ['theNameOfBuildA']
+        """
+
+        then:
+        execute(buildA, 'help')
+    }
+
+    def "the root build cannot be renamed"() {
+        when:
+        buildA.settingsFile << """
+            rootProject.name = 'theNameOfBuildA'
+        """
+        buildB.settingsFile << "includeBuild('../buildA') { name = 'some-other-name' }"
+        buildB.buildFile << """
+            assert gradle.includedBuilds.collect { it.name } == ['theNameOfBuildA']
+        """
+
+        then:
+        execute(buildA, 'help')
+    }
+
+    def "included root build is only configured one time"() {
+        given:
+        buildA.buildFile << """
+            println("Configuring \$identityPath")
+        """
+        buildB.settingsFile << "includeBuild '../buildA'"
+
+        when:
+        execute(buildA, 'help')
+
+        then:
+        output.count("Configuring :") == 1
+        outputDoesNotContain("Configuring :buildA")
+    }
+
+    def "can address root build task from included build"() {
+        given:
+        buildA.buildFile << """
+            tasks.register('task1') {
+                dependsOn gradle.includedBuild('buildB').task(':task2')
+            }
+            tasks.register('task3') { }
+        """
+        buildA.settingsFile << """
+            rootProject.name = 'theNameOfBuildA'
+        """
+        buildB.settingsFile << "includeBuild '../buildA'"
+        buildB.buildFile << """
+            tasks.register('task2') {
+                dependsOn gradle.includedBuild('theNameOfBuildA').task(':task3')
+            }
+        """
+
+        when:
+        fails(buildA, 'task1')
+
+        then:
+        // If we get here, the tasks were all found and registered. Once the cycle restrictions back to the root build are removed, this test should pass.
+        failure.assertHasDescription("Could not find build ':'")
+        // result.assertTaskExecuted(':task3', ':buildB:task2', 'task1')
     }
 }

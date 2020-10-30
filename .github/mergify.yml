@@ -6,7 +6,6 @@ pull_request_rules:
     actions:
       merge:
         method: merge
-        strict_method: rebase
         strict: true
   - name: Trigger mergify on TestAndMerge command
     conditions:
@@ -14,5 +13,4 @@ pull_request_rules:
     actions:
       merge:
         method: merge
-        strict_method: rebase
         strict: true

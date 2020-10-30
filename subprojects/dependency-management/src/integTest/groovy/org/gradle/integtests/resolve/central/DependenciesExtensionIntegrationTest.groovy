@@ -64,7 +64,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("bar", "org.gradle.test:bar:1.0")
+                    alias("bar") to "org.gradle.test:bar:1.0"
                 }
             }
         """
@@ -82,8 +82,9 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
 
         where:
         notation << [
-            'alias("foo", "org.gradle.test:lib:1.0")',
-            'alias("foo", "org.gradle.test", "lib") { require "1.0" }'
+            'alias("foo").to("org.gradle.test:lib:1.0")',
+            'alias("foo").to("org.gradle.test", "lib").version { require "1.0" }',
+            'alias("foo").to("org.gradle.test", "lib").version("1.0")'
         ]
     }
 
@@ -91,7 +92,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("myLib", "org.gradle.test", "lib") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
                 }
@@ -125,7 +126,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("myLib", "org.gradle.test", "lib") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
                 }
@@ -163,10 +164,10 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("lib", "org.gradle.test", "lib") {
+                    alias("lib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
-                    alias("lib2", "org.gradle.test:lib2:1.0")
+                    alias("lib2").to("org.gradle.test:lib2:1.0")
                     bundle("my", ["lib", "lib2"])
                 }
             }
@@ -203,10 +204,10 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("lib", "org.gradle.test", "lib") {
+                    alias("lib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
-                    alias("lib2", "org.gradle.test:lib2:1.0")
+                    alias("lib2").to("org.gradle.test:lib2:1.0")
                     bundle("my", ["lib", "lib2"])
                 }
             }
@@ -247,7 +248,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libraries") {
-                    alias("myLib", "org.gradle.test", "lib") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
                 }
@@ -281,12 +282,12 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libraries") {
-                    alias("myLib", "org.gradle.test", "lib") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
                 }
                 dependenciesModel("other") {
-                    alias("great", "org.gradle.test", "lib2") {
+                    alias("great").to("org.gradle.test", "lib2").version {
                         require "1.1"
                     }
                 }
@@ -327,12 +328,12 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libraries") {
-                    alias("myLib", "org.gradle.test", "lib") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
                 }
                 dependenciesModel("other") {
-                    alias("myLib", "org.gradle.test", "lib") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
                         require "1.0"
                     }
                 }
@@ -367,7 +368,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("lib", "org.gradle.test:lib:1.0")
+                    alias("lib").to("org.gradle.test:lib:1.0")
                 }
             }
             include 'other'
@@ -412,7 +413,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("lib", "org.gradle.test:lib:1.0")
+                    alias("lib").to("org.gradle.test:lib:1.0")
                 }
             }
         """
@@ -433,7 +434,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("lib", "org.gradle.test:lib:1.0")
+                    alias("lib").to("org.gradle.test:lib:1.0")
                 }
             }
         """
@@ -449,7 +450,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         file("buildSrc/settings.gradle") << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("build-src-lib", "org.gradle.test:buildsrc-lib:1.0")
+                    alias("build-src-lib").to("org.gradle.test:buildsrc-lib:1.0")
                 }
             }
         """
@@ -501,7 +502,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
                     maven { url "${mavenHttpRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    alias('from-included', 'org.gradle.test:other:1.1')
+                    alias('from-included').to('org.gradle.test:other:1.1')
                 }
             }
         """
@@ -543,8 +544,8 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
                     version("myVersion") {
                         require "1.0"
                     }
-                    aliasWithVersionRef("myLib", "org.gradle.test", "lib", "myVersion")
-                    aliasWithVersionRef("myOtherLib", "org.gradle.test", "lib2", "myOtherVersion")
+                    alias("myLib").to("org.gradle.test", "lib").versionRef("myVersion")
+                    alias("myOtherLib").to("org.gradle.test", "lib2").versionRef("myOtherVersion")
                     version("myOtherVersion") {
                         // intentionnally declared AFTER
                         strictly "1.1"
@@ -588,8 +589,8 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
                     def myVersion = version("myVersion") {
                         require "1.0"
                     }
-                    aliasWithVersionRef("myLib", "org.gradle.test", "lib", "myVersion")
-                    aliasWithVersionRef("myOtherLib", "org.gradle.test", "lib2", myVersion)
+                    alias("myLib").to("org.gradle.test", "lib").versionRef("myVersion")
+                    alias("myOtherLib").to("org.gradle.test", "lib2").versionRef(myVersion)
                 }
             }
         """

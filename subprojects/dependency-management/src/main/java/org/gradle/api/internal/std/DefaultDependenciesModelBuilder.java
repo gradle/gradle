@@ -60,6 +60,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
     private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
     private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
+    private final StrictVersionParser strictVersionParser;
 
     @Inject
     public DefaultDependenciesModelBuilder(String name,
@@ -74,6 +75,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         this.objects = objects;
         this.providers = providers;
         this.plugins = plugins;
+        this.strictVersionParser = new StrictVersionParser(strings);
     }
 
     @Override
@@ -129,25 +131,26 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     @Override
-    public void alias(String alias, String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
-        validateName("alias", alias);
-        MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
-        versionSpec.execute(versionBuilder);
-        ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
-        DependencyModel model = new DependencyModel(intern(group), intern(name), version);
-        Supplier<DependencyModel> previous = dependencies.put(intern(alias), () -> model);
-        if (previous != null) {
-            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
-        }
+    public String version(String name, String version) {
+        StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(version);
+        version(name, vc -> {
+            if (richVersion.require != null) {
+                vc.require(richVersion.require);
+            }
+            if (richVersion.prefer != null) {
+                vc.prefer(richVersion.prefer);
+            }
+            if (richVersion.strictly != null) {
+                vc.strictly(richVersion.strictly);
+            }
+        });
+        return name;
     }
 
     @Override
-    public void aliasWithVersionRef(String alias, String group, String name, String versionRef) {
+    public AliasBuilder alias(String alias) {
         validateName("alias", alias);
-        Supplier<DependencyModel> previous = dependencies.put(intern(alias), new VersionReferencingDependencyModel(group, name, versionRef));
-        if (previous != null) {
-            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
-        }
+        return new DefaultAliasBuilder(alias);
     }
 
     private static void validateName(String type, String value) {
@@ -191,6 +194,85 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
                 throw new InvalidUserDataException("Referenced version '" + versionRef + "' doesn't exist on dependency " + group + ":" + name);
             }
             return new DependencyModel(group, name, constraint);
+        }
+    }
+
+    private class DefaultAliasBuilder implements AliasBuilder {
+        private final String alias;
+
+        public DefaultAliasBuilder(String alias) {
+            this.alias = alias;
+        }
+
+        @Override
+        public void to(String gavCoordinates) {
+            String[] coordinates = gavCoordinates.split(":");
+            if (coordinates.length == 3) {
+                to(coordinates[0], coordinates[1]).version(coordinates[2]);
+            } else {
+                throw new InvalidUserDataException("Invalid dependency notation: it must consist of 3 parts separated by colons, eg: my.group:artifact:1.2");
+            }
+        }
+
+        @Override
+        public LibraryAliasBuilder to(String group, String name) {
+            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultDependenciesModelBuilder.this, alias, group, name);
+        }
+    }
+
+    // static public for injection!
+    public static class DefaultLibraryAliasBuilder implements LibraryAliasBuilder {
+        private final DefaultDependenciesModelBuilder owner;
+        private final String alias;
+        private final String group;
+        private final String name;
+
+        @Inject
+        public DefaultLibraryAliasBuilder(DefaultDependenciesModelBuilder owner, String alias, String group, String name) {
+            this.owner = owner;
+            this.alias = alias;
+            this.group = group;
+            this.name = name;
+        }
+
+        @Override
+        public void version(Action<? super MutableVersionConstraint> versionSpec) {
+            MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
+            versionSpec.execute(versionBuilder);
+            ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
+            DependencyModel model = new DependencyModel(owner.intern(group), owner.intern(name), version);
+            Supplier<DependencyModel> previous = owner.dependencies.put(owner.intern(alias), () -> model);
+            if (previous != null) {
+                LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
+            }
+        }
+
+        @Override
+        public void version(String version) {
+            StrictVersionParser.RichVersion richVersion = owner.strictVersionParser.parse(version);
+            version(vc -> {
+                if (richVersion.require != null) {
+                    vc.require(richVersion.require);
+                }
+                if (richVersion.prefer != null) {
+                    vc.prefer(richVersion.prefer);
+                }
+                if (richVersion.strictly != null) {
+                    vc.strictly(richVersion.strictly);
+                }
+            });
+        }
+
+        @Override
+        public void versionRef(String versionRef) {
+            owner.createAliasWithVersionRef(alias, group, name, versionRef);
+        }
+    }
+
+    private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
+        Supplier<DependencyModel> previous = dependencies.put(intern(alias), new VersionReferencingDependencyModel(group, name, versionRef));
+        if (previous != null) {
+            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
         }
     }
 }

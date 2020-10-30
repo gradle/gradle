@@ -32,6 +32,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
                 task b {
                     mustRunAfter 'c'
                 }
+
                 task c {
                 }
             """
@@ -108,6 +109,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
                 task b {
                     finalizedBy 'c'
                 }
+
                 task c {
                 }
             """
@@ -136,6 +138,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
                 task b {
                     finalizedBy 'c'
                 }
+
                 task c {
                 }
             """
