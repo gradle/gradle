@@ -74,12 +74,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
     private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
     private final String factorySuffix;
-    private final Transformer<LoadingCache<String, Object>, Class<?>> cacheFactory = new Transformer<LoadingCache<String, Object>, Class<?>>() {
-        @Override
-        public LoadingCache<String, Object> transform(Class<?> type) {
-            return CacheBuilder.newBuilder().build(loaderFor(type));
-        }
-    };
+    private final Transformer<LoadingCache<String, Object>, Class<?>> cacheFactory = type -> CacheBuilder.newBuilder().build(loaderFor(type));
 
     public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
         implSuffix = ClassGeneratorSuffixRegistry.assign("$Impl");

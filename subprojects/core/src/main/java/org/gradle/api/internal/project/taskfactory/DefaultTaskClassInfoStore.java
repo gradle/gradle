@@ -42,12 +42,7 @@ import java.util.stream.Stream;
 @NonNullApi
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     private final CrossBuildInMemoryCache<Class<?>, TaskClassInfo> classInfos;
-    private final Transformer<TaskClassInfo, Class<?>> taskClassInfoFactory = new Transformer<TaskClassInfo, Class<?>>() {
-        @Override
-        public TaskClassInfo transform(Class<?> aClass) {
-            return createTaskClassInfo(aClass.asSubclass(Task.class));
-        }
-    };
+    private final Transformer<TaskClassInfo, Class<?>> taskClassInfoFactory = aClass -> createTaskClassInfo(aClass.asSubclass(Task.class));
 
     public DefaultTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         this.classInfos = cacheFactory.newClassCache();

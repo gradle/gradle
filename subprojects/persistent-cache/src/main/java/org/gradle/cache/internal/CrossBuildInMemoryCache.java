@@ -16,10 +16,11 @@
 
 package org.gradle.cache.internal;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.function.Supplier;
 
 /**
  * An in-memory cache of calculated values that are used across builds. The implementation takes care of cleaning up state that is no longer required.
@@ -32,6 +33,10 @@ public interface CrossBuildInMemoryCache<K, V> {
      * <p>Implementations must prevent more than one thread calculating the same key at the same time.
      */
     V get(K key, Transformer<V, K> factory);
+
+    default V get(K key, Supplier<V> factory) {
+        return get(key, __ -> factory.get());
+    }
 
     /**
      * Locates the given entry, if present. Returns {@code null} when missing.

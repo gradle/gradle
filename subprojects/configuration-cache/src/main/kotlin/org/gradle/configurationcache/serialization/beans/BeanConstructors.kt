@@ -33,7 +33,7 @@ class BeanConstructors(
     val cache: CrossBuildInMemoryCache<Class<*>, Constructor<out Any>> = cacheFactory.newClassCache()
 
     fun constructorForSerialization(beanType: Class<*>): Constructor<out Any> {
-        return cache.get(beanType) { type -> createConstructor(type) }
+        return cache.get(beanType) { -> createConstructor(beanType) }
     }
 
     private
