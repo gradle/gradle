@@ -22,6 +22,7 @@ import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -65,7 +66,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
                 @Override
                 public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                    snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+                    snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                         @Override
                         public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                             doVisitEntry(directorySnapshot);

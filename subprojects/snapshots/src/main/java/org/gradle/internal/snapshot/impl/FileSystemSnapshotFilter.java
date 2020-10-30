@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -71,7 +72,7 @@ public class FileSystemSnapshotFilter {
                 ? ImmutableList.of(snapshot.getName())
                 : relativePathTracker.getRelativePath();
             SnapshotVisitResult result;
-            boolean forceInclude = snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<Boolean>() {
+            boolean forceInclude = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
                 @Override
                 public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     return root;
