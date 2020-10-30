@@ -173,7 +173,10 @@ There are many options to configure this feature which are described in the [use
 
 ### Viewing all available toolchains
 
-Gradle can now provide a list of all detected toolchains including their metadata.
+[Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with.
+By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as toolchain.
+In order to see which toolchains got detected and their corresponding metadata, Gradle 6.8 now provides some insight with the `javaToolchains` task.
+
 Output of `gradle -q javaToolchains`:
 ```
  + AdoptOpenJDK 1.8.0_242
@@ -195,7 +198,7 @@ Output of `gradle -q javaToolchains`:
      | Detected by:        macOS java_home
 ```
 
-This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.
+This can help to debug which toolchains are available to the build and if the expected toolchain got detected or [requires manual setup](userguide/toolchains.html#sec:custom_loc).
 See the [toolchain documentation](userguide/toolchains.html) for more in-depth information on toolchain detection and usage.
 
 ### Implicit imports
