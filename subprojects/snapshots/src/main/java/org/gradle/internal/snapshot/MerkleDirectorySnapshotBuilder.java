@@ -98,7 +98,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotHierarc
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());
         }
-        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, children, hasher.hash(), accessType);
+        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, accessType, hasher.hash(), children);
         List<CompleteFileSystemLocationSnapshot> siblings = levelHolder.peekLast();
         if (siblings != null) {
             siblings.add(directorySnapshot);

@@ -16,8 +16,7 @@
 
 package org.gradle.caching.internal.controller.impl
 
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
+
 import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.caching.BuildCacheKey
@@ -71,9 +70,12 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         def load = commandFactory.createLoad(key, entity)
 
         def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), DefaultFileMetadata.file(15, 234, AccessType.DIRECT))
-        def fileSnapshots = ImmutableMap.of(
-            "outputDir", new CompleteDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), DefaultFileMetadata.file(46, 123, AccessType.DIRECT))), HashCode.fromInt(456), AccessType.DIRECT),
-            "outputFile", outputFileSnapshot)
+        def fileSnapshots = [
+            outputDir: new CompleteDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, AccessType.DIRECT, HashCode.fromInt(456), [
+                new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), DefaultFileMetadata.file(46, 123, AccessType.DIRECT))
+            ]),
+            outputFile: outputFileSnapshot
+        ]
 
         when:
         def result = load.load(input)

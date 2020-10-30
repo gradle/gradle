@@ -75,7 +75,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def root = temporaryFolder.createFile("root")
 
         expect:
-        filteredPaths(new CompleteDirectorySnapshot(root.absolutePath, root.name, [], HashCode.fromInt(789), AccessType.DIRECT), include("different")) == [root] as Set
+        filteredPaths(new CompleteDirectorySnapshot(root.absolutePath, root.name, AccessType.DIRECT, HashCode.fromInt(789), []), include("different")) == [root] as Set
     }
 
     def "root file can be filtered"() {

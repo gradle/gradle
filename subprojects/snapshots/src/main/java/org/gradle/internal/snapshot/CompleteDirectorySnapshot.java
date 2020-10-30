@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
+
 /**
  * A complete snapshot of an existing directory.
  *
@@ -34,22 +36,16 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     private final ChildMap<CompleteFileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
-        this(
-            absolutePath,
-            name,
-            ChildMapFactory.childMapFromSorted(children.stream()
-                .map(it -> new ChildMap.Entry<>(it.getName(), it))
-                .collect(Collectors.toList())),
-            contentHash,
-            accessType
-        );
+    public CompleteDirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, List<CompleteFileSystemLocationSnapshot> children) {
+        this(absolutePath, name, accessType, contentHash, childMapFromSorted(children.stream()
+            .map(it -> new ChildMap.Entry<>(it.getName(), it))
+            .collect(Collectors.toList())));
     }
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, ChildMap<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
+    public CompleteDirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, ChildMap<CompleteFileSystemLocationSnapshot> children) {
         super(absolutePath, name, accessType);
-        this.children = children;
         this.contentHash = contentHash;
+        this.children = children;
     }
 
     @Override
