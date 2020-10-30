@@ -34,9 +34,12 @@ import java.util.EnumMap;
 public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     private final ExecHandleFactory execHandleFactory;
+    private final File probeClass;
 
     public DefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
+        this.probeClass = new MetadataProbe().writeClass(Files.createTempDir());
+        this.probeClass.deleteOnExit();
     }
 
     @Override
@@ -65,13 +68,13 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     private JvmInstallationMetadata asMetadata(File javaHome, EnumMap<ProbedSystemProperty, String> metadata) {
         String implementationVersion = metadata.get(ProbedSystemProperty.VERSION);
+        if (implementationVersion == null) {
+            return JvmInstallationMetadata.failure(javaHome, metadata.get(ProbedSystemProperty.Z_ERROR));
+        }
         try {
             JavaVersion.toVersion(implementationVersion);
         } catch(IllegalArgumentException e) {
             return JvmInstallationMetadata.failure(javaHome, "Cannot parse version number: " + implementationVersion);
-        }
-        if (implementationVersion == null) {
-            return JvmInstallationMetadata.failure(javaHome, metadata.get(ProbedSystemProperty.Z_ERROR));
         }
         String vendor = metadata.get(ProbedSystemProperty.VENDOR);
         String implementationName = metadata.get(ProbedSystemProperty.VM);
@@ -79,15 +82,13 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private EnumMap<ProbedSystemProperty, String> getMetadataFromInstallation(File jdkPath) {
-        File workingDir = Files.createTempDir();
-        File classfile = new MetadataProbe().writeClass(workingDir);
         ExecHandleBuilder exec = execHandleFactory.newExec();
-        exec.setWorkingDir(workingDir);
+        exec.setWorkingDir(probeClass.getParentFile());
         exec.executable(javaExecutable(jdkPath));
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
-            String mainClassname = Files.getNameWithoutExtension(classfile.getName());
+            String mainClassname = Files.getNameWithoutExtension(probeClass.getName());
             exec.args("-cp", ".", mainClassname);
             exec.setStandardOutput(out);
             exec.setErrorOutput(errorOutput);
@@ -100,9 +101,6 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             return error("Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput);
         } catch (ExecException ex) {
             return error(ex.getMessage());
-        } finally {
-            classfile.deleteOnExit();
-            workingDir.deleteOnExit();
         }
     }
 
