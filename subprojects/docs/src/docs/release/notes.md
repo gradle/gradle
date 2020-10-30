@@ -8,7 +8,8 @@ We would like to thank the following community contributors to this release of G
 [David Burström](https://github.com/davidburstrom),
 [Björn Kautler](https://github.com/Vampire),
 [Stefan Oehme](https://github.com/oehme),
-[Thad House](https://github.com/ThadHouse).
+[Thad House](https://github.com/ThadHouse),
+[Gregorios Leach](https://github.com/simtel12).
 
 <!--
 Include only their name, impactful features should be called out separately below.
