@@ -22,13 +22,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.util.NameMatcher;
 import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class CompositeAwareTaskSelector extends TaskSelector {
     private final GradleInternal gradle;
@@ -89,9 +85,14 @@ public class CompositeAwareTaskSelector extends TaskSelector {
             return null;
         }
 
-        Map<String, BuildState> builds = buildStateRegistry.getIncludedBuilds().stream().collect(Collectors.toMap(IncludedBuildState::getName, Function.identity()));
-        NameMatcher matcher = new NameMatcher();
-        return matcher.find(taskPath.segment(0), builds);
+        String buildName = taskPath.segment(0);
+        for (IncludedBuildState build : buildStateRegistry.getIncludedBuilds()) {
+            if (build.getName().equals(buildName)) {
+                return build;
+            }
+        }
+
+        return null;
     }
 
     private TaskSelector getSelector(BuildState buildState) {

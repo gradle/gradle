@@ -155,7 +155,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds(":other-build:doSomething", "-x", ":other-build:setupTask")
-        output.contains(":other-build:setupTask SKIPPED")
+        outputContains(":other-build:setupTask SKIPPED")
     }
 
     def "can pass options to task in included build"() {
@@ -198,7 +198,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds("help", "--task", ":other-build:doSomething")
-        output.contains("Prints the message 'do something'")
+        outputContains("Prints the message 'do something'")
     }
 
     def "can use pattern matching to address tasks"() {
@@ -216,7 +216,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds(":other-build:dSo")
-        output.contains("do something")
+        outputContains("do something")
     }
 
     def "can run tasks from transitive included builds"() {
@@ -246,7 +246,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":third-build:sub:doSomething")
     }
 
-    def "can use abbreviated names to reference included build"() {
+    def "task in an included build cannot be addressed with name patterns"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -259,7 +259,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        succeeds(":oB:doSo")
+        fails(":oB:doSo").assertHasDescription("Project 'oB' not found in root project")
     }
 
     def "gives reasonable error message when a task does not exist in the referenced included build"() {
@@ -309,7 +309,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds(":lib:lib:doSomething")
-        output.contains("do something")
+        outputContains("do something")
     }
 
     def "can run task from included build via task reference"() {
@@ -337,6 +337,6 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds("doSomething")
-        output.contains("do something")
+        outputContains("do something")
     }
 }
