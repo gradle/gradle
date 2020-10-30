@@ -306,21 +306,25 @@ abstract class FileContentGenerator {
         }
     }
 
+    def appendChildPackageName(StringBuilder imports, int childNumber, String ownPackageName, DependencyTree dependencyTree) {
+        def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.getProjectIdForClass(childNumber))
+        if (childPackageName != ownPackageName) {
+            imports.append(imports.length() == 0 ? '\n        ' : '')
+            imports.append("import ${childPackageName}.Production${childNumber};\n        ")
+        }
+    }
+
     def generateProductionClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def properties = ''
-        def ownPackageName = packageName(classNumber, subProjectNumber)
-        def imports = ''
-        def children = dependencyTree.getTransitiveChildClassIds(classNumber)
+        String ownPackageName = packageName(classNumber, subProjectNumber)
+        StringBuilder imports = new StringBuilder()
+        List<Integer> children = dependencyTree.getTransitiveChildClassIds(classNumber)
         (0..Math.max(propertyCount, children.size()) - 1).each {
             def propertyType
             if (it < children.size()) {
                 def childNumber = children.get(it)
                 propertyType = "Production${childNumber}"
-                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.getProjectIdForClass(childNumber))
-                if (childPackageName != ownPackageName) {
-                    imports += imports == '' ? '\n        ' : ''
-                    imports += "import ${childPackageName}.Production${childNumber};\n        "
-                }
+                appendChildPackageName(imports, childNumber, ownPackageName, dependencyTree)
             } else {
                 propertyType = "String"
             }
@@ -348,21 +352,17 @@ abstract class FileContentGenerator {
 
     def generateTestClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def testMethods = ""
-        def ownPackageName = packageName(classNumber, subProjectNumber)
-        def imports = ''
+        String ownPackageName = packageName(classNumber, subProjectNumber)
+        StringBuilder imports = new StringBuilder()
         def children = dependencyTree.getTransitiveChildClassIds(classNumber)
         (0..Math.max(propertyCount, children.size()) - 1).each {
             def propertyType
             def propertyValue
             if (it < children.size()) {
-                def childNumber = children.get(it)
+                int childNumber = children.get(it)
                 propertyType = "Production${childNumber}"
                 propertyValue = "new Production${childNumber}()"
-                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.getProjectIdForClass(childNumber))
-                if (childPackageName != ownPackageName) {
-                    imports += imports == '' ? '\n        ' : ''
-                    imports += "import ${childPackageName}.Production${childNumber};\n        "
-                }
+                appendChildPackageName(imports, childNumber, ownPackageName, dependencyTree)
             } else {
                 propertyType = "String"
                 propertyValue = '"value"'

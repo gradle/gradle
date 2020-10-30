@@ -86,7 +86,7 @@ class DependencyTree {
         isInRange(classId, range.left, range.right)
     }
 
-    def getTransitiveChildClassIds(int parentClassId) {
+    List<Integer> getTransitiveChildClassIds(int parentClassId) {
         List<Integer> result = []
         result.addAll(parentToChildClassIds.get(parentClassId))
         parentToChildClassIds.get(parentClassId).each {
