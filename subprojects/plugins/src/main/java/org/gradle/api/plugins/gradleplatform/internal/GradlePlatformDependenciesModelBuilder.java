@@ -88,7 +88,7 @@ public class GradlePlatformDependenciesModelBuilder extends DefaultDependenciesM
         if (!ALIAS_PATTERN.matcher(alias).matches()) {
             throw new InvalidUserDataException("Unable to generate an automatic alias for '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
         }
-        alias(alias, group, name, versionSpec);
+        alias(alias).to(group, name).version(versionSpec);
     }
 
     private static String normalizeName(String name) {
@@ -104,7 +104,7 @@ public class GradlePlatformDependenciesModelBuilder extends DefaultDependenciesM
                 if (seen.add(id)) {
                     String alias = explicitAliases.get(id);
                     if (alias != null) {
-                        alias(alias, group, name, v -> copyDependencyVersion(dependency, group, name, v));
+                        alias(alias).to(group, name).version(v -> copyDependencyVersion(dependency, group, name, v));
                     } else {
                         tryGenericAlias(group, name, v -> copyDependencyVersion(dependency, group, name, v));
                     }
@@ -136,7 +136,7 @@ public class GradlePlatformDependenciesModelBuilder extends DefaultDependenciesM
             if (seen.add(id)) {
                 String alias = explicitAliases.get(id);
                 if (alias != null) {
-                    alias(alias, group, name, into -> copyConstraint(constraint.getVersionConstraint(), into));
+                    alias(alias).to(group, name).version(into -> copyConstraint(constraint.getVersionConstraint(), into));
                 } else {
                     tryGenericAlias(group, name, into -> copyConstraint(constraint.getVersionConstraint(), into));
                 }

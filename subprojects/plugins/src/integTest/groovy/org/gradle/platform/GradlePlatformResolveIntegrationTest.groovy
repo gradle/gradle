@@ -44,7 +44,7 @@ class GradlePlatformResolveIntegrationTest extends AbstractHttpDependencyResolut
     def "can consume versions from a published Gradle platform"() {
         def platformProject = preparePlatformProject '''
             dependenciesModel {
-                alias('my-lib', 'org.test:lib:1.1')
+                alias('my-lib'). to 'org.test:lib:1.1'
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -78,8 +78,8 @@ class GradlePlatformResolveIntegrationTest extends AbstractHttpDependencyResolut
         def platformProject = preparePlatformProject '''
             dependenciesModel {
                 def v = version('lib', '1.0')
-                aliasWithVersionRef('my-lib', 'org.test', 'lib', v)
-                aliasWithVersionRef('my-lib-json', 'org.test', 'lib-json', v)
+                alias('my-lib').to('org.test', 'lib').versionRef(v)
+                alias('my-lib-json').to('org.test', 'lib-json').versionRef(v)
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -116,14 +116,14 @@ class GradlePlatformResolveIntegrationTest extends AbstractHttpDependencyResolut
     def "can use dependency locking to resolve platform in settings"() {
         def platformProject = preparePlatformProject '''
             dependenciesModel {
-                alias('my-lib', 'org.test:lib:1.0')
+                alias('my-lib').to('org.test:lib:1.0')
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
 
         platformProject = preparePlatformProject '''
             dependenciesModel {
-                alias('my-lib', 'org.test:lib:1.1')
+                alias('my-lib').to('org.test:lib:1.1')
             }
         ''', '1.1'
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -198,7 +198,7 @@ unspecified:unspecified:unspecified
 
         def platformProject = preparePlatformProject '''
             dependenciesModel {
-                alias('my-lib', 'org.test:lib:1.1')
+                alias('my-lib').to('org.test:lib:1.1')
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -223,7 +223,7 @@ unspecified:unspecified:unspecified
             gradlePlatform {
                 dependenciesModel {
                     fromGradlePlatform('org.gradle.test:my-platform:1.0')
-                    alias('other', 'org:other:1.5')
+                    alias('other').to('org:other:1.5')
                 }
                 plugins {
                     id('my-plugin') version '0.6'

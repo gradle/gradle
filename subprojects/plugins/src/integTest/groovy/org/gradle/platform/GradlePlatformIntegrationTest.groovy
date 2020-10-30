@@ -237,7 +237,7 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
             gradlePlatform {
                 configureExplicitAlias 'foo2', 'org', 'foo'
                 dependenciesModel {
-                    alias('foo', 'org:from-model:1.0')
+                    alias('foo').to('org:from-model:1.0')
                     bundle('my', ['foo', 'foo2', 'from-script'])
                 }
                 plugins {
@@ -306,13 +306,13 @@ class GradlePlatformIntegrationTest extends AbstractIntegrationSpec implements G
         buildFile << """
             gradlePlatform {
                 dependenciesModel {
-                    alias("my-lib", "org:foo:1.0")
-                    alias("junit4", "junit", "junit") {
+                    alias("my-lib").to("org:foo:1.0")
+                    alias("junit4").to("junit", "junit").version {
                         require "[4.13.1, 5["
                         prefer "4.13.1"
                     }
                     version("lib", "1.1")
-                    aliasWithVersionRef("other", "org", "bar", "lib")
+                    alias("other").to("org", "bar").versionRef("lib")
                     bundle("test", ["my-lib", "junit4"])
                 }
                 plugins {
