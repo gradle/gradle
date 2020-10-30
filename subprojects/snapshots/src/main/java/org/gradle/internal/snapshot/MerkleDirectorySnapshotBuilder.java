@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor {
+public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotHierarchyVisitor {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();

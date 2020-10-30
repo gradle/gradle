@@ -24,7 +24,7 @@ import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
 
 import java.util.HashSet;
@@ -59,7 +59,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(new FileSystemSnapshotVisitor() {
+            root.accept(new FileSystemSnapshotHierarchyVisitor() {
                 private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
 
                 @Override

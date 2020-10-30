@@ -21,7 +21,7 @@ import com.google.common.collect.Multiset;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
@@ -65,7 +65,7 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
 
     private static VirtualFileSystemStatistics getStatistics(SnapshotHierarchy root) {
         EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
-        root.visitSnapshotRoots(snapshot -> snapshot.accept(new FileSystemSnapshotVisitor() {
+        root.visitSnapshotRoots(snapshot -> snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
             @Override
             public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 retained.add(directorySnapshot.getType());

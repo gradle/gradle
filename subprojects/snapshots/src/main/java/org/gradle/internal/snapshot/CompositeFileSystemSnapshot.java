@@ -40,7 +40,7 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
         for (FileSystemSnapshot snapshot : snapshots) {
             snapshot.accept(visitor);
         }

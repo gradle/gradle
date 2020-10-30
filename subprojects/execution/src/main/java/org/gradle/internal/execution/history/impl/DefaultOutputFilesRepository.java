@@ -25,7 +25,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 
 import java.io.Closeable;
 import java.io.File;
@@ -65,7 +65,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     @Override
     public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
         for (FileSystemSnapshot outputFileFingerprint : outputFileFingerprints) {
-            outputFileFingerprint.accept(new FileSystemSnapshotVisitor() {
+            outputFileFingerprint.accept(new FileSystemSnapshotHierarchyVisitor() {
                 @Override
                 public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     recordOutputSnapshot(directorySnapshot);

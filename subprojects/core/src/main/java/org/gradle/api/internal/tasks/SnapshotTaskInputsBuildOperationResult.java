@@ -33,7 +33,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
@@ -88,7 +88,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     }
 
     @NonNullApi
-    private static class State implements VisitState, FileSystemSnapshotVisitor {
+    private static class State implements VisitState, FileSystemSnapshotHierarchyVisitor {
 
         final InputFilePropertyVisitor visitor;
 

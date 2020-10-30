@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -42,13 +42,13 @@ public class FileSystemSnapshotFilter {
         return hasBeenFiltered.get() ? builder.getResult() : unfiltered;
     }
 
-    private static class FilteringVisitor implements FileSystemSnapshotVisitor {
+    private static class FilteringVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final RelativePathSegmentsTracker relativePathTracker;
         private final SnapshottingFilter.FileSystemSnapshotPredicate predicate;
-        private final FileSystemSnapshotVisitor delegate;
+        private final FileSystemSnapshotHierarchyVisitor delegate;
         private final AtomicBoolean hasBeenFiltered;
 
-        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshotVisitor delegate, AtomicBoolean hasBeenFiltered) {
+        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshotHierarchyVisitor delegate, AtomicBoolean hasBeenFiltered) {
             this.predicate = predicate;
             this.delegate = delegate;
             this.hasBeenFiltered = hasBeenFiltered;

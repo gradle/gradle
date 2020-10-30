@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot;
 /**
  * Visitor for {@link FileSystemSnapshot}.
  */
-public interface FileSystemSnapshotVisitor {
+public interface FileSystemSnapshotHierarchyVisitor {
 
     /**
      * Called before visiting the contents of a directory.

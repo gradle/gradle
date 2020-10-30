@@ -26,7 +26,7 @@ import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerpr
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -178,7 +178,7 @@ class OutputFilterUtilTest extends Specification {
     List<File> collectFiles(ImmutableList<FileSystemSnapshot> fileSystemSnapshots) {
         def result = []
         fileSystemSnapshots.each {
-            it.accept(new FileSystemSnapshotVisitor() {
+            it.accept(new FileSystemSnapshotHierarchyVisitor() {
                 @Override
                 boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     result.add(directorySnapshot)

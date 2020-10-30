@@ -28,7 +28,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 
 import java.util.Map;
 
@@ -59,7 +59,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
-        accept(new FileSystemSnapshotVisitor() {
+        accept(new FileSystemSnapshotHierarchyVisitor() {
             @Override
             public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
@@ -110,7 +110,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }

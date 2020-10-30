@@ -25,7 +25,7 @@ import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
@@ -316,7 +316,7 @@ class DirectorySnapshotterTest extends Specification {
         return new PatternSetSnapshottingFilter(patternSet, TestFiles.fileSystem()).asDirectoryWalkerPredicate
     }
 
-    private abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {
+    private abstract class RelativePathTrackingVisitor implements FileSystemSnapshotHierarchyVisitor {
         private Deque<String> relativePath = new ArrayDeque<String>()
 
         @Override

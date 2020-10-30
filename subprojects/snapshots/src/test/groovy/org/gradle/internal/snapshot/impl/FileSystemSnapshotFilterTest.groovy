@@ -27,7 +27,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.vfs.FileSystemAccess
@@ -104,7 +104,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered).accept(new FileSystemSnapshotVisitor() {
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered).accept(new FileSystemSnapshotHierarchyVisitor() {
             @Override
             boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)

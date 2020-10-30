@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -51,7 +51,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(new FileSystemSnapshotVisitor() {
+            root.accept(new FileSystemSnapshotHierarchyVisitor() {
                 private boolean root = true;
 
                 @Override

@@ -25,7 +25,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -66,7 +66,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         Set<String> files = [] as Set
         Set<String> relativePaths = [] as Set
         def result = builder.build()
-        result.accept(new FileSystemSnapshotVisitor() {
+        result.accept(new FileSystemSnapshotHierarchyVisitor() {
             private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override

@@ -31,7 +31,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -234,7 +234,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
     private static List getSnapshotInfo(FileSystemSnapshot tree) {
         String rootPath = null
         int count = 0
-        tree.accept(new FileSystemSnapshotVisitor() {
+        tree.accept(new FileSystemSnapshotHierarchyVisitor() {
             @Override
             boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (rootPath == null) {

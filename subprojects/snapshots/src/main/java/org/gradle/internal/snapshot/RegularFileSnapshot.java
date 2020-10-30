@@ -62,7 +62,7 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
         visitor.visitFile(this);
     }
 

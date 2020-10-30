@@ -24,7 +24,7 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 
 import javax.annotation.Nullable;
@@ -109,7 +109,7 @@ public class OutputFilterUtil {
         return afterPreviousExecutionFingerprints.containsKey(afterExecutionSnapshot.getAbsolutePath());
     }
 
-    private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {
+    private static class GetAllSnapshotsVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         @Override
@@ -132,7 +132,7 @@ public class OutputFilterUtil {
         }
     }
 
-    private static class SnapshotFilteringVisitor implements FileSystemSnapshotVisitor {
+    private static class SnapshotFilteringVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final BiPredicate<CompleteFileSystemLocationSnapshot, Boolean> predicate;
         private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 

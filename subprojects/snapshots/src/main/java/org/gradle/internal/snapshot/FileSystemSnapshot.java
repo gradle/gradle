@@ -30,5 +30,5 @@ public interface FileSystemSnapshot {
      *
      * The walk is depth first.
      */
-    void accept(FileSystemSnapshotVisitor visitor);
+    void accept(FileSystemSnapshotHierarchyVisitor visitor);
 }

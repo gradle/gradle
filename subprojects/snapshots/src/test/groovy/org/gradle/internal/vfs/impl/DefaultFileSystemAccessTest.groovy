@@ -18,7 +18,7 @@ package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -247,7 +247,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         allowFileSystemAccess(false)
         def snapshot = read(d, patterns)
         def relativePaths = [] as Set
-        snapshot.accept(new FileSystemSnapshotVisitor() {
+        snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
             private Deque<String> relativePath = new ArrayDeque<String>()
             private boolean seenRoot = false
 

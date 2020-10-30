@@ -22,14 +22,14 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.changedetection.state.DefaultRegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
 import org.gradle.api.internal.changedetection.state.ManifestFileZipEntryHasher;
-import org.gradle.api.internal.changedetection.state.RegularFileSnapshotContext;
+import org.gradle.api.internal.changedetection.state.MetaInfAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.PropertiesFileAwareClasspathResourceHasher;
+import org.gradle.api.internal.changedetection.state.RegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
-import org.gradle.api.internal.changedetection.state.MetaInfAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -43,7 +43,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -146,7 +146,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         public abstract HashCode determineNonJarFingerprint(HashCode original);
     }
 
-    private class ClasspathContentFingerprintingVisitor implements FileSystemSnapshotVisitor {
+    private class ClasspathContentFingerprintingVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final ClasspathFingerprintVisitor delegate;
         private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
         public ClasspathContentFingerprintingVisitor(ClasspathFingerprintVisitor delegate) {

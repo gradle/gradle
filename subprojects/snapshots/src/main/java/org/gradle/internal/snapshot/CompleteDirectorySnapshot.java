@@ -68,7 +68,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
         if (!visitor.preVisitDirectory(this)) {
             return;
         }

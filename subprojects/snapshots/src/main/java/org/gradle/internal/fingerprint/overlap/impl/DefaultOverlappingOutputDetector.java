@@ -26,7 +26,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -76,7 +76,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         return previousContentHash == null;
     }
 
-    private static class OverlappingOutputsDetectingVisitor implements FileSystemSnapshotVisitor {
+    private static class OverlappingOutputsDetectingVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final Map<String, FileSystemLocationFingerprint> previousFingerprints;
         private int treeDepth = 0;
         private String overlappingPath;

@@ -23,7 +23,7 @@ import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
@@ -165,7 +165,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         changedWatchedDirectories.compute(path, (key, value) -> value == null ? 1 : value + 1);
     }
 
-    private class SubdirectoriesToWatchVisitor implements FileSystemSnapshotVisitor {
+    private class SubdirectoriesToWatchVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final Consumer<String> subDirectoryToWatchConsumer;
         private boolean root;
 

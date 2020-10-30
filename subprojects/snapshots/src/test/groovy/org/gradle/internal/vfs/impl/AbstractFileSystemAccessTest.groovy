@@ -27,7 +27,7 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.vfs.FileSystemAccess
@@ -193,7 +193,7 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         }
     }
 
-    static class RelativePathCapturingVisitor implements FileSystemSnapshotVisitor {
+    static class RelativePathCapturingVisitor implements FileSystemSnapshotHierarchyVisitor {
         private Deque<String> relativePath = new ArrayDeque<String>()
         private boolean seenRoot = false
         private final List<String> relativePaths = []

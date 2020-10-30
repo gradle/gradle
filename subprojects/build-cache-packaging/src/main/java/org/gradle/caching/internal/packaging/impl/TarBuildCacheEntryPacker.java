@@ -40,7 +40,7 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -329,7 +329,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
     }
 
-    private static class PackingVisitor implements FileSystemSnapshotVisitor {
+    private static class PackingVisitor implements FileSystemSnapshotHierarchyVisitor {
         private final RelativePathStringTracker relativePathStringTracker;
         private final TarArchiveOutputStream tarOutput;
         private final String treePath;

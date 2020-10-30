@@ -21,7 +21,7 @@ import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +121,7 @@ public class WatchableHierarchies {
         return !ignoredForWatching(snapshot) && isInWatchableHierarchy(snapshot.getAbsolutePath());
     }
 
-    private class RemoveUnwatchedFiles implements FileSystemSnapshotVisitor {
+    private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
         private SnapshotHierarchy root;
         private final Invalidator invalidator;
 
