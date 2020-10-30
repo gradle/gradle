@@ -59,6 +59,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         try {
             return getUnqualifiedBuildSelector().getSelection(path);
         } catch (Exception ignore) {
+            // ignore for now
         }
 
         Path taskPath = Path.path(path);
@@ -75,6 +76,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         try {
             return getUnqualifiedBuildSelector().getSelection(path);
         } catch (Exception ignore) {
+            // ignore for now
         }
 
         Path taskPath = Path.path(path);
