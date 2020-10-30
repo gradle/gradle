@@ -78,10 +78,10 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                         recordOutputSnapshot(fileSnapshot);
                     }
 
-                    private void recordOutputSnapshot(CompleteFileSystemLocationSnapshot directorySnapshot) {
-                        String outputFilePath = directorySnapshot.getAbsolutePath();
-                        File outputFile = new File(outputFilePath);
-                        outputFiles.put(outputFilePath, Boolean.TRUE);
+                    private void recordOutputSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
+                        String outputPath = snapshot.getAbsolutePath();
+                        File outputFile = new File(outputPath);
+                        outputFiles.put(outputPath, Boolean.TRUE);
                         File outputFileParent = outputFile.getParentFile();
                         while (outputFileParent != null) {
                             String parentPath = outputFileParent.getPath();
