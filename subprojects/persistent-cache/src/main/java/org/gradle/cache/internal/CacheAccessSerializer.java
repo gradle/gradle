@@ -32,4 +32,13 @@ public class CacheAccessSerializer<K, V> implements Cache<K, V> {
         return synchronizer.synchronize(() -> cache.get(key, supplier));
     }
 
+    @Override
+    public V get(K key) {
+        return synchronizer.synchronize(() -> cache.get(key));
+    }
+
+    @Override
+    public void put(K key, V value) {
+        synchronizer.synchronize(() -> cache.put(key, value));
+    }
 }

@@ -19,8 +19,6 @@ package org.gradle.cache.internal;
 import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentIndexedCache;
 
-import javax.annotation.Nullable;
-
 public class MinimalPersistentCache<K, V> implements Cache<K, V> {
     private final PersistentIndexedCache<K, V> cache;
 
@@ -42,8 +40,13 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
         return value;
     }
 
-    @Nullable
+    @Override
     public V get(K value) {
         return cache.get(value);
+    }
+
+    @Override
+    public void put(K key, V value) {
+        cache.put(key, value);
     }
 }

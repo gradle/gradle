@@ -42,10 +42,27 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     @Override
     public ClasspathEntrySnapshot get(File key, Transformer<? extends ClasspathEntrySnapshot, ? super File> supplier) {
-        HashCode fileContentHash = fileSystemAccess.read(
+        HashCode fileContentHash = getFileContentHash(key);
+        return new ClasspathEntrySnapshot(cache.get(fileContentHash, () -> supplier.transform(key).getData()));
+    }
+
+    private HashCode getFileContentHash(File key) {
+        return fileSystemAccess.read(
             key.getAbsolutePath(),
             CompleteFileSystemLocationSnapshot::getHash
         );
-        return new ClasspathEntrySnapshot(cache.get(fileContentHash, () -> supplier.transform(key).getData()));
+    }
+
+    @Override
+    public ClasspathEntrySnapshot get(File key) {
+        HashCode fileContentHash = getFileContentHash(key);
+        ClasspathEntrySnapshotData classpathEntrySnapshotData = cache.get(fileContentHash);
+        return classpathEntrySnapshotData == null ? null : new ClasspathEntrySnapshot(classpathEntrySnapshotData);
+    }
+
+    @Override
+    public void put(File key, ClasspathEntrySnapshot value) {
+        HashCode fileContentHash = getFileContentHash(key);
+        cache.put(fileContentHash, value.getData());
     }
 }

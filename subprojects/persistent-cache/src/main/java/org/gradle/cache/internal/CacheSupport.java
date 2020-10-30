@@ -30,6 +30,16 @@ public abstract class CacheSupport<K, V> implements Cache<K, V> {
         return value;
     }
 
+    @Override
+    public V get(K key) {
+        return doGet(key);
+    }
+
+    @Override
+    public void put(K key, V value) {
+        doCache(key, value);
+    }
+
     abstract protected <T extends K> V doGet(T key);
 
     abstract protected <T extends K, N extends V> void doCache(T key, N value);

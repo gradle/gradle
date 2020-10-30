@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
 
+import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public interface Cache<K, V>  {
@@ -30,4 +31,15 @@ public interface Cache<K, V>  {
     default V get(K key, Supplier<? extends V> supplier) {
         return get(key, __ -> supplier.get());
     }
+
+    /**
+     * Locates the given entry, if present. Returns {@code null} when missing.
+     */
+    @Nullable
+    V get(K key);
+
+    /**
+     * Adds the given value to the cache, replacing any existing value.
+     */
+    void put(K key, V value);
 }

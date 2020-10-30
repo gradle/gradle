@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -33,16 +32,6 @@ public interface CrossBuildInMemoryCache<K, V> extends Cache<K, V> {
      */
     @Override
     V get(K key, Transformer<? extends V, ? super K> factory);
-
-    /**
-     * Locates the given entry, if present. Returns {@code null} when missing.
-     */
-    @Nullable V get(K key);
-
-    /**
-     * Adds the given value to the cache, replacing any existing value.
-     */
-    void put(K key, V value);
 
     /**
      * Removes all entries from this cache.
