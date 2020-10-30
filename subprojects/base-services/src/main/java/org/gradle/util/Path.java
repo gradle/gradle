@@ -208,6 +208,11 @@ public class Path implements Comparable<Path> {
         return append(path);
     }
 
+
+    public boolean isAbsolute() {
+        return absolute;
+    }
+
     /**
      * Calculates a path relative to this path. If the given path is not a child of this path, it is returned unmodified.
      */

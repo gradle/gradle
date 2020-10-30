@@ -56,36 +56,27 @@ public class CompositeAwareTaskSelector extends TaskSelector {
 
     @Override
     public TaskSelection getSelection(String path) {
-        try {
-            return getUnqualifiedBuildSelector().getSelection(path);
-        } catch (Exception ignore) {
-            // ignore for now
+        Path taskPath = Path.path(path);
+        if (taskPath.isAbsolute()) {
+            BuildState build = findIncludedBuild(taskPath);
+            if (build != null) {
+                return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
+            }
         }
 
-        Path taskPath = Path.path(path);
-        BuildState build = findIncludedBuild(taskPath);
-        if (build != null) {
-            return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
-        } else {
-            return getUnqualifiedBuildSelector().getSelection(path);
-        }
+        return getUnqualifiedBuildSelector().getSelection(path);
     }
 
     @Override
     public TaskSelection getSelection(String projectPath, File root, String path) {
-        try {
-            return getUnqualifiedBuildSelector().getSelection(path);
-        } catch (Exception ignore) {
-            // ignore for now
-        }
-
         Path taskPath = Path.path(path);
-        BuildState build = findIncludedBuild(taskPath);
-        if (build != null) {
-            return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
-        } else {
-            return getUnqualifiedBuildSelector().getSelection(projectPath, root, path);
+        if (taskPath.isAbsolute()) {
+            BuildState build = findIncludedBuild(taskPath);
+            if (build != null) {
+                return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
+            }
         }
+        return getUnqualifiedBuildSelector().getSelection(projectPath, root, path);
     }
 
     private BuildState findIncludedBuild(Path taskPath) {

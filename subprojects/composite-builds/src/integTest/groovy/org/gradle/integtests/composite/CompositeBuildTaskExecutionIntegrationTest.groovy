@@ -56,7 +56,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":other-build:sub:doSomething")
     }
 
-    def "selects only the exact task and ignores tasks with the same name in subprojects"() {
+    def "only absolute task paths can be used to target included builds"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
@@ -80,12 +80,8 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        succeeds(task)
-        output.contains("[sub] do something")
-        !output.contains("[sub/subsub] do something")
-
-        where:
-        task << ["other-build:sub:doSomething", ":other-build:sub:doSomething"]
+        succeeds(":other-build:sub:doSomething")
+        fails("other-build:sub:doSomething")
     }
 
     def "can run task from included build with applied plugin"() {

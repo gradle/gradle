@@ -224,6 +224,15 @@ class PathTest extends Specification {
         e.message == "Segment index 3 is invalid for path :a:b:c"
     }
 
+    def "test if path is absolute"() {
+        expect:
+        path(':').absolute
+        path(':a').absolute
+        !path('a').absolute
+        path(':a:b').absolute
+        !path('a:b').absolute
+    }
+
     def paths(List<String> paths) {
         return paths.collect { path(it) }
     }
