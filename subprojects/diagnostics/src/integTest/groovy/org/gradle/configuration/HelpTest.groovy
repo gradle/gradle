@@ -20,14 +20,15 @@ import org.gradle.execution.TaskSelectionException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Ignore
 
+@Ignore
 class HelpTest extends AbstractProjectBuilderSpec {
     Help helpTask
 
     def setup() {
         helpTask = project.tasks.create("somehelp", Help.class)
+        project.getGradle().getOwner()
     }
 
-    @Ignore
     def "gives decent error message for unknown tasks"() {
         when:
         helpTask.setTaskPath("notexisting")
