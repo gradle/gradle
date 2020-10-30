@@ -50,16 +50,12 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                 vfs.rootReference.getRoot().visitSnapshotRoots { snapshot ->
                     snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
                         @Override
-                        void visitEntry(CompleteFileSystemLocationSnapshot fileSnapshot) {
+                        SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot fileSnapshot) {
                             if (fileSnapshot.type == FileType.RegularFile && fileSnapshot.absolutePath.startsWith(projectRoot)) {
                                 filesInVfs++
                             }
+                            return SnapshotVisitResult.CONTINUE
                         }
-
-                        @Override
-                        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) { return true }
-                        @Override
-                        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {}
                     })
                 }
                 println("Project files in VFS: \$filesInVfs")
