@@ -22,7 +22,7 @@
         <build-type id="bt7849" />
       </build-types>
     </webhook>
-    <webhook url="http://dev12.gradle.org:3003/teamcity_slacktemplate" enabled="true" format="jsontemplate" template="slack.com">
+    <webhook url="http://dev12.gradle.org:3003/teamcity_slacktemplate" enabled="true" format="jsontemplate" template="slack.com-compact">
       <states>
         <state type="buildStarted" enabled="true" />
         <state type="responsibilityChanged" enabled="false" />
