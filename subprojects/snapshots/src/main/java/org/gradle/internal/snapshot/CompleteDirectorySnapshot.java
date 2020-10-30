@@ -73,6 +73,16 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
         visitor.postVisitDirectory(this);
     }
 
+    @Override
+    public void accept(FileSystemLocationSnapshotVisitor visitor) {
+        visitor.visitDirectory(this);
+    }
+
+    @Override
+    public <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer) {
+        return transformer.visitDirectory(this);
+    }
+
     @VisibleForTesting
     public List<CompleteFileSystemLocationSnapshot> getChildren() {
         return children.values();
