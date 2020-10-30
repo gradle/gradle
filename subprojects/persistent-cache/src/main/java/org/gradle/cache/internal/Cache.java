@@ -25,9 +25,9 @@ public interface Cache<K, V>  {
      *
      * <p>Implementations may prevent more than one thread calculating the same key at the same time or not.
      */
-    V get(K key, Transformer<V, K> supplier);
+    V get(K key, Transformer<? extends V, ? super K> supplier);
 
-    default V get(K key, Supplier<V> supplier) {
+    default V get(K key, Supplier<? extends V> supplier) {
         return get(key, __ -> supplier.get());
     }
 }

@@ -32,7 +32,7 @@ public interface CrossBuildInMemoryCache<K, V> extends Cache<K, V> {
      * <p>Implementations must prevent more than one thread calculating the same key at the same time.
      */
     @Override
-    V get(K key, Transformer<V, K> factory);
+    V get(K key, Transformer<? extends V, ? super K> factory);
 
     /**
      * Locates the given entry, if present. Returns {@code null} when missing.

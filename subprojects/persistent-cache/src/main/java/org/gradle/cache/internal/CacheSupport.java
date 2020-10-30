@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 public abstract class CacheSupport<K, V> implements Cache<K, V> {
 
     @Override
-    public V get(K key, Transformer<V, K> supplier) {
+    public V get(K key, Transformer<? extends V, ? super K> supplier) {
         V value = doGet(key);
         if (value == null) {
             value = supplier.transform(key);

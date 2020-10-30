@@ -45,7 +45,7 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
         }
 
         @Override
-        V get(K key, Transformer<V, K> factory) {
+        V get(K key, Transformer<? extends V, ? super K> factory) {
             def v = values.get(key)
             if (v == null) {
                 v = factory.transform(key)

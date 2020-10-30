@@ -49,7 +49,7 @@ public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotC
     }
 
     @Override
-    public ClasspathEntrySnapshot get(File entry, Transformer<ClasspathEntrySnapshot, File> supplier) {
+    public ClasspathEntrySnapshot get(File entry, Transformer<? extends ClasspathEntrySnapshot, ? super File> supplier) {
         if (globalCacheLocations.isInsideGlobalCache(entry.getPath())) {
             return globalCache.get(entry, supplier);
         } else {

@@ -41,7 +41,7 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
     }
 
     @Override
-    public ClasspathEntrySnapshot get(File key, Transformer<ClasspathEntrySnapshot, File> supplier) {
+    public ClasspathEntrySnapshot get(File key, Transformer<? extends ClasspathEntrySnapshot, ? super File> supplier) {
         HashCode fileContentHash = fileSystemAccess.read(
             key.getAbsolutePath(),
             CompleteFileSystemLocationSnapshot::getHash

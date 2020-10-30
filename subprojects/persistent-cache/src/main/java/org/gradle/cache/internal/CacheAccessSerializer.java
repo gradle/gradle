@@ -28,7 +28,7 @@ public class CacheAccessSerializer<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(final K key, final Transformer<V, K> supplier) {
+    public V get(final K key, final Transformer<? extends V, ? super K> supplier) {
         return synchronizer.synchronize(() -> cache.get(key, supplier));
     }
 

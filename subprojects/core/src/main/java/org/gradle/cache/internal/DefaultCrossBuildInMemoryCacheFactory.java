@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
 
@@ -73,7 +72,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
         private final Object lock = new Object();
-        private final Map<K, V> valuesForThisSession = new HashMap<K, V>();
+        private final Map<K, V> valuesForThisSession = new HashMap<>();
 
         @Override
         public void afterStart() {
@@ -113,7 +112,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         @Override
-        public V get(K key, Transformer<V, K> factory) {
+        public V get(K key, Transformer<? extends V, ? super K> factory) {
             synchronized (lock) {
                 V v = getIfPresent(key);
                 if (v != null) {
@@ -160,7 +159,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
         // This is used only to retain strong references to the values
-        private final Set<V> valuesForPreviousSession = new HashSet<V>();
+        private final Set<V> valuesForPreviousSession = new HashSet<>();
         private final Map<K, SoftReference<V>> allValues;
 
         public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
@@ -182,7 +181,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Override
         protected void retainValue(K key, V v) {
-            allValues.put(key, new SoftReference<V>(v));
+            allValues.put(key, new SoftReference<>(v));
         }
 
         @Nullable
@@ -228,12 +227,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private Map<Class<?>, V> getCacheScope(Class<?> type) {
             ClassLoader classLoader = type.getClassLoader();
             if (classLoader instanceof VisitableURLClassLoader) {
-                return ((VisitableURLClassLoader) classLoader).getUserData(this, new Factory<Map<Class<?>, V>>() {
-                    @Override
-                    public Map<Class<?>, V> create() {
-                        return new HashMap<>();
-                    }
-                });
+                return ((VisitableURLClassLoader) classLoader).getUserData(this, HashMap::new);
             }
             return leakyValues;
         }
