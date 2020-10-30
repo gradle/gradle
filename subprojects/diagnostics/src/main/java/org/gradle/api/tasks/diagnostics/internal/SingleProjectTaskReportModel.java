@@ -19,7 +19,6 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.api.Task;
 import org.gradle.util.GUtil;
-import org.gradle.util.Path;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -36,7 +35,7 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
     public void build(final Collection<? extends Task> tasks) {
         for (Task task : tasks) {
             String group = GUtil.isTrue(task.getGroup()) ? task.getGroup() : DEFAULT_GROUP;
-            groups.put(group, new TaskDetailsImpl(task, factory.create(task)));
+            groups.put(group, factory.create(task));
         }
     }
 
@@ -51,34 +50,5 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             throw new IllegalArgumentException(String.format("Unknown group '%s'", group));
         }
         return groups.get(group);
-    }
-
-    private static class TaskDetailsImpl implements TaskDetails {
-        private final Task task;
-        private final TaskDetails details;
-
-        public TaskDetailsImpl(Task task, TaskDetails details) {
-            this.task = task;
-            this.details = details;
-        }
-
-        @Override
-        public Path getPath() {
-            return details.getPath();
-        }
-
-        @Override
-        public String getDescription() {
-            return details.getDescription();
-        }
-
-        @Override
-        public String toString() {
-            return task.toString();
-        }
-
-        public Task getTask() {
-            return task;
-        }
     }
 }
