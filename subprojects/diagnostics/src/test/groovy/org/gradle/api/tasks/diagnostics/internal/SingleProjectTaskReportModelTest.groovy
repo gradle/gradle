@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
+import org.gradle.api.Task
 import org.gradle.util.Path
 
 class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
@@ -38,8 +39,8 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
 
         then:
         model.groups == ['group1', 'group2'] as Set
-        model.getTasksForGroup('group1')*.task == [task1, task3]
-        model.getTasksForGroup('group2')*.task == [task2]
+        model.getTasksForGroup('group1')*.path == [pathOf(task1), pathOf(task3)]
+        model.getTasksForGroup('group2')*.path == [pathOf(task2)]
     }
 
     def groupsAreTreatedAsCaseInsensitive() {
@@ -53,9 +54,9 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
 
         then:
         model.groups == ['a', 'B', 'c'] as Set
-        model.getTasksForGroup('a')*.task == [task1]
-        model.getTasksForGroup('B')*.task == [task2, task3]
-        model.getTasksForGroup('c')*.task == [task4]
+        model.getTasksForGroup('a')*.path == [pathOf(task1)]
+        model.getTasksForGroup('B')*.path == [pathOf(task2), pathOf(task3)]
+        model.getTasksForGroup('c')*.path == [pathOf(task4)]
     }
 
     def tasksWithNoGroupAreTreatedAsChildrenOfTheNearestTopLevelTaskTheyAreReachableFrom() {
@@ -70,10 +71,10 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
 
         then:
         TaskDetails task3Details = (model.getTasksForGroup('group1') as List).first()
-        task3Details.task == task3
+        task3Details.path == pathOf(task3)
 
         TaskDetails task5Details = (model.getTasksForGroup('group2') as List).first()
-        task5Details.task == task5
+        task5Details.path == pathOf(task5)
     }
 
     def addsAGroupThatContainsTheTasksWithNoGroup() {
@@ -89,9 +90,9 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         then:
         model.groups == ['group', ''] as Set
         def tasks = model.getTasksForGroup('') as List
-        tasks*.task == [task1, task3, task4, task5]
+        tasks*.path == [pathOf(task1), pathOf(task3), pathOf(task4), pathOf(task5)]
         def t = tasks.first()
-        t.task == task1
+        t.path == pathOf(task1)
     }
 
     def addsAGroupWhenThereAreNoTasksWithAGroup() {
@@ -105,7 +106,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         then:
         model.groups == [''] as Set
         def tasks = model.getTasksForGroup('') as List
-        tasks*.task == [task1, task2, task3]
+        tasks*.path == [pathOf(task1), pathOf(task2), pathOf(task3)]
     }
 
     def buildsModelWhenThereAreNoTasks() {
@@ -114,5 +115,9 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
 
         then:
         model.groups as List == []
+    }
+
+    private static Path pathOf(Task t) {
+        Path.path(t.path)
     }
 }

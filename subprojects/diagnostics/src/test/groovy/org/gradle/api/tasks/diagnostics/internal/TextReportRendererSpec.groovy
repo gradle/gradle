@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
-import org.gradle.api.Project
 import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -49,7 +48,7 @@ public class TextReportRendererSpec extends Specification {
 
     def "write root project header"() {
         given:
-        def project = Mock(Project)
+        def project = Mock(ProjectDetails)
         TestStyledTextOutput textOutput = new TestStyledTextOutput();
 
         when:
@@ -68,8 +67,7 @@ public class TextReportRendererSpec extends Specification {
 
     def "write subproject header"() {
         given:
-        def project = Mock(Project)
-        def subproject = Mock(Project)
+        def subproject = Mock(ProjectDetails)
         TestStyledTextOutput textOutput = new TestStyledTextOutput();
 
         when:
@@ -82,14 +80,14 @@ public class TextReportRendererSpec extends Specification {
         containsLine(textOutput.toString(), "Project <path>")
 
         and:
-        1 * subproject.rootProject >> project
+        1 * subproject.isRootProject() >> false
         1 * subproject.description >> null
         1 * subproject.path >> "<path>"
     }
 
     def "includes project description in header"() {
         given:
-        def project = Mock(Project)
+        def project = Mock(ProjectDetails)
         TestStyledTextOutput textOutput = new TestStyledTextOutput();
 
         when:
@@ -102,7 +100,7 @@ public class TextReportRendererSpec extends Specification {
         containsLine(textOutput.toString(), "Root project - this is the root project")
 
         and:
-        1 * project.rootProject >> project
-        2 * project.description >> "this is the root project"
+        1 * project.isRootProject() >> true
+        1 * project.getDescription() >> "this is the root project"
     }
 }

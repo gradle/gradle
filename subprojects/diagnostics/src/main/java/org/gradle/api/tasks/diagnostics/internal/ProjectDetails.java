@@ -25,6 +25,20 @@ public interface ProjectDetails {
     static ProjectDetails of(final Project project) {
         return new ProjectDetails() {
             @Override
+            public int hashCode() {
+                return this.getPath().hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (!(obj instanceof ProjectDetails)) {
+                    return false;
+                }
+                ProjectDetails that = (ProjectDetails) obj;
+                return this.isRootProject() == that.isRootProject() || this.getPath().equals(that.getPath());
+            }
+
+            @Override
             public boolean isRootProject() {
                 return project == project.getRootProject();
             }

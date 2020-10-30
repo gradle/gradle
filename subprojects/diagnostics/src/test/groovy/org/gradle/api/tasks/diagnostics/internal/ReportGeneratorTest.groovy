@@ -50,13 +50,13 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         0 * renderer.setOutputFile(_)
 
         then:
-        1 * renderer.startProject(project)
+        1 * renderer.startProject(projectDetails)
 
         then:
         1 * projectReportGenerator.generateReport(project)
 
         then:
-        1 * renderer.completeProject(project)
+        1 * renderer.completeProject(projectDetails)
 
         then:
         1 * renderer.complete()
@@ -78,13 +78,13 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         0 * renderer.setOutput(_)
 
         then:
-        1 * renderer.startProject(project)
+        1 * renderer.startProject(projectDetails)
 
         then:
         1 * projectReportGenerator.generateReport(project)
 
         then:
-        1 * renderer.completeProject(project)
+        1 * renderer.completeProject(projectDetails)
 
         then:
         1 * renderer.complete()
@@ -96,6 +96,8 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         def child1 = TestUtil.createChildProject(project, "child1");
         def child2 = TestUtil.createChildProject(project, "child2");
         def generator = createReportGenerator()
+        def child1Details = ProjectDetails.of(child1)
+        def child2Details = ProjectDetails.of(child2)
 
         when:
         generator.generateReport(project.getAllprojects())
@@ -105,21 +107,25 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         1 * renderer.setOutput(styledTextOutput)
 
         then:
-        1 * renderer.startProject(project)
+        1 * renderer.startProject(projectDetails)
         1 * projectReportGenerator.generateReport(project)
-        1 * renderer.completeProject(project)
+        1 * renderer.completeProject(projectDetails)
 
         then:
-        1 * renderer.startProject(child1)
+        1 * renderer.startProject(child1Details)
         1 * projectReportGenerator.generateReport(child1)
-        1 * renderer.completeProject(child1)
+        1 * renderer.completeProject(child1Details)
 
         then:
-        1 * renderer.startProject(child2)
+        1 * renderer.startProject(child2Details)
         1 * projectReportGenerator.generateReport(child2)
-        1 * renderer.completeProject(child2)
+        1 * renderer.completeProject(child2Details)
 
         then:
         1 * renderer.complete()
+    }
+
+    def getProjectDetails() {
+        ProjectDetails.of(project)
     }
 }
