@@ -51,7 +51,7 @@ public class Path implements Comparable<Path> {
     private final boolean absolute;
     private String fullPath;
 
-    protected Path(String[] segments, boolean absolute) {
+    private Path(String[] segments, boolean absolute) {
         this.segments = segments;
         this.absolute = absolute;
     }
@@ -167,7 +167,7 @@ public class Path implements Comparable<Path> {
             return absolute ? ROOT : null;
         }
         String[] parentPath = new String[segments.length - 1];
-            System.arraycopy(segments, 0, parentPath, 0, parentPath.length);
+        System.arraycopy(segments, 0, parentPath, 0, parentPath.length);
         return new Path(parentPath, absolute);
     }
 
