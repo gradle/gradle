@@ -114,13 +114,12 @@ public class OutputFilterUtil {
 
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            snapshots.put(directorySnapshot.getAbsolutePath(), directorySnapshot);
             return true;
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            snapshots.put(fileSnapshot.getAbsolutePath(), fileSnapshot);
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            snapshots.put(snapshot.getAbsolutePath(), snapshot);
         }
 
         @Override
@@ -159,16 +158,19 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            if (!predicate.test(fileSnapshot, isRoot())) {
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            if (snapshot.getType() == FileType.Directory) {
+                return;
+            }
+            if (!predicate.test(snapshot, isRoot())) {
                 hasBeenFiltered = true;
                 currentRootFiltered = true;
                 return;
             }
             if (merkleBuilder == null) {
-                newRootsBuilder.add(fileSnapshot);
+                newRootsBuilder.add(snapshot);
             } else {
-                merkleBuilder.visitFile(fileSnapshot);
+                merkleBuilder.visitEntry(snapshot);
             }
         }
 

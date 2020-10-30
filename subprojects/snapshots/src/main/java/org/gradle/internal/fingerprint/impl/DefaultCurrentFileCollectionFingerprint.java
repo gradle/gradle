@@ -59,16 +59,16 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
+        // TODO This should use a snapshot visitor
         accept(new FileSystemSnapshotHierarchyVisitor() {
             @Override
             public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
                 return false;
             }
 
             @Override
-            public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
+            public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                builder.put(snapshot.getAbsolutePath(), snapshot.getHash());
             }
 
             @Override

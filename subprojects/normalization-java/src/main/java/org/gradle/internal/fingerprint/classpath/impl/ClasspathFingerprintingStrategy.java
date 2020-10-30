@@ -160,14 +160,17 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            if (fileSnapshot instanceof RegularFileSnapshot) {
-                HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            if (snapshot.getType() == FileType.Directory) {
+                return;
+            }
+            if (snapshot instanceof RegularFileSnapshot) {
+                HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) snapshot);
                 if (normalizedContent != null) {
-                    delegate.visit(fileSnapshot, normalizedContent);
+                    delegate.visit(snapshot, normalizedContent);
                 }
             } else if (!relativePathSegmentsTracker.isRoot()) {
-                throw new RuntimeException(String.format("Couldn't read file content: '%s'.", fileSnapshot.getAbsolutePath()));
+                throw new RuntimeException(String.format("Couldn't read file content: '%s'.", snapshot.getAbsolutePath()));
             }
         }
 

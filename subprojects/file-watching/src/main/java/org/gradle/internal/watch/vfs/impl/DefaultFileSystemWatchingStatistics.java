@@ -73,8 +73,8 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
             }
 
             @Override
-            public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                retained.add(fileSnapshot.getType());
+            public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                retained.add(snapshot.getType());
             }
 
             @Override

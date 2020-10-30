@@ -95,9 +95,9 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             if (overlappingPath == null) {
-                overlappingPath = detectOverlappingPath(fileSnapshot);
+                overlappingPath = detectOverlappingPath(snapshot);
             }
         }
 

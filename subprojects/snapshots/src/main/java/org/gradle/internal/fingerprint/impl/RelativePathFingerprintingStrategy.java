@@ -64,21 +64,24 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
 
                 @Override
                 public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                    boolean isRoot = relativePathStringTracker.isRoot();
                     relativePathStringTracker.enter(directorySnapshot);
-                    String absolutePath = directorySnapshot.getAbsolutePath();
-                    if (processedEntries.add(absolutePath)) {
-                        FileSystemLocationFingerprint fingerprint = isRoot ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY : new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), directorySnapshot);
-                        builder.put(absolutePath, fingerprint);
-                    }
                     return true;
                 }
 
                 @Override
-                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                    String absolutePath = fileSnapshot.getAbsolutePath();
+                public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                    String absolutePath = snapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot) : createFingerprint(fileSnapshot);
+                        FileSystemLocationFingerprint fingerprint;
+                        if (relativePathStringTracker.isRoot()) {
+                            if (snapshot.getType() == FileType.Directory) {
+                                fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
+                            } else {
+                                fingerprint = new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
+                            }
+                        } else {
+                            fingerprint = createFingerprint(snapshot);
+                        }
                         builder.put(absolutePath, fingerprint);
                     }
                 }

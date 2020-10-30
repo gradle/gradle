@@ -65,6 +65,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     @Override
     public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
         for (FileSystemSnapshot outputFileFingerprint : outputFileFingerprints) {
+            // TODO This should use a snapshot visitor instead
             outputFileFingerprint.accept(new FileSystemSnapshotHierarchyVisitor() {
                 @Override
                 public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -73,9 +74,9 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                 }
 
                 @Override
-                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                    if (fileSnapshot.getType() == FileType.RegularFile) {
-                        recordOutputSnapshot(fileSnapshot);
+                public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                    if (snapshot.getType() == FileType.RegularFile) {
+                        recordOutputSnapshot(snapshot);
                     }
                 }
 

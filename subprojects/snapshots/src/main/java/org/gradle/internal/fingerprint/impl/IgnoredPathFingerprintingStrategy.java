@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
@@ -52,6 +53,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
+            // TODO Use a SnapshotVisitor instead
             root.accept(new FileSystemSnapshotHierarchyVisitor() {
 
                 @Override
@@ -60,10 +62,13 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                 }
 
                 @Override
-                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                    String absolutePath = fileSnapshot.getAbsolutePath();
+                public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                    if (snapshot.getType() == FileType.Directory) {
+                        return;
+                    }
+                    String absolutePath = snapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(fileSnapshot.getType(), fileSnapshot.getHash()));
+                        builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), snapshot.getHash()));
                     }
                 }
 

@@ -27,6 +27,7 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -151,7 +152,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot snapshot) {
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            if (snapshot.getType() == FileType.Directory) {
+                return;
+            }
+
             this.path = snapshot.getAbsolutePath();
             this.name = snapshot.getName();
 

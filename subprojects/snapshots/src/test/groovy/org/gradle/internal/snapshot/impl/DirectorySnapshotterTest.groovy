@@ -322,14 +322,13 @@ class DirectorySnapshotterTest extends Specification {
         @Override
         boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePath.addLast(directorySnapshot.name)
-            visit(directorySnapshot.absolutePath, relativePath)
             return true
         }
 
         @Override
-        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            relativePath.addLast(fileSnapshot.name)
-            visit(fileSnapshot.absolutePath, relativePath)
+        void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            relativePath.addLast(snapshot.name)
+            visit(snapshot.absolutePath, relativePath)
             relativePath.removeLast()
         }
 

@@ -181,13 +181,12 @@ class OutputFilterUtilTest extends Specification {
             it.accept(new FileSystemSnapshotHierarchyVisitor() {
                 @Override
                 boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                    result.add(directorySnapshot)
                     return true
                 }
 
                 @Override
-                void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                    result.add(fileSnapshot)
+                void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                    result.add(snapshot)
                 }
 
                 @Override

@@ -263,8 +263,11 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
             }
 
             @Override
-            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                relativePath.addLast(fileSnapshot.name)
+            void visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
+                if (!seenRoot) {
+                    return
+                }
+                relativePath.addLast(entrySnapshot.name)
                 relativePaths.add(relativePath.join("/"))
                 relativePath.removeLast()
             }

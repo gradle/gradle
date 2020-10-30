@@ -189,7 +189,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
         }
 
         @Override

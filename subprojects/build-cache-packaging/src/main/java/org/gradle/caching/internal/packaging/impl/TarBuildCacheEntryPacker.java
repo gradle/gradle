@@ -134,7 +134,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         entity.visitOutputTrees((treeName, type, root) -> {
             FileSystemSnapshot treeSnapshots = snapshots.get(treeName);
             try {
-                entries.addAndGet(packTree(treeName, type, treeSnapshots, tarOutput));
+                long entryCount = packTree(treeName, type, treeSnapshots, tarOutput);
+                entries.addAndGet(entryCount);
             } catch (Exception ex) {
                 throw new RuntimeException(String.format("Could not pack tree '%s': %s", treeName, ex.getMessage()), ex);
             }
@@ -297,7 +298,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 builder.preVisitDirectory(internedAbsolutePath, internedDirName);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
-                builder.visitFile(fileSnapshot);
+                builder.visitEntry(fileSnapshot);
             }
         }
 
@@ -337,6 +338,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         private final FilePermissionAccess filePermissionAccess;
         private final TreeType type;
 
+        private boolean seenRoot;
         private long entries;
 
         public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type, FilePermissionAccess filePermissionAccess) {
@@ -350,34 +352,40 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            boolean isRoot = relativePathStringTracker.isRoot();
-            relativePathStringTracker.enter(directorySnapshot);
-            assertCorrectType(isRoot, directorySnapshot);
-            String targetPath = getTargetPath(isRoot);
-            int mode = isRoot ? UnixPermissions.DEFAULT_DIR_PERM : filePermissionAccess.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
-            storeDirectoryEntry(targetPath, mode, tarOutput);
-            entries++;
+            if (seenRoot) {
+                relativePathStringTracker.enter(directorySnapshot);
+            } else {
+                seenRoot = true;
+            }
             return true;
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             boolean isRoot = relativePathStringTracker.isRoot();
-            relativePathStringTracker.enter(fileSnapshot);
+            relativePathStringTracker.enter(snapshot);
             String targetPath = getTargetPath(isRoot);
-            switch (fileSnapshot.getType()) {
+            switch (snapshot.getType()) {
                 case Missing:
                     if (!isRoot) {
-                        throw new RuntimeException(String.format("Couldn't read content of file '%s'", fileSnapshot.getAbsolutePath()));
+                        throw new RuntimeException(String.format("Couldn't read content of file '%s'", snapshot.getAbsolutePath()));
                     }
                     storeMissingTree(targetPath, tarOutput);
                     break;
-                default:
-                    assertCorrectType(isRoot, fileSnapshot);
-                    File file = new File(fileSnapshot.getAbsolutePath());
-                    int mode = filePermissionAccess.getUnixMode(file);
-                    storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
+                case Directory:
+                    assertCorrectType(isRoot, snapshot);
+                    File dir = new File(snapshot.getAbsolutePath());
+                    int dirMode = isRoot ? UnixPermissions.DEFAULT_DIR_PERM : filePermissionAccess.getUnixMode(dir);
+                    storeDirectoryEntry(targetPath, dirMode, tarOutput);
                     break;
+                case RegularFile:
+                    assertCorrectType(isRoot, snapshot);
+                    File file = new File(snapshot.getAbsolutePath());
+                    int fileMode = filePermissionAccess.getUnixMode(file);
+                    storeFileEntry(file, targetPath, file.length(), fileMode, tarOutput);
+                    break;
+                default:
+                    throw new AssertionError();
             }
             relativePathStringTracker.leave();
             entries++;
@@ -385,7 +393,11 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         @Override
         public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePathStringTracker.leave();
+            if (relativePathStringTracker.isRoot()) {
+                seenRoot = false;
+            } else {
+                relativePathStringTracker.leave();
+            }
         }
 
         public long finish() {

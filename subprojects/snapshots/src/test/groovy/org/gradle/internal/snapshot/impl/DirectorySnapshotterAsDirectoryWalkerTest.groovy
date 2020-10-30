@@ -92,20 +92,20 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean())
         def visited = []
         snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
-            private boolean root = true
+            private boolean seenRoot
 
             @Override
             boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                if (!root) {
-                    visited << directorySnapshot.absolutePath
-                }
-                root = false
                 return true
             }
 
             @Override
-            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                visited << fileSnapshot.absolutePath
+            void visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
+                if (seenRoot) {
+                    visited << entrySnapshot.absolutePath
+                } else {
+                    seenRoot = true
+                }
             }
 
             @Override

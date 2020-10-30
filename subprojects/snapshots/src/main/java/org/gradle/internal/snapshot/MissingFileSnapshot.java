@@ -54,7 +54,7 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
 
     @Override
     public void accept(FileSystemSnapshotHierarchyVisitor visitor) {
-        visitor.visitFile(this);
+        visitor.visitEntry(this);
     }
 
     public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {

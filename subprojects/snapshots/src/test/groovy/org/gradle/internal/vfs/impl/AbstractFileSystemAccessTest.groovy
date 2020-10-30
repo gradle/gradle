@@ -204,14 +204,16 @@ abstract class AbstractFileSystemAccessTest extends Specification {
                 seenRoot = true
             } else {
                 relativePath.addLast(directorySnapshot.name)
-                relativePaths.add(relativePath.join("/"))
             }
             return true
         }
 
         @Override
-        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            relativePath.addLast(fileSnapshot.name)
+        void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            if (!seenRoot) {
+                return
+            }
+            relativePath.addLast(snapshot.name)
             relativePaths.add(relativePath.join("/"))
             relativePath.removeLast()
         }

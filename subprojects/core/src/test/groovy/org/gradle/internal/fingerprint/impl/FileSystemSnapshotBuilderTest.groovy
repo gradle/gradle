@@ -71,19 +71,17 @@ class FileSystemSnapshotBuilderTest extends Specification {
 
             @Override
             boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                def isRoot = relativePathTracker.root
                 relativePathTracker.enter(directorySnapshot)
-                if (!isRoot) {
-                    files.add(directorySnapshot.absolutePath)
-                    relativePaths.add(relativePathTracker.relativePath.join("/"))
-                }
                 return true
             }
 
             @Override
-            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                files.add(fileSnapshot.absolutePath)
-                relativePathTracker.enter(fileSnapshot)
+            void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                if (relativePathTracker.root) {
+                    return
+                }
+                files.add(snapshot.absolutePath)
+                relativePathTracker.enter(snapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
                 relativePathTracker.leave()
             }

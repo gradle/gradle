@@ -112,8 +112,8 @@ class FileSystemSnapshotFilterTest extends Specification {
             }
 
             @Override
-            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                result << new File(fileSnapshot.absolutePath)
+            void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                result << new File(snapshot.absolutePath)
             }
 
             @Override

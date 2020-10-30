@@ -150,7 +150,7 @@ public class FileSystemSnapshotBuilder {
                 builder.postVisitDirectory(determineAccessTypeForLocation(dirPath));
             }
             for (RegularFileSnapshot fileSnapshot : files.values()) {
-                builder.visitFile(fileSnapshot);
+                builder.visitEntry(fileSnapshot);
             }
         }
     }

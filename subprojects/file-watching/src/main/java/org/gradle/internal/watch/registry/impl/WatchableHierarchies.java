@@ -145,9 +145,9 @@ public class WatchableHierarchies {
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            if (shouldBeRemoved(fileSnapshot)) {
-                invalidateUnwatchedFile(fileSnapshot);
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            if (shouldBeRemoved(snapshot)) {
+                invalidateUnwatchedFile(snapshot);
             }
         }
 

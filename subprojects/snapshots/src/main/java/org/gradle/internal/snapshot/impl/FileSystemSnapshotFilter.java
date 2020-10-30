@@ -57,25 +57,25 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            boolean root = relativePathTracker.isRoot();
             relativePathTracker.enter(directorySnapshot);
+            boolean root = relativePathTracker.isRoot();
             if (root || predicate.test(directorySnapshot, relativePathTracker.getRelativePath())) {
                 delegate.preVisitDirectory(directorySnapshot);
                 return true;
             } else {
                 hasBeenFiltered.set(true);
+                relativePathTracker.leave();
+                return false;
             }
-            relativePathTracker.leave();
-            return false;
         }
 
         @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+        public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
             boolean root = relativePathTracker.isRoot();
-            relativePathTracker.enter(fileSnapshot);
-            Iterable<String> relativePathForFiltering = root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath();
-            if (predicate.test(fileSnapshot, relativePathForFiltering)) {
-                delegate.visitFile(fileSnapshot);
+            relativePathTracker.enter(snapshot);
+            Iterable<String> relativePathForFiltering = root ? ImmutableList.of(snapshot.getName()) : relativePathTracker.getRelativePath();
+            if (predicate.test(snapshot, relativePathForFiltering)) {
+                delegate.visitEntry(snapshot);
             } else {
                 hasBeenFiltered.set(true);
             }
