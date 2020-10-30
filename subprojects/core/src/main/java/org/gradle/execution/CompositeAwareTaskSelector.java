@@ -56,6 +56,11 @@ public class CompositeAwareTaskSelector extends TaskSelector {
 
     @Override
     public TaskSelection getSelection(String path) {
+        try {
+            return getUnqualifiedBuildSelector().getSelection(path);
+        } catch (Exception ignore) {
+        }
+
         Path taskPath = Path.path(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {
@@ -67,6 +72,11 @@ public class CompositeAwareTaskSelector extends TaskSelector {
 
     @Override
     public TaskSelection getSelection(String projectPath, File root, String path) {
+        try {
+            return getUnqualifiedBuildSelector().getSelection(path);
+        } catch (Exception ignore) {
+        }
+
         Path taskPath = Path.path(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {

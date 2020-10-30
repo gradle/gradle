@@ -293,4 +293,26 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         fails(":other-build:sub:nonexistent").assertHasDescription("Project 'sub' not found in project ':other-build'.")
     }
+
+    def "handles overlapping names between composite and a subproject within the composite"() {
+        setup:
+        settingsFile << """
+            rootProject.name = 'root-project'
+            includeBuild('lib')
+        """
+        file('lib/settings.gradle') << """
+            include('lib')
+        """
+        file('lib/lib/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        succeeds(":lib:lib:doSomething")
+        output.contains("do something")
+    }
 }
