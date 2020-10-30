@@ -77,9 +77,9 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
     <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer);
 
     interface FileSystemLocationSnapshotVisitor {
-        void visitDirectory(CompleteDirectorySnapshot directorySnapshot);
-        void visitRegularFile(RegularFileSnapshot fileSnapshot);
-        void visitMissing(MissingFileSnapshot missingSnapshot);
+        default void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {};
+        default void visitRegularFile(RegularFileSnapshot fileSnapshot) {};
+        default void visitMissing(MissingFileSnapshot missingSnapshot) {};
     }
 
     interface FileSystemLocationSnapshotTransformer<T> {

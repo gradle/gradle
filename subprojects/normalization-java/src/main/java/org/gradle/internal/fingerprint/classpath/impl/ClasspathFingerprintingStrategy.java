@@ -42,8 +42,10 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -119,7 +121,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
-        HashSet<String> processedEntries = new HashSet<String>();
+        HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
             ClasspathFingerprintVisitor fingerprintVisitor = new ClasspathFingerprintVisitor(processedEntries, builder);
             root.accept(new ClasspathContentFingerprintingVisitor(fingerprintVisitor));
@@ -161,17 +163,22 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
 
         @Override
         public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            if (snapshot.getType() == FileType.Directory) {
-                return;
-            }
-            if (snapshot instanceof RegularFileSnapshot) {
-                HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) snapshot);
-                if (normalizedContent != null) {
-                    delegate.visit(snapshot, normalizedContent);
+            snapshot.accept(new FileSystemLocationSnapshotVisitor() {
+                @Override
+                public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                    HashCode normalizedContent = fingerprintFile(fileSnapshot);
+                    if (normalizedContent != null) {
+                        delegate.visit(snapshot, normalizedContent);
+                    }
                 }
-            } else if (!relativePathSegmentsTracker.isRoot()) {
-                throw new RuntimeException(String.format("Couldn't read file content: '%s'.", snapshot.getAbsolutePath()));
-            }
+
+                @Override
+                public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                    if (!relativePathSegmentsTracker.isRoot()) {
+                        throw new RuntimeException(String.format("Couldn't read file content: '%s'.", missingSnapshot.getAbsolutePath()));
+                    }
+                }
+            });
         }
 
         @Nullable
