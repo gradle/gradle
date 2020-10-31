@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
-    def canCopyFromAZip() {
+    def "can copy from a zip"() {
         given:
         createZip('test.zip') {
             subdir1 {
@@ -90,7 +90,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":copy")
     }
 
-    def cannotCreateAnEmptyTar() {
+    def "cannot create an empty tar"() {
         given:
         buildFile << """
             task tar(type: Tar) {
@@ -106,7 +106,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('build/test.tar').assertDoesNotExist()
     }
 
-    def canCopyFromATar() {
+    def "can copy from a tar"() {
         given:
         createTar('test.tar') {
             subdir1 {
@@ -337,7 +337,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    def "tarTreeFailsGracefully"() {
+    def "tar tree fails gracefully"() {
         given:
         file('content/some-file.txt').text = "Content"
         file('content').zipTo(file('compressedTarWithWrongExtension.tar'))
@@ -356,7 +356,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(CoreMatchers.startsWith("Unable to expand TAR"))
     }
 
-    def cannotCreateAnEmptyZip() {
+    def "cannot create an empty zip"() {
         given:
         buildFile << '''
             task zip(type: Zip) {
@@ -371,7 +371,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('build/test.zip').assertDoesNotExist()
     }
 
-    def canCreateAZipArchive() {
+    def "can create azip archive"() {
         given:
         createDir('test') {
             dir1 {
@@ -423,7 +423,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
     }
 
-    def canCreateAZipArchiveWithContentsUncompressed() {
+    def "can create azip archive with contents uncompressed"() {
         def randomAscii = RandomStringUtils.randomAscii(300)
         given:
         createDir('test') {
@@ -498,7 +498,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandCompressedDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
     }
 
-    def canCreateATarArchive() {
+    def "can create a tar archive"() {
         given:
         createDir('test') {
             dir1 {
@@ -535,7 +535,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
     }
 
-    def canCreateATgzArchive() {
+    def "can create a tgz archive"() {
         given:
         createDir('test') {
             dir1 {
@@ -565,7 +565,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
     }
 
-    def canCreateATbzArchive() {
+    def "can create a tbz archive"() {
         given:
         createDir('test') {
             dir1 {
@@ -595,7 +595,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
     }
 
-    def canCreateArchivesAndExplodedImageFromSameSpec() {
+    def "can create archives and exploded image from same spec"() {
         given:
         createDir('test') {
             dir1 {
@@ -640,7 +640,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.assertHasDescendants('prefix/lib/file1.txt', 'prefix/src/dir3/file2.txt')
     }
 
-    def canCreateExplodedImageFromArchiveTask() {
+    def "can create exploded image from archive task"() {
         given:
         createDir('test') {
             dir1 {
@@ -681,7 +681,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    def canMergeArchivesIntoAnotherZip() {
+    def "can merge archives into another zip"() {
         given:
         createZip('test.zip') {
             shared {
