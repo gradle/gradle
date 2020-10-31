@@ -100,9 +100,9 @@ public class SkipEmptyWorkStep implements Step<AfterPreviousExecutionContext, Ca
         }
     }
 
-    private static boolean hasContent(CurrentFileCollectionFingerprint fingerprints) {
-        return fingerprints.getFingerprints().values().stream()
-            .anyMatch(fingerprint -> fingerprint.getType() != FileType.Directory);
+    private static boolean hasContent(CurrentFileCollectionFingerprint fileCollectionFingerprint) {
+        return fileCollectionFingerprint.getFingerprints().values().stream()
+            .anyMatch(fingerprint -> fingerprint.getType() == FileType.RegularFile);
     }
 
     @Nonnull
