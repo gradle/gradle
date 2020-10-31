@@ -9,6 +9,7 @@ We would like to thank the following community contributors to this release of G
 [Björn Kautler](https://github.com/Vampire),
 [Stefan Oehme](https://github.com/oehme),
 [Thad House](https://github.com/ThadHouse),
+[knittl](https://github.com/knittl),
 [Gregorios Leach](https://github.com/simtel12).
 
 <!--
