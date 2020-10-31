@@ -74,6 +74,6 @@ public class UnreadableSnapshot extends AbstractCompleteFileSystemLocationSnapsh
     }
 
     public RuntimeException rethrowOnAttemptedRead() {
-        throw new RuntimeException(String.format("Couldn't read file contents: '%s'.", getAbsolutePath()), error);
+        throw new RuntimeException(String.format("Couldn't read path: '%s'.", getAbsolutePath()), error);
     }
 }
