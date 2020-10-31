@@ -55,7 +55,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
+                    from("org.gradle.test:my-platform:1.0")
                 }
             }
         """
@@ -90,7 +90,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
+                    from("org.gradle.test:my-platform:1.0")
                     version('lib', '1.1') // override version declared in the platform, this is order sensitive
                 }
             }
@@ -134,7 +134,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromVersionCatalog("org.gradle.test:my-platform:+")
+                    from("org.gradle.test:my-platform:+")
                 }
             }
         """
@@ -164,7 +164,7 @@ unspecified:unspecified:unspecified
                     maven { url "${mavenRepo.uri}" }
                 }
                 dependenciesModel("libs") {
-                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
+                    from("org.gradle.test:my-platform:1.0")
                 }
             }
         """
@@ -180,7 +180,7 @@ unspecified:unspecified:unspecified
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    fromVersionCatalog("org.gradle.test:my-platform:1.0")
+                    from("org.gradle.test:my-platform:1.0")
                 }
             }
         """
@@ -222,7 +222,7 @@ unspecified:unspecified:unspecified
 
             versionCatalog {
                 dependenciesModel {
-                    fromVersionCatalog('org.gradle.test:my-platform:1.0')
+                    from('org.gradle.test:my-platform:1.0')
                     alias('other').to('org:other:1.5')
                 }
                 plugins {

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.internal.HasInternalProtocol;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -34,21 +33,17 @@ import java.util.List;
 public interface DependenciesModelBuilder {
 
     /**
-     * Configures the model by reading it from a local file.
-     * Currently the only supported format is a .toml file, any attempt
-     * to read another format would fail.
+     * Configures the model by reading it from a version catalog.
+     * A version catalog is a component published using the `version-catalog` plugin or
+     * a local TOML file.
      *
-     * @param modelFile the model file
-     */
-    void from(File modelFile);
-
-    /**
-     * Configures the model by reading it from a published version catalog.
-     * A version catalog is a component published using the `version-catalog` plugin.
+     * All imports configured by this method will be accumulated in order and executed
+     * before any other modification provided by this builder, such that "local" modifications
+     * have higher priority than any imported component.
      *
-     * @param dependencyNotation the notation for the dependency coordinates of the catalog
+     * @param dependencyNotation any notation supported by {@link org.gradle.api.artifacts.dsl.DependencyHandler}
      */
-    void fromVersionCatalog(Object dependencyNotation);
+    void from(Object dependencyNotation);
 
     /**
      * Configures a dependency version which can then be referenced using

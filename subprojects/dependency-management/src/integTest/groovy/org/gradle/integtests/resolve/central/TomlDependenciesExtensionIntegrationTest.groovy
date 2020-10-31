@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest implements PluginDslSupport {
 
@@ -294,7 +295,7 @@ lib = "org.gradle.test:lib:1.0"
         file("buildSrc/settings.gradle") << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    from(file("../gradle/dependencies.toml"))
+                    from(files("../gradle/dependencies.toml"))
                 }
             }
         """
@@ -645,6 +646,24 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
                 edge('org.gradle.test:lib2:{strictly [1.0, 2.0]; prefer 1.1}', 'org.gradle.test:lib2:1.1')
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15029")
+    def "reasonable error message if an imported catalog doesn't exist"() {
+        def path = file("missing.toml").absolutePath
+        settingsFile << """
+            dependencyResolutionManagement {
+                dependenciesModel('libs') {
+                    from(files("missing.toml"))
+                }
+            }
+        """
+
+        when:
+        fails ':help'
+
+        then:
+        failure.assertHasCause "Catalog file $path doesn't exist"
     }
 
     private GradleExecuter withConfigurationCache() {

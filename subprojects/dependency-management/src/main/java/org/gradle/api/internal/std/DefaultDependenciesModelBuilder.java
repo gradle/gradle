@@ -68,7 +68,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
     private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
-    private final List<Object> importedPlatforms = Lists.newArrayList();
+    private final List<Object> imports = Lists.newArrayList();
     private final StrictVersionParser strictVersionParser;
 
     @Inject
@@ -118,12 +118,12 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     private void maybeImportPlatforms() {
-        if (importedPlatforms.isEmpty()) {
+        if (imports.isEmpty()) {
             return;
         }
         DependencyResolutionServices drs = dependencyResolutionServicesSupplier.get();
         Configuration cnf = drs.getConfigurationContainer().create("incomingPlatformsFor" + StringUtils.capitalize(name));
-        for (Object importedPlatform : importedPlatforms) {
+        for (Object importedPlatform : imports) {
             Dependency dependency = drs.getDependencyHandler().create(importedPlatform);
             cnf.getDependencies().add(dependency);
 
@@ -135,13 +135,20 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         });
         cnf.setCanBeResolved(true);
         cnf.setCanBeConsumed(false);
-        cnf.getFiles().forEach(this::from);
+        cnf.getFiles().forEach(this::importCatalogFromFile);
     }
 
     @Override
-    public void from(File modelFile) {
+    public void from(Object dependencyNotation) {
+        imports.add(dependencyNotation);
+    }
+
+    private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throw new InvalidUserDataException("Unsupported file format: please use a TOML file");
+        }
+        if (!modelFile.exists()) {
+            throw new InvalidUserDataException("Catalog file " + modelFile + " doesn't exist");
         }
         RegularFileProperty srcProp = objects.fileProperty();
         srcProp.set(modelFile);
@@ -151,11 +158,6 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    @Override
-    public void fromVersionCatalog(Object dependencyNotation) {
-        importedPlatforms.add(dependencyNotation);
     }
 
     @Override
