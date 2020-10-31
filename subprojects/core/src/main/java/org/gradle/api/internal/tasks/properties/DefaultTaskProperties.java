@@ -44,7 +44,6 @@ public class DefaultTaskProperties implements TaskProperties {
     private final FileCollection sourceFiles;
     private final boolean hasDeclaredOutputs;
     private final ReplayingTypeValidationContext validationProblems;
-    private final FileCollection outputFiles;
     private final FileCollection localStateFiles;
     private final FileCollection destroyableFiles;
     private final List<ValidatingProperty> validatingProperties;
@@ -130,19 +129,6 @@ public class DefaultTaskProperties implements TaskProperties {
                 }
             }
         };
-        this.outputFiles = new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return "output files";
-            }
-
-            @Override
-            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-                for (FilePropertySpec propertySpec : outputFileProperties) {
-                    visitor.accept(propertySpec.getPropertyFiles());
-                }
-            }
-        };
         this.localStateFiles = localStateFiles;
         this.destroyableFiles = destroyableFiles;
     }
@@ -155,11 +141,6 @@ public class DefaultTaskProperties implements TaskProperties {
     @Override
     public ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties() {
         return outputFileProperties;
-    }
-
-    @Override
-    public FileCollection getOutputFiles() {
-        return outputFiles;
     }
 
     @Override

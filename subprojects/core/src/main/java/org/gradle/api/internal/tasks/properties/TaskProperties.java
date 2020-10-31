@@ -69,11 +69,6 @@ public interface TaskProperties {
     ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties();
 
     /**
-     * The output files.
-     */
-    FileCollection getOutputFiles();
-
-    /**
      * Whether output properties have been declared.
      */
     boolean hasDeclaredOutputs();
