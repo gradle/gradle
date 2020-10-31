@@ -32,8 +32,18 @@ import spock.lang.Unroll
 import javax.annotation.Nullable
 import java.util.function.Supplier
 
+import static org.gradle.api.internal.std.IncludeExcludePredicate.acceptAll
+
 class TomlDependenciesFileParserTest extends Specification {
-    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
+    final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll())
+    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs",
+        Interners.newStrongInterner(),
+        Interners.newStrongInterner(),
+        TestUtil.objectFactory(),
+        TestUtil.providerFactory(),
+        Stub(PluginDependenciesSpec),
+        Stub(Supplier),
+    )
     final Map<String, TestPlugin> plugins = [:].withDefault { new TestPlugin() }
     final PluginDependenciesSpec pluginsSpec = new PluginDependenciesSpec() {
         @Override
@@ -266,7 +276,7 @@ class TomlDependenciesFileParserTest extends Specification {
     }
 
     private void parse(String name) {
-        TomlDependenciesFileParser.parse(toml(name), builder, pluginsSpec)
+        TomlDependenciesFileParser.parse(toml(name), builder, pluginsSpec, importConf)
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }

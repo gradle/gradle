@@ -20,6 +20,7 @@ import com.google.common.collect.Interners
 import groovy.transform.Canonical
 import org.gradle.api.internal.std.AllDependenciesModel
 import org.gradle.api.internal.std.DefaultDependenciesModelBuilder
+import org.gradle.api.internal.std.ImportConfiguration
 import org.gradle.api.internal.std.TomlDependenciesFileParser
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -30,6 +31,8 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.util.function.Supplier
+
+import static org.gradle.api.internal.std.IncludeExcludePredicate.acceptAll
 
 class TomlWriterTest extends Specification {
 
@@ -93,7 +96,7 @@ class TomlWriterTest extends Specification {
             pluginsSpec,
             Stub(Supplier))
         ins.withCloseable {
-            TomlDependenciesFileParser.parse(it, builder, pluginsSpec)
+            TomlDependenciesFileParser.parse(it, builder, pluginsSpec, new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll()))
         }
         return new Model(builder.build(), plugins)
     }

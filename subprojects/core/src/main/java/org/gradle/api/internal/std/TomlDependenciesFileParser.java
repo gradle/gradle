@@ -50,7 +50,7 @@ public class TomlDependenciesFileParser {
         VERSIONS_KEY
     );
 
-    public static void parse(InputStream in, DependenciesModelBuilder builder, PluginDependenciesSpec plugins) throws IOException {
+    public static void parse(InputStream in, DependenciesModelBuilder builder, PluginDependenciesSpec plugins, ImportConfiguration importConfig) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
         TomlTable dependenciesTable = result.getTable(DEPENDENCIES_KEY);
@@ -61,13 +61,13 @@ public class TomlDependenciesFileParser {
         if (!unknownTle.isEmpty()) {
             throw new InvalidUserDataException("Unknown top level elements " + unknownTle);
         }
-        parseDependencies(dependenciesTable, builder, strictVersionParser);
-        parseBundles(bundlesTable, builder);
-        parsePlugins(pluginsTable, plugins);
-        parseVersions(versionsTable, builder, strictVersionParser);
+        parseDependencies(dependenciesTable, builder, strictVersionParser, importConfig);
+        parseBundles(bundlesTable, builder, importConfig);
+        parsePlugins(pluginsTable, plugins, importConfig);
+        parseVersions(versionsTable, builder, strictVersionParser, importConfig);
     }
 
-    private static void parseDependencies(@Nullable TomlTable dependenciesTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
+    private static void parseDependencies(@Nullable TomlTable dependenciesTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
         if (dependenciesTable == null) {
             return;
         }
@@ -77,11 +77,13 @@ public class TomlDependenciesFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            parseDependency(alias, dependenciesTable, builder, strictVersionParser);
+            if (importConfig.includeDependency(alias)) {
+                parseDependency(alias, dependenciesTable, builder, strictVersionParser);
+            }
         }
     }
 
-    private static void parseVersions(@Nullable TomlTable versionsTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
+    private static void parseVersions(@Nullable TomlTable versionsTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
         if (versionsTable == null) {
             return;
         }
@@ -91,30 +93,36 @@ public class TomlDependenciesFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            parseVersion(alias, versionsTable, builder, strictVersionParser);
+            if (importConfig.includeVersion(alias)) {
+                parseVersion(alias, versionsTable, builder, strictVersionParser);
+            }
         }
     }
 
-    private static void parseBundles(@Nullable TomlTable bundlesTable, DependenciesModelBuilder builder) {
+    private static void parseBundles(@Nullable TomlTable bundlesTable, DependenciesModelBuilder builder, ImportConfiguration importConfig) {
         if (bundlesTable == null) {
             return;
         }
         List<String> keys = bundlesTable.keySet().stream().sorted().collect(Collectors.toList());
         for (String alias : keys) {
-            List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
-                .map(String::valueOf)
-                .collect(Collectors.toList());
-            builder.bundle(alias, bundled);
+            if (importConfig.includeBundle(alias)) {
+                List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.toList());
+                builder.bundle(alias, bundled);
+            }
         }
     }
 
-    private static void parsePlugins(@Nullable TomlTable pluginsTable, PluginDependenciesSpec builder) {
+    private static void parsePlugins(@Nullable TomlTable pluginsTable, PluginDependenciesSpec builder, ImportConfiguration importConfig) {
         if (pluginsTable == null) {
             return;
         }
         List<String> keys = pluginsTable.dottedKeySet().stream().sorted().collect(Collectors.toList());
         for (String id : keys) {
-            builder.id(id).version(expectString("plugin", id, pluginsTable, null));
+            if (importConfig.includePlugin(id)) {
+                builder.id(id).version(expectString("plugin", id, pluginsTable, null));
+            }
         }
     }
 

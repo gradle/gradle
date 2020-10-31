@@ -260,6 +260,90 @@ unspecified:unspecified:unspecified
         expectPlatformContents 'composed-platform'
     }
 
+    def "can selectively import elements from a catalog"() {
+        def module = mavenHttpRepo.module('org.gradle.test', 'my-platform', '1.0')
+            .withModuleMetadata()
+
+        def platformProject = preparePlatformProject '''
+            dependenciesModel {
+                alias('hello').to('org.test:hello:1.1')
+                alias('world').to('org.test:world:1.7')
+                alias('ignored').to('org.test:ignored:1.3')
+                bundle('mix', ['hello', 'world'])
+                bundle('ignored-too', ['hello', 'ignored'])
+            }
+            plugins {
+                id 'awesome' version '1.1'
+                id 'bof' version '0.3'
+                id 'not.interested' version 'boring'
+            }
+        '''
+        executer.inDirectory(platformProject).withTasks('publish').run()
+
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url "${mavenHttpRepo.uri}" }
+                }
+            }
+        """
+
+        buildFile.text = """
+            plugins {
+                id 'version-catalog'
+                id 'maven-publish'
+            }
+
+            group = 'org.gradle.platform'
+            version = '1.0'
+
+            versionCatalog {
+                dependenciesModel {
+                    from('org.gradle.test:my-platform:1.0') {
+                        includeDependency('hello')
+                        excludePlugin('bof', 'not.interested')
+                        excludeBundle 'ignored-too'
+                    }
+                    alias('world').to('org.world:company:1.5')
+                }
+                plugins {
+                    id('bof') version '0.6'
+                }
+            }
+
+            publishing {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.versionCatalog
+                    }
+                }
+            }
+
+        """
+
+        when: "platform isn't resolved"
+        succeeds ":help"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        module.pom.expectGet()
+        module.moduleMetadata.expectGet()
+        module.getArtifact(type: 'toml').expectGet()
+
+        succeeds ':publish'
+
+        then:
+        expectPlatformContents 'composed-platform2'
+
+        and: "no warning is issued because of duplicate entry"
+        outputDoesNotContain "Duplicate entry for"
+    }
+
     private TestFile preparePlatformProject(String platformSpec = "", String version = "1.0") {
         def platformDir = file('platform')
         platformDir.file("settings.gradle").text = """
