@@ -20,9 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
@@ -32,7 +30,6 @@ import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidation
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 @NonNullApi
 public class DefaultTaskProperties implements TaskProperties {
@@ -40,8 +37,6 @@ public class DefaultTaskProperties implements TaskProperties {
     private final ImmutableSortedSet<InputPropertySpec> inputProperties;
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
     private final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties;
-    private final FileCollection inputFiles;
-    private final FileCollection sourceFiles;
     private final boolean hasDeclaredOutputs;
     private final ReplayingTypeValidationContext validationProblems;
     private final FileCollection localStateFiles;
@@ -71,7 +66,6 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         return new DefaultTaskProperties(
-            task.toString(),
             inputPropertiesVisitor.getProperties(),
             inputFilesVisitor.getFileProperties(),
             outputFilesVisitor.getFileProperties(),
@@ -83,7 +77,6 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     private DefaultTaskProperties(
-        String name,
         ImmutableSortedSet<InputPropertySpec> inputProperties,
         ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
         ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
@@ -100,35 +93,6 @@ public class DefaultTaskProperties implements TaskProperties {
         this.inputFileProperties = inputFileProperties;
         this.outputFileProperties = outputFileProperties;
         this.hasDeclaredOutputs = hasDeclaredOutputs;
-
-        this.inputFiles = new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return name + " input files";
-            }
-
-            @Override
-            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-                for (InputFilePropertySpec filePropertySpec : inputFileProperties) {
-                    visitor.accept(filePropertySpec.getPropertyFiles());
-                }
-            }
-        };
-        this.sourceFiles = new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return name + " source files";
-            }
-
-            @Override
-            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-                for (InputFilePropertySpec filePropertySpec : inputFileProperties) {
-                    if (filePropertySpec.isSkipWhenEmpty()) {
-                        visitor.accept(filePropertySpec.getPropertyFiles());
-                    }
-                }
-            }
-        };
         this.localStateFiles = localStateFiles;
         this.destroyableFiles = destroyableFiles;
     }
@@ -141,16 +105,6 @@ public class DefaultTaskProperties implements TaskProperties {
     @Override
     public ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties() {
         return outputFileProperties;
-    }
-
-    @Override
-    public FileCollection getSourceFiles() {
-        return sourceFiles;
-    }
-
-    @Override
-    public FileCollection getInputFiles() {
-        return inputFiles;
     }
 
     @Override
