@@ -4,6 +4,7 @@ We would like to thank the following community contributors to this release of G
 
 [Danny Thomas](https://github.com/DanielThomas),
 [Jeff](https://github.com/mathjeff),
+[Mattia Tommasone](https://github.com/Raibaz),
 [jdai8](https://github.com/jdai8),
 [David Burström](https://github.com/davidburstrom),
 [Björn Kautler](https://github.com/Vampire),
