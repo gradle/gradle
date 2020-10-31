@@ -41,7 +41,6 @@ public class DefaultTaskProperties implements TaskProperties {
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
     private final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties;
     private final FileCollection inputFiles;
-    private final boolean hasSourceFiles;
     private final FileCollection sourceFiles;
     private final boolean hasDeclaredOutputs;
     private final ReplayingTypeValidationContext validationProblems;
@@ -131,8 +130,6 @@ public class DefaultTaskProperties implements TaskProperties {
                 }
             }
         };
-        this.hasSourceFiles = inputFileProperties.stream()
-            .anyMatch(InputFilePropertySpec::isSkipWhenEmpty);
         this.outputFiles = new CompositeFileCollection() {
             @Override
             public String getDisplayName() {
@@ -168,11 +165,6 @@ public class DefaultTaskProperties implements TaskProperties {
     @Override
     public FileCollection getSourceFiles() {
         return sourceFiles;
-    }
-
-    @Override
-    public boolean hasSourceFiles() {
-        return hasSourceFiles;
     }
 
     @Override

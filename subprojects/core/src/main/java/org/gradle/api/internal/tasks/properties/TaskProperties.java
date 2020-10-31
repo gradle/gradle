@@ -56,14 +56,6 @@ public interface TaskProperties {
      */
     FileCollection getInputFiles();
 
-    // TODO Can we remove this now?
-    /**
-     * Whether there are source files.
-     *
-     * Source files are {@link InputFilePropertySpec}s where {@link InputFilePropertySpec#isSkipWhenEmpty()} returns true.
-     */
-    boolean hasSourceFiles();
-
     /**
      * The source files.
      */
