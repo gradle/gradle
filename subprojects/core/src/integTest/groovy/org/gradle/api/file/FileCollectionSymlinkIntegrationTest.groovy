@@ -72,7 +72,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1365")
-    def "detect changes to broken symlink outputs in OutputDirectory"() {
+    def "detect changes to broken symlink outputs in @OutputDirectory"() {
         def root = file("root").createDir()
         def target = file("target")
         def link = root.file("link")
@@ -130,7 +130,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1365")
-    def "detect changes to broken symlink outputs in OutputFile"() {
+    def "detect changes to broken symlink outputs in @OutputFile"() {
         def root = file("root").createDir()
         def target = file("target")
         def link = root.file("link")
@@ -215,8 +215,9 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         outputDirectory.list() == [input.name]
     }
 
+    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "task with broken symlink in InputDirectory is valid"() {
+    def "task with broken symlink in @InputDirectory is valid (@SkipWhenEmpty: #skipWhenEmpty)"() {
         def inputFileTarget = file("brokenInputFileTarget")
         def inputDirectoryWithBrokenLink = file('inputDirectoryWithBrokenLink')
         inputDirectoryWithBrokenLink.file('brokenInputFile').createLink(inputFileTarget)
@@ -224,6 +225,8 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             class CustomTask extends DefaultTask {
+
+                ${ skipWhenEmpty ? "@SkipWhenEmpty" : "" }
                 @InputDirectory File inputDirectoryWithBrokenLink
 
                 @OutputFile File output
@@ -259,10 +262,14 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         run 'inputBrokenLinkNameCollector'
         then:
         skipped ':inputBrokenLinkNameCollector'
+
+        where:
+        skipWhenEmpty << [ true, false ]
     }
 
+    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "task with broken symlink in InputFiles is valid"() {
+    def "task with broken symlink in @InputFiles is valid (@SkipWhenEmpty: #skipWhenEmpty)"() {
         def inputFileTarget = file("brokenInputFileTarget")
         def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
         def output = file("output.txt")
@@ -270,6 +277,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class CustomTask extends DefaultTask {
 
+                ${ skipWhenEmpty ? "@SkipWhenEmpty" : "" }
                 @InputFiles FileCollection brokenInputFiles
 
                 @OutputFile File output
@@ -305,10 +313,13 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         run 'inputBrokenLinkNameCollector'
         then:
         skipped ':inputBrokenLinkNameCollector'
+
+        where:
+        skipWhenEmpty << [ true, false ]
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "unbreaking a symlink in InputFiles is detected incrementally"() {
+    def "unbreaking a symlink in @InputFiles is detected incrementally"() {
         def inputFileTarget = file("brokenInputFileTarget")
         def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
         def output = file("output.txt")
@@ -360,7 +371,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         output.text == "${[MODIFIED]}"
     }
 
-    def "broken symlink in #inputType.simpleName fails validation"() {
+    def "broken symlink as root of @#inputType.simpleName fails validation"() {
         def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -385,7 +396,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "task with a broken #classpathType.simpleName root input is accepted"() {
+    def "task with a broken @#classpathType.simpleName root input is accepted"() {
         def brokenClasspathEntry = file('broken.jar').createLink("broken.jar.target")
         def output = file("output.txt")
 
@@ -414,7 +425,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "task with a broken #classpathType.simpleName directory input is accepted"() {
+    def "task with a broken symlink in @#classpathType.simpleName directory input is accepted"() {
         def classes = file('classes').createDir()
         def brokenInputFile = classes.file('BrokenInputFile.class').createLink("BrokenInputFile.target")
         def output = file("output.txt")
@@ -441,29 +452,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         classpathType << [Classpath, CompileClasspath]
-    }
-
-    @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "directory with broken symlink and @SkipWhenEmpty fails"() {
-        def root = file('root').createDir()
-        def brokenInputFile = root.file('BrokenInputFile').createLink("BrokenInputFileTarget")
-
-        buildFile << """
-            class CustomTask extends DefaultTask {
-                @InputDirectory @SkipWhenEmpty File directoryWithBrokenLink
-
-                @TaskAction execute() {}
-            }
-            task brokenDirectoryWithSkipWhenEmpty(type: CustomTask) {
-                directoryWithBrokenLink = file '${root}'
-            }
-        """
-        assert !brokenInputFile.exists()
-
-        when:
-        fails 'brokenDirectoryWithSkipWhenEmpty'
-        then:
-        failure.assertHasCause("Couldn't follow symbolic link '${brokenInputFile}'.")
     }
 
     void maybeDeprecated(String expression) {
