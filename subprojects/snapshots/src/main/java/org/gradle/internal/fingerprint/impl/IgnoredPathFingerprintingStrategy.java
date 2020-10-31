@@ -25,6 +25,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -64,6 +65,11 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                     @Override
                     public void visitMissing(MissingFileSnapshot missingSnapshot) {
                         visitNonFileEntry(snapshot);
+                    }
+
+                    @Override
+                    public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                        throw unreadableSnapshot.rethrowOnAttemptedRead();
                     }
 
                     private void visitNonFileEntry(CompleteFileSystemLocationSnapshot snapshot) {

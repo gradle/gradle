@@ -219,7 +219,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         fails "producesLink"
         then:
         failureHasCause("Failed to store cache entry for task ':producesLink'")
-        errorOutput.contains("Couldn't read content of file '${link}'")
+        errorOutput.contains("Couldn't read contents of file '${link}'")
     }
 
     private TestFile cleanBuildDir() {

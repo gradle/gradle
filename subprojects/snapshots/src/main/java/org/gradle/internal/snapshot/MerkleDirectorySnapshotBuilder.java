@@ -70,6 +70,11 @@ public class MerkleDirectorySnapshotBuilder {
             public void visitMissing(MissingFileSnapshot missingSnapshot) {
                 visitNonDirectoryEntry(snapshot);
             }
+
+            @Override
+            public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                visitNonDirectoryEntry(snapshot);
+            }
         });
     }
 

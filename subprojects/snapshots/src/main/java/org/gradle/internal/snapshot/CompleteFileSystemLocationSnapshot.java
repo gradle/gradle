@@ -80,11 +80,13 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
         default void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {};
         default void visitRegularFile(RegularFileSnapshot fileSnapshot) {};
         default void visitMissing(MissingFileSnapshot missingSnapshot) {};
+        default void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {};
     }
 
     interface FileSystemLocationSnapshotTransformer<T> {
         T visitDirectory(CompleteDirectorySnapshot directorySnapshot);
         T visitRegularFile(RegularFileSnapshot fileSnapshot);
         T visitMissing(MissingFileSnapshot missingSnapshot);
+        T visitUnreadable(UnreadableSnapshot unreadableSnapshot);
     }
 }

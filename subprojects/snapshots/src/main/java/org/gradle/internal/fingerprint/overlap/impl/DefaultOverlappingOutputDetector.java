@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -106,6 +107,11 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
                     }
                     // Otherwise check for newly added broken symlinks and unreadable files
                     return hasNewContent(missingSnapshot, null);
+                }
+
+                @Override
+                public Boolean visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                    return hasNewContent(unreadableSnapshot, null);
                 }
             });
             if (newContent) {

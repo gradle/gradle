@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -165,6 +166,11 @@ public class OutputFilterUtil {
 
                 @Override
                 public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                    visitNonDirectoryEntry(snapshot);
+                }
+
+                @Override
+                public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
                     visitNonDirectoryEntry(snapshot);
                 }
             });
