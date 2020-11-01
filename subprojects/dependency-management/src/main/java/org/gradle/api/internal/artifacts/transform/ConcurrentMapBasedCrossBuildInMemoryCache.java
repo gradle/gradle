@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.initialization.SessionLifecycleListener;
 
@@ -24,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 public class ConcurrentMapBasedCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
     private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>();
@@ -31,9 +31,9 @@ public class ConcurrentMapBasedCrossBuildInMemoryCache<K, V> implements CrossBui
     private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
 
     @Override
-    public V get(K key, Transformer<V, K> factory) {
+    public V get(K key, Function<? super K, ? extends V> factory) {
         keysFromCurrentBuild.put(key, Boolean.TRUE);
-        return map.computeIfAbsent(key, factory::transform);
+        return map.computeIfAbsent(key, factory);
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
@@ -41,7 +41,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
     }
 
     @Override
-    public <T, O> T executeDeferred(UnitOfWork work, C context, CrossBuildInMemoryCache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
         Identity identity = context.getIdentity();
         Try<O> cachedOutput = cache.get(identity);
         if (cachedOutput != null) {
@@ -49,7 +49,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
         } else {
             return processor.processDeferredOutput(() -> cache.get(
                 identity,
-                __ -> execute(work, context).getExecutionResult()
+                () -> execute(work, context).getExecutionResult()
                     .map(Result.ExecutionResult::getOutput)
                     .map(Cast::<O>uncheckedNonnullCast)));
         }

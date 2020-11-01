@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
@@ -25,5 +25,5 @@ import javax.annotation.Nullable;
 public interface ExecutionEngine {
     CachingResult execute(UnitOfWork work, @Nullable String rebuildReason);
 
-    <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, CrossBuildInMemoryCache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
+    <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
 }

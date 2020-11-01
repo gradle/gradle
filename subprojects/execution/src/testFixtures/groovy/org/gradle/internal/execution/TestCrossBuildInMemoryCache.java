@@ -16,18 +16,18 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 public class TestCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V> {
     private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>();
 
     @Override
-    public V get(K key, Transformer<V, K> factory) {
-        return map.computeIfAbsent(key, factory::transform);
+    public V get(K key, Function<? super K, ? extends V> factory) {
+        return map.computeIfAbsent(key, factory);
     }
 
     @Override
