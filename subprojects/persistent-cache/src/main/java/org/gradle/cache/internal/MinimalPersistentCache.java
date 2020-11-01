@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.Cache;
 import org.gradle.cache.PersistentIndexedCache;
 
 import java.util.function.Function;

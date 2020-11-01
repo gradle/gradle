@@ -16,6 +16,8 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.Cache;
+
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Function;
 

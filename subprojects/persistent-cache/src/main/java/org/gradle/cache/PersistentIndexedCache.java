@@ -15,8 +15,6 @@
  */
 package org.gradle.cache;
 
-import org.gradle.cache.internal.Cache;
-
 import javax.annotation.Nullable;
 import java.util.function.Function;
 

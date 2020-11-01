@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.cache.Cache;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.CacheAccessSerializer;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.file.Chmod;

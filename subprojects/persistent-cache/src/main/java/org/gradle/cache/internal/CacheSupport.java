@@ -15,6 +15,8 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.cache.Cache;
+
 import java.util.function.Function;
 
 public abstract class CacheSupport<K, V> implements Cache<K, V> {

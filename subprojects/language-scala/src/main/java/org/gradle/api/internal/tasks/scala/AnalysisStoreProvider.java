@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.cache.internal.Cache;
+import org.gradle.cache.Cache;
 import org.gradle.cache.internal.MapBackedCache;
 import xsbti.compile.AnalysisStore;
 import xsbti.compile.FileAnalysisStore;

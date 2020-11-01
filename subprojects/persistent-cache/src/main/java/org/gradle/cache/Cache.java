@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
+package org.gradle.cache;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
