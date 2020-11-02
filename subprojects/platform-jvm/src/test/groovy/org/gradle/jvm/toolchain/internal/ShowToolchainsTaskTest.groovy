@@ -66,35 +66,30 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 {identifier} + AdoptOpenJDK JRE 1.8.0_202{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
-     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 1.8.0_404{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
-     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 9{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}9{normal}
-     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
-     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 15-ea{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}15{normal}
-     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -121,7 +116,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 {identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
-     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
