@@ -639,7 +639,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
             apply plugin: 'java-library'
 
             dependencies {
-                implementation "org.gradle.test:lib:\${libs.libVersion}"
+                implementation "org.gradle.test:lib:\${libs.libVersion.get()}"
             }
         """
 

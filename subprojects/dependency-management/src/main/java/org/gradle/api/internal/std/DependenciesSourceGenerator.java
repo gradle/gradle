@@ -104,7 +104,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
             writeLn("     * If the version is a rich version and that its not expressable as a");
             writeLn("     * single version string, then an empty string is returned.");
             writeLn("     */");
-            writeLn("    public String get" + toJavaName(version) + "Version() { return getVersion(\"" + version + "\"); }");
+            writeLn("    public Provider<String> get" + toJavaName(version) + "Version() { return getVersion(\"" + version + "\"); }");
             writeLn();
         }
     }

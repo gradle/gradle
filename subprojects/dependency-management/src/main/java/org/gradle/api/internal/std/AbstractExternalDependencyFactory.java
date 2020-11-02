@@ -40,7 +40,11 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
      * @param name the name of the version alias
      * @return a single version string or an empty string
      */
-    protected String getVersion(String name) {
+    protected Provider<String> getVersion(String name) {
+        return providers.provider(() -> doGetVersion(name));
+    }
+
+    private String doGetVersion(String name) {
         ImmutableVersionConstraint version = config.getVersion(name);
         String requiredVersion = version.getRequiredVersion();
         if (!requiredVersion.isEmpty()) {

@@ -304,7 +304,7 @@ class DependenciesSourceGeneratorTest extends Specification {
         }
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version") {
-            def lookup = "public String $methodName() { return getVersion(\"$name\"); }"
+            def lookup = "public Provider<String> $methodName() { return getVersion(\"$name\"); }"
             assert lines.find {
                 it.contains(lookup)
             }
