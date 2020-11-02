@@ -43,13 +43,19 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final ConcurrentMapBasedCrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
+    private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public ImmutableTransformationWorkspaceProvider(File baseDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
+    public ImmutableTransformationWorkspaceProvider(
+        File baseDirectory,
+        CacheRepository cacheRepository,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        ExecutionHistoryStore executionHistoryStore,
+        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache
+    ) {
         this.baseDirectory = baseDirectory;
         this.cache = cacheRepository
             .cache(baseDirectory)
@@ -60,7 +66,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
             .open();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.executionHistoryStore = executionHistoryStore;
-        this.identityCache = new ConcurrentMapBasedCrossBuildInMemoryCache<>();
+        this.identityCache = identityCache;
     }
 
     private CleanupAction createCleanupAction(File baseDirectory, FileAccessTimeJournal fileAccessTimeJournal) {

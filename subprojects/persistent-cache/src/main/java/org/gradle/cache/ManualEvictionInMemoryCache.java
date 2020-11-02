@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.cache;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
-public class TestCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V> {
-    private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>();
+public class ManualEvictionInMemoryCache<K, V> implements Cache<K, V> {
+    // Use 256 as initial size to start out with enough concurrency.
+    private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>(256);
 
     @Override
     public V get(K key, Function<? super K, ? extends V> factory) {
@@ -40,7 +40,10 @@ public class TestCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCach
         map.put(key, value);
     }
 
-    @Override
+    public void retainAll(Collection<? extends K> keysToRetain) {
+        map.keySet().retainAll(keysToRetain);
+    }
+
     public void clear() {
         map.clear();
     }

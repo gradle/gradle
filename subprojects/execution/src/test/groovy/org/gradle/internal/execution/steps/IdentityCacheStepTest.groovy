@@ -16,19 +16,19 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.cache.internal.CrossBuildInMemoryCache
+import org.gradle.cache.Cache
+import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.internal.Try
 import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.DeferredResultProcessor
 import org.gradle.internal.execution.IdentityContext
 import org.gradle.internal.execution.Result
-import org.gradle.internal.execution.TestCrossBuildInMemoryCache
 import org.gradle.internal.execution.UnitOfWork
 
 import java.util.function.Supplier
 
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
-    CrossBuildInMemoryCache<UnitOfWork.Identity, Try<Object>> cache = new TestCrossBuildInMemoryCache<>()
+    Cache<UnitOfWork.Identity, Try<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
     def processor = Mock(DeferredResultProcessor)

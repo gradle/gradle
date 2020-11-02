@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
@@ -29,6 +30,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 /**
@@ -50,6 +53,13 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
         DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(new HashMap<>());
+        listenerManager.addListener(cache);
+        return cache;
+    }
+
+    @Override
+    public <K, V> CrossBuildInMemoryCache<K, V> newCacheWithBuildAgedEviction() {
+        BuildAgeEvictionCrossBuildInMemoryCache<K, V> cache = new BuildAgeEvictionCrossBuildInMemoryCache<>();
         listenerManager.addListener(cache);
         return cache;
     }
@@ -230,6 +240,54 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
                 return ((VisitableURLClassLoader) classLoader).getUserData(this, HashMap::new);
             }
             return leakyValues;
+        }
+    }
+
+    private static class BuildAgeEvictionCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
+        private final ManualEvictionInMemoryCache<K, V> delegate = new ManualEvictionInMemoryCache<>();
+        private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
+        private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
+
+        @Override
+        public V get(K key, Function<? super K, ? extends V> factory) {
+            keysFromCurrentBuild.put(key, Boolean.TRUE);
+            return delegate.get(key, factory);
+        }
+
+        @Override
+        public V get(K key) {
+            keysFromCurrentBuild.put(key, Boolean.TRUE);
+            return delegate.get(key);
+        }
+
+        @Override
+        public void put(K key, V value) {
+            keysFromCurrentBuild.put(key, Boolean.TRUE);
+            delegate.put(key, value);
+        }
+
+        @Override
+        public void clear() {
+            delegate.clear();
+            keysFromCurrentBuild.clear();
+            keysFromPreviousBuild.clear();
+        }
+
+        @Override
+        public void afterStart() {
+        }
+
+        @Override
+        public void beforeComplete() {
+            final Set<K> keysToRetain = new HashSet<>();
+            keysToRetain.addAll(keysFromPreviousBuild.keySet());
+            keysToRetain.addAll(keysFromCurrentBuild.keySet());
+
+            delegate.retainAll(keysToRetain);
+
+            keysFromPreviousBuild.clear();
+            keysFromPreviousBuild.putAll(keysFromCurrentBuild);
+            keysFromCurrentBuild.clear();
         }
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.event.ListenerManager;
@@ -87,16 +88,17 @@ public class DependencyManagementGradleUserHomeScopeServices {
     ImmutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(
         ArtifactCachesProvider artifactCaches,
         CacheRepository cacheRepository,
+        CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore, ListenerManager listenerManager) {
-        ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider = new ImmutableTransformationWorkspaceProvider(
+        ExecutionHistoryStore executionHistoryStore
+    ) {
+        return new ImmutableTransformationWorkspaceProvider(
             artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
             cacheRepository,
             fileAccessTimeJournal,
-            executionHistoryStore
+            executionHistoryStore,
+            crossBuildInMemoryCacheFactory.newCacheWithBuildAgedEviction()
         );
-        listenerManager.addListener(immutableTransformationWorkspaceProvider.getIdentityCache());
-        return immutableTransformationWorkspaceProvider;
     }
 
 }

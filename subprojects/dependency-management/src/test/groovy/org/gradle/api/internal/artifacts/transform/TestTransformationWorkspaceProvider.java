@@ -17,7 +17,8 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.Cache;
+import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -39,8 +40,8 @@ public class TestTransformationWorkspaceProvider implements TransformationWorksp
     }
 
     @Override
-    public CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
-        return new ConcurrentMapBasedCrossBuildInMemoryCache<>();
+    public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
+        return new ManualEvictionInMemoryCache<>();
     }
 
     @Override
