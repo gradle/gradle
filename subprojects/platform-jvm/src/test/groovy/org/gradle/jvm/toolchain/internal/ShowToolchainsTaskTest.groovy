@@ -23,8 +23,6 @@ import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType
-
 class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
     TestShowToolchainsTask task
@@ -110,8 +108,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         task.installationRegistry.listInstallations() >>
             [jdk14, invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
         detector.getMetadata(jdk14) >> metadata("14")
-        detector.getMetadata(invalid) >> newInvalidMetadata(InstallType.INVALID_JDK)
-        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata(InstallType.NO_SUCH_DIRECTORY)
+        detector.getMetadata(invalid) >> newInvalidMetadata()
+        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
         when:
         task.showToolchains()
@@ -141,8 +139,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         given:
         task.installationRegistry.listInstallations() >> [
             invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
-        detector.getMetadata(invalid) >> newInvalidMetadata(InstallType.INVALID_JDK)
-        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata(InstallType.NO_SUCH_DIRECTORY)
+        detector.getMetadata(invalid) >> newInvalidMetadata()
+        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
         when:
         task.showToolchains()
@@ -162,7 +160,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         return JvmInstallationMetadata.from(new File("path"), implVersion, "adoptopenjdk", "")
     }
 
-    JvmInstallationMetadata newInvalidMetadata(InstallType type) {
+    JvmInstallationMetadata newInvalidMetadata() {
         return JvmInstallationMetadata.failure(new File("path"), "errorMessage")
     }
 
