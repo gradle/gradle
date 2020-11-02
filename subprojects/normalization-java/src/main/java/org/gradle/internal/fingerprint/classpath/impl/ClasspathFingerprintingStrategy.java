@@ -21,7 +21,6 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.changedetection.state.DefaultRegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
-import org.gradle.api.internal.changedetection.state.ManifestFileZipEntryHasher;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.PropertiesFileAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
@@ -108,7 +107,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     }
 
     private static ResourceHasher metaInfAwareClasspathResourceHasher(ResourceHasher delegate, ResourceEntryFilter manifestAttributeResourceEntryFilter) {
-        return new MetaInfAwareClasspathResourceHasher(delegate, new ManifestFileZipEntryHasher(manifestAttributeResourceEntryFilter));
+        return new MetaInfAwareClasspathResourceHasher(delegate, manifestAttributeResourceEntryFilter);
     }
 
     @Override

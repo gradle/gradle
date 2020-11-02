@@ -80,8 +80,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | Api.ANNOTATION
     }
 
-    def "can ignore manifest attributes on runtime classpath"() {
+    @Unroll
+    def "can ignore manifest attributes in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestAttributesIgnored()
+        def manifestResource = project[resourceName]
 
         when:
         succeeds project.customTask
@@ -94,15 +96,22 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         when:
-        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        manifestResource.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
         succeeds project.customTask
         then:
         skipped(project.customTask)
+
+        where:
+        tree        | resourceName
+        'jar'       | 'jarManifest'
+        'directory' | 'manifestInDirectory'
     }
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
-    def "can ignore entire manifest on runtime classpath"() {
+    @Unroll
+    def "can ignore entire manifest in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestIgnored()
+        def manifestResource = project[resourceName]
 
         when:
         succeeds project.customTask
@@ -115,15 +124,22 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         when:
-        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        manifestResource.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
         succeeds project.customTask
         then:
         skipped(project.customTask)
+
+        where:
+        tree        | resourceName
+        'jar'       | 'jarManifest'
+        'directory' | 'manifestInDirectory'
     }
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
-    def "can ignore all meta-inf files on runtime classpath"() {
+    @Unroll
+    def "can ignore all meta-inf files in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withAllMetaInfIgnored()
+        def manifestResource = project[resourceName]
 
         when:
         succeeds project.customTask
@@ -136,11 +152,16 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         when:
-        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        manifestResource.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
         project.jarManifestProperties.replaceContents("implementation-version=1.0.1")
         succeeds project.customTask
         then:
         skipped(project.customTask)
+
+        where:
+        tree        | resourceName
+        'jar'       | 'jarManifest'
+        'directory' | 'manifestInDirectory'
     }
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
@@ -444,6 +465,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource notIgnoredResourceInNestedInDirJar
         TestResource jarManifest
         TestResource jarManifestProperties
+        TestResource manifestInDirectory
         PropertiesResource propertiesFileInDir
         PropertiesResource propertiesFileInJar
         PropertiesResource propertiesFileInNestedJar
@@ -477,6 +499,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 notIgnoredResourceInDirectory = new TestResource(file("not-ignored.txt") << "This should not be ignored")
                 nestedInDirJar = file('nestedInDir.jar')
                 propertiesFileInDir = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'])
+                manifestInDirectory = new TestResource(file('META-INF/MANIFEST.MF') << "Manifest-Version: 1.0\nImplementation-Version: 1.0.0")
             }
             nestedJarContents = root.file('libraryContents').create {
                 ignoredResourceInNestedJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
