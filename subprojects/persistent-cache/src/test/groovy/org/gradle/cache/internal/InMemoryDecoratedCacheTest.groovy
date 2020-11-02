@@ -17,18 +17,18 @@
 package org.gradle.cache.internal
 
 import com.google.common.cache.CacheBuilder
-import org.gradle.api.Transformer
 import org.gradle.cache.FileLock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Function
 
 class InMemoryDecoratedCacheTest extends ConcurrentSpec {
     def target = Mock(MultiProcessSafeAsyncPersistentIndexedCache)
     def cache = new InMemoryDecoratedCache(target, CacheBuilder.newBuilder().build(), "id", new AtomicReference<FileLock.State>())
 
     def "does not produce value when present in memory and marks completed"() {
-        def producer = Mock(Transformer)
+        def producer = Mock(Function)
         def completion = Mock(Runnable)
 
         given:
@@ -46,7 +46,7 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
     }
 
     def "does not produce value when present in backing cache and marks completed"() {
-        def producer = Mock(Transformer)
+        def producer = Mock(Function)
         def completion = Mock(Runnable)
 
         when:
@@ -62,7 +62,7 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
     }
 
     def "produces value and stores in backing cache later when not present"() {
-        def producer = Mock(Transformer)
+        def producer = Mock(Function)
         def completion = Mock(Runnable)
 
         when:
@@ -73,7 +73,7 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
 
         and:
         1 * target.get("key") >> null
-        1 * producer.transform("key") >> "value"
+        1 * producer.apply("key") >> "value"
         1 * target.putLater("key", "value", completion)
         0 * _
 
@@ -86,7 +86,7 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
     }
 
     def "produces value and stores in backing cache later after being removed"() {
-        def producer = Mock(Transformer)
+        def producer = Mock(Function)
         def completion = Mock(Runnable)
 
         given:
@@ -99,7 +99,7 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
         result == "value"
 
         and:
-        1 * producer.transform("key") >> "value"
+        1 * producer.apply("key") >> "value"
         1 * target.putLater("key", "value", completion)
         0 * _
 
@@ -112,7 +112,7 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
     }
 
     def "propagates failure to produce value and marks completed"() {
-        def producer = Mock(Transformer)
+        def producer = Mock(Function)
         def completion = Mock(Runnable)
         def failure = new RuntimeException()
 
@@ -125,13 +125,13 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
 
         and:
         1 * target.get("key") >> null
-        1 * producer.transform("key") >> { throw failure }
+        1 * producer.apply("key") >> { throw failure }
         1 * completion.run()
         0 * _
     }
 
     def "produces value once when requested from multiple threads"() {
-        def producer = Mock(Transformer)
+        def producer = Mock(Function)
 
         when:
         def result1
@@ -161,7 +161,7 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
 
         and:
         1 * target.get("key") >> null
-        1 * producer.transform("key") >> "result"
+        1 * producer.apply("key") >> "result"
         1 * target.putLater("key", "result", _)
         0 * producer._
         0 * target._

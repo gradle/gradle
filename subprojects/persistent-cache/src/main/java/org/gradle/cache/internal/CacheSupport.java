@@ -15,19 +15,31 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
+import org.gradle.cache.Cache;
+
+import java.util.function.Function;
 
 public abstract class CacheSupport<K, V> implements Cache<K, V> {
 
     @Override
-    public V get(K key, Factory<V> factory) {
+    public V get(K key, Function<? super K, ? extends V> factory) {
         V value = doGet(key);
         if (value == null) {
-            value = factory.create();
+            value = factory.apply(key);
             doCache(key, value);
         }
 
         return value;
+    }
+
+    @Override
+    public V get(K key) {
+        return doGet(key);
+    }
+
+    @Override
+    public void put(K key, V value) {
+        doCache(key, value);
     }
 
     abstract protected <T extends K> V doGet(T key);

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
@@ -29,6 +28,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.util.function.Function;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -98,8 +98,8 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
         }
 
         @Override
-        public V get(K key, Transformer<? extends V, ? super K> producer) {
-            return producer.transform(key);
+        public V get(K key, Function<? super K, ? extends V> producer) {
+            return producer.apply(key);
         }
 
         @Override
@@ -128,7 +128,7 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
         }
 
         @Override
-        public V get(K key, Transformer<? extends V, ? super K> producer) {
+        public V get(K key, Function<? super K, ? extends V> producer) {
             return failSafe(() -> delegate.get(key, producer));
         }
 
@@ -169,7 +169,7 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
         }
 
         @Override
-        public V get(final K key, final Transformer<? extends V, ? super K> producer) {
+        public V get(final K key, final Function<? super K, ? extends V> producer) {
             return cache.useCache(() -> persistentCache.get(key, producer));
         }
 

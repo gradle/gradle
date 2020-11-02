@@ -17,12 +17,12 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.function.Function;
 
 /**
  * A {@link ClasspathEntrySnapshotCache} that delegates to the global cache for files that are known to be immutable.
@@ -49,11 +49,25 @@ public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotC
     }
 
     @Override
-    public ClasspathEntrySnapshot get(File entry, Factory<ClasspathEntrySnapshot> factory) {
-        if (globalCacheLocations.isInsideGlobalCache(entry.getPath())) {
-            return globalCache.get(entry, factory);
+    public ClasspathEntrySnapshot get(File entry, Function<? super File, ? extends ClasspathEntrySnapshot> factory) {
+        return getCacheFor(entry).get(entry, factory);
+    }
+
+    @Override
+    public ClasspathEntrySnapshot get(File key) {
+        return getCacheFor(key).get(key);
+    }
+
+    @Override
+    public void put(File key, ClasspathEntrySnapshot value) {
+        getCacheFor(key).put(key, value);
+    }
+
+    private ClasspathEntrySnapshotCache getCacheFor(File location) {
+        if (globalCacheLocations.isInsideGlobalCache(location.getPath())) {
+            return globalCache;
         } else {
-            return localCache.get(entry, factory);
+            return localCache;
         }
     }
 

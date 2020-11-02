@@ -15,14 +15,13 @@
  */
 package org.gradle.cache;
 
-import org.gradle.api.Transformer;
-
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * A persistent store of objects of type V indexed by a key of type K.
  */
-public interface PersistentIndexedCache<K, V> {
+public interface PersistentIndexedCache<K, V> extends Cache<K, V> {
     /**
      * Fetches the value mapped to the given key from this cache, blocking until it is available.
      *
@@ -30,6 +29,7 @@ public interface PersistentIndexedCache<K, V> {
      *
      * @return The value, or null if no value associated with the key.
      */
+    @Override
     @Nullable
     V get(K key);
 
@@ -44,13 +44,15 @@ public interface PersistentIndexedCache<K, V> {
      *
      * @return The value.
      */
-    V get(K key, Transformer<? extends V, ? super K> producer);
+    @Override
+    V get(K key, Function<? super K, ? extends V> producer);
 
     /**
      * Maps the given value to the given key, replacing any existing value.
      *
      * The implementation may do this synchronously or asynchronously. A file lock is held until the value has been written to the persistent store.
      */
+    @Override
     void put(K key, V value);
 
     /**

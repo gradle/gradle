@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
@@ -43,6 +42,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
@@ -56,7 +56,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final String displayName;
-    private final Transformer<TypeMetadata, Class<?>> typeMetadataFactory = this::createTypeMetadata;
+    private final Function<Class<?>, TypeMetadata> typeMetadataFactory = this::createTypeMetadata;
 
     public DefaultTypeMetadataStore(
         Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,

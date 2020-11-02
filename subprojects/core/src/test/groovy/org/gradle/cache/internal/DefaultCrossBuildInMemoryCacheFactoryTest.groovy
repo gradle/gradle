@@ -16,13 +16,13 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Transformer
 import org.gradle.initialization.SessionLifecycleListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Function
 
 class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
     def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
@@ -31,36 +31,36 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
     def "creates a cache that uses the given transformer to create entries"() {
         def a = new Object()
         def b = new Object()
-        def transformer = Mock(Transformer)
+        def function = Mock(Function)
 
         given:
-        transformer.transform("a") >> a
-        transformer.transform("b") >> b
+        function.apply("a") >> a
+        function.apply("b") >> b
 
         def cache = factory.newCache()
 
         expect:
-        cache.get("a", transformer) == a
-        cache.get("b", transformer) == b
-        cache.get("a", transformer) == a
+        cache.get("a", function) == a
+        cache.get("b", function) == b
+        cache.get("a", function) == a
     }
 
     def "creates each entry once"() {
         def a = new Object()
         def b = new Object()
         def c = new Object()
-        def transformer = Mock(Transformer)
+        def function = Mock(Function)
 
         given:
         def cache = factory.newCache()
         cache.put("c", c)
 
         when:
-        def r1 = cache.get("a", transformer)
-        def r2 = cache.get("b", transformer)
-        def r3 = cache.get("a", transformer)
-        def r4 = cache.get("b", transformer)
-        def r5 = cache.get("c", transformer)
+        def r1 = cache.get("a", function)
+        def r2 = cache.get("b", function)
+        def r3 = cache.get("a", function)
+        def r4 = cache.get("b", function)
+        def r5 = cache.get("c", function)
 
         then:
         r1 == a
@@ -70,14 +70,14 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
         r5 == c
 
         and:
-        1 * transformer.transform("a") >> a
-        1 * transformer.transform("b") >> b
-        0 * transformer._
+        1 * function.apply("a") >> a
+        1 * function.apply("b") >> b
+        0 * function._
     }
 
     def "entry is created once when multiple threads attempt to create the same entry"() {
         def a = new Object()
-        def transformer = Mock(Transformer)
+        def function = Mock(Function)
 
         given:
         def cache = factory.newCache()
@@ -86,16 +86,16 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
         def values = new CopyOnWriteArrayList()
         async {
             start {
-                values << cache.get("a", transformer)
+                values << cache.get("a", function)
             }
             start {
-                values << cache.get("a", transformer)
+                values << cache.get("a", function)
             }
             start {
-                values << cache.get("a", transformer)
+                values << cache.get("a", function)
             }
             start {
-                values << cache.get("a", transformer)
+                values << cache.get("a", function)
             }
         }
 
@@ -103,20 +103,20 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
         values.unique() == [a]
 
         and:
-        1 * transformer.transform("a") >> a
-        0 * transformer._
+        1 * function.apply("a") >> a
+        0 * function._
     }
 
     def "can get entries"() {
         def a = new Object()
         def b = new Object()
-        def transformer = Mock(Transformer)
+        def function = Mock(Function)
 
         given:
-        transformer.transform("a") >> a
+        function.apply("a") >> a
 
         def cache = factory.newCache()
-        cache.get("a", transformer)
+        cache.get("a", function)
         cache.put("b", b)
 
         expect:
@@ -126,43 +126,43 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
     }
 
     def "retains strong references to values from the previous session"() {
-        def transformer = Mock(Transformer)
+        def function = Mock(Function)
 
         when:
         def cache = factory.newCache()
-        cache.get("a", transformer)
-        cache.get("b", transformer)
+        cache.get("a", function)
+        cache.get("b", function)
 
         then:
-        1 * transformer.transform("a") >> new Object()
-        1 * transformer.transform("b") >> new Object()
-        0 * transformer._
+        1 * function.apply("a") >> new Object()
+        1 * function.apply("b") >> new Object()
+        0 * function._
 
         when:
         listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
         System.gc()
-        cache.get("a", transformer)
-        cache.get("b", transformer)
+        cache.get("a", function)
+        cache.get("b", function)
 
         then:
-        0 * transformer._
+        0 * function._
     }
 
     def "creates a cache whose keys are classes"() {
         def a = new Object()
         def b = new Object()
         def c = new Object()
-        def transformer = Mock(Transformer)
+        def function = Mock(Function)
 
         given:
-        transformer.transform(String) >> a
-        transformer.transform(Long) >> b
+        function.apply(String) >> a
+        function.apply(Long) >> b
 
         def cache = factory.newClassCache()
 
         expect:
-        cache.get(String, transformer) == a
-        cache.get(Long, transformer) == b
+        cache.get(String, function) == a
+        cache.get(Long, function) == b
         cache.get(String) == a
         cache.get(Long) == b
 
@@ -177,17 +177,17 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
         def a = new Object()
         def b = new Object()
         def c = new Object()
-        def transformer = Mock(Transformer)
+        def function = Mock(Function)
 
         given:
-        transformer.transform(String) >> a
-        transformer.transform(Long) >> b
+        function.apply(String) >> a
+        function.apply(Long) >> b
 
         def cache = factory.newClassMap()
 
         expect:
-        cache.get(String, transformer) == a
-        cache.get(Long, transformer) == b
+        cache.get(String, function) == a
+        cache.get(Long, function) == b
         cache.get(String) == a
         cache.get(Long) == b
 

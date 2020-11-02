@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.cache;
 
-package org.gradle.cache.internal;
-
-import org.gradle.cache.Cache;
-
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.Nullable;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-/**
- * An in-memory cache of calculated values that are used across builds. The implementation takes care of cleaning up state that is no longer required.
- */
-@ThreadSafe
-public interface CrossBuildInMemoryCache<K, V> extends Cache<K, V> {
+public interface Cache<K, V>  {
     /**
      * Locates the given entry, using the supplied factory when the entry is not present or has been discarded, to recreate the entry in the cache.
      *
-     * <p>Implementations must prevent more than one thread calculating the same key at the same time.
+     * <p>Implementations may prevent more than one thread calculating the same key at the same time or not.
      */
-    @Override
     V get(K key, Function<? super K, ? extends V> factory);
 
+    default V get(K key, Supplier<? extends V> supplier) {
+        return get(key, __ -> supplier.get());
+    }
+
     /**
-     * Removes all entries from this cache.
+     * Locates the given entry, if present. Returns {@code null} when missing.
      */
-    void clear();
+    @Nullable
+    V get(K key);
+
+    /**
+     * Adds the given value to the cache, replacing any existing value.
+     */
+    void put(K key, V value);
 }

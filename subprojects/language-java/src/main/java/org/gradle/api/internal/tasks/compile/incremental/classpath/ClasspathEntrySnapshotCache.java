@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import org.gradle.cache.internal.Cache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
