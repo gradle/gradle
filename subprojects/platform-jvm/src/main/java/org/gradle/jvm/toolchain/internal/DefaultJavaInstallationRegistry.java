@@ -28,6 +28,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaDevelopmentKit;
@@ -42,13 +44,13 @@ import java.util.concurrent.Callable;
 
 @ServiceScope(Scopes.Build.class)
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
-    private final JavaInstallationProbe installationProbe;
+    private final JvmMetadataDetector metadataDetector;
     private final ProviderFactory providerFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileFactory fileFactory;
 
-    public DefaultJavaInstallationRegistry(JavaInstallationProbe installationProbe, ProviderFactory providerFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
-        this.installationProbe = installationProbe;
+    public DefaultJavaInstallationRegistry(JvmMetadataDetector metadataDetector, ProviderFactory providerFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
+        this.metadataDetector = metadataDetector;
         this.providerFactory = providerFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileFactory = fileFactory;
@@ -56,7 +58,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     @Override
     public Provider<JavaInstallation> getInstallationForCurrentVirtualMachine() {
-        return Providers.of(new DefaultJavaInstallation(installationProbe.current(), fileCollectionFactory, fileFactory));
+        return Providers.of(new DefaultJavaInstallation(metadataDetector.getMetadata(Jvm.current().getJavaHome()), fileCollectionFactory, fileFactory));
     }
 
     @Override
@@ -74,7 +76,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
                         if (!javaHomeDir.getAsFile().exists()) {
                             throw new FileNotFoundException(String.format("Directory %s does not exist.", javaHomeDir.getAsFile()));
                         }
-                        value = new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir.getAsFile()), fileCollectionFactory, fileFactory);
+                        value = new DefaultJavaInstallation(metadataDetector.getMetadata(javaHomeDir.getAsFile()), fileCollectionFactory, fileFactory);
                     } catch (Exception e) {
                         throw new JavaInstallationDiscoveryException(String.format("Could not determine the details of Java installation in directory %s.", javaHomeDir), e);
                     }
@@ -102,9 +104,9 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         private final FileCollectionFactory fileCollectionFactory;
         private final FileFactory fileFactory;
 
-        public DefaultJavaInstallation(JavaInstallationProbe.ProbeResult probeResult, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
-            this.jvm = Jvm.discovered(probeResult.getJavaHome().toFile(), probeResult.getImplementationJavaVersion(), probeResult.getJavaVersion());
-            this.implementationName = probeResult.getImplementationName();
+        public DefaultJavaInstallation(JvmInstallationMetadata metadata, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
+            this.jvm = Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getImplementationVersion(), metadata.getLangageVersion());
+            this.implementationName = metadata.getDisplayName();
             this.fileCollectionFactory = fileCollectionFactory;
             this.fileFactory = fileFactory;
         }
