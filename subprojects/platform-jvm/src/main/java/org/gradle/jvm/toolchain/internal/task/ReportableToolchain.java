@@ -16,17 +16,17 @@
 
 package org.gradle.jvm.toolchain.internal.task;
 
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 
 class ReportableToolchain {
 
-    JvmInstallationMetadata metadata;
+    JavaInstallationProbe.ProbeResult probe;
 
     InstallationLocation location;
 
-    public ReportableToolchain(JvmInstallationMetadata metadata, InstallationLocation location) {
-        this.metadata = metadata;
+    public ReportableToolchain(JavaInstallationProbe.ProbeResult probe, InstallationLocation location) {
+        this.probe = probe;
         this.location = location;
     }
 
