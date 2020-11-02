@@ -16,6 +16,8 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import org.gradle.internal.jvm.Jvm;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -28,6 +30,7 @@ public class CachingJvmMetadataDetector implements JvmMetadataDetector {
 
     public CachingJvmMetadataDetector(JvmMetadataDetector delegate) {
         this.delegate = delegate;
+        getMetadata(Jvm.current().getJavaHome());
     }
 
     @Override
