@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 public class ConcurrentMapBasedCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
-    private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>();
+    private final ConcurrentMap<K, V> map = new ConcurrentHashMap<>(256);
     private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
     private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
 

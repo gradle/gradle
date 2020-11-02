@@ -92,7 +92,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         def m2 = mavenRepo.module("test", "test2", "2.3").publish()
         m2.artifactFile.text = "12"
         def m3 = mavenRepo.module("test", "test3", "3.3").publish()
-        m3.artifactFile.text = "12"
+        m3.artifactFile.text = "123"
 
         given:
 
@@ -217,16 +217,16 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         def m2 = mavenRepo.module("test", "test2", "2.3").publish()
         m2.artifactFile.text = "12"
         def m3 = mavenRepo.module("test", "test3", "3.3").publish()
-        m3.artifactFile.text = "12"
+        m3.artifactFile.text = "123"
 
         given:
         buildFile << """
             def a = file('a.jar')
-            a.text = '1234'
+            a.text = '12345'
             def b = file('b.jar')
-            b.text = '12'
+            b.text = '124'
             def c = file('c.jar')
-            c.text = '123'
+            c.text = '1236'
 
             repositories {
                 maven { url "${mavenRepo.uri}" }
