@@ -40,10 +40,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -88,12 +86,8 @@ public class BasicGlobalScopeServices {
         return new DocumentationRegistry();
     }
 
-    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
-        return new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory));
-    }
-
-    JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
-        return new DefaultJvmVersionDetector(detector);
+    JvmVersionDetector createJvmVersionDetector(ExecHandleFactory execHandleFactory) {
+        return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
     ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {

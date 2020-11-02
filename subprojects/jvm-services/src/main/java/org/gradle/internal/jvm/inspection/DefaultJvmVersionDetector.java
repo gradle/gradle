@@ -18,15 +18,16 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.process.internal.ExecHandleFactory;
 
 import java.io.File;
 
 public class DefaultJvmVersionDetector implements JvmVersionDetector {
 
-    private final JvmMetadataDetector detector;
+    private final DefaultJvmInstallationDetector detector;
 
-    public DefaultJvmVersionDetector(JvmMetadataDetector detector) {
-        this.detector = detector;
+    public DefaultJvmVersionDetector(ExecHandleFactory execHandleFactory) {
+        detector = new DefaultJvmInstallationDetector(execHandleFactory);
     }
 
     @Override
