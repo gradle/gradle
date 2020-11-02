@@ -18,6 +18,7 @@ package org.gradle.internal.jvm.inspection;
 
 import com.google.common.io.Files;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
@@ -43,8 +44,23 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         if (!javaHome.exists()) {
             return JvmInstallationMetadata.failure(javaHome, "No such directory: " + javaHome);
         }
-        EnumMap<ProbedSystemProperty, String> metadata = getMetadataFromInstallation(javaHome);
+        EnumMap<ProbedSystemProperty, String> metadata;
+        if (Jvm.current().getJavaHome().equals(javaHome)) {
+            metadata = getMetadataFromCurrentJvm();
+        } else {
+            metadata = getMetadataFromInstallation(javaHome);
+        }
         return asMetadata(javaHome, metadata);
+    }
+
+    private EnumMap<ProbedSystemProperty, String> getMetadataFromCurrentJvm() {
+        EnumMap<ProbedSystemProperty, String> result = new EnumMap<>(ProbedSystemProperty.class);
+        for (ProbedSystemProperty type : ProbedSystemProperty.values()) {
+            if (type != ProbedSystemProperty.Z_ERROR) {
+                result.put(type, System.getProperty(type.getSystemPropertyKey()));
+            }
+        }
+        return result;
     }
 
     private JvmInstallationMetadata asMetadata(File javaHome, EnumMap<ProbedSystemProperty, String> metadata) {
