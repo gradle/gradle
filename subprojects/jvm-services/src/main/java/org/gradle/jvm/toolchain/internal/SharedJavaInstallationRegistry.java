@@ -69,7 +69,7 @@ public class SharedJavaInstallationRegistry {
     }
 
     private Set<InstallationLocation> collectInstallations(List<InstallationSupplier> suppliers) {
-        return suppliers.parallelStream()
+        return suppliers.stream()
             .map(InstallationSupplier::get)
             .flatMap(Set::stream)
             .filter(this::installationExists)
