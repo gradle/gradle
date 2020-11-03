@@ -48,7 +48,7 @@ class TomlWriter {
         writeTableHeader("versions");
         for (String alias : versions) {
             writer.print(alias + " = ");
-            writer.println(versionString(model.getVersion(alias)));
+            writer.println(versionString(model.getVersion(alias).getVersion()));
         }
         writer.println();
     }
@@ -90,7 +90,7 @@ class TomlWriter {
         }
         writeTableHeader("bundles");
         for (String alias : aliases) {
-            List<String> bundle = model.getBundle(alias);
+            List<String> bundle = model.getBundle(alias).getComponents();
             writer.println(alias + " = [" + bundle.stream().map(TomlWriter::quoted).collect(Collectors.joining(", ")) + "]");
         }
         writer.println();

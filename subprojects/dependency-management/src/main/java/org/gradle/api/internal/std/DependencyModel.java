@@ -18,9 +18,8 @@ package org.gradle.api.internal.std;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 
 import javax.annotation.Nullable;
-import java.io.Serializable;
 
-public class DependencyModel implements Serializable {
+public class DependencyModel extends AbstractContextAwareModel {
     private final String group;
     private final String name;
     private final ImmutableVersionConstraint version;
@@ -30,7 +29,9 @@ public class DependencyModel implements Serializable {
     public DependencyModel(String group,
                            String name,
                            @Nullable String versionRef,
-                           ImmutableVersionConstraint version) {
+                           ImmutableVersionConstraint version,
+                           @Nullable String context) {
+        super(context);
         this.group = group;
         this.name = name;
         this.version = version;

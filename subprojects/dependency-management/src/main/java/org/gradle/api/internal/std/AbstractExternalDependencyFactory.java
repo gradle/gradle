@@ -45,7 +45,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     }
 
     private String doGetVersion(String name) {
-        ImmutableVersionConstraint version = config.getVersion(name);
+        ImmutableVersionConstraint version = config.getVersion(name).getVersion();
         String requiredVersion = version.getRequiredVersion();
         if (!requiredVersion.isEmpty()) {
             return requiredVersion;

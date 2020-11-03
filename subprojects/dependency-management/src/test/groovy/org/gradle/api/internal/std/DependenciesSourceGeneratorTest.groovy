@@ -19,7 +19,6 @@ package org.gradle.api.internal.std
 import com.google.common.collect.Interners
 import groovy.transform.Canonical
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
@@ -34,6 +33,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.internal.management.DependenciesModelBuilderInternal
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -259,7 +259,31 @@ class DependenciesSourceGeneratorTest extends Specification {
         ex.message == 'Cannot generate dependency accessors because model contains too many entries (32000), maximum is 30000'
     }
 
-    private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependenciesModelBuilder) Closure<Void> spec) {
+    def "outputs context in javadocs"() {
+        def context = "some plugin"
+        def innerContext = "some inner plugin"
+        when:
+        generate {
+            description.set("Some description for tests")
+            withContext(context) {
+                alias("some-alias").to 'g:a:v'
+                bundle("b0", ["some-alias"])
+                withContext(innerContext) {
+                    version("v0", "1.0")
+                }
+                alias("other").to("g", "a").versionRef("v0")
+            }
+        }
+
+        then:
+        sources.assertClass('Generated', 'Some description for tests')
+        sources.hasDependencyAlias('some-alias', 'getSomeAlias', "This dependency was declared in ${context}")
+        sources.hasBundle('b0', 'getB0Bundle', "This bundle was declared in ${context}")
+        sources.hasVersion('v0', 'getV0Version', "This version was declared in ${innerContext}")
+        sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${context}")
+    }
+
+    private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependenciesModelBuilderInternal) Closure<Void> spec) {
         DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
@@ -285,28 +309,38 @@ class DependenciesSourceGeneratorTest extends Specification {
             this.lines = src.split(System.getProperty("line.separator")) as List<String>
         }
 
-        void assertClass(String name) {
-            assert lines.find { it.contains("public class $name extends AbstractExternalDependencyFactory {") }
+        void assertClass(String name, String javadoc = null) {
+            def result = Lookup.find(lines, "public class $name extends AbstractExternalDependencyFactory {")
+            assert result.match
+            if (javadoc) {
+                assert result.javadocContains(javadoc)
+            }
         }
 
-        void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}") {
+        void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
             def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() { return create(\"$name\"); }"
-            assert lines.find {
-                it.contains(lookup)
+            def result = Lookup.find(lines, lookup)
+            assert result.match
+            if (javadoc) {
+                assert result.javadocContains(javadoc)
             }
         }
 
-        void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle") {
+        void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle", String javadoc = null) {
             def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() { return createBundle(\"$name\"); }"
-            assert lines.find {
-                it.contains(lookup)
+            def result = Lookup.find(lines, lookup)
+            assert result.match
+            if (javadoc) {
+                assert result.javadocContains(javadoc)
             }
         }
 
-        void hasVersion(String name, String methodName = "get${toJavaName(name)}Version") {
+        void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
             def lookup = "public Provider<String> $methodName() { return getVersion(\"$name\"); }"
-            assert lines.find {
-                it.contains(lookup)
+            def result = Lookup.find(lines, lookup)
+            assert result.match
+            if (javadoc) {
+                assert result.javadocContains(javadoc)
             }
         }
 
@@ -318,6 +352,37 @@ class DependenciesSourceGeneratorTest extends Specification {
             factory = cl.loadClass("org.test.$className")
             assert factory
             factory.newInstance(model, providerFactory)
+        }
+    }
+
+    @Canonical
+    private static class Lookup {
+        final boolean match
+        final List<String> javadoc
+
+        static Lookup find(List<String> lines, String anchor) {
+            boolean inJavadoc
+            List<String> javadoc = []
+            for (line in lines) {
+                if (line.trim().startsWith("/**")) {
+                    inJavadoc = true
+                    javadoc.clear()
+                }
+                if (inJavadoc) {
+                    javadoc << line
+                }
+                if (line.trim().startsWith("*/")) {
+                    inJavadoc = false
+                }
+                if (line.contains(anchor)) {
+                    return new Lookup(true, javadoc)
+                }
+            }
+            return new Lookup(false, [])
+        }
+
+        boolean javadocContains(String text) {
+            javadoc.any { it.contains(text) }
         }
     }
 

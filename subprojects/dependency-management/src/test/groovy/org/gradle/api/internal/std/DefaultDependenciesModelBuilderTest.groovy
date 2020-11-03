@@ -140,7 +140,7 @@ class DefaultDependenciesModelBuilderTest extends Specification {
 
         then:
         model.bundleAliases == ["groovy"]
-        model.getBundle("groovy") == ["groovy", "groovy-json"]
+        model.getBundle("groovy").components == ["groovy", "groovy-json"]
 
         model.dependencyAliases == ["groovy", "groovy-json", "guava"]
         model.getDependencyData("guava").version.requiredVersion == '17.0'

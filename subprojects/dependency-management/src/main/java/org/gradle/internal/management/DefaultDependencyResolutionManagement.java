@@ -147,7 +147,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         validateName(name);
         DependenciesModelBuilderInternal model = dependenciesModelBuilders.computeIfAbsent(name, n ->
             objects.newInstance(DefaultDependenciesModelBuilder.class, n, strings, versions, objects, providers, plugins, dependencyResolutionServices));
-        spec.execute(model);
+        UserCodeApplicationContext.Application current = context.current();
+        model.withContext(current == null ? "Settings" : current.getDisplayName().getDisplayName(), () -> spec.execute(model));
     }
 
     private static void validateName(String name) {
