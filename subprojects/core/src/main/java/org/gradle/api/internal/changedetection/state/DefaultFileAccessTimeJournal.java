@@ -23,7 +23,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.util.GUtil;
@@ -59,23 +58,20 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     }
 
     private Long loadOrPersistInceptionTimestamp() {
-        return cache.useCache(new Factory<Long>() {
-            @Override
-            public Long create() {
-                File propertiesFile = new File(cache.getBaseDir(), FILE_ACCESS_PROPERTIES_FILE_NAME);
-                if (propertiesFile.exists()) {
-                    Properties properties = GUtil.loadProperties(propertiesFile);
-                    String inceptionTimestamp = properties.getProperty(INCEPTION_TIMESTAMP_KEY);
-                    if (inceptionTimestamp != null) {
-                        return Long.valueOf(inceptionTimestamp);
-                    }
+        return cache.useCache(() -> {
+            File propertiesFile = new File(cache.getBaseDir(), FILE_ACCESS_PROPERTIES_FILE_NAME);
+            if (propertiesFile.exists()) {
+                Properties properties = GUtil.loadProperties(propertiesFile);
+                String inceptionTimestamp = properties.getProperty(INCEPTION_TIMESTAMP_KEY);
+                if (inceptionTimestamp != null) {
+                    return Long.valueOf(inceptionTimestamp);
                 }
-                long inceptionTimestamp = System.currentTimeMillis();
-                Properties properties = new Properties();
-                properties.setProperty(INCEPTION_TIMESTAMP_KEY, String.valueOf(inceptionTimestamp));
-                GUtil.saveProperties(properties, propertiesFile);
-                return inceptionTimestamp;
             }
+            long inceptionTimestamp = System.currentTimeMillis();
+            Properties properties = new Properties();
+            properties.setProperty(INCEPTION_TIMESTAMP_KEY, String.valueOf(inceptionTimestamp));
+            GUtil.saveProperties(properties, propertiesFile);
+            return inceptionTimestamp;
         });
     }
 

@@ -66,12 +66,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
     }
 
     public void putVersionForSelector(final VersionControlRepositoryConnection repository, final VersionConstraint constraint, final VersionRef selectedVersion) {
-        cache.useCache(new Runnable() {
-            @Override
-            public void run() {
-                workingDirCache.put(constraintCacheKey(repository, constraint), selectedVersion);
-            }
-        });
+        cache.useCache(() -> workingDirCache.put(constraintCacheKey(repository, constraint), selectedVersion));
     }
 
     private String constraintCacheKey(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
