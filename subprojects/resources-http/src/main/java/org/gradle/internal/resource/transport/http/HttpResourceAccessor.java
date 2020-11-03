@@ -37,7 +37,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     @Override
     @Nullable
     public HttpResponseResource openResource(final URI uri, boolean revalidate) {
-        String location = uri.toString();
+        String location = getLocation(uri);
         LOGGER.debug("Constructing external resource: {}", location);
 
         HttpClientResponse response = http.performGet(location, revalidate);
@@ -53,7 +53,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
      * irrespective of the returned HTTP status code. Never returns {@code null}.
      */
     public HttpResponseResource getRawResource(final URI uri, boolean revalidate) {
-        String location = uri.toString();
+        String location = getLocation(uri);
         LOGGER.debug("Constructing external resource: {}", location);
         HttpClientResponse response = http.performRawGet(location, revalidate);
         return wrapResponse(uri, response);
@@ -61,7 +61,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
 
     @Override
     public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
-        String location = uri.toString();
+        String location = getLocation(uri);
         LOGGER.debug("Constructing external resource metadata: {}", location);
         HttpClientResponse response = http.performHead(location, revalidate);
 
@@ -75,6 +75,10 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             }
         }
         return result;
+    }
+
+    protected String getLocation(URI uri) {
+        return uri.toString();
     }
 
     private HttpResponseResource wrapResponse(URI uri, HttpClientResponse response) {

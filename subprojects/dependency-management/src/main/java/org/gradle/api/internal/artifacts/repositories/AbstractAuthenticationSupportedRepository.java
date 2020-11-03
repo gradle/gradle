@@ -106,7 +106,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
             for (URI repositoryUrl : getRepositoryUrls()) {
                 // only care about HTTP hosts right now
-                if (repositoryUrl.getScheme().startsWith("http")) {
+                if (repositoryUrl.getScheme().startsWith("http") || repositoryUrl.getScheme().startsWith("dav+http")) {
                     authenticationInternal.addHost(repositoryUrl.getHost(), repositoryUrl.getPort());
                 }
             }

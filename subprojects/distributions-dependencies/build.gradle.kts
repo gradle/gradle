@@ -121,6 +121,7 @@ dependencies {
         api(libs.maven3WagonHttp)       { version { strictly(mavenWagonVersion); because("3.1.0 of wagon-http seems to break Digest authentication")  }}
         api(libs.maven3WagonHttpShared) { version { strictly(mavenWagonVersion) }}
         api(libs.maven3WagonProviderApi) { version { strictly(mavenWagonVersion) }}
+        api(libs.maven3WagonWebdavJackrabbit) { version { strictly(mavenWagonVersion) }}
         api(libs.minlog)                { version { strictly("1.2") }}
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
         api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
@@ -180,6 +181,7 @@ dependencies {
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
+        api(libs.webdavServer)          { version { strictly("0.1.2") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }
 }

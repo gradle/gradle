@@ -17,6 +17,12 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+repositories {
+    maven {
+        url = uri("http://dl.bintray.com/milton/Milton")
+    }
+}
+
 dependencies {
     api(project(":resources"))
     implementation(project(":base-services"))
@@ -34,11 +40,14 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.xerces)
     implementation(libs.nekohtml)
+    implementation(libs.maven3WagonWebdavJackrabbit)
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(libs.jettyWebApp)
+    testImplementation(libs.webdavServer)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(project(":maven")))
 
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":logging"))

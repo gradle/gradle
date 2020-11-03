@@ -51,6 +51,10 @@ public class HttpResourcesPluginServiceRegistry extends AbstractPluginServiceReg
         ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
             return new HttpConnectorFactory(sslContextFactory, httpClientHelperFactory);
         }
+
+        ResourceConnectorFactory createWebdavHttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
+            return new WebdavHttpConnectorFactory(sslContextFactory, httpClientHelperFactory);
+        }
     }
 
     private static class AuthenticationSchemeAction {

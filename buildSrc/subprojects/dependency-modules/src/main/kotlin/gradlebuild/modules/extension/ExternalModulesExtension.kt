@@ -99,6 +99,7 @@ abstract class ExternalModulesExtension {
     val maven3WagonHttp = "org.apache.maven.wagon:wagon-http"
     val maven3WagonHttpShared = "org.apache.maven.wagon:wagon-http-shared"
     val maven3WagonProviderApi = "org.apache.maven.wagon:wagon-provider-api"
+    val maven3WagonWebdavJackrabbit = "org.apache.maven.wagon:wagon-webdav-jackrabbit"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
@@ -159,6 +160,7 @@ abstract class ExternalModulesExtension {
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
+    val webdavServer = "de.bitinsomnia:webdav-embedded-server"
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(
@@ -236,6 +238,7 @@ abstract class ExternalModulesExtension {
         maven3WagonHttp to License.Apache2,
         maven3WagonHttpShared to License.Apache2,
         maven3WagonProviderApi to License.Apache2,
+        maven3WagonWebdavJackrabbit to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nekohtml to License.Apache2,
@@ -257,6 +260,7 @@ abstract class ExternalModulesExtension {
         testng to License.Apache2,
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
+        webdavServer to License.Apache2,
         xbeanReflect to License.Apache2,
         xerces to License.Apache2,
         xmlApis to License.Apache2
