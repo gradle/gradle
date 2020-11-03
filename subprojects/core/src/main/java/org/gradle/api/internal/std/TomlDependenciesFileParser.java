@@ -184,7 +184,7 @@ public class TomlDependenciesFileParser {
         List<String> rejectedVersions = null;
         Boolean rejectAll = null;
         if (version instanceof String) {
-            require = notEmpty((String) version, "version", alias);
+            require = (String) version;
             StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(require);
             require = richVersion.require;
             prefer = richVersion.prefer;

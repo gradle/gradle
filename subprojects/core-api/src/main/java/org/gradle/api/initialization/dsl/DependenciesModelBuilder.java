@@ -129,5 +129,12 @@ public interface DependenciesModelBuilder {
          * @param versionRef the version reference
          */
         void versionRef(String versionRef);
+
+        /**
+         * Do not associate this alias to a particular version, in which
+         * case the dependency notation will just have group and artifact.
+         *
+         */
+        void withoutVersion();
     }
 }

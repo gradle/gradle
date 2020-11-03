@@ -267,6 +267,11 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         public void versionRef(String versionRef) {
             owner.createAliasWithVersionRef(alias, group, name, versionRef);
         }
+
+        @Override
+        public void withoutVersion() {
+            version("");
+        }
     }
 
     private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
