@@ -193,7 +193,7 @@ public class OutputFilterUtil {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;
             }
-            if (merkleBuilder.isRoot()) {
+            if (isRoot()) {
                 CompleteFileSystemLocationSnapshot result = merkleBuilder.getResult();
                 if (result != null) {
                     newRootsBuilder.add(currentRootFiltered ? result : currentRoot);
