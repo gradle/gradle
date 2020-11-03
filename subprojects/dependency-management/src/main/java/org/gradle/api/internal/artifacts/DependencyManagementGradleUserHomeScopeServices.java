@@ -97,7 +97,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             cacheRepository,
             fileAccessTimeJournal,
             executionHistoryStore,
-            crossBuildInMemoryCacheFactory.newCacheWithBuildAgedEviction()
+            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild()
         );
     }
 

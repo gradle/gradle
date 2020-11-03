@@ -58,8 +58,8 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     @Override
-    public <K, V> CrossBuildInMemoryCache<K, V> newCacheWithBuildAgedEviction() {
-        BuildAgeEvictionCrossBuildInMemoryCache<K, V> cache = new BuildAgeEvictionCrossBuildInMemoryCache<>();
+    public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild() {
+        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache = new CrossBuildCacheRetainingDataFromPreviousBuild<>();
         listenerManager.addListener(cache);
         return cache;
     }
@@ -243,7 +243,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
     }
 
-    private static class BuildAgeEvictionCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
+    private static class CrossBuildCacheRetainingDataFromPreviousBuild<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
         private final ManualEvictionInMemoryCache<K, V> delegate = new ManualEvictionInMemoryCache<>();
         private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
         private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
