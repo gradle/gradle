@@ -12,7 +12,7 @@ tasks.addRule("Pattern: ping<ID>") {
 }
 // end::task-rule[]
 
-task("groupPing") {
+tasks.register("groupPing") {
     dependsOn("pingServer1", "pingServer2")
 }
 // end::all[]
