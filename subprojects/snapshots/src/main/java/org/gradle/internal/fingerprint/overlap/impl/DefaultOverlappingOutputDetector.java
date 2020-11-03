@@ -26,13 +26,15 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+
+import static org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
 
 public class DefaultOverlappingOutputDetector implements OverlappingOutputDetector {
     @Override
@@ -64,14 +66,13 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
     private static OverlappingOutputs detect(String propertyName, FileCollectionFingerprint previous, FileSystemSnapshot before) {
         Map<String, FileSystemLocationFingerprint> previousFingerprints = previous.getFingerprints();
         OverlappingOutputsDetectingVisitor outputsDetectingVisitor = new OverlappingOutputsDetectingVisitor(previousFingerprints);
-        before.accept(outputsDetectingVisitor);
+        before.accept(asSimpleHierarchyVisitor(outputsDetectingVisitor));
         String overlappingPath = outputsDetectingVisitor.getOverlappingPath();
         return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
     }
 
-    private static class OverlappingOutputsDetectingVisitor implements FileSystemSnapshotHierarchyVisitor {
+    private static class OverlappingOutputsDetectingVisitor implements RootTrackingFileSystemSnapshotHierarchyVisitor {
         private final Map<String, FileSystemLocationFingerprint> previousFingerprints;
-        private int treeDepth = 0;
         private String overlappingPath;
 
         public OverlappingOutputsDetectingVisitor(Map<String, FileSystemLocationFingerprint> previousFingerprints) {
@@ -79,12 +80,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            treeDepth++;
-        }
-
-        @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean root) {
             boolean newContent = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
                 @Override
                 public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -102,7 +98,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
                 @Override
                 public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
                     // If the root has gone missing then we don't have overlaps
-                    if (isRoot()) {
+                    if (root) {
                         return false;
                     }
                     // Otherwise check for newly added broken symlinks and unreadable files
@@ -115,11 +111,6 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
             } else {
                 return SnapshotVisitResult.CONTINUE;
             }
-        }
-
-        @Override
-        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            treeDepth--;
         }
 
         private boolean hasNewContent(CompleteFileSystemLocationSnapshot snapshot, @Nullable HashCode currentContentHash) {
@@ -136,10 +127,6 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
             }
             // Content changed since last execution
             return !currentContentHash.equals(previousFingerprint.getNormalizedContentHash());
-        }
-
-        private boolean isRoot() {
-            return treeDepth == 0;
         }
 
         @Nullable
