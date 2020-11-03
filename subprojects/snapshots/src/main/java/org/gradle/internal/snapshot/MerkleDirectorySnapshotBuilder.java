@@ -31,7 +31,7 @@ import java.util.List;
 public class MerkleDirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
-    private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
+    private final RelativePathTracker.AsIterable relativePathTracker = RelativePathTracker.asIterable();
     private final Deque<List<CompleteFileSystemLocationSnapshot>> levelHolder = new ArrayDeque<>();
     private final Deque<String> directoryAbsolutePaths = new ArrayDeque<>();
     private final boolean sortingRequired;
@@ -50,7 +50,7 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public void preVisitDirectory(String absolutePath, String name) {
-        relativePathSegmentsTracker.enter(name);
+        relativePathTracker.enter(name);
         levelHolder.addLast(new ArrayList<>());
         directoryAbsolutePaths.addLast(absolutePath);
     }
@@ -74,7 +74,7 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
-        if (relativePathSegmentsTracker.isRoot()) {
+        if (relativePathTracker.isRoot()) {
             result = snapshot;
         } else {
             levelHolder.peekLast().add(snapshot);
@@ -86,7 +86,7 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public boolean postVisitDirectory(boolean includeEmpty, AccessType accessType) {
-        String name = relativePathSegmentsTracker.leave();
+        String name = relativePathTracker.leave();
         List<CompleteFileSystemLocationSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();
         if (children.isEmpty() && !includeEmpty) {
@@ -112,11 +112,11 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public boolean isRoot() {
-        return relativePathSegmentsTracker.isRoot();
+        return relativePathTracker.isRoot();
     }
 
     public Iterable<String> getRelativePath() {
-        return relativePathSegmentsTracker.getRelativePath();
+        return relativePathTracker.getRelativePath();
     }
 
     @Nullable

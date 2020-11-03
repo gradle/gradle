@@ -25,7 +25,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
+import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,7 +46,7 @@ public class FileSystemSnapshotFilter {
     }
 
     private static class FilteringVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final RelativePathSegmentsTracker relativePathTracker;
+        private final RelativePathTracker.AsIterable relativePathTracker = RelativePathTracker.asIterable();
         private final SnapshottingFilter.FileSystemSnapshotPredicate predicate;
         private final MerkleDirectorySnapshotBuilder builder;
         private final AtomicBoolean hasBeenFiltered;
@@ -55,7 +55,6 @@ public class FileSystemSnapshotFilter {
             this.predicate = predicate;
             this.builder = builder;
             this.hasBeenFiltered = hasBeenFiltered;
-            this.relativePathTracker = new RelativePathSegmentsTracker();
         }
 
         @Override

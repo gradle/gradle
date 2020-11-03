@@ -45,7 +45,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.RelativePathStringTracker;
+import org.gradle.internal.snapshot.RelativePathTracker;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
@@ -333,7 +333,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private static class PackingVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final RelativePathStringTracker relativePathStringTracker;
+        private final RelativePathTracker.AsString relativePathTracker = RelativePathTracker.asString();
         private final TarArchiveOutputStream tarOutput;
         private final String treePath;
         private final String treeRoot;
@@ -349,13 +349,12 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             this.treeRoot = treePath + "/";
             this.type = type;
             this.filePermissionAccess = filePermissionAccess;
-            this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
         @Override
         public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
             if (seenRoot) {
-                relativePathStringTracker.enter(directorySnapshot);
+                relativePathTracker.enter(directorySnapshot);
             } else {
                 seenRoot = true;
             }
@@ -363,8 +362,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         @Override
         public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            boolean isRoot = relativePathStringTracker.isRoot();
-            relativePathStringTracker.enter(snapshot);
+            boolean isRoot = relativePathTracker.isRoot();
+            relativePathTracker.enter(snapshot);
             String targetPath = getTargetPath(isRoot);
             snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                 @Override
@@ -391,17 +390,17 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                     storeMissingTree(targetPath, tarOutput);
                 }
             });
-            relativePathStringTracker.leave();
+            relativePathTracker.leave();
             entries++;
             return SnapshotVisitResult.CONTINUE;
         }
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (relativePathStringTracker.isRoot()) {
+            if (relativePathTracker.isRoot()) {
                 seenRoot = false;
             } else {
-                relativePathStringTracker.leave();
+                relativePathTracker.leave();
             }
         }
 
@@ -436,7 +435,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             if (root) {
                 return treePath;
             }
-            String relativePath = relativePathStringTracker.getRelativePathString();
+            String relativePath = relativePathTracker.getRelativePath();
             return treeRoot + relativePath;
         }
 

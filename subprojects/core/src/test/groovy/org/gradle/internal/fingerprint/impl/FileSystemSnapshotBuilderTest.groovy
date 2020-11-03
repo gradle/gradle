@@ -27,7 +27,7 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.RelativePathSegmentsTracker
+import org.gradle.internal.snapshot.RelativePathTracker
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -69,7 +69,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         Set<String> relativePaths = [] as Set
         def result = builder.build()
         result.accept(new FileSystemSnapshotHierarchyVisitor() {
-            private final relativePathTracker = new RelativePathSegmentsTracker()
+            private final relativePathTracker = RelativePathTracker.asIterable()
 
             @Override
             void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
