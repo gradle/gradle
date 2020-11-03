@@ -26,10 +26,9 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":snapshots"))
     implementation(project(":model-core"))
+    implementation(project(":persistent-cache"))
     implementation(project(":build-cache"))
     implementation(project(":build-cache-packaging"))
-
-    api(project(":persistent-cache"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
