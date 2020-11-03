@@ -45,7 +45,7 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
         private final Map<K, V> values = new ConcurrentHashMap<>()
 
         @Override
-        V get(K key) {
+        V getIfPresent(K key) {
             return values.get(key)
         }
 

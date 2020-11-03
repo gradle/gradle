@@ -60,7 +60,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
             @Nullable
             @Override
             public VersionRef create() {
-                return workingDirCache.get(constraintCacheKey(repository, constraint));
+                return workingDirCache.getIfPresent(constraintCacheKey(repository, constraint));
             }
         });
     }

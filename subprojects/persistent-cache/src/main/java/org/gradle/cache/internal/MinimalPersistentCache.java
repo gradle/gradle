@@ -30,7 +30,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
 
     @Override
     public V get(K key, Function<? super K, ? extends V> factory) {
-        V cached = cache.get(key);
+        V cached = cache.getIfPresent(key);
         if (cached != null) {
             return cached;
         }
@@ -43,8 +43,8 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(K value) {
-        return cache.get(value);
+    public V getIfPresent(K value) {
+        return cache.getIfPresent(value);
     }
 
     @Override

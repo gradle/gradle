@@ -42,7 +42,7 @@ public class TestInMemoryPersistentIndexedCache<K, V> implements PersistentIndex
     }
 
     @Override
-    public V get(K key) {
+    public V getIfPresent(K key) {
         byte[] serialised = entries.get(key);
         if (serialised == null) {
             return null;
@@ -62,7 +62,7 @@ public class TestInMemoryPersistentIndexedCache<K, V> implements PersistentIndex
             if (!entries.containsKey(key)) {
                 put(key, producer.apply(key));
             }
-            return TestInMemoryPersistentIndexedCache.this.get(key);
+            return TestInMemoryPersistentIndexedCache.this.getIfPresent(key);
         });
     }
 

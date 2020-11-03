@@ -122,7 +122,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     @Override
     public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
         longIdGuard.guardByKey(keyId, () -> {
-            CacheEntry<List<Fingerprint>> fingerprints = longIdToFingerprint.get(keyId);
+            CacheEntry<List<Fingerprint>> fingerprints = longIdToFingerprint.getIfPresent(keyId);
             if (fingerprints == null || hasExpired(fingerprints)) {
                 buildOperationExecutor.run(new RunnableBuildOperation() {
                     @Override
@@ -186,7 +186,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     }
 
     private void updateLongKeyIndex(Fingerprint fingerprint, long keyId) {
-        CacheEntry<List<Fingerprint>> fprints = longIdToFingerprint.get(keyId);
+        CacheEntry<List<Fingerprint>> fprints = longIdToFingerprint.getIfPresent(keyId);
         long currentTime = timeProvider.getCurrentTime();
         if (fprints == null) {
             longIdToFingerprint.put(keyId, new CacheEntry<>(currentTime, Collections.singletonList(fingerprint)));
@@ -203,7 +203,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     public void findByFingerprint(byte[] bytes, PublicKeyResultBuilder builder) {
         Fingerprint fingerprint = Fingerprint.wrap(bytes);
         fingerPrintguard.guardByKey(fingerprint, () -> {
-            CacheEntry<PGPPublicKeyRing> cacheEntry = publicKeyRings.get(fingerprint);
+            CacheEntry<PGPPublicKeyRing> cacheEntry = publicKeyRings.getIfPresent(fingerprint);
             if (cacheEntry == null || hasExpired(cacheEntry)) {
                 LookupPublicKeyResultBuilder keyResultBuilder = new LookupPublicKeyResultBuilder();
                 delegate.findByFingerprint(bytes, keyResultBuilder);

@@ -59,7 +59,7 @@ class CachingFileHasherTest extends Specification {
 
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
-        1 * cache.get(file.absolutePath) >> null
+        1 * cache.getIfPresent(file.absolutePath) >> null
         1 * target.hash(file) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
@@ -81,7 +81,7 @@ class CachingFileHasherTest extends Specification {
 
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
-        1 * cache.get(file.absolutePath) >> new FileInfo(oldHash, 1024, stat.lastModified)
+        1 * cache.getIfPresent(file.absolutePath) >> new FileInfo(oldHash, 1024, stat.lastModified)
         1 * target.hash(file) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
@@ -103,7 +103,7 @@ class CachingFileHasherTest extends Specification {
 
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
-        1 * cache.get(file.absolutePath) >> new FileInfo(oldHash, file.length(), 124)
+        1 * cache.getIfPresent(file.absolutePath) >> new FileInfo(oldHash, file.length(), 124)
         1 * target.hash(file) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
@@ -125,7 +125,7 @@ class CachingFileHasherTest extends Specification {
 
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
-        1 * cache.get(file.absolutePath) >> new FileInfo(hash, stat.length, stat.lastModified)
+        1 * cache.getIfPresent(file.absolutePath) >> new FileInfo(hash, stat.length, stat.lastModified)
         0 * _
     }
 
@@ -163,7 +163,7 @@ class CachingFileHasherTest extends Specification {
 
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, lastModified) >> true
-        1 * cache.get(file.absolutePath) >> null
+        1 * cache.getIfPresent(file.absolutePath) >> null
         1 * target.hash(file) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash

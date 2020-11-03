@@ -37,6 +37,6 @@ public class PreviousCompilationStore implements Loader<PreviousCompilationData>
 
     @Override
     public PreviousCompilationData get() {
-        return cache.get(taskPath);
+        return cache.getIfPresent(taskPath);
     }
 }

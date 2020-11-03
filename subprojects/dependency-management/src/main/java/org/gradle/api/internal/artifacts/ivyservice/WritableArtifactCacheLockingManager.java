@@ -112,8 +112,8 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
 
         @Nullable
         @Override
-        public V get(final K key) {
-            return cache.useCache(() -> persistentCache.get(key));
+        public V getIfPresent(final K key) {
+            return cache.useCache(() -> persistentCache.getIfPresent(key));
         }
 
         @Override

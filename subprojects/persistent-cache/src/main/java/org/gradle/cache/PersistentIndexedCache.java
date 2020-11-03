@@ -31,7 +31,7 @@ public interface PersistentIndexedCache<K, V> extends Cache<K, V> {
      */
     @Override
     @Nullable
-    V get(K key);
+    V getIfPresent(K key);
 
     /**
      * Returns the value mapped to the given key, producing the value if not present.

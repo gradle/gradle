@@ -91,7 +91,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
 
     @Override
     public long getLastAccessTime(File file) {
-        Long value = store.get(file);
+        Long value = store.getIfPresent(file);
         if (value == null) {
             return Math.max(inceptionTimestamp, file.lastModified());
         }

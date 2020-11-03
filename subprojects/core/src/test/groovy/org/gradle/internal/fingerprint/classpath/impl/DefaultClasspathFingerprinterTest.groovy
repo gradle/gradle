@@ -126,7 +126,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
 
         resourceHashesCache.keySet().size() == 1
         def key = resourceHashesCache.keySet().iterator().next()
-        resourceHashesCache.get(key).toString() == '397fdb436f96f0ebac6c1e147eb1cc51'
+        resourceHashesCache.getIfPresent(key).toString() == '397fdb436f96f0ebac6c1e147eb1cc51'
     }
 
     def "detects moving of files in jars and directories"() {
@@ -190,12 +190,12 @@ class DefaultClasspathFingerprinterTest extends Specification {
             ['another-library.jar', '', 'e9fa562dd3fd73bfa315b0f9876c2b6e']
         ]
         resourceHashesCache.keySet().size() == 2
-        def values = resourceHashesCache.keySet().collect { resourceHashesCache.get(it).toString() } as Set
+        def values = resourceHashesCache.keySet().collect { resourceHashesCache.getIfPresent(it).toString() } as Set
         values == ['397fdb436f96f0ebac6c1e147eb1cc51', 'e9fa562dd3fd73bfa315b0f9876c2b6e'] as Set
 
         when:
         fileCollectionFingerprint = fingerprint(zipFile, zipFile2)
-        values = resourceHashesCache.keySet().collect { resourceHashesCache.get(it).toString() } as Set
+        values = resourceHashesCache.keySet().collect { resourceHashesCache.getIfPresent(it).toString() } as Set
 
         then:
         fileCollectionFingerprint == [

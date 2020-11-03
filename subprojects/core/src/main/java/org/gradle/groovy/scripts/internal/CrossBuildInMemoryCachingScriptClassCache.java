@@ -39,7 +39,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
                                                                    Action<? super ClassNode> verifier,
                                                                    ScriptClassCompiler delegate) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), targetScope.getExportClassLoader(), operation.getId());
-        CachedCompiledScript cached = cachedCompiledScripts.get(key);
+        CachedCompiledScript cached = cachedCompiledScripts.getIfPresent(key);
         HashCode hash = source.getResource().getContentHash();
         if (cached != null) {
             if (hash.equals(cached.hash)) {
