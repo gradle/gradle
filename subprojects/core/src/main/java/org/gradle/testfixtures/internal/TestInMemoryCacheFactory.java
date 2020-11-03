@@ -37,7 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class InMemoryCacheFactory implements CacheFactory {
+public class TestInMemoryCacheFactory implements CacheFactory {
     /*
      * In case multiple threads is accessing the cache, for example when running JUnit 5 tests in parallel,
      * the map must be protected from concurrent modification.
@@ -121,7 +121,7 @@ public class InMemoryCacheFactory implements CacheFactory {
             assertNotClosed();
             PersistentIndexedCache<?, ?> indexedCache = caches.get(Pair.of(cacheDir, name));
             if (indexedCache == null) {
-                indexedCache = new InMemoryIndexedCache<K, V>(valueSerializer);
+                indexedCache = new TestInMemoryPersistentIndexedCache<K, V>(valueSerializer);
                 caches.put(Pair.of(cacheDir, name), indexedCache);
             }
             return Cast.uncheckedCast(indexedCache);

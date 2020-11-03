@@ -30,7 +30,7 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
 
     @Override
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
-        return new InMemoryCacheFactory();
+        return new TestInMemoryCacheFactory();
     }
 
     LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
