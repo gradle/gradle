@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -25,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.io.FileUtils.readFileToByteArray;
+import static java.lang.String.join;
 
 public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MetaInfAwareClasspathResourceHasher.class);
@@ -59,7 +58,7 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) {
-        String relativePath = String.join("/", snapshotContext.getRelativePathSegments().get());
+        String relativePath = join("/", snapshotContext.getRelativePathSegments().get());
         if (isManifestFile(relativePath)) {
             return tryHashWithFallback(snapshotContext);
         } else {
@@ -80,8 +79,8 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     private HashCode tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
-        try {
-            return hashManifest(readFileToByteArray(new File(snapshotContext.getSnapshot().getAbsolutePath())));
+        try (FileInputStream manifestFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
+            return hashManifest(manifestFileInputStream);
         } catch (IOException e) {
             LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
             return delegate.hash(snapshotContext);
@@ -91,7 +90,7 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
     @Nullable
     private HashCode tryHashWithFallback(ZipEntryContext zipEntryContext) throws IOException {
         try {
-            return hashManifest(ByteStreams.toByteArray(zipEntryContext.getEntry().getInputStream()));
+            return hashManifest(zipEntryContext.getEntry().getInputStream());
         } catch (IOException e) {
             LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
             return delegate.hash(zipEntryContext);
@@ -102,8 +101,8 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
         return name.equals("META-INF/MANIFEST.MF");
     }
 
-    private HashCode hashManifest(byte[] entryBytes) throws IOException {
-        Manifest manifest = new Manifest(new ByteArrayInputStream(entryBytes));
+    private HashCode hashManifest(InputStream inputStream) throws IOException {
+        Manifest manifest = new Manifest(inputStream);
         Hasher hasher = Hashing.newHasher();
         Attributes mainAttributes = manifest.getMainAttributes();
         hashManifestAttributes(mainAttributes, "main", hasher);
