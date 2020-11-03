@@ -44,7 +44,7 @@ public interface FileSystemSnapshotHierarchyVisitor {
     enum SnapshotVisitResult {
 
         /**
-         * Continue. When returned from a {@link FileVisitor#preVisitDirectory
+         * Continue. When returned from a {@link FileVisitor#visitEntry
          * preVisitDirectory} method then the entries in the directory should also
          * be visited.
          */
