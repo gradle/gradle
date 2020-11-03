@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
@@ -38,12 +38,12 @@ import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformationStep> transformationSteps;
-    private final AttributeContainerInternal target;
+    private final ImmutableAttributes target;
     private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
         List<BoundTransformationStep> transformationSteps,
-        AttributeContainerInternal target,
+        ImmutableAttributes target,
         ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result) {
         this.transformationSteps = transformationSteps;
         this.target = target;
@@ -55,7 +55,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         artifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, artifact);
+                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, artifact, transformationSteps);
                 result.add(transformedArtifact);
             }
 
@@ -77,17 +77,35 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         return FileCollectionStructureVisitor.VisitType.Visit;
     }
 
-    private final class TransformedArtifact implements ResolvedArtifactSet.Artifacts, RunnableBuildOperation {
+    public static class TransformedArtifact implements ResolvedArtifactSet.Artifacts, RunnableBuildOperation {
         private final DisplayName variantName;
         private final ResolvableArtifact artifact;
-        private final AttributeContainerInternal target;
+        private final ImmutableAttributes target;
+        private final List<BoundTransformationStep> transformationSteps;
         private Try<TransformationSubject> transformedSubject;
         private CacheableInvocation<TransformationSubject> invocation;
 
-        public TransformedArtifact(DisplayName variantName, AttributeContainerInternal target, ResolvableArtifact artifact) {
+        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, ResolvableArtifact artifact, List<BoundTransformationStep> transformationSteps) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
+            this.transformationSteps = transformationSteps;
+        }
+
+        public DisplayName getVariantName() {
+            return variantName;
+        }
+
+        public ResolvableArtifact getArtifact() {
+            return artifact;
+        }
+
+        public ImmutableAttributes getTarget() {
+            return target;
+        }
+
+        public List<BoundTransformationStep> getTransformationSteps() {
+            return transformationSteps;
         }
 
         @Override
