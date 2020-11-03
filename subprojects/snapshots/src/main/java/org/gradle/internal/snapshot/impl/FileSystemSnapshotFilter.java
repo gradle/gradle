@@ -59,7 +59,7 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathTracker.enter(directorySnapshot);
             builder.preVisitDirectory(directorySnapshot);
         }
@@ -100,7 +100,7 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             builder.postVisitDirectory(true, directorySnapshot.getAccessType());
             relativePathTracker.leave();
         }

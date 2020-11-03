@@ -238,7 +238,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         int count = 0
         tree.accept(new FileSystemSnapshotHierarchyVisitor() {
             @Override
-            void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (rootPath == null) {
                     rootPath = directorySnapshot.absolutePath
                 }
@@ -251,7 +251,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             }
         })
         return [rootPath, count]

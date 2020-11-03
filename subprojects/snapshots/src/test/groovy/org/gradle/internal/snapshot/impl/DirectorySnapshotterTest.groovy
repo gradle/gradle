@@ -320,7 +320,7 @@ class DirectorySnapshotterTest extends Specification {
         private Deque<String> relativePath = new ArrayDeque<String>()
 
         @Override
-        void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePath.addLast(directorySnapshot.name)
         }
 
@@ -333,7 +333,7 @@ class DirectorySnapshotterTest extends Specification {
         }
 
         @Override
-        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePath.removeLast()
         }
 

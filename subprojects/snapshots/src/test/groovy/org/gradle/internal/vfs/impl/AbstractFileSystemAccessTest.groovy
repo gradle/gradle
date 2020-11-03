@@ -199,7 +199,7 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         private final List<String> relativePaths = []
 
         @Override
-        void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
             if (!seenRoot) {
                 seenRoot = true
             } else {
@@ -218,7 +218,7 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         }
 
         @Override
-        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             if (relativePath.isEmpty()) {
                 seenRoot = false
             } else {

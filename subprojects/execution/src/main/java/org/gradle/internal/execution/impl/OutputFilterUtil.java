@@ -141,7 +141,7 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth++;
             merkleBuilder.preVisitDirectory(directorySnapshot);
         }
@@ -185,7 +185,7 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth--;
             boolean isOutputDir = predicate.test(directorySnapshot, isRoot());
             boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir, directorySnapshot.getAccessType());

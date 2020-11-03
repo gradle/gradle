@@ -137,7 +137,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public void preVisitDirectory(CompleteDirectorySnapshot physicalSnapshot) {
+        public void enterDirectory(CompleteDirectorySnapshot physicalSnapshot) {
             this.path = physicalSnapshot.getAbsolutePath();
             this.name = physicalSnapshot.getName();
             this.hash = null;
@@ -179,7 +179,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             visitor.postDirectory();
             if (--depth == 0) {
                 visitor.postRoot();

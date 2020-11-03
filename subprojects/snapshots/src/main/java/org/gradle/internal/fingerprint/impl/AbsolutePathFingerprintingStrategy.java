@@ -60,7 +60,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 private int treeDepth = 0;
 
                 @Override
-                public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     treeDepth++;
                 }
 
@@ -96,7 +96,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     treeDepth--;
                 }
 

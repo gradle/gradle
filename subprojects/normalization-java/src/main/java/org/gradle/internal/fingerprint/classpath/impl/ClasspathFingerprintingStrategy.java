@@ -156,7 +156,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.enter(directorySnapshot);
             delegate.preVisitDirectory(directorySnapshot);
         }
@@ -205,7 +205,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.leave();
             delegate.postVisitDirectory();
         }

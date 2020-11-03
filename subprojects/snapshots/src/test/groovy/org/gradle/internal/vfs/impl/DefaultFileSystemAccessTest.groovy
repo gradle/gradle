@@ -254,7 +254,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
             private boolean seenRoot = false
 
             @Override
-            void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
@@ -273,7 +273,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
             }
 
             @Override
-            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (relativePath.isEmpty()) {
                     seenRoot = false
                 } else {

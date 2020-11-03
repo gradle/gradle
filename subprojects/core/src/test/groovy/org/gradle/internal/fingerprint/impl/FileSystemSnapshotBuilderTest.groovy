@@ -72,7 +72,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
-            void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 relativePathTracker.enter(directorySnapshot)
             }
 
@@ -88,7 +88,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave()
             }
         })

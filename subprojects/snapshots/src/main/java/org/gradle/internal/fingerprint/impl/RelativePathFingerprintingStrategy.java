@@ -63,7 +63,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
 
                 @Override
-                public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     relativePathStringTracker.enter(directorySnapshot);
                 }
 
@@ -94,7 +94,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     relativePathStringTracker.leave();
                 }
             });

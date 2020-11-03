@@ -78,7 +78,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth++;
         }
 
@@ -117,7 +117,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth--;
         }
 

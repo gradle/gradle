@@ -24,19 +24,19 @@ public interface FileSystemSnapshotHierarchyVisitor {
     /**
      * Called before visiting the contents of a directory.
      */
-    default void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {}
+    default void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {}
 
     /**
      * Called for each regular file/directory/missing/unavailable file.
      *
-     * @return whether the subtree should be visited.
+     * @return how to continue visiting the rest of the snapshot hierarchy.
      */
     SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot);
 
     /**
-     * Called when leaving a directory.
+     * Called after all entries in the directory has been visited.
      */
-    default void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {}
+    default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {}
 
     /**
      * @see java.nio.file.FileVisitResult
@@ -44,22 +44,19 @@ public interface FileSystemSnapshotHierarchyVisitor {
     enum SnapshotVisitResult {
 
         /**
-         * Continue. When returned from a {@link FileVisitor#visitEntry
-         * preVisitDirectory} method then the entries in the directory should also
-         * be visited.
+         * Continue visiting. When returned after visiting a directory,
+         * the entries in the directory will be visited next.
          */
         CONTINUE,
 
         /**
-         * Terminate.
+         * Terminate visiting immediately.
          */
         TERMINATE,
 
         /**
-         * Continue without visiting the entries in this directory. This result
-         * is only meaningful when returned from the {@link
-         * FileVisitor#preVisitDirectory preVisitDirectory} method; otherwise
-         * this result type is the same as returning {@link #CONTINUE}.
+         * If returned from visiting a directory, the directories entries will not be visited;
+         * otherwise works as {@link #CONTINUE}.
          */
         SKIP_SUBTREE
     }
