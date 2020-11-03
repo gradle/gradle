@@ -1,6 +1,6 @@
-def dest = "dest"
+def dest = 'dest'
 
-task copy(type: Copy) {
-    from "source"
+tasks.register('copy', Copy) {
+    from 'source'
     into dest
 }
