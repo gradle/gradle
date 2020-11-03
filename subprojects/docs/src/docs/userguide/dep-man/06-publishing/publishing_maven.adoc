@@ -158,6 +158,8 @@ The two main things you will want to configure are the repository's:
  * URL (required)
  * Name (optional)
 
+This plugin can also publish using WebDAV. To do so, add `dav+` to the start of the URL. For example: `dav+https://example.com/maven`.
+
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Maven".
 
 You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
