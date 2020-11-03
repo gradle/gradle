@@ -13,12 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.management;
+package org.gradle.api.internal.std;
 
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
-import org.gradle.api.internal.std.AllDependenciesModel;
+import javax.annotation.Nullable;
+import java.io.Serializable;
 
-public interface DependenciesModelBuilderInternal extends DependenciesModelBuilder {
-    AllDependenciesModel build();
-    void withContext(String context, Runnable action);
+public class AbstractContextAwareModel implements Serializable {
+    protected final String context;
+
+    public AbstractContextAwareModel(@Nullable String context) {
+        this.context = context;
+    }
+
+    /**
+     * The context where this dependency model was built from, used
+     * for debugging and giving hints to the user.
+     * It's intentionally not part of the identity.
+     *
+     * @return the context
+     */
+    @Nullable
+    public String getContext() {
+        return context;
+    }
 }

@@ -42,6 +42,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Actions;
@@ -73,13 +74,16 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private final ProviderFactory providers;
     private final PluginDependenciesSpec plugins;
     private final String name;
-    private final Map<String, ImmutableVersionConstraint> versionConstraints = Maps.newLinkedHashMap();
+    private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
-    private final Map<String, List<String>> bundles = Maps.newLinkedHashMap();
+    private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
     private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private final List<Import> imports = Lists.newArrayList();
     private final StrictVersionParser strictVersionParser;
+    private final Property<String> description;
+
+    private String currentContext;
 
     @Inject
     public DefaultDependenciesModelBuilder(String name,
@@ -97,6 +101,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         this.plugins = plugins;
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
+        this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the `" + name + "` extension.");
     }
 
     @Override
@@ -105,15 +110,30 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     @Override
+    public Property<String> getDescription() {
+        return description;
+    }
+
+    @Override
     public AllDependenciesModel build() {
         return model.get();
     }
 
+    public void withContext(String context, Runnable action) {
+        String oldContext = currentContext;
+        currentContext = intern(context);
+        try {
+            action.run();
+        } finally {
+            currentContext = oldContext;
+        }
+    }
+
     private AllDependenciesModel doBuild() {
         maybeImportPlatforms();
-        for (Map.Entry<String, List<String>> entry : bundles.entrySet()) {
+        for (Map.Entry<String, BundleModel> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
-            List<String> aliases = entry.getValue();
+            List<String> aliases = entry.getValue().getComponents();
             for (String alias : aliases) {
                 if (!dependencies.containsKey(alias)) {
                     throw new InvalidUserDataException("A bundle with name '" + bundleName + "' declares a dependency on '" + alias + "' which doesn't exist");
@@ -124,7 +144,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         for (Map.Entry<String, Supplier<DependencyModel>> entry : dependencies.entrySet()) {
             realizedDeps.put(entry.getKey(), entry.getValue().get());
         }
-        return new AllDependenciesModel(name, realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
+        return new AllDependenciesModel(name, description.getOrElse(""), realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
     }
 
     private void maybeImportPlatforms() {
@@ -138,7 +158,9 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         cnf.getIncoming().getArtifacts().getArtifacts().forEach(ar -> {
             File file = ar.getFile();
             Action<? super ImportSpec> configurationAction = variantToImport.getOrDefault(ar.getVariant().getOwner(), Actions.doNothing());
-            importCatalogFromFile(file, configurationAction);
+            withContext("catalog " + ar.getVariant().getOwner(), () -> {
+                importCatalogFromFile(file, configurationAction);
+            });
         });
     }
 
@@ -227,7 +249,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
         ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
-        versionConstraints.put(name, version);
+        versionConstraints.put(name, new VersionModel(version, currentContext));
         return name;
     }
 
@@ -263,10 +285,10 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     @Override
     public void bundle(String name, List<String> aliases) {
         validateName("bundle", name);
-        ImmutableList<String> value = ImmutableList.copyOf(aliases.stream().map(this::intern).collect(Collectors.toList()));
-        List<String> previous = bundles.put(intern(name), value);
+        ImmutableList<String> components = ImmutableList.copyOf(aliases.stream().map(this::intern).collect(Collectors.toList()));
+        BundleModel previous = bundles.put(intern(name), new BundleModel(components, currentContext));
         if (previous != null) {
-            LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", name, previous, value);
+            LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", name, previous.getComponents(), components);
         }
     }
 
@@ -286,20 +308,22 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         private final String group;
         private final String name;
         private final String versionRef;
+        private final String context;
 
         private VersionReferencingDependencyModel(String group, String name, String versionRef) {
             this.group = group;
             this.name = name;
             this.versionRef = versionRef;
+            this.context = currentContext;
         }
 
         @Override
         public DependencyModel get() {
-            ImmutableVersionConstraint constraint = versionConstraints.get(versionRef);
-            if (constraint == null) {
+            VersionModel model = versionConstraints.get(versionRef);
+            if (model == null) {
                 throw new InvalidUserDataException("Referenced version '" + versionRef + "' doesn't exist on dependency " + group + ":" + name);
             }
-            return new DependencyModel(group, name, versionRef, constraint);
+            return new DependencyModel(group, name, versionRef, model.getVersion(), context);
         }
     }
 
@@ -346,7 +370,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
             MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
             versionSpec.execute(versionBuilder);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
-            DependencyModel model = new DependencyModel(owner.intern(group), owner.intern(name), null, version);
+            DependencyModel model = new DependencyModel(owner.intern(group), owner.intern(name), null, version, owner.currentContext);
             Supplier<DependencyModel> previous = owner.dependencies.put(owner.intern(alias), () -> model);
             if (previous != null) {
                 LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);

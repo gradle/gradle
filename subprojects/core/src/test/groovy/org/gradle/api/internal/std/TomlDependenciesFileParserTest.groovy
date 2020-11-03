@@ -259,7 +259,7 @@ class TomlDependenciesFileParserTest extends Specification {
     }
 
     void hasBundle(String id, List<String> expectedElements) {
-        def bundle = model.getBundle(id)
+        def bundle = model.getBundle(id)?.components
         assert bundle != null: "Expected a bundle with name $id but it wasn't found"
         assert bundle == expectedElements
     }
@@ -269,7 +269,7 @@ class TomlDependenciesFileParserTest extends Specification {
     }
 
     void hasVersion(String id, String version) {
-        def versionConstraint = model.getVersion(id)
+        def versionConstraint = model.getVersion(id)?.version
         assert versionConstraint != null : "Expected a version constraint with name $id but didn't find one"
         def actual = versionConstraint.toString()
         assert actual == version

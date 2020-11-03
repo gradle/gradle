@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.internal.Actions;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.List;
@@ -32,6 +33,13 @@ import java.util.List;
 @Incubating
 @HasInternalProtocol
 public interface DependenciesModelBuilder {
+
+    /**
+     * A description for the dependencies model, which will be used in
+     * the generated sources as documentation.
+     * @return the description for this model
+     */
+    Property<String> getDescription();
 
     /**
      * Configures the model by reading it from a version catalog.
