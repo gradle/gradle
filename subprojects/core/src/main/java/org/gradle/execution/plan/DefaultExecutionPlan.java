@@ -448,7 +448,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 connectedNodes.addAll(taskNode.getFinalizingSuccessors());
             }
         });
-        graphWalker.add(entryNodes);
+        graphWalker.add(successor);
 
         List<Set<Node>> cycles = graphWalker.findCycles();
         if (cycles.isEmpty()) {
