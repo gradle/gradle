@@ -22,6 +22,7 @@ import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

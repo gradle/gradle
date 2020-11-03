@@ -36,7 +36,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @CleanupTestDirectory
 class FileSystemSnapshotFilterTest extends Specification {

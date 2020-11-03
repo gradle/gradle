@@ -28,12 +28,13 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.internal.snapshot.SnapshottingFilter
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
 
@@ -96,7 +97,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
             private boolean seenRoot
 
             @Override
-            FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
+            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
                 if (seenRoot) {
                     visited << entrySnapshot.absolutePath
                 } else {

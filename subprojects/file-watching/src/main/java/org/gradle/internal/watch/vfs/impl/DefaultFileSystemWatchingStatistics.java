@@ -23,7 +23,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE;
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
 public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingStatistics {
     private final FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics;

@@ -25,8 +25,8 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.io.Closeable;
 import java.io.File;
@@ -93,7 +93,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                         }
                     }
                 });
-                return FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.SKIP_SUBTREE;
+                return SnapshotVisitResult.SKIP_SUBTREE;
             });
         }
     }

@@ -23,7 +23,7 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.util.Collections;
 import java.util.Map;

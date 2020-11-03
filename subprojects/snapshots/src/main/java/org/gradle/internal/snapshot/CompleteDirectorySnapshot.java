@@ -20,14 +20,13 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE;
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
 /**
  * A complete snapshot of an existing directory.

@@ -19,10 +19,11 @@ package org.gradle.internal.vfs.impl
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @Unroll
 class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
@@ -263,7 +264,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
             }
 
             @Override
-            FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
+            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
                 if (seenRoot) {
                     relativePath.addLast(entrySnapshot.name)
                     relativePaths.add(relativePath.join("/"))

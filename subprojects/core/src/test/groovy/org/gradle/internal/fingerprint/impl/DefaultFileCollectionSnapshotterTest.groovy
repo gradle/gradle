@@ -32,6 +32,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -39,7 +40,7 @@ import spock.lang.Specification
 
 import javax.annotation.Nullable
 
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 class DefaultFileCollectionSnapshotterTest extends Specification {
     @Rule
@@ -245,7 +246,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
             }
 
             @Override
-            FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
                 count++
                 return CONTINUE
             }

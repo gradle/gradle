@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 class OutputFilterUtilTest extends Specification {
 

@@ -38,26 +38,4 @@ public interface FileSystemSnapshotHierarchyVisitor {
      */
     default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {}
 
-    /**
-     * @see java.nio.file.FileVisitResult
-     */
-    enum SnapshotVisitResult {
-
-        /**
-         * Continue visiting. When returned after visiting a directory,
-         * the entries in the directory will be visited next.
-         */
-        CONTINUE,
-
-        /**
-         * Terminate visiting immediately.
-         */
-        TERMINATE,
-
-        /**
-         * If returned from visiting a directory, the directories entries will not be visited;
-         * otherwise works as {@link #CONTINUE}.
-         */
-        SKIP_SUBTREE
-    }
 }

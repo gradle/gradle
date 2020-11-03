@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathTracker
+import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -37,7 +38,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -77,7 +78,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             }
 
             @Override
-            FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
                 if (!relativePathTracker.root) {
                     files.add(snapshot.absolutePath)
                     relativePathTracker.enter(snapshot)

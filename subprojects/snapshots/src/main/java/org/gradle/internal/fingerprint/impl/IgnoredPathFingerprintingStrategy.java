@@ -22,9 +22,9 @@ import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -73,7 +73,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                         }
                     }
                 });
-                return FileSystemSnapshotHierarchyVisitor.SnapshotVisitResult.CONTINUE;
+                return SnapshotVisitResult.CONTINUE;
             });
         }
         return builder.build();
