@@ -4,6 +4,6 @@ def disableMe = tasks.register('disableMe') {
     }
 }
 
-disableMe {
+disableMe.configure {
     enabled = false
 }

@@ -1,6 +1,6 @@
 // tag::extraProperties[]
 plugins {
-    id 'java'
+    id 'java-library'
 }
 
 ext {

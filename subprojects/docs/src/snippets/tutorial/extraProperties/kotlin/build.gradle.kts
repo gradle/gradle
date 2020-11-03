@@ -1,6 +1,6 @@
 // tag::extraProperties[]
 plugins {
-    java
+    id("java-library")
 }
 
 val springVersion by extra("3.1.0.RELEASE")

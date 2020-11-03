@@ -4,7 +4,7 @@ def compile = tasks.register('compile') {
     }
 }
 
-compile {
+compile.configure {
     doFirst {
         // Here you would put arbitrary conditions in real life.
         if (true) {

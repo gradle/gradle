@@ -7,7 +7,7 @@ def taskX = tasks.register('taskX') {
 // Using a Gradle Provider
 taskX.configure {
     dependsOn(provider {
-        tasks.filter { task -> task.name.startsWith('lib') }
+        tasks.findAll { task -> task.name.startsWith('lib') }
     })
 }
 

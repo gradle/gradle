@@ -4,6 +4,6 @@ def hello = tasks.register('hello') {
     }
 }
 
-hello {
+hello.configure {
     onlyIf { !project.hasProperty('skipHello') }
 }
