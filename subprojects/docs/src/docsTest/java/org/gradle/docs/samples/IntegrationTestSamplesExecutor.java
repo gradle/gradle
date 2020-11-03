@@ -91,7 +91,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             File[] files = jdkFolder.listFiles();
             if(files != null) {
                 String allJdkPaths = Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.joining(","));
-                flags.add("-Dorg.gradle.java.installations.paths=" + allJdkPaths);
+                flags.add("-Porg.gradle.java.installations.paths=" + allJdkPaths);
             }
         }
     }
