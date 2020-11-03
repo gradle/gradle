@@ -308,11 +308,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
 
-        if (javaLauncher.isPresent()) {
-            applyToolchain(spec.getCompileOptions().getForkOptions());
-        } else {
-            spec.getCompileOptions().getForkOptions().setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
-        }
+        configureExecutable(spec.getCompileOptions().getForkOptions());
 
         return spec;
     }
@@ -340,8 +336,12 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         }
     }
 
-    private void applyToolchain(ForkOptions forkOptions) {
-        forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+    private void configureExecutable(ForkOptions forkOptions) {
+        if (javaLauncher.isPresent()) {
+            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+        } else {
+            forkOptions.setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
+        }
     }
 
     private void validateConfiguration() {
@@ -434,7 +434,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     }
 
     /**
-     * The toolchain {@link JavaLauncher} to use for performing the compilation.
+     * The toolchain {@link JavaLauncher} to use for executing the Groovy compiler.
      *
      * @return the java launcher property
      * @since 6.8

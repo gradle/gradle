@@ -220,20 +220,16 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             if (alwaysEnabled || javaConvention == null || !javaConvention.getAutoTargetJvmDisabled()) {
                 int majorVersion = 0;
                 for (TaskProvider<COMPILE> compileTaskProvider : compileTasks) {
-                    int candidateMajorVersion;
                     COMPILE compileTask = compileTaskProvider.get();
                     if (compileTask.getOptions().getRelease().isPresent()) {
-                        candidateMajorVersion = compileTask.getOptions().getRelease().get();
+                        majorVersion = Math.max(majorVersion, compileTask.getOptions().getRelease().get());
                     } else {
                         int releaseFlag = getReleaseOption(compileTask.getOptions().getCompilerArgs());
                         if (releaseFlag != 0) {
-                            candidateMajorVersion = releaseFlag;
+                            majorVersion = Math.max(majorVersion, releaseFlag);
                         } else {
-                            candidateMajorVersion = Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
+                            majorVersion = Math.max(majorVersion, Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion()));
                         }
-                    }
-                    if (candidateMajorVersion > majorVersion) {
-                        majorVersion = candidateMajorVersion;
                     }
                 }
                 if (majorVersion != 0) {
