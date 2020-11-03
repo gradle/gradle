@@ -92,9 +92,7 @@ public class FileSystemSnapshotBuilder {
             return FileSystemSnapshot.EMPTY;
         }
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-        builder.preVisitDirectory(rootPath, rootName);
-        rootDirectoryBuilder.accept(rootPath, builder);
-        builder.postVisitDirectory(determineAccessTypeForLocation(rootPath));
+        rootDirectoryBuilder.accept(rootPath, rootName, builder);
         return Preconditions.checkNotNull(builder.getResult());
     }
 
@@ -141,17 +139,17 @@ public class FileSystemSnapshotBuilder {
             return subDir;
         }
 
-        public void accept(String directoryPath, MerkleDirectorySnapshotBuilder builder) {
+        public void accept(String directoryPath, String directoryName, MerkleDirectorySnapshotBuilder builder) {
+            builder.preVisitDirectory(directoryPath, directoryName);
             for (Map.Entry<String, DirectoryBuilder> entry : subDirs.entrySet()) {
-                String dirName = entry.getKey();
-                String dirPath = stringInterner.intern(directoryPath + File.separatorChar + dirName);
-                builder.preVisitDirectory(dirPath, dirName);
-                entry.getValue().accept(dirPath, builder);
-                builder.postVisitDirectory(determineAccessTypeForLocation(dirPath));
+                String subDirName = entry.getKey();
+                String subDirPath = stringInterner.intern(directoryPath + File.separatorChar + subDirName);
+                entry.getValue().accept(subDirPath, subDirName, builder);
             }
             for (RegularFileSnapshot fileSnapshot : files.values()) {
                 builder.visitEntry(fileSnapshot);
             }
+            builder.postVisitDirectory(determineAccessTypeForLocation(directoryPath));
         }
     }
 
