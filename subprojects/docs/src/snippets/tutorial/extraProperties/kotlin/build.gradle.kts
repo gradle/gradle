@@ -2,23 +2,6 @@
 plugins {
     java
 }
-// end::extraProperties[]
-
-
-// tag::taskProperties[]
-tasks.register("myTask") {
-    extra["myProperty"] = "myValue"
-}
-
-tasks.register("printTaskProperties") {
-    doLast {
-        println(tasks["myTask"].extra["myProperty"])
-    }
-}
-// end::taskProperties[]
-
-
-// tag::extraProperties[]
 
 val springVersion by extra("3.1.0.RELEASE")
 val emailNotification by extra { "build@master.org" }

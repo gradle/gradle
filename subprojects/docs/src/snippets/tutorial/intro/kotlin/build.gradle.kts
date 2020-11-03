@@ -4,7 +4,7 @@ tasks.register("hello") {
     }
 }
 tasks.register("intro") {
-    dependsOn("hello")
+    dependsOn(tasks.hello)
     doLast {
         println("I'm Gradle")
     }
