@@ -19,7 +19,9 @@ import groovy.lang.Closure;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import java.util.Map;
@@ -34,6 +36,16 @@ public abstract class ProjectScript extends PluginsAwareScript {
     @Override
     @SuppressWarnings("unchecked")
     public void apply(Map options) {
+        if (options.containsKey("plugin")) {
+            String plugin = options.get("plugin").toString();
+            if (plugin.startsWith("org.gradle.")) {
+                plugin = plugin.substring(11);
+            }
+            if (AutoAppliedPluginRegistry.EXTERNALIZED_PLUGINS.contains(plugin)) {
+                DeprecationLogger.deprecate("Using the legacy plugin apply mechanism for the '" + plugin + "' plugin").willBecomeAnErrorInGradle8().undocumented().nagUser();
+            }
+        }
+
         getScriptTarget().apply(options);
     }
 
