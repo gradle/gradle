@@ -156,7 +156,7 @@ class GeneratePluginAccessors(
     override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
     override fun <T : Any> withWorkspace(path: String, action: UnitOfWork.WorkspaceAction<T>): T =
-        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$path") { workspace, _ ->
+        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$path") { workspace ->
             action.executeInWorkspace(workspace)
         }
 
