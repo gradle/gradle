@@ -36,6 +36,10 @@ object SamplesGenerator {
         val projectName = "demo"
         val packageName = if (descriptor.supportsPackage()) projectName else null
         val testFramework = if (modularization == ModularizationOption.WITH_LIBRARY_PROJECTS) BuildInitTestFramework.JUNIT_JUPITER else descriptor.defaultTestFramework
+
+        // clear the target directory to remove renamed files and reset the README file
+        target.asFile.deleteRecursively()
+
         val groovyDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
         val kotlinDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
 
@@ -141,7 +145,7 @@ Enter selection (default: JUnit 4) [1..4]
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment.adoc"))
             .withTarget(settings.target.file("../README.adoc").asFile)
-            .withBinding("language", descriptor.language.toString())
+            .withBinding("language", descriptor.language.toString().replace("C++", "{cpp}"))
             .withBinding("languageLC", descriptor.language.name.toLowerCase())
             .withBinding("languageExtension", descriptor.language.extension)
             .withBinding("languageIndex", "" + (languages.indexOf(descriptor.language) + 1))
