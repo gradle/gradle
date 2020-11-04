@@ -18,6 +18,7 @@ package org.gradle.plugin.internal;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -77,8 +78,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     }
 
     private static class BuildScopeServices {
-        AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
-            return new DefaultAutoAppliedPluginRegistry(buildDefinition);
+        AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition, FeaturePreviews featurePreviews) {
+            return new DefaultAutoAppliedPluginRegistry(buildDefinition, featurePreviews);
         }
 
         AutoAppliedPluginHandler createAutoAppliedPluginHandler(AutoAppliedPluginRegistry registry) {

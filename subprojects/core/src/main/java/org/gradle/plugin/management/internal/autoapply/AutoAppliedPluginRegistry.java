@@ -20,12 +20,17 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.plugin.management.internal.PluginRequests;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Provides a list of plugins that can be auto-applied to a certain Project.
  *
  * @since 4.3
  */
 public interface AutoAppliedPluginRegistry {
+
+    List<String> EXTERNALIZED_PLUGINS = Arrays.asList("antlr");
 
     /**
      * Returns the plugins that should be auto-applied to the given

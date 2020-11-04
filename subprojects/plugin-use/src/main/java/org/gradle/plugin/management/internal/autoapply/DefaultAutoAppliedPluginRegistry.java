@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -29,6 +30,9 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
 
@@ -40,21 +44,24 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
     private static final PluginRequests GRADLE_ENTERPRISE_PLUGIN_REQUEST = PluginRequests.of(createGradleEnterprisePluginRequest());
 
     private final BuildDefinition buildDefinition;
+    private final FeaturePreviews featurePreviews;
 
-    public DefaultAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
+    public DefaultAutoAppliedPluginRegistry(BuildDefinition buildDefinition, FeaturePreviews featurePreviews) {
         this.buildDefinition = buildDefinition;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
-        if (target.getParent() == null) {
-            return PluginRequests.of(createAntlrPluginRequest());
+        if (target.getParent() == null && !featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.SLIM_GRADLE_DISTRIBUTION)) {
+            return PluginRequests.of(createExternalCorePluginRequests());
         }
         return PluginRequests.EMPTY;
     }
 
-    private static PluginRequestInternal createAntlrPluginRequest() {
-        return new DefaultPluginRequest("antlr", null, false, null, "auto-applied legacy core");
+    private static List<PluginRequestInternal> createExternalCorePluginRequests() {
+        return EXTERNALIZED_PLUGINS.stream().map(id ->
+            new DefaultPluginRequest(id, null, false, null, "auto-applied legacy core")).collect(Collectors.toList());
     }
 
     @Override
