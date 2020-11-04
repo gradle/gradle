@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.workspace.WorkspaceProvider.WorkspaceAction
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -160,8 +160,8 @@ class DefaultDependenciesAccessorsTest extends Specification {
         accessors.generateAccessors([builder], scope, settings)
 
         then:
-        1 * workspace.withWorkspace('6d80945bb0fc58a3bcc8b465b50ded192e8d884c', _) >> { args ->
-            args[1].executeInWorkspace(workspaceDir, Stub(ExecutionHistoryStore))
+        1 * workspace.withWorkspace('6d80945bb0fc58a3bcc8b465b50ded192e8d884c', _) >> { String path, WorkspaceAction action ->
+            action.executeInWorkspace(workspaceDir)
         }
         1 * buildOperationExecutor._
         1 * scope.export(DefaultClassPath.of(new File(workspaceDir, "classes")))
