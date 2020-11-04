@@ -21,7 +21,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -56,7 +55,7 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
         this.baseDirectory = baseDirectory;
         this.cache = cacheRepository
             .cache(baseDirectory)
-            .withCleanup(createCleanupAction(baseDirectory, fileAccessTimeJournal))
+            .withCleanup(createCleanupAction(fileAccessTimeJournal))
             .withDisplayName(name)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
@@ -64,16 +63,12 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
         this.executionHistoryStore = new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner);
     }
 
-    private static CleanupAction createCleanupAction(File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
-        return CompositeCleanupAction.builder()
-            .add(filesOutputDirectory,
-                new LeastRecentlyUsedCacheCleanup(
-                    new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
-                    fileAccessTimeJournal,
-                    DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
-                )
-            )
-            .build();
+    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
+        return new LeastRecentlyUsedCacheCleanup(
+            new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
+            fileAccessTimeJournal,
+            DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+        );
     }
 
     @Override

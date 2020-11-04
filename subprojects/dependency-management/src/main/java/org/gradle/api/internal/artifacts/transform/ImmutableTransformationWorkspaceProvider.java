@@ -22,7 +22,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -59,7 +58,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
         this.baseDirectory = baseDirectory;
         this.cache = cacheRepository
             .cache(baseDirectory)
-            .withCleanup(createCleanupAction(baseDirectory, fileAccessTimeJournal))
+            .withCleanup(createCleanupAction(fileAccessTimeJournal))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
@@ -69,10 +68,8 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
         this.identityCache = identityCache;
     }
 
-    private CleanupAction createCleanupAction(File baseDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
-        return CompositeCleanupAction.builder()
-            .add(baseDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
-            .build();
+    private CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
+        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES);
     }
 
     @Override
