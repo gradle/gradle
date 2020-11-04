@@ -283,7 +283,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
+        public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
             return action.executeInWorkspace(null);
         }
 

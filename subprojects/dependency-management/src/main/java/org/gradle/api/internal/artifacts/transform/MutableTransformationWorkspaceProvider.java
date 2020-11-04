@@ -53,9 +53,8 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
-        String workspacePath = identity.getUniqueId();
-        File workspaceDir = new File(baseDirectory.get().getAsFile(), workspacePath);
+    public <T> T withWorkspace(String path, TransformationWorkspaceAction<T> workspaceAction) {
+        File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
         return workspaceAction.useWorkspace(workspaceDir);
     }
 

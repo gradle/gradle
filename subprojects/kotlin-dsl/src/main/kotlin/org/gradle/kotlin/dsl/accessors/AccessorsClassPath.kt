@@ -154,8 +154,8 @@ class GenerateProjectAccessors(
 
     override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
-    override fun <T : Any> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
-        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
+    override fun <T : Any> withWorkspace(path: String, action: UnitOfWork.WorkspaceAction<T>): T =
+        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$path") { workspace, _ ->
             action.executeInWorkspace(workspace)
         }
 

@@ -796,7 +796,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                <T> T withWorkspace(String identity, UnitOfWork.WorkspaceAction<T> action) {
+                <T> T withWorkspace(String path, UnitOfWork.WorkspaceAction<T> action) {
                     return action.executeInWorkspace(null)
                 }
 

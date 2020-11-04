@@ -28,7 +28,7 @@ public interface TransformationWorkspaceProvider {
     /**
      * Provides a workspace for executing the transformation.
      */
-    <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction);
+    <T> T withWorkspace(String path, TransformationWorkspaceAction<T> workspaceAction);
 
     /**
      * The execution history store for transformations using the provided workspaces.

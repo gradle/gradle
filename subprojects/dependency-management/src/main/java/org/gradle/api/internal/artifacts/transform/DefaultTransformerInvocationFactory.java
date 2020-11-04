@@ -303,8 +303,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
-            return workspaceProvider.withWorkspace(this.identity, (workspace) -> action.executeInWorkspace(workspace));
+        public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+            return workspaceProvider.withWorkspace(path, action::executeInWorkspace);
         }
 
         private void writeResultsFile(File workspace, ImmutableList<File> result) {

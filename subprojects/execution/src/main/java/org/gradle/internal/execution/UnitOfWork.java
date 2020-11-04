@@ -53,7 +53,7 @@ public interface UnitOfWork extends Describable {
         String getUniqueId();
     }
 
-    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
+    <T> T withWorkspace(String path, WorkspaceAction<T> action);
 
     interface WorkspaceAction<T> {
         T executeInWorkspace(File workspace);
