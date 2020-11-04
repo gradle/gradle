@@ -32,11 +32,14 @@ import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_NAMESPACE;
 
 public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
@@ -118,11 +121,22 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         return !configuration.getResolvedConfiguration().hasError();
     }
 
+    private boolean isCorePluginRequest(PluginId id) {
+        String namespace = id.getNamespace();
+        return namespace == null || namespace.equals(CORE_PLUGIN_NAMESPACE);
+    }
+
     private ModuleDependency getMarkerDependency(PluginRequestInternal pluginRequest) {
         ModuleVersionSelector selector = pluginRequest.getModule();
         if (selector == null) {
-            String id = pluginRequest.getId().getId();
-            return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
+            String id;
+            if (pluginRequest.getId().getNamespace() == null) {
+                id = CORE_PLUGIN_NAMESPACE + DefaultPluginId.SEPARATOR + pluginRequest.getId().getId();
+            } else {
+                id = pluginRequest.getId().getId();
+            }
+            String version = isCorePluginRequest(pluginRequest.getId()) ? GradleVersion.current().getVersion() : pluginRequest.getVersion();
+            return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, version);
         } else {
             return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersion());
         }
