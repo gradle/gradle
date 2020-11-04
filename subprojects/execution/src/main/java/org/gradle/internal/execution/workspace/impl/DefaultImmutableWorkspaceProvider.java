@@ -94,9 +94,9 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     }
 
     @Override
-    public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
+    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
         return cache.withFileLock(() -> {
-            File workspace = new File(baseDirectory, identity);
+            File workspace = new File(baseDirectory, path);
             fileAccessTracker.markAccessed(workspace);
             return action.executeInWorkspace(workspace);
         });

@@ -42,8 +42,8 @@ public class DependenciesAccessorsWorkspace implements WorkspaceProvider, Closea
     }
 
     @Override
-    public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
-        return delegate.withWorkspace(identity, action);
+    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+        return delegate.withWorkspace(path, action);
     }
 
     @Override

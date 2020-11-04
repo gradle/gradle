@@ -24,7 +24,7 @@ public interface WorkspaceProvider {
     /**
      * Provides a workspace and execution history store for executing the transformation.
      */
-    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
+    <T> T withWorkspace(String path, WorkspaceAction<T> action);
 
     ExecutionHistoryStore getHistory();
 

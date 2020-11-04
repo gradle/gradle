@@ -45,7 +45,8 @@ public class TestTransformationWorkspaceProvider implements TransformationWorksp
     }
 
     @Override
-    public <T> T withWorkspace(String path, TransformationWorkspaceAction<T> workspaceAction) {
-        return workspaceAction.useWorkspace(new File(transformationsStoreDirectory, path));
+    public <T> T withWorkspace(String path, WorkspaceAction<T> workspaceAction) {
+        File workspace = new File(transformationsStoreDirectory, path);
+        return workspaceAction.executeInWorkspace(workspace);
     }
 }

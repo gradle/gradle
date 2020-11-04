@@ -45,8 +45,8 @@ class KotlinDslWorkspaceProvider(
         stringInterner
     )
 
-    override fun <T : Any> withWorkspace(identity: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
-        delegate.withWorkspace(identity, action)
+    override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
+        delegate.withWorkspace(path, action)
 
     override fun getHistory(): ExecutionHistoryStore = delegate.history
 

@@ -50,8 +50,8 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public <T> T withWorkspace(String path, TransformationWorkspaceAction<T> workspaceAction) {
-        return delegate.withWorkspace(path, workspaceAction::useWorkspace);
+    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+        return delegate.withWorkspace(path, action);
     }
 
     @Override
