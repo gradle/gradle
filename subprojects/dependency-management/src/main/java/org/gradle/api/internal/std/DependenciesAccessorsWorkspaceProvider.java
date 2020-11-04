@@ -29,10 +29,10 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import java.io.Closeable;
 import java.util.Optional;
 
-public class DependenciesAccessorsWorkspace implements WorkspaceProvider, Closeable {
+public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
     private final DefaultImmutableWorkspaceProvider delegate;
 
-    public DependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
+    public DependenciesAccessorsWorkspaceProvider(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
             cacheRepository
                 .cache(cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion))
