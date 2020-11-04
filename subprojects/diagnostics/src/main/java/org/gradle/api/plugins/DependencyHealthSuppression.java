@@ -16,24 +16,9 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 
-import javax.inject.Inject;
-
-public class DependencyHealth {
-    private final DependencyHealthSuppression suppression;
-
-    @Inject
-    public DependencyHealth(ObjectFactory objectFactory) {
-        this.suppression = objectFactory.newInstance(DependencyHealthSuppression.class);
-    }
-
-    public DependencyHealthSuppression getSuppressed() {
-        return suppression;
-    }
-
-    public void suppress(Action<DependencyHealthSuppression> action) {
-        action.execute(getSuppressed());
-    }
+public interface DependencyHealthSuppression {
+    ListProperty<String> getCves();
+    ListProperty<String> getGroups();
 }
