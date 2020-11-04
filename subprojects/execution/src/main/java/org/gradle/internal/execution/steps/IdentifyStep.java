@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;

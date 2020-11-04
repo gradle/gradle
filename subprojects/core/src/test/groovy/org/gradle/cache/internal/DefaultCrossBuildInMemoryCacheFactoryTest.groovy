@@ -17,112 +17,14 @@
 package org.gradle.cache.internal
 
 import org.gradle.initialization.SessionLifecycleListener
-import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.service.scopes.Scopes
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Function
 
-class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
-    def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
-    def factory = new DefaultCrossBuildInMemoryCacheFactory(listenerManager)
+class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemoryCacheTest {
 
-    def "creates a cache that uses the given transformer to create entries"() {
-        def a = new Object()
-        def b = new Object()
-        def function = Mock(Function)
-
-        given:
-        function.apply("a") >> a
-        function.apply("b") >> b
-
-        def cache = factory.newCache()
-
-        expect:
-        cache.get("a", function) == a
-        cache.get("b", function) == b
-        cache.get("a", function) == a
-    }
-
-    def "creates each entry once"() {
-        def a = new Object()
-        def b = new Object()
-        def c = new Object()
-        def function = Mock(Function)
-
-        given:
-        def cache = factory.newCache()
-        cache.put("c", c)
-
-        when:
-        def r1 = cache.get("a", function)
-        def r2 = cache.get("b", function)
-        def r3 = cache.get("a", function)
-        def r4 = cache.get("b", function)
-        def r5 = cache.get("c", function)
-
-        then:
-        r1 == a
-        r2 == b
-        r3 == a
-        r4 == b
-        r5 == c
-
-        and:
-        1 * function.apply("a") >> a
-        1 * function.apply("b") >> b
-        0 * function._
-    }
-
-    def "entry is created once when multiple threads attempt to create the same entry"() {
-        def a = new Object()
-        def function = Mock(Function)
-
-        given:
-        def cache = factory.newCache()
-
-        when:
-        def values = new CopyOnWriteArrayList()
-        async {
-            start {
-                values << cache.get("a", function)
-            }
-            start {
-                values << cache.get("a", function)
-            }
-            start {
-                values << cache.get("a", function)
-            }
-            start {
-                values << cache.get("a", function)
-            }
-        }
-
-        then:
-        values.unique() == [a]
-
-        and:
-        1 * function.apply("a") >> a
-        0 * function._
-    }
-
-    def "can get entries"() {
-        def a = new Object()
-        def b = new Object()
-        def function = Mock(Function)
-
-        given:
-        function.apply("a") >> a
-
-        def cache = factory.newCache()
-        cache.get("a", function)
-        cache.put("b", b)
-
-        expect:
-        cache.get("a") == a
-        cache.get("b") == b
-        cache.get("c") == null
+    @Override
+    CrossBuildInMemoryCache<String, Object> newCache() {
+        return factory.newCache()
     }
 
     def "retains strong references to values from the previous session"() {

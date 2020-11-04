@@ -27,6 +27,11 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
     }
 
     @Override
+    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild() {
+        return new TestCache<K, V>()
+    }
+
+    @Override
     <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
         return new TestCache<Class<?>, V>()
     }
