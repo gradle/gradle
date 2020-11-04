@@ -58,6 +58,18 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
         );
     }
 
+    public static DefaultImmutableWorkspaceProvider withExternalHistory(
+        CacheBuilder cacheBuilder,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        ExecutionHistoryStore executionHistoryStore
+    ) {
+        return new DefaultImmutableWorkspaceProvider(
+            cacheBuilder,
+            fileAccessTimeJournal,
+            __ -> executionHistoryStore
+        );
+    }
+
     private DefaultImmutableWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,

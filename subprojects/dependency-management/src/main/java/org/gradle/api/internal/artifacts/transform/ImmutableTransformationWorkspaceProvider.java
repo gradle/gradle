@@ -18,34 +18,21 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CleanupAction;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
-import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.File;
 
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 @NotThreadSafe
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
-    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
-
     private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
-    private final SingleDepthFileAccessTracker fileAccessTracker;
-    private final File baseDirectory;
-    private final ExecutionHistoryStore executionHistoryStore;
-    private final PersistentCache cache;
+    private final DefaultImmutableWorkspaceProvider delegate;
 
     public ImmutableTransformationWorkspaceProvider(
         CacheBuilder cacheBuilder,
@@ -53,23 +40,8 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
         ExecutionHistoryStore executionHistoryStore,
         CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache
     ) {
-        this.cache = cacheBuilder
-            .withCleanup(createCleanupAction(fileAccessTimeJournal))
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
-            .open();
-        this.baseDirectory = cache.getBaseDir();
-        this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
-        this.executionHistoryStore = executionHistoryStore;
+        this.delegate = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore);
         this.identityCache = identityCache;
-    }
-
-    private CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
-        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES);
-    }
-
-    @Override
-    public ExecutionHistoryStore getExecutionHistoryStore() {
-        return executionHistoryStore;
     }
 
     @Override
@@ -79,16 +51,17 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
 
     @Override
     public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
-        return cache.withFileLock(() -> {
-            String workspacePath = identity.getUniqueId();
-            File workspaceDir = new File(baseDirectory, workspacePath);
-            fileAccessTracker.markAccessed(workspaceDir);
-            return workspaceAction.useWorkspace(workspacePath, workspaceDir);
-        });
+        String workspacePath = identity.getUniqueId();
+        return delegate.withWorkspace(workspacePath, (workspaceDir, __) -> workspaceAction.useWorkspace(workspacePath, workspaceDir));
+    }
+
+    @Override
+    public ExecutionHistoryStore getExecutionHistoryStore() {
+        return delegate.getHistory();
     }
 
     @Override
     public void close() {
-        cache.close();
+        delegate.close();
     }
 }
