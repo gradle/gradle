@@ -23,14 +23,14 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
-    private EmptyDirectorySensitivity emptyDirectorySensitivity = EmptyDirectorySensitivity.FINGERPRINT_EMPTY;
+    private DirectorySensitivity directorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
     public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
@@ -93,19 +93,19 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public EmptyDirectorySensitivity getEmptyDirectorySensitivity() {
-        return emptyDirectorySensitivity;
+    public DirectorySensitivity getEmptyDirectorySensitivity() {
+        return directorySensitivity;
     }
 
     @Override
-    public TaskInputFilePropertyBuilder ignoreEmptyDirectories() {
-        this.emptyDirectorySensitivity = EmptyDirectorySensitivity.IGNORE_EMPTY;
+    public TaskInputFilePropertyBuilder ignoreDirectories() {
+        this.directorySensitivity = DirectorySensitivity.IGNORE_DIRECTORIES;
         return this;
     }
 
     @Override
-    public TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ingoreEmptyDirectories) {
-        this.emptyDirectorySensitivity = ingoreEmptyDirectories ? EmptyDirectorySensitivity.IGNORE_EMPTY : EmptyDirectorySensitivity.FINGERPRINT_EMPTY;
+    public TaskInputFilePropertyBuilder ignoreDirectories(boolean ingoreDirectories) {
+        this.directorySensitivity = ingoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.FINGERPRINT_DIRECTORIES;
         return this;
     }
 

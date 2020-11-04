@@ -17,19 +17,25 @@
 package org.gradle.api.tasks
 
 
-class UpToDateEmptyDirectorySensitivityIntegrationSpec extends AbstractEmptyDirectorySensitivityIntegrationSpec {
+class CachedDirectorySensitivityIntegrationSpec extends AbstractDirectorySensitivityIntegrationSpec {
+    def setup() {
+        buildFile << """
+            plugins { id 'base' }
+        """
+    }
+
     @Override
     void execute(String... tasks) {
-        succeeds(tasks)
+        withBuildCache().run tasks
     }
 
     @Override
     void cleanWorkspace() {
-        // do nothing
+        run "clean"
     }
 
     @Override
     String getStatusForReusedOutput() {
-        return "UP-TO-DATE"
+        return "FROM-CACHE"
     }
 }

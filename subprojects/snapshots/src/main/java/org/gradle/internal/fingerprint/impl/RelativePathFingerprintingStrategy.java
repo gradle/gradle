@@ -21,7 +21,6 @@ import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.PathTracker;
@@ -30,7 +29,7 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity.IGNORE_EMPTY;
+import static org.gradle.internal.fingerprint.impl.DirectorySensitivity.IGNORE_DIRECTORIES;
 
 /**
  * Fingerprint file system snapshots normalizing the path to the relative path in a hierarchy.
@@ -39,14 +38,14 @@ import static org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity.IGN
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final String IDENTIFIER = "RELATIVE_PATH";
-    private final EmptyDirectorySensitivity emptyDirectorySensitivity;
+    private final DirectorySensitivity directorySensitivity;
 
     private final Interner<String> stringInterner;
 
-    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, EmptyDirectorySensitivity emptyDirectorySensitivity) {
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity) {
         super(IDENTIFIER);
         this.stringInterner = stringInterner;
-        this.emptyDirectorySensitivity = emptyDirectorySensitivity;
+        this.directorySensitivity = directorySensitivity;
     }
 
     @Override
@@ -56,10 +55,6 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         } else {
             return snapshot.getName();
         }
-    }
-
-    private boolean shouldFingerprint(CompleteDirectorySnapshot directorySnapshot) {
-        return !(directorySnapshot.getChildren().isEmpty() && emptyDirectorySensitivity == IGNORE_EMPTY);
     }
 
     @Override
@@ -72,7 +67,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
-                        if (!shouldFingerprint((CompleteDirectorySnapshot)snapshot)) {
+                        if (directorySensitivity == IGNORE_DIRECTORIES) {
                             return SnapshotVisitResult.CONTINUE;
                         }
                         fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;

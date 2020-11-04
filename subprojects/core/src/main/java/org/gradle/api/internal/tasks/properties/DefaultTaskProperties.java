@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;
@@ -258,7 +258,7 @@ public class DefaultTaskProperties implements TaskProperties {
         private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, EmptyDirectorySensitivity emptyDirectorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
             taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 

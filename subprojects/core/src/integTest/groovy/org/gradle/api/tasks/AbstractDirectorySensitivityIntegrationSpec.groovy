@@ -17,11 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity
 import spock.lang.Unroll
 
 
-abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractIntegrationSpec {
     abstract void execute(String... tasks)
 
     abstract void cleanWorkspace()
@@ -30,7 +30,7 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
 
     @Unroll
     def "task is sensitive to empty directories by default (#api)"() {
-        createTaskWithSensitivity(EmptyDirectorySensitivity.FINGERPRINT_EMPTY, api)
+        createTaskWithSensitivity(DirectorySensitivity.FINGERPRINT_DIRECTORIES, api)
         buildFile << """
             taskWithInputs {
                 sources.from(project.files("foo", "bar"))
@@ -59,6 +59,8 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
         when:
         cleanWorkspace()
         file('foo/c').mkdir()
+        file('foo/c/1').mkdir()
+        file('foo/c/2').mkdir()
         execute("taskWithInputs")
 
         then:
@@ -70,7 +72,7 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
 
     @Unroll
     def "empty directories are ignored when specified (#api)"() {
-        createTaskWithSensitivity(EmptyDirectorySensitivity.IGNORE_EMPTY, api)
+        createTaskWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES, api)
         buildFile << """
             taskWithInputs {
                 sources.from(project.files("foo", "bar"))
@@ -99,6 +101,8 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
         when:
         cleanWorkspace()
         file('foo/c').mkdir()
+        file('foo/c/1').mkdir()
+        file('foo/c/2').mkdir()
         execute("taskWithInputs")
 
         then:
@@ -112,7 +116,7 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
         RUNTIME_API, ANNOTATION_API
     }
 
-    void createTaskWithSensitivity(EmptyDirectorySensitivity emptyDirectorySensitivity, API api) {
+    void createTaskWithSensitivity(DirectorySensitivity emptyDirectorySensitivity, API api) {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs)
         """
@@ -125,12 +129,13 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
         }
     }
 
-    void createAnnotatedTaskWithSensitivity(EmptyDirectorySensitivity emptyDirectorySensitivity) {
+    void createAnnotatedTaskWithSensitivity(DirectorySensitivity directorySensitivity) {
         buildFile << """
+            @CacheableTask
             class TaskWithInputs extends DefaultTask {
                 @InputFiles
                 @PathSensitive(PathSensitivity.RELATIVE)
-                ${emptyDirectorySensitivity == EmptyDirectorySensitivity.IGNORE_EMPTY ? "@${IgnoreEmptyDirectories.class.simpleName}" : ''}
+                ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreDirectories.class.simpleName}" : ''}
                 FileCollection sources
 
                 @OutputFile
@@ -150,8 +155,9 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
         """
     }
 
-    void createRuntimeApiTaskWithSensitivity(EmptyDirectorySensitivity emptyDirectorySensitivity) {
+    void createRuntimeApiTaskWithSensitivity(DirectorySensitivity directorySensitivity) {
         buildFile << """
+            @CacheableTask
             class TaskWithInputs extends DefaultTask {
                 @Internal FileCollection sources
                 @OutputFile File outputFile
@@ -161,7 +167,7 @@ abstract class AbstractEmptyDirectorySensitivityIntegrationSpec extends Abstract
 
                     inputs.files(sources)
                         .withPathSensitivity(PathSensitivity.RELATIVE)
-                        ${emptyDirectorySensitivity == EmptyDirectorySensitivity.IGNORE_EMPTY ? '.ignoreEmptyDirectories()' : ''}
+                        ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? '.ignoreDirectories()' : ''}
                         .withPropertyName('sources')
                 }
 

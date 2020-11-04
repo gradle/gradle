@@ -17,18 +17,18 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.EmptyDirectorySensitiveNormalizer;
+import org.gradle.internal.fingerprint.DirectorySensitiveNormalizer;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterSpec;
 
 import java.util.Objects;
 
 public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFingerprinterSpec {
     private final Class<? extends FileNormalizer> normalizer;
-    private final EmptyDirectorySensitivity emptyDirectorySensitivity;
+    private final DirectorySensitivity directorySensitivity;
 
-    public DefaultFileCollectionFingerprinterSpec(Class<? extends FileNormalizer> normalizer, EmptyDirectorySensitivity emptyDirectorySensitivity) {
+    public DefaultFileCollectionFingerprinterSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
         this.normalizer = normalizer;
-        this.emptyDirectorySensitivity = emptyDirectorySensitivity;
+        this.directorySensitivity = directorySensitivity;
     }
 
     @Override
@@ -37,15 +37,15 @@ public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFin
     }
 
     @Override
-    public EmptyDirectorySensitivity getEmptyDirectorySensitivity() {
-        return emptyDirectorySensitivity;
+    public DirectorySensitivity getEmptyDirectorySensitivity() {
+        return directorySensitivity;
     }
 
-    public static FileCollectionFingerprinterSpec from(Class<? extends FileNormalizer> normalizer, EmptyDirectorySensitivity emptyDirectorySensitivity) {
-        if (EmptyDirectorySensitiveNormalizer.class.isAssignableFrom(normalizer)) {
-            return new DefaultFileCollectionFingerprinterSpec(normalizer, emptyDirectorySensitivity);
+    public static FileCollectionFingerprinterSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
+        if (DirectorySensitiveNormalizer.class.isAssignableFrom(normalizer)) {
+            return new DefaultFileCollectionFingerprinterSpec(normalizer, directorySensitivity);
         } else {
-            return new DefaultFileCollectionFingerprinterSpec(normalizer, EmptyDirectorySensitivity.NONE);
+            return new DefaultFileCollectionFingerprinterSpec(normalizer, DirectorySensitivity.NONE);
         }
     }
 
@@ -59,11 +59,11 @@ public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFin
         }
         DefaultFileCollectionFingerprinterSpec that = (DefaultFileCollectionFingerprinterSpec) o;
         return normalizer.equals(that.normalizer) &&
-            emptyDirectorySensitivity == that.emptyDirectorySensitivity;
+            directorySensitivity == that.directorySensitivity;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(normalizer, emptyDirectorySensitivity);
+        return Objects.hash(normalizer, directorySensitivity);
     }
 }

@@ -18,21 +18,21 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 
 import javax.annotation.Nullable;
 
 public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec implements InputFilePropertySpec {
     private final boolean skipWhenEmpty;
     private final boolean incremental;
-    private final EmptyDirectorySensitivity emptyDirectorySensitivity;
+    private final DirectorySensitivity directorySensitivity;
     private final PropertyValue value;
 
-    public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollectionInternal files, PropertyValue value, boolean skipWhenEmpty, boolean incremental, EmptyDirectorySensitivity emptyDirectorySensitivity) {
+    public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollectionInternal files, PropertyValue value, boolean skipWhenEmpty, boolean incremental, DirectorySensitivity directorySensitivity) {
         super(propertyName, normalizer, files);
         this.skipWhenEmpty = skipWhenEmpty;
         this.incremental = incremental;
-        this.emptyDirectorySensitivity = emptyDirectorySensitivity;
+        this.directorySensitivity = directorySensitivity;
         this.value = value;
     }
 
@@ -47,8 +47,8 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     }
 
     @Override
-    public EmptyDirectorySensitivity getEmptyDirectorySensitivity() {
-        return emptyDirectorySensitivity;
+    public DirectorySensitivity getEmptyDirectorySensitivity() {
+        return directorySensitivity;
     }
 
     @Override

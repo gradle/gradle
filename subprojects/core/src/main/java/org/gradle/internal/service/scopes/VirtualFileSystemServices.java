@@ -69,7 +69,7 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
@@ -416,19 +416,19 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new RelativePathFileCollectionFingerprinter(stringInterner, EmptyDirectorySensitivity.FINGERPRINT_EMPTY, fileCollectionSnapshotter);
+            return new RelativePathFileCollectionFingerprinter(stringInterner, DirectorySensitivity.FINGERPRINT_DIRECTORIES, fileCollectionSnapshotter);
         }
 
         RelativePathFileCollectionFingerprinter createRelativePathIgnoreEmptyFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new RelativePathFileCollectionFingerprinter(stringInterner, EmptyDirectorySensitivity.IGNORE_EMPTY, fileCollectionSnapshotter);
+            return new RelativePathFileCollectionFingerprinter(stringInterner, DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
         }
 
         NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new NameOnlyFileCollectionFingerprinter(EmptyDirectorySensitivity.FINGERPRINT_EMPTY, fileCollectionSnapshotter);
+            return new NameOnlyFileCollectionFingerprinter(DirectorySensitivity.FINGERPRINT_DIRECTORIES, fileCollectionSnapshotter);
         }
 
         NameOnlyFileCollectionFingerprinter createNameOnlyIgnoreEmptyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new NameOnlyFileCollectionFingerprinter(EmptyDirectorySensitivity.IGNORE_EMPTY, fileCollectionSnapshotter);
+            return new NameOnlyFileCollectionFingerprinter(DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
         }
 
         IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {

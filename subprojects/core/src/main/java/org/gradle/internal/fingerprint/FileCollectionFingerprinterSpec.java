@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 
 /**
  * Specifies criteria for selecting a {@link FileCollectionFingerprinter}
@@ -25,5 +25,5 @@ import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
 public interface FileCollectionFingerprinterSpec {
     Class<? extends FileNormalizer> getNormalizer();
 
-    EmptyDirectorySensitivity getEmptyDirectorySensitivity();
+    DirectorySensitivity getEmptyDirectorySensitivity();
 }

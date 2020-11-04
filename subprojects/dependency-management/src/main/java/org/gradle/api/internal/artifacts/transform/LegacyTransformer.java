@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity;
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -121,8 +121,8 @@ public class LegacyTransformer extends AbstractTransformer<org.gradle.api.artifa
     }
 
     @Override
-    public EmptyDirectorySensitivity getEmptyDirectorySensitivity() {
-        return EmptyDirectorySensitivity.FINGERPRINT_EMPTY;
+    public DirectorySensitivity getDirectorySensitivity() {
+        return DirectorySensitivity.FINGERPRINT_DIRECTORIES;
     }
 
     @Override

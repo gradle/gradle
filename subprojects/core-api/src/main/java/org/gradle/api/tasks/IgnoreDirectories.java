@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,8 +25,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a task input property to specify that empty directories should be ignored
- * when snapshotting inputs.
+ * Attached to a task input property to specify that directories should be ignored
+ * when snapshotting inputs.  Files within directories and subdirectories will be
+ * snapshot, but the directories themselves will be ignored (i.e. empty directories
+ * will have no effect on the resulting snapshot).
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
@@ -32,9 +36,12 @@ import java.lang.annotation.Target;
  * <ul><li>{@link org.gradle.api.tasks.InputFiles}</li>
  *
  * <li>{@link org.gradle.api.tasks.InputDirectory}</li> </ul>
+ *
+ * @since 6.8
  */
+@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
-public @interface IgnoreEmptyDirectories {
+public @interface IgnoreDirectories {
 }

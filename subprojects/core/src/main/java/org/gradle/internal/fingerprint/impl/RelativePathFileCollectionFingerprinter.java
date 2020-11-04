@@ -23,8 +23,8 @@ import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
 public class RelativePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, EmptyDirectorySensitivity emptyDirectorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(new RelativePathFingerprintingStrategy(stringInterner, emptyDirectorySensitivity), emptyDirectorySensitivity, fileCollectionSnapshotter);
+    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        super(new RelativePathFingerprintingStrategy(stringInterner, directorySensitivity), directorySensitivity, fileCollectionSnapshotter);
     }
 
     @Override

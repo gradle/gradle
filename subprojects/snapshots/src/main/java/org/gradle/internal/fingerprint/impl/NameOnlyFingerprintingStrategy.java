@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
@@ -36,23 +35,19 @@ import java.util.Map;
  */
 public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
-    public static final NameOnlyFingerprintingStrategy FINGERPRINT_DIRECTORIES = new NameOnlyFingerprintingStrategy(EmptyDirectorySensitivity.FINGERPRINT_EMPTY);
-    public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(EmptyDirectorySensitivity.IGNORE_EMPTY);
+    public static final NameOnlyFingerprintingStrategy FINGERPRINT_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.FINGERPRINT_DIRECTORIES);
+    public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "NAME_ONLY";
-    private final EmptyDirectorySensitivity emptyDirectorySensitivity;
+    private final DirectorySensitivity directorySensitivity;
 
-    private NameOnlyFingerprintingStrategy(EmptyDirectorySensitivity emptyDirectorySensitivity) {
+    private NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
         super(IDENTIFIER);
-        this.emptyDirectorySensitivity = emptyDirectorySensitivity;
+        this.directorySensitivity = directorySensitivity;
     }
 
     @Override
     public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
         return snapshot.getName();
-    }
-
-    private boolean shouldFingerprint(CompleteDirectorySnapshot directorySnapshot) {
-        return !(directorySnapshot.getChildren().isEmpty() && emptyDirectorySensitivity == EmptyDirectorySensitivity.IGNORE_EMPTY);
     }
 
     @Override
@@ -64,7 +59,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath)) {
-                    if (snapshot.getType() == FileType.Directory && !shouldFingerprint((CompleteDirectorySnapshot)snapshot)) {
+                    if (snapshot.getType() == FileType.Directory && directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES) {
                         return SnapshotVisitResult.CONTINUE;
                     }
                     FileSystemLocationFingerprint fingerprint = isRoot && snapshot.getType() == FileType.Directory

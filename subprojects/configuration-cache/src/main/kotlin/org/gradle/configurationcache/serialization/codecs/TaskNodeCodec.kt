@@ -56,7 +56,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity
 import org.gradle.util.DeferredUtil
 
 
@@ -329,19 +329,19 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
     (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
 
         override fun visitInputFileProperty(
-                propertyName: String,
-                optional: Boolean,
-                skipWhenEmpty: Boolean,
-                emptyDirectorySensitivity: EmptyDirectorySensitivity,
-                incremental: Boolean,
-                fileNormalizer: Class<out FileNormalizer>?,
-                propertyValue: PropertyValue,
-                filePropertyType: InputFilePropertyType
+            propertyName: String,
+            optional: Boolean,
+            skipWhenEmpty: Boolean,
+            directorySensitivity: DirectorySensitivity,
+            incremental: Boolean,
+            fileNormalizer: Class<out FileNormalizer>?,
+            propertyValue: PropertyValue,
+            filePropertyType: InputFilePropertyType
         ) {
             properties.add(
                 RegisteredProperty.InputFile(
                     propertyName,
-                        propertyValue,
+                    propertyValue,
                     optional,
                     filePropertyType,
                     skipWhenEmpty,

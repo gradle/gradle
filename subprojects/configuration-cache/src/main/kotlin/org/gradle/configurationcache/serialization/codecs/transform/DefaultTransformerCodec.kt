@@ -31,7 +31,7 @@ import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeEnum
-import org.gradle.internal.fingerprint.impl.EmptyDirectorySensitivity
+import org.gradle.internal.fingerprint.impl.DirectorySensitivity
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.service.ServiceRegistry
 
@@ -49,7 +49,7 @@ class DefaultTransformerCodec(
             writeClass(value.inputArtifactNormalizer)
             writeClass(value.inputArtifactDependenciesNormalizer)
             writeBoolean(value.isCacheable)
-            writeEnum(value.emptyDirectorySensitivity)
+            writeEnum(value.directorySensitivity)
             write(value.isolatedParameters)
             // TODO - isolate now and discard node, if isolation is scheduled but has no dependencies
         }
@@ -62,7 +62,7 @@ class DefaultTransformerCodec(
             val inputArtifactNormalizer = readClassOf<FileNormalizer>()
             val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
             val isCacheable = readBoolean()
-            val emptyDirectorySensitivity = readEnum<EmptyDirectorySensitivity>()
+            val directorySensitivity = readEnum<DirectorySensitivity>()
             val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransformer.IsolatedParameters, DefaultTransformer.IsolateTransformerParameters>>()
             DefaultTransformer(
                 implementationClass,
@@ -71,7 +71,7 @@ class DefaultTransformerCodec(
                 inputArtifactNormalizer,
                 inputArtifactDependenciesNormalizer,
                 isCacheable,
-                emptyDirectorySensitivity,
+                directorySensitivity,
                 fileLookup,
                 actionScheme.instantiationScheme,
                 isolate.owner.service(ServiceRegistry::class.java)

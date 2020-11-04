@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint;
 
 /**
- * A normalizer that may or may not take empty directories into account when performing up-to-date or build cache key calculations.
+ * A normalizer that may or may not take directories into account when performing up-to-date or build cache key calculations.
  */
-public interface EmptyDirectorySensitiveNormalizer {
+public interface DirectorySensitiveNormalizer {
 }
