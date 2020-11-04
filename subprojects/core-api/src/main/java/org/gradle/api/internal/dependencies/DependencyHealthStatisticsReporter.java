@@ -38,11 +38,12 @@ public class DependencyHealthStatisticsReporter {
             String pluralizedDependencies = total > 1 ? "dependencies" : "dependency";
             StyledTextOutput textOutput = textOutputFactory.create(DependencyHealthStatisticsReporter.class, LogLevel.LIFECYCLE);
             textOutput.format("%d %s analyzed for vulnerabilities:", total, pluralizedDependencies);
-            boolean printDetail = formatDetail(textOutput, statistics.getLow(), "Low:", false);
-            printDetail = formatDetail(textOutput, statistics.getMedium(), "Medium:", printDetail);
-            printDetail = formatDetail(textOutput, statistics.getHigh(), "High:", printDetail);
-            formatDetail(textOutput, statistics.getCritical(), "Critical:", printDetail);
-            textOutput.append('\n');
+            boolean printDetail = formatDetail(textOutput, statistics.getSuppressed(), "suppressed", false);
+            printDetail = formatDetail(textOutput, statistics.getLow(), "low", false);
+            printDetail = formatDetail(textOutput, statistics.getMedium(), "medium", printDetail);
+            printDetail = formatDetail(textOutput, statistics.getHigh(), "high", printDetail);
+            formatDetail(textOutput, statistics.getCritical(), "critical", printDetail);
+            textOutput.append(" -- ");
             textOutput.format("For more information run the `audit` tasks");
             textOutput.println();
         }
