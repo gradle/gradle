@@ -93,11 +93,25 @@ class AbstractIntegrationSpec extends Specification {
     protected Integer maxUploadAttempts
 
     def setup() {
+        def initScript = file("plugin-repos-init.gradle") << """
+            gradle.settingsEvaluated {
+                it.pluginManagement {
+                    repositories {
+                        maven { url = '${new IntegrationTestBuildContext().localRepository}' }
+                        gradlePluginPortal()
+                    }
+                }
+            }
+        """
+
         m2.isolateMavenLocalRepo(executer)
         executer.beforeExecute {
             withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
             if (maxUploadAttempts != null) {
                 withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
+            }
+            if (!GradleContextualExecuter.embedded) {
+                usingInitScript(initScript)
             }
         }
     }
