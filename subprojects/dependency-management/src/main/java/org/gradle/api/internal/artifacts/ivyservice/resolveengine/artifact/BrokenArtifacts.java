@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
+public class BrokenArtifacts implements ResolvedArtifactSet.Artifacts {
     private final Throwable failure;
 
-    public BrokenResolvedArtifactSet(Throwable failure) {
+    public BrokenArtifacts(Throwable failure) {
         this.failure = failure;
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        context.visitFailure(failure);
-    }
-
-    @Override
-    public void visit(Visitor visitor) {
-        visitor.visitArtifacts(this);
-    }
-
-    @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
-        throw UncheckedException.throwAsUncheckedException(failure);
-    }
-
-    @Override
-    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-        throw UncheckedException.throwAsUncheckedException(failure);
     }
 
     @Override

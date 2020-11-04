@@ -24,10 +24,13 @@ import org.gradle.configurationcache.serialization.encodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.Describables
 import org.gradle.internal.model.CalculatedValueContainer
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.ValueCalculator
 
 
-class CalculatedValueContainerCodec : Codec<CalculatedValueContainer<Any, ValueCalculator<Any>>> {
+class CalculatedValueContainerCodec(
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : Codec<CalculatedValueContainer<Any, ValueCalculator<Any>>> {
     override suspend fun WriteContext.encode(value: CalculatedValueContainer<Any, ValueCalculator<Any>>) {
         encodePreservingSharedIdentityOf(value) {
             val result = value.orNull
@@ -46,10 +49,11 @@ class CalculatedValueContainerCodec : Codec<CalculatedValueContainer<Any, ValueC
             val available = readBoolean()
             if (available) {
                 val value = read()
-                CalculatedValueContainer.of(Describables.of("unknown value"), value as Any)
+                // TODO - restore the correct display name when the container is attached to its owner (rather than writing the display name to the cache)
+                calculatedValueContainerFactory.create(Describables.of("unknown value"), value as Any)
             } else {
                 val supplier = readNonNull<ValueCalculator<Any>>()
-                CalculatedValueContainer.of(Describables.of("unknown value"), supplier)
+                calculatedValueContainerFactory.create(Describables.of("unknown value"), supplier)
             }
         }
     }

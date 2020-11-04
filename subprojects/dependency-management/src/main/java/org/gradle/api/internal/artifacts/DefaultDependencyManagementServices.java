@@ -171,6 +171,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.locking.DefaultDependencyLockingHandler;
 import org.gradle.internal.locking.DefaultDependencyLockingProvider;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -418,6 +419,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ArtifactTransformParameterScheme parameterScheme,
                 ArtifactTransformActionScheme actionScheme,
                 FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+                CalculatedValueContainerFactory calculatedValueContainerFactory,
                 FileCollectionFactory fileCollectionFactory,
                 FileLookup fileLookup,
                 ServiceRegistry internalServices
@@ -431,6 +433,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     fileCollectionFactory,
                     fileLookup,
                     fileCollectionFingerprinterRegistry,
+                    calculatedValueContainerFactory,
                     domainObjectContext,
                     parameterScheme,
                     actionScheme,
@@ -510,6 +513,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
+                                                                    CalculatedValueContainerFactory calculatedValueContainerFactory,
                                                                     ProjectAccessListener projectAccessListener,
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
@@ -536,6 +540,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     componentSelectorConverter,
                     dependencyLockingProvider,
                     projectStateRegistry,
+                    calculatedValueContainerFactory,
                     documentationRegistry,
                     callbackDecorator,
                     userCodeApplicationContext,

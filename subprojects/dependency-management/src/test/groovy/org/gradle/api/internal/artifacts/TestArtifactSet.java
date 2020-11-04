@@ -27,13 +27,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
 
-public class TestArtifactSet implements ResolvedArtifactSet {
+public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     public static final String DEFAULT_TEST_VARIANT = "test variant";
     private final DisplayName variantName;
     private final AttributeContainer variant;
@@ -54,15 +55,23 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        return new Completion() {
-            @Override
-            public void visit(ArtifactVisitor visitor) {
-                for (final ResolvedArtifact artifact : artifacts) {
-                    visitor.visitArtifact(variantName, variant, new Adapter(artifact));
-                }
-            }
-        };
+    public void visit(Visitor visitor) {
+        visitor.visitArtifacts(this);
+    }
+
+    @Override
+    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+    }
+
+    @Override
+    public void finalizeNow(boolean requireFiles) {
+    }
+
+    @Override
+    public void visit(ArtifactVisitor visitor) {
+        for (final ResolvedArtifact artifact : artifacts) {
+            visitor.visitArtifact(variantName, variant, new Adapter(artifact));
+        }
     }
 
     @Override
@@ -85,6 +94,11 @@ public class TestArtifactSet implements ResolvedArtifactSet {
 
         Adapter(ResolvedArtifact artifact) {
             this.artifact = artifact;
+        }
+
+        @Override
+        public CalculatedValue<File> getFileSource() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

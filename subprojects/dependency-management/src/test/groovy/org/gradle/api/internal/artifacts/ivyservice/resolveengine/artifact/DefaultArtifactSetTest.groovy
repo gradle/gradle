@@ -22,12 +22,14 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.VariantResolveMetadata
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import spock.lang.Specification
 
 class DefaultArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
     def schema = Stub(AttributesSchemaInternal)
     def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
+    def calculatedValueContainerFactory = Stub(CalculatedValueContainerFactory)
 
     def setup() {
         artifactTypeRegistry.mapAttributesFor(_) >> ImmutableAttributes.EMPTY
@@ -38,9 +40,9 @@ class DefaultArtifactSetTest extends Specification {
         def variant2 = Stub(VariantResolveMetadata)
 
         given:
-        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
+        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
 
         expect:
         artifacts1.select({ false }, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
@@ -55,9 +57,9 @@ class DefaultArtifactSetTest extends Specification {
         def selector = Stub(VariantSelector)
 
         given:
-        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
+        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
 
         selector.select(_, _) >> resolvedVariant1
 

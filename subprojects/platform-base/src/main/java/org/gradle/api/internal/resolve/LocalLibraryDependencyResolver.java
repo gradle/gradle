@@ -18,14 +18,12 @@ package org.gradle.api.internal.resolve;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -40,6 +38,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -67,6 +66,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     private final LocalLibraryResolver libraryResolver;
     private final Class<? extends Binary> binaryType;
     private final Predicate<VariantComponent> binaryPredicate;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ProjectModelResolver projectModelResolver;
 
     public LocalLibraryDependencyResolver(final Class<? extends Binary> binaryType,
@@ -74,7 +74,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                                           LocalLibraryResolver libraryResolver,
                                           VariantBinarySelector variantSelector,
                                           LocalLibraryMetaDataAdapter libraryMetaDataAdapter,
-                                          LibraryResolutionErrorMessageBuilder errorMessageBuilder) {
+                                          LibraryResolutionErrorMessageBuilder errorMessageBuilder,
+                                          CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.libraryMetaDataAdapter = libraryMetaDataAdapter;
         this.variantSelector = variantSelector;
         this.errorMessageBuilder = errorMessageBuilder;
@@ -92,6 +93,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 });
             }
         };
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
@@ -169,7 +171,6 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    @Nullable
     private LibraryResolutionResult doResolve(String selectorProjectPath, String libraryName) {
         try {
             ModelRegistry projectModel = projectModelResolver.resolveProjectModel(selectorProjectPath);
@@ -209,7 +210,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ComponentIdentifier componentId = component.getId();
         if (isLibrary(componentId)) {
-            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvableArtifact>(), artifactTypeRegistry, exclusions, overriddenAttributes);
+            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, new ConcurrentHashMap<>(), artifactTypeRegistry, exclusions, overriddenAttributes, calculatedValueContainerFactory);
         }
         return null;
     }

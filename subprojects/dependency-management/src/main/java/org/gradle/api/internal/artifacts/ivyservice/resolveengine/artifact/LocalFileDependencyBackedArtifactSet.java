@@ -42,6 +42,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -56,12 +57,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final VariantSelector selector;
     private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
         this.selector = selector;
         this.artifactTypeRegistry = artifactTypeRegistry;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     public LocalFileDependencyMetadata getDependencyMetadata() {
@@ -81,15 +84,17 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+    public void visit(Visitor listener) {
         FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return visitor -> visitor.endVisitCollection(this);
+            listener.visitArtifacts(new EndCollection(this));
+            return;
         }
 
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
         if (componentIdentifier != null && !componentFilter.isSatisfiedBy(componentIdentifier)) {
-            return EMPTY_RESULT;
+            listener.visitArtifacts(new EndCollection(this));
+            return;
         }
 
         FileCollectionInternal fileCollection = dependencyMetadata.getFiles();
@@ -97,7 +102,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         try {
             files = fileCollection.getFiles();
         } catch (Exception throwable) {
-            return new BrokenResolvedArtifactSet(throwable);
+            listener.visitArtifacts(new BrokenArtifacts(throwable));
+            return;
         }
 
         ImmutableList.Builder<ResolvedArtifactSet> selectedArtifacts = ImmutableList.builderWithExpectedSize(files.size());
@@ -113,22 +119,18 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
-            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
             selectedArtifacts.add(selector.select(variant, this));
         }
-        Completion result = CompositeResolvedArtifactSet.of(selectedArtifacts.build()).startVisit(actions, listener);
+        CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
         if (visitType == FileCollectionStructureVisitor.VisitType.Spec) {
-            return visitor -> {
-                result.visit(visitor);
-                visitor.visitSpec(fileCollection);
-            };
+            listener.visitArtifacts(new CollectionSpec(fileCollection));
         }
-        return result;
     }
 
     @Override
     public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, targetAttributes, transformation, dependenciesResolver);
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, targetAttributes, transformation, dependenciesResolver, calculatedValueContainerFactory);
     }
 
     @Override
@@ -145,19 +147,19 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         context.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Artifacts, ResolvedVariantSet {
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
         private final ImmutableAttributes variantAttributes;
         private final LocalFileDependencyMetadata dependencyMetadata;
         private final ResolvableArtifact artifact;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata, CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.artifactIdentifier = artifactIdentifier;
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
-            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, file, this.dependencyMetadata.getFiles());
+            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file), this.dependencyMetadata.getFiles(), calculatedValueContainerFactory);
         }
 
         @Override
@@ -204,9 +206,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            listener.artifactAvailable(artifact);
-            return this;
+        public void visit(Visitor visitor) {
+            visitor.visitArtifacts(this);
         }
 
         @Override
@@ -215,6 +216,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
+        }
+
+        @Override
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+        }
+
+        @Override
+        public void finalizeNow(boolean requireFiles) {
         }
 
         @Override
@@ -240,8 +249,12 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
         private final SingletonFileResolvedVariant delegate;
 
-        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, ImmutableAttributes attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver) {
-            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver);
+        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate,
+                                               ImmutableAttributes attributes,
+                                               Transformation transformation,
+                                               ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver,
+                                               CalculatedValueContainerFactory calculatedValueContainerFactory) {
+            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver, calculatedValueContainerFactory);
             this.delegate = delegate;
         }
 
@@ -256,11 +269,26 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         public DisplayName getTargetVariantName() {
             return delegate.variantName;
         }
+    }
+
+    private static class CollectionSpec implements Artifacts {
+        private final FileCollectionInternal fileCollection;
+
+        public CollectionSpec(FileCollectionInternal fileCollection) {
+            this.fileCollection = fileCollection;
+        }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            // Should not be called
-            throw new IllegalStateException();
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+        }
+
+        @Override
+        public void finalizeNow(boolean requireFiles) {
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            visitor.visitSpec(fileCollection);
         }
     }
 }

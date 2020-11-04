@@ -44,7 +44,6 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         try {
             if (seenArtifacts.add(artifact.getId())) {
-                // Trigger download of file, if required
                 File file = artifact.getFile();
                 this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variantAttributes, variantName, Artifact.class, file));
             }

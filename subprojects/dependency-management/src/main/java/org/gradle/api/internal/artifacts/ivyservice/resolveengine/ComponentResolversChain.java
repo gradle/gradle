@@ -26,6 +26,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -50,7 +51,7 @@ public class ComponentResolversChain {
     private final ArtifactResolver artifactResolverChain;
     private final DefaultArtifactSelector artifactSelector;
 
-    public ComponentResolversChain(List<ComponentResolvers> providers, ArtifactTypeRegistry artifactTypeRegistry) {
+    public ComponentResolversChain(List<ComponentResolvers> providers, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         List<DependencyToComponentIdResolver> depToComponentIdResolvers = new ArrayList<>(providers.size());
         List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<>(1 + providers.size());
         componentMetaDataResolvers.add(VirtualComponentMetadataResolver.INSTANCE);
@@ -65,7 +66,7 @@ public class ComponentResolversChain {
         dependencyToComponentIdResolver = new DependencyToComponentIdResolverChain(depToComponentIdResolvers);
         componentMetaDataResolver = new ComponentMetaDataResolverChain(componentMetaDataResolvers);
         artifactResolverChain = new ErrorHandlingArtifactResolver(new ArtifactResolverChain(artifactResolvers));
-        artifactSelector = new DefaultArtifactSelector(artifactSelectors, artifactResolverChain, artifactTypeRegistry);
+        artifactSelector = new DefaultArtifactSelector(artifactSelectors, artifactResolverChain, artifactTypeRegistry, calculatedValueContainerFactory);
     }
 
     public ArtifactSelector getArtifactSelector() {

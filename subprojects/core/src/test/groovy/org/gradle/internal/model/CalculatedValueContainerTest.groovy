@@ -21,12 +21,15 @@ import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 import java.util.concurrent.atomic.AtomicInteger
 
 class CalculatedValueContainerTest extends ConcurrentSpec {
+    def projectLeaseService = new TestWorkerLeaseService()
+
     def "can create container with fixed value"() {
-        def container = CalculatedValueContainer.of(Describables.of("thing"), "value")
+        def container = new CalculatedValueContainer(Describables.of("thing"), "value")
 
         expect:
         container.get() == "value"
@@ -37,7 +40,7 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
         def calculator = Mock(ValueCalculator)
 
         when:
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), calculator)
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), calculator, projectLeaseService, Stub(NodeExecutionContext))
 
         then:
         0 * _
@@ -66,7 +69,7 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
         def calculator = Mock(ValueCalculator)
 
         when:
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), calculator)
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), calculator, projectLeaseService, Stub(NodeExecutionContext))
 
         then:
         0 * _
@@ -101,7 +104,7 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
 
     def "cannot get value before it has been calculated"() {
         def calculator = Mock(ValueCalculator)
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), calculator)
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), calculator, projectLeaseService, Stub(NodeExecutionContext))
 
         when:
         container.get()
@@ -120,13 +123,13 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
 
     def "at most one thread calculates the value"() {
         // Don't use a spock mock as these apply their own synchronization
-        def container = CalculatedValueContainer.of(Describables.of("<thing>"), new Calculator())
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), new Calculator(), projectLeaseService, Stub(NodeExecutionContext))
 
         when:
         async {
             10.times {
                 start {
-                    container.calculateIfNotAlready(null)
+                    container.finalizeIfNotAlready()
                     assert container.get() == 1
                 }
             }
@@ -134,6 +137,39 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
 
         then:
         container.get() == 1
+    }
+
+    def "threads that attempt to calculate the value block until after value is finalized"() {
+        // Don't use a spock mock as these apply their own synchronization
+        def container = new CalculatedValueContainer(Describables.of("<thing>"), new DelayingCalculator(), projectLeaseService, Stub(NodeExecutionContext))
+
+        when:
+        async {
+            start {
+                instant.start1
+                container.finalizeIfNotAlready()
+                instant.finish1
+                assert container.get() == 1
+            }
+            start {
+                instant.start2
+                container.finalizeIfNotAlready()
+                instant.finish2
+                assert container.get() == 1
+            }
+            start {
+                instant.start3
+                container.finalizeIfNotAlready()
+                instant.finish3
+                assert container.get() == 1
+            }
+        }
+
+        then:
+        container.get() == 1
+        instant.finish1 > instant.finishCalculation
+        instant.finish2 > instant.finishCalculation
+        instant.finish3 > instant.finishCalculation
     }
 
     static class Calculator implements ValueCalculator<Integer> {
@@ -158,6 +194,18 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
 
         @Override
         void visitDependencies(TaskDependencyResolveContext context) {
+        }
+    }
+
+    class DelayingCalculator extends Calculator {
+        @Override
+        Integer calculateValue(NodeExecutionContext context) {
+            thread.blockUntil.start1
+            thread.blockUntil.start2
+            thread.blockUntil.start3
+            thread.block()
+            instant.finishCalculation
+            return super.calculateValue(context)
         }
     }
 }

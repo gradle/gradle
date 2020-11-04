@@ -23,6 +23,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A wrapper that prepares artifacts in parallel when visiting the delegate.
  * This is done by collecting all artifacts to prepare and/or visit in a first step.
@@ -56,25 +59,22 @@ public abstract class ParallelResolveArtifactSet {
         }
 
         @Override
-        public void visit(final ArtifactVisitor visitor) {
+        public void visit(ArtifactVisitor visitor) {
             // Start preparing the result
             StartVisitAction visitAction = new StartVisitAction(visitor);
             buildOperationProcessor.runAll(visitAction);
 
             // Now visit the result in order
-            visitAction.result.visit(visitor);
+            visitAction.visitResults();
         }
 
-        private static class AsyncArtifactListenerAdapter implements ResolvedArtifactSet.AsyncArtifactListener {
+        private class StartVisitAction implements Action<BuildOperationQueue<RunnableBuildOperation>>, ResolvedArtifactSet.Visitor {
             private final ArtifactVisitor visitor;
+            private final List<ResolvedArtifactSet.Artifacts> results = new ArrayList<>();
+            private BuildOperationQueue<RunnableBuildOperation> queue;
 
-            AsyncArtifactListenerAdapter(ArtifactVisitor visitor) {
+            StartVisitAction(ArtifactVisitor visitor) {
                 this.visitor = visitor;
-            }
-
-            @Override
-            public void artifactAvailable(ResolvableArtifact artifact) {
-                // Don't care, collect the artifacts later (in the correct order)
             }
 
             @Override
@@ -83,22 +83,21 @@ public abstract class ParallelResolveArtifactSet {
             }
 
             @Override
-            public boolean requireArtifactFiles() {
-                return visitor.requireArtifactFiles();
-            }
-        }
-
-        private class StartVisitAction implements Action<BuildOperationQueue<RunnableBuildOperation>> {
-            private final ArtifactVisitor visitor;
-            ResolvedArtifactSet.Completion result;
-
-            StartVisitAction(ArtifactVisitor visitor) {
-                this.visitor = visitor;
+            public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
+                artifacts.startFinalization(queue, visitor.requireArtifactFiles());
+                results.add(artifacts);
             }
 
             @Override
             public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                result = artifacts.startVisit(buildOperationQueue, new AsyncArtifactListenerAdapter(visitor));
+                this.queue = buildOperationQueue;
+                artifacts.visit(this);
+            }
+
+            public void visitResults() {
+                for (ResolvedArtifactSet.Artifacts result : results) {
+                    result.visit(visitor);
+                }
             }
         }
     }

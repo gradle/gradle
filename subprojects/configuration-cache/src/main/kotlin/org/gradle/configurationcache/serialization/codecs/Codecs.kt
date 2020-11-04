@@ -35,6 +35,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
+import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
@@ -45,6 +46,7 @@ import org.gradle.configurationcache.serialization.codecs.transform.TransformSte
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationChainCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformedArtifactCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
 import org.gradle.configurationcache.serialization.reentrant
@@ -55,6 +57,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
@@ -98,6 +101,7 @@ class Codecs(
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     valueSourceProviderFactory: ValueSourceProviderFactory,
+    calculatedValueContainerFactory: CalculatedValueContainerFactory,
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
@@ -134,14 +138,16 @@ class Codecs(
         bind(TransformationChainCodec())
         bind(DefaultTransformerCodec(fileLookup, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
-        bind(ResolvableArtifactCodec)
+        bind(ResolvableArtifactCodec(calculatedValueContainerFactory))
         bind(TransformStepSpecCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
         bind(TransformedProjectArtifactSetCodec())
         bind(TransformedExternalArtifactSetCodec())
-        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory))
-        bind(CalculatedValueContainerCodec())
-        bind(IsolateTransformerParametersNodeCodec(fingerprinterRegistry, parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory))
+        bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
+        bind(TransformedArtifactCodec(calculatedValueContainerFactory))
+        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory, calculatedValueContainerFactory))
+        bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
+        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, fileCollectionFactory))
         bind(FinalizeTransformDependenciesNodeCodec())
         bind(WorkNodeActionCodec)
 
@@ -188,11 +194,11 @@ class Codecs(
         bind(BuildIdentifierSerializer())
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
-        bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
-        bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor))
+        bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, calculatedValueContainerFactory))
+        bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, calculatedValueContainerFactory))
         bind(ActionNodeCodec(userTypesCodec))
 
-        bind(ResolvableArtifactCodec)
+        bind(ResolvableArtifactCodec(calculatedValueContainerFactory))
         bind(TransformStepSpecCodec)
 
         bind(NotImplementedCodec)

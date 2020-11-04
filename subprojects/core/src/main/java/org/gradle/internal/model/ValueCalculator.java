@@ -21,8 +21,6 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 
-import javax.annotation.Nullable;
-
 /**
  * Produces a value, potentially based on values produced by tasks or other work nodes.
  */
@@ -37,5 +35,5 @@ public interface ValueCalculator<T> extends TaskDependencyContainer {
      */
     Project getOwningProject();
 
-    T calculateValue(@Nullable NodeExecutionContext context);
+    T calculateValue(NodeExecutionContext context);
 }

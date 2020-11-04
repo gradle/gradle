@@ -70,6 +70,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def registryFactory = new DefaultTransformationRegistrationFactory(
         new TestBuildOperationExecutor(),
@@ -80,6 +81,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         fileCollectionFactory,
         Mock(FileLookup),
         fileCollectionFingerprinterRegistry,
+        calculatedValueContainerFactory,
         domainObjectContext,
         new ArtifactTransformParameterScheme(
             instantiatorFactory.injectScheme(),

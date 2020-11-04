@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
 import java.io.File;
 import java.util.Optional;
@@ -30,12 +30,8 @@ import java.util.Optional;
  */
 public abstract class TransformationSubject implements Describable {
 
-    public static TransformationSubject initial(File file) {
-        return new InitialFileTransformationSubject(file);
-    }
-
-    public static TransformationSubject initial(ComponentArtifactIdentifier artifactId, File file) {
-        return new InitialArtifactTransformationSubject(artifactId, file);
+    public static TransformationSubject initial(ResolvableArtifact artifact) {
+        return new InitialArtifactTransformationSubject(artifact);
     }
 
     /**
@@ -79,39 +75,26 @@ public abstract class TransformationSubject implements Describable {
         }
     }
 
-    private static class InitialFileTransformationSubject extends AbstractInitialTransformationSubject {
+    private static class InitialArtifactTransformationSubject extends TransformationSubject {
+        private final ResolvableArtifact artifact;
 
-        public InitialFileTransformationSubject(File file) {
-            super(file);
+        public InitialArtifactTransformationSubject(ResolvableArtifact artifact) {
+            this.artifact = artifact;
+        }
+
+        @Override
+        public ImmutableList<File> getFiles() {
+            return ImmutableList.of(artifact.getFile());
         }
 
         @Override
         public String getDisplayName() {
-            return "file " + getFile();
+            return artifact.getId().getDisplayName();
         }
 
         @Override
         public Optional<ProjectComponentIdentifier> getProducer() {
-            return Optional.empty();
-        }
-    }
-
-    private static class InitialArtifactTransformationSubject extends AbstractInitialTransformationSubject {
-        private final ComponentArtifactIdentifier artifactId;
-
-        public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file) {
-            super(file);
-            this.artifactId = artifactId;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return artifactId.getDisplayName();
-        }
-
-        @Override
-        public Optional<ProjectComponentIdentifier> getProducer() {
-            ComponentIdentifier componentIdentifier = artifactId.getComponentIdentifier();
+            ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
             if (componentIdentifier instanceof ProjectComponentIdentifier) {
                 return Optional.of((ProjectComponentIdentifier) componentIdentifier);
             }

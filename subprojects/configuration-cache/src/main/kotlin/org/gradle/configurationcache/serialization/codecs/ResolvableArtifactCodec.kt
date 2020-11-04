@@ -26,11 +26,15 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.writeFile
+import org.gradle.internal.Describables
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.model.CalculatedValueContainerFactory
 
 
-object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
+class ResolvableArtifactCodec(
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : Codec<ResolvableArtifact> {
     private
     val componentIdSerializer = ComponentIdentifierSerializer()
 
@@ -54,6 +58,7 @@ object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
         val file = readFile()
         val artifactName = DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString())
         val componentId = componentIdSerializer.read(this)
-        return PreResolvedResolvableArtifact(null, artifactName, ComponentFileArtifactIdentifier(componentId, file.name), file, TaskDependencyContainer.EMPTY)
+        val artifactId = ComponentFileArtifactIdentifier(componentId, file.name)
+        return PreResolvedResolvableArtifact(null, artifactName, artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
     }
 }
