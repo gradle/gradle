@@ -24,7 +24,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import java.io.File;
-import java.util.Optional;
 
 public class TestTransformationWorkspaceProvider implements TransformationWorkspaceProvider {
     private final File transformationsStoreDirectory;
@@ -36,11 +35,6 @@ public class TestTransformationWorkspaceProvider implements TransformationWorksp
     }
 
     @Override
-    public Optional<ExecutionHistoryStore> getHistory() {
-        return Optional.of(executionHistoryStore);
-    }
-
-    @Override
     public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
         return new ManualEvictionInMemoryCache<>();
     }
@@ -48,6 +42,6 @@ public class TestTransformationWorkspaceProvider implements TransformationWorksp
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> workspaceAction) {
         File workspace = new File(transformationsStoreDirectory, path);
-        return workspaceAction.executeInWorkspace(workspace);
+        return workspaceAction.executeInWorkspace(workspace, executionHistoryStore);
     }
 }

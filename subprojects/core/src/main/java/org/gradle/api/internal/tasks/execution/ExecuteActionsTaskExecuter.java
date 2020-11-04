@@ -281,15 +281,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             return new WorkspaceProvider() {
                 @Override
                 public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-                    return action.executeInWorkspace(null);
+                    return action.executeInWorkspace(null, context.getTaskExecutionMode().isTaskHistoryMaintained()
+                        ? executionHistoryStore
+                        : null);
                 }
 
-                @Override
-                public Optional<ExecutionHistoryStore> getHistory() {
-                    return context.getTaskExecutionMode().isTaskHistoryMaintained()
-                        ? Optional.of(executionHistoryStore)
-                        : Optional.empty();
-                }
             };
         }
 

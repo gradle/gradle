@@ -29,7 +29,6 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
-import java.util.Optional;
 
 @NotThreadSafe
 public class MutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, ReservedFileSystemLocation {
@@ -44,11 +43,6 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public Optional<ExecutionHistoryStore> getHistory() {
-        return Optional.of(executionHistoryStore);
-    }
-
-    @Override
     public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
         return identityCache;
     }
@@ -56,7 +50,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
         File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
-        return action.executeInWorkspace(workspaceDir);
+        return action.executeInWorkspace(workspaceDir, executionHistoryStore);
     }
 
     @Override

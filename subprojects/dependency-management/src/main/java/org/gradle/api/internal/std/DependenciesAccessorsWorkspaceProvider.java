@@ -21,13 +21,11 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 
 import java.io.Closeable;
-import java.util.Optional;
 
 public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
     private final DefaultImmutableWorkspaceProvider delegate;
@@ -45,11 +43,6 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
         return delegate.withWorkspace(path, action);
-    }
-
-    @Override
-    public Optional<ExecutionHistoryStore> getHistory() {
-        return delegate.getHistory();
     }
 
     @Override

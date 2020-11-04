@@ -32,7 +32,6 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
@@ -99,13 +98,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         return cache.withFileLock(() -> {
             File workspace = new File(baseDirectory, path);
             fileAccessTracker.markAccessed(workspace);
-            return action.executeInWorkspace(workspace);
+            return action.executeInWorkspace(workspace, executionHistoryStore);
         });
-    }
-
-    @Override
-    public Optional<ExecutionHistoryStore> getHistory() {
-        return Optional.of(executionHistoryStore);
     }
 
     @Override

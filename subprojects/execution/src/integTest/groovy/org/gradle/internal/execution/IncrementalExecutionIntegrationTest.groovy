@@ -26,7 +26,6 @@ import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.InputChangesInternal
@@ -796,13 +795,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
                     return new WorkspaceProvider() {
                         @Override
                         def <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
-                            return action.executeInWorkspace(null)
+                            return action.executeInWorkspace(null, IncrementalExecutionIntegrationTest.this.executionHistoryStore)
                         }
 
-                        @Override
-                        Optional<ExecutionHistoryStore> getHistory() {
-                            return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
-                        }
                     }
                 }
 

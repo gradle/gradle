@@ -40,7 +40,7 @@ public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> im
     @Override
     public R execute(UnitOfWork work, C context) {
         WorkspaceProvider workspaceProvider = work.getWorkspaceProvider();
-        return workspaceProvider.withWorkspace(context.getIdentity().getUniqueId(), workspace -> delegate.execute(work, new WorkspaceContext() {
+        return workspaceProvider.withWorkspace(context.getIdentity().getUniqueId(), (workspace, history) -> delegate.execute(work, new WorkspaceContext() {
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
@@ -68,7 +68,7 @@ public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> im
 
             @Override
             public Optional<ExecutionHistoryStore> getHistory() {
-                return workspaceProvider.getHistory();
+                return Optional.ofNullable(history);
             }
         }));
     }
