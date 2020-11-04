@@ -20,7 +20,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import java.io.File;
 
-public interface ImmutableWorkspaceProvider {
+public interface WorkspaceProvider {
     /**
      * Provides a workspace and execution history store for executing the transformation.
      */

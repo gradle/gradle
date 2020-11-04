@@ -22,7 +22,7 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.VersionStrategy
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import java.io.Closeable
@@ -34,7 +34,7 @@ class KotlinDslWorkspaceProvider(
     fileAccessTimeJournal: FileAccessTimeJournal,
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner
-) : ImmutableWorkspaceProvider, Closeable {
+) : WorkspaceProvider, Closeable {
     private
     val delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
         cacheRepository
@@ -45,7 +45,7 @@ class KotlinDslWorkspaceProvider(
         stringInterner
     )
 
-    override fun <T : Any> withWorkspace(identity: String, action: ImmutableWorkspaceProvider.WorkspaceAction<T>): T =
+    override fun <T : Any> withWorkspace(identity: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
         delegate.withWorkspace(identity, action)
 
     override fun getHistory(): ExecutionHistoryStore = delegate.history
