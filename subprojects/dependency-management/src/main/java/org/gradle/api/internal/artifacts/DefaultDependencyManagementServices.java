@@ -329,6 +329,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
+                public Optional<ExecutionHistoryStore> getHistory() {
+                    return context.getHistory();
+                }
+
+                @Override
                 public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                     return context.getAfterPreviousExecutionState();
                 }

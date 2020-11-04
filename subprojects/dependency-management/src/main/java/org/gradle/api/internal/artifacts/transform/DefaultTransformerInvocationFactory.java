@@ -35,8 +35,8 @@ import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -294,13 +294,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public Optional<ExecutionHistoryStore> getHistory() {
-            return workspaceProvider.getHistory();
-        }
-
-        @Override
-        public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-            return workspaceProvider.withWorkspace(path, action::executeInWorkspace);
+        public WorkspaceProvider getWorkspaceProvider() {
+            return workspaceProvider;
         }
 
         private void writeResultsFile(File workspace, ImmutableList<File> result) {

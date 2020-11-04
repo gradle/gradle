@@ -48,6 +48,7 @@ import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
@@ -791,13 +792,18 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                Optional<ExecutionHistoryStore> getHistory() {
-                    return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
-                }
+                WorkspaceProvider getWorkspaceProvider() {
+                    return new WorkspaceProvider() {
+                        @Override
+                        def <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
+                            return action.executeInWorkspace(null)
+                        }
 
-                @Override
-                <T> T withWorkspace(String path, UnitOfWork.WorkspaceAction<T> action) {
-                    return action.executeInWorkspace(null)
+                        @Override
+                        Optional<ExecutionHistoryStore> getHistory() {
+                            return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
+                        }
+                    }
                 }
 
                 @Override

@@ -25,6 +25,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.kotlin.dsl.accessors.accessorsWorkspacePrefix
 import java.io.Closeable
 import java.util.Optional
 
@@ -47,7 +48,7 @@ class KotlinDslWorkspaceProvider(
     )
 
     override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
-        delegate.withWorkspace(path, action)
+        delegate.withWorkspace("$accessorsWorkspacePrefix/$path", action)
 
     override fun getHistory(): Optional<ExecutionHistoryStore> = delegate.history
 
