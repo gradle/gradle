@@ -18,10 +18,8 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.tasks.FinalizeAction;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -33,9 +31,10 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArtifact {
+public class DefaultResolvedArtifact implements ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
@@ -43,8 +42,9 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     private final CalculatedValue<File> fileSource;
     private final FinalizeAction resolvedArtifactDependency;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final PreResolvedResolvableArtifact publicView;
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultResolvedArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -66,6 +66,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
             }
         };
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        publicView = new PreResolvedResolvableArtifact(owner, artifact, artifactId, fileSource, buildDependencies, calculatedValueContainerFactory);
     }
 
     @Override
@@ -75,11 +76,6 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
 
     public IvyArtifactName getArtifactName() {
         return artifact;
-    }
-
-    @Override
-    public ResolvedModuleVersion getModuleVersion() {
-        return new DefaultResolvedModuleVersion(owner);
     }
 
     @Override
@@ -110,33 +106,13 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     }
 
     @Override
-    public String getName() {
-        return artifact.getName();
-    }
-
-    @Override
-    public String getType() {
-        return artifact.getType();
-    }
-
-    @Override
-    public String getExtension() {
-        return artifact.getExtension();
-    }
-
-    @Override
-    public String getClassifier() {
-        return artifact.getClassifier();
-    }
-
-    @Override
     public ResolvedArtifact toPublicView() {
-        return this;
+        return publicView;
     }
 
     @Override
     public ResolvableArtifact transformedTo(File file) {
-        IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, getClassifier());
+        IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, artifact.getClassifier());
         ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), artifactName);
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, calculatedValueContainerFactory.create(Describables.of(newId), file), buildDependencies, calculatedValueContainerFactory);
     }

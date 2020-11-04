@@ -18,33 +18,26 @@ package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.TransformationNode
-import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.withCodec
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
 class InitialTransformationNodeCodec(
-    private val userTypesCodec: Codec<Any?>,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
-        withCodec(userTypesCodec) {
-            write(unpackTransformationStep(value))
-        }
+        write(unpackTransformationStep(value))
         write(value.inputArtifact)
     }
 
     override suspend fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {
-        val transformationStep = withCodec(userTypesCodec) {
-            readNonNull<TransformStepSpec>()
-        }
+        val transformationStep = readNonNull<TransformStepSpec>()
         val artifacts = readNonNull<ResolvableArtifact>()
         return TransformationNode.initial(transformationStep.transformation, artifacts, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
     }

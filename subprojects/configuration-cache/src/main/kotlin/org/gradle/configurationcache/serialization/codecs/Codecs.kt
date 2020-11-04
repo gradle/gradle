@@ -44,8 +44,9 @@ import org.gradle.configurationcache.serialization.codecs.transform.IsolateTrans
 import org.gradle.configurationcache.serialization.codecs.transform.LegacyTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepSpecCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationChainCodec
-import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
+import org.gradle.configurationcache.serialization.codecs.transform.DelegatingTransformStepSpecCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedArtifactCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
@@ -194,12 +195,12 @@ class Codecs(
         bind(BuildIdentifierSerializer())
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
-        bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, calculatedValueContainerFactory))
-        bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, calculatedValueContainerFactory))
+        bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
+        bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
+        bind(DelegatingTransformStepSpecCodec(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
 
         bind(ResolvableArtifactCodec(calculatedValueContainerFactory))
-        bind(TransformStepSpecCodec)
 
         bind(NotImplementedCodec)
     }

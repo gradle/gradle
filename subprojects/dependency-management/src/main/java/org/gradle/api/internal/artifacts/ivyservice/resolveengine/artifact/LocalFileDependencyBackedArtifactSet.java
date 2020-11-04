@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact;
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.Transformation;
@@ -159,7 +159,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
-            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file), this.dependencyMetadata.getFiles(), calculatedValueContainerFactory);
+            artifact = new DefaultResolvedArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, this.dependencyMetadata.getFiles(), calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file), calculatedValueContainerFactory);
         }
 
         @Override

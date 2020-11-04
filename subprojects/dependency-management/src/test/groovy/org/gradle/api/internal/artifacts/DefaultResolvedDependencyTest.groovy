@@ -209,6 +209,6 @@ class DefaultResolvedDependencyTest extends Specification {
         }
         def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
         def artifactSource = calculatedValueContainerFactory.create(Describables.of("artifact"), new File("pathTo" + name))
-        return new DefaultResolvedArtifact(id, artifactStub, Mock(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource, calculatedValueContainerFactory)
+        return new DefaultResolvedArtifact(id, artifactStub, Mock(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource, calculatedValueContainerFactory).toPublicView()
     }
 }
