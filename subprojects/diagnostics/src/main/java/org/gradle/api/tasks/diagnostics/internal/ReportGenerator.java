@@ -35,8 +35,13 @@ public class ReportGenerator {
     private final StyledTextOutputFactory textOutputFactory;
     private final ProjectReportGenerator projectReportGenerator;
 
-    public ReportGenerator(ReportRenderer renderer, BuildClientMetaData buildClientMetaData, @Nullable File outputFile,
-                           StyledTextOutputFactory textOutputFactory, ProjectReportGenerator projectReportGenerator) {
+    public ReportGenerator(
+        ReportRenderer renderer,
+        BuildClientMetaData buildClientMetaData,
+        @Nullable File outputFile,
+        StyledTextOutputFactory textOutputFactory,
+        ProjectReportGenerator projectReportGenerator
+    ) {
         this.renderer = renderer;
         this.buildClientMetaData = buildClientMetaData;
         this.outputFile = outputFile;
