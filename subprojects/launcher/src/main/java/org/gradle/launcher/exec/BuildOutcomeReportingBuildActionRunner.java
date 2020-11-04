@@ -18,6 +18,8 @@ package org.gradle.launcher.exec;
 
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.dependencies.DependencyHealthCollector;
+import org.gradle.api.internal.dependencies.DependencyHealthStatisticsReporter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.execution.MultipleBuildFailures;
@@ -54,6 +56,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         Clock clock = services.get(Clock.class);
         ListenerManager listenerManager = services.get(ListenerManager.class);
         TaskExecutionStatisticsEventAdapter taskStatisticsCollector = new TaskExecutionStatisticsEventAdapter();
+        DependencyHealthCollector dependencyHealthCollector = services.get(DependencyHealthCollector.class);
         listenerManager.addListener(taskStatisticsCollector);
 
         BuildLogger buildLogger = new BuildLogger(Logging.getLogger(BuildLogger.class), styledTextOutputFactory, startParameter, buildRequestMetaData, buildStartedTime, clock);
@@ -70,6 +73,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         buildLogger.logResult(result.getBuildFailure());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
+        new DependencyHealthStatisticsReporter(styledTextOutputFactory).buildFinished(dependencyHealthCollector.getStatistics());
         return result;
     }
 
