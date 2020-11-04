@@ -17,7 +17,9 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.gradle.api.internal.dependencies.DependencyHealthCollector;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyHealthAnalyzer;
+import org.gradle.api.reporting.dependencies.internal.DefaultDependencyHealthCollector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -41,7 +43,13 @@ public class DiagnosticsServices extends AbstractPluginServiceRegistry {
     }
 
     @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(DependencyHealthCollector.class, new DefaultDependencyHealthAnalyzer());
+    public void registerGradleServices(ServiceRegistration registration) {
+        registration.addProvider(new GradleScopeServices());
+    }
+
+    public static class GradleScopeServices {
+        DependencyHealthCollector createDependencyHealthCollector(Gradle gradle) {
+            return new DefaultDependencyHealthCollector(gradle, new DefaultDependencyHealthAnalyzer());
+        }
     }
 }

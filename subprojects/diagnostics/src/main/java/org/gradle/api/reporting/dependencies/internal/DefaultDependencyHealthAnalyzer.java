@@ -16,45 +16,39 @@
 
 package org.gradle.api.reporting.dependencies.internal;
 
-import org.gradle.api.internal.dependencies.DependencyHealthCollector;
-import org.gradle.api.internal.dependencies.DependencyHealthStatistics;
+import java.util.Arrays;
+import java.util.List;
 
-public class DefaultDependencyHealthAnalyzer implements DependencyHealthCollector {
+public class DefaultDependencyHealthAnalyzer implements DependencyHealthAnalyzer {
     @Override
-    public DependencyHealthStatistics getStatistics() {
-        return new DefaultDependencyHealthStatistics();
+    public HealthReport analyze(String group, String name, String version) {
+        return new DefaultHealthReport();
     }
 
-    private static class DefaultDependencyHealthStatistics implements DependencyHealthStatistics {
-
+    private static class DefaultHealthReport implements HealthReport {
         @Override
-        public long getTotal() {
-            return 0;
+        public List<Cve> getCves() {
+            return Arrays.asList(new DefaultCve());
+        }
+    }
+
+    private static class DefaultCve implements Cve {
+        private final String id;
+        private final double score;
+
+        private DefaultCve() {
+            id = "CVE-2020-12345";
+            score = 5;
         }
 
         @Override
-        public long getSuppressed() {
-            return 0;
+        public String getId() {
+            return id;
         }
 
         @Override
-        public long getLow() {
-            return 0;
-        }
-
-        @Override
-        public long getMedium() {
-            return 0;
-        }
-
-        @Override
-        public long getHigh() {
-            return 0;
-        }
-
-        @Override
-        public long getCritical() {
-            return 0;
+        public double getScore() {
+            return score;
         }
     }
 }
