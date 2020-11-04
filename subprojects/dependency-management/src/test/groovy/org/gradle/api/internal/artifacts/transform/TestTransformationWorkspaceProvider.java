@@ -47,6 +47,6 @@ public class TestTransformationWorkspaceProvider implements TransformationWorksp
     @Override
     public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
         String identityString = identity.getUniqueId();
-        return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
+        return workspaceAction.useWorkspace(new File(transformationsStoreDirectory, identityString));
     }
 }

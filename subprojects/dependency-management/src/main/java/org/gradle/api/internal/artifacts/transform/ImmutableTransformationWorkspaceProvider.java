@@ -52,7 +52,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     @Override
     public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
         String workspacePath = identity.getUniqueId();
-        return delegate.withWorkspace(workspacePath, (workspaceDir, __) -> workspaceAction.useWorkspace(workspacePath, workspaceDir));
+        return delegate.withWorkspace(workspacePath, (workspaceDir, __) -> workspaceAction.useWorkspace(workspaceDir));
     }
 
     @Override

@@ -39,6 +39,6 @@ public interface TransformationWorkspaceProvider {
 
     @FunctionalInterface
     interface TransformationWorkspaceAction<T> {
-        T useWorkspace(String transformationIdentity, File workspaceDir);
+        T useWorkspace(File workspaceDir);
     }
 }
