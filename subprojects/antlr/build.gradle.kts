@@ -15,28 +15,58 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.portalplugin.java")
+}
+
+pluginBundle {
+    tags = listOf("Gradle", "Antlr")
+    website = "https://docs.gradle.org/current/userguide/antlr_plugin.html"
+    vcsUrl = "https://github.com/gradle/gradle"
+}
+
+pluginPublish {
+    bundledGradlePlugin(
+        name = "antlr",
+        shortDescription = "Antlr Gradle Plugin",
+        pluginId = "org.gradle.antlr",
+        pluginClass = "org.gradle.api.plugins.antlr.AntlrPlugin"
+    )
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":plugins"))
-    implementation(project(":workers"))
-    implementation(project(":files"))
+    compileOnly(project(":base-services"))
+    compileOnly(project(":logging"))
+    compileOnly(project(":process-services"))
+    compileOnly(project(":core-api"))
+    compileOnly(project(":model-core"))
+    compileOnly(project(":core"))
+    compileOnly(project(":plugins"))
+    compileOnly(project(":workers"))
+    compileOnly(project(":files"))
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
+
+    compileOnly(libs.slf4jApi)
+    compileOnly(libs.groovy)
+    compileOnly(libs.inject)
 
     compileOnly("antlr:antlr:2.7.7") {
         because("this dependency is downloaded by the antlr plugin")
     }
+
+    testImplementation(project(":base-services"))
+    testImplementation(project(":logging"))
+    testImplementation(project(":process-services"))
+    testImplementation(project(":core-api"))
+    testImplementation(project(":model-core"))
+    testImplementation(project(":core"))
+    testImplementation(project(":plugins"))
+    testImplementation(project(":workers"))
+    testImplementation(project(":files"))
+
+    testImplementation(libs.slf4jApi)
+    testImplementation(libs.groovy)
+    testImplementation(libs.inject)
 
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":file-collections"))
@@ -46,6 +76,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestLocalRepository(project)
 }
 
 classycle {
