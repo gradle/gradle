@@ -68,6 +68,12 @@ dependencies {
     integTestLocalRepository(project)
 }
 
+pluginBundle {
+    tags = listOf("Kotlin", "DSL")
+    website = "https://github.com/gradle/kotlin-dsl"
+    vcsUrl = "https://github.com/gradle/kotlin-dsl"
+}
+
 classycle {
     excludePatterns.set(listOf("org/gradle/kotlin/dsl/plugins/base/**"))
 }

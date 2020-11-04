@@ -39,12 +39,6 @@ afterEvaluate {
     }
 }
 
-pluginBundle {
-    tags = listOf("Kotlin", "DSL")
-    website = "https://github.com/gradle/kotlin-dsl"
-    vcsUrl = "https://github.com/gradle/kotlin-dsl"
-}
-
 publishing.publications.withType<MavenPublication>() {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
