@@ -301,7 +301,7 @@ class StandardKotlinScriptEvaluator(
         var loadedClass: Class<*>? = null
         var scope: ClassLoaderScope? = null
 
-        override val programFor: Class<*>
+        override val program: Class<*>
             get() {
                 if (loadedClass == null) {
                     scope = prepareClassLoaderScope().also {

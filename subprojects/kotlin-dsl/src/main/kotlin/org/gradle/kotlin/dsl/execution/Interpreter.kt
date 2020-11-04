@@ -176,7 +176,7 @@ class Interpreter(val host: Host) {
             programHostFor(options)
 
         if (cachedProgram != null) {
-            programHost.eval(cachedProgram.programFor, scriptHost)
+            programHost.eval(cachedProgram.program, scriptHost)
             return
         }
 
@@ -197,7 +197,7 @@ class Interpreter(val host: Host) {
             programId
         )
 
-        programHost.eval(specializedProgram.programFor, scriptHost)
+        programHost.eval(specializedProgram.program, scriptHost)
     }
 
     private
@@ -404,7 +404,7 @@ class Interpreter(val host: Host) {
                 host.cachedClassFor(programId)
 
             if (cachedProgram != null) {
-                eval(cachedProgram.programFor, scriptHost)
+                eval(cachedProgram.program, scriptHost)
                 return
             }
 
@@ -422,7 +422,7 @@ class Interpreter(val host: Host) {
                 programId
             )
 
-            eval(specializedProgram.programFor, scriptHost)
+            eval(specializedProgram.program, scriptHost)
         }
 
         override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {

@@ -177,14 +177,14 @@ class SimplifiedKotlinScriptEvaluator(
 }
 
 
-class DummyCompiledScript(override val programFor: Class<*>) : CompiledScript {
+class DummyCompiledScript(override val program: Class<*>) : CompiledScript {
     override fun onReuse() {
     }
 
     override fun equals(other: Any?) = when {
         other === this -> true
         other == null || other.javaClass != this.javaClass -> false
-        else -> programFor == (other as DummyCompiledScript).programFor
+        else -> program == (other as DummyCompiledScript).program
     }
 }
 
