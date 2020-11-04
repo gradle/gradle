@@ -18,37 +18,38 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
-
 import org.gradle.cache.CacheOpenException
-import org.gradle.cache.internal.CacheKeyBuilder
-
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
-
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-
+import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.InputChangesContext
+import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
+import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-
+import org.gradle.internal.hash.Hashing.newHasher
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
-
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
-
-import org.gradle.kotlin.dsl.cache.ScriptCache
+import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
 
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -84,10 +85,6 @@ interface KotlinScriptEvaluator {
 
 
 internal
-const val scriptCacheKeyPrefix = "gradle-kotlin-dsl"
-
-
-internal
 class StandardKotlinScriptEvaluator(
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val classloadingCache: KotlinScriptClassloadingCache,
@@ -98,12 +95,14 @@ class StandardKotlinScriptEvaluator(
     private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
     private val scriptSourceHasher: ScriptSourceHasher,
     private val classpathHasher: ClasspathHasher,
-    private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val cachedClasspathTransformer: CachedClasspathTransformer,
-    private val scriptExecutionListener: ScriptExecutionListener
+    private val scriptExecutionListener: ScriptExecutionListener,
+    private val executionEngine: ExecutionEngine,
+    private val workspaceProvider: KotlinDslWorkspaceProvider,
+    private val fileCollectionFactory: FileCollectionFactory
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -213,7 +212,7 @@ class StandardKotlinScriptEvaluator(
 
             pluginRequestApplicator.applyPlugins(
                 PluginRequests.EMPTY,
-                scriptHost.scriptHandler as ScriptHandlerInternal?,
+                scriptHost.scriptHandler as ScriptHandlerInternal,
                 null,
                 scriptHost.targetScope
             )
@@ -234,42 +233,28 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun cachedDirFor(
-            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
-            compilationClassPathHash: HashCode,
-            accessorsClassPath: ClassPath?,
+            compilationClassPath: ClassPath,
+            accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-
-            val baseCacheKey =
-                cacheKeySpecPrefix + templateId + sourceHash + compilationClassPathHash
-
-            val effectiveCacheKey =
-                accessorsClassPath?.let { baseCacheKey + it }
-                    ?: baseCacheKey
-
-            cacheDirFor(scriptHost, effectiveCacheKey, initializer)
+            executionEngine.execute(
+                CompileKotlinScript(
+                    templateId,
+                    sourceHash,
+                    compilationClassPath,
+                    accessorsClassPath,
+                    initializer,
+                    classpathHasher,
+                    workspaceProvider,
+                    fileCollectionFactory
+                ),
+                null
+            ).executionResult.get().output as File
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
-
-        private
-        fun cacheDirFor(
-            scriptHost: KotlinScriptHost<*>,
-            cacheKeySpec: CacheKeyBuilder.CacheKeySpec,
-            initializer: (File) -> Unit
-        ): File =
-            scriptCache.cacheDirFor(
-                cacheKeySpec,
-                scriptTarget = scriptHost.target,
-                displayName = scriptHost.scriptSource.displayName,
-                initializer = initializer
-            )
-
-        private
-        val cacheKeySpecPrefix =
-            CacheKeyBuilder.CacheKeySpec.withPrefix(scriptCacheKeyPrefix)
 
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
             classPathProvider.compilationClassPathOf(classLoaderScope)
@@ -279,10 +264,10 @@ class StandardKotlinScriptEvaluator(
             childScopeId: String,
             location: File,
             className: String,
-            accessorsClassPath: ClassPath?
+            accessorsClassPath: ClassPath
         ): CompiledScript {
             val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
-            val classpath = instrumentedClasses.plus(accessorsClassPath ?: ClassPath.EMPTY)
+            val classpath = instrumentedClasses.plus(accessorsClassPath)
             return ScopeBackedCompiledScript(classLoaderScope, childScopeId, classpath, className)
         }
 
@@ -323,3 +308,91 @@ class StandardKotlinScriptEvaluator(
         fun prepareClassLoaderScope() = classLoaderScope.createLockedChild(childScopeId, classPath, null, null)
     }
 }
+
+
+internal
+class CompileKotlinScript(
+    private val templateId: String,
+    private val sourceHash: HashCode,
+    private val compilationClassPath: ClassPath,
+    private val accessorsClassPath: ClassPath,
+    private val compileTo: (File) -> Unit,
+    private val classpathHasher: ClasspathHasher,
+    private val workspaceProvider: KotlinDslWorkspaceProvider,
+    private val fileCollectionFactory: FileCollectionFactory
+) : UnitOfWork {
+
+    override fun visitInputs(
+        visitor: UnitOfWork.InputVisitor
+    ) {
+        visitor.visitInputProperty("templateId", IDENTITY) { templateId }
+        visitor.visitInputProperty("sourceHash", IDENTITY) { sourceHash }
+        visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)
+        visitor.visitClassPathProperty("accessorsClassPath", accessorsClassPath)
+    }
+
+    override fun visitOutputs(
+        workspace: File,
+        visitor: UnitOfWork.OutputVisitor
+    ) {
+        val classesDir = classesDir(workspace)
+        visitor.visitOutputProperty(
+            "classesDir",
+            TreeType.DIRECTORY,
+            classesDir,
+            fileCollectionFactory.fixed(classesDir)
+        )
+    }
+
+    override fun identify(
+        identityInputs: MutableMap<String, ValueSnapshot>,
+        identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
+    ): UnitOfWork.Identity {
+        val identityHash = newHasher().let { hasher ->
+            listOf("templateId", "sourceHash", "compilationClassPath", "accessorsClassPath").forEach {
+                requireNotNull(identityInputs[it]).appendToHasher(hasher)
+            }
+            hasher.hash().toString()
+        }
+        return UnitOfWork.Identity { identityHash }
+    }
+
+    override fun execute(
+        inputChanges: InputChangesInternal?,
+        context: InputChangesContext
+    ): UnitOfWork.WorkOutput {
+        compileTo(classesDir(context.workspace))
+        return object : UnitOfWork.WorkOutput {
+            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+            override fun getOutput() = loadRestoredOutput(context.workspace)
+        }
+    }
+
+    override fun <T : Any?> withWorkspace(
+        identity: String,
+        action: UnitOfWork.WorkspaceAction<T>
+    ): T = workspaceProvider.withWorkspace("$scriptCacheKeyPrefix/$identity") { workspace, _ ->
+        action.executeInWorkspace(workspace)
+    }
+
+    override fun getDisplayName(): String =
+        "Kotlin DSL script compilation"
+
+    override fun loadRestoredOutput(workspace: File): Any =
+        classesDir(workspace)
+
+    private
+    fun classesDir(workspace: File) =
+        workspace.resolve("classes")
+
+    private
+    fun UnitOfWork.InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
+        visitInputProperty(propertyName, IDENTITY) {
+            classpathHasher.hash(classPath)
+        }
+    }
+}
+
+
+private
+const val scriptCacheKeyPrefix = "gradle-kotlin-dsl"

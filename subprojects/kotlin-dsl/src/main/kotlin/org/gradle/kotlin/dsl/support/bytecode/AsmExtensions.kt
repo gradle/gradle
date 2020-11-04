@@ -24,7 +24,9 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Opcodes.T_BYTE
 import org.jetbrains.org.objectweb.asm.Type
 
+import kotlin.jvm.internal.CallableReference
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 
 internal
@@ -283,6 +285,14 @@ fun MethodVisitor.TRY_CATCH(
 internal
 fun <T : Enum<T>> MethodVisitor.GETSTATIC(field: T) {
     val owner = field.declaringClass.internalName
+    GETSTATIC(owner, field.name, "L$owner;")
+}
+
+
+internal
+fun MethodVisitor.GETSTATIC(field: KProperty<*>) {
+    require(field is CallableReference)
+    val owner = (field.owner as kotlin.jvm.internal.ClassBasedDeclarationContainer).jClass.internalName
     GETSTATIC(owner, field.name, "L$owner;")
 }
 

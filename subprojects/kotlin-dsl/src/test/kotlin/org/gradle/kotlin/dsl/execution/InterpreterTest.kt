@@ -21,13 +21,14 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.isNull
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.same
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.TextResource
@@ -111,29 +112,27 @@ class InterpreterTest : TestWithTempFiles() {
 
             on {
                 cachedDirFor(
-                    any(),
                     eq(stage1TemplateId),
                     eq(sourceHash),
-                    eq(compilationClassPathHash),
-                    isNull(),
+                    same(testRuntimeClassPath),
+                    same(ClassPath.EMPTY),
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(5).invoke(stage1CacheDir)
+                it.getArgument<(File) -> Unit>(4).invoke(stage1CacheDir)
                 stage1CacheDir
             }
 
             on {
                 cachedDirFor(
-                    any(),
                     eq(stage2TemplateId),
                     eq(sourceHash),
-                    eq(compilationClassPathHash),
-                    isNull(),
+                    same(testRuntimeClassPath),
+                    same(ClassPath.EMPTY),
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(5).invoke(stage2CacheDir)
+                it.getArgument<(File) -> Unit>(4).invoke(stage2CacheDir)
                 stage2CacheDir
             }
 
@@ -144,7 +143,7 @@ class InterpreterTest : TestWithTempFiles() {
             }
 
             on {
-                loadClassInChildScopeOf(any(), any(), any(), any(), isNull())
+                loadClassInChildScopeOf(any(), any(), any(), any(), same(ClassPath.EMPTY))
             } doAnswer {
 
                 val location = it.getArgument<File>(2)
@@ -194,7 +193,7 @@ class InterpreterTest : TestWithTempFiles() {
                     "kotlin-dsl:$scriptPath:$stage1TemplateId",
                     stage1CacheDir,
                     "Program",
-                    null
+                    ClassPath.EMPTY
                 )
 
                 verify(host).cache(
@@ -218,7 +217,7 @@ class InterpreterTest : TestWithTempFiles() {
                     "kotlin-dsl:$scriptPath:$stage2TemplateId",
                     stage2CacheDir,
                     "Program",
-                    null
+                    ClassPath.EMPTY
                 )
 
                 val specializedProgram = classLoaders[1].loadClass("Program")
