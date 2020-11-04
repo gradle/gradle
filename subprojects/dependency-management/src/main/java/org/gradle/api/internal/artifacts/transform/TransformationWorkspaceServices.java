@@ -24,6 +24,7 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import java.io.File;
 
-public interface TransformationWorkspaceProvider extends WorkspaceProvider {
+public interface TransformationWorkspaceServices {
+    WorkspaceProvider getWorkspaceProvider();
     Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache();
 }

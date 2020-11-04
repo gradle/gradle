@@ -30,18 +30,23 @@ import java.io.Closeable;
 import java.io.File;
 
 @NotThreadSafe
-public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
+public class ImmutableTransformationWorkspaceServices implements TransformationWorkspaceServices, Closeable {
     private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
-    private final DefaultImmutableWorkspaceProvider delegate;
+    private final DefaultImmutableWorkspaceProvider workspaceProvider;
 
-    public ImmutableTransformationWorkspaceProvider(
+    public ImmutableTransformationWorkspaceServices(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
         CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache
     ) {
-        this.delegate = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore);
+        this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore);
         this.identityCache = identityCache;
+    }
+
+    @Override
+    public DefaultImmutableWorkspaceProvider getWorkspaceProvider() {
+        return workspaceProvider;
     }
 
     @Override
@@ -50,12 +55,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        return delegate.withWorkspace(path, action);
-    }
-
-    @Override
     public void close() {
-        delegate.close();
+        workspaceProvider.close();
     }
 }
