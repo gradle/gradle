@@ -49,7 +49,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         """
 
         when:
-        run 'verifyExtension', '--info'
+        run 'verifyExtension'
 
         then:
         operations.hasOperation("Executing generation of dependency accessors for libs")

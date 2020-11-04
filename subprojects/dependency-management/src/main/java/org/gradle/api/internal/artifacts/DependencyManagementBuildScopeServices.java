@@ -130,7 +130,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.std.DefaultDependenciesAccessors;
-import org.gradle.api.internal.std.DependenciesAccessorsWorkspace;
+import org.gradle.api.internal.std.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
@@ -739,7 +739,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry,
-                                                              DependenciesAccessorsWorkspace workspace,
+                                                              DependenciesAccessorsWorkspaceProvider workspace,
                                                               DefaultProjectDependencyFactory factory,
                                                               ExecutionEngine executionEngine,
                                                               FeaturePreviews featurePreviews,
