@@ -32,7 +32,7 @@ public class DependenciesAccessorsWorkspace implements ImmutableWorkspaceProvide
     private final DefaultImmutableWorkspaceProvider delegate;
 
     public DependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
-        this.delegate = new DefaultImmutableWorkspaceProvider(
+        this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
             cacheRepository
                 .cache(cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion))
                 .withDisplayName("dependencies-accessors"),

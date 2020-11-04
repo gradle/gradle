@@ -32,6 +32,7 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.function.Function;
 
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -44,19 +45,32 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public DefaultImmutableWorkspaceProvider(
+    public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner
     ) {
-        this.cache = cacheBuilder
+        return new DefaultImmutableWorkspaceProvider(
+            cacheBuilder,
+            fileAccessTimeJournal,
+            cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner)
+        );
+    }
+
+    private DefaultImmutableWorkspaceProvider(
+        CacheBuilder cacheBuilder,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        Function<PersistentCache, ExecutionHistoryStore> historyFactory
+    ) {
+        PersistentCache cache = cacheBuilder
             .withCleanup(createCleanupAction(fileAccessTimeJournal))
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
+        this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
-        this.executionHistoryStore = new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner);
+        this.executionHistoryStore = historyFactory.apply(cache);
     }
 
     private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {

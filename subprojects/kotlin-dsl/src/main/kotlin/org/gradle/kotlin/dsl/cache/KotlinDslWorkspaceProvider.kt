@@ -34,7 +34,7 @@ class KotlinDslWorkspaceProvider(
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner
 ) : ImmutableWorkspaceProvider, Closeable {
-    private var delegate = DefaultImmutableWorkspaceProvider(
+    private var delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
         cacheRepository
             .cache(cacheScopeMapping.getBaseDirectory(null, "kotlin-dsl", VersionStrategy.CachePerVersion))
             .withDisplayName("kotlin-dsl"),
