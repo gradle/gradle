@@ -98,7 +98,7 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
         return cache.withFileLock(() -> {
             File workspace = new File(baseDirectory, identity);
             fileAccessTracker.markAccessed(workspace);
-            return action.executeInWorkspace(workspace, executionHistoryStore);
+            return action.executeInWorkspace(workspace);
         });
     }
 

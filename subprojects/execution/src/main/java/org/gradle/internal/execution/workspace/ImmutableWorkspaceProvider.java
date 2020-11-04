@@ -30,6 +30,6 @@ public interface ImmutableWorkspaceProvider {
 
     @FunctionalInterface
     interface WorkspaceAction<T> {
-        T executeInWorkspace(File workspace, ExecutionHistoryStore executionHistoryStore);
+        T executeInWorkspace(File workspace);
     }
 }

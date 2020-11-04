@@ -129,7 +129,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         bundles.forEach(hash::putString);
         versions.forEach(hash::putString);
         String keysHash = hash.hash().toString();
-        workspace.withWorkspace(keysHash, (workspace, executionHistoryStore) -> {
+        workspace.withWorkspace(keysHash, workspace -> {
             File srcDir = new File(workspace, "sources");
             File dstDir = new File(workspace, "classes");
             if (!srcDir.exists() || !dstDir.exists()) {
@@ -153,7 +153,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             .sorted()
             .forEachOrdered(hash::putString);
         String projectsHash = hash.hash().toString();
-        workspace.withWorkspace(projectsHash, (workspace, executionHistoryStore) -> {
+        workspace.withWorkspace(projectsHash, workspace -> {
             File srcDir = new File(workspace, "sources");
             File dstDir = new File(workspace, "classes");
             if (!srcDir.exists() || !dstDir.exists()) {
