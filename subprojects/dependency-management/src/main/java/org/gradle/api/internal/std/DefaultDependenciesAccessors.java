@@ -78,7 +78,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
 
     private final ClassPath classPath;
-    private final DependenciesAccessorsWorkspace workspace;
+    private final DependenciesAccessorsWorkspaceProvider workspace;
     private final DefaultProjectDependencyFactory projectDependencyFactory;
     private final FeaturePreviews featurePreviews;
     private final ExecutionEngine engine;
@@ -93,7 +93,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private ClassPath classes = DefaultClassPath.of();
 
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
-                                        DependenciesAccessorsWorkspace workspace,
+                                        DependenciesAccessorsWorkspaceProvider workspace,
                                         DefaultProjectDependencyFactory projectDependencyFactory,
                                         FeaturePreviews featurePreview,
                                         ExecutionEngine engine,
@@ -250,7 +250,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private abstract class AbstractAccessorUnitOfWork implements UnitOfWork {
         private static final String OUT_SOURCES = "sources";
         private static final String OUT_CLASSES = "classes";
-        public static final String DEPENDENCY_ACCESSORS_PREFIX = "dependency-accessors/";
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
@@ -263,7 +262,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
-            return workspace.withWorkspace(DEPENDENCY_ACCESSORS_PREFIX + identity, (workspace, history) -> action.executeInWorkspace(workspace));
+            return workspace.withWorkspace(identity, (workspace, history) -> action.executeInWorkspace(workspace));
         }
 
         @Override
@@ -302,13 +301,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public void visitOutputs(File workspace, OutputVisitor visitor) {
-            File srcDir = new File(workspace, OUT_SOURCES);
-            File dstDir = new File(workspace, OUT_CLASSES);
-            visitOutputDir(visitor, srcDir, OUT_SOURCES);
-            visitOutputDir(visitor, dstDir, OUT_CLASSES);
+            visitOutputDir(visitor, workspace, OUT_SOURCES);
+            visitOutputDir(visitor, workspace, OUT_CLASSES);
         }
 
-        private void visitOutputDir(OutputVisitor visitor, File dir, String propertyName) {
+        private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
+            File dir = new File(workspace, propertyName);
             visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, dir, fileCollectionFactory.fixed(dir));
         }
     }

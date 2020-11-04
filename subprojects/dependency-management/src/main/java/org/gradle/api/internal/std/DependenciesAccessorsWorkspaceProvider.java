@@ -24,8 +24,8 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 
-public class DependenciesAccessorsWorkspace extends DefaultImmutableWorkspaceProvider {
-    public DependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
+public class DependenciesAccessorsWorkspaceProvider extends DefaultImmutableWorkspaceProvider {
+    public DependenciesAccessorsWorkspaceProvider(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
         super("dependencies-accessors", cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion), cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
     }
 }
