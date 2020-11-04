@@ -589,7 +589,7 @@ project(':common') {
         run(":app:resolveArtifacts")
 
         then:
-        outputContains("processing lib.jar")
+        outputContains("processing [lib.jar]")
         outputContains("processing lib2-1.2.jar using [lib.jar.red]")
         outputContains("files = [lib2-1.2.jar.green]")
 

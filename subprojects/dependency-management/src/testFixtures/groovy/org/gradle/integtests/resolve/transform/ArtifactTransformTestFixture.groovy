@@ -139,7 +139,7 @@ class JarProducer extends DefaultTask {
      * Asserts that exactly the given files where transformed by the 'simple' transforms below
      */
     void assertTransformed(String... fileNames) {
-        assert result.output.findAll("processing (.+)").sort() == fileNames.collect { "processing $it" }.sort()
+        assert result.output.findAll("processing \\[(.+)\\]").sort() == fileNames.collect { "processing [$it]" }.sort()
     }
 
     /**
@@ -147,7 +147,7 @@ class JarProducer extends DefaultTask {
      * and another transform that converts 'red' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
-    void setupBuildWithChainedColorTransform() {
+    void setupBuildWithChainedColorTransform(boolean lenient = false) {
         setupBuildWithColorAttributes()
         buildFile << """
             allprojects {
@@ -176,9 +176,14 @@ class JarProducer extends DefaultTask {
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
-                    println "processing \${input.name}"
+                    println "processing [\${input.name}]"
+                    assert ${lenient} || input.file
                     def output = outputs.file(input.name + "." + parameters.targetColor.get())
-                    output.text = input.text + "-" + parameters.targetColor.get()
+                    if (input.file) {
+                        output.text = input.text + "-" + parameters.targetColor.get()
+                    } else {
+                        output.text = "missing-" + parameters.targetColor.get()
+                    }
                 }
             }
         """
@@ -253,7 +258,7 @@ class JarProducer extends DefaultTask {
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
-                    println "processing \${input.name}"
+                    println "processing [\${input.name}]"
                     assert input.file
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
@@ -266,7 +271,7 @@ class JarProducer extends DefaultTask {
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
-    void setupBuildWithColorTransformImplementation(TestFile buildFile = getBuildFile()) {
+    void setupBuildWithColorTransformImplementation(TestFile buildFile = getBuildFile(), boolean lenient = false) {
         setupBuildWithColorTransform(buildFile)
         buildFile << """
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
@@ -275,13 +280,21 @@ class JarProducer extends DefaultTask {
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
-                    println "processing \${input.name}"
-                    assert input.file
+                    println "processing [\${input.name}]"
+                    assert ${lenient} || input.file
                     def output = outputs.file(input.name + ".green")
-                    output.text = input.text + ".green"
+                    if (input.file) {
+                        output.text = input.text + ".green"
+                    } else {
+                        output.text = "missing.green"
+                    }
                 }
             }
         """
+    }
+
+    void setupBuildWithColorTransformImplementation(boolean lenient) {
+        setupBuildWithColorTransformImplementation(getBuildFile(), lenient)
     }
 
     /**
@@ -337,7 +350,7 @@ class JarProducer extends DefaultTask {
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     assert input.file
-                    println "processing \${input.name}"
+                    println "processing [\${input.name}]"
                     def output = outputs.file(input.name + ".red")
                     output.text = input.text + "-red"
                 }
