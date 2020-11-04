@@ -43,6 +43,14 @@ publishing.publications.withType<MavenPublication>() {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()
+        versionMapping {
+            usage("java-api") {
+                fromResolutionResult()
+            }
+            usage("java-runtime") {
+                fromResolutionResult()
+            }
+        }
     }
 }
 
