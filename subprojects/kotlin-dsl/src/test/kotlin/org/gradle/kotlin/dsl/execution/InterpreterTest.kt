@@ -192,7 +192,7 @@ class InterpreterTest : TestWithTempFiles() {
                 verify(host).loadClassInChildScopeOf(
                     baseScope,
                     "kotlin-dsl:$scriptPath:$stage1TemplateId",
-                    stage1CacheDir.resolve("stage-1"),
+                    stage1CacheDir,
                     "Program",
                     null
                 )

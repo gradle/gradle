@@ -243,15 +243,16 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget
     ): CompiledScript {
 
+        // TODO: consider computing plugin accessors only when there's a plugins block
         val pluginAccessorsClassPath by unsafeLazy {
-            // TODO: consider computing plugin accessors only when there's a plugins block
-            if (requiresAccessors(programTarget, programKind)) host.pluginAccessorsFor(scriptHost)
-            else null
+            // This is lazy so the potentially costly computation happens within the scope of the compiler build operation below
+            when {
+                requiresAccessors(programTarget, programKind) -> host.pluginAccessorsFor(scriptHost)
+                else -> null
+            }
         }
 
-        val scriptPath =
-            scriptHost.fileName
-
+        val scriptPath = scriptHost.fileName
         val compilationClassPath = host.compilationClassPathOf(targetScope.parent)
         val compileClassPathHash = host.hashOf(compilationClassPath)
 
@@ -265,9 +266,6 @@ class Interpreter(val host: Host) {
             ) { cachedDir ->
 
                 startCompilerOperationFor(scriptSource, templateId).use {
-
-                    val outputDir =
-                        stage1SubDirOf(cachedDir).apply { mkdir() }
 
                     val sourceText =
                         scriptSource.resource!!.text
@@ -284,7 +282,7 @@ class Interpreter(val host: Host) {
 
                     scriptSource.withLocationAwareExceptionHandling {
                         ResidualProgramCompiler(
-                            outputDir = outputDir,
+                            outputDir = cachedDir,
                             classPath = compilationClassPath,
                             originalSourceHash = sourceHash,
                             programKind = programKind,
@@ -299,22 +297,15 @@ class Interpreter(val host: Host) {
                 }
             }
 
-        val classesDir =
-            stage1SubDirOf(cachedDir)
-
         return loadClassInChildScopeOf(
             baseScope,
             scriptPath,
-            classesDir,
+            cachedDir,
             templateId,
             pluginAccessorsClassPath,
             scriptSource
         )
     }
-
-    private
-    fun stage1SubDirOf(cachedDir: File) =
-        cachedDir.resolve("stage-1")
 
     private
     fun loadClassInChildScopeOf(
@@ -386,22 +377,14 @@ class Interpreter(val host: Host) {
             sourceHash: HashCode,
             accessorsClassPath: ClassPath?
         ) {
-            val targetScope =
-                scriptHost.targetScope
-
-            val parentClassLoader =
-                targetScope.exportClassLoader
-
-            val classPathHash: HashCode? =
-                accessorsClassPath?.let { host.hashOf(it) }
+            val targetScope = scriptHost.targetScope
+            val parentClassLoader = targetScope.exportClassLoader
+            val accessorsClassPathHash: HashCode? = accessorsClassPath?.let { host.hashOf(it) }
 
             val compileClassPath = host.compilationClassPathOf(targetScope.parent)
             val compileClassPathHash = host.hashOf(compileClassPath)
-            val programId =
-                ProgramId(scriptTemplateId, sourceHash, parentClassLoader, classPathHash, compileClassPathHash)
-
-            val cachedProgram =
-                host.cachedClassFor(programId)
+            val programId = ProgramId(scriptTemplateId, sourceHash, parentClassLoader, accessorsClassPathHash, compileClassPathHash)
+            val cachedProgram = host.cachedClassFor(programId)
 
             if (cachedProgram != null) {
                 eval(cachedProgram.program, scriptHost)
