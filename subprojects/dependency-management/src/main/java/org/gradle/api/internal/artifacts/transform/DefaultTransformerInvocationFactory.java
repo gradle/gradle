@@ -88,7 +88,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final FileSystemAccess fileSystemAccess;
     private final ExecutionEngine executionEngine;
     private final ArtifactTransformListener artifactTransformListener;
-    private final ImmutableTransformationWorkspaceProvider immutableWorkspaceProvider;
+    private final TransformationWorkspaceProvider immutableWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -97,7 +97,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         ExecutionEngine executionEngine,
         FileSystemAccess fileSystemAccess,
         ArtifactTransformListener artifactTransformListener,
-        ImmutableTransformationWorkspaceProvider immutableWorkspaceProvider,
+        TransformationWorkspaceProvider immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor
