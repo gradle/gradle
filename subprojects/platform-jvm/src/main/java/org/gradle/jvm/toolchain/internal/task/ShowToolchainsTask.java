@@ -16,12 +16,16 @@
 
 package org.gradle.jvm.toolchain.internal.task;
 
+import com.google.common.base.Strings;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 
@@ -30,6 +34,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ShowToolchainsTask extends DefaultTask {
 
@@ -51,8 +59,24 @@ public class ShowToolchainsTask extends DefaultTask {
         List<ReportableToolchain> toolchains = allReportableToolchains();
         List<ReportableToolchain> validToolchains = validToolchains(toolchains);
         List<ReportableToolchain> invalidToolchains = invalidToolchains(toolchains);
+        printOptions(output);
         validToolchains.forEach(toolchainRenderer::printToolchain);
         toolchainRenderer.printInvalidToolchains(invalidToolchains);
+    }
+
+    private void printOptions(StyledTextOutput output) {
+        boolean detectionEnabled = getBooleanProperty(AutoDetectingInstallationSupplier.AUTO_DETECT);
+        boolean downloadEnabled = getBooleanProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD);
+        output.withStyle(Identifier).println(" + Options");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-detection enabled?", 25, ' '));
+        output.withStyle(Description).println(detectionEnabled ? "Yes" : "No");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-download enabled?", 25, ' '));
+        output.withStyle(Description).println(downloadEnabled ? "Yes" : "No");
+        output.println();
+    }
+
+    private Boolean getBooleanProperty(String propertyKey) {
+        return getProviderFactory().gradleProperty(propertyKey).forUseAtConfigurationTime().map(Boolean::parseBoolean).getOrElse(true);
     }
 
     private List<ReportableToolchain> invalidToolchains(List<ReportableToolchain> toolchains) {
@@ -93,5 +117,9 @@ public class ShowToolchainsTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
 
 }

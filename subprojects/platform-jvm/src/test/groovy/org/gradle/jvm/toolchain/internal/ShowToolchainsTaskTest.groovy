@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.logging.text.StyledTextOutputFactory
@@ -31,10 +33,12 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         task = project.tasks.create("test", TestShowToolchainsTask.class)
-        task.installationRegistry = Mock(SharedJavaInstallationRegistry)
         detector = Mock(JvmMetadataDetector)
-        task.metadataDetector = detector
         output = new TestStyledTextOutput()
+
+        task.installationRegistry = Mock(SharedJavaInstallationRegistry)
+        task.metadataDetector = detector
+        task.providerFactory = createProviderFactory(true, true)
         task.outputFactory = Mock(StyledTextOutputFactory) {
             create(_ as Class) >> output
         }
@@ -61,6 +65,10 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection enabled?  {description}Yes{normal}
+     | Auto-download enabled?   {description}Yes{normal}
+
 {identifier} + AdoptOpenJDK JRE 1.8.0_202{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
@@ -116,6 +124,10 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection enabled?  {description}Yes{normal}
+     | Auto-download enabled?   {description}Yes{normal}
+
 {identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
@@ -128,6 +140,22 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
        | Error:              {description}errorMessage{normal}
 {identifier}     + path{normal}
        | Error:              {description}errorMessage{normal}
+
+"""
+    }
+    def "reports download and detection options"() {
+        given:
+        task.providerFactory = createProviderFactory(false, false)
+        task.installationRegistry.listInstallations() >> []
+
+        when:
+        task.showToolchains()
+
+        then:
+        output.value == """
+{identifier} + Options{normal}
+     | Auto-detection enabled?  {description}No{normal}
+     | Auto-download enabled?   {description}No{normal}
 
 """
     }
@@ -147,6 +175,10 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection enabled?  {description}Yes{normal}
+     | Auto-download enabled?   {description}Yes{normal}
+
 {identifier} + Invalid toolchains{normal}
 {identifier}     + path{normal}
        | Error:              {description}errorMessage{normal}
@@ -164,10 +196,18 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         return JvmInstallationMetadata.failure(new File("path"), "errorMessage")
     }
 
+    ProviderFactory createProviderFactory(boolean enableDetection, boolean enableDownload) {
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.of(String.valueOf(enableDetection))
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.of(String.valueOf(enableDownload))
+        providerFactory
+    }
+
     static class TestShowToolchainsTask extends ShowToolchainsTask {
         def installationRegistry
         def metadataDetector
         def outputFactory
+        def providerFactory
 
         @Override
         protected SharedJavaInstallationRegistry getInstallationRegistry() {
@@ -182,6 +222,11 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         @Override
         protected StyledTextOutputFactory getTextOutputFactory() {
             outputFactory
+        }
+
+        @Override
+        protected ProviderFactory getProviderFactory() {
+            providerFactory
         }
     }
 }
