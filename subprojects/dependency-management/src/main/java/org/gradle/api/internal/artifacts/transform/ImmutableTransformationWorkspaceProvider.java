@@ -28,6 +28,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.File;
+import java.util.Optional;
 
 @NotThreadSafe
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
@@ -55,7 +56,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public ExecutionHistoryStore getHistory() {
+    public Optional<ExecutionHistoryStore> getHistory() {
         return delegate.getHistory();
     }
 

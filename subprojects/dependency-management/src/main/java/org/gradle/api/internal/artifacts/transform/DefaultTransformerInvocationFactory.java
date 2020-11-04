@@ -134,7 +134,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             dependencies,
             dependenciesFingerprint,
             buildOperationExecutor,
-            workspaceProvider.getHistory(),
             fileCollectionFactory,
             inputArtifactFingerprinter,
             workspaceProvider
@@ -218,7 +217,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
         private final BuildOperationExecutor buildOperationExecutor;
-        private final ExecutionHistoryStore executionHistoryStore;
         private final FileCollectionFactory fileCollectionFactory;
         private final FileCollectionFingerprinter inputArtifactFingerprinter;
 
@@ -235,7 +233,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             CurrentFileCollectionFingerprint dependenciesFingerprint,
 
             BuildOperationExecutor buildOperationExecutor,
-            ExecutionHistoryStore executionHistoryStore,
             FileCollectionFactory fileCollectionFactory,
             FileCollectionFingerprinter inputArtifactFingerprinter,
             TransformationWorkspaceProvider workspaceProvider
@@ -247,7 +244,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.dependenciesFingerprint = dependenciesFingerprint;
             this.inputArtifact = inputArtifact;
             this.transformer = transformer;
-            this.executionHistoryStore = executionHistoryStore;
             this.dependencies = dependencies;
             this.fileCollectionFactory = fileCollectionFactory;
             this.inputArtifactFingerprinter = inputArtifactFingerprinter;
@@ -299,7 +295,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Optional<ExecutionHistoryStore> getHistory() {
-            return Optional.of(executionHistoryStore);
+            return workspaceProvider.getHistory();
         }
 
         @Override

@@ -26,6 +26,7 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import java.io.Closeable
+import java.util.Optional
 
 
 class KotlinDslWorkspaceProvider(
@@ -48,7 +49,7 @@ class KotlinDslWorkspaceProvider(
     override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
         delegate.withWorkspace(path, action)
 
-    override fun getHistory(): ExecutionHistoryStore = delegate.history
+    override fun getHistory(): Optional<ExecutionHistoryStore> = delegate.history
 
     override fun close() = delegate.close()
 }

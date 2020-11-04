@@ -27,6 +27,7 @@ import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspacePro
 import org.gradle.internal.file.FileAccessTimeJournal;
 
 import java.io.Closeable;
+import java.util.Optional;
 
 public class DependenciesAccessorsWorkspace implements WorkspaceProvider, Closeable {
     private final DefaultImmutableWorkspaceProvider delegate;
@@ -47,7 +48,7 @@ public class DependenciesAccessorsWorkspace implements WorkspaceProvider, Closea
     }
 
     @Override
-    public ExecutionHistoryStore getHistory() {
+    public Optional<ExecutionHistoryStore> getHistory() {
         return delegate.getHistory();
     }
 

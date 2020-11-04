@@ -29,6 +29,7 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
+import java.util.Optional;
 
 @NotThreadSafe
 public class MutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, ReservedFileSystemLocation {
@@ -43,8 +44,8 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public ExecutionHistoryStore getHistory() {
-        return executionHistoryStore;
+    public Optional<ExecutionHistoryStore> getHistory() {
+        return Optional.of(executionHistoryStore);
     }
 
     @Override

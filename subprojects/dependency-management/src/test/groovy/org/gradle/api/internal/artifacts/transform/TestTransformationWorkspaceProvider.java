@@ -24,6 +24,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import java.io.File;
+import java.util.Optional;
 
 public class TestTransformationWorkspaceProvider implements TransformationWorkspaceProvider {
     private final File transformationsStoreDirectory;
@@ -35,7 +36,7 @@ public class TestTransformationWorkspaceProvider implements TransformationWorksp
     }
 
     @Override
-    public ExecutionHistoryStore getHistory() {
+    public Optional<ExecutionHistoryStore> getHistory() {
         return executionHistoryStore;
     }
 

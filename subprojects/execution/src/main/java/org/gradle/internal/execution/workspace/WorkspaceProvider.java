@@ -19,6 +19,7 @@ package org.gradle.internal.execution.workspace;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import java.io.File;
+import java.util.Optional;
 
 public interface WorkspaceProvider {
     /**
@@ -26,7 +27,7 @@ public interface WorkspaceProvider {
      */
     <T> T withWorkspace(String path, WorkspaceAction<T> action);
 
-    ExecutionHistoryStore getHistory();
+    Optional<ExecutionHistoryStore> getHistory();
 
     @FunctionalInterface
     interface WorkspaceAction<T> {
