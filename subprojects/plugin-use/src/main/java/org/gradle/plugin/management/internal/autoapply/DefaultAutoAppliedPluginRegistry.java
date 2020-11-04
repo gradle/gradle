@@ -47,7 +47,14 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
+        if (target.getParent() == null) {
+            return PluginRequests.of(createAntlrPluginRequest());
+        }
         return PluginRequests.EMPTY;
+    }
+
+    private static PluginRequestInternal createAntlrPluginRequest() {
+        return new DefaultPluginRequest("antlr", null, false, null, "auto-applied legacy core");
     }
 
     @Override

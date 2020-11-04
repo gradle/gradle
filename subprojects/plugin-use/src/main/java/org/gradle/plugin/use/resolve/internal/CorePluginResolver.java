@@ -68,10 +68,12 @@ public class CorePluginResolver implements PluginResolver {
             );
         }
         if (!pluginRequest.isApply()) {
-            throw new InvalidPluginRequestException(pluginRequest,
-                "Plugin '" + pluginRequest.getId() + "' is a core Gradle plugin, which is already on the classpath. "
-                    + "Requesting it with the 'apply false' option is a no-op."
-            );
+            if (!pluginRequest.getId().getId().equals("antlr")) {
+                throw new InvalidPluginRequestException(pluginRequest,
+                    "Plugin '" + pluginRequest.getId() + "' is a core Gradle plugin, which is already on the classpath. "
+                        + "Requesting it with the 'apply false' option is a no-op."
+                );
+            }
         }
     }
 
