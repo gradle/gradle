@@ -25,5 +25,7 @@ public abstract class DependencyHealthPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         ((GradleInternal)project.getGradle()).getServices().get(DependencyHealthCollector.class);
+        project.getExtensions().create("dependencyHealth", DependencyHealth.class);
+        project.getTasks().register("dependencyAudit", DependencyHealthAudit.class);
     }
 }
