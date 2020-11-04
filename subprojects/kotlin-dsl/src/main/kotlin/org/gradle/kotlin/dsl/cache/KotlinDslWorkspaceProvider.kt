@@ -32,9 +32,9 @@ class KotlinDslWorkspaceProvider(
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner
 ) : DefaultImmutableWorkspaceProvider(
-    "kotlin-dsl",
-    cacheScopeMapping.getBaseDirectory(null, "kotlin-dsl", VersionStrategy.CachePerVersion),
-    cacheRepository,
+    cacheRepository
+        .cache(cacheScopeMapping.getBaseDirectory(null, "kotlin-dsl", VersionStrategy.CachePerVersion))
+        .withDisplayName("kotlin-dsl"),
     fileAccessTimeJournal,
     inMemoryCacheDecoratorFactory,
     stringInterner

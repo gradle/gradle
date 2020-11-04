@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.workspace.impl;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -45,20 +45,16 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
     private final PersistentCache cache;
 
     public DefaultImmutableWorkspaceProvider(
-        String name,
-        File baseDirectory,
-        CacheRepository cacheRepository,
+        CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner
     ) {
-        this.baseDirectory = baseDirectory;
-        this.cache = cacheRepository
-            .cache(baseDirectory)
+        this.cache = cacheBuilder
             .withCleanup(createCleanupAction(fileAccessTimeJournal))
-            .withDisplayName(name)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
+        this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.executionHistoryStore = new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner);
     }

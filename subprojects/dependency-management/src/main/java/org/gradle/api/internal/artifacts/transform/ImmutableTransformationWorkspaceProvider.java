@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -49,20 +48,16 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     private final PersistentCache cache;
 
     public ImmutableTransformationWorkspaceProvider(
-        File baseDirectory,
-        CacheRepository cacheRepository,
+        CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
         CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache
     ) {
-        this.baseDirectory = baseDirectory;
-        this.cache = cacheRepository
-            .cache(baseDirectory)
+        this.cache = cacheBuilder
             .withCleanup(createCleanupAction(fileAccessTimeJournal))
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
+        this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.executionHistoryStore = executionHistoryStore;
         this.identityCache = identityCache;

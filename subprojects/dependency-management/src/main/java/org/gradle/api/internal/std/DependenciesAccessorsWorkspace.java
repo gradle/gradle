@@ -26,6 +26,12 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 
 public class DependenciesAccessorsWorkspace extends DefaultImmutableWorkspaceProvider {
     public DependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
-        super("dependencies-accessors", cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion), cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
+        super(
+            cacheRepository
+                .cache(cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion))
+                .withDisplayName("dependencies-accessors"),
+            fileAccessTimeJournal,
+            inMemoryCacheDecoratorFactory,
+            stringInterner);
     }
 }
