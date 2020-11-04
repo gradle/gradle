@@ -16,6 +16,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 
+@Ignore("wip")
 class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest() {
 
     companion object CacheBuster {
