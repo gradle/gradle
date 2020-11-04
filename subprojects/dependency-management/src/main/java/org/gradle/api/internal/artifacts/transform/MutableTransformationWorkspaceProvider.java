@@ -43,7 +43,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public ExecutionHistoryStore getExecutionHistoryStore() {
+    public ExecutionHistoryStore getHistory() {
         return executionHistoryStore;
     }
 

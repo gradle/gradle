@@ -33,7 +33,7 @@ public interface TransformationWorkspaceProvider {
     /**
      * The execution history store for transformations using the provided workspaces.
      */
-    ExecutionHistoryStore getExecutionHistoryStore();
+    ExecutionHistoryStore getHistory();
 
     Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache();
 

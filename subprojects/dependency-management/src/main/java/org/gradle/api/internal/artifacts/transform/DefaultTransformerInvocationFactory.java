@@ -134,7 +134,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             dependencies,
             dependenciesFingerprint,
             buildOperationExecutor,
-            workspaceProvider.getExecutionHistoryStore(),
+            workspaceProvider.getHistory(),
             fileCollectionFactory,
             inputArtifactFingerprinter,
             workspaceProvider

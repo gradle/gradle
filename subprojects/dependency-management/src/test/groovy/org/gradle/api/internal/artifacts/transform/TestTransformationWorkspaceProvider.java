@@ -35,7 +35,7 @@ public class TestTransformationWorkspaceProvider implements TransformationWorksp
     }
 
     @Override
-    public ExecutionHistoryStore getExecutionHistoryStore() {
+    public ExecutionHistoryStore getHistory() {
         return executionHistoryStore;
     }
 

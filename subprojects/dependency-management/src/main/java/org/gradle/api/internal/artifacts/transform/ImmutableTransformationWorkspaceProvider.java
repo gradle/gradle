@@ -55,7 +55,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public ExecutionHistoryStore getExecutionHistoryStore() {
+    public ExecutionHistoryStore getHistory() {
         return delegate.getHistory();
     }
 
