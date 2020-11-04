@@ -162,10 +162,6 @@ class GeneratePluginAccessors(
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 
-    override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
-        visitor.visitImplementation(GeneratePluginAccessors::class.java)
-    }
-
     override fun visitInputs(visitor: UnitOfWork.InputVisitor) {
         visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, IDENTITY) { classLoaderHash }
     }

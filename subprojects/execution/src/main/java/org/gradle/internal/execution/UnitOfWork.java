@@ -101,7 +101,9 @@ public interface UnitOfWork extends Describable {
      *
      * TODO Move this to {@link #visitInputs(InputVisitor)}
      */
-    void visitImplementations(ImplementationVisitor visitor);
+    default void visitImplementations(ImplementationVisitor visitor) {
+        visitor.visitImplementation(getClass());
+    }
 
     interface ImplementationVisitor {
         void visitImplementation(Class<?> implementation);

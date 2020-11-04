@@ -161,10 +161,6 @@ class GenerateProjectAccessors(
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
-    override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
-        visitor.visitImplementation(GenerateProjectAccessors::class.java)
-    }
-
     override fun visitInputs(visitor: UnitOfWork.InputVisitor) {
         visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, IDENTITY) { hashCodeFor(projectSchema) }
         visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, NON_INCREMENTAL, IDENTITY, classPath) {
