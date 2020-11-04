@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
 import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
@@ -137,12 +139,14 @@ import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClasspathBuilder;
@@ -151,16 +155,54 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.BeforeExecutionContext;
+import org.gradle.internal.execution.CachingContext;
+import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UpToDateResult;
+import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
+import org.gradle.internal.execution.impl.DefaultExecutionEngine;
+import org.gradle.internal.execution.steps.AssignWorkspaceStep;
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
+import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CreateOutputsStep;
+import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.IdentifyStep;
+import org.gradle.internal.execution.steps.IdentityCacheStep;
+import org.gradle.internal.execution.steps.LoadExecutionStateStep;
+import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
+import org.gradle.internal.execution.steps.ResolveChangesStep;
+import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.SkipUpToDateStep;
+import org.gradle.internal.execution.steps.SnapshotOutputsStep;
+import org.gradle.internal.execution.steps.StoreExecutionStateStep;
+import org.gradle.internal.execution.steps.TimeoutStep;
+import org.gradle.internal.execution.steps.ValidateStep;
+import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.RelativeFilePathResolver;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -183,6 +225,7 @@ import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -698,9 +741,135 @@ class DependencyManagementBuildScopeServices {
     DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry,
                                                               DependenciesAccessorsWorkspace workspace,
                                                               DefaultProjectDependencyFactory factory,
-                                                              BuildOperationExecutor buildOperationExecutor,
-                                                              FeaturePreviews featurePreviews) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, buildOperationExecutor, featurePreviews);
+                                                              ExecutionEngine executionEngine,
+                                                              FeaturePreviews featurePreviews,
+                                                              FileCollectionFactory fileCollectionFactory,
+                                                              ClasspathFingerprinter fingerprinter) {
+        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory, fingerprinter);
+    }
+
+
+    /**
+     * Execution engine for usage above Gradle scope
+     *
+     * Currently used for running artifact transformations in buildscript blocks.
+     */
+    ExecutionEngine createExecutionEngine(
+            BuildOperationExecutor buildOperationExecutor,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            Deleter deleter,
+            ExecutionStateChangeDetector changeDetector,
+            ListenerManager listenerManager,
+            OutputSnapshotter outputSnapshotter,
+            OverlappingOutputDetector overlappingOutputDetector,
+            TimeoutHandler timeoutHandler,
+            ValidateStep.ValidationWarningReporter validationWarningReporter,
+            ValueSnapshotter valueSnapshotter
+    ) {
+        OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
+        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
+        UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
+        // @formatter:off
+        return new DefaultExecutionEngine(
+            new IdentifyStep<>(valueSnapshotter,
+            new IdentityCacheStep<>(
+            new AssignWorkspaceStep<>(
+            new LoadExecutionStateStep<>(
+            new ValidateStep<>(validationWarningReporter,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
+            new NoOpCachingStateStep(
+            new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new StoreExecutionStateStep<>(
+            new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
+            new CreateOutputsStep<>(
+            new TimeoutStep<>(timeoutHandler,
+            new ResolveInputChangesStep<>(
+            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+            new ExecuteStep<>(buildOperationExecutor
+        ))))))))))))))))));
+        // @formatter:on
+    }
+
+
+    private static class NoOpCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
+        private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
+
+        public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public CachingResult execute(UnitOfWork work, BeforeExecutionContext context) {
+            UpToDateResult result = delegate.execute(work, new CachingContext() {
+                @Override
+                public CachingState getCachingState() {
+                    return CachingState.NOT_DETERMINED;
+                }
+
+                @Override
+                public Optional<String> getRebuildReason() {
+                    return context.getRebuildReason();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                    return context.getInputProperties();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                    return context.getInputFileProperties();
+                }
+
+                @Override
+                public UnitOfWork.Identity getIdentity() {
+                    return context.getIdentity();
+                }
+
+                @Override
+                public File getWorkspace() {
+                    return context.getWorkspace();
+                }
+
+                @Override
+                public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                    return context.getAfterPreviousExecutionState();
+                }
+
+                @Override
+                public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                    return context.getBeforeExecutionState();
+                }
+            });
+            return new CachingResult() {
+                @Override
+                public CachingState getCachingState() {
+                    return CachingState.NOT_DETERMINED;
+                }
+
+                @Override
+                public ImmutableList<String> getExecutionReasons() {
+                    return result.getExecutionReasons();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
+                    return result.getFinalOutputs();
+                }
+
+                @Override
+                public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                    return result.getReusedOutputOriginMetadata();
+                }
+
+                @Override
+                public Try<ExecutionResult> getExecutionResult() {
+                    return result.getExecutionResult();
+                }
+            };
+        }
     }
 
 }
