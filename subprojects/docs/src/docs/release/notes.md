@@ -181,6 +181,10 @@ In order to see which toolchains got detected and their corresponding metadata, 
 
 Output of `gradle -q javaToolchains`:
 ```
+ + Options
+     | Auto-detection enabled?  Yes
+     | Auto-download enabled?   Yes
+
  + AdoptOpenJDK 1.8.0_242
      | Location:           /path/to/8.0.242.hs-adpt/jre
      | Language Version:   8
