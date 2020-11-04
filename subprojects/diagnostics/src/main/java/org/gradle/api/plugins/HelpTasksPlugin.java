@@ -73,6 +73,8 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
+
+        project.getPluginManager().apply(DependencyHealthPlugin.class);
     }
 
     @SuppressWarnings("deprecation")
