@@ -206,7 +206,7 @@ public abstract class AvailableJavaHomes {
     private static List<JvmInstallation> discoverLocalInstallations() {
         ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory));
-        final List<JvmInstallation> jvms = new SharedJavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor())
+        final List<JvmInstallation> jvms = new SharedJavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor(), OperatingSystem.current())
             .listInstallations().stream()
             .map(i -> asJvmInstallation(i.getLocation(), metadataDetector))
             .sorted(Comparator.comparing(JvmInstallation::getJavaVersion))
