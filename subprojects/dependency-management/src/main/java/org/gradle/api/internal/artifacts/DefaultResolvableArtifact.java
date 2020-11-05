@@ -34,7 +34,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultResolvedArtifact implements ResolvableArtifact {
+public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
@@ -44,7 +44,7 @@ public class DefaultResolvedArtifact implements ResolvableArtifact {
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final PreResolvedResolvableArtifact publicView;
 
-    public DefaultResolvedArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -96,7 +96,7 @@ public class DefaultResolvedArtifact implements ResolvableArtifact {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
+        DefaultResolvableArtifact other = (DefaultResolvableArtifact) obj;
         return other.artifactId.equals(artifactId);
     }
 

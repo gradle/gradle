@@ -139,7 +139,7 @@ class Codecs(
         bind(TransformationChainCodec())
         bind(DefaultTransformerCodec(fileLookup, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
-        bind(ResolvableArtifactCodec(calculatedValueContainerFactory))
+        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
         bind(TransformStepSpecCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
         bind(TransformedProjectArtifactSetCodec())
@@ -200,7 +200,7 @@ class Codecs(
         bind(DelegatingTransformStepSpecCodec(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
 
-        bind(ResolvableArtifactCodec(calculatedValueContainerFactory))
+        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
 
         bind(NotImplementedCodec)
     }

@@ -23,7 +23,7 @@ import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class DefaultResolvedArtifactTest extends Specification {
+class DefaultResolvableArtifactTest extends Specification {
     def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
 
     def "artifacts are equal when artifact identifier is equal"() {
@@ -36,10 +36,10 @@ class DefaultResolvedArtifactTest extends Specification {
         def otherArtifactId = Stub(ComponentArtifactIdentifier)
         def buildDependencies = Stub(TaskDependencyContainer)
 
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependencyContainer), Stub(CalculatedValue), calculatedValueContainerFactory)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
-        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def artifact = new DefaultResolvableArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def equalArtifact = new DefaultResolvableArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependencyContainer), Stub(CalculatedValue), calculatedValueContainerFactory)
+        def differentModule = new DefaultResolvableArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def differentId = new DefaultResolvableArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)

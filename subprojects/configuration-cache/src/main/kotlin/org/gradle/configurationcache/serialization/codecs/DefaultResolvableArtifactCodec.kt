@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.internal.artifacts.DefaultResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.configurationcache.serialization.Codec
@@ -30,13 +30,13 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.model.CalculatedValueContainerFactory
 
 
-class ResolvableArtifactCodec(
+class DefaultResolvableArtifactCodec(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
-) : Codec<DefaultResolvedArtifact> {
+) : Codec<DefaultResolvableArtifact> {
     private
     val componentIdSerializer = ComponentIdentifierSerializer()
 
-    override suspend fun WriteContext.encode(value: DefaultResolvedArtifact) {
+    override suspend fun WriteContext.encode(value: DefaultResolvableArtifact) {
         // Write the source artifact
         writeFile(value.file)
         writeString(value.artifactName.name)
@@ -48,11 +48,11 @@ class ResolvableArtifactCodec(
         // TODO - preserve the artifact's owner id (or get rid of it as it's not used for transforms)
     }
 
-    override suspend fun ReadContext.decode(): DefaultResolvedArtifact {
+    override suspend fun ReadContext.decode(): DefaultResolvableArtifact {
         val file = readFile()
         val artifactName = DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString())
         val componentId = componentIdSerializer.read(this)
         val artifactId = ComponentFileArtifactIdentifier(componentId, file.name)
-        return DefaultResolvedArtifact(null, artifactName, artifactId, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory.create(Describables.of(artifactId), file), calculatedValueContainerFactory)
+        return DefaultResolvableArtifact(null, artifactName, artifactId, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory.create(Describables.of(artifactId), file), calculatedValueContainerFactory)
     }
 }
