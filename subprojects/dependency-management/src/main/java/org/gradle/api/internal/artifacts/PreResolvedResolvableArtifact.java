@@ -57,6 +57,23 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact, Resolv
     }
 
     @Override
+    public int hashCode() {
+        return artifactId.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        PreResolvedResolvableArtifact other = (PreResolvedResolvableArtifact) obj;
+        return other.artifactId.equals(artifactId);
+    }
+
+    @Override
     public ComponentArtifactIdentifier getId() {
         return artifactId;
     }
@@ -68,6 +85,7 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact, Resolv
 
     @Override
     public File getFile() {
+        fileSource.finalizeIfNotAlready();
         return fileSource.get();
     }
 
@@ -114,7 +132,7 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact, Resolv
 
     @Override
     public String getExtension() {
-        return artifact.getType();
+        return artifact.getExtension();
     }
 
     @Nullable

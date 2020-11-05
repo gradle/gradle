@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Try;
@@ -40,6 +41,8 @@ import org.gradle.internal.model.ValueCalculator;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
     public static final ArtifactTransformDependencies NO_RESULT = new ArtifactTransformDependencies() {
@@ -113,7 +116,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             ResolverResults results = artifactResults.create();
             dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), false);
         }
-        return filteredResultFactory.resultsMatching(fromAttributes, element -> dependencies.contains(element));
+        return filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(dependencies));
     }
 
     private void computeDependenciesFor(ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
@@ -121,8 +124,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             ResolverResults results = graphResults.create();
             buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
         }
-        FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, element -> buildDependencies.contains(element));
+        FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(buildDependencies));
         context.add(files);
+    }
+
+    private Spec<ComponentIdentifier> selectDependenciesWithId(Set<ComponentIdentifier> dependencies) {
+        return spec(element -> dependencies.contains(element));
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
