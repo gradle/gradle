@@ -24,24 +24,46 @@ import org.gradle.api.reporting.dependencies.internal.DependencyHealthAnalyzer;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public abstract class DependencyHealthAudit extends DefaultTask {
+
     @Inject
     public abstract DependencyHealthAnalyzer getDependencyHealthAnalyzer();
 
     @TaskAction
     public void analyze() {
+        DependencyHealth healthExtension = getProject().getExtensions().getByType(DependencyHealth.class);
+        List<String> suppressedCve = healthExtension.getSuppressed().getCves().get();
+        List<String> suppressedGroup = healthExtension.getSuppressed().getGroups().get();
         Logger logger = getLogger();
         for (Configuration configuration : getProject().getConfigurations()) {
             if (configuration.isCanBeResolved()) {
                 logger.lifecycle("Configuration " + configuration.getName());
                 for (ResolvedDependency dependency : configuration.getResolvedConfiguration().getLenientConfiguration().getAllModuleDependencies()) {
+                    if (suppressedGroup.contains(dependency.getModuleGroup())) {
+                        continue;
+                    }
                     DependencyHealthAnalyzer.HealthReport report = getDependencyHealthAnalyzer().analyze(dependency.getModuleGroup(), dependency.getModuleName(), dependency.getModuleVersion());
+                    StringBuilder cveReport = new StringBuilder();
                     if (!report.getCves().isEmpty()) {
-                        logger.lifecycle("\t" + dependency.getModule().getId());
-                        for (DependencyHealthAnalyzer.Cve cve : report.getCves()) {
-                            logger.lifecycle("\t\t" + cve.getId() + " CVSSv3 " + cve.getScore());
+                        cveReport.append('\t').append(dependency.getModule().getId()).append('\n');
+                        Collection<DependencyHealthAnalyzer.Cve> cves =
+                            report
+                                .getCves()
+                                .stream()
+                                .filter(cve -> !suppressedCve.contains(cve.getId()))
+                                .collect(Collectors.toList());
+                        if (cves.isEmpty()) {
+                            continue;
                         }
+                        for (DependencyHealthAnalyzer.Cve cve : cves) {
+                            cveReport.append("\t\t").append(cve.getId()).append(" CVSSv3 ").append(cve.getScore()).append('\n');
+                        }
+                        logger.lifecycle(cveReport.toString());
                     }
                 }
             }
