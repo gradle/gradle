@@ -21,9 +21,10 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
-import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -85,20 +86,21 @@ public class DependencyManagementGradleUserHomeScopeServices {
         );
     }
 
-    ImmutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(
+    ImmutableTransformationWorkspaceServices createTransformerWorkspaceServices(
         ArtifactCachesProvider artifactCaches,
         CacheRepository cacheRepository,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore
     ) {
-        return new ImmutableTransformationWorkspaceProvider(
-            artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
-            cacheRepository,
+        return new ImmutableTransformationWorkspaceServices(
+            cacheRepository
+                .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
+                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+                .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild()
         );
     }
-
 }

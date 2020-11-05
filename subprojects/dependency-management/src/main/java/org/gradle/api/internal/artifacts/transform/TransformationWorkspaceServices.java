@@ -20,25 +20,11 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import java.io.File;
 
-public interface TransformationWorkspaceProvider {
-    /**
-     * Provides a workspace for executing the transformation.
-     */
-    <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction);
-
-    /**
-     * The execution history store for transformations using the provided workspaces.
-     */
-    ExecutionHistoryStore getExecutionHistoryStore();
-
+public interface TransformationWorkspaceServices {
+    WorkspaceProvider getWorkspaceProvider();
     Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache();
-
-    @FunctionalInterface
-    interface TransformationWorkspaceAction<T> {
-        T useWorkspace(String transformationIdentity, File workspaceDir);
-    }
 }

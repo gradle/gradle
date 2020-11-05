@@ -22,31 +22,32 @@ import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import java.io.File;
 
-public class TestTransformationWorkspaceProvider implements TransformationWorkspaceProvider {
+public class TestTransformationWorkspaceServices implements TransformationWorkspaceServices {
     private final File transformationsStoreDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
 
-    public TestTransformationWorkspaceProvider(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
+    public TestTransformationWorkspaceServices(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.transformationsStoreDirectory = transformationsStoreDirectory;
         this.executionHistoryStore = executionHistoryStore;
     }
 
     @Override
-    public ExecutionHistoryStore getExecutionHistoryStore() {
-        return executionHistoryStore;
+    public WorkspaceProvider getWorkspaceProvider() {
+        return new WorkspaceProvider() {
+            @Override
+            public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+                File workspace = new File(transformationsStoreDirectory, path);
+                return action.executeInWorkspace(workspace, executionHistoryStore);
+            }
+        };
     }
 
     @Override
     public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
         return new ManualEvictionInMemoryCache<>();
-    }
-
-    @Override
-    public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
-        String identityString = identity.getUniqueId();
-        return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
     }
 }
