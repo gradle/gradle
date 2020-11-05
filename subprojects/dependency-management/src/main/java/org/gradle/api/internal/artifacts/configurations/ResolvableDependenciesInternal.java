@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.project.ProjectInternal;
 
 public interface ResolvableDependenciesInternal extends ResolvableDependencies  {
     ResolutionResult getResolutionResult(Action<? super Throwable> errorHandler);
+
+    ProjectInternal getProjectOwner();
 }

@@ -22,13 +22,20 @@ import java.util.List;
 public class DefaultDependencyHealthAnalyzer implements DependencyHealthAnalyzer {
     @Override
     public HealthReport analyze(String group, String name, String version) {
-        return new DefaultHealthReport();
+        return new DefaultHealthReport(Math.abs((group + ":" + name + ":" + version).hashCode()));
     }
 
     private static class DefaultHealthReport implements HealthReport {
+
+        private int number;
+
+        private DefaultHealthReport(int number) {
+            this.number = number;
+        }
+
         @Override
         public List<Cve> getCves() {
-            return Arrays.asList(new DefaultCve());
+            return Arrays.asList(new DefaultCve(number));
         }
     }
 
@@ -36,9 +43,10 @@ public class DefaultDependencyHealthAnalyzer implements DependencyHealthAnalyzer
         private final String id;
         private final double score;
 
-        private DefaultCve() {
-            id = "CVE-2020-12345";
-            score = 5;
+        private DefaultCve(int number) {
+            id = "CVE-2020-" + number;
+            int computedScore = number % 10;
+            score = computedScore == 0 ? 10 : computedScore;
         }
 
         @Override

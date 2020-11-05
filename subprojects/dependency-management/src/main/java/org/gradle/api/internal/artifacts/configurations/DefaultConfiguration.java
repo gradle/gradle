@@ -1599,6 +1599,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public ProjectInternal getProjectOwner() {
+            return owner.getProject();
+        }
+
+        @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
             dependencyResolutionListeners.add("beforeResolve", userCodeApplicationContext.reapplyCurrentLater(action));
         }

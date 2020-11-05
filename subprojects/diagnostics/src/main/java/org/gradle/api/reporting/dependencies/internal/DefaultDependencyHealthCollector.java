@@ -21,25 +21,28 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.dependencies.DependencyHealthCollector;
 import org.gradle.api.internal.dependencies.DependencyHealthStatistics;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.DependencyHealth;
 import org.gradle.internal.concurrent.Stoppable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultDependencyHealthCollector implements DependencyHealthCollector, DependencyResolutionListener, Stoppable {
     private final Gradle gradle;
     private final DependencyHealthAnalyzer analyzer;
     private final DefaultDependencyHealthStatistics statistics;
-    private final List<String> suppressedIds;
+    private final Map<ProjectInternal, ProjectDependencyHealthCollector> projectToCollector = new HashMap<>();
 
     public DefaultDependencyHealthCollector(Gradle gradle, DependencyHealthAnalyzer analyzer) {
         this.gradle = gradle;
         this.analyzer = analyzer;
         this.statistics = new DefaultDependencyHealthStatistics();
-        this.suppressedIds = new ArrayList<>();
         gradle.addListener(this);
     }
 
@@ -55,28 +58,14 @@ public class DefaultDependencyHealthCollector implements DependencyHealthCollect
 
     @Override
     public void afterResolve(ResolvableDependencies dependencies) {
-        for (DependencyResult dependency : dependencies.getResolutionResult().getRoot().getDependencies()) {
-            if (dependency instanceof ResolvedDependencyResult) {
-                for (Capability capability : ((ResolvedDependencyResult) dependency).getResolvedVariant().getCapabilities()) {
-                    DependencyHealthAnalyzer.HealthReport report = analyzer.analyze(capability.getGroup(), capability.getName(), capability.getVersion());
-                    for (DependencyHealthAnalyzer.Cve cve : report.getCves()) {
-                        if (cve.getScore() < 3.9) {
-                            statistics.low++;
-                        } else if (cve.getScore() < 6.9) {
-                            statistics.medium++;
-                        } else if (cve.getScore() < 8.9) {
-                            statistics.high++;
-                        } else {
-                            statistics.critical++;
-                        }
-                        if (suppressedIds.contains(cve.getId())) {
-                            statistics.suppressed++;
-                        }
-                        statistics.total++;
-                    }
-                }
-            }
+        ResolvableDependenciesInternal dependenciesInternal = (ResolvableDependenciesInternal) dependencies;
+        if (dependenciesInternal.getProjectOwner() == null) {
+            // TODO: This means that we won't look at plugin dependencies. We should figure out how to fix this.
+            return;
         }
+        ProjectDependencyHealthCollector collector =
+            projectToCollector.computeIfAbsent(dependenciesInternal.getProjectOwner(), p -> new ProjectDependencyHealthCollector(p, analyzer, statistics));
+        collector.handleResolve(dependencies);
     }
 
     @Override
@@ -125,13 +114,59 @@ public class DefaultDependencyHealthCollector implements DependencyHealthCollect
         @Override
         public String toString() {
             return "health{" +
-                    "total=" + total +
-                    ", suppressed=" + suppressed +
-                    ", low=" + low +
-                    ", medium=" + medium +
-                    ", high=" + high +
-                    ", critical=" + critical +
-                    '}';
+                "total=" + total +
+                ", suppressed=" + suppressed +
+                ", low=" + low +
+                ", medium=" + medium +
+                ", high=" + high +
+                ", critical=" + critical +
+                '}';
+        }
+    }
+
+    static class ProjectDependencyHealthCollector {
+        private final ProjectInternal project;
+        private final DependencyHealthAnalyzer analyzer;
+        private final DefaultDependencyHealthStatistics statistics;
+
+        ProjectDependencyHealthCollector(
+            ProjectInternal project,
+            DependencyHealthAnalyzer analyzer,
+            DefaultDependencyHealthStatistics statistics
+        ) {
+            this.project = project;
+            this.analyzer = analyzer;
+            this.statistics = statistics;
+        }
+
+        void handleResolve(ResolvableDependencies dependencies) {
+            DependencyHealth dependencyHealth = project.getExtensions().getByType(DependencyHealth.class);
+            Collection<String> suppressedGroups = dependencyHealth.getSuppressed().getGroups().get();
+            Collection<String> suppressedCves = dependencyHealth.getSuppressed().getCves().get();
+
+            for (DependencyResult dependency : dependencies.getResolutionResult().getRoot().getDependencies()) {
+                if (dependency instanceof ResolvedDependencyResult) {
+                    for (Capability capability : ((ResolvedDependencyResult) dependency).getResolvedVariant().getCapabilities()) {
+                        DependencyHealthAnalyzer.HealthReport report = analyzer.analyze(capability.getGroup(), capability.getName(), capability.getVersion());
+
+                        boolean suppressedGroup = suppressedGroups.contains(capability.getGroup());
+                        for (DependencyHealthAnalyzer.Cve cve : report.getCves()) {
+                            if (suppressedGroup || suppressedCves.contains(cve.getId())) {
+                                statistics.suppressed++;
+                            } else if (cve.getScore() < 3.9) {
+                                statistics.low++;
+                            } else if (cve.getScore() < 6.9) {
+                                statistics.medium++;
+                            } else if (cve.getScore() < 8.9) {
+                                statistics.high++;
+                            } else {
+                                statistics.critical++;
+                            }
+                            statistics.total++;
+                        }
+                    }
+                }
+            }
         }
     }
 }
