@@ -21,8 +21,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -53,12 +53,6 @@ public interface UnitOfWork extends Describable {
         String getUniqueId();
     }
 
-    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
-
-    interface WorkspaceAction<T> {
-        T executeInWorkspace(File workspace);
-    }
-
     /**
      * Executes the work synchronously.
      */
@@ -80,12 +74,9 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
-     * When {@link Optional#empty()} no execution history will be maintained.
+     * Returns the {@link WorkspaceProvider} to allocate a workspace to execution this work in.
      */
-    default Optional<ExecutionHistoryStore> getHistory() {
-        return Optional.empty();
-    }
+    WorkspaceProvider getWorkspaceProvider();
 
     default Optional<Duration> getTimeout() {
         return Optional.empty();

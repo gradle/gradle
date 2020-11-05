@@ -30,7 +30,6 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
-import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -78,7 +77,6 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import java.io.BufferedWriter
 import java.io.File
-import java.util.Optional
 import javax.inject.Inject
 
 
@@ -103,7 +101,6 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                 rootProject,
                 buildSrcClassLoaderScope,
                 classLoaderHash,
-                workspaceProvider.history,
                 fileCollectionFactory,
                 workspaceProvider
             )
@@ -118,7 +115,6 @@ class GeneratePluginAccessors(
     private val rootProject: Project,
     private val buildSrcClassLoaderScope: ClassLoaderScope,
     private val classLoaderHash: HashCode,
-    private val executionHistoryStore: ExecutionHistoryStore,
     private val fileCollectionFactory: FileCollectionFactory,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
@@ -153,12 +149,7 @@ class GeneratePluginAccessors(
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = UnitOfWork.Identity { classLoaderHash.toString() }
 
-    override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
-
-    override fun <T : Any> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
-        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
-            action.executeInWorkspace(workspace)
-        }
+    override fun getWorkspaceProvider() = workspaceProvider
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 

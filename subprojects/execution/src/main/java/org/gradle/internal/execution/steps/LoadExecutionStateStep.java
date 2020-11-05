@@ -24,6 +24,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkspaceContext;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -40,7 +41,7 @@ public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result
     @Override
     public R execute(UnitOfWork work, C context) {
         Identity identity = context.getIdentity();
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = work.getHistory()
+        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getHistory()
             .flatMap(history -> history.load(identity.getUniqueId()));
         return delegate.execute(work, new AfterPreviousExecutionContext() {
             @Override
@@ -71,6 +72,11 @@ public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
             }
         });
     }

@@ -24,6 +24,7 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -83,6 +84,11 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
             }
 
             @Override

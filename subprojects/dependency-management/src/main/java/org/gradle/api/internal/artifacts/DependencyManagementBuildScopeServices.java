@@ -167,6 +167,7 @@ import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
@@ -831,6 +832,11 @@ class DependencyManagementBuildScopeServices {
                 @Override
                 public File getWorkspace() {
                     return context.getWorkspace();
+                }
+
+                @Override
+                public Optional<ExecutionHistoryStore> getHistory() {
+                    return context.getHistory();
                 }
 
                 @Override

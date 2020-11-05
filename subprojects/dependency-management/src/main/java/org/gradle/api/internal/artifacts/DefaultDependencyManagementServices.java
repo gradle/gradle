@@ -84,8 +84,8 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistra
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
-import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
@@ -221,14 +221,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return attributesSchema;
         }
 
-        MutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
-            return new MutableTransformationWorkspaceProvider(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
+        MutableTransformationWorkspaceServices createTransformerWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
+            return new MutableTransformationWorkspaceServices(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
         }
 
         TransformerInvocationFactory createTransformerInvocationFactory(
                 ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
-                ImmutableTransformationWorkspaceProvider transformationWorkspaceProvider,
+                ImmutableTransformationWorkspaceServices transformationWorkspaceServices,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
@@ -238,7 +238,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 executionEngine,
                 fileSystemAccess,
                 artifactTransformListener,
-                transformationWorkspaceProvider,
+                transformationWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
                 buildOperationExecutor
