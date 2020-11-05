@@ -34,9 +34,12 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing.newHasher
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -68,6 +71,7 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import java.io.File
+import java.util.Optional
 
 
 interface KotlinScriptEvaluator {
@@ -322,6 +326,18 @@ class CompileKotlinScript(
     private val fileCollectionFactory: FileCollectionFactory
 ) : UnitOfWork {
 
+    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
+        return when {
+            System.getProperty(kotlinDslBuildCacheSystemProperty, null) == "false" -> Optional.of(
+                CachingDisabledReason(
+                    CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED,
+                    "$kotlinDslBuildCacheSystemProperty == false"
+                )
+            )
+            else -> Optional.empty()
+        }
+    }
+
     override fun visitInputs(
         visitor: UnitOfWork.InputVisitor
     ) {
@@ -396,3 +412,7 @@ class CompileKotlinScript(
 
 private
 const val scriptCacheKeyPrefix = "gradle-kotlin-dsl"
+
+
+private
+const val kotlinDslBuildCacheSystemProperty = "org.gradle.kotlin.dsl.caching.buildcache"
