@@ -44,7 +44,7 @@ public class DependencyHealthStatisticsReporter {
             printDetail = formatDetail(textOutput, statistics.getHigh(), "high", printDetail);
             formatDetail(textOutput, statistics.getCritical(), "critical", printDetail);
             textOutput.append(" -- ");
-            textOutput.format("For more information run the `audit` tasks");
+            textOutput.format("For more information run the `dependencyAudit` tasks");
             textOutput.println();
         }
     }
