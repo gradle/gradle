@@ -53,6 +53,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
     void setupBuildWithNoSteps(@DelegatesTo(Builder) Closure cl = {}) {
         setupBuildWithColorAttributes(buildFile, cl)
+        setupTransformerTypes()
         buildFile << """
 
 allprojects {
@@ -97,50 +98,55 @@ project(':app') {
     }
 }
 
-abstract class TestTransform implements TransformAction<Parameters> {
-    interface Parameters extends TransformParameters {
-        @Input
-        String getTransformName()
-        void setTransformName(String name)
-    }
-
-    @InputArtifactDependencies
-    abstract FileCollection getInputArtifactDependencies()
-
-    @InputArtifact
-    abstract Provider<FileSystemLocation> getInputArtifact()
-
-    void transform(TransformOutputs outputs) {
-        def input = inputArtifact.get().asFile
-        println "\${parameters.transformName} received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
-        assert inputArtifactDependencies.every { it.exists() }
-
-        def output = outputs.file(input.name + ".txt")
-        def workspace = output.parentFile
-        assert workspace.directory && workspace.list().length == 0
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-    }
-}
-
-abstract class SimpleTransform implements TransformAction<TransformParameters.None> {
-
-    @InputArtifact
-    abstract Provider<FileSystemLocation> getInputArtifact()
-
-    void transform(TransformOutputs outputs) {
-        def input = inputArtifact.get().asFile
-        def output = outputs.file(input.name + ".txt")
-        def workspace = output.parentFile
-        assert workspace.directory && workspace.list().length == 0
-        println "Transforming without dependencies \${input.name} to \${output.name}"
-        if (input.name == System.getProperty("failTransformOf")) {
-            throw new RuntimeException("Cannot transform")
-        }
-        output.text = String.valueOf(input.length())
-    }
-}
 """
+    }
+
+    void setupTransformerTypes() {
+        buildFile << """
+            abstract class TestTransform implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getTransformName()
+                    void setTransformName(String name)
+                }
+
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "\${parameters.transformName} received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
+                    assert inputArtifactDependencies.every { it.exists() }
+
+                    def output = outputs.file(input.name + ".txt")
+                    def workspace = output.parentFile
+                    assert workspace.directory && workspace.list().length == 0
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                }
+            }
+
+            abstract class SimpleTransform implements TransformAction<TransformParameters.None> {
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".txt")
+                    def workspace = output.parentFile
+                    assert workspace.directory && workspace.list().length == 0
+                    println "Transforming without dependencies \${input.name} to \${output.name}"
+                    if (input.name == System.getProperty("failTransformOf")) {
+                        throw new RuntimeException("Cannot transform")
+                    }
+                    output.text = String.valueOf(input.length())
+                }
+            }
+        """
     }
 
     void setupBuildWithSingleStep() {
@@ -599,6 +605,94 @@ project(':common') {
         then:
         outputDoesNotContain("processing")
         outputContains("files = [lib2-1.2.jar.green]")
+    }
+
+    def "transform of project artifact can consume upstream dependencies when accessed via ArtifactView even when artifacts of original configuration cannot be resolved"() {
+        given:
+        setupBuildWithColorAttributes()
+        setupTransformerTypes()
+        taskTypeLogsInputFileCollectionContent()
+
+        buildFile << """
+            def flavor = Attribute.of('flavor', String)
+
+            allprojects {
+                configurations {
+                    implementation.outgoing.variants {
+                        one {
+                            attributes.attribute(flavor, 'bland')
+                            artifact(producer.output)
+                        }
+                        two {
+                            attributes.attribute(flavor, 'cloying')
+                        }
+                    }
+                }
+                dependencies {
+                    registerTransform(TestTransform) {
+                        from.attribute(color, 'blue')
+                        from.attribute(flavor, 'bland')
+                        to.attribute(color, 'green')
+                        to.attribute(flavor, 'tasty')
+                        parameters {
+                            transformName = 'Single step transform'
+                        }
+                    }
+                }
+
+                def view = configurations.implementation.incoming.artifactView {
+                    attributes {
+                        it.attribute(color, 'green')
+                        it.attribute(flavor, 'tasty')
+                    }
+                }.files
+
+                task resolveView(type: ShowFilesTask) {
+                    inFiles.from(view)
+                }
+
+                task broken(type: ShowFilesTask) {
+                    inFiles.from(configurations.implementation)
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    implementation project(':lib')
+                    // Needs to also include a file dependency to trigger the issue
+                    implementation files('app.txt')
+                }
+            }
+
+            project(':lib') {
+                dependencies {
+                    implementation project(':common')
+                }
+            }
+        """
+
+        when:
+        fails("app:broken")
+
+        then:
+        failure.assertHasCause("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project :lib:")
+
+        when:
+        run("app:resolveView")
+
+        then:
+        assertTransformationsExecuted(
+            singleStep("common.jar"),
+            singleStep("lib.jar", "common.jar")
+        )
+        outputContains("result = [app.txt, lib.jar.txt, common.jar.txt]")
+
+        when:
+        run("app:resolveView")
+
+        then:
+        assertTransformationsExecuted()
+        outputContains("result = [app.txt, lib.jar.txt, common.jar.txt]")
     }
 
     def "transform with changed set of dependencies are re-executed"() {
