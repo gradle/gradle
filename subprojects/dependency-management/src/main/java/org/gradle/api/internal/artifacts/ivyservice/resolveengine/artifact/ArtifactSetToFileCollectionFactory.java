@@ -67,14 +67,12 @@ public class ArtifactSetToFileCollectionFactory {
      *
      * <p>Over time, this should be merged with the ArtifactCollection implementation in DefaultConfiguration
      */
-    public Supplier<Set<ResolvedArtifactResult>> asResolvedArtifactSupplier(ResolvedArtifactSet artifacts) {
-        return () -> {
-            ResolvedArtifactCollectingVisitor collectingVisitor = new ResolvedArtifactCollectingVisitor();
-            ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(collectingVisitor);
-            if (!collectingVisitor.getFailures().isEmpty()) {
-                throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
-            }
-            return collectingVisitor.getArtifacts();
-        };
+    public Set<ResolvedArtifactResult> asResolvedArtifacts(ResolvedArtifactSet artifacts) {
+        ResolvedArtifactCollectingVisitor collectingVisitor = new ResolvedArtifactCollectingVisitor();
+        ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(collectingVisitor);
+        if (!collectingVisitor.getFailures().isEmpty()) {
+            throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
+        }
+        return collectingVisitor.getArtifacts();
     }
 }

@@ -109,6 +109,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedModelValue;
+import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -131,6 +132,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
@@ -1298,10 +1300,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
 
-        public Spec<? super Dependency> getDependencySpec() {
-            return dependencySpec;
-        }
-
         @Override
         public String getDisplayName() {
             return DefaultConfiguration.this.getDisplayName();
@@ -1318,6 +1316,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private SelectedArtifactSet getSelectedArtifacts() {
             if (selectedArtifacts == null) {
+                assertIsResolvable();
                 ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
                 selectedArtifacts = currentState.getCachedResolverResults().getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
             }
@@ -1625,7 +1624,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ArtifactCollection getArtifacts() {
-            return new ConfigurationArtifactCollection();
+            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false);
+        }
+
+        private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
+            ImmutableAttributes viewAttributes = attributes.asImmutable();
+            ConfigurationFileCollection files = new ConfigurationFileCollection(Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
+            return new ConfigurationArtifactCollection(files, lenient, new FailureHandler() {
+                @Override
+                public DisplayName displayName(String type) {
+                    return Describables.of(DefaultConfiguration.this, type);
+                }
+
+                @Override
+                public void rethrowFailure(String type, Collection<Throwable> failures) {
+                    DefaultConfiguration.this.rethrowFailure(type, failures);
+                }
+            }, calculatedValueContainerFactory);
         }
 
         @Override
@@ -1676,7 +1691,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return new ConfigurationArtifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
+                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
             }
 
             @Override
@@ -1775,11 +1790,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 return "lenient resolution result for " + delegate;
             }
         }
-
     }
 
     public static class ArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
-
         private final ImmutableAttributesFactory attributesFactory;
         private final AttributeContainerInternal configurationAttributes;
         private AttributeContainerInternal viewAttributes;
@@ -1853,21 +1866,39 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private class ConfigurationArtifactCollection implements ArtifactCollectionInternal {
+    private static class ArtifactSetResult {
+        private final Set<ResolvedArtifactResult> artifactResults;
+        private final Set<Throwable> failures;
+
+        ArtifactSetResult(Set<ResolvedArtifactResult> artifactResults, Set<Throwable> failures) {
+            this.artifactResults = artifactResults;
+            this.failures = failures;
+        }
+    }
+
+    private static class ConfigurationArtifactCollection implements ArtifactCollectionInternal {
         private final ConfigurationFileCollection fileCollection;
         private final boolean lenient;
-        private Set<ResolvedArtifactResult> artifactResults;
-        private Set<Throwable> failures;
+        private final CalculatedValueContainer<ArtifactSetResult, ?> result;
 
-        ConfigurationArtifactCollection() {
-            this(configurationAttributes, Specs.satisfyAll(), false, false);
-        }
-
-        ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
-            assertIsResolvable();
-            AttributeContainerInternal viewAttributes = attributes.asImmutable();
-            this.fileCollection = new ConfigurationFileCollection(Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
+        ConfigurationArtifactCollection(ConfigurationFileCollection files, boolean lenient, FailureHandler failureHandler, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+            this.fileCollection = files;
             this.lenient = lenient;
+            this.result = calculatedValueContainerFactory.create(failureHandler.displayName("files"), new Supplier<ArtifactSetResult>() {
+                @Override
+                public ArtifactSetResult get() {
+                    ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
+                    fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
+
+                    Set<ResolvedArtifactResult> artifactResults = visitor.getArtifacts();
+                    Set<Throwable> failures = visitor.getFailures();
+
+                    if (!lenient) {
+                        failureHandler.rethrowFailure("artifacts", failures);
+                    }
+                    return new ArtifactSetResult(artifactResults, failures);
+                }
+            });
         }
 
         @Override
@@ -1878,19 +1909,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             ensureResolved();
-            return artifactResults;
+            return result.get().artifactResults;
         }
 
         @Override
         public Iterator<ResolvedArtifactResult> iterator() {
             ensureResolved();
-            return artifactResults.iterator();
+            return result.get().artifactResults.iterator();
         }
 
         @Override
         public Collection<Throwable> getFailures() {
             ensureResolved();
-            return failures;
+            return result.get().failures;
         }
 
         @Override
@@ -1899,20 +1930,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
         }
 
-        private synchronized void ensureResolved() {
-            if (artifactResults != null) {
-                return;
-            }
-
-            ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
-            fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
-
-            artifactResults = visitor.getArtifacts();
-            failures = visitor.getFailures();
-
-            if (!lenient) {
-                rethrowFailure("artifacts", failures);
-            }
+        private void ensureResolved() {
+            result.finalizeIfNotAlready();
         }
     }
 
