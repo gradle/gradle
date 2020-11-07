@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
 public class DefaultDependenciesModelBuilder implements DependenciesModelBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesModelBuilder.class);
     private final static Attribute<String> INTERNAL_COUNTER = Attribute.of("org.gradle.internal.dm.model.builder.id", String.class);
+    private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle");
 
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
@@ -279,6 +280,18 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private static void validateName(String type, String value) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
             throw new InvalidUserDataException("Invalid " + type + " name '" + value + "': it must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX);
+        }
+        if ("alias".equals(type)) {
+            validateAlias(value);
+        }
+    }
+
+    private static void validateAlias(String alias) {
+        for (String suffix : FORBIDDEN_ALIAS_SUFFIX) {
+            String sl = alias.toLowerCase();
+            if (sl.endsWith(suffix)) {
+                throw new InvalidUserDataException("Invalid alias name '" + alias + "': it must not end with '" + suffix + "'");
+            }
         }
     }
 

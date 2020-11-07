@@ -111,10 +111,12 @@ class DependenciesSourceGeneratorTest extends Specification {
         sources.hasBundle(name, method)
 
         where:
-        name        | method
-        'test'      | 'getTestBundle'
-        'test.json' | 'getTestJsonBundle'
-        'a.b'       | 'getABBundle'
+        name          | method
+        'test'        | 'getTest'
+        'testBundle'  | 'getTestBundle'
+        'test.bundle' | 'getTestBundle'
+        'test.json'   | 'getTestJson'
+        'a.b'         | 'getAB'
     }
 
     @Unroll
@@ -128,12 +130,14 @@ class DependenciesSourceGeneratorTest extends Specification {
         sources.hasVersion(name, method)
 
         where:
-        name          | method
-        'groovy'      | 'getGroovyVersion'
-        'groovy-json' | 'getGroovyJsonVersion'
-        'groovy.json' | 'getGroovyJsonVersion'
-        'groovyJson'  | 'getGroovyJsonVersion'
-        'lang3'       | 'getLang3Version'
+        name             | method
+        'groovy'         | 'getGroovy'
+        'groovyVersion'  | 'getGroovyVersion'
+        'groovy.version' | 'getGroovyVersion'
+        'groovy-json'    | 'getGroovyJson'
+        'groovy.json'    | 'getGroovyJson'
+        'groovyJson'     | 'getGroovyJson'
+        'lang3Version'   | 'getLang3Version'
     }
 
     def "reasonable error message if methods have the same name"() {
@@ -196,37 +200,12 @@ class DependenciesSourceGeneratorTest extends Specification {
   - dependency bundles other.cool and otherCool and other_cool are mapped to the same accessor name getOtherCoolBundle()'''
     }
 
-    def 'reasonable error message if an alias ends with bundle'() {
-        when:
-        generate {
-            alias('foo') to 'g:a:v'
-            alias('barBundle') to 'g:a:v'
-        }
-
-        then:
-        InvalidUserDataException ex = thrown()
-        ex.message == "Cannot generate dependency accessors because alias barBundle isn't a valid: it shouldn't end with 'Bundle' or 'Version'"
-
-        when:
-        generate {
-            alias('foo') to 'g:a:v'
-            alias('bazBundle') to 'g:a:v'
-            alias('barBundle') to 'g:a:v'
-        }
-
-        then:
-        ex = thrown()
-        normaliseLineSeparators(ex.message) == """Cannot generate dependency accessors because:
-  - alias barBundle isn't a valid: it shouldn't end with 'Bundle' or 'Version'
-  - alias bazBundle isn't a valid: it shouldn't end with 'Bundle' or 'Version'"""
-    }
-
     def "generated sources can be compiled"() {
         when:
         generate {
             alias('foo') to 'g:a:v'
             alias('bar') to 'g2:a2:v2'
-            bundle('my', ['foo', 'bar'])
+            bundle('myBundle', ['foo', 'bar'])
         }
 
         then:
@@ -241,7 +220,7 @@ class DependenciesSourceGeneratorTest extends Specification {
         assert bar.module.name == 'a2'
         assert bar.versionConstraint.requiredVersion == 'v2'
 
-        def bundle = libs.myBundle.get()
+        def bundle = libs.bundles.myBundle.get()
         assert bundle == [foo, bar]
     }
 
@@ -267,19 +246,19 @@ class DependenciesSourceGeneratorTest extends Specification {
             description.set("Some description for tests")
             withContext(context) {
                 alias("some-alias").to 'g:a:v'
-                bundle("b0", ["some-alias"])
+                bundle("b0Bundle", ["some-alias"])
                 withContext(innerContext) {
-                    version("v0", "1.0")
+                    version("v0Version", "1.0")
                 }
-                alias("other").to("g", "a").versionRef("v0")
+                alias("other").to("g", "a").versionRef("v0Version")
             }
         }
 
         then:
         sources.assertClass('Generated', 'Some description for tests')
         sources.hasDependencyAlias('some-alias', 'getSomeAlias', "This dependency was declared in ${context}")
-        sources.hasBundle('b0', 'getB0Bundle', "This bundle was declared in ${context}")
-        sources.hasVersion('v0', 'getV0Version', "This version was declared in ${innerContext}")
+        sources.hasBundle('b0Bundle', 'getB0Bundle', "This bundle was declared in ${context}")
+        sources.hasVersion('v0Version', 'getV0Version', "This version was declared in ${innerContext}")
         sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${context}")
     }
 

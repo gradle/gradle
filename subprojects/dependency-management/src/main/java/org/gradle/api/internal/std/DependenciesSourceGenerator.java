@@ -70,9 +70,14 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         for (String descLine : Splitter.on('\n').split(description)) {
             writeLn(" * " + descLine);
         }
+        String versionsClassName = className + "Versions";
+        String bundlesClassName = className + "Bundles";
         writeLn("*/");
         writeLn("@NonNullApi");
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
+        writeLn();
+        writeLn("    private final " + versionsClassName + " versions = new " + versionsClassName + "();");
+        writeLn("    private final " + bundlesClassName + " bundles = new " + bundlesClassName + "();");
         writeLn();
         writeLn("    @Inject");
         writeLn("    public " + className + "(AllDependenciesModel config, ProviderFactory providers) {");
@@ -84,12 +89,18 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         List<String> versions = config.getVersionAliases();
         performValidation(dependencies, bundles, versions);
         writeDependencyAccessors(dependencies);
-        writeBundleAccessors(bundles);
-        writeVersionAccessors(versions);
+        writeBundleAccessors(bundlesClassName, bundles);
+        writeVersionAccessors(versionsClassName, versions);
         writeLn("}");
     }
 
-    private void writeBundleAccessors(List<String> bundles) throws IOException {
+    private void writeBundleAccessors(String bundlesClassName, List<String> bundles) throws IOException {
+        writeLn("    /**");
+        writeLn("    * Returns the available bundles for this model.");
+        writeLn("    */");
+        writeLn("    public " + bundlesClassName + " getBundles() { return bundles; }");
+        writeLn();
+        writeLn("    public class " + bundlesClassName + " extends BundleFactory {");
         for (String alias : bundles) {
             BundleModel bundle = config.getBundle(alias);
             List<String> coordinates = bundle.getComponents().stream()
@@ -98,6 +109,8 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
                 .collect(Collectors.toList());
             writeBundle(alias, coordinates, bundle.getContext());
         }
+        writeLn("    }");
+        writeLn();
     }
 
     private void writeDependencyAccessors(List<String> dependencies) throws IOException {
@@ -108,21 +121,29 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private void writeVersionAccessors(List<String> versions) throws IOException {
+    private void writeVersionAccessors(String versionsClassName, List<String> versions) throws IOException {
+        writeLn("    /**");
+        writeLn("    * Returns the available versions for this model.");
+        writeLn("    */");
+        writeLn("    public " + versionsClassName + " getVersions() { return versions; }");
+        writeLn();
+        writeLn("    public class " + versionsClassName + " extends VersionFactory {");
         for (String version : versions) {
             VersionModel vm = config.getVersion(version);
             String context = vm.getContext();
-            writeLn("    /**");
-            writeLn("     * Returns the version associated to this alias: " + version);
-            writeLn("     * If the version is a rich version and that its not expressable as a");
-            writeLn("     * single version string, then an empty string is returned.");
+            writeLn("        /**");
+            writeLn("         * Returns the version associated to this alias: " + version);
+            writeLn("         * If the version is a rich version and that its not expressable as a");
+            writeLn("         * single version string, then an empty string is returned.");
             if (context != null) {
-                writeLn("     * This version was declared in " + context);
+                writeLn("         * This version was declared in " + context);
             }
-            writeLn("     */");
-            writeLn("    public Provider<String> get" + toJavaName(version) + "Version() { return getVersion(\"" + version + "\"); }");
+            writeLn("         */");
+            writeLn("        public Provider<String> get" + toJavaName(version) + "() { return getVersion(\"" + version + "\"); }");
             writeLn();
         }
+        writeLn("    }");
+        writeLn();
     }
 
     private static void performValidation(List<String> dependencies, List<String> bundles, List<String> versions) {
@@ -187,18 +208,18 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeBundle(String alias, List<String> coordinates, @Nullable String context) throws IOException {
-        writeLn("    /**");
-        writeLn("     * Creates a dependency bundle provider for " + alias + " which is an aggregate for the following dependencies:");
-        writeLn("     * <ul>");
+        writeLn("        /**");
+        writeLn("         * Creates a dependency bundle provider for " + alias + " which is an aggregate for the following dependencies:");
+        writeLn("         * <ul>");
         for (String coordinate : coordinates) {
-            writeLn("     *    <li>" + coordinate + "</li>");
+            writeLn("         *    <li>" + coordinate + "</li>");
         }
-        writeLn("     * </ul>");
+        writeLn("         * </ul>");
         if (context != null) {
-            writeLn("     * This bundle was declared in " + context);
+            writeLn("         * This bundle was declared in " + context);
         }
-        writeLn("     */");
-        writeLn("    public Provider<ExternalModuleDependencyBundle> get" + toJavaName(alias) + "Bundle() { return createBundle(\"" + alias + "\"); }");
+        writeLn("         */");
+        writeLn("        public Provider<ExternalModuleDependencyBundle> get" + toJavaName(alias) + "() { return createBundle(\"" + alias + "\"); }");
         writeLn();
     }
 
