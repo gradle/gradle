@@ -156,7 +156,7 @@ lib2.module = "org.gradle.test:lib2"
 lib2.version = "1.0
 
 [bundles]
-my = ["lib", "lib2"]
+myBundle = ["lib", "lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
@@ -164,7 +164,7 @@ my = ["lib", "lib2"]
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(libs.myBundle)
+                implementation(libs.bundles.myBundle)
             }
         """
 
@@ -193,7 +193,7 @@ lib2.module = "org.gradle.test:lib2"
 lib2.version = "1.0
 
 [bundles]
-my = ["lib", "lib2"]
+myBundle = ["lib", "lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
@@ -201,7 +201,7 @@ my = ["lib", "lib2"]
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(libs.myBundle) {
+                implementation(libs.bundles.myBundle) {
                     version {
                         require '1.1'
                     }
