@@ -60,6 +60,25 @@ class DefaultDependenciesModelBuilderTest extends Specification {
         notation << ["", "a", "1a", "A", "Aa", "abc\$", "abc&"]
     }
 
+    @Unroll
+    def "forbids using #name as a dependency alias"() {
+        when:
+        builder.alias(name).to("org:foo:1.0")
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "Invalid alias name '$name': it must not end with '$suffix'"
+
+        where:
+        name          | suffix
+        "bundles"     | "bundles"
+        "versions"    | "versions"
+        "fooBundle"   | "bundle"
+        "fooVersion"  | "version"
+        "foo.bundle"  | "bundle"
+        "foo.version" | "version"
+    }
+
     @Unroll("#notation is an invalid bundle name")
     def "reasonable error message if bundle name is invalid"() {
         when:

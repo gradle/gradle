@@ -168,7 +168,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
                         require "1.0"
                     }
                     alias("lib2").to("org.gradle.test:lib2:1.0")
-                    bundle("my", ["lib", "lib2"])
+                    bundle("myBundle", ["lib", "lib2"])
                 }
             }
         """
@@ -178,7 +178,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(libs.myBundle)
+                implementation(libs.bundles.myBundle)
             }
         """
 
@@ -208,7 +208,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
                         require "1.0"
                     }
                     alias("lib2").to("org.gradle.test:lib2:1.0")
-                    bundle("my", ["lib", "lib2"])
+                    bundle("myBundle", ["lib", "lib2"])
                 }
             }
         """
@@ -218,7 +218,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(libs.myBundle) {
+                implementation(libs.bundles.myBundle) {
                     version {
                         require '1.1'
                     }
@@ -628,7 +628,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         settingsFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    version("lib") {
+                    version("libVersion") {
                         $notation
                     }
                 }
@@ -639,7 +639,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
             apply plugin: 'java-library'
 
             dependencies {
-                implementation "org.gradle.test:lib:\${libs.libVersion.get()}"
+                implementation "org.gradle.test:lib:\${libs.versions.libVersion.get()}"
             }
         """
 
