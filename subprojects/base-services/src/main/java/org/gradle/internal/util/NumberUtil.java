@@ -31,8 +31,7 @@ public class NumberUtil {
      */
     public static int percentOf(long fraction, long total) {
         if (total < 0 || fraction < 0) {
-            throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total
-                    + ". All inputs must be >= 0");
+            throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total + ". All inputs must be >= 0");
         }
         if (total == 0) {
             return 0;
@@ -61,14 +60,14 @@ public class NumberUtil {
      * gets ordinal String representation of given value (e.g. 1 -> 1st, 12 -> 12th, 22 -> 22nd, etc.)
      */
     public static String ordinal(int value) {
-        String[] sufixes = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
+        String[] suffixes = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
         switch (value % 100) {
             case 11:
             case 12:
             case 13:
                 return value + "th";
             default:
-                return value + sufixes[value % 10];
+                return value + suffixes[value % 10];
         }
     }
 }
