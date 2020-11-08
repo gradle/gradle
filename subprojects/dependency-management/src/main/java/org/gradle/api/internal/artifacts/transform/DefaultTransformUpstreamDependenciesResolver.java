@@ -19,18 +19,18 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
-import org.gradle.internal.Factory;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -77,8 +77,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     };
 
     private final ComponentIdentifier componentIdentifier;
-    private final Factory<ResolverResults> graphResults;
-    private final Factory<ResolverResults> artifactResults;
+    private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -86,14 +85,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private Set<ComponentIdentifier> dependencies;
 
     public DefaultTransformUpstreamDependenciesResolver(ComponentIdentifier componentIdentifier,
-                                                        Factory<ResolverResults> graphResults,
-                                                        Factory<ResolverResults> artifactResults,
+                                                        ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
                                                         DomainObjectContext owner,
                                                         FilteredResultFactory filteredResultFactory,
                                                         CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.componentIdentifier = componentIdentifier;
-        this.graphResults = graphResults;
-        this.artifactResults = artifactResults;
+        this.resolutionResultProvider = resolutionResultProvider;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -113,16 +110,16 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
     private FileCollectionInternal selectedArtifactsFor(ImmutableAttributes fromAttributes) {
         if (dependencies == null) {
-            ResolverResults results = artifactResults.create();
-            dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), false);
+            ResolutionResult result = resolutionResultProvider.getValue();
+            dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, result.getAllComponents(), false);
         }
         return filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(dependencies));
     }
 
     private void computeDependenciesFor(ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
         if (buildDependencies == null) {
-            ResolverResults results = graphResults.create();
-            buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
+            ResolutionResult result = resolutionResultProvider.getTaskDependencyValue();
+            buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, result.getAllComponents(), true);
         }
         FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(buildDependencies));
         context.add(files);

@@ -20,7 +20,7 @@ import org.gradle.internal.DisplayName;
 
 import java.util.Collection;
 
-public interface FailureHandler {
+public interface ResolutionHost {
     DisplayName displayName(String type);
 
     void rethrowFailure(String type, Collection<Throwable> failures);

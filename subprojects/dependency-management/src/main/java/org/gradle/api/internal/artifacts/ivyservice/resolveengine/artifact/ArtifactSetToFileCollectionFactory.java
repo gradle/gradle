@@ -28,7 +28,6 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Set;
-import java.util.function.Supplier;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class ArtifactSetToFileCollectionFactory {
