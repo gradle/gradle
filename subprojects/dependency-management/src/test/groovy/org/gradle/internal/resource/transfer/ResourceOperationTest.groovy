@@ -16,16 +16,16 @@
 
 package org.gradle.internal.resource.transfer
 
-import spock.lang.Specification
 import org.gradle.internal.logging.progress.ProgressLogger
+import spock.lang.Specification
 
 class ResourceOperationTest extends Specification {
 
     ProgressLogger progressLogger = Mock()
 
-    def "no progress event is logged for files < 1024bytes"(){
+    def "no progress event is logged for files < 1024bytes"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1023, "res")
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1023)
         when:
         operation.logProcessedBytes(1023)
         then:
@@ -34,7 +34,7 @@ class ResourceOperationTest extends Specification {
 
     def "logs processed bytes in kbyte intervals"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1024 * 10, "res")
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1024 * 10)
         when:
         operation.logProcessedBytes(512 * 0)
         operation.logProcessedBytes(512 * 1)
@@ -50,9 +50,9 @@ class ResourceOperationTest extends Specification {
         0 * progressLogger.progress(_)
     }
 
-    def "last chunk of bytes <1k is not logged"(){
+    def "last chunk of bytes <1k is not logged"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 2000, "res")
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 2000)
         when:
         operation.logProcessedBytes(1000)
         operation.logProcessedBytes(1000)
@@ -63,7 +63,7 @@ class ResourceOperationTest extends Specification {
 
     def "adds operationtype information in progress output"() {
         given:
-        def operation = new ResourceOperation(progressLogger, type, 1024 * 10, "res")
+        def operation = new ResourceOperation(progressLogger, type, 1024 * 10)
         when:
         operation.logProcessedBytes(1024)
         then:
@@ -76,7 +76,7 @@ class ResourceOperationTest extends Specification {
 
     void "completed completes progressLogger"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 1, "res")
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 1)
         when:
         operation.completed()
         then:
@@ -85,7 +85,7 @@ class ResourceOperationTest extends Specification {
 
     void "handles unknown content length"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 0, "res")
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 0)
         when:
         operation.logProcessedBytes(1024)
         then:

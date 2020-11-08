@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.progress.ProgressLogger;
 
 public class ResourceOperation {
-    public enum Type{
+    public enum Type {
         download,
         upload;
 
@@ -28,19 +28,18 @@ public class ResourceOperation {
             return StringUtils.capitalize(toString());
         }
     }
+
     private final ProgressLogger progressLogger;
     private final Type operationType;
     private final String contentLengthString;
-    private final String resourceName;
 
     private long loggedKBytes;
     private long totalProcessedBytes;
 
-    public ResourceOperation(ProgressLogger progressLogger, Type type, long contentLength, String resourceName) {
+    public ResourceOperation(ProgressLogger progressLogger, Type type, long contentLength) {
         this.progressLogger = progressLogger;
         this.operationType = type;
         this.contentLengthString = getLengthText(contentLength != 0 ? contentLength : null);
-        this.resourceName = resourceName;
     }
 
     private String getLengthText(Long bytes) {

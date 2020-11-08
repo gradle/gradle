@@ -35,18 +35,11 @@ public class AbstractProgressLoggingHandler {
         String description = createDescription(operationType, resource);
         progressLogger.setDescription(description);
         progressLogger.started();
-        String resourceName = createShortDescription(resource);
-        return new ResourceOperation(progressLogger, operationType, contentLength, resourceName);
+        return new ResourceOperation(progressLogger, operationType, contentLength);
     }
 
     private String createDescription(ResourceOperation.Type operationType, URI resource) {
         return operationType.getCapitalized() + " " + resource.toString();
-    }
-
-    private String createShortDescription(URI resource) {
-        String rawUri = resource.toString();
-        int lastSlash = rawUri.lastIndexOf('/');
-        return lastSlash == -1 ? rawUri : rawUri.substring(lastSlash + 1);
     }
 
     protected static class ProgressLoggingInputStream extends InputStream {
