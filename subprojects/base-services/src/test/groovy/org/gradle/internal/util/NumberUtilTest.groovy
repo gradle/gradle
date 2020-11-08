@@ -17,6 +17,7 @@
 package org.gradle.internal.util
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.internal.util.NumberUtil.formatBytes
 import static org.gradle.internal.util.NumberUtil.percentOf
@@ -37,33 +38,106 @@ class NumberUtilTest extends Specification {
     }
 
     def "percentage does not allow negative values"() {
-        when: percentOf(50, -10) == 0
+        when:
+        percentOf(50, -10) == 0
+
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == "Unable to calculate percentage: 50 of -10. All inputs must be >= 0"
 
-        when: percentOf(-1, 100) == 0
+        when:
+        percentOf(-1, 100) == 0
         then:
         ex = thrown(IllegalArgumentException)
         ex.message == "Unable to calculate percentage: -1 of 100. All inputs must be >= 0"
     }
 
-    def "formats bytes"() {
+    @Unroll
+    def "formats bytes (#bytes -> #humanReadableString)"(long bytes, String humanReadableString) {
         expect:
-        formatBytes(-1) == "-1 B"
-        formatBytes(0) == "0 B"
-        formatBytes(1) == "1 B"
-        formatBytes(999) == "999 B"
-        formatBytes(1000) == String.format("%.1f kB", 1.0)
-        formatBytes(1001) == String.format("%.1f kB", 1.0)
-        formatBytes(1501) == String.format("%.1f kB", 1.5)
-        formatBytes(1999) == String.format("%.1f kB", 2.0)
-        formatBytes(-1999) == String.format("%.1f kB", -2.0)
-        formatBytes(1000000) == String.format("%.1f MB", 1.0)
-        formatBytes(1000000000) == String.format("%.1f GB", 1.0)
-        formatBytes(1000000000000) == String.format("%.1f TB", 1.0)
-        formatBytes(1000000000000000) == String.format("%.1f PB", 1.0)
-        formatBytes(1000000000000000000) == String.format("%.1f EB", 1.0)
+        formatBytes(bytes) == humanReadableString
+        formatBytes(-bytes) == "-$humanReadableString"
+
+        where:
+        bytes               | humanReadableString
+        1                   | "1 B"
+        999                 | "999 B"
+        1000                | "1000 B"
+        1001                | "1001 B"
+        1501                | "1.4 KiB"
+        1999                | "1.9 KiB"
+        1000000             | "976.5 KiB"
+        1000000000          | "953.6 MiB"
+        1000000000000       | "931.3 GiB"
+        1000000000000000    | "909.4 TiB"
+        1000000000000000000 | "888.1 PiB"
+
+        100L * 1000**1      | "97.6 KiB" // https://www.ibm.com/support/knowledgecenter/SSQRB8/com.ibm.spectrum.si.doc/fqz0_r_units_measurement_data.html#fqz0_r_data_storage_values__percentage_diff_between_decimal_binary
+        100L * 1000**2      | "95.3 MiB"
+        100L * 1000**3      | "93.1 GiB"
+        100L * 1000**4      | "90.9 TiB"
+        100L * 1000**5      | "88.8 PiB"
+    }
+
+    @Unroll
+    def "converts to 1024 based human readable format (#bytes -> #humanReadableString)"() {
+        expect:
+        formatBytes(bytes) == humanReadableString
+
+        where:
+        bytes | humanReadableString
+        0     | '0 B'
+        null  | 'unknown size'
+    }
+
+    @Unroll
+    def "converts 2^10 based human readable format (±#bytes -> ±#humanReadableString)"(long bytes, String humanReadableString) {
+        expect:
+        formatBytes(bytes) == humanReadableString
+        formatBytes(-bytes) == "-$humanReadableString"
+
+        where:
+        bytes             | humanReadableString
+        1                 | '1 B'
+        10                | '10 B'
+        11                | '11 B'
+        111               | '111 B'
+        512               | '512 B'
+        1010              | '1010 B'
+        1025              | '1 KiB'
+        1126              | '1 KiB'
+        1127              | '1.1 KiB'
+
+        1024L**1          | '1 KiB'
+        1024L**1 + 1      | '1 KiB'
+        1024L**1 * 987    | '987 KiB'
+        1024L**2 - 1      | '1023.9 KiB'
+
+        1024L**2          | '1 MiB'
+        1024L**2 + 1      | '1 MiB'
+        1024L**2 * 654    | '654 MiB'
+        1024L**3 - 1      | '1023.9 MiB'
+
+        1024L**3          | '1 GiB'
+        1024L**3 + 1      | '1 GiB'
+        1024L**3 * 321    | '321 GiB'
+        1024L**4 - 1      | '1023.9 GiB'
+
+        1024L**4          | '1 TiB'
+        1024L**4 + 1      | '1 TiB'
+        1024L**4 * 21     | '21 TiB'
+        1024L**5 - 1      | '1023.9 TiB'
+
+        1024L**5          | '1 PiB'
+        1024L**5 + 1      | '1 PiB'
+        1024L**5 * 5      | '5 PiB'
+        1024L**6 - 1      | '1023.9 PiB'
+
+        1024L**6          | '1 EiB'
+        1024L**6 + 1      | '1 EiB'
+
+        Integer.MAX_VALUE | '1.9 GiB'
+        Long.MAX_VALUE    | '7.9 EiB'
     }
 
     def "knows ordinal"() {

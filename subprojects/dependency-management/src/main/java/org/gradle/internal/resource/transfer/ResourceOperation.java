@@ -19,6 +19,9 @@ package org.gradle.internal.resource.transfer;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.progress.ProgressLogger;
 
+import static org.gradle.internal.util.NumberUtil.KIB_BASE;
+import static org.gradle.internal.util.NumberUtil.formatBytes;
+
 public class ResourceOperation {
     public enum Type {
         download,
@@ -39,28 +42,15 @@ public class ResourceOperation {
     public ResourceOperation(ProgressLogger progressLogger, Type type, long contentLength) {
         this.progressLogger = progressLogger;
         this.operationType = type;
-        this.contentLengthString = getLengthText(contentLength != 0 ? contentLength : null);
-    }
-
-    private String getLengthText(Long bytes) {
-        if (bytes == null) {
-            return "unknown size";
-        }
-        if (bytes < 1024) {
-            return bytes + " B";
-        } else if (bytes < 1048576) {
-            return (bytes / 1024) + " KB";
-        } else {
-            return String.format("%.2f MB", bytes / 1048576.0);
-        }
+        this.contentLengthString = formatBytes(contentLength == 0 ? null : contentLength);
     }
 
     public void logProcessedBytes(long processedBytes) {
         totalProcessedBytes += processedBytes;
-        long processedKB = totalProcessedBytes / 1024;
-        if (processedKB > loggedKBytes) {
-            loggedKBytes = processedKB;
-            String progressMessage = String.format("%s/%s %sed", getLengthText(totalProcessedBytes), contentLengthString, operationType);
+        long processedKiB = totalProcessedBytes / KIB_BASE;
+        if (processedKiB > loggedKBytes) {
+            loggedKBytes = processedKiB;
+            String progressMessage = String.format("%s/%s %sed", formatBytes(totalProcessedBytes), contentLengthString, operationType);
             progressLogger.progress(progressMessage);
         }
     }
