@@ -71,7 +71,7 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     protected CachedMetadata get(ModuleComponentAtRepositoryKey key) {
         final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
         return artifactCacheLockingManager.useCache(() -> {
-            ModuleMetadataCacheEntry entry = cache.get(key);
+            ModuleMetadataCacheEntry entry = cache.getIfPresent(key);
             if (entry == null) {
                 return null;
             }

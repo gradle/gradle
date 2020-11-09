@@ -34,7 +34,10 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.cache.FileLockManager.LockMode.*
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive
+import static org.gradle.cache.FileLockManager.LockMode.None
+import static org.gradle.cache.FileLockManager.LockMode.OnDemand
+import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheAccessTest extends ConcurrentSpec {
@@ -553,7 +556,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
-        access.useCache { cache.get("key") }
+        access.useCache { cache.getIfPresent("key") }
 
         when:
         access.close()
@@ -572,7 +575,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
-        access.useCache { cache.get("key") }
+        access.useCache { cache.getIfPresent("key") }
         contendedAction.execute({} as FileLockReleasedSignal)
         lock.close()
 
@@ -607,7 +610,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         when:
         cpAccess.withFileLock {
             access.useCache {
-                cache.get("something")
+                cache.getIfPresent("something")
             }
             contendedAction.execute({} as FileLockReleasedSignal)
             "result"
@@ -642,7 +645,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
-        access.useCache { cache.get("key") }
+        access.useCache { cache.getIfPresent("key") }
 
         when:
         access.close()

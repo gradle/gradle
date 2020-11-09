@@ -47,7 +47,6 @@ import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
@@ -66,7 +65,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
-        registration.add(JavaInstallationProbe.class);
     }
 
     @Override

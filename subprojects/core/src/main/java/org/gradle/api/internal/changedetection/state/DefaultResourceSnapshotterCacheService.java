@@ -33,7 +33,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) {
         HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshotContext.getSnapshot().getHash(), configurationHash);
 
-        HashCode resourceHash = persistentCache.get(resourceHashCacheKey);
+        HashCode resourceHash = persistentCache.getIfPresent(resourceHashCacheKey);
         if (resourceHash != null) {
             if (resourceHash.equals(NO_HASH)) {
                 return null;

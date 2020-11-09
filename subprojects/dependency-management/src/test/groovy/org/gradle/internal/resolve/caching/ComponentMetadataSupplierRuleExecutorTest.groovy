@@ -122,7 +122,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
-        1 * store.get(keyHash) >> cachedEntry
+        1 * store.getIfPresent(keyHash) >> cachedEntry
         if (expired) {
             // should check that the recorded service call returns the same value
             1 * record.getInput() >> '124'

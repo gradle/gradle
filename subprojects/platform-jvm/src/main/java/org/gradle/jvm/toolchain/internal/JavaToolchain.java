@@ -22,11 +22,12 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.VersionNumber;
 
@@ -43,8 +44,8 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     private final JavaLanguageVersion javaVersion;
 
     @Inject
-    public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
-        this(probe.getJavaHome(), JavaLanguageVersion.of(Integer.parseInt(probe.getJavaVersion().getMajorVersion())), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory, fileFactory);
+    public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
+        this(metadata.getJavaHome(), JavaLanguageVersion.of(metadata.getLangageVersion().getMajorVersion()), metadata.getImplementationVersion(), metadata.getCapabilities().contains(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER), compilerFactory, toolFactory, fileFactory);
     }
 
     JavaToolchain(Path javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {

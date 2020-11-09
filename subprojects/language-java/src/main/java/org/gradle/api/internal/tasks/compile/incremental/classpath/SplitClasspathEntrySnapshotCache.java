@@ -54,8 +54,8 @@ public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotC
     }
 
     @Override
-    public ClasspathEntrySnapshot get(File key) {
-        return getCacheFor(key).get(key);
+    public ClasspathEntrySnapshot getIfPresent(File key) {
+        return getCacheFor(key).getIfPresent(key);
     }
 
     @Override

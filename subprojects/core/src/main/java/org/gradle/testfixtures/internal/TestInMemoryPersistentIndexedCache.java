@@ -32,17 +32,17 @@ import java.util.function.Function;
 /**
  * A simple in-memory cache, used by the testing fixtures.
  */
-public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
+public class TestInMemoryPersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private final Map<Object, byte[]> entries = new ConcurrentHashMap<>();
     private final ProducerGuard<K> producerGuard = ProducerGuard.serial();
     private final Serializer<V> valueSerializer;
 
-    public InMemoryIndexedCache(Serializer<V> valueSerializer) {
+    public TestInMemoryPersistentIndexedCache(Serializer<V> valueSerializer) {
         this.valueSerializer = valueSerializer;
     }
 
     @Override
-    public V get(K key) {
+    public V getIfPresent(K key) {
         byte[] serialised = entries.get(key);
         if (serialised == null) {
             return null;
@@ -62,7 +62,7 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
             if (!entries.containsKey(key)) {
                 put(key, producer.apply(key));
             }
-            return InMemoryIndexedCache.this.get(key);
+            return TestInMemoryPersistentIndexedCache.this.getIfPresent(key);
         });
     }
 

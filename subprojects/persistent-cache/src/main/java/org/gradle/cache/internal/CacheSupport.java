@@ -33,7 +33,7 @@ public abstract class CacheSupport<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(K key) {
+    public V getIfPresent(K key) {
         return doGet(key);
     }
 

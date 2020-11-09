@@ -167,7 +167,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
         1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
         1 * cacheLockingManager.useCache(_) >> { Factory<?> factory -> factory.create()}
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
-        1 * persistentIndexedCache.get(key) >> cachedArtifact
+        1 * persistentIndexedCache.getIfPresent(key) >> cachedArtifact
         key
     }
 }

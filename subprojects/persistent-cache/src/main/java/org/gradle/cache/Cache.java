@@ -35,7 +35,7 @@ public interface Cache<K, V>  {
      * Locates the given entry, if present. Returns {@code null} when missing.
      */
     @Nullable
-    V get(K key);
+    V getIfPresent(K key);
 
     /**
      * Adds the given value to the cache, replacing any existing value.

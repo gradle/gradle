@@ -121,7 +121,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             action = action.withInstantiator(instantiator.capturing(registrar));
         }
         // First step is to find an entry with the explicit inputs in the cache
-        CachedEntry<RESULT> entry = store.get(keyHash);
+        CachedEntry<RESULT> entry = store.getIfPresent(keyHash);
         if (entry != null) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Found result for rule {} and key {} in cache", rules, key);

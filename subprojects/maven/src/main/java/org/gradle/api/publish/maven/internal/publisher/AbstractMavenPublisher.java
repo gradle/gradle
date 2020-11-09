@@ -233,7 +233,11 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             try {
                 publishChecksum(destination, content, algorithm, length);
             } catch (Exception ex) {
-                LOGGER.warn("Cannot upload checksum for " + content.getName() + ". Remote repository doesn't support " + algorithm + ". Error: " + ex.getMessage());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.", ex);
+                } else {
+                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.");
+                }
             }
         }
 

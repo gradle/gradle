@@ -38,7 +38,7 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
 public abstract class PerformanceExecutionDataProvider {
-    protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
+    protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 7;
     protected TreeSet<ScenarioBuildResultData> scenarioExecutionData;
     protected final ResultsStore resultsStore;
     private final List<File> resultJsons;
