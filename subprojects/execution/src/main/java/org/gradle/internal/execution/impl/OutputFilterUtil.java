@@ -182,14 +182,14 @@ public class OutputFilterUtil {
             if (merkleBuilder == null) {
                 newRootsBuilder.add(snapshot);
             } else {
-                merkleBuilder.visitEntry(snapshot);
+                merkleBuilder.visitEntry(snapshot, isRoot);
             }
         }
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
             boolean isOutputDir = predicate.test(directorySnapshot, isRoot);
-            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir, directorySnapshot.getAccessType());
+            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir, directorySnapshot.getAccessType(), directorySnapshot.getName());
             if (!includedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;

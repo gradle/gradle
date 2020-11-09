@@ -27,8 +27,6 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
-import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.vfs.FileSystemAccess
@@ -191,44 +189,6 @@ abstract class AbstractFileSystemAccessTest extends Specification {
                     return isDirectory || predicate.test(name)
                 }
             }
-        }
-    }
-
-    static class RelativePathCapturingVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private Deque<String> relativePath = new ArrayDeque<String>()
-        private boolean seenRoot = false
-        private final List<String> relativePaths = []
-
-        @Override
-        void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (!seenRoot) {
-                seenRoot = true
-            } else {
-                relativePath.addLast(directorySnapshot.name)
-            }
-        }
-
-        @Override
-        SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            if (seenRoot) {
-                relativePath.addLast(snapshot.name)
-                relativePaths.add(relativePath.join("/"))
-                relativePath.removeLast()
-            }
-            return SnapshotVisitResult.CONTINUE
-        }
-
-        @Override
-        void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (relativePath.isEmpty()) {
-                seenRoot = false
-            } else {
-                relativePath.removeLast()
-            }
-        }
-
-        List<String> getRelativePaths() {
-            return relativePaths
         }
     }
 }

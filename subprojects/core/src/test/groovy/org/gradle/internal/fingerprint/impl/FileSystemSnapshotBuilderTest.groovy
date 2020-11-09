@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.RelativePathSupplier
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
@@ -25,9 +26,8 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.RelativePathTracker
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -69,28 +69,14 @@ class FileSystemSnapshotBuilderTest extends Specification {
         Set<String> files = [] as Set
         Set<String> relativePaths = [] as Set
         def result = builder.build()
-        result.accept(new FileSystemSnapshotHierarchyVisitor() {
-            private final relativePathTracker = new RelativePathTracker()
-
+        result.accept RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor(new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
-            void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                relativePathTracker.enter(directorySnapshot)
-            }
-
-            @Override
-            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                if (!relativePathTracker.root) {
+            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
+                if (!relativePath.root) {
                     files.add(snapshot.absolutePath)
-                    relativePathTracker.enter(snapshot)
-                    relativePaths.add(relativePathTracker.toPathString())
-                    relativePathTracker.leave()
+                    relativePaths << relativePath.toPathString()
                 }
                 return CONTINUE
-            }
-
-            @Override
-            void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                relativePathTracker.leave()
             }
         })
 

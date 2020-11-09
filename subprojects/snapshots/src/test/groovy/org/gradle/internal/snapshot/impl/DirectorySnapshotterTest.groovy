@@ -20,15 +20,14 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.RelativePathSupplier
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,6 +40,9 @@ import spock.lang.Specification
 
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
+
+import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -79,12 +81,10 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(new RelativePathTrackingVisitor() {
-            @Override
-            void visit(String absolutePath, Deque<String> relativePath) {
-                visited << absolutePath
-                relativePaths << relativePath.join("/")
-            }
+        snapshot.accept(asSimpleHierarchyVisitor { CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
+            visited << entrySnapshot.absolutePath
+            relativePaths << relativePath.toPathString()
+            return CONTINUE
         })
 
         then:
@@ -95,19 +95,20 @@ class DirectorySnapshotterTest extends Specification {
         visited.contains(excludedFile.absolutePath)
         !visited.contains(notUnderRoot.absolutePath)
         !visited.contains(doesNotExist.absolutePath)
-        relativePaths as Set == (['root'] + [
+        relativePaths as Set == [
+            '',
             'a',
             'a/b', 'a/b/c.txt',
             'a/c', 'a/c/c.txt', 'a/b/c.html',
             'subdir1', 'subdir1/a', 'subdir1/a/b', 'subdir1/a/b/c.html',
             'a.txt'
-        ].collect { 'root/' + it }) as Set
+        ] as Set
     }
 
     def "should snapshot file system root"() {
         given:
         def fileSystemRoot = fileSystemRoot()
-        def patterns = new PatternSet().exclude("*")
+        def patterns = new PatternSet().exclude("**/*")
 
         when:
         def snapshot = directorySnapshotter.snapshot(fileSystemRoot, directoryWalkerPredicate(patterns) , actuallyFiltered)
@@ -145,12 +146,10 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(new RelativePathTrackingVisitor() {
-            @Override
-            void visit(String absolutePath, Deque<String> relativePath) {
-                visited << absolutePath
-                relativePaths << relativePath.join("/")
-            }
+        snapshot.accept(asSimpleHierarchyVisitor { CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
+            visited << entrySnapshot.absolutePath
+            relativePaths << relativePath.toPathString()
+            CONTINUE
         })
 
         then:
@@ -162,11 +161,11 @@ class DirectorySnapshotterTest extends Specification {
         !visited.contains(notUnderRoot.absolutePath)
         !visited.contains(doesNotExist.absolutePath)
         relativePaths as Set == [
-            'root',
-            'root/a',
-            'root/a/b', 'root/a/b/c.txt',
-            'root/a/c', 'root/a/c/c.txt',
-            'root/a.txt'
+            '',
+            'a',
+            'a/b', 'a/b/c.txt',
+            'a/c', 'a/c/c.txt',
+            'a.txt'
         ] as Set
     }
 
@@ -315,29 +314,5 @@ class DirectorySnapshotterTest extends Specification {
 
     private static SnapshottingFilter.DirectoryWalkerPredicate directoryWalkerPredicate(PatternSet patternSet) {
         return new PatternSetSnapshottingFilter(patternSet, TestFiles.fileSystem()).asDirectoryWalkerPredicate
-    }
-
-    private abstract class RelativePathTrackingVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private Deque<String> relativePath = new ArrayDeque<String>()
-
-        @Override
-        void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePath.addLast(directorySnapshot.name)
-        }
-
-        @Override
-        SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            relativePath.addLast(snapshot.name)
-            visit(snapshot.absolutePath, relativePath)
-            relativePath.removeLast()
-            return SnapshotVisitResult.CONTINUE
-        }
-
-        @Override
-        void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePath.removeLast()
-        }
-
-        abstract void visit(String absolutePath, Deque<String> relativePath)
     }
 }

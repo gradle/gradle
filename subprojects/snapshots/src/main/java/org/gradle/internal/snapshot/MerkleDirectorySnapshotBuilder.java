@@ -31,7 +31,6 @@ import java.util.List;
 public class MerkleDirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
-    private final RelativePathTracker relativePathTracker = new RelativePathTracker();
     private final Deque<List<CompleteFileSystemLocationSnapshot>> levelHolder = new ArrayDeque<>();
     private final Deque<String> directoryAbsolutePaths = new ArrayDeque<>();
     private final boolean sortingRequired;
@@ -49,44 +48,43 @@ public class MerkleDirectorySnapshotBuilder {
         this.sortingRequired = sortingRequired;
     }
 
-    public void preVisitDirectory(String absolutePath, String name) {
-        relativePathTracker.enter(name);
+    public void preVisitDirectory(String absolutePath) {
         levelHolder.addLast(new ArrayList<>());
         directoryAbsolutePaths.addLast(absolutePath);
     }
 
     public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        preVisitDirectory(directorySnapshot.getAbsolutePath(), directorySnapshot.getName());
+        String absolutePath = directorySnapshot.getAbsolutePath();
+        preVisitDirectory(absolutePath);
     }
 
-    public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+    public void visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
         snapshot.accept(new FileSystemLocationSnapshotVisitor() {
             @Override
             public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                visitNonDirectoryEntry(snapshot);
+                visitNonDirectoryEntry(snapshot, isRoot);
             }
 
             @Override
             public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                visitNonDirectoryEntry(snapshot);
+                visitNonDirectoryEntry(snapshot, isRoot);
             }
         });
     }
 
-    private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
-        if (relativePathTracker.isRoot()) {
+    private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+        if (isRoot) {
             result = snapshot;
         } else {
             levelHolder.peekLast().add(snapshot);
         }
     }
 
-    public void postVisitDirectory(AccessType accessType) {
-        postVisitDirectory(true, accessType);
+    public void postVisitDirectory(AccessType accessType, String name) {
+        postVisitDirectory(true, accessType, name);
     }
 
-    public boolean postVisitDirectory(boolean includeEmpty, AccessType accessType) {
-        String name = relativePathTracker.leave();
+    public boolean postVisitDirectory(boolean includeEmpty, AccessType accessType, String name) {
         List<CompleteFileSystemLocationSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();
         if (children.isEmpty() && !includeEmpty) {
@@ -109,14 +107,6 @@ public class MerkleDirectorySnapshotBuilder {
             result = directorySnapshot;
         }
         return true;
-    }
-
-    public boolean isRoot() {
-        return relativePathTracker.isRoot();
-    }
-
-    public Iterable<String> getRelativePath() {
-        return relativePathTracker.getSegments();
     }
 
     @Nullable

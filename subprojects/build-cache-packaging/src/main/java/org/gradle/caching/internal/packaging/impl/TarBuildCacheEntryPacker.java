@@ -31,6 +31,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
+import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -41,11 +42,10 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.RelativePathTracker;
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
@@ -68,6 +68,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
 
 /**
  * Packages build cache entries to a POSIX TAR file.
@@ -148,7 +150,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private long packTree(String name, TreeType type, FileSystemSnapshot snapshots, TarArchiveOutputStream tarOutput) {
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, filePermissionAccess);
-        snapshots.accept(packingVisitor);
+        snapshots.accept(asSimpleHierarchyVisitor(packingVisitor));
         return packingVisitor.finish();
     }
 
@@ -275,14 +277,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         String rootPath = stringInterner.intern(treeRoot.getAbsolutePath());
-        String rootDirName = stringInterner.intern(treeRoot.getName());
-        builder.preVisitDirectory(rootPath, rootDirName);
+        builder.preVisitDirectory(rootPath);
 
         TarArchiveEntry entry;
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            parser.nextPath(entry.getName(), isDir, name -> builder.postVisitDirectory(AccessType.DIRECT));
+            parser.nextPath(entry.getName(), isDir, name -> builder.postVisitDirectory(AccessType.DIRECT, name));
             if (parser.isRoot()) {
                 break;
             }
@@ -293,15 +294,14 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 FileUtils.forceMkdir(file);
                 chmodUnpackedFile(entry, file);
                 String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-                String internedDirName = stringInterner.intern(parser.getName());
-                builder.preVisitDirectory(internedAbsolutePath, internedDirName);
+                builder.preVisitDirectory(internedAbsolutePath);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
-                builder.visitEntry(fileSnapshot);
+                builder.visitEntry(fileSnapshot, parser.isRoot());
             }
         }
 
-        parser.handleParents(parent -> builder.postVisitDirectory(AccessType.DIRECT));
+        parser.handleParents(name -> builder.postVisitDirectory(AccessType.DIRECT, name));
 
         snapshots.put(treeName, builder.getResult());
         return entry;
@@ -327,8 +327,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
     }
 
-    private static class PackingVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final RelativePathTracker relativePathTracker = new RelativePathTracker();
+    private static class PackingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
         private final TarArchiveOutputStream tarOutput;
         private final String treePath;
         private final String treeRoot;
@@ -346,15 +345,9 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
 
         @Override
-        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePathTracker.enter(directorySnapshot);
-        }
-
-        @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            boolean isRoot = relativePathTracker.isRoot();
-            relativePathTracker.enter(snapshot);
-            String targetPath = getTargetPath(isRoot);
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
+            boolean isRoot = relativePath.isRoot();
+            String targetPath = getTargetPath(relativePath);
             snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                 @Override
                 public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -380,14 +373,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                     storeMissingTree(targetPath, tarOutput);
                 }
             });
-            relativePathTracker.leave();
             entries++;
             return SnapshotVisitResult.CONTINUE;
-        }
-
-        @Override
-        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePathTracker.leave();
         }
 
         public long finish() {
@@ -417,12 +404,10 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             }
         }
 
-        private String getTargetPath(boolean root) {
-            if (root) {
-                return treePath;
-            }
-            String relativePath = relativePathTracker.toPathString();
-            return treeRoot + relativePath;
+        private String getTargetPath(RelativePathSupplier relativePath) {
+            return relativePath.isRoot()
+                ? treePath
+                : treeRoot + relativePath.toPathString();
         }
 
         private void storeMissingTree(String treePath, TarArchiveOutputStream tarOutput) {

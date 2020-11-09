@@ -16,13 +16,14 @@
 
 package org.gradle.internal.vfs.impl
 
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.RelativePathSupplier
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @Unroll
@@ -186,11 +187,11 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         when:
         allowFileSystemAccess(true)
         def snapshot = read(d, new FileNameFilter({ name -> name.endsWith('1')}))
-        def visitor = new RelativePathCapturingVisitor()
-        snapshot.accept(visitor)
+        def relativePaths = []
+        snapshot.accept(asSimpleHierarchyVisitor(new RelativePathCapturingVisitor(relativePaths)))
         then:
         assertIsDirectorySnapshot(snapshot, d)
-        visitor.relativePaths == ["d1", "d1/f1", "f1"]
+        relativePaths == ["d1", "d1/f1", "f1"]
 
         when:
         // filtered snapshots are currently not stored in the VFS
@@ -249,41 +250,26 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         when:
         allowFileSystemAccess(false)
         def snapshot = read(d, patterns)
-        def relativePaths = [] as Set
-        snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
-            private Deque<String> relativePath = new ArrayDeque<String>()
-            private boolean seenRoot = false
-
-            @Override
-            void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                if (!seenRoot) {
-                    seenRoot = true
-                } else {
-                    relativePath.addLast(directorySnapshot.name)
-                }
-            }
-
-            @Override
-            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot) {
-                if (seenRoot) {
-                    relativePath.addLast(entrySnapshot.name)
-                    relativePaths.add(relativePath.join("/"))
-                    relativePath.removeLast()
-                }
-                return CONTINUE
-            }
-
-            @Override
-            void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                if (relativePath.isEmpty()) {
-                    seenRoot = false
-                } else {
-                    relativePath.removeLast()
-                }
-            }
-        })
+        def relativePaths = []
+        snapshot.accept(asSimpleHierarchyVisitor(new RelativePathCapturingVisitor(relativePaths)))
 
         then: "The filtered tree uses the cached state"
-        relativePaths == ["d1", "d1/f1", "f1"] as Set
+        relativePaths as Set == ["d1", "d1/f1", "f1"] as Set
+    }
+
+    private static class RelativePathCapturingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
+        private final List<String> relativePaths
+
+        RelativePathCapturingVisitor(List<String> relativePaths) {
+            this.relativePaths = relativePaths
+        }
+
+        @Override
+        SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
+            if (!relativePath.root) {
+                relativePaths << relativePath.toPathString()
+            }
+            return CONTINUE
+        }
     }
 }

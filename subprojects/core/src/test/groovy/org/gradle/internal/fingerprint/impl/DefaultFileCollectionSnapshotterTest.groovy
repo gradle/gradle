@@ -28,11 +28,9 @@ import org.gradle.api.resources.ResourceException
 import org.gradle.api.resources.internal.LocalResourceAdapter
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.internal.Factory
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
-import org.gradle.internal.snapshot.SnapshotVisitResult
+import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -237,23 +235,12 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
     private static List getSnapshotInfo(FileSystemSnapshot tree) {
         String rootPath = null
         int count = 0
-        tree.accept(new FileSystemSnapshotHierarchyVisitor() {
-            @Override
-            void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                if (rootPath == null) {
-                    rootPath = directorySnapshot.absolutePath
-                }
+        tree.accept(RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor { CompleteFileSystemLocationSnapshot snapshot, boolean isRoot ->
+            if (isRoot) {
+                rootPath = snapshot.absolutePath
             }
-
-            @Override
-            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                count++
-                return CONTINUE
-            }
-
-            @Override
-            void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            }
+            count++
+            return CONTINUE
         })
         return [rootPath, count]
     }
