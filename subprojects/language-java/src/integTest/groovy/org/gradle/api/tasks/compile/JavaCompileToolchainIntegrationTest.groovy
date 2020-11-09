@@ -104,7 +104,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
             .runWithFailure()
 
         then:
-        failureHasCause('No compatible toolchains found for request filter: {languageVersion=99} (auto-detect true, auto-download false)')
+        failureHasCause('No compatible toolchains found for request filter: {languageVersion=99, vendor=any} (auto-detect true, auto-download false)')
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
@@ -158,6 +158,50 @@ public class Foo {
         then:
         outputContains("Compiling with toolchain '${jdk11.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
+    }
+
+    def "uses correct vendor when selecting a toolchain"() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${Jvm.current().javaVersion.majorVersion})
+                    vendor = JvmVendorSpec.matching("${System.getProperty("java.vendor").toLowerCase()}")
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << """public class Foo {}"""
+
+        when:
+        runWithToolchainConfigured(Jvm.current())
+
+        then:
+        outputContains("Compiling with toolchain '${Jvm.current().javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Creates a second exception")
+    def "fails if no toolchain has a matching vendor"() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${Jvm.current().javaVersion.majorVersion})
+                    vendor = JvmVendorSpec.AMAZON
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << """public class Foo {}"""
+
+        when:
+        fails("compileJava")
+
+        then:
+        failureHasCause("No compatible toolchains found for request filter: {languageVersion=${Jvm.current().javaVersion.majorVersion}, vendor=AMAZON} (auto-detect false, auto-download false)")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8) != null })
