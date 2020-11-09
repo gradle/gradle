@@ -36,4 +36,6 @@ public interface JavaToolchainSpec extends Describable {
      */
     Property<JavaLanguageVersion> getLanguageVersion();
 
+    Property<JvmVendorSpec> getVendor();
+
 }

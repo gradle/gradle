@@ -16,25 +16,34 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.base.MoreObjects;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 
 public class DefaultToolchainSpec implements JavaToolchainSpec {
 
     private final Property<JavaLanguageVersion> languageVersion;
+    private final Property<JvmVendorSpec> vendor;
 
     @Inject
     public DefaultToolchainSpec(ObjectFactory factory) {
         this.languageVersion = factory.property(JavaLanguageVersion.class);
+        this.vendor = factory.property(JvmVendorSpec.class).convention(DefaultJvmVendorSpec.ANY);
     }
 
     @Override
     public Property<JavaLanguageVersion> getLanguageVersion() {
         return languageVersion;
+    }
+
+    @Override
+    public Property<JvmVendorSpec> getVendor() {
+        return vendor;
     }
 
     public boolean isConfigured() {
@@ -43,7 +52,11 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
 
     @Override
     public String getDisplayName() {
-        return "{languageVersion=" + languageVersion.map(JavaLanguageVersion::toString).getOrElse("unspecified") + "}";
+        final MoreObjects.ToStringHelper builder = MoreObjects.toStringHelper("");
+        builder.omitNullValues();
+        builder.add("languageVersion", languageVersion.map(JavaLanguageVersion::toString).getOrElse("unspecified"));
+        builder.add("vendor", vendor.map(JvmVendorSpec::toString).getOrNull());
+        return builder.toString();
     }
 
 }
