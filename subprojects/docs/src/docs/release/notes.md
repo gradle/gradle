@@ -236,6 +236,17 @@ This version of Gradle fixes problems with projects that use custom source sets,
 
 Custom source sets are now imported into Eclipse automatically and no longer require manual configuration in the build.
 
+## Composite build improvements
+
+### Executing tasks from an included build
+
+This version of Gradle allows users to execute tasks from included builds from the command line with the usual notation. For example, if the build defines `my-other-project` as an included build, and `my-another-project` has a subproject `sub` with a task `foo`, then you can execute `foo` with the following command:
+
+    gradle :my-other-project:sub:foo
+
+Note, that Gradle does not allow launching multiple task from included builds with the same name. So, if you run `gradle build`, the `build` tasks from the included builds won't be executed. More precisely, 
+ tasks from included builds can be only addressed with qualified paths (i.e. with the leading colon character). 
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
