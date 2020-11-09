@@ -254,9 +254,9 @@ Gradle now allows users to execute tasks from included builds directly from the 
 
     gradle :my-other-project:sub:foo
     
-You can also exclude tasks coming from included builds. If the task `foo` above depends on `bar` (defined in the same project) then you can skip bar with the following command:
+You can also exclude tasks from included builds. If the task `foo` above depends on `bar` (defined in the same project) then you can skip bar with the following command:
 
-    gradle :my-other-project:sub:foo -x :my-other-project:sub:foo 
+    gradle :my-other-project:sub:foo -x :my-other-project:sub:bar 
 
 Note, unlike a multi-project build, running `gradle build` will _not_ run the `build` task in all of the included builds.
 You could introduce [task dependencies](https://docs.gradle.org/current/userguide/composite_builds.html#included_build_task_dependencies) to tasks in included builds if you wanted to recreate this behavior for included builds.
