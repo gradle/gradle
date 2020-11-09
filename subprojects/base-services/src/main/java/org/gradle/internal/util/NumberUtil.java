@@ -19,8 +19,11 @@ package org.gradle.internal.util;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.List;
 
 import static java.math.RoundingMode.FLOOR;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Utility methods for working with numbers
@@ -30,9 +33,8 @@ public class NumberUtil {
     public static final int KIB_BASE = 1 << BASE_LOG2;
     private static final int FRACTIONAL_DIGIT_COUNT = 1;
     private static final MathContext MC = new MathContext(String.valueOf(KIB_BASE).length() + FRACTIONAL_DIGIT_COUNT, FLOOR);
-
-    private static final String[] UNITS = new String[]{" B", " KiB", " MiB", " GiB", " TiB", " PiB", " EiB"};
-    private static final String[] ORDINAL_SUFFIXES = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
+    private static final List<String> UNITS = unmodifiableList(asList(" B", " KiB", " MiB", " GiB", " TiB", " PiB", " EiB"));
+    private static final List<String> ORDINAL_SUFFIXES = unmodifiableList(asList("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"));
 
 
     /**
@@ -64,7 +66,7 @@ public class NumberUtil {
             int baseExponent = (Long.SIZE - 1 - Long.numberOfLeadingZeros(bytes)) / BASE_LOG2;
             BigDecimal roundedBase = BigDecimal.valueOf(1L << (baseExponent * BASE_LOG2));
             BigDecimal result = BigDecimal.valueOf(bytes).divide(roundedBase, MC).setScale(FRACTIONAL_DIGIT_COUNT, FLOOR).stripTrailingZeros();
-            return result.toPlainString() + UNITS[baseExponent];
+            return result.toPlainString() + UNITS.get(baseExponent);
         }
     }
 
@@ -76,9 +78,9 @@ public class NumberUtil {
             case 11:
             case 12:
             case 13:
-                return value + ORDINAL_SUFFIXES[0];
+                return value + ORDINAL_SUFFIXES.get(0);
             default:
-                return value + ORDINAL_SUFFIXES[value % 10];
+                return value + ORDINAL_SUFFIXES.get(value % 10);
         }
     }
 }
