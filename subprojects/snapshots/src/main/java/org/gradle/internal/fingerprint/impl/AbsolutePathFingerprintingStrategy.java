@@ -75,10 +75,9 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
                         @Override
                         public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                            if (!includeMissingRoots && isRoot) {
-                                return;
+                            if (includeMissingRoots || !isRoot) {
+                                doVisitEntry(missingSnapshot);
                             }
-                            doVisitEntry(missingSnapshot);
                         }
                     });
                     return SnapshotVisitResult.CONTINUE;
