@@ -32,6 +32,7 @@ public class NumberUtil {
     private static final MathContext MC = new MathContext(String.valueOf(KIB_BASE).length() + FRACTIONAL_DIGIT_COUNT, FLOOR);
 
     private static final String[] UNITS = new String[]{" B", " KiB", " MiB", " GiB", " TiB", " PiB", " EiB"};
+    private static final String[] ORDINAL_SUFFIXES = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
 
 
     /**
@@ -71,14 +72,13 @@ public class NumberUtil {
      * gets ordinal String representation of given value (e.g. 1 -> 1st, 12 -> 12th, 22 -> 22nd, etc.)
      */
     public static String ordinal(int value) {
-        String[] suffixes = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
         switch (value % 100) {
             case 11:
             case 12:
             case 13:
-                return value + "th";
+                return value + ORDINAL_SUFFIXES[0];
             default:
-                return value + suffixes[value % 10];
+                return value + ORDINAL_SUFFIXES[value % 10];
         }
     }
 }
