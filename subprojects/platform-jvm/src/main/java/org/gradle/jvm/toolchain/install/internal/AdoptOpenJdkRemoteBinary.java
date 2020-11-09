@@ -22,6 +22,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -44,7 +46,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
-        if (!canProvidesMatchingJdk(spec)) {
+        if (!canProvideMatchingJdk(spec)) {
             return Optional.empty();
         }
         URI source = toDownloadUri(spec);
@@ -52,8 +54,11 @@ public class AdoptOpenJdkRemoteBinary {
         return Optional.of(destinationFile);
     }
 
-    private boolean canProvidesMatchingJdk(JavaToolchainSpec spec) {
-        return getLanguageVersion(spec).canCompileOrRun(8);
+    private boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
+        final boolean matchesLanguageVersion = getLanguageVersion(spec).canCompileOrRun(8);
+        final JvmVendorSpec vendorSpec = spec.getVendor().get();
+        boolean matchesVendor = vendorSpec == JvmVendorSpec.ADOPTOPENJDK || vendorSpec == DefaultJvmVendorSpec.ANY;
+        return matchesLanguageVersion && matchesVendor;
     }
 
     URI toDownloadUri(JavaToolchainSpec spec) {
