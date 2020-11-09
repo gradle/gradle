@@ -80,18 +80,13 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                                 fingerprint = new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
                             }
                         } else {
-                            fingerprint = createFingerprint(snapshot);
+                            relativePathTracker.enter(snapshot);
+                            fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathTracker.toPathString()), snapshot);
+                            relativePathTracker.leave();
                         }
                         builder.put(absolutePath, fingerprint);
                     }
                     return SnapshotVisitResult.CONTINUE;
-                }
-
-                private FileSystemLocationFingerprint createFingerprint(CompleteFileSystemLocationSnapshot snapshot) {
-                    relativePathTracker.enter(snapshot);
-                    FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathTracker.toPathString()), snapshot);
-                    relativePathTracker.leave();
-                    return fingerprint;
                 }
 
                 @Override
