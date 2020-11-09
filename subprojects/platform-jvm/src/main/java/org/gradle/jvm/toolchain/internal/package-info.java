@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+@NonNullApi
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.Try;
-
-public class PrecomputedTransformationResult implements TransformationResult {
-    private final Try<TransformationSubject> transformedSubject;
-
-    public PrecomputedTransformationResult(Try<TransformationSubject> transformedSubject) {
-        this.transformedSubject = transformedSubject;
-    }
-
-    @Override
-    public Try<TransformationSubject> getTransformedSubject() {
-        return transformedSubject;
-    }
-}
+import org.gradle.api.NonNullApi;

@@ -18,38 +18,38 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.tasks.FinalizeAction;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArtifact {
+public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependencyContainer buildDependencies;
-    private final Factory<File> artifactSource;
-    private volatile File file;
-    private volatile Throwable failure;
+    private final CalculatedValue<File> fileSource;
     private final FinalizeAction resolvedArtifactDependency;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final PreResolvedResolvableArtifact publicView;
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, Factory<File> artifactSource) {
+    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = builtBy;
-        this.artifactSource = artifactSource;
+        this.fileSource = fileSource;
         this.resolvedArtifactDependency = new FinalizeAction() {
             @Override
             public TaskDependencyContainer getDependencies() {
@@ -61,14 +61,12 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
                 // Eagerly calculate the file if this will be used as a dependency of some task
                 // This is to avoid having to lock the project when a consuming task in another project runs
                 if (isResolveSynchronously()) {
-                    try {
-                        getFile();
-                    } catch (Exception e) {
-                        // Ignore, this will be reported later
-                    }
+                    fileSource.finalizeIfNotAlready();
                 }
             }
         };
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        publicView = new PreResolvedResolvableArtifact(owner, artifact, artifactId, fileSource, buildDependencies, calculatedValueContainerFactory);
     }
 
     @Override
@@ -78,11 +76,6 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
 
     public IvyArtifactName getArtifactName() {
         return artifact;
-    }
-
-    @Override
-    public ResolvedModuleVersion getModuleVersion() {
-        return new DefaultResolvedModuleVersion(owner);
     }
 
     @Override
@@ -103,7 +96,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
+        DefaultResolvableArtifact other = (DefaultResolvableArtifact) obj;
         return other.artifactId.equals(artifactId);
     }
 
@@ -113,35 +106,15 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     }
 
     @Override
-    public String getName() {
-        return artifact.getName();
-    }
-
-    @Override
-    public String getType() {
-        return artifact.getType();
-    }
-
-    @Override
-    public String getExtension() {
-        return artifact.getExtension();
-    }
-
-    @Override
-    public String getClassifier() {
-        return artifact.getClassifier();
-    }
-
-    @Override
     public ResolvedArtifact toPublicView() {
-        return this;
+        return publicView;
     }
 
     @Override
     public ResolvableArtifact transformedTo(File file) {
-        IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, getClassifier());
+        IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, artifact.getClassifier());
         ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), artifactName);
-        return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, buildDependencies);
+        return new PreResolvedResolvableArtifact(owner, artifactName, newId, calculatedValueContainerFactory.create(Describables.of(newId), file), buildDependencies, calculatedValueContainerFactory);
     }
 
     @Override
@@ -150,29 +123,17 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
             // Don't bother resolving local components asynchronously
             return true;
         }
-        return file != null || failure != null;
+        return fileSource.isFinalized();
+    }
+
+    @Override
+    public CalculatedValue<File> getFileSource() {
+        return fileSource;
     }
 
     @Override
     public File getFile() {
-        // This method tries to minimize the number of volatile read/writes.
-        // Do NOT try to inline the variables there.
-        File f = file;
-
-        if (f == null) {
-            Throwable err = failure;
-            if (err != null) {
-                throw UncheckedException.throwAsUncheckedException(err);
-            }
-            try {
-                f = artifactSource.create();
-                file = f;
-            } catch (Exception e) {
-                err = e;
-                failure = err;
-                throw UncheckedException.throwAsUncheckedException(err);
-            }
-        }
-        return f;
+        fileSource.finalizeIfNotAlready();
+        return fileSource.get();
     }
 }

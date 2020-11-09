@@ -16,7 +16,6 @@
 
 package org.gradle.internal.instantiation.generator;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -51,17 +50,14 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
 
     @Override
     public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(final Class<T> type) throws UnsupportedOperationException {
-        CachedConstructor constructor = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
-            @Override
-            public CachedConstructor transform(Class<?> aClass) {
-                try {
-                    validateType(type);
-                    ClassGenerator.GeneratedClass<?> implClass = classGenerator.generate(type);
-                    ClassGenerator.GeneratedConstructor<?> constructor = InjectUtil.selectConstructor(implClass, type);
-                    return CachedConstructor.of(constructor);
-                } catch (RuntimeException e) {
-                    return CachedConstructor.of(e);
-                }
+        CachedConstructor constructor = constructorCache.get(type, () -> {
+            try {
+                validateType(type);
+                ClassGenerator.GeneratedClass<?> implClass = classGenerator.generate(type);
+                ClassGenerator.GeneratedConstructor<?> generatedConstructor = InjectUtil.selectConstructor(implClass, type);
+                return CachedConstructor.of(generatedConstructor);
+            } catch (RuntimeException e) {
+                return CachedConstructor.of(e);
             }
         });
         return Cast.uncheckedCast(constructor.getConstructor());

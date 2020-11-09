@@ -93,7 +93,6 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
 
     def runWithToolchainConfigured(Jvm jvm) {
         result = executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
             .withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
             .withTasks("check", "javadoc")
             .run()

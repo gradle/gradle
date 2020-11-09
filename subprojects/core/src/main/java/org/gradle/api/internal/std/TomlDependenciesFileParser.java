@@ -184,7 +184,7 @@ public class TomlDependenciesFileParser {
         List<String> rejectedVersions = null;
         Boolean rejectAll = null;
         if (version instanceof String) {
-            require = notEmpty((String) version, "version", alias);
+            require = (String) version;
             StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(require);
             require = richVersion.require;
             prefer = richVersion.prefer;
@@ -264,11 +264,12 @@ public class TomlDependenciesFileParser {
                                            @Nullable String prefer,
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
+        DependenciesModelBuilder.LibraryAliasBuilder aliasBuilder = builder.alias(alias).to(group, name);
         if (versionRef != null) {
-            builder.aliasWithVersionRef(alias, group, name, versionRef);
+            aliasBuilder.versionRef(versionRef);
             return;
         }
-        builder.alias(alias, group, name, v -> {
+        aliasBuilder.version(v -> {
             if (require != null) {
                 v.require(require);
             }

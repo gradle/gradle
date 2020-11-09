@@ -166,6 +166,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
+    private boolean disableToolchainDownload = true;
+    private boolean disableToolchainDetection = true;
+
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
@@ -245,6 +248,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         expectedDeprecationWarnings.clear();
         stackTraceChecksOn = true;
         renderWelcomeMessage = false;
+        disableToolchainDownload = true;
+        disableToolchainDetection = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
@@ -415,6 +420,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (renderWelcomeMessage) {
             executer.withWelcomeMessageEnabled();
+        }
+
+        if (!disableToolchainDetection) {
+            executer.withToolchainDetectionEnabled();
+        }
+        if (!disableToolchainDownload) {
+            executer.withToolchainDownloadEnabled();
         }
 
         executer.withTestConsoleAttached(consoleAttachment);
@@ -819,6 +831,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withToolchainDetectionEnabled() {
+        disableToolchainDetection = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withToolchainDownloadEnabled() {
+        withToolchainDetectionEnabled();
+        disableToolchainDownload = false;
+        return this;
+    }
+
+    @Override
     public GradleExecuter withRepositoryMirrors() {
         beforeExecute(gradleExecuter -> usingInitScript(RepoScriptBlockUtil.createMirrorInitScript()));
         return this;
@@ -995,6 +1020,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (warningMode != null) {
             allArgs.add("--warning-mode=" + warningMode.toString().toLowerCase(Locale.ENGLISH));
+        }
+
+        if (disableToolchainDownload) {
+            allArgs.add("-Porg.gradle.java.installations.auto-download=false");
+        }
+        if (disableToolchainDetection) {
+            allArgs.add("-Porg.gradle.java.installations.auto-detect=false");
         }
 
         allArgs.addAll(args);

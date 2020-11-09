@@ -27,6 +27,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -321,13 +322,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
-        private final WorkerLeaseService workerLeaseService;
+        private final ProjectLeaseRegistry projectLeaseRegistry;
         private final ModelContainer<?> owner;
         private final ReentrantLock lock = new ReentrantLock();
         private volatile T value;
 
-        public CalculatedModelValueImpl(ProjectStateImpl owner, WorkerLeaseService workerLeaseService, @Nullable T initialValue) {
-            this.workerLeaseService = workerLeaseService;
+        public CalculatedModelValueImpl(ProjectStateImpl owner, WorkerLeaseService projectLeaseRegistry, @Nullable T initialValue) {
+            this.projectLeaseRegistry = projectLeaseRegistry;
             this.value = initialValue;
             this.owner = owner;
         }
@@ -377,7 +378,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             }
 
             // Another thread holds the update lock, release the project locks and wait for the other thread to finish the update
-            workerLeaseService.withoutProjectLock(lock::lock);
+            projectLeaseRegistry.withoutProjectLock(lock::lock);
         }
 
         private void assertCanMutate() {

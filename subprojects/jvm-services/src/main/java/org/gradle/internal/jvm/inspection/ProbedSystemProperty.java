@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.internal.jvm.inspection;
 
-import org.gradle.internal.Try;
+enum ProbedSystemProperty {
 
-public interface TransformationResult {
-    Try<TransformationSubject> getTransformedSubject();
+    JAVA_HOME("java.home"),
+    VERSION("java.version"),
+    VENDOR("java.vendor"),
+    ARCH("os.arch"),
+    VM("java.vm.name"),
+    VM_VERSION("java.vm.version"),
+    RUNTIME("java.runtime.name"),
+    Z_ERROR("Internal"); // This line MUST be last!
+
+    private final String key;
+
+    ProbedSystemProperty(String key) {
+        this.key = key;
+    }
+
+    String getSystemPropertyKey() {
+        return key;
+    }
+
 }

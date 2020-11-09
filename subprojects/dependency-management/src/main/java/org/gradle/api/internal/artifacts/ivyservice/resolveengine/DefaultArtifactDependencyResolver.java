@@ -62,6 +62,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -93,6 +94,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final Instantiator instantiator;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final FeaturePreviews featurePreviews;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
                                              List<ResolverProviderFactory> resolverFactories,
@@ -108,7 +110,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                                              ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                              InstantiatorFactory instantiatorFactory,
                                              ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                             FeaturePreviews featurePreviews) {
+                                             FeaturePreviews featurePreviews,
+                                             CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.resolverFactories = resolverFactories;
         this.projectDependencyResolver = projectDependencyResolver;
         this.ivyFactory = ivyFactory;
@@ -124,6 +127,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.instantiator = instantiatorFactory.decorateScheme().instantiator();
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.featurePreviews = featurePreviews;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
@@ -194,7 +198,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         resolvers.add(projectDependencyResolver);
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
         resolvers.add(ivyFactory.create(resolveContext.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), resolveContext.getAttributes(), consumerSchema, attributesFactory, componentMetadataSupplierRuleExecutor));
-        return new ComponentResolversChain(resolvers, artifactTypeRegistry);
+        return new ComponentResolversChain(resolvers, artifactTypeRegistry, calculatedValueContainerFactory);
     }
 
     private ResolveContextToComponentResolver createResolveContextConverter() {

@@ -16,35 +16,38 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
+import org.gradle.cache.Cache;
+import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 
 @NotThreadSafe
-public class MutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, ReservedFileSystemLocation {
+public class MutableTransformationWorkspaceServices implements TransformationWorkspaceServices, ReservedFileSystemLocation {
 
-    private final Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache = CacheBuilder.newBuilder().build();
+    private final Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache = new ManualEvictionInMemoryCache<>();
     private final Provider<Directory> baseDirectory;
+    private final WorkspaceProvider workspaceProvider;
     private final ExecutionHistoryStore executionHistoryStore;
 
-    public MutableTransformationWorkspaceProvider(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
+    public MutableTransformationWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.baseDirectory = baseDirectory;
+        this.workspaceProvider = new MutableTransformationWorkspaceProvider();
         this.executionHistoryStore = executionHistoryStore;
     }
 
     @Override
-    public ExecutionHistoryStore getExecutionHistoryStore() {
-        return executionHistoryStore;
+    public WorkspaceProvider getWorkspaceProvider() {
+        return workspaceProvider;
     }
 
     @Override
@@ -53,14 +56,15 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
-        String workspacePath = identity.getUniqueId();
-        File workspaceDir = new File(baseDirectory.get().getAsFile(), workspacePath);
-        return workspaceAction.useWorkspace(workspacePath, workspaceDir);
-    }
-
-    @Override
     public Provider<? extends FileSystemLocation> getReservedFileSystemLocation() {
         return baseDirectory;
+    }
+
+    private class MutableTransformationWorkspaceProvider implements WorkspaceProvider {
+        @Override
+        public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+            File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
+            return action.executeInWorkspace(workspaceDir, executionHistoryStore);
+        }
     }
 }

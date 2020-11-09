@@ -32,7 +32,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class IntegrationTestSamplesExecutor extends CommandExecutor {
 
@@ -60,10 +62,12 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
                 filteredFlags.add(flag);
             }
         }
+        configureAvailableJdks(filteredFlags);
         GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile()
             .withStacktraceDisabled()
             .noDeprecationChecks()
             .withWarningMode(warningMode)
+            .withToolchainDetectionEnabled()
             .withArguments(filteredFlags)
             .withTasks(args);
         try {
@@ -77,6 +81,18 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             return expectFailure ? 1 : 0;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    // TODO: [bm] switch to ENV variables, essentially doing what EnvVariableJvmLocator does
+    private void configureAvailableJdks(List<String> flags) {
+        final File jdkFolder = new File("/opt/jdk");
+        if(jdkFolder.exists()) {
+            File[] files = jdkFolder.listFiles();
+            if(files != null) {
+                String allJdkPaths = Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.joining(","));
+                flags.add("-Dorg.gradle.java.installations.paths=" + allJdkPaths);
+            }
         }
     }
 

@@ -22,6 +22,8 @@ import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkspaceContext;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -37,7 +39,8 @@ public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> im
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        return work.withWorkspace(context.getIdentity().getUniqueId(), workspace -> delegate.execute(work, new WorkspaceContext() {
+        WorkspaceProvider workspaceProvider = work.getWorkspaceProvider();
+        return workspaceProvider.withWorkspace(context.getIdentity().getUniqueId(), (workspace, history) -> delegate.execute(work, new WorkspaceContext() {
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
@@ -61,6 +64,11 @@ public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> im
             @Override
             public File getWorkspace() {
                 return workspace;
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return Optional.ofNullable(history);
             }
         }));
     }

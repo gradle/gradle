@@ -44,6 +44,15 @@ public interface CrossBuildInMemoryCacheFactory {
     <K, V> CrossBuildInMemoryCache<K, V> newCache();
 
     /**
+     * Creates a new cache instance. Keys and values are always referenced using strong references.
+     *
+     * <p>Entries are only removed after each build session if they have not been used in this or the previous build.
+     *
+     * <p>Note: this should be used to create _only_ global/Gradle user home scoped instances.
+     */
+    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild();
+
+    /**
      * Creates a new cache instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or soft references depending on their usage.
      * This allows the classes to be collected.
      *

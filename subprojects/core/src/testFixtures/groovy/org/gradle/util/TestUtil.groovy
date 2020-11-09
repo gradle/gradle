@@ -47,11 +47,13 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
@@ -106,6 +108,10 @@ class TestUtil {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
         return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)
+    }
+
+    static CalculatedValueContainerFactory calculatedValueContainerFactory() {
+        return new CalculatedValueContainerFactory(new TestWorkerLeaseService(), services())
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {

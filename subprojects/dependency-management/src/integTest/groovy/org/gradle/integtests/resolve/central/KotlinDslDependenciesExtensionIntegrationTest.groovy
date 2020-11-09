@@ -46,7 +46,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 dependenciesModel("libs") {
-                    alias("my-lib", "org.gradle.test:lib:1.0")
+                    alias("my-lib").to("org.gradle.test:lib:1.0")
                 }
             }
         """

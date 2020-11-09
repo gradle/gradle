@@ -99,7 +99,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         when:
         failure = executer
-            .withArgument("-Porg.gradle.java.installations.auto-download=false")
+            .withToolchainDetectionEnabled()
             .withTasks("compileJava")
             .runWithFailure()
 
@@ -204,7 +204,6 @@ public class Foo {
 
         when:
         failure = executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
             .withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
             .withArgument("--info")
             .withTasks("compileJava")
@@ -303,7 +302,6 @@ public class Foo {
 
     def runWithToolchainConfigured(Jvm jvm) {
         result = executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
             .withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
             .withArgument("--info")
             .withTasks("compileJava")

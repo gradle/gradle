@@ -81,7 +81,7 @@ class DependenciesSourceGeneratorTest extends Specification {
     def "generates an accessor for #name as method #method"() {
         when:
         generate {
-            alias(name, 'g:a:v')
+            alias(name).to 'g:a:v'
         }
 
         then:
@@ -100,8 +100,8 @@ class DependenciesSourceGeneratorTest extends Specification {
     def "generates an accessor for bundle #name as method #method"() {
         when:
         generate {
-            alias('foo', 'g:a:v')
-            alias('bar', 'g:a:v')
+            alias('foo') to 'g:a:v'
+            alias('bar') to 'g:a:v'
             bundle(name, ['foo', 'bar'])
         }
 
@@ -137,8 +137,8 @@ class DependenciesSourceGeneratorTest extends Specification {
     def "reasonable error message if methods have the same name"() {
         when:
         generate {
-            alias('groovy.json', 'g:a:v')
-            alias('groovyJson', 'g:a:v')
+            alias('groovy.json') to 'g:a:v'
+            alias('groovyJson') to 'g:a:v'
         }
 
         then:
@@ -147,12 +147,12 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         when:
         generate {
-            alias('groovy.json', 'g:a:v')
-            alias('groovyJson', 'g:a:v')
+            alias('groovy.json') to 'g:a:v'
+            alias('groovyJson') to 'g:a:v'
 
-            alias('tada_one', 'g:a:v')
-            alias('tada.one', 'g:a:v')
-            alias('tadaOne', 'g:a:v')
+            alias('tada_one') to 'g:a:v'
+            alias('tada.one') to 'g:a:v'
+            alias('tadaOne') to 'g:a:v'
         }
 
         then:
@@ -165,8 +165,8 @@ class DependenciesSourceGeneratorTest extends Specification {
     def "reasonable error message if bundles have the same name"() {
         when:
         generate {
-            alias('foo', 'g:a:v')
-            alias('bar', 'g:a:v')
+            alias('foo') to 'g:a:v'
+            alias('bar') to 'g:a:v'
             bundle('one.cool', ['foo', 'bar'])
             bundle('oneCool', ['foo', 'bar'])
         }
@@ -177,8 +177,8 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         when:
         generate {
-            alias('foo', 'g:a:v')
-            alias('bar', 'g:a:v')
+            alias('foo') to 'g:a:v'
+            alias('bar') to 'g:a:v'
             bundle('one.cool', ['foo', 'bar'])
             bundle('oneCool', ['foo', 'bar'])
 
@@ -197,8 +197,8 @@ class DependenciesSourceGeneratorTest extends Specification {
     def 'reasonable error message if an alias ends with bundle'() {
         when:
         generate {
-            alias('foo', 'g:a:v')
-            alias('barBundle', 'g:a:v')
+            alias('foo') to 'g:a:v'
+            alias('barBundle') to 'g:a:v'
         }
 
         then:
@@ -207,9 +207,9 @@ class DependenciesSourceGeneratorTest extends Specification {
 
         when:
         generate {
-            alias('foo', 'g:a:v')
-            alias('bazBundle', 'g:a:v')
-            alias('barBundle', 'g:a:v')
+            alias('foo') to 'g:a:v'
+            alias('bazBundle') to 'g:a:v'
+            alias('barBundle') to 'g:a:v'
         }
 
         then:
@@ -222,8 +222,8 @@ class DependenciesSourceGeneratorTest extends Specification {
     def "generated sources can be compiled"() {
         when:
         generate {
-            alias('foo', 'g:a:v')
-            alias('bar', 'g2:a2:v2')
+            alias('foo') to 'g:a:v'
+            alias('bar') to 'g2:a2:v2'
             bundle('my', ['foo', 'bar'])
         }
 
@@ -247,7 +247,7 @@ class DependenciesSourceGeneratorTest extends Specification {
         when:
         generate {
             16000.times { n ->
-                alias("alias$n", "g:a$n:1.0")
+                alias("alias$n").to("g:a$n:1.0")
                 bundle("foo$n", ["alias$n".toString()])
             }
         }

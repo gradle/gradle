@@ -16,9 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
-import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.api.internal.artifacts.DefaultResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.configurationcache.serialization.Codec
@@ -26,19 +24,19 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.writeFile
+import org.gradle.internal.Describables
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.model.CalculatedValueContainerFactory
 
 
-object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
+class DefaultResolvableArtifactCodec(
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : Codec<DefaultResolvableArtifact> {
     private
     val componentIdSerializer = ComponentIdentifierSerializer()
 
-    override suspend fun WriteContext.encode(value: ResolvableArtifact) {
-        // TODO - handle other types
-        if (value !is DefaultResolvedArtifact) {
-            throw UnsupportedOperationException("Don't know how to serialize for ${value.javaClass.name}.")
-        }
+    override suspend fun WriteContext.encode(value: DefaultResolvableArtifact) {
         // Write the source artifact
         writeFile(value.file)
         writeString(value.artifactName.name)
@@ -50,10 +48,11 @@ object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
         // TODO - preserve the artifact's owner id (or get rid of it as it's not used for transforms)
     }
 
-    override suspend fun ReadContext.decode(): ResolvableArtifact {
+    override suspend fun ReadContext.decode(): DefaultResolvableArtifact {
         val file = readFile()
         val artifactName = DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString())
         val componentId = componentIdSerializer.read(this)
-        return PreResolvedResolvableArtifact(null, artifactName, ComponentFileArtifactIdentifier(componentId, file.name), file, TaskDependencyContainer.EMPTY)
+        val artifactId = ComponentFileArtifactIdentifier(componentId, file.name)
+        return DefaultResolvableArtifact(null, artifactName, artifactId, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory.create(Describables.of(artifactId), file), calculatedValueContainerFactory)
     }
 }

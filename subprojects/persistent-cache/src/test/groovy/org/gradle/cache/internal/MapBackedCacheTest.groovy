@@ -15,8 +15,9 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.internal.Factory
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 class MapBackedCacheTest extends Specification {
 
@@ -30,8 +31,8 @@ class MapBackedCacheTest extends Specification {
         def cache = cache(map)
 
         expect:
-        cache.get("a", { 1 } as Factory) == 1
-        cache.get("a", { 2 } as Factory) == 1
+        cache.get("a", { 1 } as Supplier) == 1
+        cache.get("a", { 2 } as Supplier) == 1
 
         and:
         map.a == 1
@@ -40,7 +41,7 @@ class MapBackedCacheTest extends Specification {
         map.clear()
 
         then:
-        cache.get("a", { 2 } as Factory) == 2
+        cache.get("a", { 2 } as Supplier) == 2
     }
 
 }

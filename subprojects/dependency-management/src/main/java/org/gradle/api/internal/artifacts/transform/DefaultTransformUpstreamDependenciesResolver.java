@@ -28,17 +28,21 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
     public static final ArtifactTransformDependencies NO_RESULT = new ArtifactTransformDependencies() {
@@ -77,15 +81,22 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private final Factory<ResolverResults> artifactResults;
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private Set<ComponentIdentifier> buildDependencies;
     private Set<ComponentIdentifier> dependencies;
 
-    public DefaultTransformUpstreamDependenciesResolver(ComponentIdentifier componentIdentifier, Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, DomainObjectContext owner, FilteredResultFactory filteredResultFactory) {
+    public DefaultTransformUpstreamDependenciesResolver(ComponentIdentifier componentIdentifier,
+                                                        Factory<ResolverResults> graphResults,
+                                                        Factory<ResolverResults> artifactResults,
+                                                        DomainObjectContext owner,
+                                                        FilteredResultFactory filteredResultFactory,
+                                                        CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.componentIdentifier = componentIdentifier;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     private static IllegalStateException failure() {
@@ -97,7 +108,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         if (!transformationStep.requiresDependencies()) {
             return NO_DEPENDENCIES;
         }
-        return new TransformUpstreamDependenciesImpl(transformationStep);
+        return new TransformUpstreamDependenciesImpl(transformationStep, calculatedValueContainerFactory);
     }
 
     private FileCollectionInternal selectedArtifactsFor(ImmutableAttributes fromAttributes) {
@@ -105,7 +116,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             ResolverResults results = artifactResults.create();
             dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), false);
         }
-        return filteredResultFactory.resultsMatching(fromAttributes, element -> dependencies.contains(element));
+        return filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(dependencies));
     }
 
     private void computeDependenciesFor(ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
@@ -113,8 +124,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             ResolverResults results = graphResults.create();
             buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
         }
-        FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, element -> buildDependencies.contains(element));
+        FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(buildDependencies));
         context.add(files);
+    }
+
+    private Spec<ComponentIdentifier> selectDependenciesWithId(Set<ComponentIdentifier> dependencies) {
+        return spec(element -> dependencies.contains(element));
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
@@ -197,9 +212,9 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         private final CalculatedValueContainer<ArtifactTransformDependencies, FinalizeTransformDependencies> transformDependencies;
         private final TransformationStep transformationStep;
 
-        public TransformUpstreamDependenciesImpl(TransformationStep transformationStep) {
+        public TransformUpstreamDependenciesImpl(TransformationStep transformationStep, CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.transformationStep = transformationStep;
-            transformDependencies = CalculatedValueContainer.of(Describables.of("dependencies for", transformationStep), new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
+            transformDependencies = calculatedValueContainerFactory.create(Describables.of("dependencies for", transformationStep), new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
         }
 
         @Override
@@ -219,7 +234,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public void finalizeIfNotAlready() {
-            transformDependencies.calculateIfNotAlready(null);
+            transformDependencies.finalizeIfNotAlready();
         }
     }
 }

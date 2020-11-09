@@ -24,7 +24,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.internal.MapBackedCache;
-import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -67,7 +66,6 @@ import xsbti.compile.Setup;
 import xsbti.compile.TransactionalManagerType;
 import xsbti.compile.analysis.Stamp;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -199,16 +197,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         @Override
         public DefinesClass definesClass(File classpathEntry) {
-            Optional<DefinesClass> dc = analysis(classpathEntry).map(a -> a instanceof Analysis ? (Analysis) a : null).map(a -> new AnalysisBakedDefineClass(a));
-            return dc.orElseGet(() -> {
-                return definesClassCache.get(classpathEntry, new Factory<DefinesClass>() {
-                    @Nullable
-                    @Override
-                    public DefinesClass create() {
-                        return Locate.definesClass(classpathEntry);
-                    }
-                });
-            });
+            Optional<DefinesClass> dc = analysis(classpathEntry).map(a -> a instanceof Analysis ? (Analysis) a : null).map(AnalysisBakedDefineClass::new);
+            return dc.orElseGet(() -> definesClassCache.get(classpathEntry, Locate::definesClass));
         }
     }
 

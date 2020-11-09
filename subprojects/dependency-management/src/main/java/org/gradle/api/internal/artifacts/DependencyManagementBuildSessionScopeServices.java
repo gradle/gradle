@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.std.DependenciesAccessorsWorkspace;
+import org.gradle.api.internal.std.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -25,8 +25,8 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 
 public class DependencyManagementBuildSessionScopeServices {
 
-    DependenciesAccessorsWorkspace createDependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
-        return new DependenciesAccessorsWorkspace(projectCacheDir, cacheScopeMapping, cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
+    DependenciesAccessorsWorkspaceProvider createDependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
+        return new DependenciesAccessorsWorkspaceProvider(projectCacheDir, cacheScopeMapping, cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
     }
 
 }

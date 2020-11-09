@@ -35,8 +35,9 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-            .withArguments("-Porg.gradle.java.installations.auto-detect=false", "--info")
+            .withArguments("--info", "-Porg.gradle.java.installations.auto-detect=false")
             .withTasks("compileJava")
+            .withToolchainDownloadEnabled()
             .requireOwnGradleUserHomeDir()
             .run()
 

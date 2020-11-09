@@ -87,4 +87,34 @@ class AbstractGradleExecuterTest extends Specification {
         where:
         argument << ['--no-daemon', '--foreground']
     }
+
+    def "toolchain provisioning and discovery disabled by default"() {
+        when:
+        def allArgs = executer.getAllArgs()
+
+        then:
+        allArgs.contains("-Porg.gradle.java.installations.auto-detect=false")
+        allArgs.contains("-Porg.gradle.java.installations.auto-download=false")
+    }
+
+    def "toolchain detection can be enabled"() {
+        when:
+        executer.withToolchainDetectionEnabled()
+        def allArgs = executer.getAllArgs()
+
+        then:
+        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-detect")
+        allArgs.contains("-Porg.gradle.java.installations.auto-download=false")
+    }
+
+    def "toolchain provisioning can be enabled"() {
+        when:
+        executer.withToolchainDownloadEnabled()
+        def allArgs = executer.getAllArgs()
+
+        then:
+        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-detect")
+        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-download")
+    }
+
 }

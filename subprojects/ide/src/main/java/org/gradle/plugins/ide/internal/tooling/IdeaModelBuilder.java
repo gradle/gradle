@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.service.ServiceRegistry;
@@ -48,6 +49,7 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -71,19 +73,24 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     @Override
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         Project root = project.getRootProject();
-        applyIdeaPlugin(root);
+        applyIdeaPlugin(root, new ArrayList<>());
         DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildAll(project);
         return build(root, rootGradleProject);
     }
 
-    private void applyIdeaPlugin(Project root) {
+    private void applyIdeaPlugin(Project root, List<GradleInternal> alreadyProcessed) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
         }
         for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
-            IncludedBuildState includedBuildInternal = (IncludedBuildState) includedBuild;
-            applyIdeaPlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
+            if (includedBuild instanceof IncludedBuildState) {
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                if (!alreadyProcessed.contains(build)) {
+                    alreadyProcessed.add(build);
+                    applyIdeaPlugin(build.getRootProject(), alreadyProcessed);
+                }
+            }
         }
     }
 

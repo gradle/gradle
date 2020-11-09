@@ -25,7 +25,6 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.Pair
 import org.gradle.internal.classloader.FilteringClassLoader
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.io.ClassLoaderObjectInputStream
@@ -70,7 +69,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     URLClassLoader testClassLoader = null
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, fileSystemAccess, executorFactory, globalCacheLocations, new DefaultParallelismConfiguration(true, 1))
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, fileSystemAccess, executorFactory, globalCacheLocations)
 
     def cleanup() {
         testClassLoader?.close()

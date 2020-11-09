@@ -25,14 +25,13 @@ import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
-import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import spock.lang.Specification
 
 class RepositoryChainArtifactResolverTest extends Specification {
     final artifact = Mock(ComponentArtifactMetadata)
     final component = Mock(ComponentResolveMetadata)
-    final originalSource = Mock(ModuleSource)
     final result = new DefaultBuildableArtifactResolveResult()
 
     def repo1 = Mock(ModuleComponentRepository) {
@@ -47,7 +46,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
     }
     def repo2Source = new RepositoryChainModuleSource(repo2)
 
-    final RepositoryChainArtifactResolver resolver = new RepositoryChainArtifactResolver()
+    def resolver = new RepositoryChainArtifactResolver(Stub(CalculatedValueContainerFactory))
 
     def setup() {
         resolver.add(repo1)
@@ -74,7 +73,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         1 * localAccess2.resolveArtifacts(component, configuration, _) >> {
             it[2].resolved(artifacts)
         }
-        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY) >> artifactSet
+        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY, _) >> artifactSet
         0 * _._
     }
 
@@ -100,7 +99,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         1 * remoteAccess2.resolveArtifacts(component, configuration, _) >> {
             it[2].resolved(artifacts)
         }
-        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY) >> artifactSet
+        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY, _) >> artifactSet
         0 * _._
     }
 

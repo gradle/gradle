@@ -110,7 +110,7 @@ However, the bytecode should still result in the same runtime behavior.
 
 [NOTE]
 ====
-<<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance]>> will treat this bytecode the same since it extracts the ABI.
+<<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>> will treat this bytecode the same since it extracts the ABI.
 ====
 
 Treating the minor number as an input can decrease the likelihood of a cache hit for developer builds.

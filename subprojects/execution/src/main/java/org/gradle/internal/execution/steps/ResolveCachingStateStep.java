@@ -36,6 +36,7 @@ import org.gradle.internal.execution.caching.impl.DefaultCachingStateBuilder;
 import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
@@ -121,6 +122,11 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
             }
 
             @Override

@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.VariantWithOverloadAttributes;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -42,12 +43,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @ServiceScope(Scopes.Build.class)
 public class ProjectArtifactSetResolver {
     private final ArtifactResolver artifactResolver;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     // Move this state closer to the project metadata
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allProjectArtifacts = new ConcurrentHashMap<>();
     private final Map<VariantResolveMetadata.Identifier, ResolvedVariant> allProjectVariants = new ConcurrentHashMap<>();
 
-    public ProjectArtifactSetResolver(ProjectArtifactResolver artifactResolver) {
+    public ProjectArtifactSetResolver(ProjectArtifactResolver artifactResolver, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.artifactResolver = artifactResolver;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     /**
@@ -73,10 +76,10 @@ public class ProjectArtifactSetResolver {
 
         if (exclusions.mayExcludeArtifacts()) {
             // Some artifact may be excluded, so do not reuse. It might be better to apply the exclusions and reuse if none of them apply
-            return DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes);
+            return DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory);
         }
 
         VariantWithOverloadAttributes key = new VariantWithOverloadAttributes(identifier, variantAttributes);
-        return allProjectVariants.computeIfAbsent(key, k -> DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes));
+        return allProjectVariants.computeIfAbsent(key, k -> DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory));
     }
 }

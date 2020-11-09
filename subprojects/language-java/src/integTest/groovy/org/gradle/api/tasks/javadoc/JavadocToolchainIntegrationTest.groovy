@@ -25,13 +25,6 @@ import spock.lang.Unroll
 
 class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        executer.beforeExecute {
-            withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            withArgument("-Porg.gradle.java.installations.auto-download=false")
-        }
-    }
-
     @Unroll
     @IgnoreIf({ AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) == null })
     def "can manually set javadoc tool via  #type toolchain on javadoc task #type : #jdk"() {

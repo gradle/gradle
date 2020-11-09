@@ -18,12 +18,12 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
-import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
+import java.util.function.Function;
 
 public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapshotCache {
     private final FileSystemAccess fileSystemAccess;
@@ -41,11 +41,28 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
     }
 
     @Override
-    public ClasspathEntrySnapshot get(File key, final Factory<ClasspathEntrySnapshot> factory) {
-        HashCode fileContentHash = fileSystemAccess.read(
+    public ClasspathEntrySnapshot get(File key, Function<? super File, ? extends ClasspathEntrySnapshot> factory) {
+        HashCode fileContentHash = getFileContentHash(key);
+        return new ClasspathEntrySnapshot(cache.get(fileContentHash, () -> factory.apply(key).getData()));
+    }
+
+    private HashCode getFileContentHash(File key) {
+        return fileSystemAccess.read(
             key.getAbsolutePath(),
             CompleteFileSystemLocationSnapshot::getHash
         );
-        return new ClasspathEntrySnapshot(cache.get(fileContentHash, () -> factory.create().getData()));
+    }
+
+    @Override
+    public ClasspathEntrySnapshot get(File key) {
+        HashCode fileContentHash = getFileContentHash(key);
+        ClasspathEntrySnapshotData classpathEntrySnapshotData = cache.get(fileContentHash);
+        return classpathEntrySnapshotData == null ? null : new ClasspathEntrySnapshot(classpathEntrySnapshotData);
+    }
+
+    @Override
+    public void put(File key, ClasspathEntrySnapshot value) {
+        HashCode fileContentHash = getFileContentHash(key);
+        cache.put(fileContentHash, value.getData());
     }
 }

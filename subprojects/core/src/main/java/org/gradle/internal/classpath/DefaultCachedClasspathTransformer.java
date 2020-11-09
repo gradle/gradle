@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -64,8 +63,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathBuilder classpathBuilder,
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
-        GlobalCacheLocations globalCacheLocations,
-        ParallelismConfiguration parallelismConfiguration
+        GlobalCacheLocations globalCacheLocations
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
@@ -73,7 +71,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.globalCacheLocations = globalCacheLocations;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
-        this.executor = executorFactory.create("jar transforms", parallelismConfiguration.getMaxWorkerCount());
+        this.executor = executorFactory.create("jar transforms");
     }
 
     @Override
