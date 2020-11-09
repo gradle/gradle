@@ -652,7 +652,7 @@
   },
   {
     "dirName": "resources-s3",
-    "name": "resourcesS3",
+    "name": "resources-s3",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
