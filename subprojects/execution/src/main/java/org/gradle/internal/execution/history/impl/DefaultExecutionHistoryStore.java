@@ -59,7 +59,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Override
     public Optional<AfterPreviousExecutionState> load(String key) {
-        return Optional.ofNullable(store.get(key));
+        return Optional.ofNullable(store.getIfPresent(key));
     }
 
     @Override

@@ -160,7 +160,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
-        GeneratedClassImpl generatedClass = generatedClasses.get(type);
+        GeneratedClassImpl generatedClass = generatedClasses.getIfPresent(type);
         if (generatedClass == null) {
             // It is possible that multiple threads will execute this branch concurrently, when the type is missing. However, the contract for `get()` below will ensure that
             // only one thread will actually generate the implementation class

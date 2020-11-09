@@ -192,13 +192,15 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         @Override
         public Optional<CompileAnalysis> analysis(File classpathEntry) {
-            return Optional.ofNullable(analysisMap.get(classpathEntry)).flatMap(f -> analysisStoreProvider.get(f).get().map(a -> a.getAnalysis()));
+            return Optional.ofNullable(analysisMap.get(classpathEntry)).flatMap(f -> analysisStoreProvider.get(f).get().map(AnalysisContents::getAnalysis));
         }
 
         @Override
         public DefinesClass definesClass(File classpathEntry) {
-            Optional<DefinesClass> dc = analysis(classpathEntry).map(a -> a instanceof Analysis ? (Analysis) a : null).map(AnalysisBakedDefineClass::new);
-            return dc.orElseGet(() -> definesClassCache.get(classpathEntry, Locate::definesClass));
+            return analysis(classpathEntry)
+                .map(a -> a instanceof Analysis ? (Analysis) a : null)
+                .<DefinesClass>map(AnalysisBakedDefineClass::new)
+                .orElseGet(() -> definesClassCache.get(classpathEntry, Locate::definesClass));
         }
     }
 
@@ -217,7 +219,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         @Override
         public Option<Set<File>> changedBinaries(CompileAnalysis previousAnalysis) {
-            java.util.List<File> result = new java.util.ArrayList<File>();
+            java.util.List<File> result = new java.util.ArrayList<>();
 
             for (Map.Entry<File, Stamp> e : previousAnalysis.readStamps().getAllBinaryStamps().entrySet()) {
                 if (!e.getKey().exists() || !e.getValue().equals(Stamper.forLastModified().apply(e.getKey()))) {
@@ -227,16 +229,16 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
             //return new Some<Set<File>>(new HashSet<>());
             //return Option.empty();
             if (result.isEmpty()) {
-                return new Some<Set<File>>(new HashSet<>());
+                return new Some<>(new HashSet<>());
             } else {
-                return new Some<Set<File>>(JavaConverters.asScalaBuffer(result).<File>toSet());
+                return new Some<>(JavaConverters.asScalaBuffer(result).toSet());
             }
         }
 
 
         @Override
         public Option<Set<File>> removedProducts(CompileAnalysis previousAnalysis) {
-            return new Some<Set<File>>(new HashSet<>()); //return none();
+            return new Some<>(new HashSet<>()); //return none();
         }
 
         @Override

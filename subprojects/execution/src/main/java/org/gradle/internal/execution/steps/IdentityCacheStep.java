@@ -43,7 +43,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
     @Override
     public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
         Identity identity = context.getIdentity();
-        Try<O> cachedOutput = cache.get(identity);
+        Try<O> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {
             return processor.processCachedOutput(cachedOutput);
         } else {

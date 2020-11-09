@@ -40,7 +40,7 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
     @Nullable
     @Override
     public V get(final K key) {
-        return asyncCacheAccess.read(() -> persistentCache.get(key));
+        return asyncCacheAccess.read(() -> persistentCache.getIfPresent(key));
     }
 
     @Override

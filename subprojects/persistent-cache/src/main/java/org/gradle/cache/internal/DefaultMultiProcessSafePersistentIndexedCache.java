@@ -40,7 +40,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     }
 
     @Override
-    public V get(final K key) {
+    public V getIfPresent(final K key) {
         final BTreePersistentIndexedCache<K, V> cache = getCache();
         try {
             return fileAccess.readFile((Factory<V>) () -> cache.get(key));
@@ -51,7 +51,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
 
     @Override
     public V get(K key, Function<? super K, ? extends V> producer) {
-        V value = get(key);
+        V value = getIfPresent(key);
         if (value == null) {
             value = producer.apply(key);
             put(key, value);

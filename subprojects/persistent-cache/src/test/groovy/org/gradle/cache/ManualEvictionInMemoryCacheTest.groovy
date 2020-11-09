@@ -54,7 +54,7 @@ class ManualEvictionInMemoryCacheTest extends Specification {
         executor.isTerminated()
         concurrency.times {
             String key = "key${it}"
-            assert cache.get(key) == key
+            assert cache.getIfPresent(key) == key
         }
 
         where:
