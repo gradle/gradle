@@ -20,6 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
@@ -136,19 +138,20 @@ class JavaToolchainQueryServiceTest extends Specification {
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
-        def toolchainFactory = new JavaToolchainFactory(Mock(JavaInstallationProbe), compilerFactory, toolFactory, TestFiles.fileFactory()) {
+        def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
             JavaToolchain newInstance(File javaHome) {
-                return new JavaToolchain(newProbe(javaHome), compilerFactory, toolFactory, TestFiles.fileFactory())
+                return new JavaToolchain(newMetadata(javaHome), compilerFactory, toolFactory, TestFiles.fileFactory())
             }
         }
         toolchainFactory
     }
 
-    def newProbe(File javaHome) {
-        Mock(JavaInstallationProbe.ProbeResult) {
-            getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
+    def newMetadata(File javaHome) {
+        Mock(JvmInstallationMetadata) {
+            getLangageVersion() >> JavaVersion.toVersion(javaHome.name)
             getJavaHome() >> javaHome.absoluteFile.toPath()
-            getImplementationJavaVersion() >> javaHome.name.replace("zzz", "999")
+            getImplementationVersion() >> javaHome.name.replace("zzz", "999")
+            getCapabilities() >> Collections.emptySet()
         }
     }
 

@@ -30,6 +30,8 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
@@ -54,7 +56,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.InstalledJdk;
 import org.gradle.jvm.toolchain.internal.InstalledJdkInternal;
 import org.gradle.jvm.toolchain.internal.InstalledJre;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.LocalJavaInstallation;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.Defaults;
@@ -86,6 +87,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
@@ -136,12 +138,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Model
         @Hidden
-        public void javaToolChains(ModelMap<LocalJavaInstallation> javaInstallations, final JavaInstallationProbe probe) {
+        public void javaToolChains(ModelMap<LocalJavaInstallation> javaInstallations, final JvmMetadataDetector detector) {
             javaInstallations.create("currentGradleJDK", InstalledJdk.class, new Action<InstalledJdk>() {
                 @Override
                 public void execute(InstalledJdk installedJdk) {
                     installedJdk.setJavaHome(Jvm.current().getJavaHome());
-                    probe.current().configure(installedJdk);
+                    final JvmInstallationMetadata metadata = detector.getMetadata(Jvm.current().getJavaHome());
+                    installedJdk.setJavaVersion(metadata.getLangageVersion());
+                    installedJdk.setDisplayName(metadata.getDisplayName() + " " + metadata.getLangageVersion().getMajorVersion());
                 }
             });
         }
@@ -164,40 +168,35 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Model
         @Hidden
-        JavaInstallationProbe javaInstallationProbe(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(JavaInstallationProbe.class);
+        JvmMetadataDetector jvmMetadataDetector(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(JvmMetadataDetector.class);
         }
 
         @Defaults
-        public void resolveJavaToolChains(final ModelMap<LocalJavaInstallation> installedJdks, ModelMap<LocalJava> localJavaInstalls, final JavaInstallationProbe probe) {
+        public void resolveJavaToolChains(final ModelMap<LocalJavaInstallation> installedJdks, ModelMap<LocalJava> localJavaInstalls, final JvmMetadataDetector detector) {
             File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
             // TODO:Cedric The following validation should in theory happen in its own rule, but it is not possible now because
             // there's no way to iterate on the map as subject of a `@Validate` rule without Gradle thinking you're trying to mutate it
             validateNoDuplicate(localJavaInstalls);
             for (final LocalJava candidate : localJavaInstalls) {
                 final File javaHome = canonicalFile(candidate.getPath());
-                final JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
-                Class<? extends LocalJavaInstallation> clazz;
-                switch (probeResult.getInstallType()) {
-                    case IS_JDK:
-                        clazz = InstalledJdkInternal.class;
-                        break;
-                    case IS_JRE:
-                        clazz = InstalledJre.class;
-                        break;
-                    case NO_SUCH_DIRECTORY:
-                        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", candidate.getName(), javaHome));
-                    case INVALID_JDK:
-                    default:
-                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s\n%s", candidate.getName(), javaHome, probeResult.getError()));
+                final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
+                if(!metadata.isValidInstallation()) {
+                    throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s\n%s", candidate.getName(), javaHome, metadata.getErrorMessage()));
                 }
-
+                Class<? extends LocalJavaInstallation> clazz;
+                if(metadata.getCapabilities().contains(JAVA_COMPILER)) {
+                    clazz = InstalledJdkInternal.class;
+                } else {
+                    clazz = InstalledJre.class;
+                }
                 if (!javaHome.equals(currentJavaHome)) {
                     installedJdks.create(candidate.getName(), clazz, new Action<LocalJavaInstallation>() {
                         @Override
                         public void execute(LocalJavaInstallation installedJdk) {
                             installedJdk.setJavaHome(javaHome);
-                            probeResult.configure(installedJdk);
+                            installedJdk.setJavaVersion(metadata.getLangageVersion());
+                            installedJdk.setDisplayName(metadata.getDisplayName() + " " + metadata.getLangageVersion().getMajorVersion());
                         }
                     });
                 }
