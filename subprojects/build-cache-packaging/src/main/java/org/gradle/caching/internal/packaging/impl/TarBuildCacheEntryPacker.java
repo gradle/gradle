@@ -341,7 +341,6 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         private final FilePermissionAccess filePermissionAccess;
         private final TreeType type;
 
-        private boolean seenRoot;
         private long entries;
 
         public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type, FilePermissionAccess filePermissionAccess) {
@@ -354,11 +353,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         @Override
         public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (seenRoot) {
-                relativePathTracker.enter(directorySnapshot);
-            } else {
-                seenRoot = true;
-            }
+            relativePathTracker.enter(directorySnapshot);
         }
 
         @Override
@@ -398,11 +393,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (relativePathTracker.isRoot()) {
-                seenRoot = false;
-            } else {
-                relativePathTracker.leave();
-            }
+            relativePathTracker.leave();
         }
 
         public long finish() {
