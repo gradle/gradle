@@ -19,7 +19,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
@@ -43,7 +42,7 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
             Multimap<GradleInternal, Spec<Task>> filters = MultimapBuilder.linkedHashKeys().hashSetValues().build();
             for (String taskName : excludedTaskNames) {
                 TaskFilter filter = taskSelector.getFilter(taskName);
-                filters.put(filter.getGradle(), filter.getTask());
+                filters.put(filter.getGradle(), filter.getFilterSpec());
             }
             for (GradleInternal gradleInternal : filters.keySet()) {
                 gradleInternal.getTaskGraph().useFilter(Specs.intersect(filters.get(gradleInternal)));

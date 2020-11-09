@@ -51,7 +51,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def selectionResult = Stub(TaskSelectionResult)
 
         when:
-        def filter = selector.getFilter(":a:b")
+        def filter = selector.getFilter(":a:b").filterSpec
 
         then:
         1 * projectConfigurer.configure(projectA)
@@ -70,7 +70,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def selectionResult = Stub(TaskSelectionResult)
 
         when:
-        def filter = selector.getFilter(":a:b")
+        def filter = selector.getFilter(":a:b").filterSpec
 
         then:
         1 * projectConfigurer.configure(projectA)
@@ -86,7 +86,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
 
     def "unqualified exclude filter configures default project only and filters tasks by path"() {
         when:
-        def filter = selector.getFilter("a")
+        def filter = selector.getFilter("a").filterSpec
 
         then:
         1 * projectConfigurer.configure(projectB)
@@ -107,7 +107,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def selectionResult = Stub(TaskSelectionResult)
 
         when:
-        def filter = selector.getFilter("a")
+        def filter = selector.getFilter("a").filterSpec
 
         then:
         1 * projectConfigurer.configure(projectB)
@@ -128,7 +128,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def selectionResult = Stub(TaskSelectionResult)
 
         when:
-        def filter = selector.getFilter("a")
+        def filter = selector.getFilter("a").filterSpec
 
         then:
         1 * projectConfigurer.configure(projectB)

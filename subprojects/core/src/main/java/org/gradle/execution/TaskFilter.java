@@ -23,18 +23,18 @@ import org.gradle.api.specs.Spec;
 public class TaskFilter {
 
     private final GradleInternal gradle;
-    private final Spec<Task> task;
+    private final Spec<Task> filterSpec;
 
-    TaskFilter(GradleInternal gradle, Spec<Task> task) {
+    TaskFilter(GradleInternal gradle, Spec<Task> filterSpec) {
         this.gradle = gradle;
-        this.task = task;
+        this.filterSpec = filterSpec;
     }
 
     GradleInternal getGradle() {
         return gradle;
     }
 
-    Spec<Task> getTask() {
-        return task;
+    Spec<Task> getFilterSpec() {
+        return filterSpec;
     }
 }
