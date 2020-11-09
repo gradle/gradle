@@ -39,12 +39,12 @@ public class DependencyHealthStatisticsReporter {
             StyledTextOutput textOutput = textOutputFactory.create(DependencyHealthStatisticsReporter.class, LogLevel.LIFECYCLE);
             textOutput.format("%d %s analyzed for vulnerabilities:", total, pluralizedDependencies);
             boolean printDetail = formatDetail(textOutput, statistics.getSuppressed(), "suppressed", false);
-            printDetail = formatDetail(textOutput, statistics.getLow(), "low", false);
+            printDetail = formatDetail(textOutput, statistics.getLow(), "low", printDetail);
             printDetail = formatDetail(textOutput, statistics.getMedium(), "medium", printDetail);
             printDetail = formatDetail(textOutput, statistics.getHigh(), "high", printDetail);
             formatDetail(textOutput, statistics.getCritical(), "critical", printDetail);
             textOutput.append(" -- ");
-            textOutput.format("For more information run the `dependencyAudit` tasks");
+            textOutput.format("For more information run the `dependencyAudit` task");
             textOutput.println();
         }
     }
@@ -52,8 +52,8 @@ public class DependencyHealthStatisticsReporter {
     /**
      * Copied from {@link org.gradle.internal.buildevents.TaskExecutionStatisticsReporter#formatDetail}
      */
-    private static boolean formatDetail(StyledTextOutput textOutput, Number count, String title, boolean alreadyPrintedDetail) {
-        if (count.equals(0)) {
+    private static boolean formatDetail(StyledTextOutput textOutput, long count, String title, boolean alreadyPrintedDetail) {
+        if (count == 0L) {
             return alreadyPrintedDetail;
         }
         if (alreadyPrintedDetail) {
