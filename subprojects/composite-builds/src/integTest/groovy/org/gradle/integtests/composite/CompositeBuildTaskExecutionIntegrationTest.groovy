@@ -183,7 +183,25 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":other-build:doSomething", "--content", "do something")
     }
 
-    def "can call help on task from included build"() {
+    def "can list tasks from included build"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                description = "Prints the message 'do something'"
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        succeeds(":other-build:tasks", "--all")
+        outputContains("doSomething - Prints the message 'do something'")
+    }
+
+    def "can run help from included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
