@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller.impl
 
-
 import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.caching.BuildCacheKey
