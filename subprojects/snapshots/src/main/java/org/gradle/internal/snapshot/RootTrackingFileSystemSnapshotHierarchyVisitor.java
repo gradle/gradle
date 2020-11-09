@@ -20,19 +20,19 @@ public interface RootTrackingFileSystemSnapshotHierarchyVisitor {
     /**
      * Called before visiting the contents of a directory.
      */
-    default void enterDirectory(CompleteDirectorySnapshot directorySnapshot, boolean root) {}
+    default void enterDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {}
 
     /**
      * Called for each regular file/directory/missing/unavailable file.
      *
      * @return how to continue visiting the rest of the snapshot hierarchy.
      */
-    SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean root);
+    SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot);
 
     /**
      * Called after all entries in the directory has been visited.
      */
-    default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean root) {}
+    default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {}
 
     static FileSystemSnapshotHierarchyVisitor asSimpleHierarchyVisitor(RootTrackingFileSystemSnapshotHierarchyVisitor delegate) {
         return new FileSystemSnapshotHierarchyVisitor() {

@@ -80,7 +80,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean root) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
             boolean newContent = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
                 @Override
                 public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -98,7 +98,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
                 @Override
                 public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
                     // If the root has gone missing then we don't have overlaps
-                    if (root) {
+                    if (isRoot) {
                         return false;
                     }
                     // Otherwise check for newly added broken symlinks and unreadable files

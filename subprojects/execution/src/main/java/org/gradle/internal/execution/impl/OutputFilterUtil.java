@@ -29,12 +29,15 @@ import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
+
+import static org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
 
 /**
  * Filters out fingerprints that are not considered outputs. Entries that are considered outputs are:
@@ -52,7 +55,7 @@ public class OutputFilterUtil {
             (!isRoot || snapshot.getType() != FileType.Missing)
                 && fingerprints.containsKey(snapshot.getAbsolutePath())
         );
-        beforeExecutionOutputSnapshot.accept(filteringVisitor);
+        beforeExecutionOutputSnapshot.accept(asSimpleHierarchyVisitor(filteringVisitor));
         return filteringVisitor.getNewRoots();
     }
 
@@ -69,7 +72,7 @@ public class OutputFilterUtil {
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
             isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot)
         );
-        afterExecutionOutputSnapshot.accept(filteringVisitor);
+        afterExecutionOutputSnapshot.accept(asSimpleHierarchyVisitor(filteringVisitor));
 
         // Are all file snapshots after execution accounted for as new entries?
         if (filteringVisitor.hasBeenFiltered()) {
@@ -127,11 +130,10 @@ public class OutputFilterUtil {
         }
     }
 
-    private static class SnapshotFilteringVisitor implements FileSystemSnapshotHierarchyVisitor {
+    private static class SnapshotFilteringVisitor implements RootTrackingFileSystemSnapshotHierarchyVisitor {
         private final BiPredicate<CompleteFileSystemLocationSnapshot, Boolean> predicate;
         private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 
-        private int treeDepth = 0;
         private boolean hasBeenFiltered;
         private MerkleDirectorySnapshotBuilder merkleBuilder;
         private boolean currentRootFiltered;
@@ -142,13 +144,12 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            treeDepth++;
+        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
             merkleBuilder.preVisitDirectory(directorySnapshot);
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
             snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                 @Override
                 public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -161,19 +162,19 @@ public class OutputFilterUtil {
 
                 @Override
                 public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                    visitNonDirectoryEntry(snapshot);
+                    visitNonDirectoryEntry(snapshot, isRoot);
                 }
 
                 @Override
                 public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                    visitNonDirectoryEntry(snapshot);
+                    visitNonDirectoryEntry(snapshot, isRoot);
                 }
             });
             return SnapshotVisitResult.CONTINUE;
         }
 
-        private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            if (!predicate.test(snapshot, isRoot())) {
+        private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+            if (!predicate.test(snapshot, isRoot)) {
                 hasBeenFiltered = true;
                 currentRootFiltered = true;
                 return;
@@ -186,15 +187,14 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            treeDepth--;
-            boolean isOutputDir = predicate.test(directorySnapshot, isRoot());
+        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
+            boolean isOutputDir = predicate.test(directorySnapshot, isRoot);
             boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir, directorySnapshot.getAccessType());
             if (!includedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;
             }
-            if (isRoot()) {
+            if (isRoot) {
                 CompleteFileSystemLocationSnapshot result = merkleBuilder.getResult();
                 if (result != null) {
                     newRootsBuilder.add(currentRootFiltered ? result : currentRoot);
@@ -204,9 +204,6 @@ public class OutputFilterUtil {
             }
         }
 
-        private boolean isRoot() {
-            return treeDepth == 0;
-        }
         public ImmutableList<FileSystemSnapshot> getNewRoots() {
             return newRootsBuilder.build();
         }

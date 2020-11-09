@@ -179,8 +179,8 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean root) {
-            if (root) {
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+            if (isRoot) {
                 return SnapshotVisitResult.CONTINUE;
             }
             return snapshot.accept(new FileSystemLocationSnapshotTransformer<SnapshotVisitResult>() {
