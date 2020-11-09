@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(project(":dependency-vulnerabilities"))
 
     pluginsRuntimeOnly(platform(project(":distributions-publishing")))
     pluginsRuntimeOnly(platform(project(":distributions-jvm")))

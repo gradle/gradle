@@ -41,6 +41,7 @@ dependencies {
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.6.0")
 
         // Java Libraries
+        api("org.antlr:antlr4-runtime") { version { strictly("4.7.2") } }
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
         api("com.google.guava:guava:27.1-jre")

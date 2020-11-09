@@ -18,11 +18,10 @@ package org.gradle.api.reporting.components.internal;
 
 import org.gradle.api.internal.dependencies.DependencyHealthCollector;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.reporting.dependencies.internal.DefaultDependencyHealthAnalyzer;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyHealthCollector;
-import org.gradle.api.reporting.dependencies.internal.DependencyHealthAnalyzer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.vulnerability.DependencyHealthAnalyzer;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.List;
@@ -49,9 +48,6 @@ public class DiagnosticsServices extends AbstractPluginServiceRegistry {
     }
 
     public static class GradleScopeServices {
-        DependencyHealthAnalyzer createDependencyHealthAnalyzer() {
-            return new DefaultDependencyHealthAnalyzer();
-        }
 
         DependencyHealthCollector createDependencyHealthCollector(Gradle gradle, DependencyHealthAnalyzer analyzer) {
             return new DefaultDependencyHealthCollector(gradle, analyzer);

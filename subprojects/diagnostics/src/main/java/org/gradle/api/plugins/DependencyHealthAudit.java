@@ -20,13 +20,12 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.reporting.dependencies.internal.DependencyHealthAnalyzer;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.vulnerability.DependencyHealthAnalyzer;
 
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class DependencyHealthAudit extends DefaultTask {
@@ -61,7 +60,7 @@ public abstract class DependencyHealthAudit extends DefaultTask {
                             continue;
                         }
                         for (DependencyHealthAnalyzer.Cve cve : cves) {
-                            cveReport.append("\t\t").append(cve.getId()).append(" CVSSv3 ").append(cve.getScore()).append('\n');
+                            cveReport.append("\t\t").append(cve.getId()).append(" Severity ").append(cve.getSeverity()).append('\n');
                         }
                         logger.lifecycle(cveReport.toString());
                     }

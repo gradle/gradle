@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
+    implementation(project(":dependency-vulnerabilities-api"))
     implementation(project(":reporting"))
     implementation(project(":platform-base"))
     implementation(project(":snapshots"))

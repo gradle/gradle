@@ -76,6 +76,7 @@ dependencies {
         api(libs.googleApiClient)       { version { strictly(googleApiVersion) }}
         api(libs.googleHttpClient)      { version { strictly(googleApiVersion) }}
         api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion) }}
+        api(libs.graphQl) { version { strictly("4.0.0-alpha.7") } }
         api(libs.googleOauthClient)     { version { strictly(googleApiVersion) }}
         api(libs.gradleProfiler)        { version { strictly("0.15.0") }}
         api(libs.groovy)                { version { strictly("1.3-${libs.groovyVersion}"); because("emulating the Groovy 2.4-style groovy-all.jar, see https://github.com/gradle/gradle-groovy-all") }}

@@ -16,6 +16,8 @@
 
 package org.gradle.api.reporting.dependencies.internal;
 
+import org.gradle.internal.vulnerability.DependencyHealthAnalyzer;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,12 +43,21 @@ public class DefaultDependencyHealthAnalyzer implements DependencyHealthAnalyzer
 
     private static class DefaultCve implements Cve {
         private final String id;
-        private final double score;
+        private final Severity severity;
 
         private DefaultCve(int number) {
             id = "CVE-2020-" + number;
-            int computedScore = number % 10;
-            score = computedScore == 0 ? 10 : computedScore;
+            int computedScore = number % 100;
+            double score = (computedScore == 0 ? 10 : computedScore) / 10.0;
+            if (score < 3.9) {
+                severity = Severity.LOW;
+            } else if (score < 6.9) {
+                severity = Severity.MEDIUM;
+            } else if (score < 8.9) {
+                severity = Severity.HIGH;
+            } else {
+                severity = Severity.CRITICAL;
+            }
         }
 
         @Override
@@ -55,8 +66,8 @@ public class DefaultDependencyHealthAnalyzer implements DependencyHealthAnalyzer
         }
 
         @Override
-        public double getScore() {
-            return score;
+        public Severity getSeverity() {
+            return severity;
         }
     }
 }

@@ -14,19 +14,6 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.dependencies.internal;
-
-import java.util.List;
-
-public interface DependencyHealthAnalyzer {
-    interface HealthReport {
-        List<Cve> getCves();
-    }
-
-    interface Cve {
-        String getId();
-        double getScore();
-    }
-
-    HealthReport analyze(String group, String name, String version);
+plugins {
+    id("gradlebuild.distribution.api-java")
 }

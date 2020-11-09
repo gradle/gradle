@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.DependencyHealth;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.vulnerability.DependencyHealthAnalyzer;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -153,14 +154,21 @@ public class DefaultDependencyHealthCollector implements DependencyHealthCollect
                         for (DependencyHealthAnalyzer.Cve cve : report.getCves()) {
                             if (suppressedGroup || suppressedCves.contains(cve.getId())) {
                                 statistics.suppressed++;
-                            } else if (cve.getScore() < 3.9) {
-                                statistics.low++;
-                            } else if (cve.getScore() < 6.9) {
-                                statistics.medium++;
-                            } else if (cve.getScore() < 8.9) {
-                                statistics.high++;
                             } else {
-                                statistics.critical++;
+                                switch (cve.getSeverity()) {
+                                    case LOW:
+                                        statistics.low++;
+                                        break;
+                                    case MEDIUM:
+                                        statistics.medium++;
+                                        break;
+                                    case HIGH:
+                                        statistics.high++;
+                                        break;
+                                    case CRITICAL:
+                                        statistics.critical++;
+                                        break;
+                                }
                             }
                             statistics.total++;
                         }

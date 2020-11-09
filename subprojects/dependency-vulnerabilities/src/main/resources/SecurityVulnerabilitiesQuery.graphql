@@ -1,0 +1,18 @@
+query SecurityVulnerabilitiesQuery($package: String, $first: Int) {
+  securityVulnerabilities(package: $package, first: $first) {
+    nodes {
+      advisory {
+        id
+        description
+        ghsaId
+        identifiers {
+          type
+          value
+        }
+        permalink
+        severity
+      }
+      vulnerableVersionRange
+    }
+  }
+}

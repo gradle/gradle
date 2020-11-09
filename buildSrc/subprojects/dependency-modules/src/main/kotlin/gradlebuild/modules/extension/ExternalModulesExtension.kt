@@ -56,6 +56,7 @@ abstract class ExternalModulesExtension {
     val googleHttpClient = "com.google.http-client:google-http-client"
     val googleHttpClientJackson2 = "com.google.http-client:google-http-client-jackson2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
+    val graphQl = "com.expediagroup:graphql-kotlin-ktor-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovy = "org.gradle.groovy:groovy-all"
     val gson = "com.google.code.gson:gson"
@@ -193,6 +194,7 @@ abstract class ExternalModulesExtension {
         googleHttpClient to License.Apache2,
         googleHttpClientJackson2 to License.Apache2,
         googleOauthClient to License.Apache2,
+        graphQl to License.Apache2,
         gradleProfiler to License.Apache2,
         groovy to License.Apache2,
         gson to License.Apache2,

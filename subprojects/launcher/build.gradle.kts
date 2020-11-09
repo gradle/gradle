@@ -38,6 +38,8 @@ dependencies {
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
 
+    runtimeOnly(project(":dependency-vulnerabilities"))
+
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":base-services"))
     manifestClasspath(project(":core-api"))
