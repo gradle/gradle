@@ -131,7 +131,7 @@ class RelativePathParserTest extends Specification {
         1 * parentHandler.accept("classes")
 
         when:
-        parser.handleParents(parentHandler)
+        parser.exitHierarchy(parentHandler)
         then:
         1 * parentHandler.accept("css")
         0 * _

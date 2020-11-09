@@ -77,7 +77,7 @@ public class RelativePathParser {
         return directoryNames.isEmpty() && currentPath.length() == rootLength;
     }
 
-    public void handleParents(Consumer<String> handler) {
+    public void exitHierarchy(Consumer<String> handler) {
         directoryNames.descendingIterator().forEachRemaining(handler);
     }
 }
