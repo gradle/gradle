@@ -133,7 +133,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
             attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
             attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().getMajorVersion()));
-            attributes.attribute(TargetGradleVersion.TARGET_JVM_VERSION_ATTRIBUTE, GradleVersion.current().getVersion());
+            attributes.attribute(TargetGradleVersion.TARGET_GRADLE_VERSION_ATTRIBUTE, GradleVersion.current().getVersion());
         }
     }
 

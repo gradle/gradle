@@ -27,5 +27,5 @@ public interface TargetGradleVersion {
     /**
      * The minimal target version for a Gradle plugin. A lower Gradle version would not be able to consume it.
      */
-    Attribute<String> TARGET_JVM_VERSION_ATTRIBUTE = Attribute.of("org.gradle.plugin.version", String.class);
+    Attribute<String> TARGET_GRADLE_VERSION_ATTRIBUTE = Attribute.of("org.gradle.plugin.version", String.class);
 }
