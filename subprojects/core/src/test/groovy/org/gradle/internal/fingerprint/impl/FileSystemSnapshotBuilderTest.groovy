@@ -70,7 +70,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         Set<String> relativePaths = [] as Set
         def result = builder.build()
         result.accept(new FileSystemSnapshotHierarchyVisitor() {
-            private final relativePathTracker = RelativePathTracker.asIterable()
+            private final relativePathTracker = new RelativePathTracker()
 
             @Override
             void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -82,7 +82,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
                 if (!relativePathTracker.root) {
                     files.add(snapshot.absolutePath)
                     relativePathTracker.enter(snapshot)
-                    relativePaths.add(relativePathTracker.relativePath.join("/"))
+                    relativePaths.add(relativePathTracker.toPathString())
                     relativePathTracker.leave()
                 }
                 return CONTINUE

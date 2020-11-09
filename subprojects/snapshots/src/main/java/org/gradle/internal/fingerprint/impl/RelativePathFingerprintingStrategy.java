@@ -61,7 +61,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new FileSystemSnapshotHierarchyVisitor() {
-                private final RelativePathTracker.AsString relativePathTracker = RelativePathTracker.asString();
+                private final RelativePathTracker relativePathTracker = new RelativePathTracker();
 
                 @Override
                 public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -89,7 +89,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
 
                 private FileSystemLocationFingerprint createFingerprint(CompleteFileSystemLocationSnapshot snapshot) {
                     relativePathTracker.enter(snapshot);
-                    FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathTracker.getRelativePath()), snapshot);
+                    FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathTracker.toPathString()), snapshot);
                     relativePathTracker.leave();
                     return fingerprint;
                 }

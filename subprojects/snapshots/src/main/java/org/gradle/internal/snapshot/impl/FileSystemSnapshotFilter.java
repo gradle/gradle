@@ -47,7 +47,7 @@ public class FileSystemSnapshotFilter {
     }
 
     private static class FilteringVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final RelativePathTracker.AsIterable relativePathTracker = RelativePathTracker.asIterable();
+        private final RelativePathTracker relativePathTracker = new RelativePathTracker();
         private final SnapshottingFilter.FileSystemSnapshotPredicate predicate;
         private final MerkleDirectorySnapshotBuilder builder;
         private final AtomicBoolean hasBeenFiltered;
@@ -70,7 +70,7 @@ public class FileSystemSnapshotFilter {
             relativePathTracker.enter(snapshot);
             Iterable<String> relativePathForFiltering = root
                 ? ImmutableList.of(snapshot.getName())
-                : relativePathTracker.getRelativePath();
+                : relativePathTracker.getSegments();
             SnapshotVisitResult result;
             boolean forceInclude = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
                 @Override

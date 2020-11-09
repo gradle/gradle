@@ -17,58 +17,36 @@
 package org.gradle.internal.snapshot;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
-import java.util.function.BinaryOperator;
+import java.util.Iterator;
 
 /**
  * Tracks the relative path. Useful when visiting {@link CompleteFileSystemLocationSnapshot}s.
  */
-public abstract class RelativePathTracker {
-    private final BinaryOperator<String> combiner;
-    protected final Deque<String> relativePath = new ArrayDeque<>();
+public class RelativePathTracker {
+    private final Deque<String> segments = new ArrayDeque<>();
     private String rootName;
-
-    private RelativePathTracker(BinaryOperator<String> combiner) {
-        this.combiner = combiner;
-    }
-
-    /**
-     * Tracks the relative path as an {@link Iterable}{@code <String>} when visiting a {@link CompleteFileSystemLocationSnapshot}.
-     */
-    public static AsIterable asIterable() {
-        return new AsIterable();
-    }
-
-    /**
-     * Tracks the relative path as a {@link String} when visiting a {@link CompleteFileSystemLocationSnapshot}.
-     */
-    public static AsString asString() {
-        return new AsString();
-    }
 
     public void enter(CompleteFileSystemLocationSnapshot snapshot) {
         enter(snapshot.getName());
     }
 
     public void enter(String name) {
-        String previous = relativePath.peekLast();
-        String value = previous == null
-            ? name
-            : combiner.apply(previous, name);
         if (rootName == null) {
-            rootName = value;
+            rootName = name;
         } else {
-            relativePath.addLast(value);
+            segments.addLast(name);
         }
     }
 
     public String leave() {
-        if (relativePath.isEmpty()) {
+        if (segments.isEmpty()) {
             String currentRootName = rootName;
             rootName = null;
             return currentRootName;
         } else {
-            return relativePath.removeLast();
+            return segments.removeLast();
         }
     }
 
@@ -76,23 +54,31 @@ public abstract class RelativePathTracker {
         return rootName == null;
     }
 
-    public static class AsIterable extends RelativePathTracker {
-        public AsIterable() {
-            super((__, name) -> name);
-        }
-
-        public Iterable<String> getRelativePath() {
-            return relativePath;
-        }
+    public Collection<String> getSegments() {
+        return segments;
     }
 
-    public static class AsString extends RelativePathTracker {
-        public AsString() {
-            super((previous, name) -> previous + "/" + name);
-        }
-
-        public String getRelativePath() {
-            return relativePath.getLast();
+    public String toPathString() {
+        switch (segments.size()) {
+            case 0:
+                return "";
+            case 1:
+                return segments.peek();
+            default:
+                int length = segments.size() - 1;
+                for (String segment : segments) {
+                    length += segment.length();
+                }
+                StringBuilder buffer = new StringBuilder(length);
+                Iterator<String> iterator = segments.iterator();
+                while (true) {
+                    buffer.append(iterator.next());
+                    if (!iterator.hasNext()) {
+                        break;
+                    }
+                    buffer.append('/');
+                }
+                return buffer.toString();
         }
     }
 }

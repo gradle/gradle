@@ -31,7 +31,7 @@ import java.util.List;
 public class MerkleDirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
-    private final RelativePathTracker.AsIterable relativePathTracker = RelativePathTracker.asIterable();
+    private final RelativePathTracker relativePathTracker = new RelativePathTracker();
     private final Deque<List<CompleteFileSystemLocationSnapshot>> levelHolder = new ArrayDeque<>();
     private final Deque<String> directoryAbsolutePaths = new ArrayDeque<>();
     private final boolean sortingRequired;
@@ -116,7 +116,7 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public Iterable<String> getRelativePath() {
-        return relativePathTracker.getRelativePath();
+        return relativePathTracker.getSegments();
     }
 
     @Nullable

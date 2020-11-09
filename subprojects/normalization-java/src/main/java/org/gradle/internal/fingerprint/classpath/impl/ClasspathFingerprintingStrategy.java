@@ -148,8 +148,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     }
 
     private class ClasspathContentFingerprintingVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final RelativePathTracker.AsIterable relativePathSegmentTracker = RelativePathTracker.asIterable();
-        private final RelativePathTracker.AsString relativePathTracker = RelativePathTracker.asString();
+        private final RelativePathTracker relativePathTracker = new RelativePathTracker();
         private final HashSet<String> processedEntries;
         private final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder;
 
@@ -160,7 +159,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
 
         @Override
         public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePathSegmentTracker.enter(directorySnapshot);
             relativePathTracker.enter(directorySnapshot);
         }
 
@@ -184,7 +182,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                         fingerprint = IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), normalizedContentHash);
                     } else {
                         relativePathTracker.enter(snapshot);
-                        String internedRelativePath = stringInterner.intern(relativePathTracker.getRelativePath());
+                        String internedRelativePath = stringInterner.intern(relativePathTracker.toPathString());
                         fingerprint = new DefaultFileSystemLocationFingerprint(internedRelativePath, FileType.RegularFile, normalizedContentHash);
                         relativePathTracker.leave();
                     }
@@ -193,7 +191,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
 
                 @Override
                 public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                    if (!relativePathSegmentTracker.isRoot()) {
+                    if (!relativePathTracker.isRoot()) {
                         throw new RuntimeException(String.format("Couldn't read file content: '%s'.", missingSnapshot.getAbsolutePath()));
                     }
                 }
@@ -209,30 +207,23 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         private HashCode hashContent(RegularFileSnapshot fileSnapshot) {
             RegularFileSnapshotContext fileSnapshotContext = new DefaultRegularFileSnapshotContext(() -> relativePathSegmentFor(fileSnapshot), fileSnapshot);
             if (ZipHasher.isZipFile(fileSnapshotContext.getSnapshot().getName())) {
-                return fingerprintZipContents(fileSnapshotContext);
-            }
-            if (relativePathSegmentTracker.isRoot()) {
-                return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshotContext.getSnapshot().getHash());
+                return cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash);
+            } else if (relativePathTracker.isRoot()) {
+                return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
             } else {
                 return classpathResourceHasher.hash(fileSnapshotContext);
             }
         }
 
         private String[] relativePathSegmentFor(RegularFileSnapshot fileSnapshot) {
-            relativePathSegmentTracker.enter(fileSnapshot);
-            String[] paths = Iterables.toArray(relativePathSegmentTracker.getRelativePath(), String.class);
-            relativePathSegmentTracker.leave();
+            relativePathTracker.enter(fileSnapshot);
+            String[] paths = Iterables.toArray(relativePathTracker.getSegments(), String.class);
+            relativePathTracker.leave();
             return paths;
-        }
-
-        @Nullable
-        private HashCode fingerprintZipContents(RegularFileSnapshotContext fileSnapshotContext) {
-            return cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash);
         }
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePathSegmentTracker.leave();
             relativePathTracker.leave();
         }
     }

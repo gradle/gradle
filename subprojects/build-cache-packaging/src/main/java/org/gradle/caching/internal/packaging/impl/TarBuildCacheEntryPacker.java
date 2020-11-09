@@ -334,7 +334,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private static class PackingVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final RelativePathTracker.AsString relativePathTracker = RelativePathTracker.asString();
+        private final RelativePathTracker relativePathTracker = new RelativePathTracker();
         private final TarArchiveOutputStream tarOutput;
         private final String treePath;
         private final String treeRoot;
@@ -427,7 +427,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             if (root) {
                 return treePath;
             }
-            String relativePath = relativePathTracker.getRelativePath();
+            String relativePath = relativePathTracker.toPathString();
             return treeRoot + relativePath;
         }
 
