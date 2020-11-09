@@ -1314,6 +1314,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     } else if (line.matches(".*w: .* is deprecated\\..*")) {
                         // A kotlinc warning, ignore
                         i++;
+                    } else if (line.contains("java.nio.channels.CancelledKeyException")) {
+                        // Verbose logging by Jetty when connector is shutdown
+                        // https://github.com/eclipse/jetty.project/issues/3529
+                        i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
                     } else if (expectedDeprecationWarnings.remove(line)) {
