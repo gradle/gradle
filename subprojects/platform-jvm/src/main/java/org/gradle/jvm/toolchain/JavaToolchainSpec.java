@@ -36,6 +36,12 @@ public interface JavaToolchainSpec extends Describable {
      */
     Property<JavaLanguageVersion> getLanguageVersion();
 
+    /**
+     * The vendor of the toolchain.
+     * <p>By default, toolchains from any vendor are eligible.</p>
+     *
+     * @since 6.8
+     */
     Property<JvmVendorSpec> getVendor();
 
 }
