@@ -57,6 +57,23 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     @Test
+    fun `avoids buildscript recompilation on resource file change in buildSrc`() {
+        val className = givenJavaClassInBuildSrcContains(
+            """
+            public void foo() {
+                System.out.println("foo");
+            }
+            """
+        )
+        withFile("buildSrc/src/main/resources/foo.txt", "foo")
+        withBuildScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        withFile("buildSrc/src/main/resources/foo.txt", "bar")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
+    }
+
+    @Test
     fun `recompiles buildscript on ABI change in buildSrc`() {
         val className = givenJavaClassInBuildSrcContains(
             """
