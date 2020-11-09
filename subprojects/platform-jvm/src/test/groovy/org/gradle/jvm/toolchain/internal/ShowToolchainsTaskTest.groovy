@@ -66,8 +66,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         then:
         output.value == """
 {identifier} + Options{normal}
-     | Auto-detection enabled?  {description}Yes{normal}
-     | Auto-download enabled?   {description}Yes{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
 
 {identifier} + AdoptOpenJDK JRE 1.8.0_202{normal}
      | Location:           {description}path{normal}
@@ -125,8 +125,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         then:
         output.value == """
 {identifier} + Options{normal}
-     | Auto-detection enabled?  {description}Yes{normal}
-     | Auto-download enabled?   {description}Yes{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
 
 {identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
@@ -154,8 +154,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         then:
         output.value == """
 {identifier} + Options{normal}
-     | Auto-detection enabled?  {description}No{normal}
-     | Auto-download enabled?   {description}No{normal}
+     | Auto-detection:     {description}Disabled{normal}
+     | Auto-download:      {description}Disabled{normal}
 
 """
     }
@@ -176,8 +176,8 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         then:
         output.value == """
 {identifier} + Options{normal}
-     | Auto-detection enabled?  {description}Yes{normal}
-     | Auto-download enabled?   {description}Yes{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
 
 {identifier} + Invalid toolchains{normal}
 {identifier}     + path{normal}

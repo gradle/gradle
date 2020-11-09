@@ -68,10 +68,10 @@ public class ShowToolchainsTask extends DefaultTask {
         boolean detectionEnabled = getBooleanProperty(AutoDetectingInstallationSupplier.AUTO_DETECT);
         boolean downloadEnabled = getBooleanProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD);
         output.withStyle(Identifier).println(" + Options");
-        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-detection enabled?", 25, ' '));
-        output.withStyle(Description).println(detectionEnabled ? "Yes" : "No");
-        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-download enabled?", 25, ' '));
-        output.withStyle(Description).println(downloadEnabled ? "Yes" : "No");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-detection:", 20, ' '));
+        output.withStyle(Description).println(detectionEnabled ? "Enabled" : "Disabled");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-download:", 20, ' '));
+        output.withStyle(Description).println(downloadEnabled ? "Enabled" : "Disabled");
         output.println();
     }
 
