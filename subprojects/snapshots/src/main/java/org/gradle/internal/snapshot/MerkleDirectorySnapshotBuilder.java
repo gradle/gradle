@@ -34,7 +34,6 @@ public class MerkleDirectorySnapshotBuilder {
     private final Deque<List<CompleteFileSystemLocationSnapshot>> levelHolder = new ArrayDeque<>();
     private final Deque<String> directoryAbsolutePaths = new ArrayDeque<>();
     private final boolean sortingRequired;
-    private CompleteFileSystemLocationSnapshot result;
 
     public static MerkleDirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
@@ -46,6 +45,7 @@ public class MerkleDirectorySnapshotBuilder {
 
     private MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
         this.sortingRequired = sortingRequired;
+        addLevel();
     }
 
     public void preVisitDirectory(String absolutePath) {
@@ -54,30 +54,21 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        String absolutePath = directorySnapshot.getAbsolutePath();
-        preVisitDirectory(absolutePath);
+        preVisitDirectory(directorySnapshot.getAbsolutePath());
     }
 
-    public void visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+    public void visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
         snapshot.accept(new FileSystemLocationSnapshotVisitor() {
             @Override
             public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                visitNonDirectoryEntry(snapshot, isRoot);
+                collectResult(snapshot);
             }
 
             @Override
             public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                visitNonDirectoryEntry(snapshot, isRoot);
+                collectResult(snapshot);
             }
         });
-    }
-
-    private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
-        if (isRoot) {
-            result = snapshot;
-        } else {
-            levelHolder.peekLast().add(snapshot);
-        }
     }
 
     public void postVisitDirectory(AccessType accessType, String name) {
@@ -99,18 +90,31 @@ public class MerkleDirectorySnapshotBuilder {
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());
         }
-        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, accessType, hasher.hash(), children);
-        List<CompleteFileSystemLocationSnapshot> siblings = levelHolder.peekLast();
-        if (siblings != null) {
-            siblings.add(directorySnapshot);
-        } else {
-            result = directorySnapshot;
-        }
+        collectResult(new CompleteDirectorySnapshot(absolutePath, name, accessType, hasher.hash(), children));
         return true;
+    }
+
+    private void addLevel() {
+        levelHolder.addLast(new ArrayList<>());
+    }
+
+    private void collectResult(CompleteFileSystemLocationSnapshot snapshot) {
+        List<CompleteFileSystemLocationSnapshot> siblings = levelHolder.peekLast();
+        if (siblings == null) {
+            throw new IllegalStateException("Outside of root");
+        }
+        siblings.add(snapshot);
     }
 
     @Nullable
     public CompleteFileSystemLocationSnapshot getResult() {
-        return result;
+        assert levelHolder.size() == 1;
+        List<CompleteFileSystemLocationSnapshot> rootLevel = levelHolder.getLast();
+        if (rootLevel.isEmpty()) {
+            return null;
+        } else {
+            assert rootLevel.size() == 1;
+            return rootLevel.get(0);
+        }
     }
 }

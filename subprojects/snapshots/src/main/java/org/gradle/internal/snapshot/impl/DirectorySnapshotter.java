@@ -264,7 +264,7 @@ public class DirectorySnapshotter {
         private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
             String internedName = intern(file.getFileName().toString());
             if (shouldVisit(file, internedName, false, relativePathTracker.getSegments())) {
-                builder.visitEntry(snapshotFile(file, internedName, targetAttributes, accessType), relativePathTracker.isRoot());
+                builder.visitEntry(snapshotFile(file, internedName, targetAttributes, accessType));
             }
         }
 
@@ -308,7 +308,7 @@ public class DirectorySnapshotter {
                     if (shouldVisit(file, internedName, isDirectory, relativePathTracker.getSegments())) {
                         LOGGER.info("Could not read file path '{}'.", file);
                         String internedAbsolutePath = intern(file.toString());
-                        builder.visitEntry(new MissingFileSnapshot(internedAbsolutePath, internedName, AccessType.DIRECT), relativePathTracker.isRoot());
+                        builder.visitEntry(new MissingFileSnapshot(internedAbsolutePath, internedName, AccessType.DIRECT));
                     }
                 }
                 return FileVisitResult.CONTINUE;

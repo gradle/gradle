@@ -147,7 +147,7 @@ public class FileSystemSnapshotBuilder {
                 entry.getValue().accept(subDirPath, subDirName, builder);
             }
             for (RegularFileSnapshot fileSnapshot : files.values()) {
-                builder.visitEntry(fileSnapshot, false);
+                builder.visitEntry(fileSnapshot);
             }
             builder.postVisitDirectory(determineAccessTypeForLocation(directoryPath), directoryName);
         }

@@ -297,11 +297,12 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 builder.preVisitDirectory(internedAbsolutePath);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
-                builder.visitEntry(fileSnapshot, parser.isRoot());
+                builder.visitEntry(fileSnapshot);
             }
         }
 
         parser.handleParents(name -> builder.postVisitDirectory(AccessType.DIRECT, name));
+        builder.postVisitDirectory(AccessType.DIRECT, treeRoot.getName());
 
         snapshots.put(treeName, builder.getResult());
         return entry;

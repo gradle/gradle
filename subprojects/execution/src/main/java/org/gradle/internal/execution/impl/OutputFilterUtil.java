@@ -182,7 +182,7 @@ public class OutputFilterUtil {
             if (merkleBuilder == null) {
                 newRootsBuilder.add(snapshot);
             } else {
-                merkleBuilder.visitEntry(snapshot, isRoot);
+                merkleBuilder.visitEntry(snapshot);
             }
         }
 

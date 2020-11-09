@@ -88,7 +88,7 @@ public class FileSystemSnapshotFilter {
                 }
             });
             if (forceInclude || predicate.test(snapshot, relativePathForFiltering)) {
-                builder.visitEntry(snapshot, relativePath.isRoot());
+                builder.visitEntry(snapshot);
                 result = SnapshotVisitResult.CONTINUE;
             } else {
                 hasBeenFiltered.set(true);
