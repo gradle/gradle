@@ -222,6 +222,13 @@ class PathTest extends Specification {
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Segment index 3 is invalid for path :a:b:c"
+
+        when:
+        path(":a:b:c").segment(-1)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Segment index -1 is invalid for path :a:b:c"
     }
 
     def "test if path is absolute"() {
