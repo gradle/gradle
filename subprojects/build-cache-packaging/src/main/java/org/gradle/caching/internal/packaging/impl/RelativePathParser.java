@@ -19,40 +19,53 @@ package org.gradle.caching.internal.packaging.impl;
 import com.google.common.base.CharMatcher;
 import org.gradle.internal.file.FilePathUtil;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
+import java.util.function.Consumer;
 
 public class RelativePathParser {
     private static final CharMatcher IS_SLASH = CharMatcher.is('/');
 
-    private String currentName;
+    private final Deque<String> directoryPaths = new ArrayDeque<>();
+    private final Deque<String> directoryNames = new ArrayDeque<>();
+    private final int rootLength;
+    private String currentPath;
     private int sizeOfCommonPrefix;
-    private int rootLength;
-    private Deque<String> directoryPaths = new LinkedList<String>();
+
+    public RelativePathParser(String rootPath) {
+        this.directoryPaths.addLast(rootPath.substring(0, rootPath.length() - 1));
+        this.rootLength = rootPath.length();
+        this.currentPath  = rootPath;
+    }
 
     public String getRelativePath() {
-        return currentName.substring(rootLength);
+        return currentPath.substring(rootLength);
     }
 
     public String getName() {
-        return currentName.substring(sizeOfCommonPrefix + 1);
+        return currentPath.substring(sizeOfCommonPrefix + 1);
     }
 
-    public int nextPath(String nextPath, boolean directory) {
-        currentName = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
+    public void nextPath(String nextPath, boolean directory, Consumer<String> exitDirectory) {
+        currentPath = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
         String lastDirPath = directoryPaths.peekLast();
-        sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentName, 0, '/');
+        sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentPath, 0, '/');
         int directoriesLeft = determineDirectoriesLeft(lastDirPath, sizeOfCommonPrefix);
+        if (directoriesLeft > directoryNames.size()) {
+            throw new IllegalStateException("Moved outside original root");
+        }
         for (int i = 0; i < directoriesLeft; i++) {
             directoryPaths.removeLast();
+            exitDirectory.accept(directoryNames.removeLast());
         }
-        if (directory && getDepth() > 0) {
-            directoryPaths.addLast(currentName);
+        String currentName = currentPath.substring(sizeOfCommonPrefix + 1);
+        if (directory) {
+            directoryPaths.addLast(currentPath);
+            directoryNames.addLast(currentName);
         }
-        return directoriesLeft;
     }
 
-    private int determineDirectoriesLeft(String lastDirPath, int sizeOfCommonPrefix) {
+    private static int determineDirectoriesLeft(String lastDirPath, int sizeOfCommonPrefix) {
         if (sizeOfCommonPrefix == lastDirPath.length()) {
             return 0;
         }
@@ -60,13 +73,11 @@ public class RelativePathParser {
         return rootDirAdjustment + IS_SLASH.countIn(lastDirPath.substring(sizeOfCommonPrefix));
     }
 
-    public void rootPath(String path) {
-        directoryPaths.addLast(path.substring(0, path.length() - 1));
-        rootLength = path.length();
+    public boolean isRoot() {
+        return directoryNames.isEmpty() && currentPath.length() == rootLength;
     }
 
-    public int getDepth() {
-        return directoryPaths.size();
+    public void handleParents(Consumer<String> handler) {
+        directoryNames.descendingIterator().forEachRemaining(handler);
     }
-
 }

@@ -18,59 +18,122 @@ package org.gradle.caching.internal.packaging.impl
 
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class RelativePathParserTest extends Specification {
 
     def "can parse sequence of relative paths"() {
-        def parser = new RelativePathParser()
+        def parentHandler = Mock(Consumer)
 
-        expect:
-        parser.rootPath("tree-some/")
+        when:
+        def parser = new RelativePathParser("tree-some/")
+        then:
+        parser.root
 
-        parser.nextPath("tree-some/first/", true) == 0
+        when:
+        parser.nextPath("tree-some/first/", true, parentHandler)
+        then:
+        0 * parentHandler.accept(_)
+        then:
         parser.name == "first"
         parser.relativePath == "first"
+        !parser.root
 
-        parser.nextPath("tree-some/first/file.txt", false) == 0
+        when:
+        parser.nextPath("tree-some/first/file.txt", false, parentHandler)
+        then:
+        0 * parentHandler.accept(_)
+        then:
         parser.name == "file.txt"
         parser.relativePath == "first/file.txt"
+        !parser.root
 
-        parser.nextPath("tree-some/second/", true) == 1
+        when:
+        parser.nextPath("tree-some/second/", true, parentHandler)
+        then:
+        1 * parentHandler.accept("first")
+        then:
         parser.name == "second"
         parser.relativePath == "second"
+        !parser.root
 
-        parser.nextPath("tree-some/second/third/", true) == 0
+        when:
+        parser.nextPath("tree-some/second/third/", true, parentHandler)
+        then:
+        0 * parentHandler.accept("first")
+        then:
         parser.name == "third"
         parser.relativePath == "second/third"
+        !parser.root
 
-        parser.nextPath("tree-some/second/third/forth/", true) == 0
+        when:
+        parser.nextPath("tree-some/second/third/forth/", true, parentHandler)
+        then:
+        0 * parentHandler.accept("first")
+        then:
         parser.name == "forth"
         parser.relativePath == "second/third/forth"
+        !parser.root
 
-        parser.nextPath("tree-some/second/third/one-file.txt", false) == 1
+        when:
+        parser.nextPath("tree-some/second/third/one-file.txt", false, parentHandler)
+        then:
+        1 * parentHandler.accept("forth")
+        then:
         parser.name == "one-file.txt"
         parser.relativePath == "second/third/one-file.txt"
+        !parser.root
 
-        parser.nextPath("tree-some/second/another-file.txt",false) == 1
+        when:
+        parser.nextPath("tree-some/another-file.txt", false, parentHandler)
+        then:
+        1 * parentHandler.accept("third")
+        then:
+        1 * parentHandler.accept("second")
+        then:
         parser.name == "another-file.txt"
-        parser.relativePath == "second/another-file.txt"
+        parser.relativePath == "another-file.txt"
+        !parser.root
 
-        parser.nextPath("tree-some/more-file.txt", false) == 1
+        when:
+        parser.nextPath("tree-some/more-file.txt", false, parentHandler)
+        then:
+        0 * parentHandler.accept(_)
+        then:
         parser.name == "more-file.txt"
         parser.relativePath == "more-file.txt"
-        parser.depth == 1
+        !parser.root
 
-        parser.nextPath("tree-other/", true) == 1
-        parser.depth == 0
+        when:
+        parser.nextPath("tree-other/", true, parentHandler)
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Moved outside original root"
     }
 
     def "can parse with dots"() {
-        def parser = new RelativePathParser()
+        def parser = new RelativePathParser("tree-reports.html.destination/")
+        def parentHandler = Mock(Consumer)
 
-        expect:
-        parser.rootPath("tree-reports.html.destination/")
-        parser.nextPath("tree-reports.html.destination/classes/", true) == 0
-        parser.nextPath("tree-reports.html.destination/classes/FooTest.html", false) == 0
-        parser.nextPath("tree-reports.html.destination/css/", true) == 1
-        parser.depth == 2
+        when:
+        parser.nextPath("tree-reports.html.destination/classes/", true, parentHandler)
+        then:
+        0 * parentHandler.accept(_)
+
+        when:
+        parser.nextPath("tree-reports.html.destination/classes/FooTest.html", false, parentHandler)
+        then:
+        0 * parentHandler.accept(_)
+
+        when:
+        parser.nextPath("tree-reports.html.destination/css/", true, parentHandler)
+        then:
+        1 * parentHandler.accept("classes")
+
+        when:
+        parser.handleParents(parentHandler)
+        then:
+        1 * parentHandler.accept("css")
+        0 * _
     }
 }

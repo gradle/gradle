@@ -271,8 +271,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     @Nullable
     private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, CompleteFileSystemLocationSnapshot> snapshots, AtomicLong entries, File treeRoot, String treeName) throws IOException {
-        RelativePathParser parser = new RelativePathParser();
-        parser.rootPath(rootEntry.getName());
+        RelativePathParser parser = new RelativePathParser(rootEntry.getName());
 
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         String rootPath = stringInterner.intern(treeRoot.getAbsolutePath());
@@ -283,11 +282,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            int directoriesLeft = parser.nextPath(entry.getName(), isDir);
-            for (int i = 0; i < directoriesLeft; i++) {
-                builder.postVisitDirectory(AccessType.DIRECT);
-            }
-            if (parser.getDepth() == 0) {
+            parser.nextPath(entry.getName(), isDir, name -> builder.postVisitDirectory(AccessType.DIRECT));
+            if (parser.isRoot()) {
                 break;
             }
             entries.incrementAndGet();
@@ -305,9 +301,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             }
         }
 
-        for (int i = 0; i < parser.getDepth(); i++) {
-            builder.postVisitDirectory(AccessType.DIRECT);
-        }
+        parser.handleParents(parent -> builder.postVisitDirectory(AccessType.DIRECT));
 
         snapshots.put(treeName, builder.getResult());
         return entry;
