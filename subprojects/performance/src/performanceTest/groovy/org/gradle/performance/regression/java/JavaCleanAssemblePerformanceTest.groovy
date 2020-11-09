@@ -33,7 +33,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.warmUpRuns = 2
         runner.runs = 6
         runner.tasksToRun = ["clean", "assemble"]
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
         runner.minimumBaseVersion = runner.testProject.contains("Composite") ? "4.0" : null
 
         when:

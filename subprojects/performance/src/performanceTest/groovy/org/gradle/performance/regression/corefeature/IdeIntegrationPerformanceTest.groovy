@@ -31,7 +31,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
     def "eclipse"() {
         given:
         runner.tasksToRun = ['eclipse']
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
 
         when:
         def result = runner.run()
@@ -43,7 +43,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
     def "idea"() {
         given:
         runner.tasksToRun = ['idea']
-        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
 
         when:
         def result = runner.run()

@@ -22,13 +22,14 @@ import org.gradle.test.fixtures.language.Language
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 abstract class FileContentGenerator {
-
     static FileContentGenerator forConfig(TestProjectGeneratorConfiguration config) {
         switch (config.dsl) {
             case KOTLIN:
                 return new KotlinDslFileContentGenerator(config)
             case GradleDsl.GROOVY:
                 return new GroovyDslFileContentGenerator(config)
+            default:
+                throw new IllegalStateException("Should not be here!")
         }
     }
 

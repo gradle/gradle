@@ -24,8 +24,8 @@ import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.SLOW
-import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
     @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
@@ -33,7 +33,7 @@ import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JA
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.8-20201011220037+0000"]
+        runner.targetVersions = ["6.8-20201028230040+0000"]
     }
 
     def "first use"() {

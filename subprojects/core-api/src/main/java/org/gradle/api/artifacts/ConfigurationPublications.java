@@ -62,7 +62,6 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      */
     void variants(Action<? super NamedDomainObjectContainer<ConfigurationVariant>> configureAction);
 
-
     /**
      * Declares a capability for this configuration.
      *

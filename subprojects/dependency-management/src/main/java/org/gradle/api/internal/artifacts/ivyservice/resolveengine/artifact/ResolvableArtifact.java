@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.internal.model.CalculatedValue;
 
 import java.io.File;
 
@@ -29,7 +30,7 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
     ComponentArtifactIdentifier getId();
 
     /**
-     * Should this artifact be resolved synchronously? For example, is the result of {@link #getFile()} available in memory or can it be calculated quickly without IO calls? Or is the implementation of {@link #getFile()} not parallel safe?
+     * Should this artifact be resolved synchronously? For example, is the result of {@link #getFile()} available in memory or can it be calculated quickly without IO calls?
      */
     boolean isResolveSynchronously();
 
@@ -37,6 +38,11 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
      * Resolves the file, if not already, blocking until complete.
      */
     File getFile();
+
+    /**
+     * Returns the artifact file as a lazy type. Does not resolve the file, but the returned value can be used to do so.
+     */
+    CalculatedValue<File> getFileSource();
 
     ResolvableArtifact transformedTo(File file);
 

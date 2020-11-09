@@ -27,6 +27,7 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
@@ -81,7 +82,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
 
     @Override
     public CachingResult execute(UnitOfWork work, AfterPreviousExecutionContext context) {
-        Optional<BeforeExecutionState> beforeExecutionState = work.getHistory()
+        Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .map(executionHistoryStore -> captureExecutionStateOp(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
             @Override
@@ -116,6 +117,11 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
             }
 
             @Override

@@ -15,8 +15,10 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
+import org.gradle.cache.Cache;
 import org.gradle.internal.concurrent.Synchronizer;
+
+import java.util.function.Function;
 
 public class CacheAccessSerializer<K, V> implements Cache<K, V> {
 
@@ -28,13 +30,17 @@ public class CacheAccessSerializer<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(final K key, final Factory<V> factory) {
-        return synchronizer.synchronize(new Factory<V>() {
-            @Override
-            public V create() {
-                return cache.get(key, factory);
-            }
-        });
+    public V get(final K key, final Function<? super K, ? extends V> factory) {
+        return synchronizer.synchronize(() -> cache.get(key, factory));
     }
 
+    @Override
+    public V get(K key) {
+        return synchronizer.synchronize(() -> cache.get(key));
+    }
+
+    @Override
+    public void put(K key, V value) {
+        synchronizer.synchronize(() -> cache.put(key, value));
+    }
 }

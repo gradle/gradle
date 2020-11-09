@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -30,8 +29,6 @@ import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
-import org.gradle.internal.operations.RunnableBuildOperation
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -211,9 +208,11 @@ Found the following transforms:
     }
 
     def visit(ResolvedArtifactSet set) {
-        def visitor = Stub(ArtifactVisitor)
-        _ * visitor.visitFailure(_) >> { Throwable t -> throw t }
-        set.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), Stub(ResolvedArtifactSet.AsyncArtifactListener)).visit(visitor)
+        def artifactVisitor = Stub(ArtifactVisitor)
+        _ * artifactVisitor.visitFailure(_) >> { Throwable t -> throw t }
+        def visitor = Stub(ResolvedArtifactSet.Visitor)
+        _ * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
+        set.visit(visitor)
     }
 
     private static AttributeContainerInternal typeAttributes(String artifactType) {

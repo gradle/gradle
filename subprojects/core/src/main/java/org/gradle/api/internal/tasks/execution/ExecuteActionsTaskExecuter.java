@@ -66,6 +66,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -276,15 +277,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<ExecutionHistoryStore> getHistory() {
-            return context.getTaskExecutionMode().isTaskHistoryMaintained()
-                ? Optional.of(executionHistoryStore)
-                : Optional.empty();
-        }
+        public WorkspaceProvider getWorkspaceProvider() {
+            return new WorkspaceProvider() {
+                @Override
+                public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+                    return action.executeInWorkspace(null, context.getTaskExecutionMode().isTaskHistoryMaintained()
+                        ? executionHistoryStore
+                        : null);
+                }
 
-        @Override
-        public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
-            return action.executeInWorkspace(null);
+            };
         }
 
         @Override

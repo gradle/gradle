@@ -25,7 +25,6 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -33,7 +32,6 @@ import org.gradle.internal.snapshot.ValueSnapshotter
 
 
 class IsolateTransformerParametersNodeCodec(
-    val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     val parameterScheme: ArtifactTransformParameterScheme,
     val isolatableFactory: IsolatableFactory,
     val buildOperationExecutor: BuildOperationExecutor,
@@ -62,8 +60,7 @@ class IsolateTransformerParametersNodeCodec(
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             valueSnapshotter,
-            fileCollectionFactory,
-            fingerprinterRegistry
+            fileCollectionFactory
         )
     }
 }

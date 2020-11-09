@@ -1,0 +1,2 @@
+[dependencies]
+test = { group = "org", name = "lib", version.rejectAll = "true" }

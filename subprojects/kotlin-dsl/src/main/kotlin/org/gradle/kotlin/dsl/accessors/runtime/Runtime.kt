@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.Provider
 
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
@@ -58,6 +59,16 @@ fun <T : Dependency> addDependencyTo(
         configurationAction.execute(dependency)
         add(configuration, dependency)
     }
+}
+
+
+fun addConfiguredDependencyTo(
+    dependencies: DependencyHandler,
+    configuration: String,
+    dependencyNotation: Provider<*>,
+    configurationAction: Action<ExternalModuleDependency>
+) {
+    dependencies.addProvider(configuration, dependencyNotation, configurationAction)
 }
 
 

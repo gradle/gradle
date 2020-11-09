@@ -29,18 +29,23 @@ public class FetchEclipseProjects implements BuildAction<List<EclipseProject>> {
 
     @Override
     public List<EclipseProject> execute(BuildController controller) {
-        List<EclipseProject> eclipseProjects = new ArrayList<EclipseProject>();
+        List<EclipseProject> eclipseProjects = new ArrayList<>();
         GradleBuild build = controller.getBuildModel();
-        collectEclipseProjects(build, eclipseProjects, controller);
+        ArrayList<GradleBuild> all = new ArrayList<>();
+        all.add(build);
+        collectEclipseProjects(build, eclipseProjects, controller, all);
         return eclipseProjects;
     }
 
-    private void collectEclipseProjects(GradleBuild build, List<EclipseProject> eclipseProjects, BuildController controller) {
+    private void collectEclipseProjects(GradleBuild build, List<EclipseProject> eclipseProjects, BuildController controller, List<GradleBuild> all) {
         for (BasicGradleProject project : build.getProjects()) {
             eclipseProjects.add(controller.getModel(project, EclipseProject.class));
         }
         for (GradleBuild includedBuild : build.getIncludedBuilds()) {
-            collectEclipseProjects(includedBuild, eclipseProjects, controller);
+            if (!all.contains(includedBuild)) {
+                all.add(includedBuild);
+                collectEclipseProjects(includedBuild, eclipseProjects, controller, all);
+            }
         }
     }
 }

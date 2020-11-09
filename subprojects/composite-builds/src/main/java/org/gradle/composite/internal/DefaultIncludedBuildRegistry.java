@@ -168,14 +168,9 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void finalizeIncludedBuilds() {
-        SettingsInternal rootSettings = getRootBuild().getLoadedSettings();
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.removeFirst();
-            SettingsInternal includedBuildSettings = build.loadSettings();
-            String includedBuildRootProjectName = includedBuildSettings.getRootProject().getName();
-            if (rootSettings.getRootProject().getName().equals(includedBuildRootProjectName)) {
-                throw new GradleException("Included build in " + build.getRootDirectory() + " has the same root project name '" + includedBuildRootProjectName + "' as the main build.");
-            }
+            build.loadSettings();
         }
     }
 

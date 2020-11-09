@@ -25,6 +25,8 @@ import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -208,6 +210,14 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @return The parameters. Never returns null.
      */
     StartParameter getStartParameter();
+
+    /**
+     * Provides access to methods to create various kinds of {@link Provider} instances.
+     *
+     * @since 6.8
+     */
+    @Incubating
+    ProviderFactory getProviders();
 
     /**
      * Returns the {@link Gradle} instance for the current build.

@@ -15,22 +15,30 @@
  */
 package org.gradle.internal.management;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -39,18 +47,28 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.std.DefaultDependenciesModelBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.use.PluginDependenciesSpec;
 
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
+@NonNullApi
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
+    private static final String VALID_EXTENSION_NAME = "[a-z]([a-zA-Z0-9])+";
+    private static final Pattern VALID_EXTENSION_PATTERN = Pattern.compile(VALID_EXTENSION_NAME);
+
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);
     private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = Lists.newArrayList();
@@ -60,6 +78,14 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     private final ComponentMetadataHandler registar = new ComponentMetadataRulesRegistar();
     private final Property<RepositoriesMode> repositoryMode;
     private final Property<RulesMode> rulesMode;
+    private final Property<String> librariesExtensionName;
+    private final Property<String> projectsExtensionName;
+    private final Map<String, DependenciesModelBuilderInternal> dependenciesModelBuilders = Maps.newHashMap();
+    private final ObjectFactory objects;
+    private final ProviderFactory providers;
+    private final Interner<String> strings = Interners.newStrongInterner();
+    private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
+    private PluginDependenciesSpec plugins;
     private boolean mutable = true;
 
     public DefaultDependencyResolutionManagement(UserCodeApplicationContext context,
@@ -67,11 +93,16 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
                                                  FileResolver fileResolver,
                                                  FileCollectionFactory fileCollectionFactory,
                                                  DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                 ObjectFactory objects) {
+                                                 ObjectFactory objects,
+                                                 ProviderFactory providers) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
+        this.objects = objects;
+        this.providers = providers;
         this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
+        this.librariesExtensionName = objects.property(String.class).convention("libs");
+        this.projectsExtensionName = objects.property(String.class).convention("projects");
     }
 
     @Override
@@ -112,9 +143,38 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
+    public void dependenciesModel(String name, Action<? super DependenciesModelBuilder> spec) {
+        validateName(name);
+        DependenciesModelBuilderInternal model = dependenciesModelBuilders.computeIfAbsent(name, n ->
+            objects.newInstance(DefaultDependenciesModelBuilder.class, n, strings, versions, objects, providers, plugins));
+        spec.execute(model);
+    }
+
+    private static void validateName(String name) {
+        if (!VALID_EXTENSION_PATTERN.matcher(name).matches()) {
+            throw new InvalidUserDataException("Invalid model name '" + name + "': it must match the following regular expression: " + VALID_EXTENSION_NAME);
+        }
+    }
+
+    @Override
     public RulesModeInternal getConfiguredRulesMode() {
         rulesMode.finalizeValue();
         return RulesModeInternal.of(rulesMode.get());
+    }
+
+    @Override
+    public Property<String> getDefaultProjectsExtensionName() {
+        return projectsExtensionName;
+    }
+
+    @Override
+    public Property<String> getDefaultLibrariesExtensionName() {
+        return librariesExtensionName;
+    }
+
+    @Override
+    public List<DependenciesModelBuilder> getDependenciesModelBuilders() {
+        return ImmutableList.copyOf(dependenciesModelBuilders.values());
     }
 
     @Override
@@ -180,6 +240,11 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private static ProjectFinder makeUnknownProjectFinder() {
         return new UnknownProjectFinder("Project dependencies are not allowed in shared dependency resolution services");
+    }
+
+    @Override
+    public void setPluginsSpec(PluginManagementSpec pluginManagementSpec) {
+        this.plugins = pluginManagementSpec.getPlugins();
     }
 
     @Override

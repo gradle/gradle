@@ -35,6 +35,7 @@ import javax.inject.Inject;
  * Displays some details about the configuration model of the project.
  * An instance of this type is used when you execute the {@code model} task from the command-line.
  */
+@Deprecated
 public class ModelReport extends DefaultTask {
 
     /**

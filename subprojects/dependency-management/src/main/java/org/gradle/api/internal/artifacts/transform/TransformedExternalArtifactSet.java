@@ -17,53 +17,28 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 /**
  * An artifact set containing transformed external artifacts.
  */
 public class TransformedExternalArtifactSet extends AbstractTransformedArtifactSet {
-    private final ComponentIdentifier componentIdentifier;
-    private final ResolvedArtifactSet delegate;
-
     public TransformedExternalArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         ImmutableAttributes target,
         Transformation transformation,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        super(componentIdentifier, delegate, target, transformation, dependenciesResolverFactory);
-        this.componentIdentifier = componentIdentifier;
-        this.delegate = delegate;
+        super(componentIdentifier, delegate, target, transformation, dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
-    public TransformedExternalArtifactSet(ComponentIdentifier componentIdentifier,
-                                          ResolvedArtifactSet delegate,
-                                          ImmutableAttributes targetVariantAttributes,
-                                          ImmutableList<BoundTransformationStep> steps) {
-        super(delegate, targetVariantAttributes, steps);
-        this.componentIdentifier = componentIdentifier;
-        this.delegate = delegate;
-    }
-
-    public ComponentIdentifier getOwnerId() {
-        return componentIdentifier;
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        for (BoundTransformationStep step : getSteps()) {
-            context.add(step.getUpstreamDependencies());
-        }
-    }
-
-    public void visitArtifacts(Action<ResolvableArtifact> visitor) {
-        delegate.visitExternalArtifacts(visitor);
+    public TransformedExternalArtifactSet(CalculatedValueContainer<ImmutableList<Artifacts>, AbstractTransformedArtifactSet.CalculateArtifacts> result) {
+        super(result);
     }
 }

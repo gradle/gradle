@@ -70,7 +70,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache(because = "publishing")
     def "Publishes main plugin artifact to Maven"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -105,7 +104,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         barMarker.parsedIvy.description.text() == 'The greatest Bar plugin of all time.'
     }
 
-    @ToBeFixedForConfigurationCache(because = "publishing")
     def "Publishes one Maven marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')

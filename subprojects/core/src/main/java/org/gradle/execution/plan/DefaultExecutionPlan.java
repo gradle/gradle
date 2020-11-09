@@ -336,7 +336,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         dependencyResolver.clear();
-        Iterables.addAll(executionQueue, nodeMapping);
+        nodeMapping.removeIf(Node::requiresMonitoring);
+        executionQueue.addAll(nodeMapping);
         for (Node node : executionQueue) {
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
         }
@@ -447,7 +448,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 connectedNodes.addAll(taskNode.getFinalizingSuccessors());
             }
         });
-        graphWalker.add(entryNodes);
+        graphWalker.add(successor);
 
         List<Set<Node>> cycles = graphWalker.findCycles();
         if (cycles.isEmpty()) {

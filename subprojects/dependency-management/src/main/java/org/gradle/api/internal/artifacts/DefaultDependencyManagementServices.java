@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -86,8 +84,8 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistra
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
-import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
@@ -111,11 +109,9 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher;
@@ -124,53 +120,19 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.BeforeExecutionContext;
-import org.gradle.internal.execution.CachingContext;
-import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.Step;
-import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UpToDateResult;
-import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
-import org.gradle.internal.execution.impl.DefaultExecutionEngine;
-import org.gradle.internal.execution.steps.AssignWorkspaceStep;
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
-import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CreateOutputsStep;
-import org.gradle.internal.execution.steps.ExecuteStep;
-import org.gradle.internal.execution.steps.IdentifyStep;
-import org.gradle.internal.execution.steps.IdentityCacheStep;
-import org.gradle.internal.execution.steps.LoadExecutionStateStep;
-import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.ResolveChangesStep;
-import org.gradle.internal.execution.steps.ResolveInputChangesStep;
-import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.SnapshotOutputsStep;
-import org.gradle.internal.execution.steps.StoreExecutionStateStep;
-import org.gradle.internal.execution.steps.TimeoutStep;
-import org.gradle.internal.execution.steps.ValidateStep;
-import org.gradle.internal.execution.timeout.TimeoutHandler;
-import org.gradle.internal.file.Deleter;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.locking.DefaultDependencyLockingHandler;
 import org.gradle.internal.locking.DefaultDependencyLockingProvider;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -181,7 +143,6 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -189,9 +150,7 @@ import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -242,128 +201,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         TransformationNodeRegistry createTransformationNodeRegistry() {
             return TransformationNodeRegistry.EMPTY;
         }
-
-        /**
-         * Execution engine for usage above Gradle scope
-         *
-         * Currently used for running artifact transformations in buildscript blocks.
-         */
-        ExecutionEngine createExecutionEngine(
-                BuildOperationExecutor buildOperationExecutor,
-                ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                Deleter deleter,
-                ExecutionStateChangeDetector changeDetector,
-                ListenerManager listenerManager,
-                OutputSnapshotter outputSnapshotter,
-                OverlappingOutputDetector overlappingOutputDetector,
-                TimeoutHandler timeoutHandler,
-                ValidateStep.ValidationWarningReporter validationWarningReporter,
-                ValueSnapshotter valueSnapshotter
-        ) {
-            OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
-            // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
-            UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
-            // @formatter:off
-            return new DefaultExecutionEngine(
-                new IdentifyStep<>(valueSnapshotter,
-                new IdentityCacheStep<>(
-                new AssignWorkspaceStep<>(
-                new LoadExecutionStateStep<>(
-                new ValidateStep<>(validationWarningReporter,
-                new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
-                new NoOpCachingStateStep(
-                new ResolveChangesStep<>(changeDetector,
-                new SkipUpToDateStep<>(
-                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                new StoreExecutionStateStep<>(
-                new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
-                new CreateOutputsStep<>(
-                new TimeoutStep<>(timeoutHandler,
-                new ResolveInputChangesStep<>(
-                new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-                new ExecuteStep<>(buildOperationExecutor
-            ))))))))))))))))));
-            // @formatter:on
-        }
-    }
-
-    private static class NoOpCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
-        private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
-
-        public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public CachingResult execute(UnitOfWork work, BeforeExecutionContext context) {
-            UpToDateResult result = delegate.execute(work, new CachingContext() {
-                @Override
-                public CachingState getCachingState() {
-                    return CachingState.NOT_DETERMINED;
-                }
-
-                @Override
-                public Optional<String> getRebuildReason() {
-                    return context.getRebuildReason();
-                }
-
-                @Override
-                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                    return context.getInputProperties();
-                }
-
-                @Override
-                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                    return context.getInputFileProperties();
-                }
-
-                @Override
-                public UnitOfWork.Identity getIdentity() {
-                    return context.getIdentity();
-                }
-
-                @Override
-                public File getWorkspace() {
-                    return context.getWorkspace();
-                }
-
-                @Override
-                public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                    return context.getAfterPreviousExecutionState();
-                }
-
-                @Override
-                public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                    return context.getBeforeExecutionState();
-                }
-            });
-            return new CachingResult() {
-                @Override
-                public CachingState getCachingState() {
-                    return CachingState.NOT_DETERMINED;
-                }
-
-                @Override
-                public ImmutableList<String> getExecutionReasons() {
-                    return result.getExecutionReasons();
-                }
-
-                @Override
-                public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
-                    return result.getFinalOutputs();
-                }
-
-                @Override
-                public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                    return result.getReusedOutputOriginMetadata();
-                }
-
-                @Override
-                public Try<ExecutionResult> getExecutionResult() {
-                    return result.getExecutionResult();
-                }
-            };
-        }
     }
 
     private static class DependencyResolutionScopeServices {
@@ -384,14 +221,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return attributesSchema;
         }
 
-        MutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
-            return new MutableTransformationWorkspaceProvider(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
+        MutableTransformationWorkspaceServices createTransformerWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
+            return new MutableTransformationWorkspaceServices(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
         }
 
         TransformerInvocationFactory createTransformerInvocationFactory(
                 ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
-                ImmutableTransformationWorkspaceProvider transformationWorkspaceProvider,
+                ImmutableTransformationWorkspaceServices transformationWorkspaceServices,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
@@ -401,7 +238,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 executionEngine,
                 fileSystemAccess,
                 artifactTransformListener,
-                transformationWorkspaceProvider,
+                transformationWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
                 buildOperationExecutor
@@ -418,6 +255,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ArtifactTransformParameterScheme parameterScheme,
                 ArtifactTransformActionScheme actionScheme,
                 FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+                CalculatedValueContainerFactory calculatedValueContainerFactory,
                 FileCollectionFactory fileCollectionFactory,
                 FileLookup fileLookup,
                 ServiceRegistry internalServices
@@ -431,6 +269,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     fileCollectionFactory,
                     fileLookup,
                     fileCollectionFingerprinterRegistry,
+                    calculatedValueContainerFactory,
                     domainObjectContext,
                     parameterScheme,
                     actionScheme,
@@ -510,6 +349,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
                                                                     DependencyLockingProvider dependencyLockingProvider,
                                                                     ProjectStateRegistry projectStateRegistry,
+                                                                    CalculatedValueContainerFactory calculatedValueContainerFactory,
                                                                     ProjectAccessListener projectAccessListener,
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
@@ -536,6 +376,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     componentSelectorConverter,
                     dependencyLockingProvider,
                     projectStateRegistry,
+                    calculatedValueContainerFactory,
                     documentationRegistry,
                     callbackDecorator,
                     userCodeApplicationContext,
@@ -557,24 +398,32 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory, decorator, transformRegistry);
         }
 
-        DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
-                                                  ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler,
-                                                  ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory,
-                                                  AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry,
-                                                  NamedObjectInstantiator namedObjectInstantiator, PlatformSupport platformSupport) {
+        DependencyHandler createDependencyHandler(Instantiator instantiator,
+                                                  ConfigurationContainerInternal configurationContainer,
+                                                  DependencyFactory dependencyFactory,
+                                                  ProjectFinder projectFinder,
+                                                  DependencyConstraintHandler dependencyConstraintHandler,
+                                                  ComponentMetadataHandler componentMetadataHandler,
+                                                  ComponentModuleMetadataHandler componentModuleMetadataHandler,
+                                                  ArtifactResolutionQueryFactory resolutionQueryFactory,
+                                                  AttributesSchema attributesSchema,
+                                                  VariantTransformRegistry artifactTransformRegistrations,
+                                                  ArtifactTypeRegistry artifactTypeRegistry,
+                                                  ObjectFactory objects,
+                                                  PlatformSupport platformSupport) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
-                    configurationContainer,
-                    dependencyFactory,
-                    projectFinder,
-                    dependencyConstraintHandler,
-                    componentMetadataHandler,
-                    componentModuleMetadataHandler,
-                    resolutionQueryFactory,
-                    attributesSchema,
-                    artifactTransformRegistrations,
-                    artifactTypeRegistry,
-                    namedObjectInstantiator,
-                    platformSupport);
+                configurationContainer,
+                dependencyFactory,
+                projectFinder,
+                dependencyConstraintHandler,
+                componentMetadataHandler,
+                componentModuleMetadataHandler,
+                resolutionQueryFactory,
+                attributesSchema,
+                artifactTransformRegistrations,
+                artifactTypeRegistry,
+                objects,
+                platformSupport);
         }
 
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyLockingProvider dependencyLockingProvider) {

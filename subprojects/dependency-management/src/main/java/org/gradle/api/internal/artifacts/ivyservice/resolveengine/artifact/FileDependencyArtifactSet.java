@@ -21,20 +21,23 @@ import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 public class FileDependencyArtifactSet implements ArtifactSet {
     private final LocalFileDependencyMetadata fileDependency;
     private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public FileDependencyArtifactSet(LocalFileDependencyMetadata fileDependency, ArtifactTypeRegistry artifactTypeRegistry) {
+    public FileDependencyArtifactSet(LocalFileDependencyMetadata fileDependency, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.fileDependency = fileDependency;
         this.artifactTypeRegistry = artifactTypeRegistry;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
     public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         // Select the artifacts later, as this is a function of the file names and these may not be known yet because the producing tasks have not yet executed
-        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, artifactTypeRegistry);
+        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, artifactTypeRegistry, calculatedValueContainerFactory);
     }
 
 }

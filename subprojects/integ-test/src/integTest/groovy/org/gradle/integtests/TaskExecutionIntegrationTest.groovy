@@ -16,12 +16,9 @@
 
 package org.gradle.integtests
 
-import groovy.transform.NotYetImplemented
-import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -621,34 +618,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
-    @NotYetImplemented
-    @Issue("gradle/gradle#767")
-    def "detect a cycle when a task finalized itself"() {
-        buildFile << """
-            class NotParallel extends DefaultTask {}
-
-            task a(type: NotParallel) {
-                finalizedBy "b"
-            }
-
-            task b(type: NotParallel) {
-                finalizedBy "b"
-            }
-        """
-
-        when:
-        fails 'a'
-
-        then:
-        thrown(CircularReferenceException)
-
-        when:
-        fails 'a'
-
-        then:
-        thrown(CircularReferenceException)
-    }
-
     def "produces a sensible error when a task declares both outputs and destroys"() {
         buildFile << """
             task a {
@@ -769,7 +738,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/2293")
     def "detects a cycle with a task that mustRunAfter itself as finalizer of another task"() {
         buildFile << """
@@ -783,8 +751,33 @@ task someTask(dependsOn: [someDep, someOtherDep])
         """
         expect:
         2.times {
-            // This should fail with a cycle and not as a misdetected cycle.
-            succeeds("myTask")
+            fails("myTask")
+            failure.assertHasDescription """Circular dependency between the following tasks:
+:finalizer
+\\--- :finalizer (*)
+
+(*) - details omitted (listed previously)"""
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2293")
+    def "detects a cycle when task finalizes itself"() {
+        buildFile << """
+            task a {
+                finalizedBy 'b'
+            }
+            task b {
+                finalizedBy 'b'
+            }
+        """
+        expect:
+        2.times {
+            fails("a")
+            failure.assertHasDescription """Circular dependency between the following tasks:
+:b
+\\--- :b (*)
+
+(*) - details omitted (listed previously)"""
         }
     }
 

@@ -4,15 +4,15 @@
     <webhook url="http://dev12.gradle.org:3003/teamcity" enabled="true" format="tailoredjson" template="none">
       <states>
         <state type="buildStarted" enabled="true" />
+        <state type="responsibilityChanged" enabled="true" />
         <state type="buildSuccessful" enabled="true" />
-        <state type="buildFailed" enabled="true" />
         <state type="changesLoaded" enabled="false" />
-        <state type="buildInterrupted" enabled="true" />
-        <state type="buildFixed" enabled="false" />
         <state type="beforeBuildFinish" enabled="false" />
         <state type="buildFinished" enabled="true" />
         <state type="buildBroken" enabled="false" />
-        <state type="responsibilityChanged" enabled="true" />
+        <state type="buildInterrupted" enabled="true" />
+        <state type="buildFailed" enabled="true" />
+        <state type="buildFixed" enabled="false" />
       </states>
       <build-types enabled-for-all="false" enabled-for-subprojects="false">
         <build-type id="bt7848" />
@@ -20,6 +20,23 @@
         <build-type id="bt7886" />
         <build-type id="bt7851" />
         <build-type id="bt7849" />
+      </build-types>
+    </webhook>
+    <webhook url="http://dev12.gradle.org:3003/teamcity_slacktemplate" enabled="true" format="jsontemplate" template="slack.com-compact">
+      <states>
+        <state type="buildStarted" enabled="true" />
+        <state type="responsibilityChanged" enabled="false" />
+        <state type="buildSuccessful" enabled="true" />
+        <state type="changesLoaded" enabled="true" />
+        <state type="beforeBuildFinish" enabled="true" />
+        <state type="buildFinished" enabled="true" />
+        <state type="buildBroken" enabled="false" />
+        <state type="buildInterrupted" enabled="true" />
+        <state type="buildFailed" enabled="true" />
+        <state type="buildFixed" enabled="false" />
+      </states>
+      <build-types enabled-for-all="false" enabled-for-subprojects="false">
+        <build-type id="bt7886" />
       </build-types>
     </webhook>
   </webhooks>

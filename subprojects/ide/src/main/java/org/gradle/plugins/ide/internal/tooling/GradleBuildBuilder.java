@@ -20,13 +20,12 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.composite.IncludedRootBuild;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -40,12 +39,16 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
     @Override
     public DefaultGradleBuild buildAll(String modelName, Project target) {
         Gradle gradle = target.getGradle();
-        return convert(gradle, new ArrayList<DefaultGradleBuild>());
+        return convert(gradle, null, new LinkedHashMap<>());
     }
 
-    private DefaultGradleBuild convert(Gradle gradle, Collection<DefaultGradleBuild> all) {
+    private DefaultGradleBuild convert(Gradle gradle, DefaultGradleBuild rootBuild, Map<Gradle, DefaultGradleBuild> all) {
         DefaultGradleBuild model = new DefaultGradleBuild();
-        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<Project, BasicGradleProject>();
+        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
+
+        if (rootBuild == null) {
+            rootBuild = model;
+        }
 
         Project rootProject = gradle.getRootProject();
         BasicGradleProject convertedRootProject = convert(rootProject, convertedProjects);
@@ -56,17 +59,26 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
         }
 
         if (gradle.getParent() != null) {
-            all.add(model);
+            all.put(gradle, model);
         }
 
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-            Gradle includedGradle = ((IncludedBuildState) includedBuild).getConfiguredBuild();
-            DefaultGradleBuild convertedIncludedBuild = convert(includedGradle, all);
-            model.addIncludedBuild(convertedIncludedBuild);
+            if (includedBuild instanceof IncludedBuildState) {
+                Gradle includedGradle = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                DefaultGradleBuild convertedIncludedBuild = all.get(includedGradle);
+                if (convertedIncludedBuild == null) {
+                    convertedIncludedBuild = convert(includedGradle, rootBuild, all);
+                }
+                model.addIncludedBuild(convertedIncludedBuild);
+            } else if (includedBuild instanceof IncludedRootBuild){
+                model.addIncludedBuild(rootBuild);
+            } else {
+                throw new IllegalStateException("Unknown build type: " + includedBuild.getClass().getName());
+            }
         }
 
         if (gradle.getParent() == null) {
-            model.addBuilds(all);
+            model.addBuilds(all.values());
         }
 
         return model;

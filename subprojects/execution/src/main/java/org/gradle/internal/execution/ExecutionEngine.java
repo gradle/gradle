@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.cache.Cache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 

@@ -18,4 +18,7 @@
  * Defines tools that can build things that run on the JVM.
  */
 @org.gradle.api.Incubating
+@NonNullApi
 package org.gradle.jvm.toolchain;
+
+import org.gradle.api.NonNullApi;

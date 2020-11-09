@@ -16,13 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
-import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
@@ -41,30 +40,22 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
     @Nullable
     @Override
     public V get(final K key) {
-        return asyncCacheAccess.read(new Factory<V>() {
-            @Override
-            public V create() {
-                return persistentCache.get(key);
-            }
-        });
+        return asyncCacheAccess.read(() -> persistentCache.get(key));
     }
 
     @Override
-    public V get(K key, Transformer<? extends V, ? super K> producer, Runnable completion) {
+    public V get(K key, Function<? super K, ? extends V> producer, Runnable completion) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void putLater(final K key, final V value, final Runnable completion) {
         try {
-            asyncCacheAccess.enqueue(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        persistentCache.put(key, value);
-                    } finally {
-                        completion.run();
-                    }
+            asyncCacheAccess.enqueue(() -> {
+                try {
+                    persistentCache.put(key, value);
+                } finally {
+                    completion.run();
                 }
             });
         } catch (RuntimeException e) {
@@ -76,14 +67,11 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
     @Override
     public void removeLater(final K key, final Runnable completion) {
         try {
-            asyncCacheAccess.enqueue(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        persistentCache.remove(key);
-                    } finally {
-                        completion.run();
-                    }
+            asyncCacheAccess.enqueue(() -> {
+                try {
+                    persistentCache.remove(key);
+                } finally {
+                    completion.run();
                 }
             });
         } catch (RuntimeException e) {

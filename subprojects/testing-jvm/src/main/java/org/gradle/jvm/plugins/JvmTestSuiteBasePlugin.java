@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.ProjectLayout;
@@ -32,7 +31,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
@@ -120,8 +118,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
         AttributesSchemaInternal attributesSchema = serviceRegistry.get(AttributesSchemaInternal.class);
         ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
         BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
-        BuildIdentifier currentBuild = serviceRegistry.get(BuildState.class).getBuildIdentifier();
-        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema, attributesSchema, moduleIdentifierFactory, buildOperationExecutor, currentBuild));
+        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema, attributesSchema, moduleIdentifierFactory, buildOperationExecutor));
     }
 
     private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary,
@@ -130,13 +127,12 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
                                                                           ModelSchema<? extends JvmTestSuiteBinarySpec> schema,
                                                                           AttributesSchemaInternal attributesSchema,
                                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                          BuildOperationExecutor buildOperationExecutor,
-                                                                          BuildIdentifier currentBuild) {
+                                                                          BuildOperationExecutor buildOperationExecutor) {
         return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, new RepositoriesSupplier() {
             public List<? extends ResolutionAwareRepository> get() {
                 return resolutionAwareRepositories;
             }
-        }, createResolveContext(testBinary, schema, moduleIdentifierFactory), attributesSchema, buildOperationExecutor, currentBuild);
+        }, createResolveContext(testBinary, schema, moduleIdentifierFactory), attributesSchema, buildOperationExecutor);
     }
 
     private static JvmLibraryResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

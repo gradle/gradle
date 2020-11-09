@@ -34,6 +34,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -90,7 +91,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.startParameter = startParameter;
         this.services = serviceRegistryFactory.createFor(this);
         this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
-        this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
+        this.dependencyResolutionManagement = createDependencyResolutionManagement();
+    }
+
+    private DependencyResolutionManagementInternal createDependencyResolutionManagement() {
+        DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
+        drm.setPluginsSpec(getPluginManagement());
+        return drm;
     }
 
     @Override
@@ -232,6 +239,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     public void setSettingsScript(ScriptSource settingsScript) {
         this.settingsScript = settingsScript;
+    }
+
+    @Override
+    @Inject
+    public ProviderFactory getProviders() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     @Inject

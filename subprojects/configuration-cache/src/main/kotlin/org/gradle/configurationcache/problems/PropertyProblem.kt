@@ -34,7 +34,6 @@ data class PropertyProblem internal constructor(
 
 enum class DocumentationSection(val anchor: String) {
     NotYetImplemented("config_cache:not_yet_implemented"),
-    NotYetImplementedCompositeBuilds("config_cache:not_yet_implemented:composite_builds"),
     NotYetImplementedSourceDependencies("config_cache:not_yet_implemented:source_dependencies"),
     NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
     NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
