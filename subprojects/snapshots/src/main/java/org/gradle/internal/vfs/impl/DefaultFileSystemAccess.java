@@ -126,15 +126,14 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         if (filter.isEmpty()) {
             visitor.accept(readLocation(location));
         } else {
-            SnapshottingFilter.FileSystemSnapshotPredicate snapshotPredicate = filter.getAsSnapshotPredicate();
             FileSystemSnapshot filteredSnapshot = readSnapshotFromLocation(location,
-                snapshot -> FileSystemSnapshotFilter.filterSnapshot(snapshotPredicate, snapshot),
+                snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot),
                 () -> {
                     CompleteFileSystemLocationSnapshot snapshot = snapshot(location, filter);
                     return snapshot.getType() == FileType.Directory
                         // Directory snapshots have been filtered while walking the file system
                         ? snapshot
-                        : FileSystemSnapshotFilter.filterSnapshot(snapshotPredicate, snapshot);
+                        : FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
                 });
 
             if (filteredSnapshot instanceof CompleteFileSystemLocationSnapshot) {
