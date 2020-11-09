@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.RelativePathSupplier;
+
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -24,7 +26,7 @@ import java.util.Iterator;
 /**
  * Tracks the relative path. Useful when visiting {@link CompleteFileSystemLocationSnapshot}s.
  */
-public class RelativePathTracker {
+public class RelativePathTracker implements RelativePathSupplier {
     private final Deque<String> segments = new ArrayDeque<>();
     private String rootName;
 
@@ -50,14 +52,17 @@ public class RelativePathTracker {
         }
     }
 
+    @Override
     public boolean isRoot() {
-        return rootName == null;
+        return segments.isEmpty();
     }
 
+    @Override
     public Collection<String> getSegments() {
         return segments;
     }
 
+    @Override
     public String toPathString() {
         switch (segments.size()) {
             case 0:
