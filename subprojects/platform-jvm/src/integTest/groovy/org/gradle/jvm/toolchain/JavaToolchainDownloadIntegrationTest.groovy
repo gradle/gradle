@@ -80,7 +80,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14} (auto-detect false, auto-download false)")
+            .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14, vendor=any} (auto-detect false, auto-download false)")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -112,7 +112,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause('Unable to download toolchain matching these requirements: {languageVersion=99}')
+            .assertHasCause('Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any}')
             .assertThatCause(CoreMatchers.startsWith('Attempting to download a JDK from an insecure URI http://example.com'))
     }
 
