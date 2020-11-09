@@ -2,6 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Danny Thomas](https://github.com/DanielThomas),
 [Jeff](https://github.com/mathjeff),
 [Mattia Tommasone](https://github.com/Raibaz),
