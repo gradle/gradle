@@ -294,7 +294,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 builder.preVisitDirectory(internedAbsolutePath);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
-                builder.visitEntry(fileSnapshot);
+                builder.visitLeafElement(fileSnapshot);
             }
         }
 

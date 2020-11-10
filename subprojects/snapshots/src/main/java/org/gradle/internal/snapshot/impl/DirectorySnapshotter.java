@@ -26,6 +26,7 @@ import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -264,7 +265,7 @@ public class DirectorySnapshotter {
         private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
             String internedName = intern(file.getFileName().toString());
             if (shouldVisit(file, internedName, false, relativePathTracker.getSegments())) {
-                builder.visitEntry(snapshotFile(file, internedName, targetAttributes, accessType));
+                builder.visitLeafElement(snapshotFile(file, internedName, targetAttributes, accessType));
             }
         }
 
@@ -278,7 +279,7 @@ public class DirectorySnapshotter {
             }
         }
 
-        private CompleteFileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
+        private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
             String internedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
             if (attrs.isRegularFile()) {
                 try {
@@ -308,7 +309,7 @@ public class DirectorySnapshotter {
                     if (shouldVisit(file, internedName, isDirectory, relativePathTracker.getSegments())) {
                         LOGGER.info("Could not read file path '{}'.", file);
                         String internedAbsolutePath = intern(file.toString());
-                        builder.visitEntry(new MissingFileSnapshot(internedAbsolutePath, internedName, AccessType.DIRECT));
+                        builder.visitLeafElement(new MissingFileSnapshot(internedAbsolutePath, internedName, AccessType.DIRECT));
                     }
                 }
                 return FileVisitResult.CONTINUE;

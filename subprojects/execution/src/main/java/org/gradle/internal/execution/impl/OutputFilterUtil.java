@@ -24,6 +24,7 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -180,7 +181,9 @@ public class OutputFilterUtil {
             if (merkleBuilder == null) {
                 newRootsBuilder.add(snapshot);
             } else {
-                merkleBuilder.visitEntry(snapshot);
+                if (snapshot instanceof FileSystemLeafSnapshot) {
+                    merkleBuilder.visitLeafElement((FileSystemLeafSnapshot) snapshot);
+                }
             }
         }
 
