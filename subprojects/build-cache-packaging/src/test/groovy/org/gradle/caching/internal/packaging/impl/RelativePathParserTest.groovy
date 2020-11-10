@@ -143,7 +143,7 @@ class RelativePathParserTest extends Specification {
         !outsideOfRoot
 
         when:
-        outsideOfRoot = parser.exitHierarchy(parentHandler)
+        outsideOfRoot = parser.exitToRoot(parentHandler)
         then:
         1 * parentHandler.accept("css")
         0 * _

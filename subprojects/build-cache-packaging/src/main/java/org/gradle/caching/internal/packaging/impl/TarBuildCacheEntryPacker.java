@@ -298,7 +298,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             }
         }
 
-        parser.exitHierarchy(name -> builder.postVisitDirectory(AccessType.DIRECT, stringInterner.intern(name)));
+        parser.exitToRoot(name -> builder.postVisitDirectory(AccessType.DIRECT, stringInterner.intern(name)));
         builder.postVisitDirectory(AccessType.DIRECT, stringInterner.intern(treeRoot.getName()));
 
         snapshots.put(treeName, builder.getResult());

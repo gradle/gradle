@@ -46,18 +46,18 @@ public class RelativePathParser {
         return currentPath.substring(sizeOfCommonPrefix + 1);
     }
 
-    public boolean nextPath(String nextPath, boolean directory, Consumer<String> exitDirectory) {
+    public boolean nextPath(String nextPath, boolean directory, Consumer<String> exitDirectoryHandler) {
         currentPath = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
         String lastDirPath = directoryPaths.peekLast();
         sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentPath, 0, '/');
-        int directoriesLeft = determineDirectoriesLeft(lastDirPath, sizeOfCommonPrefix);
-        for (int i = 0; i < directoriesLeft; i++) {
+        int directoriesExited = determineDirectoriesExited(lastDirPath, sizeOfCommonPrefix);
+        for (int i = 0; i < directoriesExited; i++) {
             directoryPaths.removeLast();
             String name = directoryNames.pollLast();
             if (name == null) {
                 return true;
             }
-            exitDirectory.accept(name);
+            exitDirectoryHandler.accept(name);
         }
         String currentName = currentPath.substring(sizeOfCommonPrefix + 1);
         if (directory) {
@@ -67,7 +67,7 @@ public class RelativePathParser {
         return isRoot();
     }
 
-    private static int determineDirectoriesLeft(String lastDirPath, int sizeOfCommonPrefix) {
+    private static int determineDirectoriesExited(String lastDirPath, int sizeOfCommonPrefix) {
         if (sizeOfCommonPrefix == lastDirPath.length()) {
             return 0;
         }
@@ -79,7 +79,7 @@ public class RelativePathParser {
         return directoryNames.isEmpty() && currentPath.length() == rootLength;
     }
 
-    public void exitHierarchy(Consumer<String> handler) {
-        directoryNames.descendingIterator().forEachRemaining(handler);
+    public void exitToRoot(Consumer<String> exitDirectoryHandler) {
+        directoryNames.descendingIterator().forEachRemaining(exitDirectoryHandler);
     }
 }
