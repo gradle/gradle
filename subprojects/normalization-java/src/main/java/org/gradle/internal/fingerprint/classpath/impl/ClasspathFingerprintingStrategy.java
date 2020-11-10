@@ -75,7 +75,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final Interner<String> stringInterner;
     private final HashCode zipHasherConfigurationHash;
 
-    public ClasspathFingerprintingStrategy(String identifier,
+    private ClasspathFingerprintingStrategy(String identifier,
                                            NonJarFingerprintingStrategy nonZipFingerprintingStrategy,
                                            ResourceHasher classpathResourceHasher,
                                            ZipHasher zipHasher,
