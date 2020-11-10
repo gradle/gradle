@@ -70,7 +70,6 @@ BUILD SUCCESSFUL
 
 The `init` task generates the new project with the following structure:
 
-.Groovy DSL
 [source.multi-language-sample,groovy]
 ----
 ├── gradle // <1>
@@ -91,7 +90,6 @@ ${sourceFileTree.raw}
 ${testSourceFileTree.raw}
 ----
 
-.Kotlin DSL
 [source.multi-language-sample,kotlin]
 ----
 ├── gradle // <1>

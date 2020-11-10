@@ -16,18 +16,16 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.cache.Cache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
-import org.gradle.internal.execution.DeferredResultProcessor;
+import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-
-import java.util.concurrent.ExecutionException;
 
 public class IdentityCacheStep<C extends IdentityContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
 
@@ -43,21 +41,17 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
     }
 
     @Override
-    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
         Identity identity = context.getIdentity();
         Try<O> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {
-            return processor.processCachedOutput(cachedOutput);
+            return handler.processCachedOutput(cachedOutput);
         } else {
-            return processor.processDeferredOutput(() -> {
-                try {
-                    return cache.get(identity, () -> execute(work, context).getExecutionResult()
-                        .map(Result.ExecutionResult::getOutput)
-                        .map(Cast::<O>uncheckedNonnullCast));
-                } catch (ExecutionException e) {
-                    throw new IllegalStateException(e);
-                }
-            });
+            return handler.processDeferredOutput(() -> cache.get(
+                identity,
+                () -> execute(work, context).getExecutionResult()
+                    .map(Result.ExecutionResult::getOutput)
+                    .map(Cast::<O>uncheckedNonnullCast)));
         }
     }
 }

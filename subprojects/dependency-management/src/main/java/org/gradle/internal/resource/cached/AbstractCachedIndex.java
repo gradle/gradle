@@ -56,7 +56,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
         assertKeyNotNull(key);
 
         V result = artifactCacheLockingManager.useCache(() -> {
-            V found = getPersistentCache().get(key);
+            V found = getPersistentCache().getIfPresent(key);
             if (found == null) {
                 return null;
             } else if (found.isMissing() || found.getCachedFile().exists()) {

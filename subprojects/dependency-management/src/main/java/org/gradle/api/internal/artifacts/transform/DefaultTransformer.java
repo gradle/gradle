@@ -64,6 +64,7 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -119,7 +120,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         PropertyWalker parameterPropertyWalker,
         InstantiationScheme actionInstantiationScheme,
         DomainObjectContext owner,
-        FileCollectionFingerprinterRegistry globalFingerprinterRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
         ServiceLookup internalServices
     ) {
         super(implementationClass, fromAttributes);
@@ -131,9 +132,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
-        this.isolatedParameters = CalculatedValueContainer.of(Describables.of("parameters of", this),
-            new IsolateTransformerParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter,
-                fileCollectionFactory, globalFingerprinterRegistry));
+        this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
+            new IsolateTransformerParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
+                valueSnapshotter, fileCollectionFactory));
     }
 
     /**
@@ -223,7 +224,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
     @Override
     public void isolateParametersIfNotAlready() {
-        isolatedParameters.calculateIfNotAlready(null);
+        isolatedParameters.finalizeIfNotAlready();
     }
 
     private static void fingerprintParameters(
@@ -453,7 +454,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         private final ValueSnapshotter valueSnapshotter;
         private final FileCollectionFactory fileCollectionFactory;
-        private final FileCollectionFingerprinterRegistry globalFingerprinterRegistry;
         private final boolean cacheable;
         private final Class<?> implementationClass;
 
@@ -466,8 +466,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                                             BuildOperationExecutor buildOperationExecutor,
                                             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                             ValueSnapshotter valueSnapshotter,
-                                            FileCollectionFactory fileCollectionFactory,
-                                            FileCollectionFingerprinterRegistry globalFingerprinterRegistry) {
+                                            FileCollectionFactory fileCollectionFactory) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
             this.cacheable = cacheable;
@@ -478,7 +477,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.valueSnapshotter = valueSnapshotter;
             this.fileCollectionFactory = fileCollectionFactory;
-            this.globalFingerprinterRegistry = globalFingerprinterRegistry;
         }
 
         @Nullable
@@ -518,13 +516,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         }
 
         @Override
-        public IsolatedParameters calculateValue(@Nullable NodeExecutionContext context) {
-            FileCollectionFingerprinterRegistry fingerprinterRegistry;
-            if (context != null) {
-                fingerprinterRegistry = context.getService(FileCollectionFingerprinterRegistry.class);
-            } else {
-                fingerprinterRegistry = globalFingerprinterRegistry;
-            }
+        public IsolatedParameters calculateValue(NodeExecutionContext context) {
+            FileCollectionFingerprinterRegistry fingerprinterRegistry = context.getService(FileCollectionFingerprinterRegistry.class);
             return isolateParameters(fingerprinterRegistry);
         }
 

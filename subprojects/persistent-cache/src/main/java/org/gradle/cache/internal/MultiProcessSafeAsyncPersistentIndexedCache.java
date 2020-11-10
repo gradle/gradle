@@ -15,10 +15,10 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.UnitOfWorkParticipant;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * An indexed cache that may perform updates asynchronously.
@@ -33,7 +33,7 @@ public interface MultiProcessSafeAsyncPersistentIndexedCache<K, V> extends UnitO
     /**
      * Fetches the given entry, producing if necessary, blocking until the result is available. This method may or may not block until any updates have completed and will invoke the given completion action when the operation is complete.
      */
-    V get(K key, Transformer<? extends V, ? super K> producer, Runnable completion);
+    V get(K key, Function<? super K, ? extends V> producer, Runnable completion);
 
     /**
      * Submits an update to be applied later. This method may or may not block, and will invoke the given completion action when the operation is complete.

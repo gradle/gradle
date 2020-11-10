@@ -15,19 +15,31 @@
 [[tutorial_using_tasks]]
 = Build Script Basics
 
-This chapter introduces you to the basics of writing Gradle build scripts. For a quick hands-on introduction, try one of the link:../samples/index.html[step-by-step samples].
+This chapter introduces you to the basics of writing Gradle build scripts.
+It uses toy examples to explain basic functionality of Gradle, which is helpful to get an understanding of the basic concepts.
+Especially if you move to Gradle from other build tools like Ant and want to understand differences and advantages.
 
+However, to get started with a standard project setup, you don't even need to go into these concepts in detail.
+Instead, you can have a quick hands-on introduction, through our <<getting_started.adoc#try_gradle,step-by-step samples>>.
 
 [[sec:projects_and_tasks]]
-== Projects and tasks
+== Projects, plugins and tasks
 
-Everything in Gradle sits on top of two basic concepts: _projects_ and _tasks_.
+Every Gradle build is made up of one or more _projects_.
+What a project represents depends on what it is that you are doing with Gradle.
+For example, a project might represent a library JAR or a web application.
+It might represent a distribution ZIP assembled from the JARs produced by other projects.
+A project does not necessarily represent a thing to be built.
+It might represent a thing to be done, such as deploying your application to staging or production environments.
+Don't worry if this seems a little vague for now.
+Gradle's build-by-convention support adds a more concrete definition for what a project is.
 
-Every Gradle build is made up of one or more _projects_. What a project represents depends on what it is that you are doing with Gradle. For example, a project might represent a library JAR or a web application. It might represent a distribution ZIP assembled from the JARs produced by other projects. A project does not necessarily represent a thing to be built. It might represent a thing to be done, such as deploying your application to staging or production environments. Don't worry if this seems a little vague for now. Gradle's build-by-convention support adds a more concrete definition for what a project is.
+The work that Gradle can do on a project is defined by one or more _tasks_.
+A task represents some atomic piece of work which a build performs.
+This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
-Each project is made up of one or more _tasks_. A task represents some atomic piece of work which a build performs. This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
-
-For now, we will look at defining some simple tasks in a build with one project. Later chapters will look at working with multiple projects and more about working with projects and tasks.
+Typically, tasks are provided by <<plugins.adoc#sec:plugins_block,applying a plugin>> so that you do not have to define them yourself.
+Still, to give you an idea of what a taks is, we will look at defining some simple tasks in a build with one project in this chapter.
 
 [[sec:hello_world]]
 == Hello world
@@ -136,16 +148,16 @@ include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
 ----
 ====
 
-The dependency of `taskX` to `taskY` may be declared before `taskY` is defined. This freedom is very important for multi-project builds. Task dependencies are discussed in more detail in <<more_about_tasks.adoc#sec:adding_dependencies_to_tasks,Adding dependencies to a task>>.
-
-Please notice that you can't use <<#sec:shortcut_notations, shortcut notation>> when referring to a task that is not yet defined.
+The dependency of `taskX` to `taskY` may be declared before `taskY` is defined.
+Task dependencies are discussed in more detail in <<more_about_tasks.adoc#sec:adding_dependencies_to_tasks,Adding dependencies to a task>>.
 
 [[sec:dynamic_tasks]]
-== Dynamic tasks
+== Flexible task registration
 
-The power of Groovy or Kotlin can be used for more than defining what a task does. For example, you can also use it to dynamically create tasks.
+The power of Groovy or Kotlin can be used for more than defining what a task does
+For example, you can use it to register multiple tasks of the same type in a loop.
 
-.Dynamic creation of a task
+.Felxible registration of a task
 ====
 include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
@@ -161,7 +173,9 @@ include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
 [[sec:manipulating_existing_tasks]]
 == Manipulating existing tasks
 
-Once tasks are created they can be accessed via an _API_. For instance, you could use this to dynamically add dependencies to a task, at runtime. Ant doesn't allow anything like this.
+Once tasks are registered, they can be accessed via an _API_.
+For instance, you could use this to dynamically add dependencies to a task, at runtime.
+Ant doesn't allow anything like this.
 
 .Accessing a task via API - adding a dependency
 ====
@@ -190,43 +204,6 @@ include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out[]
 ====
 
 The calls `doFirst` and `doLast` can be executed multiple times. They add an action to the beginning or the end of the task's actions list. When the task executes, the actions in the action list are executed in order.
-
-[[sec:shortcut_notations]]
-== Groovy DSL shortcut notations
-
-There is a convenient notation for accessing an _existing_ task. Each task is available as a property of the build script:
-
-.Accessing task as a property of the build script
-====
-include::sample[dir="snippets/tutorial/helloWithShortCut/groovy", files="build.gradle[]"]
-
-.Output of **`gradle -q hello`**
-----
-> gradle -q hello
-include::{snippetsPath}/tutorial/helloWithShortCut/tests/helloWithShortCut.out[]
-----
-====
-
-This enables very readable code, especially when using the tasks provided by the plugins, like the `compile` task.
-
-[[sec:extra_task_properties]]
-== Extra task properties
-
-You can add your own properties to a task. To add a property named `myProperty`, set `ext.myProperty` to an initial value. From that point on, the property can be read and set like a predefined task property.
-
-.Adding extra properties to a task
-====
-include::sample[dir="snippets/tutorial/extraProperties/groovy", files="build.gradle[tags=taskProperties]"]
-include::sample[dir="snippets/tutorial/extraProperties/kotlin", files="build.gradle.kts[tags=taskProperties]"]
-
-.Output of **`gradle -q printTaskProperties`**
-----
-> gradle -q printTaskProperties
-include::{snippetsPath}/tutorial/extraProperties/tests/extraTaskProperties.out[]
-----
-====
-
-Extra properties aren't limited to tasks. You can read more about them in <<writing_build_scripts.adoc#sec:extra_properties,Extra properties>>.
 
 [[sec:using_ant_tasks_tutorial]]
 == Using Ant Tasks
@@ -285,47 +262,11 @@ include::{snippetsPath}/tutorial/defaultTasks/tests/defaultTasks.out[]
 
 This is equivalent to running `gradle clean run`. In a multi-project build every subproject can have its own specific default tasks. If a subproject does not specify default tasks, the default tasks of the parent project are used (if defined).
 
-[[configure-by-dag]]
-== Configure by DAG
-
-As we later describe in full detail (see <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>>), Gradle has a configuration phase and an execution phase.
-After the configuration phase, Gradle knows all tasks that should be executed.
-Gradle offers you a hook to make use of this information.
-A use-case for this would be to check if the release task is among the tasks to be executed.
-Depending on this, you can assign different values to some variables.
-
-In the following example, execution of the `distribution` and `release` tasks results in different value of the `version` variable.
-
-.Different outcomes of build depending on chosen tasks
-====
-include::sample[dir="snippets/tutorial/configByDag/groovy", files="build.gradle[]"]
-include::sample[dir="snippets/tutorial/configByDag/kotlin", files="build.gradle.kts[]"]
-
-.Output of `gradle -q distribution`
-----
-> gradle -q distribution
-include::{snippetsPath}/tutorial/configByDag/tests/configByDagNoRelease.out[]
-----
-
-.Output of `gradle -q release`
-----
-> gradle -q release
-include::{snippetsPath}/tutorial/configByDag/tests/configByDag.out[]
-----
-====
-
-The important thing is that `whenReady` affects the release task _before_ the release task is executed.
-This works even when the release task is not the _primary_ task (i.e., the task passed to the `gradle` command).
-
-[NOTE]
-====
-This example works because the `version` value is only read at execution time.
-When using a similar construct in a real build you must make sure that nowhere is the value read eagerly during configuration.
-Otherwise your build may use different values for a property between configuration and execution.
-====
-
 [[sec:build_script_external_dependencies]]
 == External dependencies for the build script
+
+NOTE: Instead of manipulating the script classpath directly, it is recommended to <<plugins.adoc#,apply plugins>> that come with their own classpath.
+For custom build logic, the recommendation is to <<sharing_build_logic_between_subprojects.adoc#,use a custom plugin>>.
 
 If your build script needs to use external libraries, you can add them to the script's classpath in the build script itself. You do this using the `buildscript()` method, passing in a block which declares the build script classpath.
 

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.VariantWithOverloadAttributes;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,12 +31,14 @@ import java.util.concurrent.ConcurrentMap;
 @ThreadSafe
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
     private final TransformationNodeRegistry transformationNodeRegistry;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ConcurrentMap<VariantWithOverloadAttributes, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
     private final Factory externalFactory = this::doCreateExternal;
     private final Factory projectFactory = this::doCreateProject;
 
-    public DefaultTransformedVariantFactory(TransformationNodeRegistry transformationNodeRegistry) {
+    public DefaultTransformedVariantFactory(TransformationNodeRegistry transformationNodeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.transformationNodeRegistry = transformationNodeRegistry;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory);
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {

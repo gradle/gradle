@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.serialize.Serializer
-import org.gradle.testfixtures.internal.InMemoryIndexedCache
+import org.gradle.testfixtures.internal.TestInMemoryPersistentIndexedCache
 
 class ArtifactCacheLockingManagerStub implements ArtifactCacheLockingManager {
     private final Map<String, PersistentIndexedCache<?, ?>> caches = [:]
@@ -30,7 +30,7 @@ class ArtifactCacheLockingManagerStub implements ArtifactCacheLockingManager {
 
     @Override
     <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        def result = new InMemoryIndexedCache<>(valueSerializer)
+        def result = new TestInMemoryPersistentIndexedCache<>(valueSerializer)
         caches.put(cacheName, result)
         return result
     }

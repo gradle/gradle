@@ -78,7 +78,6 @@ BUILD SUCCESSFUL
 
 The `init` task generates the new project with the following structure:
 
-.Groovy DSL
 [source.multi-language-sample,groovy]
 ----
 ├── gradle // <1>
@@ -135,7 +134,6 @@ The `init` task generates the new project with the following structure:
                         └── StringUtils.java
 ----
 
-.Kotlin DSL
 [source.multi-language-sample,kotlin]
 ----
 ├── gradle // <1>

@@ -1,8 +1,6 @@
-task hello
-task copy(type: Copy)
+tasks.register('hello')
+tasks.register('copy', Copy)
 
-println tasks.hello.name
 println tasks.named('hello').get().name
 
-println tasks.copy.destinationDir
 println tasks.named('copy').get().destinationDir

@@ -67,8 +67,7 @@ import org.gradle.internal.DisplayName
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
-import org.gradle.internal.operations.BuildOperationQueue
-import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.reflect.Instantiator
 import java.io.File
 
@@ -76,7 +75,8 @@ import java.io.File
 class LocalFileDependencyBackedArtifactSetCodec(
     private val instantiator: Instantiator,
     private val attributesFactory: ImmutableAttributesFactory,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : Codec<LocalFileDependencyBackedArtifactSet> {
     override suspend fun WriteContext.encode(value: LocalFileDependencyBackedArtifactSet) {
         // TODO - When the set of files is fixed (eg `gradleApi()` or some hard-coded list of files):
@@ -140,7 +140,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
 
         val transforms = readNonNull<Map<ImmutableAttributes, MappingSpec>>()
         val selector = FixedVariantSelector(transforms, fileCollectionFactory, NoOpTransformedVariantFactory)
-        return LocalFileDependencyBackedArtifactSet(FixedFileMetadata(componentId, files), filter, selector, artifactTypeRegistry)
+        return LocalFileDependencyBackedArtifactSet(FixedFileMetadata(componentId, files), filter, selector, artifactTypeRegistry, calculatedValueContainerFactory)
     }
 }
 
@@ -181,7 +181,7 @@ class RecordingVariantSet(
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun startVisit(actions: BuildOperationQueue<RunnableBuildOperation>, listener: ResolvedArtifactSet.AsyncArtifactListener): ResolvedArtifactSet.Completion {
+    override fun visit(visitor: ResolvedArtifactSet.Visitor) {
         throw UnsupportedOperationException("Should not be called")
     }
 

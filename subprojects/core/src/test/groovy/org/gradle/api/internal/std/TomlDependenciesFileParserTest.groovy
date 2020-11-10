@@ -249,6 +249,22 @@ class TomlDependenciesFileParserTest extends Specification {
         'invalid15' | "Referenced version 'nope' doesn't exist on dependency com:foo"
     }
 
+    def "supports dependencies without version"() {
+        when:
+        parse 'without-version'
+
+        then:
+        hasDependency("alias1") {
+            withGAV("g:a:")
+        }
+        hasDependency("alias2") {
+            withGAV("g:a:")
+        }
+        hasDependency("alias3") {
+            withGAV("g:a:")
+        }
+    }
+
     void hasDependency(String name, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependencySpec) Closure<Void> spec) {
         def data = model.getDependencyData(name)
         assert data != null: "Expected a dependency with alias $name but it wasn't found"
@@ -325,7 +341,8 @@ class TomlDependenciesFileParserTest extends Specification {
 
         void withGAV(String gav) {
             def coord = gav.split(':')
-            withGAV(coord[0], coord[1], coord[2])
+            def v = coord.length>2 ? coord[2] : ''
+            withGAV(coord[0], coord[1], v)
         }
 
         void withGAV(String group, String name, String version) {

@@ -22,12 +22,14 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Represents a calculated immutable value that should be calculated once and then consumed by multiple threads.
+ * Represents a calculated immutable value that is calculated once and then consumed by multiple threads.
  *
  * <p>This type is intended to contain values that are calculated as nodes in the work graph, but which may also be calculated
  * on demand. An instance of this type can be used as a node in the work graph.
@@ -38,33 +40,35 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements WorkNodeAction {
+public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
     private final DisplayName displayName;
-    private volatile S supplier;
+    // Null when the value has been calculated and assigned to the result field. When not null the result has not been calculated
+    // or is currently being calculated or has just been calculated. It is possible for both this field and the result field to be
+    // non-null at the same time for a brief period just after the result has been calculated
+    @Nullable
+    private volatile CalculationState<T, S> calculationState;
+    // Not null when the value has been calculated. When not null the result has not been calculated or is currently being calculated
+    @Nullable
     private volatile Try<T> result;
-
-    private CalculatedValueContainer(DisplayName displayName, S supplier) {
-        this.displayName = displayName;
-        this.supplier = supplier;
-    }
-
-    private CalculatedValueContainer(DisplayName displayName, T value) {
-        this.displayName = displayName;
-        this.result = Try.successful(value);
-    }
 
     /**
      * Creates a container for a value that is yet to be produced.
+     *
+     * Note: this is package protected. Using {@link CalculatedValueContainerFactory} instead.
      */
-    public static <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> of(DisplayName displayName, S supplier) {
-        return new CalculatedValueContainer<>(displayName, supplier);
+    CalculatedValueContainer(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
+        this.displayName = displayName;
+        this.calculationState = new CalculationState<>(displayName, supplier, projectLeaseRegistry, defaultContext);
     }
 
     /**
      * Creates a container for a value that has already been produced. For example, the value might have been restored from the configuration cache.
+     *
+     * Note: this is package protected. Using {@link CalculatedValueContainerFactory} instead.
      */
-    public static <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> of(DisplayName displayName, T value) {
-        return new CalculatedValueContainer<>(displayName, value);
+    CalculatedValueContainer(DisplayName displayName, T value) {
+        this.displayName = displayName;
+        this.result = Try.successful(value);
     }
 
     @Override
@@ -72,20 +76,12 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         return displayName.getCapitalizedDisplayName();
     }
 
-    /**
-     * Returns the value, failing if it has not been calculated. Does not calculate the value on demand.
-     *
-     * <p>Rethrows any failure happened while calculating the value</p>
-     */
+    @Override
     public T get() throws IllegalStateException {
         return getValue().get();
     }
 
-    /**
-     * Returns the value, or null if it has not been calculated. Does not calculate the value on demand.
-     *
-     * <p>Rethrows any failure happened while calculating the value</p>
-     */
+    @Override
     public T getOrNull() {
         Try<T> result = this.result;
         if (result != null) {
@@ -95,9 +91,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         }
     }
 
-    /**
-     * Returns the result of calculating the value, failing if it has not been calculated. Does not calculate the value on demand.
-     */
+    @Override
     public Try<T> getValue() throws IllegalStateException {
         Try<T> result = this.result;
         if (result == null) {
@@ -106,22 +100,29 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         return result;
     }
 
+    @Override
+    public boolean isFinalized() {
+        return result != null;
+    }
+
     /**
      * Returns the supplier of the value, failing if the value has already been calculated and the supplier no longer available.
+     *
+     * Note: some other thread may currently be calculating the value
      */
     public S getSupplier() throws IllegalStateException {
-        S supplier = this.supplier;
-        if (supplier == null) {
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState == null) {
             throw new IllegalStateException(String.format("Value for %s has already been calculated.", displayName));
         }
-        return supplier;
+        return calculationState.supplier;
     }
 
     @Override
     public boolean usesMutableProjectState() {
-        S supplier = this.supplier;
-        if (supplier != null) {
-            return supplier.usesMutableProjectState();
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            return calculationState.supplier.usesMutableProjectState();
         } else {
             // Value has already been calculated, so no longer needs project state
             return false;
@@ -130,9 +131,9 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     @Override
     public Project getOwningProject() {
-        S supplier = this.supplier;
-        if (supplier != null) {
-            return supplier.getOwningProject();
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            return calculationState.supplier.getOwningProject();
         } else {
             // Value has already been calculated, so no longer needs project state
             return null;
@@ -144,9 +145,9 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      */
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        S supplier = this.supplier;
-        if (supplier != null) {
-            supplier.visitDependencies(context);
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            calculationState.supplier.visitDependencies(context);
         } // else, already calculated so has no dependencies
     }
 
@@ -155,25 +156,78 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      */
     @Override
     public void run(NodeExecutionContext context) {
-        calculateIfNotAlready(context);
+        finalizeIfNotAlready(context);
     }
 
-    /**
-     * Calculates the value, if not already calculated. Collects and does not rethrow failures.
-     */
-    public void calculateIfNotAlready(@Nullable NodeExecutionContext context) {
-        synchronized (this) {
-            if (result == null) {
-                result = Try.ofFailable(() -> {
-                    T value = supplier.calculateValue(context);
+    @Override
+    public void finalizeIfNotAlready() {
+        finalizeIfNotAlready(null);
+    }
+
+    private void finalizeIfNotAlready(@Nullable NodeExecutionContext context) {
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState == null) {
+            // Already calculated
+            return;
+        }
+        calculationState.attachValue(this, context);
+    }
+
+    private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
+        final ReentrantLock lock = new ReentrantLock();
+        final DisplayName displayName;
+        final S supplier;
+        final ProjectLeaseRegistry projectLeaseRegistry;
+        final NodeExecutionContext defaultContext;
+        boolean done;
+
+        public CalculationState(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
+            this.displayName = displayName;
+            this.supplier = supplier;
+            this.projectLeaseRegistry = projectLeaseRegistry;
+            this.defaultContext = defaultContext;
+        }
+
+        // Can be called multiple times
+        void attachValue(CalculatedValueContainer<T, ?> owner, @Nullable NodeExecutionContext context) {
+            acquireLock();
+            try {
+                if (done) {
+                    // Already calculated
+                    return;
+                }
+                done = true;
+                Try<T> result = Try.ofFailable(() -> {
+                    NodeExecutionContext effectiveContext = context;
+                    if (effectiveContext == null) {
+                        effectiveContext = defaultContext;
+                    }
+                    T value = supplier.calculateValue(effectiveContext);
                     if (value == null) {
                         throw new IllegalStateException(String.format("Calculated value for %s cannot be null.", displayName));
                     }
                     return value;
                 });
-                // Discard the supplier
-                supplier = null;
+
+                // Attach result and discard calculation state
+                owner.result = result;
+                owner.calculationState = null;
+            } finally {
+                releaseLock();
             }
+        }
+
+        private void acquireLock() {
+            if (lock.tryLock()) {
+                // Lock not contended - can proceed
+                return;
+            }
+            // Lock is contended, so release project locks while waiting to accquire the lock
+            projectLeaseRegistry.withoutProjectLock(lock::lock);
+        }
+
+        private void releaseLock() {
+            lock.unlock();
         }
     }
 }

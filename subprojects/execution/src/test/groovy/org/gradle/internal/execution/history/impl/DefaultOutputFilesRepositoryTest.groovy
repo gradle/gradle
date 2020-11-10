@@ -25,7 +25,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.InMemoryIndexedCache
+import org.gradle.testfixtures.internal.TestInMemoryPersistentIndexedCache
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,7 +37,7 @@ class DefaultOutputFilesRepositoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def outputFiles = new InMemoryIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
+    def outputFiles = new TestInMemoryPersistentIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
     def cacheAccess = Stub(PersistentCache) {
         createCache(_) >> outputFiles
     }

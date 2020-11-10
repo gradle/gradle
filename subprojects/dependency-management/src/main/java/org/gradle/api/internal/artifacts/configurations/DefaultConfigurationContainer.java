@@ -51,6 +51,7 @@ import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -72,6 +73,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final ProjectAccessListener projectAccessListener;
     private final FileCollectionFactory fileCollectionFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
@@ -102,6 +104,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          ComponentSelectorConverter componentSelectorConverter,
                                          DependencyLockingProvider dependencyLockingProvider,
                                          ProjectStateRegistry projectStateRegistry,
+                                         CalculatedValueContainerFactory calculatedValueContainerFactory,
                                          DocumentationRegistry documentationRegistry,
                                          CollectionCallbackActionDecorator callbackDecorator,
                                          UserCodeApplicationContext userCodeApplicationContext,
@@ -117,6 +120,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.projectAccessListener = projectAccessListener;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
@@ -134,9 +138,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     protected Configuration doCreate(String name) {
-        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver,
-            listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, context, projectStateRegistry, domainObjectCollectionFactory);
+        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver, listenerManager, dependencyMetaDataProvider,
+            resolutionStrategyFactory, projectAccessListener, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
+            rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
@@ -165,11 +169,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter.getAndIncrement();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
-            context, name, detachedConfigurationsProvider, resolver,
-            listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), documentationRegistry, userCodeApplicationContext, context, projectStateRegistry, domainObjectCollectionFactory);
+        DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class, context, name, detachedConfigurationsProvider, resolver, listenerManager,
+            dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser,
+            capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), documentationRegistry, userCodeApplicationContext,
+            context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

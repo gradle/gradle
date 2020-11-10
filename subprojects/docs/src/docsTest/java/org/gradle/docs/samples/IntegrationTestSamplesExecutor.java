@@ -18,6 +18,7 @@ package org.gradle.docs.samples;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.integtests.fixtures.AvailableJavaHomes;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter;
@@ -25,6 +26,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.samples.executor.CommandExecutor;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
@@ -33,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class IntegrationTestSamplesExecutor extends CommandExecutor {
 
@@ -60,10 +63,12 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
                 filteredFlags.add(flag);
             }
         }
+        configureAvailableJdks(filteredFlags);
         GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile()
             .withStacktraceDisabled()
             .noDeprecationChecks()
             .withWarningMode(warningMode)
+            .withToolchainDetectionEnabled()
             .withArguments(filteredFlags)
             .withTasks(args);
         try {
@@ -78,6 +83,14 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private void configureAvailableJdks(List<String> flags) {
+        String allJdkPaths = AvailableJavaHomes.getAvailableJvms().stream()
+            .map(Jvm::getJavaHome)
+            .map(File::getAbsolutePath)
+            .collect(Collectors.joining(","));
+        flags.add("-Porg.gradle.java.installations.paths=" + allJdkPaths);
     }
 
     private static String capitalize(String s) {

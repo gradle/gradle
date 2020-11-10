@@ -23,6 +23,7 @@ import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.internal.resolve.VariantBinarySelector;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
@@ -46,7 +47,6 @@ import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
@@ -65,13 +65,12 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
-        registration.add(JavaInstallationProbe.class);
     }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultJavaInstallationRegistry.class);
-        registration.addProvider(new BuildScopeServices());
+        registration.add(LocalLibraryDependencyResolverFactory.class);
         registration.add(JdkCacheDirectory.class);
         registration.add(SharedJavaInstallationRegistry.class);
         registerJavaInstallationSuppliers(registration);
@@ -99,20 +98,16 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(JavaToolchainQueryService.class);
     }
 
-    private static class BuildScopeServices {
-        LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, List<VariantAxisCompatibilityFactory> factories) {
-            return new LocalLibraryDependencyResolverFactory(projectModelResolver, schemaStore, factories);
-        }
-    }
-
     private static class LocalLibraryDependencyResolverFactory implements ResolverProviderFactory {
         private final ProjectModelResolver projectModelResolver;
         private final ModelSchemaStore schemaStore;
+        private final CalculatedValueContainerFactory calculatedValueContainerFactory;
         private final List<VariantAxisCompatibilityFactory> factories;
 
-        LocalLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, List<VariantAxisCompatibilityFactory> factories) {
+        LocalLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, CalculatedValueContainerFactory calculatedValueContainerFactory, List<VariantAxisCompatibilityFactory> factories) {
             this.projectModelResolver = projectModelResolver;
             this.schemaStore = schemaStore;
+            this.calculatedValueContainerFactory = calculatedValueContainerFactory;
             this.factories = factories;
         }
 
@@ -128,7 +123,8 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
                     new DefaultLocalLibraryResolver(),
                     variantSelector,
                     libraryMetaDataAdapter,
-                    new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
+                    new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore),
+                    calculatedValueContainerFactory
                 ));
             }
         }

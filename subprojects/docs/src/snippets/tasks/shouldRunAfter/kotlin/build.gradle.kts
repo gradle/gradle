@@ -8,4 +8,6 @@ val taskY by tasks.registering {
         println("taskY")
     }
 }
-taskY { shouldRunAfter(taskX) }
+taskY {
+    shouldRunAfter(taskX)
+}

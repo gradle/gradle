@@ -84,7 +84,7 @@ public class CachingFileHasher implements FileHasher {
     private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
         if (timestampInspector.timestampCanBeUsedToDetectFileChange(absolutePath, timestamp)) {
-            FileInfo info = cache.get(absolutePath);
+            FileInfo info = cache.getIfPresent(absolutePath);
 
             if (info != null && length == info.length && timestamp == info.timestamp) {
                 return info;

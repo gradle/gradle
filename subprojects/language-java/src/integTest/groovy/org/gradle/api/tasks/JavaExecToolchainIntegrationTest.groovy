@@ -25,13 +25,6 @@ import spock.lang.Unroll
 
 class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
-    def setup() {
-        executer.beforeExecute {
-            withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            withArgument("-Porg.gradle.java.installations.auto-download=false")
-        }
-    }
-
     @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java launcher via  #type toolchain on java exec task #jdk"() {

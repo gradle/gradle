@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -69,13 +70,14 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ProjectStateRegistry projectStateRegistry = Mock()
     private DocumentationRegistry documentationRegistry = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
+    private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
 
     private CollectionCallbackActionDecorator domainObjectCollectionCallbackActionDecorator = Mock()
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, documentationRegistry,
+        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, calculatedValueContainerFactory, documentationRegistry,
         domainObjectCollectionCallbackActionDecorator, userCodeApplicationContext, TestUtil.domainObjectCollectionFactory(), Mock(NotationParser), TestUtil.objectFactory())
 
     def "adds and gets"() {
@@ -134,7 +136,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
 
         when:
-        def detached = configurationContainer.detachedConfiguration(dependency1, dependency2);
+        def detached = configurationContainer.detachedConfiguration(dependency1, dependency2)
 
         then:
         detached.name == "detachedConfiguration1"

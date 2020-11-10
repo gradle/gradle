@@ -210,6 +210,16 @@ class DefaultDependenciesModelBuilderTest extends Specification {
         model.getDependencyData("foo").version.strictVersion == "1.7"
     }
 
+    def "can create an alias with an empty version"() {
+        builder.alias("foo").to("org", "foo").withoutVersion()
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.getDependencyData("foo").version.requiredVersion == ""
+    }
+
     def "reasonable error message if referenced version doesn't exist"() {
         builder.alias("foo").to("org", "foo").versionRef("nope")
 

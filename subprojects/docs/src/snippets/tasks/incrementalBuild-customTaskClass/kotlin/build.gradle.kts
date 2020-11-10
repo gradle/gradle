@@ -5,10 +5,11 @@ plugins {
 }
 
 val processTemplates by tasks.registering(ProcessTemplates::class) {
-    templateEngine = TemplateEngineType.FREEMARKER
-    sourceFiles = fileTree("src/templates")
-    templateData = TemplateData("test", mapOf("year" to "2012"))
-    outputDir = file("$buildDir/genOutput")
+    templateEngine.set(TemplateEngineType.FREEMARKER)
+    sourceFiles.from(fileTree("src/templates"))
+    templateData.name.set("test")
+    templateData.variables.set(mapOf("year" to "2012"))
+    outputDir.set(file(layout.buildDirectory.dir("genOutput")))
 }
 
 // tag::ad-hoc-task[]
@@ -19,14 +20,14 @@ tasks.register("processTemplatesAdHoc") {
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.property("templateData.name", "docs")
     inputs.property("templateData.variables", mapOf("year" to "2013"))
-    outputs.dir("$buildDir/genOutput2")
+    outputs.dir(layout.buildDirectory.dir("genOutput2"))
         .withPropertyName("outputDir")
 
     doLast {
         // Process the templates here
 // end::ad-hoc-task[]
         copy {
-            into("$buildDir/genOutput2")
+            into(layout.buildDirectory.dir("genOutput2"))
             from(fileTree("src/templates"))
             expand("year" to "2012")
         }
@@ -52,14 +53,14 @@ tasks.register("processTemplatesAdHocSkipWhenEmpty") {
     inputs.property("engine", TemplateEngineType.FREEMARKER)
     inputs.property("templateData.name", "docs")
     inputs.property("templateData.variables", mapOf("year" to "2013"))
-    outputs.dir("$buildDir/genOutput2")
+    outputs.dir(layout.buildDirectory.dir("genOutput2"))
         .withPropertyName("outputDir")
 
     doLast {
         copy {
-            into("$buildDir/genOutput2")
+            into(layout.buildDirectory.dir("genOutput2"))
             from(fileTree("src/templates"))
-            expand("year" to "2012")
+            expand("year" to "2013")
         }
     }
 // tag::ad-hoc-task-skip-when-empty[]
@@ -70,10 +71,11 @@ tasks.register("processTemplatesAdHocSkipWhenEmpty") {
 tasks.register<ProcessTemplates>("processTemplatesWithExtraInputs") {
     // ...
 // end::custom-class-runtime-api[]
-    templateEngine = TemplateEngineType.FREEMARKER
-    sourceFiles = fileTree("src/templates")
-    templateData = TemplateData("test", mapOf("year" to "2014"))
-    outputDir = file("$buildDir/genOutput3")
+    templateEngine.set(TemplateEngineType.FREEMARKER)
+    sourceFiles.from(fileTree("src/templates"))
+    templateData.name.set("test")
+    templateData.variables.set(mapOf("year" to "2014"))
+    outputDir.set(file(layout.buildDirectory.dir("genOutput3")))
 // tag::custom-class-runtime-api[]
 
     inputs.file("src/headers/headers.txt")
@@ -82,16 +84,9 @@ tasks.register<ProcessTemplates>("processTemplatesWithExtraInputs") {
 }
 // end::custom-class-runtime-api[]
 
-tasks.register<ProcessTemplatesNoAnnotations>("processTemplatesWithoutAnnotations") {
-    templateEngine = TemplateEngineType.FREEMARKER
-    sourceFiles = fileTree("src/templates")
-    templateData = TemplateData("test", mapOf("year" to "2014"))
-    outputDir = file("$buildDir/genOutput3")
-}
-
 // tag::inferred-task-dep-via-outputs[]
 tasks.register<Zip>("packageFiles") {
-    from(processTemplates.get().outputs)
+    from(processTemplates.map {it.outputs })
 }
 // end::inferred-task-dep-via-outputs[]
 
@@ -104,11 +99,13 @@ tasks.register<Zip>("packageFiles2") {
 
 // tag::adhoc-destroyable-task[]
 tasks.register("removeTempDir") {
-    destroyables.register("$projectDir/tmpDir")
+    destroyables.register(layout.projectDirectory.dir("tmpDir"))
     doLast {
-        delete("$projectDir/tmpDir")
+        delete(layout.projectDirectory.dir("tmpDir"))
     }
 }
 // end::adhoc-destroyable-task[]
 
-tasks.build { dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs", "processTemplatesWithoutAnnotations") }
+tasks.build {
+    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs", "processTemplatesWithoutAnnotations")
+}

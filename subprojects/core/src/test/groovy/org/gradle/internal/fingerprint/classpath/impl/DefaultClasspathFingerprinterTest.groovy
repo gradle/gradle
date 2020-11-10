@@ -29,7 +29,7 @@ import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.InMemoryIndexedCache
+import org.gradle.testfixtures.internal.TestInMemoryPersistentIndexedCache
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -45,7 +45,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     }
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
-    InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
+    TestInMemoryPersistentIndexedCache<HashCode, HashCode> resourceHashesCache = new TestInMemoryPersistentIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
@@ -126,7 +126,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
 
         resourceHashesCache.keySet().size() == 1
         def key = resourceHashesCache.keySet().iterator().next()
-        resourceHashesCache.get(key).toString() == '397fdb436f96f0ebac6c1e147eb1cc51'
+        resourceHashesCache.getIfPresent(key).toString() == '397fdb436f96f0ebac6c1e147eb1cc51'
     }
 
     def "detects moving of files in jars and directories"() {
@@ -190,12 +190,12 @@ class DefaultClasspathFingerprinterTest extends Specification {
             ['another-library.jar', '', 'e9fa562dd3fd73bfa315b0f9876c2b6e']
         ]
         resourceHashesCache.keySet().size() == 2
-        def values = resourceHashesCache.keySet().collect { resourceHashesCache.get(it).toString() } as Set
+        def values = resourceHashesCache.keySet().collect { resourceHashesCache.getIfPresent(it).toString() } as Set
         values == ['397fdb436f96f0ebac6c1e147eb1cc51', 'e9fa562dd3fd73bfa315b0f9876c2b6e'] as Set
 
         when:
         fileCollectionFingerprint = fingerprint(zipFile, zipFile2)
-        values = resourceHashesCache.keySet().collect { resourceHashesCache.get(it).toString() } as Set
+        values = resourceHashesCache.keySet().collect { resourceHashesCache.getIfPresent(it).toString() } as Set
 
         then:
         fileCollectionFingerprint == [

@@ -28,7 +28,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -40,7 +40,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def listenerManager = new DefaultListenerManager(Scopes.Build)
     def fileSystemAccess = Mock(FileSystemAccess)
-    def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new InMemoryCacheFactory())
+    def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new TestInMemoryCacheFactory())
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {

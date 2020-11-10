@@ -38,6 +38,10 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+==== Toolchain API is now marked as @NonNull
+
+The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is now marked as `@NonNull`.
+
 ==== Updates to default tool integration versions
 
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].

@@ -164,7 +164,7 @@ You can also add an link:{javadocPath}/org/gradle/api/Action.html[Action] to a l
 [[sec:task_execution_graph_ready]]
 === Task execution graph ready
 
-You can receive a notification immediately after the task execution graph has been populated (See <<tutorial_using_tasks.adoc#configure-by-dag,Configure by DAG>>).
+You can receive a notification immediately after the task execution graph has been populated.
 
 You can also add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener] to the link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph] to receive these events.
 

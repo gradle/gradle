@@ -36,6 +36,7 @@ import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -61,7 +62,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
-
+    private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
@@ -89,6 +90,7 @@ class DefaultConfigurationContainerTest extends Specification {
         componentSelectorConverter,
         lockingProvider,
         projectStateRegistry,
+        calculatedValueContainerFactory,
         documentationRegistry,
         callbackActionDecorator,
         userCodeApplicationContext,

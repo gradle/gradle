@@ -1,17 +1,19 @@
-task hello {
+tasks.register('hello') {
     doLast {
         println 'Hello Earth'
     }
 }
-hello.doFirst {
-    println 'Hello Venus'
+tasks.named('hello') {
+    doFirst {
+        println 'Hello Venus'
+    }
 }
-hello.configure {
+tasks.named('hello') {
     doLast {
         println 'Hello Mars'
     }
 }
-hello.configure {
+tasks.named('hello') {
     doLast {
         println 'Hello Jupiter'
     }

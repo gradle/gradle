@@ -16,13 +16,18 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Transformer
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Function
 
 class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFactory {
     @Override
     <K, V> CrossBuildInMemoryCache<K, V> newCache() {
+        return new TestCache<K, V>()
+    }
+
+    @Override
+    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild() {
         return new TestCache<K, V>()
     }
 
@@ -40,15 +45,15 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
         private final Map<K, V> values = new ConcurrentHashMap<>()
 
         @Override
-        V get(K key) {
+        V getIfPresent(K key) {
             return values.get(key)
         }
 
         @Override
-        V get(K key, Transformer<V, K> factory) {
+        V get(K key, Function<? super K, ? extends V> factory) {
             def v = values.get(key)
             if (v == null) {
-                v = factory.transform(key)
+                v = factory.apply(key)
                 values.put(key, v)
             }
             return v

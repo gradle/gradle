@@ -90,7 +90,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         fails 'model'
 
         then:
-        failure.assertHasCause "Path to JDK 'myJDK' doesn't exist"
+        failure.assertHasCause "JDK 'myJDK' is not a valid JDK installation"
     }
 
     @Unroll

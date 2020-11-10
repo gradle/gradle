@@ -1,5 +1,5 @@
 // tag::inject-task-constructor[]
-class CustomTask extends DefaultTask {
+abstract class CustomTask extends DefaultTask {
     final String message
     final int number
 
@@ -19,5 +19,5 @@ class CustomTask extends DefaultTask {
 // end::inject-task-constructor[]
 
 // tag::on-task-container[]
-tasks.create('myTask', CustomTask, 'hello', 42)
+tasks.register('myTask', CustomTask, 'hello', 42)
 // end::on-task-container[]

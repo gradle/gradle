@@ -33,7 +33,7 @@ public class CrossBuildCachingNotationConverter<T> implements NotationConverter<
 
     @Override
     public void convert(Object notation, NotationConvertResult<? super T> result) throws TypeConversionException {
-        T value = cache.get(notation, key -> delegate.parseNotation(notation));
+        T value = cache.get(notation, () -> delegate.parseNotation(notation));
         result.converted(value);
     }
 

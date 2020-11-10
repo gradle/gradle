@@ -28,6 +28,9 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         def compilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJdk.javaHome.absolutePath)
+        executer.beforeExecute {
+            withToolchainDetectionEnabled()
+        }
         buildFile << """
             plugins {
                 id 'java'

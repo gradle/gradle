@@ -2,13 +2,16 @@ The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Danny Thomas](https://github.com/DanielThomas),
 [Jeff](https://github.com/mathjeff),
+[Mattia Tommasone](https://github.com/Raibaz),
 [jdai8](https://github.com/jdai8),
 [David Burström](https://github.com/davidburstrom),
 [Björn Kautler](https://github.com/Vampire),
 [Stefan Oehme](https://github.com/oehme),
 [Thad House](https://github.com/ThadHouse),
+[knittl](https://github.com/knittl),
 [Gregorios Leach](https://github.com/simtel12).
 
 <!--
@@ -173,29 +176,39 @@ There are many options to configure this feature which are described in the [use
 
 ### Viewing all available toolchains
 
-Gradle can now provide a list of all detected toolchains including their metadata.
+[Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with.
+By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as toolchain.
+In order to see which toolchains got detected and their corresponding metadata, Gradle 6.8 now provides some insight with the `javaToolchains` task.
+
 Output of `gradle -q javaToolchains`:
 ```
+ + Options
+     | Auto-detection:     Enabled
+     | Auto-download:      Enabled
+
  + AdoptOpenJDK 1.8.0_242
      | Location:           /path/to/8.0.242.hs-adpt/jre
      | Language Version:   8
+     | Vendor:             AdoptOpenJDK
      | Is JDK:             true
      | Detected by:        SDKMAN!
 
  + OpenJDK 15-ea
      | Location:           /path/to/java/15.ea.21-open
      | Language Version:   15
+     | Vendor:             AdoptOpenJDK
      | Is JDK:             true
      | Detected by:        SDKMAN!
 
  + Oracle JDK 1.7.0_80
      | Location:           /Library/Java/jdk1.7.0_80.jdk/jre
      | Language Version:   7
+     | Vendor:             Oracle
      | Is JDK:             true
      | Detected by:        macOS java_home
 ```
 
-This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.
+This can help to debug which toolchains are available to the build and if the expected toolchain got detected or [requires manual setup](userguide/toolchains.html#sec:custom_loc).
 See the [toolchain documentation](userguide/toolchains.html) for more in-depth information on toolchain detection and usage.
 
 ### Implicit imports

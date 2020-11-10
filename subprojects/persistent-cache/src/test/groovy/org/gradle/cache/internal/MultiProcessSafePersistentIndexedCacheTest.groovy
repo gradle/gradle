@@ -28,7 +28,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
 
     def "opens cache on first access"() {
         when:
-        cache.get("value")
+        cache.getIfPresent("value")
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
@@ -40,7 +40,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cacheOpened()
 
         when:
-        def result = cache.get("value")
+        def result = cache.getIfPresent("value")
 
         then:
         result == "result"
@@ -133,6 +133,6 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * factory.create() >> backingCache
 
-        cache.get("something")
+        cache.getIfPresent("something")
     }
 }

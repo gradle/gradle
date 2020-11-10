@@ -76,7 +76,7 @@ class AbstractCachedIndexTest extends Specification {
 
         then:
         item == null
-        cacheLockingManager.getCache(CACHE_NAME).get("foo") == null
+        cacheLockingManager.getCache(CACHE_NAME).getIfPresent("foo") == null
         0 * fileAccessTracker.markAccessed(_)
     }
 

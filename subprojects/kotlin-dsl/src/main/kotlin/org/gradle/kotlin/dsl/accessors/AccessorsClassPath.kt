@@ -28,7 +28,6 @@ import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
-import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -58,7 +57,6 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
-import java.util.Optional
 import javax.inject.Inject
 
 
@@ -85,11 +83,10 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 projectSchema,
                 classPath,
                 classpathFingerprinter,
-                workspaceProvider.history,
                 fileCollectionFactory,
                 workspaceProvider
             )
-            val result = executionEngine.execute(work, null)
+            val result = executionEngine.execute(work)
             result.executionResult.get().output as AccessorsClassPath
         }
     }
@@ -111,7 +108,6 @@ class GenerateProjectAccessors(
     private val projectSchema: TypedProjectSchema,
     private val classPath: ClassPath,
     private val classpathFingerprinter: ClasspathFingerprinter,
-    private val executionHistoryStore: ExecutionHistoryStore,
     private val fileCollectionFactory: FileCollectionFactory,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
@@ -152,18 +148,9 @@ class GenerateProjectAccessors(
         return UnitOfWork.Identity { identityHash }
     }
 
-    override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
-
-    override fun <T : Any> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
-        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
-            action.executeInWorkspace(workspace)
-        }
+    override fun getWorkspaceProvider() = workspaceProvider
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
-
-    override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
-        visitor.visitImplementation(GenerateProjectAccessors::class.java)
-    }
 
     override fun visitInputs(visitor: UnitOfWork.InputVisitor) {
         visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, IDENTITY) { hashCodeFor(projectSchema) }

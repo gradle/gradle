@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.logging.Logger
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -77,10 +78,38 @@ class SharedJavaInstallationRegistryTest extends Specification {
         installations.is(installations2)
     }
 
+    def "normalize installations to account for macOS folder layout"() {
+        given:
+        def tmpWithMacOsLayout = createTempDir()
+        def expectedHome = new File(tmpWithMacOsLayout, "Contents/Home")
+        assert expectedHome.mkdirs()
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpWithMacOsLayout)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations*.location.contains(expectedHome)
+    }
+
+    def "skip path normalization on non-osx systems"() {
+        given:
+        def rootWithMacOsLayout = createTempDir()
+        def expectedHome = new File(rootWithMacOsLayout, "Contents/Home")
+        assert expectedHome.mkdirs()
+        def registry = new SharedJavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], new TestBuildOperationExecutor(), OperatingSystem.LINUX)
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations*.location.contains(rootWithMacOsLayout)
+    }
+
     def "detecting installations is tracked as build operation"() {
         def executor = new TestBuildOperationExecutor()
         given:
-        def registry = new SharedJavaInstallationRegistry(Collections.emptyList(), executor)
+        def registry = new SharedJavaInstallationRegistry(Collections.emptyList(), executor, OperatingSystem.current())
 
         when:
         registry.listInstallations()
@@ -123,6 +152,6 @@ class SharedJavaInstallationRegistryTest extends Specification {
     }
 
     private SharedJavaInstallationRegistry newRegistry(File... location) {
-        new SharedJavaInstallationRegistry(location.collect { forDirectory(it) }, new TestBuildOperationExecutor())
+        new SharedJavaInstallationRegistry(location.collect { forDirectory(it) }, new TestBuildOperationExecutor(), OperatingSystem.current())
     }
 }

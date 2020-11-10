@@ -64,13 +64,13 @@ foo = 'org.gradle.test:lib:1.0'
         run 'verifyExtension'
 
         then:
-        operations.hasOperation("Generate dependency accessors for libs")
+        operations.hasOperation("Executing generation of dependency accessors for libs")
 
         when: "no change in settings"
         run 'verifyExtension'
 
         then: "extension is not regenerated"
-        !operations.hasOperation("Generate dependency accessors for libs")
+        !operations.hasOperation("Executing generation of dependency accessors for libs")
 
         when: "adding a library to the model"
         tomlFile << """
@@ -78,14 +78,14 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
 """
         run 'verifyExtension'
         then: "extension is regenerated"
-        operations.hasOperation("Generate dependency accessors for libs")
+        operations.hasOperation("Executing generation of dependency accessors for libs")
 
         when: "updating a version in the model"
         tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '="org.gradle.test:bar:1.1"')
         run 'verifyExtension'
 
         then: "extension is not regenerated"
-        !operations.hasOperation("Generate dependency accessors for libs")
+        !operations.hasOperation("Executing generation of dependency accessors for libs")
         outputContains 'Type-safe dependency accessors is an incubating feature.'
     }
 

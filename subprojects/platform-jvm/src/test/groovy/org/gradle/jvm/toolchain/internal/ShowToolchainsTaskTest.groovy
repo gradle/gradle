@@ -16,26 +16,29 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.JavaVersion
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.ProbeResult
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.SysProp
-
 class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
     TestShowToolchainsTask task
     def output
+    JvmMetadataDetector detector
 
     def setup() {
         task = project.tasks.create("test", TestShowToolchainsTask.class)
-        task.installationRegistry = Mock(SharedJavaInstallationRegistry)
-        task.probeService = Mock(JavaInstallationProbe)
+        detector = Mock(JvmMetadataDetector)
         output = new TestStyledTextOutput()
+
+        task.installationRegistry = Mock(SharedJavaInstallationRegistry)
+        task.metadataDetector = detector
+        task.providerFactory = createProviderFactory(true, true)
         task.outputFactory = Mock(StyledTextOutputFactory) {
             create(_ as Class) >> output
         }
@@ -51,44 +54,53 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         given:
         task.installationRegistry.listInstallations() >>
             [jdk14, jdk15, jdk9, jdk8, jdk82].collect {new InstallationLocation(it, "TestSource")}
-        task.probeService.checkJdk(jdk14) >> newProbe("14", JavaVersion.VERSION_14)
-        task.probeService.checkJdk(jdk15) >> newProbe("15-ea", JavaVersion.VERSION_15)
-        task.probeService.checkJdk(jdk9) >> newProbe("9", JavaVersion.VERSION_1_9)
-        task.probeService.checkJdk(jdk8) >> newProbe("1.8.0_202", JavaVersion.VERSION_1_8)
-        task.probeService.checkJdk(jdk82) >> newProbe("1.8.0_404", JavaVersion.VERSION_1_8)
+        detector.getMetadata(jdk14) >> metadata("14")
+        detector.getMetadata(jdk15) >> metadata("15-ea")
+        detector.getMetadata(jdk9) >> metadata("9")
+        detector.getMetadata(jdk8) >> metadata("1.8.0_202")
+        detector.getMetadata(jdk82) >> metadata("1.8.0_404")
 
         when:
         task.showToolchains()
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
+
 {identifier} + AdoptOpenJDK JRE 1.8.0_202{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
+     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 1.8.0_404{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
+     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 9{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}9{normal}
+     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
+     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + AdoptOpenJDK JRE 15-ea{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}15{normal}
+     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -103,24 +115,47 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         given:
         task.installationRegistry.listInstallations() >>
             [jdk14, invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
-        task.probeService.checkJdk(jdk14) >> newProbe("14", JavaVersion.VERSION_14)
-        task.probeService.checkJdk(invalid) >> newInvalidProbe(InstallType.INVALID_JDK)
-        task.probeService.checkJdk(noSuchDirectory) >> newInvalidProbe(InstallType.NO_SUCH_DIRECTORY)
+        detector.getMetadata(jdk14) >> metadata("14")
+        detector.getMetadata(invalid) >> newInvalidMetadata()
+        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
         when:
         task.showToolchains()
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
+
 {identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
+     | Vendor:             {description}AdoptOpenJDK{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
 {identifier} + Invalid toolchains{normal}
-     - INVALID_JDK:        {description}errorMessage{normal}
-     - NO_SUCH_DIRECTORY:  {description}errorMessage{normal}
+{identifier}     + path{normal}
+       | Error:              {description}errorMessage{normal}
+{identifier}     + path{normal}
+       | Error:              {description}errorMessage{normal}
+
+"""
+    }
+    def "reports download and detection options"() {
+        given:
+        task.providerFactory = createProviderFactory(false, false)
+        task.installationRegistry.listInstallations() >> []
+
+        when:
+        task.showToolchains()
+
+        then:
+        output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Disabled{normal}
+     | Auto-download:      {description}Disabled{normal}
 
 """
     }
@@ -132,37 +167,47 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         given:
         task.installationRegistry.listInstallations() >> [
             invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
-        task.probeService.checkJdk(invalid) >> newInvalidProbe(InstallType.INVALID_JDK)
-        task.probeService.checkJdk(noSuchDirectory) >> newInvalidProbe(InstallType.NO_SUCH_DIRECTORY)
+        detector.getMetadata(invalid) >> newInvalidMetadata()
+        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
         when:
         task.showToolchains()
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
+
 {identifier} + Invalid toolchains{normal}
-     - INVALID_JDK:        {description}errorMessage{normal}
-     - NO_SUCH_DIRECTORY:  {description}errorMessage{normal}
+{identifier}     + path{normal}
+       | Error:              {description}errorMessage{normal}
+{identifier}     + path{normal}
+       | Error:              {description}errorMessage{normal}
 
 """
     }
 
-    private ProbeResult newProbe(String implVersion, JavaVersion languageVersion) {
-        def metaData = new EnumMap<SysProp, String>(SysProp.class);
-        metaData.put(SysProp.JAVA_HOME, "path");
-        metaData.put(SysProp.VERSION, implVersion);
-        metaData.put(SysProp.VENDOR, "adoptopenjdk");
-        return ProbeResult.success(InstallType.IS_JRE, metaData)
+    JvmInstallationMetadata metadata(String implVersion) {
+        return JvmInstallationMetadata.from(new File("path"), implVersion, "adoptopenjdk", "")
     }
 
-    private ProbeResult newInvalidProbe(InstallType type) {
-        return ProbeResult.failure(type, "errorMessage");
+    JvmInstallationMetadata newInvalidMetadata() {
+        return JvmInstallationMetadata.failure(new File("path"), "errorMessage")
+    }
+
+    ProviderFactory createProviderFactory(boolean enableDetection, boolean enableDownload) {
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.of(String.valueOf(enableDetection))
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.of(String.valueOf(enableDownload))
+        providerFactory
     }
 
     static class TestShowToolchainsTask extends ShowToolchainsTask {
         def installationRegistry
-        def probeService
+        def metadataDetector
         def outputFactory
+        def providerFactory
 
         @Override
         protected SharedJavaInstallationRegistry getInstallationRegistry() {
@@ -170,13 +215,18 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        protected JavaInstallationProbe getProbeService() {
-            probeService
+        protected JvmMetadataDetector getMetadataDetector() {
+            return metadataDetector
         }
 
         @Override
         protected StyledTextOutputFactory getTextOutputFactory() {
             outputFactory
+        }
+
+        @Override
+        protected ProviderFactory getProviderFactory() {
+            providerFactory
         }
     }
 }

@@ -16,12 +16,17 @@
 
 package org.gradle.jvm.toolchain.internal.task;
 
+import com.google.common.base.Strings;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 
 import javax.inject.Inject;
@@ -30,14 +35,15 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType;
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.ProbeResult;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
-        .<ReportableToolchain, String>comparing(t -> t.probe.getImplementationName())
-        .thenComparing(t -> t.probe.getJavaVersion());
+        .<ReportableToolchain, String>comparing(t -> t.metadata.getDisplayName())
+        .thenComparing(t -> t.metadata.getLangageVersion());
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
@@ -50,36 +56,50 @@ public class ShowToolchainsTask extends DefaultTask {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
         toolchainRenderer.setOutput(output);
         output.println();
-        List<ReportableToolchain> validToolchains = validToolchains();
-        List<ReportableToolchain> invalidToolchains = invalidToolchains();
+        List<ReportableToolchain> toolchains = allReportableToolchains();
+        List<ReportableToolchain> validToolchains = validToolchains(toolchains);
+        List<ReportableToolchain> invalidToolchains = invalidToolchains(toolchains);
+        printOptions(output);
         validToolchains.forEach(toolchainRenderer::printToolchain);
         toolchainRenderer.printInvalidToolchains(invalidToolchains);
     }
 
-    private List<ReportableToolchain> invalidToolchains() {
-        return allReportableToolchains().stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
+    private void printOptions(StyledTextOutput output) {
+        boolean detectionEnabled = getBooleanProperty(AutoDetectingInstallationSupplier.AUTO_DETECT);
+        boolean downloadEnabled = getBooleanProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD);
+        output.withStyle(Identifier).println(" + Options");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-detection:", 20, ' '));
+        output.withStyle(Description).println(detectionEnabled ? "Enabled" : "Disabled");
+        output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-download:", 20, ' '));
+        output.withStyle(Description).println(downloadEnabled ? "Enabled" : "Disabled");
+        output.println();
     }
 
-    private List<ReportableToolchain> validToolchains() {
-        return allReportableToolchains().stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
+    private Boolean getBooleanProperty(String propertyKey) {
+        return getProviderFactory().gradleProperty(propertyKey).forUseAtConfigurationTime().map(Boolean::parseBoolean).getOrElse(true);
+    }
+
+    private List<ReportableToolchain> invalidToolchains(List<ReportableToolchain> toolchains) {
+        return toolchains.stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
+    }
+
+    private List<ReportableToolchain> validToolchains(List<ReportableToolchain> toolchains) {
+        return toolchains.stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
     }
 
     private Predicate<? super ReportableToolchain> isValidToolchain() {
-        return t -> {
-            InstallType installType = t.probe.getInstallType();
-            return installType == InstallType.IS_JDK || installType == InstallType.IS_JRE;
-        };
+        return t -> t.metadata.isValidInstallation();
     }
 
     private List<ReportableToolchain> allReportableToolchains() {
-        return getInstallationRegistry().listInstallations().stream()
+        return getInstallationRegistry().listInstallations().parallelStream()
             .map(this::asReportableToolchain)
             .collect(Collectors.toList());
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        ProbeResult result = getProbeService().checkJdk(location.getLocation());
-        return new ReportableToolchain(result, location);
+        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location.getLocation());
+        return new ReportableToolchain(metadata, location);
     }
 
     @Inject
@@ -88,7 +108,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     @Inject
-    protected JavaInstallationProbe getProbeService() {
+    protected JvmMetadataDetector getMetadataDetector() {
         throw new UnsupportedOperationException();
     }
 
@@ -97,5 +117,9 @@ public class ShowToolchainsTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
 
 }

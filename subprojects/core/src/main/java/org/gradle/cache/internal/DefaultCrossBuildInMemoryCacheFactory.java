@@ -16,9 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
+import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
 
@@ -31,6 +30,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -56,6 +58,13 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     @Override
+    public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild() {
+        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache = new CrossBuildCacheRetainingDataFromPreviousBuild<>();
+        listenerManager.addListener(cache);
+        return cache;
+    }
+
+    @Override
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
         // Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
         // for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
@@ -73,7 +82,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
         private final Object lock = new Object();
-        private final Map<K, V> valuesForThisSession = new HashMap<K, V>();
+        private final Map<K, V> valuesForThisSession = new HashMap<>();
 
         @Override
         public void afterStart() {
@@ -106,22 +115,22 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Nullable
         @Override
-        public V get(K key) {
+        public V getIfPresent(K key) {
             synchronized (lock) {
-                return getIfPresent(key);
+                return getIfPresentWithoutLock(key);
             }
         }
 
         @Override
-        public V get(K key, Transformer<V, K> factory) {
+        public V get(K key, Function<? super K, ? extends V> factory) {
             synchronized (lock) {
-                V v = getIfPresent(key);
+                V v = getIfPresentWithoutLock(key);
                 if (v != null) {
                     return v;
                 }
 
                 // TODO - do not hold lock while computing value
-                v = factory.transform(key);
+                v = factory.apply(key);
 
                 retainValue(key, v);
 
@@ -141,7 +150,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         // Caller must be holding lock
-        private V getIfPresent(K key) {
+        private V getIfPresentWithoutLock(K key) {
             V v = valuesForThisSession.get(key);
             if (v != null) {
                 return v;
@@ -160,7 +169,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
         // This is used only to retain strong references to the values
-        private final Set<V> valuesForPreviousSession = new HashSet<V>();
+        private final Set<V> valuesForPreviousSession = new HashSet<>();
         private final Map<K, SoftReference<V>> allValues;
 
         public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
@@ -182,7 +191,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Override
         protected void retainValue(K key, V v) {
-            allValues.put(key, new SoftReference<V>(v));
+            allValues.put(key, new SoftReference<>(v));
         }
 
         @Nullable
@@ -228,14 +237,57 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private Map<Class<?>, V> getCacheScope(Class<?> type) {
             ClassLoader classLoader = type.getClassLoader();
             if (classLoader instanceof VisitableURLClassLoader) {
-                return ((VisitableURLClassLoader) classLoader).getUserData(this, new Factory<Map<Class<?>, V>>() {
-                    @Override
-                    public Map<Class<?>, V> create() {
-                        return new HashMap<>();
-                    }
-                });
+                return ((VisitableURLClassLoader) classLoader).getUserData(this, HashMap::new);
             }
             return leakyValues;
+        }
+    }
+
+    private static class CrossBuildCacheRetainingDataFromPreviousBuild<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
+        private final ManualEvictionInMemoryCache<K, V> delegate = new ManualEvictionInMemoryCache<>();
+        private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
+        private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
+
+        @Override
+        public V get(K key, Function<? super K, ? extends V> factory) {
+            keysFromCurrentBuild.put(key, Boolean.TRUE);
+            return delegate.get(key, factory);
+        }
+
+        @Override
+        public V getIfPresent(K key) {
+            keysFromCurrentBuild.put(key, Boolean.TRUE);
+            return delegate.getIfPresent(key);
+        }
+
+        @Override
+        public void put(K key, V value) {
+            keysFromCurrentBuild.put(key, Boolean.TRUE);
+            delegate.put(key, value);
+        }
+
+        @Override
+        public void clear() {
+            delegate.clear();
+            keysFromCurrentBuild.clear();
+            keysFromPreviousBuild.clear();
+        }
+
+        @Override
+        public void afterStart() {
+        }
+
+        @Override
+        public void beforeComplete() {
+            final Set<K> keysToRetain = new HashSet<>();
+            keysToRetain.addAll(keysFromPreviousBuild.keySet());
+            keysToRetain.addAll(keysFromCurrentBuild.keySet());
+
+            delegate.retainAll(keysToRetain);
+
+            keysFromPreviousBuild.clear();
+            keysFromPreviousBuild.putAll(keysFromCurrentBuild);
+            keysFromCurrentBuild.clear();
         }
     }
 }

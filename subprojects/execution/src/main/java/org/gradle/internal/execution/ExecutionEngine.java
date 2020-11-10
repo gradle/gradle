@@ -16,14 +16,33 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.cache.Cache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public interface ExecutionEngine {
-    CachingResult execute(UnitOfWork work, @Nullable String rebuildReason);
+    /**
+     * Execute the given unit of work using available optimizations like
+     * up-to-date checks, build cache and incremental execution.
+     */
+    CachingResult execute(UnitOfWork work);
 
-    <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
+    /**
+     * Force the re-execution of the given unit of work disabling optimizations
+     * like up-to-date checks, build cache and incremental execution.
+     *
+     * @param reason the reason to report for rebuilding the given unit of work.
+     */
+    CachingResult rebuild(UnitOfWork work, String reason);
+
+    /**
+     * Load the given unit from the given cache, or defer its execution.
+     *
+     * If the cache already contains the outputs for the given work, it is passed directly to {@link DeferredExecutionHandler#processCachedOutput(Try)}.
+     * Otherwise the execution is wrapped in deferred via {@link DeferredExecutionHandler#processDeferredOutput(Supplier)}.
+     * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
+     */
+    <T, O> T getFromIdentityCacheOrDeferExecution(UnitOfWork work, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler);
 }

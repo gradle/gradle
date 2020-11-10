@@ -92,7 +92,7 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         public <T> T newInstance(Class<T> implType, Class<? super T> baseClass) {
             // TODO - The baseClass can be inferred from the implType, so attach the serialization constructor onto the GeneratedClass rather than parameterizing and caching here
             try {
-                ClassGenerator.SerializationConstructor<?> constructor = constructorCache.get(implType, type -> classGenerator.generate(implType).getSerializationConstructor(baseClass));
+                ClassGenerator.SerializationConstructor<?> constructor = constructorCache.get(implType, () -> classGenerator.generate(implType).getSerializationConstructor(baseClass));
                 return implType.cast(constructor.newInstance(services, nestedGenerator));
             } catch (InvocationTargetException e) {
                 throw new ObjectInstantiationException(implType, e.getCause());

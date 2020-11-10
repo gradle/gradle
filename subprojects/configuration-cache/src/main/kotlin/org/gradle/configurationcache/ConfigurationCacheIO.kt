@@ -173,6 +173,7 @@ class ConfigurationCacheIO internal constructor(
             actionScheme = service(),
             attributesFactory = service(),
             valueSourceProviderFactory = service(),
+            calculatedValueContainerFactory = service(),
             patternSetFactory = factory(),
             fileOperations = service(),
             fileFactory = service(),
