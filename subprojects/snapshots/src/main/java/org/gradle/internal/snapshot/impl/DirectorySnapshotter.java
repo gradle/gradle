@@ -212,6 +212,7 @@ public class DirectorySnapshotter {
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
             } else {
+                relativePathTracker.leave();
                 return FileVisitResult.SKIP_SUBTREE;
             }
         }
