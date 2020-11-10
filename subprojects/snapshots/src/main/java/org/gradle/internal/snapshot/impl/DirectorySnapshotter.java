@@ -204,10 +204,9 @@ public class DirectorySnapshotter {
 
         @Override
         protected FileVisitResult doPreVisitDirectory(Path dir, BasicFileAttributes attrs) {
-            String fileName = getFilename(dir);
+            String fileName = getInternedFileName(dir);
             relativePathTracker.enter(fileName);
-            String internedName = intern(fileName);
-            if (relativePathTracker.isRoot() || shouldVisit(dir, internedName, true, relativePathTracker.getSegments())) {
+            if (relativePathTracker.isRoot() || shouldVisit(dir, fileName, true, relativePathTracker.getSegments())) {
                 builder.preVisitDirectory(intern(remapAbsolutePath(dir)));
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
@@ -219,7 +218,7 @@ public class DirectorySnapshotter {
 
         @Override
         protected FileVisitResult doVisitFile(Path file, BasicFileAttributes attrs) {
-            relativePathTracker.enter(getFilename(file));
+            relativePathTracker.enter(getInternedFileName(file));
             try {
                 if (attrs.isSymbolicLink()) {
                     BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
@@ -298,7 +297,7 @@ public class DirectorySnapshotter {
         /** unlistable directories (and maybe some locked files) will stop here */
         @Override
         protected FileVisitResult doVisitFileFailed(Path file, IOException exc) {
-            relativePathTracker.enter(getFilename(file));
+            relativePathTracker.enter(getInternedFileName(file));
             try {
                 // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                 // so we include all the other files apart from the loop.
@@ -320,7 +319,7 @@ public class DirectorySnapshotter {
 
         @Override
         protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
-            relativePathTracker.leave();
+            String dirName = relativePathTracker.leave();
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
@@ -330,7 +329,7 @@ public class DirectorySnapshotter {
             AccessType accessType = AccessType.viaSymlink(
                 !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
             );
-            builder.postVisitDirectory(accessType, getFilename(dir));
+            builder.postVisitDirectory(accessType, dirName);
             parentDirectories.removeFirst();
             return FileVisitResult.CONTINUE;
         }
@@ -367,9 +366,9 @@ public class DirectorySnapshotter {
             return allowed;
         }
 
-        private static String getFilename(Path dir) {
+        private String getInternedFileName(Path dir) {
             Path fileName = dir.getFileName();
-            return fileName == null ? "" : fileName.toString();
+            return fileName == null ? "" : intern(fileName.toString());
         }
 
         public CompleteFileSystemLocationSnapshot getResult() {
