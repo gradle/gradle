@@ -55,7 +55,6 @@ import java.util.Map;
 
 import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.IGNORE;
 import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
-import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
 
 /**
  * Fingerprints classpath-like file collections.
@@ -123,7 +122,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(asSimpleHierarchyVisitor(new ClasspathContentFingerprintingVisitor(processedEntries, builder)));
+            root.accept(new ClasspathContentFingerprintingVisitor(processedEntries, builder).asHierarchyVisitor());
         }
         return builder.build();
     }

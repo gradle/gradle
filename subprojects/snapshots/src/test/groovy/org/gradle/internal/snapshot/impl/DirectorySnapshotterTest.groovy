@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,7 +42,6 @@ import spock.lang.Specification
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 
-import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @UsesNativeServices
@@ -81,11 +81,11 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(asSimpleHierarchyVisitor { CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
+        snapshot.accept(({ CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
             visited << entrySnapshot.absolutePath
             relativePaths << relativePath.toPathString()
             return CONTINUE
-        })
+        } as RelativePathTrackingFileSystemSnapshotHierarchyVisitor).asHierarchyVisitor())
 
         then:
         visited.contains(rootTextFile.absolutePath)
@@ -146,11 +146,11 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(asSimpleHierarchyVisitor { CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
+        snapshot.accept(({ CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
             visited << entrySnapshot.absolutePath
             relativePaths << relativePath.toPathString()
             CONTINUE
-        })
+        } as RelativePathTrackingFileSystemSnapshotHierarchyVisitor).asHierarchyVisitor())
 
         then:
         visited.contains(rootTextFile.absolutePath)

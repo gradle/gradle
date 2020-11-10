@@ -69,8 +69,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
-
 /**
  * Packages build cache entries to a POSIX TAR file.
  */
@@ -150,7 +148,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private long packTree(String name, TreeType type, FileSystemSnapshot snapshots, TarArchiveOutputStream tarOutput) {
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, filePermissionAccess);
-        snapshots.accept(asSimpleHierarchyVisitor(packingVisitor));
+        snapshots.accept(packingVisitor.asHierarchyVisitor());
         return packingVisitor.finish();
     }
 

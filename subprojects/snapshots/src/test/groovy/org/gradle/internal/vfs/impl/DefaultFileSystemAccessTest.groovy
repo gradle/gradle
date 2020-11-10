@@ -23,7 +23,6 @@ import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @Unroll
@@ -188,7 +187,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         allowFileSystemAccess(true)
         def snapshot = read(d, new FileNameFilter({ name -> name.endsWith('1')}))
         def relativePaths = []
-        snapshot.accept(asSimpleHierarchyVisitor(new RelativePathCapturingVisitor(relativePaths)))
+        snapshot.accept(new RelativePathCapturingVisitor(relativePaths).asHierarchyVisitor())
         then:
         assertIsDirectorySnapshot(snapshot, d)
         relativePaths == ["d1", "d1/f1", "f1"]
@@ -251,7 +250,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         allowFileSystemAccess(false)
         def snapshot = read(d, patterns)
         def relativePaths = []
-        snapshot.accept(asSimpleHierarchyVisitor(new RelativePathCapturingVisitor(relativePaths)))
+        snapshot.accept(new RelativePathCapturingVisitor(relativePaths).asHierarchyVisitor())
 
         then: "The filtered tree uses the cached state"
         relativePaths as Set == ["d1", "d1/f1", "f1"] as Set

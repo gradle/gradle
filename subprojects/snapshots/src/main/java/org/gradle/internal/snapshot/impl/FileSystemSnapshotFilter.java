@@ -31,8 +31,6 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
-
 public class FileSystemSnapshotFilter {
 
     private FileSystemSnapshotFilter() {
@@ -41,7 +39,7 @@ public class FileSystemSnapshotFilter {
     public static FileSystemSnapshot filterSnapshot(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-        unfiltered.accept(asSimpleHierarchyVisitor(new FilteringVisitor(predicate, builder, hasBeenFiltered)));
+        unfiltered.accept(new FilteringVisitor(predicate, builder, hasBeenFiltered).asHierarchyVisitor());
         if (builder.getResult() == null) {
             return FileSystemSnapshot.EMPTY;
         }

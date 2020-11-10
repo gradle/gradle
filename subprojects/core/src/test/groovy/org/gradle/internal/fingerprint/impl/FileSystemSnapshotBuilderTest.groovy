@@ -28,7 +28,6 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
-import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -69,16 +68,13 @@ class FileSystemSnapshotBuilderTest extends Specification {
         Set<String> files = [] as Set
         Set<String> relativePaths = [] as Set
         def result = builder.build()
-        result.accept RelativePathTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor(new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
-            @Override
-            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
-                if (!relativePath.root) {
-                    files.add(snapshot.absolutePath)
-                    relativePaths << relativePath.toPathString()
-                }
-                return CONTINUE
+        result.accept(({ CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath ->
+            if (!relativePath.root) {
+                files.add(snapshot.absolutePath)
+                relativePaths << relativePath.toPathString()
             }
-        })
+            return CONTINUE
+        } as RelativePathTrackingFileSystemSnapshotHierarchyVisitor).asHierarchyVisitor())
 
         then:
         normalizeFileSeparators(files) == normalizeFileSeparators(expectedRelativePaths.collect { "${basePath}/$it".toString() } as Set)

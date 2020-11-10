@@ -36,20 +36,20 @@ public interface RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
      */
     default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath, String parentName) {}
 
-    static FileSystemSnapshotHierarchyVisitor asSimpleHierarchyVisitor(RelativePathTrackingFileSystemSnapshotHierarchyVisitor delegate) {
+    default FileSystemSnapshotHierarchyVisitor asHierarchyVisitor() {
         RelativePathTracker tracker = new RelativePathTracker();
         return new FileSystemSnapshotHierarchyVisitor() {
             @Override
             public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 tracker.enter(directorySnapshot);
-                delegate.enterDirectory(directorySnapshot, tracker);
+                RelativePathTrackingFileSystemSnapshotHierarchyVisitor.this.enterDirectory(directorySnapshot, tracker);
             }
 
             @Override
             public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
                 tracker.enter(snapshot);
                 try {
-                    return delegate.visitEntry(snapshot, tracker);
+                    return RelativePathTrackingFileSystemSnapshotHierarchyVisitor.this.visitEntry(snapshot, tracker);
                 } finally {
                     tracker.leave();
                 }
@@ -58,7 +58,7 @@ public interface RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
             @Override
             public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 String parentName = tracker.leave();
-                delegate.leaveDirectory(directorySnapshot, tracker, parentName);
+                RelativePathTrackingFileSystemSnapshotHierarchyVisitor.this.leaveDirectory(directorySnapshot, tracker, parentName);
             }
         };
     }
