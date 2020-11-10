@@ -76,21 +76,21 @@ class OptionsVerifier {
     String dumpProcessEnvironment(boolean includeBootstrapClasspath) {
         return """
             Map processEnv = [:]
-            
+
             RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
             List<String> arguments = runtimeMxBean.getInputArguments();
-            
+
             processEnv["${ARGUMENTS}"] = arguments
-            
+
             if (${includeBootstrapClasspath}) {
                 processEnv["${BOOTSTRAP_CLASSPATH}"] = runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/')
             }
-            
+
             processEnv["${ENV_VARIABLES}"] = [:]
             System.getenv().each { key, value ->
                 processEnv["${ENV_VARIABLES}"][key] = value
             }
-            
+
             new File('${TextUtil.normaliseFileSeparators(processJsonFile.absolutePath)}').text = groovy.json.JsonOutput.toJson(processEnv)
         """
     }
@@ -235,7 +235,7 @@ class OptionsVerifier {
         @Override
         String getDsl() {
             return """
-                bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
+                bootstrapClasspath = fileTree(new File(Jvm.current().jre, "lib")).include("*.jar")
                 bootstrapClasspath(new File('${path}'))
             """
         }

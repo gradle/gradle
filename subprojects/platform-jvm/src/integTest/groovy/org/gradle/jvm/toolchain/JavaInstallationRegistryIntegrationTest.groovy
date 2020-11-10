@@ -130,7 +130,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         taskTypeShowsJavaInstallationDetails()
         buildFile << """
             task show(type: ShowTask) {
-                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("${jre.homeDir.toURI()}"))
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.layout.projectDirectory.dir("${jre.toURI()}"))
             }
         """
 
