@@ -30,7 +30,7 @@ import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.internal.Factory
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -163,7 +163,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
 
         then:
         assert snapshots.size() == 1
-        assert getSnapshotInfo(snapshots[0]) == [null, 0]
+        assert getSnapshotCount(snapshots[0]) == 0
     }
 
     def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
@@ -229,19 +229,15 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
 
     void assertSingleFileSnapshot(snapshots) {
         assert snapshots.size() == 1
-        assert getSnapshotInfo(snapshots[0]) == [null, 1]
+        assert getSnapshotCount(snapshots[0]) == 1
     }
 
-    private static List getSnapshotInfo(FileSystemSnapshot tree) {
-        String rootPath = null
+    private static int getSnapshotCount(FileSystemSnapshot tree) {
         int count = 0
-        tree.accept(RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor { CompleteFileSystemLocationSnapshot snapshot, boolean isRoot ->
-            if (isRoot) {
-                rootPath = snapshot.absolutePath
-            }
+        tree.accept({ CompleteFileSystemLocationSnapshot snapshot ->
             count++
             return CONTINUE
-        })
-        return [rootPath, count]
+        } as FileSystemSnapshotHierarchyVisitor)
+        return count
     }
 }
