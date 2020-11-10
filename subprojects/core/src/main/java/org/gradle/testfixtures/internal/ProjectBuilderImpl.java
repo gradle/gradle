@@ -19,7 +19,6 @@ package org.gradle.testfixtures.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildType;
@@ -44,7 +43,6 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -73,7 +71,6 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Set;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
@@ -123,7 +120,6 @@ public class ProjectBuilderImpl {
 
         GradleInternal gradle = buildServices.get(InstantiatorFactory.class).decorateLenient().newInstance(DefaultGradle.class, null, startParameter, buildServices.get(ServiceRegistryFactory.class));
         gradle.setIncludedBuilds(Collections.emptyList());
-        build.setGradle(gradle); // the TestRootBuild instance cannot be created after GradleInternal
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
@@ -202,7 +198,6 @@ public class ProjectBuilderImpl {
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
         private final File rootProjectDir;
-        private GradleInternal gradle;
 
         public TestRootBuild(File rootProjectDir) {
             this.rootProjectDir = rootProjectDir;
@@ -265,25 +260,6 @@ public class ProjectBuilderImpl {
         @Override
         public File getBuildRootDir() {
             return rootProjectDir;
-        }
-
-        @Override
-        public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public GradleInternal getBuild() {
-            return gradle;
-        }
-
-        @Override
-        public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void setGradle(GradleInternal gradle) {
-            this.gradle = gradle;
         }
     }
 }

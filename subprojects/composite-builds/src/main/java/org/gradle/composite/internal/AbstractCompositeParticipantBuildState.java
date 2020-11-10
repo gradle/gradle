@@ -26,13 +26,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractCompositeParticipantBuildState extends AbstractBuildState {
+public abstract class AbstractCompositeParticipantBuildState extends AbstractBuildState implements CompositeBuildParticipantBuildState {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompositeParticipantBuildState.class);
 
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;

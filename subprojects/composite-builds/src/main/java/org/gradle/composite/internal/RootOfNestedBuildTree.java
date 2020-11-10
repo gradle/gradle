@@ -27,6 +27,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.NestedRootBuild;
@@ -40,7 +41,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 
-public class RootOfNestedBuildTree extends AbstractCompositeParticipantBuildState implements NestedRootBuild {
+public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
     private final BuildState owner;
@@ -139,11 +140,6 @@ public class RootOfNestedBuildTree extends AbstractCompositeParticipantBuildStat
         } finally {
             buildController.stop();
         }
-    }
-
-    @Override
-    public GradleInternal getBuild() {
-        return gradleLauncher.getGradle();
     }
 }
 
