@@ -185,7 +185,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s\n%s", candidate.getName(), javaHome, metadata.getErrorMessage()));
                 }
                 Class<? extends LocalJavaInstallation> clazz;
-                if(metadata.getCapabilities().contains(JAVA_COMPILER)) {
+                if(metadata.hasCapability(JAVA_COMPILER)) {
                     clazz = InstalledJdkInternal.class;
                 } else {
                     clazz = InstalledJre.class;

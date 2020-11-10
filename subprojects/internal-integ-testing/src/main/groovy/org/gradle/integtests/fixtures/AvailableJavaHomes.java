@@ -131,7 +131,7 @@ public abstract class AvailableJavaHomes {
 
     public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
         return getJvms().stream()
-            .filter(input -> input.getCapabilities().contains(JAVA_COMPILER))
+            .filter(input -> input.hasCapability(JAVA_COMPILER))
             .filter(filter::isSatisfiedBy)
             .map(AvailableJavaHomes::jvmFromMetadata)
             .collect(Collectors.toList());

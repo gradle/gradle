@@ -51,7 +51,7 @@ public interface JvmInstallationMetadata {
 
     String getDisplayName();
 
-    Set<JavaInstallationCapability> getCapabilities();
+    boolean hasCapability(JavaInstallationCapability capability);
 
     String getErrorMessage();
 
@@ -59,12 +59,12 @@ public interface JvmInstallationMetadata {
 
     class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
 
-        private JavaVersion languageVersion;
+        private final JavaVersion languageVersion;
         private final String vendor;
         private final String implementationName;
-        private Path javaHome;
+        private final Path javaHome;
         private final String implementationVersion;
-        private Supplier<Set<JavaInstallationCapability>> capabilities = Suppliers.memoize(() -> gatherCapabilities());
+        private final Supplier<Set<JavaInstallationCapability>> capabilities = Suppliers.memoize(this::gatherCapabilities);
 
         private DefaultJvmInstallationMetadata(File javaHome, String implementationVersion, String vendor, String implementationName) {
             this.javaHome = javaHome.toPath();
@@ -112,7 +112,7 @@ public interface JvmInstallationMetadata {
         }
 
         private String determineInstallationType(String vendor) {
-            if (getCapabilities().contains(JavaInstallationCapability.JAVA_COMPILER)) {
+            if (hasCapability(JavaInstallationCapability.JAVA_COMPILER)) {
                 if (!vendor.toLowerCase().contains("jdk")) {
                     return " JDK";
                 }
@@ -122,8 +122,8 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public Set<JavaInstallationCapability> getCapabilities() {
-            return capabilities.get();
+        public boolean hasCapability(JavaInstallationCapability capability) {
+            return capabilities.get().contains(capability);
         }
 
         private Set<JavaInstallationCapability> gatherCapabilities() {
@@ -181,8 +181,8 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public Set<JavaInstallationCapability> getCapabilities() {
-            return Collections.emptySet();
+        public boolean hasCapability(JavaInstallationCapability capability) {
+            return false;
         }
 
         private UnsupportedOperationException unsupportedOperation() {
