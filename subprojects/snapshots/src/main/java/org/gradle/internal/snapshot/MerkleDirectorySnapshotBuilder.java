@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
+
 public class MerkleDirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
@@ -61,13 +63,13 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public void postVisitDirectory(AccessType accessType, String name) {
-        postVisitDirectory(true, accessType, name);
+        postVisitDirectory(EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS, accessType, name);
     }
 
-    public boolean postVisitDirectory(boolean includeEmpty, AccessType accessType, String name) {
+    public boolean postVisitDirectory(EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy, AccessType accessType, String name) {
         List<CompleteFileSystemLocationSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();
-        if (children.isEmpty() && !includeEmpty) {
+        if (emptyDirectoryHandlingStrategy == EXCLUDE_EMPTY_DIRS && children.isEmpty()) {
             return false;
         }
         if (sortingRequired) {
@@ -105,5 +107,10 @@ public class MerkleDirectorySnapshotBuilder {
             assert rootLevel.size() == 1;
             return rootLevel.get(0);
         }
+    }
+
+    public enum EmptyDirectoryHandlingStrategy {
+        INCLUDE_EMPTY_DIRS,
+        EXCLUDE_EMPTY_DIRS
     }
 }

@@ -100,7 +100,7 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath, String parentName) {
-            builder.postVisitDirectory(true, directorySnapshot.getAccessType(), parentName);
+            builder.postVisitDirectory(directorySnapshot.getAccessType(), parentName);
         }
     }
 }

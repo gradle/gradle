@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
@@ -37,6 +38,9 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
+
+import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
 /**
  * Filters out fingerprints that are not considered outputs. Entries that are considered outputs are:
@@ -190,7 +194,10 @@ public class OutputFilterUtil {
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
             boolean isOutputDir = predicate.test(directorySnapshot, isRoot);
-            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir, directorySnapshot.getAccessType(), directorySnapshot.getName());
+            EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy = isOutputDir
+                ? INCLUDE_EMPTY_DIRS
+                : EXCLUDE_EMPTY_DIRS;
+            boolean includedDir = merkleBuilder.postVisitDirectory(emptyDirectoryHandlingStrategy, directorySnapshot.getAccessType(), directorySnapshot.getName());
             if (!includedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;
