@@ -18,23 +18,44 @@ package org.gradle.caching.internal.packaging.impl
 
 import spock.lang.Specification
 
-import java.util.function.Consumer
-
 class RelativePathParserTest extends Specification {
+    def parentHandler = Mock(RelativePathParser.DirectoryExitHandler)
 
-    def "can parse sequence of relative paths"() {
-        def parentHandler = Mock(Consumer)
-        boolean outsideOfRoot
+    def "can work when empty"() {
+        def parser = new RelativePathParser("tree-some/")
+
+        expect:
+        parser.root
 
         when:
-        def parser = new RelativePathParser("tree-some/")
+        parser.exitToRoot(parentHandler)
         then:
-        parser.root
+        0 * _
+    }
+
+    def "can exit when moved to different root"() {
+        def parser = new RelativePathParser("tree-some/")
+
+        when:
+        boolean outsideOfRoot = parser.nextPath("tree-other/", true, parentHandler)
+        then:
+        0 * _
+        outsideOfRoot
+
+        when:
+        parser.exitToRoot(parentHandler)
+        then:
+        0 * _
+    }
+
+    def "can parse sequence of relative paths"() {
+        def parser = new RelativePathParser("tree-some/")
+        boolean outsideOfRoot
 
         when:
         outsideOfRoot = parser.nextPath("tree-some/first/", true, parentHandler)
         then:
-        0 * parentHandler.accept(_)
+        0 * parentHandler.handleExit(_, _)
         then:
         parser.name == "first"
         parser.relativePath == "first"
@@ -44,7 +65,7 @@ class RelativePathParserTest extends Specification {
         when:
         outsideOfRoot = parser.nextPath("tree-some/first/file.txt", false, parentHandler)
         then:
-        0 * parentHandler.accept(_)
+        0 * parentHandler.handleExit(_, _)
         then:
         parser.name == "file.txt"
         parser.relativePath == "first/file.txt"
@@ -54,7 +75,7 @@ class RelativePathParserTest extends Specification {
         when:
         outsideOfRoot = parser.nextPath("tree-some/second/", true, parentHandler)
         then:
-        1 * parentHandler.accept("first")
+        1 * parentHandler.handleExit("tree-some/first", "first")
         then:
         parser.name == "second"
         parser.relativePath == "second"
@@ -64,7 +85,7 @@ class RelativePathParserTest extends Specification {
         when:
         outsideOfRoot = parser.nextPath("tree-some/second/third/", true, parentHandler)
         then:
-        0 * parentHandler.accept("first")
+        0 * parentHandler.handleExit(_, _)
         then:
         parser.name == "third"
         parser.relativePath == "second/third"
@@ -74,7 +95,7 @@ class RelativePathParserTest extends Specification {
         when:
         outsideOfRoot = parser.nextPath("tree-some/second/third/forth/", true, parentHandler)
         then:
-        0 * parentHandler.accept("first")
+        0 * parentHandler.handleExit(_, _)
         then:
         parser.name == "forth"
         parser.relativePath == "second/third/forth"
@@ -84,7 +105,7 @@ class RelativePathParserTest extends Specification {
         when:
         outsideOfRoot = parser.nextPath("tree-some/second/third/one-file.txt", false, parentHandler)
         then:
-        1 * parentHandler.accept("forth")
+        1 * parentHandler.handleExit("tree-some/second/third/forth", "forth")
         then:
         parser.name == "one-file.txt"
         parser.relativePath == "second/third/one-file.txt"
@@ -94,9 +115,9 @@ class RelativePathParserTest extends Specification {
         when:
         outsideOfRoot = parser.nextPath("tree-some/another-file.txt", false, parentHandler)
         then:
-        1 * parentHandler.accept("third")
+        1 * parentHandler.handleExit("tree-some/second/third", "third")
         then:
-        1 * parentHandler.accept("second")
+        1 * parentHandler.handleExit("tree-some/second", "second")
         then:
         parser.name == "another-file.txt"
         parser.relativePath == "another-file.txt"
@@ -106,7 +127,7 @@ class RelativePathParserTest extends Specification {
         when:
         outsideOfRoot = parser.nextPath("tree-some/more-file.txt", false, parentHandler)
         then:
-        0 * parentHandler.accept(_)
+        0 * parentHandler.handleExit(_, _)
         then:
         parser.name == "more-file.txt"
         parser.relativePath == "more-file.txt"
@@ -121,32 +142,30 @@ class RelativePathParserTest extends Specification {
 
     def "can parse with dots"() {
         def parser = new RelativePathParser("tree-reports.html.destination/")
-        def parentHandler = Mock(Consumer)
         boolean outsideOfRoot
 
         when:
         outsideOfRoot = parser.nextPath("tree-reports.html.destination/classes/", true, parentHandler)
         then:
-        0 * parentHandler.accept(_)
+        0 * parentHandler.handleExit(_, _)
         !outsideOfRoot
 
         when:
         outsideOfRoot = parser.nextPath("tree-reports.html.destination/classes/FooTest.html", false, parentHandler)
         then:
-        0 * parentHandler.accept(_)
+        0 * parentHandler.handleExit(_, _)
         !outsideOfRoot
 
         when:
         outsideOfRoot = parser.nextPath("tree-reports.html.destination/css/", true, parentHandler)
         then:
-        1 * parentHandler.accept("classes")
+        1 * parentHandler.handleExit("tree-reports.html.destination/classes", "classes")
         !outsideOfRoot
 
         when:
-        outsideOfRoot = parser.exitToRoot(parentHandler)
+        parser.exitToRoot(parentHandler)
         then:
-        1 * parentHandler.accept("css")
+        1 * parentHandler.handleExit("tree-reports.html.destination/css", "css")
         0 * _
-        !outsideOfRoot
     }
 }

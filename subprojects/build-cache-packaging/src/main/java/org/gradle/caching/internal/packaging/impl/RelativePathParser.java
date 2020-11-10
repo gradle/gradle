@@ -21,7 +21,6 @@ import org.gradle.internal.file.FilePathUtil;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.function.Consumer;
 
 public class RelativePathParser {
     private static final CharMatcher IS_SLASH = CharMatcher.is('/');
@@ -46,18 +45,15 @@ public class RelativePathParser {
         return currentPath.substring(sizeOfCommonPrefix + 1);
     }
 
-    public boolean nextPath(String nextPath, boolean directory, Consumer<String> exitDirectoryHandler) {
+    public boolean nextPath(String nextPath, boolean directory, DirectoryExitHandler exitDirectoryHandler) {
         currentPath = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
         String lastDirPath = directoryPaths.peekLast();
         sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentPath, 0, '/');
         int directoriesExited = determineDirectoriesExited(lastDirPath, sizeOfCommonPrefix);
         for (int i = 0; i < directoriesExited; i++) {
-            directoryPaths.removeLast();
-            String name = directoryNames.pollLast();
-            if (name == null) {
+            if (exitDirectory(exitDirectoryHandler)) {
                 return true;
             }
-            exitDirectoryHandler.accept(name);
         }
         String currentName = currentPath.substring(sizeOfCommonPrefix + 1);
         if (directory) {
@@ -65,6 +61,19 @@ public class RelativePathParser {
             directoryNames.addLast(currentName);
         }
         return isRoot();
+    }
+
+    private boolean exitDirectory(DirectoryExitHandler exitDirectoryHandler) {
+        String absolutePath = directoryPaths.pollLast();
+        if (absolutePath == null) {
+            return true;
+        }
+        String name = directoryNames.pollLast();
+        if (name == null) {
+            return true;
+        }
+        exitDirectoryHandler.handleExit(absolutePath, name);
+        return false;
     }
 
     private static int determineDirectoriesExited(String lastDirPath, int sizeOfCommonPrefix) {
@@ -79,7 +88,15 @@ public class RelativePathParser {
         return directoryNames.isEmpty() && currentPath.length() == rootLength;
     }
 
-    public void exitToRoot(Consumer<String> exitDirectoryHandler) {
-        directoryNames.descendingIterator().forEachRemaining(exitDirectoryHandler);
+    public void exitToRoot(DirectoryExitHandler exitDirectoryHandler) {
+        while (true) {
+            if (exitDirectory(exitDirectoryHandler)) {
+                break;
+            }
+        }
+    }
+
+    public interface DirectoryExitHandler {
+        void handleExit(String path, String name);
     }
 }
