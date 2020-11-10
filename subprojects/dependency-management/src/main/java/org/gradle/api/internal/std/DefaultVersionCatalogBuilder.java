@@ -48,7 +48,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.lazy.Lazy;
-import org.gradle.internal.management.DependenciesModelBuilderInternal;
+import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 
 import javax.annotation.Nullable;
@@ -64,7 +64,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class DefaultVersionCatalogBuilder implements DependenciesModelBuilderInternal {
+public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     private final static Attribute<String> INTERNAL_COUNTER = Attribute.of("org.gradle.internal.dm.model.builder.id", String.class);
     private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle");
