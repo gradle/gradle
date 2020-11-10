@@ -20,7 +20,6 @@ import org.gradle.util.Path
 
 class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
     final TaskDetailsFactory factory = Mock()
-    final SingleProjectTaskReportModel model = new SingleProjectTaskReportModel(factory)
 
     def setup() {
         _ * factory.create(!null) >> {args ->
@@ -35,7 +34,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         def task3 = task('task3', 'group1')
 
         when:
-        model.build([task1, task2, task3])
+        def model = modelFor([task1, task2, task3])
 
         then:
         model.groups == ['group1', 'group2'] as Set
@@ -50,7 +49,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         def task4 = task('task4', 'c')
 
         when:
-        model.build([task2, task3, task4, task1])
+        def model = modelFor([task2, task3, task4, task1])
 
         then:
         model.groups == ['a', 'B', 'c'] as Set
@@ -67,7 +66,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         def task5 = task('task5', 'group2', task4)
 
         when:
-        model.build([task1, task2, task3, task4, task5])
+        def model = modelFor([task1, task2, task3, task4, task5])
 
         then:
         TaskDetails task3Details = (model.getTasksForGroup('group1') as List).first()
@@ -85,7 +84,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         def task5 = task('task5', task3, task4)
 
         when:
-        model.build([task1, task2, task3, task4, task5])
+        def model = modelFor([task1, task2, task3, task4, task5])
 
         then:
         model.groups == ['group', ''] as Set
@@ -101,7 +100,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
         def task3 = task('task3')
 
         when:
-        model.build([task1, task2, task3])
+        def model = modelFor([task1, task2, task3])
 
         then:
         model.groups == [''] as Set
@@ -111,10 +110,14 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
 
     def buildsModelWhenThereAreNoTasks() {
         when:
-        model.build([])
+        def model = modelFor([])
 
         then:
         model.groups as List == []
+    }
+
+    private SingleProjectTaskReportModel modelFor(List<Task> tasks) {
+        SingleProjectTaskReportModel.forTasks(tasks, factory)
     }
 
     private static Path pathOf(Task t) {

@@ -32,7 +32,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
     def createReportGenerator(File file = null) {
         StyledTextOutputFactory textOutputFactory = Mock(StyledTextOutputFactory)
         textOutputFactory.create(_) >> styledTextOutput
-        return new ReportGenerator(renderer, buildClientMetaData, file, textOutputFactory, projectReportGenerator)
+        return new ReportGenerator(renderer, buildClientMetaData, file, textOutputFactory)
     }
 
     def 'completes renderer at end of generation'() {
@@ -40,7 +40,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         def generator = createReportGenerator()
 
         when:
-        generator.generateReport([project] as Set)
+        generator.generateReport([project] as Set, projectReportGenerator)
 
         then:
         1 * renderer.setClientMetaData(buildClientMetaData)
@@ -68,7 +68,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         def generator = createReportGenerator(file)
 
         when:
-        generator.generateReport([project] as Set)
+        generator.generateReport([project] as Set, projectReportGenerator)
 
         then:
         1 * renderer.setClientMetaData(buildClientMetaData)
@@ -100,7 +100,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         def child2Details = ProjectDetails.of(child2)
 
         when:
-        generator.generateReport(project.getAllprojects())
+        generator.generateReport(project.getAllprojects(), projectReportGenerator)
 
         then:
         1 * renderer.setClientMetaData(buildClientMetaData)

@@ -26,7 +26,7 @@ import java.util.TreeMap;
  * Displays the properties of a project. An instance of this type is used when you execute the {@code properties} task
  * from the command-line.
  */
-public class PropertyReportTask extends AbstractReportTask {
+public class PropertyReportTask extends ProjectBasedReportTask {
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
 
     @Override

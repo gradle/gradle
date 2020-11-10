@@ -18,14 +18,15 @@ package org.gradle.api.tasks.diagnostics;
 import com.google.common.base.Strings;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.DefaultGroupTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.RuleDetails;
 import org.gradle.api.tasks.diagnostics.internal.SingleProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
@@ -34,6 +35,10 @@ import org.gradle.api.tasks.options.Option;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
 
 /**
  * <p>Displays a list of tasks in the project. An instance of this type is used when you execute the {@code tasks} task
@@ -90,24 +95,23 @@ public class TaskReportTask extends AbstractReportTask {
         return group;
     }
 
-    @Override
-    public void generate(Project project) {
+    @TaskAction
+    public void generate() {
+        reportGenerator().generateReport(
+            new TreeSet<>(getProjects()),
+            project -> {
+                generate(project);
+                logClickableOutputFileUrl();
+            }
+        );
+    }
+
+    private void generate(Project project) {
         boolean detail = isDetail();
         List<String> defaultTasks = project.getDefaultTasks();
 
-        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup());
-        final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
-
-        SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
-        aggregateModel.add(projectTaskModel);
-
-        for (final Project subproject : project.getSubprojects()) {
-            aggregateModel.add(buildTaskReportModelFor(taskDetailsFactory, subproject));
-        }
-
-        aggregateModel.build();
-
-        DefaultGroupTaskReportModel model = DefaultGroupTaskReportModel.of(aggregateModel);
+        DefaultGroupTaskReportModel model = taskReportModelFor(project, detail);
+        List<RuleDetails> ruleDetails = Strings.isNullOrEmpty(group) ? ruleDetailsFor(project) : emptyList();
 
         renderer.showDetail(detail);
         renderer.addDefaultTasks(defaultTasks);
@@ -120,20 +124,42 @@ public class TaskReportTask extends AbstractReportTask {
         }
         renderer.completeTasks();
 
-        if (Strings.isNullOrEmpty(group)) {
-            for (Rule rule : project.getTasks().getRules()) {
-                renderer.addRule(() -> rule.getDescription());
-            }
+        for (RuleDetails rule : ruleDetails) {
+            renderer.addRule(rule);
         }
     }
 
+    private List<RuleDetails> ruleDetailsFor(Project project) {
+        return project.getTasks().getRules().stream().map(rule -> RuleDetails.of(rule.getDescription())).collect(Collectors.toList());
+    }
+
+    private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail) {
+        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup());
+        final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
+
+        final SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
+        aggregateModel.add(projectTaskModel);
+
+        for (final Project subproject : project.getSubprojects()) {
+            aggregateModel.add(buildTaskReportModelFor(taskDetailsFactory, subproject));
+        }
+
+        aggregateModel.build();
+
+        return DefaultGroupTaskReportModel.of(aggregateModel);
+    }
+
     private SingleProjectTaskReportModel buildTaskReportModelFor(final TaskDetailsFactory taskDetailsFactory, final Project subproject) {
-        ProjectState projectState = getProjectStateRegistry().stateFor(subproject);
-        return projectState.fromMutableState(p -> {
-            SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
-            subprojectTaskModel.build(getProjectTaskLister().listProjectTasks(subproject));
-            return subprojectTaskModel;
-        });
+        return projectStateFor(subproject).fromMutableState(
+            p -> SingleProjectTaskReportModel.forTasks(
+                getProjectTaskLister().listProjectTasks(p),
+                taskDetailsFactory
+            )
+        );
+    }
+
+    private ProjectState projectStateFor(Project subproject) {
+        return getProjectStateRegistry().stateFor(subproject);
     }
 
     /**

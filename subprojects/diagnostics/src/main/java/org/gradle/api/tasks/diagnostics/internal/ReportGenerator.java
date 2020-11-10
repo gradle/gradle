@@ -27,29 +27,29 @@ import java.io.IOException;
 import java.util.Set;
 
 
-public class ReportGenerator {
+public final class ReportGenerator {
 
     private final ReportRenderer renderer;
     private final BuildClientMetaData buildClientMetaData;
     private final File outputFile;
     private final StyledTextOutputFactory textOutputFactory;
-    private final ProjectReportGenerator projectReportGenerator;
 
     public ReportGenerator(
         ReportRenderer renderer,
         BuildClientMetaData buildClientMetaData,
         @Nullable File outputFile,
-        StyledTextOutputFactory textOutputFactory,
-        ProjectReportGenerator projectReportGenerator
+        StyledTextOutputFactory textOutputFactory
     ) {
         this.renderer = renderer;
         this.buildClientMetaData = buildClientMetaData;
         this.outputFile = outputFile;
         this.textOutputFactory = textOutputFactory;
-        this.projectReportGenerator = projectReportGenerator;
     }
 
-    public void generateReport(Set<Project> projects) {
+    public void generateReport(
+        Set<Project> projects,
+        ProjectReportGenerator projectReportGenerator
+    ) {
         try {
             ReportRenderer renderer = getRenderer();
             renderer.setClientMetaData(getClientMetaData());

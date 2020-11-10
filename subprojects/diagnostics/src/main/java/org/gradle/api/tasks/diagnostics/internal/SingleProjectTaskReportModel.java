@@ -25,18 +25,20 @@ import java.util.Comparator;
 import java.util.Set;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
-    private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
-    private final TaskDetailsFactory factory;
 
-    public SingleProjectTaskReportModel(TaskDetailsFactory factory) {
-        this.factory = factory;
-    }
-
-    public void build(final Collection<? extends Task> tasks) {
+    public static SingleProjectTaskReportModel forTasks(Collection<? extends Task> tasks, TaskDetailsFactory factory) {
+        final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
         for (Task task : tasks) {
             String group = GUtil.isTrue(task.getGroup()) ? task.getGroup() : DEFAULT_GROUP;
             groups.put(group, factory.create(task));
         }
+        return new SingleProjectTaskReportModel(groups);
+    }
+
+    private final SetMultimap<String, TaskDetails> groups;
+
+    private SingleProjectTaskReportModel(SetMultimap<String, TaskDetails> groups) {
+        this.groups = groups;
     }
 
     @Override

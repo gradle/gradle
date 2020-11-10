@@ -19,6 +19,15 @@ package org.gradle.api.tasks.diagnostics.internal;
 import javax.annotation.Nullable;
 
 public interface RuleDetails {
+    static RuleDetails of(String description) {
+        return new RuleDetails() {
+            @Override
+            public String getDescription() {
+                return description;
+            }
+        };
+    }
+
     @Nullable
     String getDescription();
 }

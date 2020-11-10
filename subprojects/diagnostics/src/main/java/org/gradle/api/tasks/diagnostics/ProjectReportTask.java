@@ -33,7 +33,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
  * <p>Displays a list of projects in the build. An instance of this type is used when you execute the {@code projects}
  * task from the command-line.</p>
  */
-public class ProjectReportTask extends AbstractReportTask {
+public class ProjectReportTask extends ProjectBasedReportTask {
     private final TextReportRenderer renderer = new TextReportRenderer();
 
     @Override
