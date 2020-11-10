@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.jvm.JvmInstallation
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
@@ -33,8 +33,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 
 import java.text.SimpleDateFormat
-
-
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
  *
@@ -137,14 +135,15 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
 }
 
 
-class GradleBuildJvmSpec implements Spec<JvmInstallation> {
+class GradleBuildJvmSpec implements Spec<JvmInstallationMetadata> {
 
     static boolean isAvailable() {
         return AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec()) != null
     }
 
     @Override
-    boolean isSatisfiedBy(JvmInstallation jvm) {
-        return jvm.javaVersion >= JavaVersion.VERSION_1_9 && jvm.javaVersion <= JavaVersion.VERSION_11
+    boolean isSatisfiedBy(JvmInstallationMetadata jvm) {
+        def version = jvm.langageVersion
+        return version >= JavaVersion.VERSION_1_9 && version <= JavaVersion.VERSION_11
     }
 }

@@ -18,9 +18,10 @@ package org.gradle.launcher.daemon.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
+import org.gradle.internal.jvm.inspection.JvmVendor
 
 class FullyQualifiedGarbageCollector implements Comparable<FullyQualifiedGarbageCollector> {
-    JdkVendor vendor
+    JvmVendor.KnownJvmVendor vendor
     String version
     JavaGarbageCollector gc
 
