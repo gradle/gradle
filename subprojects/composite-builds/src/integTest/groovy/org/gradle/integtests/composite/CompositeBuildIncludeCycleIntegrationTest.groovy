@@ -119,11 +119,38 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         """
 
         when:
-        fails(buildA, 'task1')
+        execute(buildA, 'task1')
 
         then:
-        // If we get here, the tasks were all found and registered. Once the cycle restrictions back to the root build are removed, this test should pass.
-        failure.assertHasDescription("Could not find build ':'")
-        // result.assertTaskExecuted(':task3', ':buildB:task2', 'task1')
+        result.assertTasksExecuted(':task3',':buildB:task2', ':task1')
+    }
+
+    def "can depend back on root build"() {
+        given:
+        def buildX = multiProjectBuild('buildX', ['x1', 'x2']) {
+            buildFile << """
+                subprojects { apply plugin: 'java-library'}
+                project(':x1') {
+                    dependencies { implementation 'org.test:theNameOfBuildA' }
+                }
+            """
+            settingsFile << """
+                includeBuild '../buildA'
+            """
+        }
+
+        buildA.buildFile << """
+            apply plugin: 'java-library'
+            dependencies { implementation 'org.test:x2' }
+        """
+        buildA.settingsFile << """
+            rootProject.name = 'theNameOfBuildA'
+        """
+
+        when:
+        execute(buildX, ':x1:compileJava')
+
+        then:
+        result.assertTasksExecuted(':x2:compileJava', ':buildA:compileJava', ':x1:compileJava')
     }
 }
