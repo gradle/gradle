@@ -42,7 +42,7 @@ public class PerformanceDatabase {
             config.setJdbcUrl(getUrl());
             config.setUsername(getUserName());
             config.setPassword(getPassword());
-            config.setMaximumPoolSize(1);
+            config.setMaximumPoolSize(2);
             dataSource = new HikariDataSource(config);
 
             executeInitializers(dataSource.getConnection());
