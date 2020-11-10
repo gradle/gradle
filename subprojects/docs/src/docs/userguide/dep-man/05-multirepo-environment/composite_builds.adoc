@@ -193,8 +193,8 @@ include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",f
 
 .Depending on a task with path in all included builds
 ====
-include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/groovy",files="build.gradle[tags=publishDeps]"]
-include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/kotlin",files="build.gradle.kts[tags=publishDeps]"]
+include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/groovy",files="build.gradle"]
+include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/kotlin",files="build.gradle.kts"]
 ====
 
 [[current_limitations_and_future_work]]
