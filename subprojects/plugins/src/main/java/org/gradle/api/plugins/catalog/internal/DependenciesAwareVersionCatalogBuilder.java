@@ -32,8 +32,8 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.std.AllDependenciesModel;
-import org.gradle.api.internal.std.DefaultDependenciesModelBuilder;
+import org.gradle.api.internal.std.DefaultVersionCatalog;
+import org.gradle.api.internal.std.DefaultVersionCatalogBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -47,15 +47,15 @@ import java.util.function.Supplier;
 
 import static org.gradle.api.internal.std.DependenciesModelHelper.ALIAS_PATTERN;
 
-public class VersionCatalogDependenciesModelBuilder extends DefaultDependenciesModelBuilder {
-    private final static Logger LOGGER = Logging.getLogger(VersionCatalogDependenciesModelBuilder.class);
+public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalogBuilder {
+    private final static Logger LOGGER = Logging.getLogger(DependenciesAwareVersionCatalogBuilder.class);
 
     private final Configuration dependenciesConfiguration;
     private final Map<ModuleIdentifier, String> explicitAliases = Maps.newHashMap();
     private boolean shouldAmendModel = true;
 
     @Inject
-    public VersionCatalogDependenciesModelBuilder(String name,
+    public DependenciesAwareVersionCatalogBuilder(String name,
                                                   Interner<String> strings,
                                                   Interner<ImmutableVersionConstraint> versionConstraintInterner,
                                                   ObjectFactory objects,
@@ -68,7 +68,7 @@ public class VersionCatalogDependenciesModelBuilder extends DefaultDependenciesM
     }
 
     @Override
-    public AllDependenciesModel build() {
+    public DefaultVersionCatalog build() {
         if (shouldAmendModel) {
             DependencySet allDependencies = dependenciesConfiguration.getAllDependencies();
             DependencyConstraintSet allDependencyConstraints = dependenciesConfiguration.getAllDependencyConstraints();

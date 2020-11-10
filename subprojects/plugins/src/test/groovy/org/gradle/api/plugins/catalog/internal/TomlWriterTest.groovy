@@ -18,8 +18,8 @@ package org.gradle.api.plugins.catalog.internal
 
 import com.google.common.collect.Interners
 import groovy.transform.Canonical
-import org.gradle.api.internal.std.AllDependenciesModel
-import org.gradle.api.internal.std.DefaultDependenciesModelBuilder
+import org.gradle.api.internal.std.DefaultVersionCatalog
+import org.gradle.api.internal.std.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.std.ImportConfiguration
 import org.gradle.api.internal.std.TomlDependenciesFileParser
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -88,7 +88,7 @@ class TomlWriterTest extends Specification {
                 }
             }
         }
-        def builder = new DefaultDependenciesModelBuilder("libs",
+        def builder = new DefaultVersionCatalogBuilder("libs",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
@@ -103,7 +103,7 @@ class TomlWriterTest extends Specification {
 
     @Canonical
     private static class Model {
-        AllDependenciesModel deps
+        DefaultVersionCatalog deps
         Map<String, String> plugins
     }
 }

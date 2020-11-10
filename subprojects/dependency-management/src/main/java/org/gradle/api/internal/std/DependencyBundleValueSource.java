@@ -33,13 +33,13 @@ public abstract class DependencyBundleValueSource implements ValueSource<Externa
     interface Params extends ValueSourceParameters {
         Property<String> getBundleName();
 
-        Property<AllDependenciesModel> getConfig();
+        Property<DefaultVersionCatalog> getConfig();
     }
 
     @Override
     public ExternalModuleDependencyBundle obtain() {
         String bundle = getParameters().getBundleName().get();
-        AllDependenciesModel config = getParameters().getConfig().get();
+        DefaultVersionCatalog config = getParameters().getConfig().get();
         BundleModel bundleModel = config.getBundle(bundle);
         return bundleModel.getComponents().stream()
             .map(config::getDependencyData)

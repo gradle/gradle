@@ -64,8 +64,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class DefaultDependenciesModelBuilder implements DependenciesModelBuilderInternal {
-    private final static Logger LOGGER = Logging.getLogger(DefaultDependenciesModelBuilder.class);
+public class DefaultVersionCatalogBuilder implements DependenciesModelBuilderInternal {
+    private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     private final static Attribute<String> INTERNAL_COUNTER = Attribute.of("org.gradle.internal.dm.model.builder.id", String.class);
     private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle");
 
@@ -78,7 +78,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
     private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
-    private final Lazy<AllDependenciesModel> model = Lazy.unsafe().of(this::doBuild);
+    private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private final List<Import> imports = Lists.newArrayList();
     private final StrictVersionParser strictVersionParser;
@@ -87,13 +87,13 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     private String currentContext;
 
     @Inject
-    public DefaultDependenciesModelBuilder(String name,
-                                           Interner<String> strings,
-                                           Interner<ImmutableVersionConstraint> versionConstraintInterner,
-                                           ObjectFactory objects,
-                                           ProviderFactory providers,
-                                           PluginDependenciesSpec plugins,
-                                           Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier) {
+    public DefaultVersionCatalogBuilder(String name,
+                                        Interner<String> strings,
+                                        Interner<ImmutableVersionConstraint> versionConstraintInterner,
+                                        ObjectFactory objects,
+                                        ProviderFactory providers,
+                                        PluginDependenciesSpec plugins,
+                                        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier) {
         this.name = name;
         this.strings = strings;
         this.versionConstraintInterner = versionConstraintInterner;
@@ -116,7 +116,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
     }
 
     @Override
-    public AllDependenciesModel build() {
+    public DefaultVersionCatalog build() {
         return model.get();
     }
 
@@ -130,7 +130,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         }
     }
 
-    private AllDependenciesModel doBuild() {
+    private DefaultVersionCatalog doBuild() {
         maybeImportPlatforms();
         for (Map.Entry<String, BundleModel> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
@@ -145,7 +145,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         for (Map.Entry<String, Supplier<DependencyModel>> entry : dependencies.entrySet()) {
             realizedDeps.put(entry.getKey(), entry.getValue().get());
         }
-        return new AllDependenciesModel(name, description.getOrElse(""), realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
+        return new DefaultVersionCatalog(name, description.getOrElse(""), realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
     }
 
     private void maybeImportPlatforms() {
@@ -359,19 +359,19 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
 
         @Override
         public LibraryAliasBuilder to(String group, String name) {
-            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultDependenciesModelBuilder.this, alias, group, name);
+            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, group, name);
         }
     }
 
     // static public for injection!
     public static class DefaultLibraryAliasBuilder implements LibraryAliasBuilder {
-        private final DefaultDependenciesModelBuilder owner;
+        private final DefaultVersionCatalogBuilder owner;
         private final String alias;
         private final String group;
         private final String name;
 
         @Inject
-        public DefaultLibraryAliasBuilder(DefaultDependenciesModelBuilder owner, String alias, String group, String name) {
+        public DefaultLibraryAliasBuilder(DefaultVersionCatalogBuilder owner, String alias, String group, String name) {
             this.owner = owner;
             this.alias = alias;
             this.group = group;

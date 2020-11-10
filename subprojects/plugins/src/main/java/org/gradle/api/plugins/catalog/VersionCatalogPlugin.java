@@ -26,8 +26,8 @@ import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogExtension;
-import org.gradle.api.plugins.catalog.internal.VersionCatalogExtensionInternal;
+import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
+import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
 import org.gradle.api.plugins.catalog.internal.TomlFileGenerator;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.tasks.TaskProvider;
@@ -35,7 +35,7 @@ import org.gradle.api.tasks.TaskProvider;
 import javax.inject.Inject;
 
 /**
- * <p>A {@link Plugin} makes it possible to generate a "Gradle platform", which is a set of recommendations
+ * <p>A {@link Plugin} makes it possible to generate a version catalog, which is a set of recommendations
  * for dependency and plugin versions</p>
  *
  * @since 6.8
@@ -58,7 +58,7 @@ public class VersionCatalogPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         Configuration dependenciesConfiguration = createDependenciesConfiguration(project);
-        VersionCatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
+        CatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
         createPublication(project, generator);
     }
@@ -87,21 +87,21 @@ public class VersionCatalogPlugin implements Plugin<Project> {
         });
     }
 
-    private TaskProvider<TomlFileGenerator> createGenerator(Project project, VersionCatalogExtensionInternal extension) {
+    private TaskProvider<TomlFileGenerator> createGenerator(Project project, CatalogExtensionInternal extension) {
         return project.getTasks().register(GENERATE_CATALOG_FILE_TASKNAME, TomlFileGenerator.class, t -> configureTask(project, extension, t));
     }
 
-    private void configureTask(Project project, VersionCatalogExtensionInternal extension, TomlFileGenerator task) {
+    private void configureTask(Project project, CatalogExtensionInternal extension, TomlFileGenerator task) {
         task.setGroup(BasePlugin.BUILD_GROUP);
         task.setDescription("Generates a TOML file for a version catalog");
         task.getOutputFile().convention(project.getLayout().getBuildDirectory().file("version-catalog/dependencies.toml"));
-        task.getDependenciesModel().convention(extension.getDependenciesModel());
+        task.getDependenciesModel().convention(extension.getVersionCatalog());
         task.getPluginVersions().convention(extension.getPluginVersions());
     }
 
-    private VersionCatalogExtensionInternal createExtension(Project project, Configuration dependenciesConfiguration) {
-        return (VersionCatalogExtensionInternal) project.getExtensions()
-            .create(VersionCatalogExtension.class, "versionCatalog", DefaultVersionCatalogExtension.class, dependenciesConfiguration);
+    private CatalogExtensionInternal createExtension(Project project, Configuration dependenciesConfiguration) {
+        return (CatalogExtensionInternal) project.getExtensions()
+            .create(CatalogPluginExtension.class, "catalog", DefaultVersionCatalogPluginExtension.class, dependenciesConfiguration);
     }
 
 }

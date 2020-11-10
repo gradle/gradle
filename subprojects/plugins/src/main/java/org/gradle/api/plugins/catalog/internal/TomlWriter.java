@@ -17,7 +17,7 @@ package org.gradle.api.plugins.catalog.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.std.AllDependenciesModel;
+import org.gradle.api.internal.std.DefaultVersionCatalog;
 import org.gradle.api.internal.std.DependencyModel;
 
 import java.io.PrintWriter;
@@ -32,7 +32,7 @@ class TomlWriter {
         this.writer = writer;
     }
 
-    public void generate(AllDependenciesModel model, Map<String, String> plugins) {
+    public void generate(DefaultVersionCatalog model, Map<String, String> plugins) {
         writeHeader();
         writeVersions(model);
         writeLibraries(model);
@@ -40,7 +40,7 @@ class TomlWriter {
         writePlugins(plugins);
     }
 
-    private void writeVersions(AllDependenciesModel model) {
+    private void writeVersions(DefaultVersionCatalog model) {
         List<String> versions = model.getVersionAliases();
         if (versions.isEmpty()) {
             return;
@@ -53,7 +53,7 @@ class TomlWriter {
         writer.println();
     }
 
-    private void writeLibraries(AllDependenciesModel model) {
+    private void writeLibraries(DefaultVersionCatalog model) {
         List<String> aliases = model.getDependencyAliases();
         if (aliases.isEmpty()) {
             return;
@@ -83,7 +83,7 @@ class TomlWriter {
         writer.println();
     }
 
-    private void writeBundles(AllDependenciesModel model) {
+    private void writeBundles(DefaultVersionCatalog model) {
         List<String> aliases = model.getBundleAliases();
         if (aliases.isEmpty()) {
             return;

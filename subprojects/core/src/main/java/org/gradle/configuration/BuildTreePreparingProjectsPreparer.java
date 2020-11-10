@@ -80,7 +80,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
         File dependenciesFile = new File(settings.getSettingsDir(), "gradle/dependencies.toml");
         if (dependenciesFile.exists()) {
-            dm.dependenciesModel(defaultLibrary, builder -> builder.from(services.get(FileCollectionFactory.class).fixed(dependenciesFile)));
+            dm.versionCatalog(defaultLibrary, builder -> builder.from(services.get(FileCollectionFactory.class).fixed(dependenciesFile)));
         }
         accessors.generateAccessors(dm.getDependenciesModelBuilders(), classLoaderScope, settings);
     }

@@ -43,7 +43,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
 
     def "can consume versions from a published Gradle platform"() {
         def platformProject = preparePlatformProject '''
-            dependenciesModel {
+            versionCatalog {
                 alias('my-lib'). to 'org.test:lib:1.1'
             }
         '''
@@ -54,7 +54,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                dependenciesModel("libs") {
+                versionCatalog("libs") {
                     from("org.gradle.test:my-platform:1.0")
                 }
             }
@@ -76,7 +76,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
 
     def "can override versions defined in a Gradle platform"() {
         def platformProject = preparePlatformProject '''
-            dependenciesModel {
+            versionCatalog {
                 def v = version('lib', '1.0')
                 alias('my-lib').to('org.test', 'lib').versionRef(v)
                 alias('my-lib-json').to('org.test', 'lib-json').versionRef(v)
@@ -89,7 +89,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                dependenciesModel("libs") {
+                versionCatalog("libs") {
                     from("org.gradle.test:my-platform:1.0")
                     version('lib', '1.1') // override version declared in the platform, this is order sensitive
                 }
@@ -115,14 +115,14 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
     // This documents the existing behavior but it may change in the future
     def "can use dependency locking to resolve platform in settings"() {
         def platformProject = preparePlatformProject '''
-            dependenciesModel {
+            versionCatalog {
                 alias('my-lib').to('org.test:lib:1.0')
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
 
         platformProject = preparePlatformProject '''
-            dependenciesModel {
+            versionCatalog {
                 alias('my-lib').to('org.test:lib:1.1')
             }
         ''', '1.1'
@@ -133,7 +133,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                dependenciesModel("libs") {
+                versionCatalog("libs") {
                     from("org.gradle.test:my-platform:+")
                 }
             }
@@ -163,7 +163,7 @@ unspecified:unspecified:unspecified
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                dependenciesModel("libs") {
+                versionCatalog("libs") {
                     from("org.gradle.test:my-platform:1.0")
                 }
             }
@@ -179,7 +179,7 @@ unspecified:unspecified:unspecified
     def "reasonable error message if a no repositories are defined in settings"() {
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel("libs") {
+                versionCatalog("libs") {
                     from("org.gradle.test:my-platform:1.0")
                 }
             }
@@ -197,7 +197,7 @@ unspecified:unspecified:unspecified
             .withModuleMetadata()
 
         def platformProject = preparePlatformProject '''
-            dependenciesModel {
+            versionCatalog {
                 alias('my-lib').to('org.test:lib:1.1')
             }
         '''
@@ -220,8 +220,8 @@ unspecified:unspecified:unspecified
             group = 'org.gradle.platform'
             version = '1.0'
 
-            versionCatalog {
-                dependenciesModel {
+            catalog {
+                versionCatalog {
                     from('org.gradle.test:my-platform:1.0')
                     alias('other').to('org:other:1.5')
                 }
@@ -265,7 +265,7 @@ unspecified:unspecified:unspecified
             .withModuleMetadata()
 
         def platformProject = preparePlatformProject '''
-            dependenciesModel {
+            versionCatalog {
                 alias('hello').to('org.test:hello:1.1')
                 alias('world').to('org.test:world:1.7')
                 alias('ignored').to('org.test:ignored:1.3')
@@ -297,8 +297,8 @@ unspecified:unspecified:unspecified
             group = 'org.gradle.platform'
             version = '1.0'
 
-            versionCatalog {
-                dependenciesModel {
+            catalog {
+                versionCatalog {
                     from('org.gradle.test:my-platform:1.0') {
                         includeDependency('hello')
                         excludePlugin('bof', 'not.interested')
@@ -373,7 +373,7 @@ unspecified:unspecified:unspecified
                 }
             }
 
-            versionCatalog {
+            catalog {
                 $platformSpec
             }
         """

@@ -17,7 +17,7 @@ package org.gradle.api.plugins.catalog;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 
@@ -28,12 +28,12 @@ import org.gradle.plugin.use.PluginDependenciesSpec;
  */
 @Incubating
 @HasInternalProtocol
-public interface VersionCatalogExtension {
+public interface CatalogPluginExtension {
     /**
-     * Configures the dependency model of this catalog.
+     * Configures the version catalog.
      * @param spec the spec used to configure the dependencies
      */
-    void dependenciesModel(Action<? super DependenciesModelBuilder> spec);
+    void versionCatalog(Action<? super VersionCatalogBuilder> spec);
 
     /**
      * Configures the plugins model of this catalog.

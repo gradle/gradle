@@ -20,7 +20,7 @@ import com.google.common.collect.Interners
 import groovy.transform.CompileStatic
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -36,7 +36,7 @@ import static org.gradle.api.internal.std.IncludeExcludePredicate.acceptAll
 
 class TomlDependenciesFileParserTest extends Specification {
     final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll())
-    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs",
+    final VersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs",
         Interners.newStrongInterner(),
         Interners.newStrongInterner(),
         TestUtil.objectFactory(),
@@ -51,7 +51,7 @@ class TomlDependenciesFileParserTest extends Specification {
             plugins[id]
         }
     }
-    AllDependenciesModel model
+    DefaultVersionCatalog model
 
     def "parses a file with a single dependency and nothing else"() {
         when:
