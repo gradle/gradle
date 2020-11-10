@@ -25,14 +25,14 @@ import org.gradle.internal.HasInternalProtocol;
 import java.util.List;
 
 /**
- * A dependencies model builder. Dependencies defined via this model
+ * A version catalog builder. Dependencies defined via this model
  * will trigger the generation of accessors available in build scripts.
  *
  * @since 6.8
  */
 @Incubating
 @HasInternalProtocol
-public interface DependenciesModelBuilder {
+public interface VersionCatalogBuilder {
 
     /**
      * A description for the dependencies model, which will be used in
@@ -72,7 +72,7 @@ public interface DependenciesModelBuilder {
 
     /**
      * Configures a dependency version which can then be referenced using
-     * the {@link DependenciesModelBuilder.LibraryAliasBuilder#versionRef(String)} )} method.
+     * the {@link VersionCatalogBuilder.LibraryAliasBuilder#versionRef(String)} )} method.
      *
      * @param name an identifier for the version
      * @param versionSpec the dependency version spec
@@ -82,7 +82,7 @@ public interface DependenciesModelBuilder {
 
     /**
      * Configures a dependency version which can then be referenced using
-     * the {@link DependenciesModelBuilder.LibraryAliasBuilder#versionRef(String)} method.
+     * the {@link VersionCatalogBuilder.LibraryAliasBuilder#versionRef(String)} method.
      *
      * @param name an identifier for the version
      * @param version the version string

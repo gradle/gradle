@@ -24,11 +24,11 @@ import org.gradle.api.provider.ProviderFactory;
 import javax.inject.Inject;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
-    private final AllDependenciesModel config;
+    private final DefaultVersionCatalog config;
     private final ProviderFactory providers;
 
     @Inject
-    protected AbstractExternalDependencyFactory(AllDependenciesModel config,
+    protected AbstractExternalDependencyFactory(DefaultVersionCatalog config,
                                                 ProviderFactory providers) {
         this.config = config;
         this.providers = providers;

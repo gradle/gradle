@@ -18,7 +18,7 @@ package org.gradle.api.plugins.catalog.internal;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.std.AllDependenciesModel;
+import org.gradle.api.internal.std.DefaultVersionCatalog;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -36,7 +36,7 @@ import java.util.Map;
 @CacheableTask
 public abstract class TomlFileGenerator extends DefaultTask {
     @Input
-    public abstract Property<AllDependenciesModel> getDependenciesModel();
+    public abstract Property<DefaultVersionCatalog> getDependenciesModel();
 
     @Input
     public abstract MapProperty<String, String> getPluginVersions();
@@ -46,7 +46,7 @@ public abstract class TomlFileGenerator extends DefaultTask {
 
     @TaskAction
     void generateToml() throws IOException {
-        AllDependenciesModel model = getDependenciesModel().get();
+        DefaultVersionCatalog model = getDependenciesModel().get();
         Map<String, String> plugins = getPluginVersions().get();
         File outputFile = getOutputFile().getAsFile().get();
         File outputDir = outputFile.getParentFile();
@@ -57,7 +57,7 @@ public abstract class TomlFileGenerator extends DefaultTask {
         }
     }
 
-    private void doGenerate(AllDependenciesModel model, Map<String, String> plugins, File outputFile) throws FileNotFoundException, UnsupportedEncodingException {
+    private void doGenerate(DefaultVersionCatalog model, Map<String, String> plugins, File outputFile) throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter writer = new PrintWriter(outputFile, "UTF-8")) {
             TomlWriter ctx = new TomlWriter(writer);
             ctx.generate(model, plugins);

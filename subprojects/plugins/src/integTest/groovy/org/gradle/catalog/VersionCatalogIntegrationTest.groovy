@@ -35,7 +35,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
     }
 
     def "can generate a Gradle platform file"() {
-        withSamplePlatform()
+        withSampleCatalog()
 
         when:
         succeeds ':generateCatalogAsToml'
@@ -45,7 +45,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
     }
 
     def "can publish a Gradle platform"() {
-        withSamplePlatform()
+        withSampleCatalog()
         withPublishing()
 
         when:
@@ -91,8 +91,8 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can generate a Gradle platform file from a dependencies configuration and the extension"() {
         buildFile << """
-            versionCatalog {
-                dependenciesModel {
+            catalog {
+                versionCatalog {
                     bundle('my', ['foo', 'bar'])
                 }
             }
@@ -131,7 +131,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can declare a different alias in case of name clash"() {
         buildFile << """
-            versionCatalog {
+            catalog {
                configureExplicitAlias 'foo2', 'org2', 'foo'
             }
             dependencies {
@@ -149,7 +149,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can declare a explicit alias without name clash"() {
         buildFile << """
-            versionCatalog {
+            catalog {
                configureExplicitAlias 'other', 'org', 'bar'
             }
             dependencies {
@@ -210,7 +210,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can fix name clash between dependencies and constraints"() {
         buildFile << """
-            versionCatalog {
+            catalog {
                 configureExplicitAlias 'foo2', 'org2', 'foo'
             }
             dependencies {
@@ -234,9 +234,9 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can mix plugins, dependencies, constraints and model to create a platform"() {
         buildFile << """
-            versionCatalog {
+            catalog {
                 configureExplicitAlias 'foo2', 'org', 'foo'
-                dependenciesModel {
+                versionCatalog {
                     alias('foo').to('org:from-model:1.0')
                     bundle('my', ['foo', 'foo2', 'from-script'])
                 }
@@ -302,10 +302,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         expectPlatformContents 'expected9'
     }
 
-    private void withSamplePlatform() {
+    private void withSampleCatalog() {
         buildFile << """
-            versionCatalog {
-                dependenciesModel {
+            catalog {
+                versionCatalog {
                     alias("my-lib").to("org:foo:1.0")
                     alias("junit4").to("junit", "junit").version {
                         require "[4.13.1, 5["

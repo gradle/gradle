@@ -263,7 +263,7 @@ class DependenciesSourceGeneratorTest extends Specification {
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependenciesModelBuilderInternal) Closure<Void> spec) {
-        DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
+        DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
@@ -276,12 +276,12 @@ class DependenciesSourceGeneratorTest extends Specification {
     class GeneratedSource {
         final String className
         final String source
-        final AllDependenciesModel model
+        final DefaultVersionCatalog model
         final List<String> lines
 
         Class<? extends AbstractExternalDependencyFactory> factory
 
-        GeneratedSource(String className, String src, AllDependenciesModel model) {
+        GeneratedSource(String className, String src, DefaultVersionCatalog model) {
             this.className = className
             this.source = src
             this.model = model

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AllDependenciesModel implements Serializable {
+public class DefaultVersionCatalog implements Serializable {
     private final String name;
     private final String description;
     private final Map<String, DependencyModel> aliasToDependency;
@@ -28,11 +28,11 @@ public class AllDependenciesModel implements Serializable {
     private final Map<String, VersionModel> versions;
     private final int hashCode;
 
-    public AllDependenciesModel(String name,
-                                String description,
-                                Map<String, DependencyModel> aliasToDependency,
-                                Map<String, BundleModel> bundles,
-                                Map<String, VersionModel> versions) {
+    public DefaultVersionCatalog(String name,
+                                 String description,
+                                 Map<String, DependencyModel> aliasToDependency,
+                                 Map<String, BundleModel> bundles,
+                                 Map<String, VersionModel> versions) {
         this.name = name;
         this.description = description;
         this.aliasToDependency = aliasToDependency;
@@ -92,7 +92,7 @@ public class AllDependenciesModel implements Serializable {
             return false;
         }
 
-        AllDependenciesModel that = (AllDependenciesModel) o;
+        DefaultVersionCatalog that = (DefaultVersionCatalog) o;
 
         if (!aliasToDependency.equals(that.aliasToDependency)) {
             return false;

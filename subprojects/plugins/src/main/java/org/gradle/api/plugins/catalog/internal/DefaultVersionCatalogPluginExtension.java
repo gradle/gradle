@@ -21,10 +21,10 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.std.AllDependenciesModel;
+import org.gradle.api.internal.std.DefaultVersionCatalog;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -36,16 +36,16 @@ import javax.inject.Inject;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class DefaultVersionCatalogExtension implements VersionCatalogExtensionInternal {
-    private final VersionCatalogDependenciesModelBuilder builder;
+public class DefaultVersionCatalogPluginExtension implements CatalogExtensionInternal {
+    private final DependenciesAwareVersionCatalogBuilder builder;
     private final SimplifiedPluginDependenciesSpec plugins;
-    private final Provider<AllDependenciesModel> model;
+    private final Provider<DefaultVersionCatalog> model;
     private final Provider<Map<String, String>> pluginsModel;
 
     @Inject
-    public DefaultVersionCatalogExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs, Configuration dependenciesConfiguration) {
+    public DefaultVersionCatalogPluginExtension(ObjectFactory objects, ProviderFactory providers, DependencyResolutionServices drs, Configuration dependenciesConfiguration) {
         this.plugins = new SimplifiedPluginDependenciesSpec();
-        this.builder = objects.newInstance(VersionCatalogDependenciesModelBuilder.class,
+        this.builder = objects.newInstance(DependenciesAwareVersionCatalogBuilder.class,
             "versionCatalog",
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
@@ -60,7 +60,7 @@ public class DefaultVersionCatalogExtension implements VersionCatalogExtensionIn
     }
 
     @Override
-    public void dependenciesModel(Action<? super DependenciesModelBuilder> spec) {
+    public void versionCatalog(Action<? super VersionCatalogBuilder> spec) {
         spec.execute(builder);
     }
 
@@ -75,7 +75,7 @@ public class DefaultVersionCatalogExtension implements VersionCatalogExtensionIn
     }
 
     @Override
-    public Provider<AllDependenciesModel> getDependenciesModel() {
+    public Provider<DefaultVersionCatalog> getVersionCatalog() {
         return model;
     }
 

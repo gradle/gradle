@@ -31,16 +31,16 @@ import java.util.stream.Collectors;
 public class DependenciesSourceGenerator extends AbstractSourceGenerator {
 
     private static final int MAX_ENTRIES = 30000;
-    private final AllDependenciesModel config;
+    private final DefaultVersionCatalog config;
 
     public DependenciesSourceGenerator(Writer writer,
-                                       AllDependenciesModel config) {
+                                       DefaultVersionCatalog config) {
         super(writer);
         this.config = config;
     }
 
     public static void generateSource(Writer writer,
-                                      AllDependenciesModel config,
+                                      DefaultVersionCatalog config,
                                       String packageName,
                                       String className) {
         DependenciesSourceGenerator generator = new DependenciesSourceGenerator(writer, config);
@@ -61,7 +61,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         addImport("org.gradle.api.provider.Provider");
         addImport("org.gradle.api.provider.ProviderFactory");
         addImport("org.gradle.api.internal.std.AbstractExternalDependencyFactory");
-        addImport("org.gradle.api.internal.std.AllDependenciesModel");
+        addImport("org.gradle.api.internal.std.DefaultVersionCatalog");
         addImport("java.util.Map");
         addImport("javax.inject.Inject");
         writeLn();
@@ -80,7 +80,7 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         writeLn("    private final " + bundlesClassName + " bundles = new " + bundlesClassName + "();");
         writeLn();
         writeLn("    @Inject");
-        writeLn("    public " + className + "(AllDependenciesModel config, ProviderFactory providers) {");
+        writeLn("    public " + className + "(DefaultVersionCatalog config, ProviderFactory providers) {");
         writeLn("        super(config, providers);");
         writeLn("    }");
         writeLn();

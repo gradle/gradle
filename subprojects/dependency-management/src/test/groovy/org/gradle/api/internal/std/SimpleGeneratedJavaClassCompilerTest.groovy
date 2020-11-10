@@ -74,12 +74,12 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
     def "compiler is isolated from the Gradle API"() {
         when:
         compile(source("A", """
-            import org.gradle.api.internal.std.AllDependenciesModel;
+            import org.gradle.api.internal.std.DefaultVersionCatalog;
 
             class A {
-                private final AllDependenciesModel model;
+                private final DefaultVersionCatalog model;
 
-                public A(AllDependenciesModel model) {
+                public A(DefaultVersionCatalog model) {
                     this.model = model;
                 }
             }
@@ -90,10 +90,10 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
         normaliseLineSeparators(ex.message) == """Unable to compile generated sources:
   - File A.java, line: 3, package org.gradle.api.internal.std does not exist
   - File A.java, line: 6, cannot find symbol
-      symbol:   class AllDependenciesModel
+      symbol:   class DefaultVersionCatalog
       location: class org.test.A
   - File A.java, line: 8, cannot find symbol
-      symbol:   class AllDependenciesModel
+      symbol:   class DefaultVersionCatalog
       location: class org.test.A"""
     }
 
@@ -101,12 +101,12 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
         classPath = classPathRegistry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER")
         when:
         compile(source("A", """
-            import org.gradle.api.internal.std.AllDependenciesModel;
+            import org.gradle.api.internal.std.DefaultVersionCatalog;
 
             class A {
-                private final AllDependenciesModel model;
+                private final DefaultVersionCatalog model;
 
-                public A(AllDependenciesModel model) {
+                public A(DefaultVersionCatalog model) {
                     this.model = model;
                 }
             }

@@ -29,10 +29,10 @@ import spock.lang.Unroll
 
 import java.util.function.Supplier
 
-class DefaultDependenciesModelBuilderTest extends Specification {
+class DefaultVersionCatalogBuilderTest extends Specification {
 
     @Subject
-    DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
+    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
 
     @Unroll("#notation is an invalid notation")
     def "reasonable error message if notation is invalid"() {

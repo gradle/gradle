@@ -15,13 +15,13 @@
  */
 package org.gradle.api.plugins.catalog.internal;
 
-import org.gradle.api.internal.std.AllDependenciesModel;
-import org.gradle.api.plugins.catalog.VersionCatalogExtension;
+import org.gradle.api.internal.std.DefaultVersionCatalog;
+import org.gradle.api.plugins.catalog.CatalogPluginExtension;
 import org.gradle.api.provider.Provider;
 
 import java.util.Map;
 
-public interface VersionCatalogExtensionInternal extends VersionCatalogExtension {
-    Provider<AllDependenciesModel> getDependenciesModel();
+public interface CatalogExtensionInternal extends CatalogPluginExtension {
+    Provider<DefaultVersionCatalog> getVersionCatalog();
     Provider<Map<String, String>> getPluginVersions();
 }
