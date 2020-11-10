@@ -274,14 +274,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         RelativePathParser parser = new RelativePathParser(rootEntry.getName());
 
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-        String rootPath = stringInterner.intern(treeRoot.getAbsolutePath());
-        builder.preVisitDirectory(rootPath);
+        builder.preVisitDirectory(stringInterner.intern(treeRoot.getAbsolutePath()));
 
         TarArchiveEntry entry;
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, name -> builder.postVisitDirectory(AccessType.DIRECT, name));
+            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, name -> builder.postVisitDirectory(AccessType.DIRECT, stringInterner.intern(name)));
             if (outsideOfRoot) {
                 break;
             }
@@ -299,8 +298,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             }
         }
 
-        parser.exitHierarchy(name -> builder.postVisitDirectory(AccessType.DIRECT, name));
-        builder.postVisitDirectory(AccessType.DIRECT, treeRoot.getName());
+        parser.exitHierarchy(name -> builder.postVisitDirectory(AccessType.DIRECT, stringInterner.intern(name)));
+        builder.postVisitDirectory(AccessType.DIRECT, stringInterner.intern(treeRoot.getName()));
 
         snapshots.put(treeName, builder.getResult());
         return entry;
