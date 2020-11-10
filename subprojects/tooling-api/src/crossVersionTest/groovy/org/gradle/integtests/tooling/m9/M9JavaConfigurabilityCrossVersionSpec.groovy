@@ -52,7 +52,7 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "customized java home is reflected in the java.home and the build model"() {
-        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.langageVersion) }
+        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.languageVersion) }
         Assume.assumeNotNull(jdk)
 
         given:

@@ -41,7 +41,7 @@ public interface JvmInstallationMetadata {
         return new FailureInstallationMetadata(javaHome, errorMessage);
     }
 
-    JavaVersion getLangageVersion();
+    JavaVersion getLanguageVersion();
 
     String getImplementationVersion();
 
@@ -75,7 +75,7 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public JavaVersion getLangageVersion() {
+        public JavaVersion getLanguageVersion() {
             return languageVersion;
         }
 
@@ -156,7 +156,7 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public JavaVersion getLangageVersion() {
+        public JavaVersion getLanguageVersion() {
             throw unsupportedOperation();
         }
 

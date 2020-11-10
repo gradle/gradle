@@ -45,7 +45,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     @Inject
     public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
-        this(metadata.getJavaHome(), JavaLanguageVersion.of(metadata.getLangageVersion().getMajorVersion()), metadata.getImplementationVersion(), metadata.getCapabilities().contains(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER), compilerFactory, toolFactory, fileFactory);
+        this(metadata.getJavaHome(), JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion()), metadata.getImplementationVersion(), metadata.getCapabilities().contains(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER), compilerFactory, toolFactory, fileFactory);
     }
 
     JavaToolchain(Path javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {

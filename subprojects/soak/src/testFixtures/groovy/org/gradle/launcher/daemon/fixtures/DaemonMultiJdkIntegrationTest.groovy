@@ -54,7 +54,7 @@ class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
                             return false
                         }
                     }
-                    return install.langageVersion == version.version
+                    return install.languageVersion == version.version
                 }
             })
 

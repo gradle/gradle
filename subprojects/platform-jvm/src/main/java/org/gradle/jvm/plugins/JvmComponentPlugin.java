@@ -144,8 +144,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 public void execute(InstalledJdk installedJdk) {
                     installedJdk.setJavaHome(Jvm.current().getJavaHome());
                     final JvmInstallationMetadata metadata = detector.getMetadata(Jvm.current().getJavaHome());
-                    installedJdk.setJavaVersion(metadata.getLangageVersion());
-                    installedJdk.setDisplayName(metadata.getDisplayName() + " " + metadata.getLangageVersion().getMajorVersion());
+                    installedJdk.setJavaVersion(metadata.getLanguageVersion());
+                    installedJdk.setDisplayName(metadata.getDisplayName() + " " + metadata.getLanguageVersion().getMajorVersion());
                 }
             });
         }
@@ -195,8 +195,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         @Override
                         public void execute(LocalJavaInstallation installedJdk) {
                             installedJdk.setJavaHome(javaHome);
-                            installedJdk.setJavaVersion(metadata.getLangageVersion());
-                            installedJdk.setDisplayName(metadata.getDisplayName() + " " + metadata.getLangageVersion().getMajorVersion());
+                            installedJdk.setJavaVersion(metadata.getLanguageVersion());
+                            installedJdk.setDisplayName(metadata.getDisplayName() + " " + metadata.getLanguageVersion().getMajorVersion());
                         }
                     });
                 }

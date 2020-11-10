@@ -54,8 +54,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         def metadata = detector.getMetadata(javaHome)
 
         then:
-        assert metadata.langageVersion == javaVersion
-        assert displayName == null || displayName == metadata.displayName + " " + metadata.langageVersion.majorVersion
+        assert metadata.languageVersion == javaVersion
+        assert displayName == null || displayName == metadata.displayName + " " + metadata.languageVersion.majorVersion
         assert metadata.javaHome != null
 
         where:
@@ -116,7 +116,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         metadata.getErrorMessage().startsWith(errorMessage)
         assert metadata.getJavaHome() == javaHome.toPath()
 
-        assertIsUnsupported({ metadata.langageVersion })
+        assertIsUnsupported({ metadata.languageVersion })
         assertIsUnsupported({ metadata.vendor })
         assertIsUnsupported({ metadata.implementationVersion })
 

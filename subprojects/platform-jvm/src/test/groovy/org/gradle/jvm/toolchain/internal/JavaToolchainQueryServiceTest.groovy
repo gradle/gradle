@@ -149,7 +149,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     def newMetadata(File javaHome) {
         Mock(JvmInstallationMetadata) {
-            getLangageVersion() >> JavaVersion.toVersion(javaHome.name)
+            getLanguageVersion() >> JavaVersion.toVersion(javaHome.name)
             getJavaHome() >> javaHome.absoluteFile.toPath()
             getImplementationVersion() >> javaHome.name.replace("zzz", "999")
             getCapabilities() >> Collections.emptySet()
