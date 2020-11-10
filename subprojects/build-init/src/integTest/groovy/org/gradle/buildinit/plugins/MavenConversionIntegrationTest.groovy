@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -30,6 +31,8 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
+
+import static org.junit.Assume.assumeFalse
 
 class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -57,6 +60,7 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = ":projects")
     def "multiModule"() {
+        assumeFalse(GradleContextualExecuter.isEmbedded())
         def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
@@ -112,6 +116,7 @@ Root project 'webinar-parent'
 
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin") // Kotlin compilation is used for the pre-compiled script plugin
     def "multiModuleWithNestedParent"() {
+        assumeFalse(GradleContextualExecuter.isEmbedded())
         def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
 
         when:
@@ -137,6 +142,7 @@ Root project 'webinar-parent'
 
     @ToBeFixedForConfigurationCache(because = ":projects")
     def "flatmultimodule"() {
+        assumeFalse(GradleContextualExecuter.isEmbedded())
         def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
         executer.beforeExecute {
             executer.inDirectory(targetDir.file("webinar-parent"))
@@ -479,6 +485,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
     @Issue("GRADLE-2819")
     @ToBeFixedForConfigurationCache(because = ":projects")
     def "multiModuleWithRemoteParent"() {
+        assumeFalse(GradleContextualExecuter.isEmbedded())
         def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
 
         given:

@@ -21,12 +21,14 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
+import static org.junit.Assume.assumeFalse
 
 class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
@@ -42,6 +44,7 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
     @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*Kotlin.*", because = "Kotlin Gradle Plugin")
     def "creates multi-project application sample"() {
+        assumeFalse(GradleContextualExecuter.isEmbedded())
         given:
         def dsl = scriptDsl as BuildInitDsl
         def language = jvmLanguage.name

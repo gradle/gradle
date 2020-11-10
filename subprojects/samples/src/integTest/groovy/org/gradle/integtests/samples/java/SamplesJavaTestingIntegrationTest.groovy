@@ -20,11 +20,14 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
+
+import static org.junit.Assume.assumeFalse
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -109,6 +112,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @ToBeFixedForConfigurationCache(because = "kotlin-dsl plugin applied in buildSrc")
     @UsesSample("testing/testReport")
     def "can create a custom TestReport task with #dsl dsl"() {
+        assumeFalse(GradleContextualExecuter.isEmbedded())
         given:
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

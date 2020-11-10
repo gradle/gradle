@@ -19,9 +19,12 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
+
+import static org.junit.Assume.assumeFalse
 
 class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sampleProject = new Sample(temporaryFolder)
@@ -52,6 +55,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample("ivy-publish/java-multi-project")
     @ToBeFixedForConfigurationCache
     def "java-multi-project sample with #dsl dsl"() {
+        assumeFalse(GradleContextualExecuter.isEmbedded())
         given:
         def sampleDir = sampleProject.dir.file(dsl)
         inDirectory(sampleDir)
