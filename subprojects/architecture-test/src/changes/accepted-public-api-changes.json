@@ -513,14 +513,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.generate(org.gradle.api.Project)",
-            "acceptation": "Compatibility with the configuration cache precludes project access at execution time.",
-            "changes": [
-                "Method is less accessible"
-            ]
-        },
-        {
             "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.generate(org.gradle.api.Project)",
             "acceptation": "Compatibility with the configuration cache precludes project access at execution time.",
