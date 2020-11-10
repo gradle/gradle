@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.normalization
 
-import org.gradle.api.GradleException
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
