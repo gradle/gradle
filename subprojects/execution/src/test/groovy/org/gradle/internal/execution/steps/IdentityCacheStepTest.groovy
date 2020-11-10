@@ -20,7 +20,7 @@ import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.internal.Try
 import org.gradle.internal.execution.CachingResult
-import org.gradle.internal.execution.DeferredResultProcessor
+import org.gradle.internal.execution.DeferredExecutionHandler
 import org.gradle.internal.execution.IdentityContext
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
@@ -31,7 +31,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     Cache<UnitOfWork.Identity, Try<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
-    def processor = Mock(DeferredResultProcessor)
+    def processor = Mock(DeferredExecutionHandler)
 
     @Override
     protected IdentityContext createContext() {

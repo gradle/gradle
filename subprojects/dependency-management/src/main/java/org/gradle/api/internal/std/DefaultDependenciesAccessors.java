@@ -145,7 +145,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private void executeWork(UnitOfWork work) {
-        CachingResult result = engine.execute(work, null);
+        CachingResult result = engine.execute(work);
         result.getExecutionResult().ifSuccessful(er -> {
             GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
             ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
