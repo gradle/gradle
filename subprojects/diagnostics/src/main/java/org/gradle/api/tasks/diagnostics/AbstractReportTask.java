@@ -97,15 +97,15 @@ public abstract class AbstractReportTask extends ConventionTask {
         this.projects.set(projects);
     }
 
-    protected String clickableOutputFileUrl() {
+    String clickableOutputFileUrl() {
         return new ConsoleRenderer().asClickableFileUrl(getOutputFile());
     }
 
-    protected boolean shouldCreateReportFile() {
+    boolean shouldCreateReportFile() {
         return getOutputFile() != null;
     }
 
-    protected ReportGenerator reportGenerator() {
+    ReportGenerator reportGenerator() {
         return new ReportGenerator(
             getRenderer(),
             getClientMetaData(),
@@ -114,7 +114,7 @@ public abstract class AbstractReportTask extends ConventionTask {
         );
     }
 
-    protected void logClickableOutputFileUrl() {
+    void logClickableOutputFileUrl() {
         if (shouldCreateReportFile()) {
             getLogger().lifecycle("See the report at: {}", clickableOutputFileUrl());
         }
