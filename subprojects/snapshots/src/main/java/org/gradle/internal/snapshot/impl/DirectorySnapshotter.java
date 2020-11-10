@@ -219,7 +219,8 @@ public class DirectorySnapshotter {
 
         @Override
         protected FileVisitResult doVisitFile(Path file, BasicFileAttributes attrs) {
-            relativePathTracker.enter(getInternedFileName(file));
+            String internedFileName = getInternedFileName(file);
+            relativePathTracker.enter(internedFileName);
             try {
                 if (attrs.isSymbolicLink()) {
                     BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
@@ -280,36 +281,36 @@ public class DirectorySnapshotter {
         }
 
         private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
-            String internedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
+            String internedRemappedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
             if (attrs.isRegularFile()) {
                 try {
                     long lastModified = attrs.lastModifiedTime().toMillis();
                     long fileLength = attrs.size();
                     FileMetadata metadata = DefaultFileMetadata.file(lastModified, fileLength, accessType);
                     HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
-                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata);
+                    return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
             }
-            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName, accessType);
+            return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
         }
 
         /** unlistable directories (and maybe some locked files) will stop here */
         @Override
         protected FileVisitResult doVisitFileFailed(Path file, IOException exc) {
-            relativePathTracker.enter(getInternedFileName(file));
+            String internedFileName = getInternedFileName(file);
+            relativePathTracker.enter(internedFileName);
             try {
                 // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                 // so we include all the other files apart from the loop.
                 // This way, we include each file only once.
                 if (isNotFileSystemLoopException(exc)) {
-                    String internedName = intern(file.getFileName().toString());
                     boolean isDirectory = Files.isDirectory(file);
-                    if (shouldVisit(file, internedName, isDirectory, relativePathTracker.getSegments())) {
+                    if (shouldVisit(file, internedFileName, isDirectory, relativePathTracker.getSegments())) {
                         LOGGER.info("Could not read file path '{}'.", file);
                         String internedAbsolutePath = intern(file.toString());
-                        builder.visitLeafElement(new MissingFileSnapshot(internedAbsolutePath, internedName, AccessType.DIRECT));
+                        builder.visitLeafElement(new MissingFileSnapshot(internedAbsolutePath, internedFileName, AccessType.DIRECT));
                     }
                 }
                 return FileVisitResult.CONTINUE;
@@ -320,7 +321,7 @@ public class DirectorySnapshotter {
 
         @Override
         protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
-            String dirName = relativePathTracker.leave();
+            String internedDirName = relativePathTracker.leave();
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
@@ -330,7 +331,7 @@ public class DirectorySnapshotter {
             AccessType accessType = AccessType.viaSymlink(
                 !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
             );
-            builder.postVisitDirectory(accessType, dirName);
+            builder.postVisitDirectory(accessType, internedDirName);
             parentDirectories.removeFirst();
             return FileVisitResult.CONTINUE;
         }
