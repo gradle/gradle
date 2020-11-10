@@ -50,7 +50,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
     }
 
     // test throws until we can detect lambdas in inline functions and treat them as ABI
-    @Test(expected = GradleException::class)
+    @Test(expected = CompileAvoidanceException::class)
     fun `changes to inline method bodies change generated API class`() {
         givenChangingClass(
             "Foo",
@@ -70,7 +70,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
     }
 
     // test throws until we can detect lambdas in inline functions and treat them as ABI
-    @Test(expected = GradleException::class)
+    @Test(expected = CompileAvoidanceException::class)
     fun `changes to standalone inline method bodies change generated API class`() {
         givenChangingScript(
             "Foo",
