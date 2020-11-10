@@ -96,7 +96,7 @@ public class TaskReportTask extends AbstractReportTask {
     }
 
     @TaskAction
-    public void generate() {
+    void generate() {
         reportGenerator().generateReport(
             new TreeSet<>(getProjects()),
             project -> {
