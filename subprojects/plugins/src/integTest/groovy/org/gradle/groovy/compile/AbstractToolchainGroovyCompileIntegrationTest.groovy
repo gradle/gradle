@@ -26,6 +26,9 @@ abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCo
     def setup() {
         jdk = computeJdkForTest()
         Assume.assumeNotNull(jdk)
+        executer.beforeExecute {
+            withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
+        }
     }
 
     abstract Jvm computeJdkForTest()
