@@ -762,12 +762,6 @@ It tries to identify problems where e.g. annotations are used on incompatible ty
 Any getter not annotated with an input/output annotation is also flagged.
 These problems are then turned into deprecation warnings when the task is executed.
 
-.Example output with a task having undeclared inputs and outputs
-----
-> gradle processTemplatesRuntime
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithoutInputOutputAnnotations.out[]
-----
-
 [[sec:task_input_output_runtime_api]]
 ==== Runtime API
 
