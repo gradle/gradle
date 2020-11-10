@@ -122,7 +122,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(new ClasspathContentFingerprintingVisitor(processedEntries, builder).asHierarchyVisitor());
+            root.accept(new ClasspathFingerprintingVisitor(processedEntries, builder).asHierarchyVisitor());
         }
         return builder.build();
     }
@@ -146,11 +146,11 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         public abstract HashCode determineNonJarFingerprint(HashCode original);
     }
 
-    private class ClasspathContentFingerprintingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
+    private class ClasspathFingerprintingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
         private final HashSet<String> processedEntries;
         private final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder;
 
-        public ClasspathContentFingerprintingVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder) {
+        public ClasspathFingerprintingVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder) {
             this.processedEntries = processedEntries;
             this.builder = builder;
         }
