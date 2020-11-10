@@ -8,6 +8,7 @@ import org.gradle.kotlin.dsl.provider.SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY
 import org.gradle.util.Matchers.isEmpty
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
 import org.junit.Assert.assertTrue
@@ -579,7 +580,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         )
         withBuildScript("println($packageName.foo() + $packageName.bar())")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foobar")
-            .assertContainsCompileAvoidanceWarning("Can not use Kotlin build script compile avoidance with buildSrc.jar: class com/example/Utils__FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
+            .assertContainsCompileAvoidanceWarning("Can not use Kotlin build script compile avoidance with buildSrc.jar")
 
         givenKotlinScriptInBuildSrcContains(
             "foo",
@@ -596,7 +597,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             multifileAnnotations
         )
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptBodyRecompiled().assertOutputContains("barfoo")
-            .assertContainsCompileAvoidanceWarning("Can not use Kotlin build script compile avoidance with buildSrc.jar: class com/example/Utils__FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
+            .assertContainsCompileAvoidanceWarning("Can not use Kotlin build script compile avoidance with buildSrc.jar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -681,7 +682,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             "@kotlin.Metadata(k=42, mv={1, 4, 0})"
         )
         withBuildScript("println(\"foo\")")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
+            .assertContainsCompileAvoidanceWarning("Can not use Kotlin build script compile avoidance with buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata with kind: 42 on class com/example/Foo - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
         configureProject().assertBuildScriptCompilationAvoided()
     }
 
@@ -870,7 +872,7 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
     }
 
     fun assertContainsCompileAvoidanceWarning(w: String): BuildOperationsAssertions {
-        assertThat(compileAvoidanceWarnings, hasItem(w))
+        assertThat(compileAvoidanceWarnings, hasItem(startsWith(w)))
         return this
     }
 
