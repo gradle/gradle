@@ -118,4 +118,8 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     public GradleInternal getBuild() {
         return gradleLauncher.getGradle();
     }
+
+    public synchronized void addTasks(Iterable<String> taskPaths) {
+        gradleLauncher.scheduleTasks(taskPaths);
+    }
 }

@@ -37,4 +37,6 @@ public interface CompositeBuildParticipantBuildState extends BuildState {
      */
     ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 
+    void addTasks(Iterable<String> tasks);
+
 }
