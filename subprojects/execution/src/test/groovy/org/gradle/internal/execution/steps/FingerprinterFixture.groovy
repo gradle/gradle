@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 @CompileStatic
@@ -30,10 +29,7 @@ trait FingerprinterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
 
     private DefaultFileCollectionSnapshotter snapshotter = TestFiles.fileCollectionSnapshotter()
-    private AbsolutePathFileCollectionFingerprinter inputFingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
-
-    private OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
-    def getOutputFingerprinter() { outputFingerprinter }
+    private AbsolutePathFileCollectionFingerprinter fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintsOf(Map<String, Object> properties) {
         def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
@@ -44,9 +40,13 @@ trait FingerprinterFixture {
                     ? it as File
                     : temporaryFolder.file(it)
             }
-            def fingerprint = inputFingerprinter.fingerprint(TestFiles.fixed(files))
+            def fingerprint = fingerprinter.fingerprint(TestFiles.fixed(files))
             builder.put(propertyName, fingerprint)
         }
         return builder.build()
+    }
+
+    CurrentFileCollectionFingerprint fingerprint(File... files) {
+        fingerprinter.fingerprint(TestFiles.fixed(files))
     }
 }

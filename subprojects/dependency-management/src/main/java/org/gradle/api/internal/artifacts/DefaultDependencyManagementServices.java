@@ -123,8 +123,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -192,10 +190,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 public void afterTransformerInvocation(Describable transformer, Describable subject) {
                 }
             };
-        }
-
-        OutputFileCollectionFingerprinter createOutputFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new OutputFileCollectionFingerprinter(fileCollectionSnapshotter);
         }
 
         TransformationNodeRegistry createTransformationNodeRegistry() {

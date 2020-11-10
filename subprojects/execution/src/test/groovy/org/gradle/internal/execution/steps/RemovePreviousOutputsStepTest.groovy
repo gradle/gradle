@@ -212,8 +212,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         FileCollectionFingerprint fileFingerprint
 
         void fingerprint() {
-            dirFingerprint = outputFingerprinter.fingerprint(TestFiles.fixed(dir))
-            fileFingerprint = outputFingerprinter.fingerprint(TestFiles.fixed(file))
+            dirFingerprint = fingerprint(dir)
+            fileFingerprint = fingerprint(file)
         }
 
         void createContents() {
