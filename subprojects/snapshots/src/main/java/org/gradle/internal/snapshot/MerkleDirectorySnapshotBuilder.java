@@ -49,8 +49,8 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public void preVisitDirectory(String absolutePath) {
-        levelHolder.addLast(new ArrayList<>());
         directoryAbsolutePaths.addLast(absolutePath);
+        addLevel();
     }
 
     public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
