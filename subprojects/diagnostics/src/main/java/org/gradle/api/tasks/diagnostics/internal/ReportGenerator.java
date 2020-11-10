@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+import java.util.function.Function;
 
 
 public final class ReportGenerator {
@@ -46,9 +47,15 @@ public final class ReportGenerator {
         this.textOutputFactory = textOutputFactory;
     }
 
-    public void generateReport(
-        Set<Project> projects,
-        ProjectReportGenerator projectReportGenerator
+    @FunctionalInterface
+    public interface ReportAction<T> {
+        void execute(T project) throws IOException;
+    }
+
+    public <T> void generateReport(
+        Iterable<T> model,
+        Function<T, ProjectDetails> projectDetailsProvider,
+        ReportAction<T> projectReportGenerator
     ) {
         try {
             ReportRenderer renderer = getRenderer();
@@ -59,16 +66,23 @@ public final class ReportGenerator {
             } else {
                 renderer.setOutput(getTextOutputFactory().create(getClass()));
             }
-            for (Project project : projects) {
-                ProjectDetails projectDetails = ProjectDetails.of(project);
+            for (T element : model) {
+                ProjectDetails projectDetails = projectDetailsProvider.apply(element);
                 renderer.startProject(projectDetails);
-                projectReportGenerator.generateReport(project);
+                projectReportGenerator.execute(element);
                 renderer.completeProject(projectDetails);
             }
             renderer.complete();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public void generateReport(
+        Set<Project> projects,
+        ReportAction<Project> projectReportGenerator
+    ) {
+        generateReport(projects, ProjectDetails::of, projectReportGenerator);
     }
 
     protected ReportRenderer getRenderer() {

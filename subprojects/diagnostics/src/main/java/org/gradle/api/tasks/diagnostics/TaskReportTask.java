@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.DefaultGroupTaskReportModel;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.RuleDetails;
 import org.gradle.api.tasks.diagnostics.internal.SingleProjectTaskReportModel;
@@ -32,8 +33,11 @@ import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.Try;
+import org.gradle.internal.serialization.Cached;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -49,13 +53,17 @@ import static java.util.Collections.emptyList;
  * by enabling the command line option {@code --all}.
  */
 public class TaskReportTask extends AbstractReportTask {
-    private TaskReportRenderer renderer = new TaskReportRenderer();
+    private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
+    private transient TaskReportRenderer renderer;
 
     private boolean detail;
     private String group;
 
     @Override
     public ReportRenderer getRenderer() {
+        if (renderer == null) {
+            renderer = new TaskReportRenderer();
+        }
         return renderer;
     }
 
@@ -68,6 +76,7 @@ public class TaskReportTask extends AbstractReportTask {
         this.detail = detail;
     }
 
+    // TODO config-cache - should invalidate the cache or the filtering and merging should be moved to task execution time
     @Console
     public boolean isDetail() {
         return detail;
@@ -98,24 +107,72 @@ public class TaskReportTask extends AbstractReportTask {
     @TaskAction
     void generate() {
         reportGenerator().generateReport(
-            new TreeSet<>(getProjects()),
-            project -> {
-                generate(project);
+            model.get().projects,
+            projectModel -> projectModel.get().project,
+            projectModel -> {
+                render(projectModel.get());
                 logClickableOutputFileUrl();
             }
         );
     }
 
-    private void generate(Project project) {
+    private TaskReportModel computeTaskReportModel() {
+        return new TaskReportModel(computeProjectModels());
+    }
+
+    private List<Try<ProjectReportModel>> computeProjectModels() {
+        List<Try<ProjectReportModel>> result = new ArrayList<>();
+        for (Project project : new TreeSet<>(getProjects())) {
+            result.add(Try.ofFailable(() -> projectReportModelFor(project)));
+        }
+        return result;
+    }
+
+    private static class TaskReportModel {
+        final List<Try<ProjectReportModel>> projects;
+
+        public TaskReportModel(List<Try<ProjectReportModel>> projects) {
+            this.projects = projects;
+        }
+    }
+
+    private static class ProjectReportModel {
+        public final boolean detail;
+        public final ProjectDetails project;
+        public final List<String> defaultTasks;
+        public final DefaultGroupTaskReportModel tasks;
+        public final List<RuleDetails> rules;
+
+        public ProjectReportModel(
+            ProjectDetails project,
+            boolean detail,
+            List<String> defaultTasks,
+            DefaultGroupTaskReportModel tasks,
+            List<RuleDetails> rules
+        ) {
+            this.detail = detail;
+            this.defaultTasks = defaultTasks;
+            this.tasks = tasks;
+            this.rules = rules;
+            this.project = project;
+        }
+    }
+
+    private ProjectReportModel projectReportModelFor(Project project) {
         boolean detail = isDetail();
-        List<String> defaultTasks = project.getDefaultTasks();
+        return new ProjectReportModel(
+            ProjectDetails.of(project), detail,
+            project.getDefaultTasks(),
+            taskReportModelFor(project, detail),
+            Strings.isNullOrEmpty(group) ? ruleDetailsFor(project) : emptyList()
+        );
+    }
 
-        DefaultGroupTaskReportModel model = taskReportModelFor(project, detail);
-        List<RuleDetails> ruleDetails = Strings.isNullOrEmpty(group) ? ruleDetailsFor(project) : emptyList();
+    private void render(ProjectReportModel reportModel) {
+        renderer.showDetail(reportModel.detail);
+        renderer.addDefaultTasks(reportModel.defaultTasks);
 
-        renderer.showDetail(detail);
-        renderer.addDefaultTasks(defaultTasks);
-
+        DefaultGroupTaskReportModel model = reportModel.tasks;
         for (String group : model.getGroups()) {
             renderer.startTaskGroup(group);
             for (TaskDetails task : model.getTasksForGroup(group)) {
@@ -124,7 +181,7 @@ public class TaskReportTask extends AbstractReportTask {
         }
         renderer.completeTasks();
 
-        for (RuleDetails rule : ruleDetails) {
+        for (RuleDetails rule : reportModel.rules) {
             renderer.addRule(rule);
         }
     }

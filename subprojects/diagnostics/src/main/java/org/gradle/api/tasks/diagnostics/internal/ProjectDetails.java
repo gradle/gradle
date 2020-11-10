@@ -23,7 +23,11 @@ import javax.annotation.Nullable;
 public interface ProjectDetails {
 
     static ProjectDetails of(final Project project) {
+        final String path = project.getPath();
+        final String description = project.getDescription();
+        final boolean isRoot = project == project.getRootProject();
         return new ProjectDetails() {
+
             @Override
             public int hashCode() {
                 return this.getPath().hashCode();
@@ -35,22 +39,22 @@ public interface ProjectDetails {
                     return false;
                 }
                 ProjectDetails that = (ProjectDetails) obj;
-                return this.isRootProject() == that.isRootProject() || this.getPath().equals(that.getPath());
+                return this.getPath().equals(that.getPath());
             }
 
             @Override
             public boolean isRootProject() {
-                return project == project.getRootProject();
+                return isRoot;
             }
 
             @Override
             public String getPath() {
-                return project.getPath();
+                return path;
             }
 
             @Override
             public String getDescription() {
-                return project.getDescription();
+                return description;
             }
         };
     }

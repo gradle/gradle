@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal
 
+import org.gradle.api.Project
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
@@ -26,7 +27,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
     ReportRenderer renderer = Mock(ReportRenderer)
     BuildClientMetaData buildClientMetaData = Mock(BuildClientMetaData)
-    ProjectReportGenerator projectReportGenerator = Mock(ProjectReportGenerator)
+    ReportGenerator.ReportAction<Project> projectReportGenerator = Mock(ReportGenerator.ReportAction)
     StyledTextOutput styledTextOutput = Mock(StyledTextOutput)
 
     def createReportGenerator(File file = null) {
@@ -53,7 +54,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         1 * renderer.startProject(projectDetails)
 
         then:
-        1 * projectReportGenerator.generateReport(project)
+        1 * projectReportGenerator.execute(project)
 
         then:
         1 * renderer.completeProject(projectDetails)
@@ -81,7 +82,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         1 * renderer.startProject(projectDetails)
 
         then:
-        1 * projectReportGenerator.generateReport(project)
+        1 * projectReportGenerator.execute(project)
 
         then:
         1 * renderer.completeProject(projectDetails)
@@ -108,17 +109,17 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * renderer.startProject(projectDetails)
-        1 * projectReportGenerator.generateReport(project)
+        1 * projectReportGenerator.execute(project)
         1 * renderer.completeProject(projectDetails)
 
         then:
         1 * renderer.startProject(child1Details)
-        1 * projectReportGenerator.generateReport(child1)
+        1 * projectReportGenerator.execute(child1)
         1 * renderer.completeProject(child1Details)
 
         then:
         1 * renderer.startProject(child2Details)
-        1 * projectReportGenerator.generateReport(child2)
+        1 * projectReportGenerator.execute(child2)
         1 * renderer.completeProject(child2Details)
 
         then:
