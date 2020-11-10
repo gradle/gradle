@@ -135,6 +135,7 @@ abstract class ExternalModulesExtension {
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val flightrecorder = "org.gradle.org.openjdk.jmc:flightrecorder"
     val guice = "com.google.inject:guice"
+    val hikariCP = "com.zaxxer:HikariCP"
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
     val javaParser = "com.github.javaparser:javaparser-core"
@@ -198,6 +199,7 @@ abstract class ExternalModulesExtension {
         gson to License.Apache2,
         guava to License.Apache2,
         hamcrest to License.BSD3,
+        hikariCP to License.Apache2,
         httpcore to License.Apache2,
         inject to License.Apache2,
         ivy to License.Apache2,
