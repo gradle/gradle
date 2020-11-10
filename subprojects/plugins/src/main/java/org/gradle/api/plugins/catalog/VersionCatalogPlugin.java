@@ -35,8 +35,8 @@ import org.gradle.api.tasks.TaskProvider;
 import javax.inject.Inject;
 
 /**
- * <p>A {@link Plugin} makes it possible to generate a version catalog, which is a set of recommendations
- * for dependency and plugin versions</p>
+ * <p>A {@link Plugin} makes it possible to generate a version catalog,  which is a set of versions and
+ * coordinates for dependencies and plugins to import in the settings of a Gradle build.</p>
  *
  * @since 6.8
  */

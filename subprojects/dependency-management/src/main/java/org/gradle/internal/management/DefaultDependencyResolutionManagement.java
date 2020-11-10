@@ -80,7 +80,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     private final Property<RulesMode> rulesMode;
     private final Property<String> librariesExtensionName;
     private final Property<String> projectsExtensionName;
-    private final Map<String, DependenciesModelBuilderInternal> versionCatalogBuilders = Maps.newHashMap();
+    private final Map<String, VersionCatalogBuilderInternal> versionCatalogBuilders = Maps.newHashMap();
     private final ObjectFactory objects;
     private final ProviderFactory providers;
     private final Interner<String> strings = Interners.newStrongInterner();
@@ -145,7 +145,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     @Override
     public void versionCatalog(String name, Action<? super VersionCatalogBuilder> spec) {
         validateName(name);
-        DependenciesModelBuilderInternal model = versionCatalogBuilders.computeIfAbsent(name, n ->
+        VersionCatalogBuilderInternal model = versionCatalogBuilders.computeIfAbsent(name, n ->
             objects.newInstance(DefaultVersionCatalogBuilder.class, n, strings, versions, objects, providers, plugins, dependencyResolutionServices));
         UserCodeApplicationContext.Application current = context.current();
         model.withContext(current == null ? "Settings" : current.getDisplayName().getDisplayName(), () -> spec.execute(model));

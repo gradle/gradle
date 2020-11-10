@@ -49,7 +49,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.management.DependenciesModelBuilderInternal;
+import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -113,7 +113,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             this.classLoaderScope = classLoaderScope;
             this.models.clear(); // this is used in tests only, shouldn't happen in real context
             for (VersionCatalogBuilder builder : builders) {
-                DefaultVersionCatalog model = ((DependenciesModelBuilderInternal) builder).build();
+                DefaultVersionCatalog model = ((VersionCatalogBuilderInternal) builder).build();
                 models.add(model);
             }
             if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {

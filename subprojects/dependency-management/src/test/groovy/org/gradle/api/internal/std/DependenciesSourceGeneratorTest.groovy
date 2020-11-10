@@ -33,7 +33,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.isolation.TestIsolatableFactory
-import org.gradle.internal.management.DependenciesModelBuilderInternal
+import org.gradle.internal.management.VersionCatalogBuilderInternal
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -262,7 +262,7 @@ class DependenciesSourceGeneratorTest extends Specification {
         sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${context}")
     }
 
-    private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependenciesModelBuilderInternal) Closure<Void> spec) {
+    private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
