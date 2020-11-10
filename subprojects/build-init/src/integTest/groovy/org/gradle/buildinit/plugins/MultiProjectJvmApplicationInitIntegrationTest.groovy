@@ -42,7 +42,7 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*Kotlin.*", because = "Kotlin Gradle Plugin")
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*Kotlin build scripts", because = "Kotlin Gradle Plugin")
     def "creates multi-project application sample"() {
         assumeFalse(GradleContextualExecuter.isEmbedded())
         given:
