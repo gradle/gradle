@@ -27,7 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
@@ -188,13 +187,13 @@ public abstract class AvailableJavaHomes {
      */
     public static File getBestJre() {
         Jvm jvm = Jvm.current();
-        Jre jre = jvm.getStandaloneJre();
+        File jre = jvm.getStandaloneJre();
         if (jre != null) {
-            return jre.getHomeDir();
+            return jre;
         }
         jre = jvm.getEmbeddedJre();
         if (jre != null) {
-            return jre.getHomeDir();
+            return jre;
         }
         // Use the JDK instead
         return jvm.getJavaHome();
