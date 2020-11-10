@@ -26,7 +26,6 @@ import java.util.List;
 
 public class PerformanceDatabase {
     private static final String PERFORMANCE_DB_URL_PROPERTY_NAME = "org.gradle.performance.db.url";
-    private static final int CONNECTION_TIMEOUT_MS = 60 * 1000;
     private final String databaseName;
     private final List<ConnectionAction<Void>> databaseInitializers;
     private HikariDataSource dataSource;
@@ -43,7 +42,7 @@ public class PerformanceDatabase {
             config.setJdbcUrl(getUrl());
             config.setUsername(getUserName());
             config.setPassword(getPassword());
-            config.setConnectionTimeout(CONNECTION_TIMEOUT_MS);
+            config.setMaximumPoolSize(1);
             dataSource = new HikariDataSource(config);
 
             executeInitializers(dataSource.getConnection());
