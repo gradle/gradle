@@ -151,14 +151,14 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         private final Path path;
         private final String name;
         private final boolean isDirectory;
-        private final String[] relativePath;
+        private final Iterable<String> relativePath;
         private final Stat stat;
 
         public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, Iterable<String> relativePath, Stat stat) {
             this.path = path;
             this.name = name;
             this.isDirectory = isDirectory;
-            this.relativePath = Iterables.toArray(relativePath, String.class);
+            this.relativePath = relativePath;
             this.stat = stat;
         }
 
@@ -213,7 +213,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public RelativePath getRelativePath() {
-            return new RelativePath(!isDirectory, relativePath);
+            return new RelativePath(!isDirectory, Iterables.toArray(relativePath, String.class));
         }
 
         @Override
