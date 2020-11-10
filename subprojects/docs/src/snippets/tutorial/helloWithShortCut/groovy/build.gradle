@@ -1,8 +1,0 @@
-task hello {
-    doLast {
-        println 'Hello world!'
-    }
-}
-hello.doLast {
-    println "Greetings from the $hello.name task."
-}

@@ -8,5 +8,7 @@ val myCopy by tasks.existing(Copy::class) {
     from("resources")
     into("target")
 }
-myCopy { include("**/*.txt", "**/*.xml", "**/*.properties") }
+myCopy {
+    include("**/*.txt", "**/*.xml", "**/*.properties")
+}
 // end::configure[]

@@ -1,11 +1,13 @@
-task taskX {
+def taskX = tasks.register('taskX') {
     doLast {
         println 'taskX'
     }
 }
-task taskY {
+def taskY = tasks.register('taskY') {
     doLast {
         println 'taskY'
     }
 }
-taskY.shouldRunAfter taskX
+taskY.configure {
+    shouldRunAfter taskX
+}

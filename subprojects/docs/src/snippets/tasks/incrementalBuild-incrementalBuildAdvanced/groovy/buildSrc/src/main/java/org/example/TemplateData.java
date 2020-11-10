@@ -1,23 +1,14 @@
 package org.example;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 
-public class TemplateData {
-    private String name;
-    private Map<String, String> variables;
-
-    public TemplateData(String name, Map<String, String> variables) {
-        this.name = name;
-        this.variables = new HashMap<>(variables);
-    }
+public abstract class TemplateData {
 
     @Input
-    public String getName() { return this.name; }
+    public abstract Property<String> getName();
 
     @Input
-    public Map<String, String> getVariables() {
-        return this.variables;
-    }
+    public abstract MapProperty<String, String> getVariables();
 }

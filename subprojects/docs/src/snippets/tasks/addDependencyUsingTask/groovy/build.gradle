@@ -1,13 +1,15 @@
-task taskX {
+def taskX = tasks.register('taskX') {
     doLast {
         println 'taskX'
     }
 }
 
-task taskY {
+def taskY = tasks.register('taskY') {
     doLast {
         println 'taskY'
     }
 }
 
-taskX.dependsOn taskY
+taskX.configure {
+    dependsOn taskY
+}
