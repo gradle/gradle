@@ -50,7 +50,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     private boolean isContainedInAnOutput(File absoluteFile) {
         File currentFile = absoluteFile;
         while (currentFile != null) {
-            if (outputFiles.get(currentFile.getPath()) == Boolean.TRUE) {
+            if (outputFiles.getIfPresent(currentFile.getPath()) == Boolean.TRUE) {
                 return true;
             }
             currentFile = currentFile.getParentFile();
@@ -59,7 +59,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     }
 
     private boolean containsFilesGeneratedByGradle(File absoluteFile) {
-        return outputFiles.get(absoluteFile.getPath()) != null;
+        return outputFiles.getIfPresent(absoluteFile.getPath()) != null;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                     File outputFileParent = outputFile.getParentFile();
                     while (outputFileParent != null) {
                         String parentPath = outputFileParent.getPath();
-                        if (outputFiles.get(parentPath) != null) {
+                        if (outputFiles.getIfPresent(parentPath) != null) {
                             break;
                         }
                         outputFiles.put(parentPath, Boolean.FALSE);

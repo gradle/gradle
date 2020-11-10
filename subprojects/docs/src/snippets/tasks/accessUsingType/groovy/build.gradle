@@ -2,6 +2,6 @@ tasks.withType(Tar).configureEach {
     enabled = false
 }
 
-task test {
+tasks.register('test') {
     dependsOn tasks.withType(Copy)
 }

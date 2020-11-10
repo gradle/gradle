@@ -57,7 +57,7 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
 
     @Override
     protected ModuleVersionsCacheEntry get(ModuleAtRepositoryKey key) {
-        return getCache().get(key);
+        return getCache().getIfPresent(key);
     }
 
     private static class ModuleKeySerializer extends AbstractSerializer<ModuleAtRepositoryKey> {

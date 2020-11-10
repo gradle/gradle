@@ -20,7 +20,7 @@ import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
-import org.gradle.internal.execution.DeferredResultProcessor;
+import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.UnitOfWork;
@@ -37,13 +37,18 @@ public class DefaultExecutionEngine implements ExecutionEngine {
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, @Nullable String rebuildReason) {
-        return executeStep.execute(work, new Request(rebuildReason));
+    public CachingResult execute(UnitOfWork work) {
+        return executeStep.execute(work, new Request(null));
     }
 
     @Override
-    public <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
-        return executeStep.executeDeferred(work, new Request(rebuildReason), cache, processor);
+    public CachingResult rebuild(UnitOfWork work, String reason) {
+        return executeStep.execute(work, new Request(reason));
+    }
+
+    @Override
+    public <T, O> T getFromIdentityCacheOrDeferExecution(UnitOfWork work, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
+        return executeStep.executeDeferred(work, new Request(null), cache, handler);
     }
 
     private static class Request implements ExecutionRequestContext {

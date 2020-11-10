@@ -115,16 +115,16 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Nullable
         @Override
-        public V get(K key) {
+        public V getIfPresent(K key) {
             synchronized (lock) {
-                return getIfPresent(key);
+                return getIfPresentWithoutLock(key);
             }
         }
 
         @Override
         public V get(K key, Function<? super K, ? extends V> factory) {
             synchronized (lock) {
-                V v = getIfPresent(key);
+                V v = getIfPresentWithoutLock(key);
                 if (v != null) {
                     return v;
                 }
@@ -150,7 +150,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         // Caller must be holding lock
-        private V getIfPresent(K key) {
+        private V getIfPresentWithoutLock(K key) {
             V v = valuesForThisSession.get(key);
             if (v != null) {
                 return v;
@@ -255,9 +255,9 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         @Override
-        public V get(K key) {
+        public V getIfPresent(K key) {
             keysFromCurrentBuild.put(key, Boolean.TRUE);
-            return delegate.get(key);
+            return delegate.getIfPresent(key);
         }
 
         @Override

@@ -62,6 +62,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":resources-http")))
     testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(project(":jvm-services")))
     testImplementation(testFixtures(project(":language-jvm")))
     testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":language-groovy")))

@@ -2,6 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Danny Thomas](https://github.com/DanielThomas),
 [Jeff](https://github.com/mathjeff),
 [Mattia Tommasone](https://github.com/Raibaz),
@@ -181,6 +182,10 @@ In order to see which toolchains got detected and their corresponding metadata, 
 
 Output of `gradle -q javaToolchains`:
 ```
+ + Options
+     | Auto-detection:     Enabled
+     | Auto-download:      Enabled
+
  + AdoptOpenJDK 1.8.0_242
      | Location:           /path/to/8.0.242.hs-adpt/jre
      | Language Version:   8

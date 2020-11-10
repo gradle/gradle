@@ -1,1 +1,1 @@
-task hello
+tasks.register('hello')

@@ -1,35 +1,29 @@
 package org.example;
 
-import java.io.File;
 import java.util.HashMap;
-import org.gradle.api.*;
-import org.gradle.api.file.*;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 
 // tag::custom-task-class[]
-public class ProcessTemplates extends DefaultTask {
+public abstract class ProcessTemplates extends DefaultTask {
     // ...
 // end::custom-task-class[]
-    private TemplateEngineType templateEngine;
-    private TemplateData templateData;
-    private File outputDir;
 
     @Input
-    public TemplateEngineType getTemplateEngine() {
-        return this.templateEngine;
-    }
-// tag::custom-task-class[]
-    private FileCollection sourceFiles = getProject().getLayout().files();
+    public abstract Property<TemplateEngineType> getTemplateEngine();
 
+// tag::custom-task-class[]
     @SkipWhenEmpty
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    public FileCollection getSourceFiles() {
-        return this.sourceFiles;
-    }
+    public abstract ConfigurableFileCollection getSourceFiles();
 
     public void sources(FileCollection sourceFiles) {
-        this.sourceFiles = this.sourceFiles.plus(sourceFiles);
+        getSourceFiles().from(sourceFiles);
     }
 
     // ...
@@ -37,36 +31,25 @@ public class ProcessTemplates extends DefaultTask {
 
 // tag::task-arg-method[]
     // ...
-    public void sources(Task inputTask) {
-        this.sourceFiles = this.sourceFiles.plus(getProject().getLayout().files(inputTask));
+    public void sources(TaskProvider<?> inputTask) {
+        getSourceFiles().from(getProject().getLayout().files(inputTask));
     }
     // ...
 // end::task-arg-method[]
 
     @Nested
-    public TemplateData getTemplateData() {
-        return this.templateData;
-    }
+    public abstract TemplateData getTemplateData();
 
     @OutputDirectory
-    public File getOutputDir() { return this.outputDir; }
-
-    // + setter methods for the above - assume we’ve defined them
-
-    public void setTemplateEngine(TemplateEngineType type) { this.templateEngine = type; }
-    public void setSourceFiles(FileCollection files) { this.sourceFiles = files; }
-    public void setTemplateData(TemplateData model) { this.templateData = model; }
-    public void setOutputDir(File dir) { this.outputDir = dir; }
+    public abstract DirectoryProperty getOutputDir();
 
     @TaskAction
     public void processTemplates() {
-        getProject().copy(new Action<CopySpec>() {
-            public void execute(CopySpec spec) {
-                spec.into(outputDir).
-                    from(sourceFiles).
-                    expand(new HashMap<String, String>(templateData.getVariables()));
-            }
-        });
+        getProject().copy(spec -> spec.
+            into(getOutputDir()).
+            from(getSourceFiles()).
+            expand(new HashMap<>(getTemplateData().getVariables().get()))
+        );
     }
 // tag::custom-task-class[]
 }

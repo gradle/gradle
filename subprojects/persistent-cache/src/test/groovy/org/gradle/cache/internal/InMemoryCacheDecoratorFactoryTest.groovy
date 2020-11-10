@@ -33,7 +33,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
-        def result = cache.get("key")
+        def result = cache.getIfPresent("key")
 
         then:
         result == "result"
@@ -41,11 +41,11 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
-        1 * target.get("key") >> "result"
+        1 * target.getIfPresent("key") >> "result"
         0 * target._
 
         when:
-        result = cache.get("key")
+        result = cache.getIfPresent("key")
 
         then:
         result == "result"
@@ -56,7 +56,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         when:
         def cache2 = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
-        result = cache2.get("key")
+        result = cache2.getIfPresent("key")
 
         then:
         result == "result"
@@ -71,7 +71,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         def cache = cacheFactory.decorator(100, false).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
-        def result = cache.get("key")
+        def result = cache.getIfPresent("key")
 
         then:
         result == "result 1"
@@ -79,11 +79,11 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
-        1 * target.get("key") >> "result 1"
+        1 * target.getIfPresent("key") >> "result 1"
         0 * target._
 
         when:
-        result = cache.get("key")
+        result = cache.getIfPresent("key")
 
         then:
         result == "result 2"
@@ -91,7 +91,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
-        1 * target.get("key") >> "result 2"
+        1 * target.getIfPresent("key") >> "result 2"
         0 * target._
     }
 
@@ -100,7 +100,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
-        def result = cache.get("key")
+        def result = cache.getIfPresent("key")
 
         then:
         result == null
@@ -108,11 +108,11 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
-        1 * target.get("key") >> null
+        1 * target.getIfPresent("key") >> null
         0 * target._
 
         when:
-        result = cache.get("key")
+        result = cache.getIfPresent("key")
 
         then:
         result == null
@@ -129,7 +129,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
-        def result = cache.get("key")
+        def result = cache.getIfPresent("key")
 
         then:
         result == "result"
@@ -137,7 +137,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
-        1 * target.get("key") >> "result"
+        1 * target.getIfPresent("key") >> "result"
         0 * target._
 
         when:
@@ -151,7 +151,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         0 * _._
 
         when:
-        result = cache.get("key")
+        result = cache.getIfPresent("key")
 
         then:
         result == "new value"
@@ -168,7 +168,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
-        def result = cache.get("key")
+        def result = cache.getIfPresent("key")
 
         then:
         result == "result"
@@ -176,7 +176,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
-        1 * target.get("key") >> "result"
+        1 * target.getIfPresent("key") >> "result"
         0 * target._
 
         when:
@@ -190,7 +190,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         0 * _._
 
         when:
-        result = cache.get("key")
+        result = cache.getIfPresent("key")
 
         then:
         result == null
