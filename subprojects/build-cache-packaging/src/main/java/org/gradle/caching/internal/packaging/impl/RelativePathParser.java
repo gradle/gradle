@@ -46,23 +46,25 @@ public class RelativePathParser {
         return currentPath.substring(sizeOfCommonPrefix + 1);
     }
 
-    public void nextPath(String nextPath, boolean directory, Consumer<String> exitDirectory) {
+    public boolean nextPath(String nextPath, boolean directory, Consumer<String> exitDirectory) {
         currentPath = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
         String lastDirPath = directoryPaths.peekLast();
         sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentPath, 0, '/');
         int directoriesLeft = determineDirectoriesLeft(lastDirPath, sizeOfCommonPrefix);
-        if (directoriesLeft > directoryNames.size()) {
-            throw new IllegalStateException("Moved outside original root");
-        }
         for (int i = 0; i < directoriesLeft; i++) {
             directoryPaths.removeLast();
-            exitDirectory.accept(directoryNames.removeLast());
+            String name = directoryNames.pollLast();
+            if (name == null) {
+                return true;
+            }
+            exitDirectory.accept(name);
         }
         String currentName = currentPath.substring(sizeOfCommonPrefix + 1);
         if (directory) {
             directoryPaths.addLast(currentPath);
             directoryNames.addLast(currentName);
         }
+        return isRoot();
     }
 
     private static int determineDirectoriesLeft(String lastDirPath, int sizeOfCommonPrefix) {

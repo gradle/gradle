@@ -283,8 +283,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            parser.nextPath(entry.getName(), isDir, name -> builder.postVisitDirectory(AccessType.DIRECT, name));
-            if (parser.isRoot()) {
+            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, name -> builder.postVisitDirectory(AccessType.DIRECT, name));
+            if (outsideOfRoot) {
                 break;
             }
             entries.incrementAndGet();
