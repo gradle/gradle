@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 
@@ -23,7 +24,10 @@ import java.util.TreeSet;
 
 /**
  * The base class for all Project based project report tasks.
+ *
+ * @since 6.8
  */
+@Incubating
 public abstract class ProjectBasedReportTask extends AbstractReportTask {
 
     protected abstract void generate(Project project) throws IOException;
