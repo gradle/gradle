@@ -48,7 +48,12 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jav
 
     @Override
     public boolean test(JavaToolchain toolchain) {
-        return matcher.test(toolchain.getVendor());
+        final JvmVendor vendor = toolchain.getVendor();
+        return test(vendor);
+    }
+
+    public boolean test(JvmVendor vendor) {
+        return matcher.test(vendor);
     }
 
     @Override

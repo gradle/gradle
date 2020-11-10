@@ -48,7 +48,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Inject
     public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
         this.javaHome = fileFactory.dir(computeEnclosingJavaHome(metadata.getJavaHome()).toFile());
-        this.javaVersion = JavaLanguageVersion.of(metadata.getLangageVersion().getMajorVersion());
+        this.javaVersion = JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
         this.isJdk = metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER);
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;

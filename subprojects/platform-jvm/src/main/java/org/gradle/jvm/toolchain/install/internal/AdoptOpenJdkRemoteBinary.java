@@ -19,10 +19,10 @@ package org.gradle.jvm.toolchain.install.internal;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import javax.inject.Inject;
@@ -56,8 +56,9 @@ public class AdoptOpenJdkRemoteBinary {
 
     private boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = getLanguageVersion(spec).canCompileOrRun(8);
-        final JvmVendorSpec vendorSpec = spec.getVendor().get();
-        boolean matchesVendor = vendorSpec == JvmVendorSpec.ADOPTOPENJDK || vendorSpec == DefaultJvmVendorSpec.any();
+        final DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+        JvmVendor vendor = JvmVendor.fromString("adoptopenjdk");
+        boolean matchesVendor = vendorSpec == DefaultJvmVendorSpec.any() || vendorSpec.test(vendor);
         return matchesLanguageVersion && matchesVendor;
     }
 
