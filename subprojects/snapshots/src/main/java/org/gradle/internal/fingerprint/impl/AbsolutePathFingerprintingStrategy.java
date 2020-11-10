@@ -32,8 +32,6 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
-
 /**
  * Fingerprint files without path or content normalization.
  */
@@ -59,7 +57,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(asSimpleHierarchyVisitor(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
+            root.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
                 @Override
                 public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
                     snapshot.accept(new FileSystemLocationSnapshotVisitor() {
@@ -89,7 +87,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                         builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
                     }
                 }
-            }));
+            }.asHierarchyVisitor());
         }
         return builder.build();
     }

@@ -34,25 +34,25 @@ public interface RootTrackingFileSystemSnapshotHierarchyVisitor {
      */
     default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {}
 
-    static FileSystemSnapshotHierarchyVisitor asSimpleHierarchyVisitor(RootTrackingFileSystemSnapshotHierarchyVisitor delegate) {
+    default FileSystemSnapshotHierarchyVisitor asHierarchyVisitor() {
         return new FileSystemSnapshotHierarchyVisitor() {
             private int treeDepth;
 
             @Override
             public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                delegate.enterDirectory(directorySnapshot, isRoot());
+                RootTrackingFileSystemSnapshotHierarchyVisitor.this.enterDirectory(directorySnapshot, isRoot());
                 treeDepth++;
             }
 
             @Override
             public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                return delegate.visitEntry(snapshot, isRoot());
+                return RootTrackingFileSystemSnapshotHierarchyVisitor.this.visitEntry(snapshot, isRoot());
             }
 
             @Override
             public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 treeDepth--;
-                delegate.leaveDirectory(directorySnapshot, isRoot());
+                RootTrackingFileSystemSnapshotHierarchyVisitor.this.leaveDirectory(directorySnapshot, isRoot());
             }
 
             private boolean isRoot() {

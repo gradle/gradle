@@ -34,8 +34,6 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-import static org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
-
 public class DefaultOverlappingOutputDetector implements OverlappingOutputDetector {
     @Override
     @Nullable
@@ -66,7 +64,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
     private static OverlappingOutputs detect(String propertyName, FileCollectionFingerprint previous, FileSystemSnapshot before) {
         Map<String, FileSystemLocationFingerprint> previousFingerprints = previous.getFingerprints();
         OverlappingOutputsDetectingVisitor outputsDetectingVisitor = new OverlappingOutputsDetectingVisitor(previousFingerprints);
-        before.accept(asSimpleHierarchyVisitor(outputsDetectingVisitor));
+        before.accept(outputsDetectingVisitor.asHierarchyVisitor());
         String overlappingPath = outputsDetectingVisitor.getOverlappingPath();
         return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
     }

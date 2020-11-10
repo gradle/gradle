@@ -46,8 +46,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
-
 public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
@@ -71,7 +69,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             .forEach(snapshot -> {
                 ImmutableList<String> previousWatchedRoots = watchedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
                 previousWatchedRoots.forEach(path -> decrement(path, changedWatchedDirectories));
-                snapshot.accept(asSimpleHierarchyVisitor(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories))));
+                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)).asHierarchyVisitor());
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
@@ -80,7 +78,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                     .map(Path::toString).collect(Collectors.toList()));
                 watchedDirectoriesForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatchForRoot);
                 directoriesToWatchForRoot.forEach(path -> increment(path, changedWatchedDirectories));
-                snapshot.accept(asSimpleHierarchyVisitor(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories))));
+                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)).asHierarchyVisitor());
             });
         updateWatchedDirectories(changedWatchedDirectories);
     }

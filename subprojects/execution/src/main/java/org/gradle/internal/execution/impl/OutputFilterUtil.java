@@ -37,8 +37,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
 
-import static org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor.asSimpleHierarchyVisitor;
-
 /**
  * Filters out fingerprints that are not considered outputs. Entries that are considered outputs are:
  * <ul>
@@ -55,7 +53,7 @@ public class OutputFilterUtil {
             (!isRoot || snapshot.getType() != FileType.Missing)
                 && fingerprints.containsKey(snapshot.getAbsolutePath())
         );
-        beforeExecutionOutputSnapshot.accept(asSimpleHierarchyVisitor(filteringVisitor));
+        beforeExecutionOutputSnapshot.accept(filteringVisitor.asHierarchyVisitor());
         return filteringVisitor.getNewRoots();
     }
 
@@ -72,7 +70,7 @@ public class OutputFilterUtil {
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
             isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot)
         );
-        afterExecutionOutputSnapshot.accept(asSimpleHierarchyVisitor(filteringVisitor));
+        afterExecutionOutputSnapshot.accept(filteringVisitor.asHierarchyVisitor());
 
         // Are all file snapshots after execution accounted for as new entries?
         if (filteringVisitor.hasBeenFiltered()) {
