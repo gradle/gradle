@@ -24,17 +24,21 @@ import java.util.function.Predicate;
 
 public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<JavaToolchain> {
 
-    public static final JvmVendorSpec ANY = new DefaultJvmVendorSpec(v -> true, "any");
+    private static final JvmVendorSpec ANY = new DefaultJvmVendorSpec(v -> true, "any");
 
     private final Predicate<JvmVendor> matcher;
     private final String description;
 
-    public DefaultJvmVendorSpec(String match) {
-        this(vendor -> StringUtils.containsIgnoreCase(vendor.getRawVendor(), match), "matching('" + match + "')");
+    public static JvmVendorSpec matching(String match) {
+        return new DefaultJvmVendorSpec(vendor -> StringUtils.containsIgnoreCase(vendor.getRawVendor(), match), "matching('" + match + "')");
     }
 
-    public DefaultJvmVendorSpec(JvmVendor.KnownJvmVendor knownVendor) {
-        this(vendor -> vendor.getKnownVendor() == knownVendor, knownVendor.toString());
+    public static JvmVendorSpec of(JvmVendor.KnownJvmVendor knownVendor) {
+        return new DefaultJvmVendorSpec(vendor -> vendor.getKnownVendor() == knownVendor, knownVendor.toString());
+    }
+
+    public static JvmVendorSpec any() {
+        return ANY;
     }
 
     private DefaultJvmVendorSpec(Predicate<JvmVendor> predicate, String description) {

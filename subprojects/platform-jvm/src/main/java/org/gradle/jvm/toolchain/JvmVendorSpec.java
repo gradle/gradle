@@ -48,11 +48,11 @@ public abstract class JvmVendorSpec {
      * @return a new filter object
      */
     public static JvmVendorSpec matching(String match) {
-        return new DefaultJvmVendorSpec(match);
+        return DefaultJvmVendorSpec.matching(match);
     }
 
     private static JvmVendorSpec matching(KnownJvmVendor vendor) {
-        return new DefaultJvmVendorSpec(vendor);
+        return DefaultJvmVendorSpec.of(vendor);
     }
 
 }

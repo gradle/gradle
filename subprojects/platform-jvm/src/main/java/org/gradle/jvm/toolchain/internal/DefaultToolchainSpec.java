@@ -33,7 +33,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
     @Inject
     public DefaultToolchainSpec(ObjectFactory factory) {
         this.languageVersion = factory.property(JavaLanguageVersion.class);
-        this.vendor = factory.property(JvmVendorSpec.class).convention(DefaultJvmVendorSpec.ANY);
+        this.vendor = factory.property(JvmVendorSpec.class).convention(DefaultJvmVendorSpec.any());
     }
 
     @Override
