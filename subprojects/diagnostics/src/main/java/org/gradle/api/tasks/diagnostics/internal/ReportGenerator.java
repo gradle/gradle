@@ -52,8 +52,12 @@ public final class ReportGenerator {
         void execute(T project) throws IOException;
     }
 
+    public void generateReport(Set<Project> projects, ReportAction<Project> projectReportGenerator) {
+        generateReport(projects, ProjectDetails::of, projectReportGenerator);
+    }
+
     public <T> void generateReport(
-        Iterable<T> model,
+        Iterable<T> projects,
         Function<T, ProjectDetails> projectDetailsProvider,
         ReportAction<T> projectReportGenerator
     ) {
@@ -66,23 +70,16 @@ public final class ReportGenerator {
             } else {
                 renderer.setOutput(getTextOutputFactory().create(getClass()));
             }
-            for (T element : model) {
-                ProjectDetails projectDetails = projectDetailsProvider.apply(element);
+            for (T project : projects) {
+                ProjectDetails projectDetails = projectDetailsProvider.apply(project);
                 renderer.startProject(projectDetails);
-                projectReportGenerator.execute(element);
+                projectReportGenerator.execute(project);
                 renderer.completeProject(projectDetails);
             }
             renderer.complete();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public void generateReport(
-        Set<Project> projects,
-        ReportAction<Project> projectReportGenerator
-    ) {
-        generateReport(projects, ProjectDetails::of, projectReportGenerator);
     }
 
     protected ReportRenderer getRenderer() {
