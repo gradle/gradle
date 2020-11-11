@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
@@ -66,19 +67,20 @@ public class ProjectReportTask extends ProjectBasedReportTask {
         if (project == project.getRootProject()) {
             int i=0;
             Collection<? extends IncludedBuildState> includedBuilds = getBuildStateRegistry().getIncludedBuilds();
-
-            GraphRenderer renderer = new GraphRenderer(textOutput);
-            textOutput.println();
-            textOutput.text("Included builds");
-            textOutput.println();
-            renderer.startChildren();
-            for (IncludedBuildState includedBuildState : includedBuilds) {
-                renderer.visit(text -> {
-                    textOutput.text("Included build '" + includedBuildState.getIdentityPath() + "'");
-                }, (i+1)== includedBuilds.size());
-                i++;
+            if (!includedBuilds.isEmpty()) {
+                GraphRenderer renderer = new GraphRenderer(textOutput);
+                textOutput.println();
+                textOutput.text("Included builds");
+                textOutput.println();
+                renderer.startChildren();
+                for (IncludedBuildState includedBuildState : includedBuilds) {
+                    renderer.visit(text -> {
+                        textOutput.text("Included build '" + includedBuildState.getIdentityPath() + "'");
+                    }, (i + 1) == includedBuilds.size());
+                    i++;
+                }
+                renderer.completeChildren();
             }
-            renderer.completeChildren();
         }
 
         textOutput.println();
@@ -104,9 +106,15 @@ public class ProjectReportTask extends ProjectBasedReportTask {
     private void render(final Project project, GraphRenderer renderer, boolean lastChild,
                         final StyledTextOutput textOutput) {
         renderer.visit(styledTextOutput -> {
-            styledTextOutput.text("Project '" + ((ProjectInternal)project).getIdentityPath() + "'");
+            styledTextOutput.text(StringUtils.capitalize(project.getDisplayName()));
             if (GUtil.isTrue(project.getDescription())) {
-                textOutput.withStyle(Description).format(" - %s", project.getDescription());
+                String description = project.getDescription().trim();
+                int newlineInDescription = description.indexOf('\n');
+                if (newlineInDescription > 0) {
+                    textOutput.withStyle(Description).text(" - " + description.substring(0, newlineInDescription) + "...");
+                } else {
+                    textOutput.withStyle(Description).text(" - " + description);
+                }
             }
         }, lastChild);
         renderer.startChildren();

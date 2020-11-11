@@ -33,7 +33,7 @@ includeBuild('another')"""
 
         then:
         outputContains """
-Project ':'
+Root project 'my-root-project'
 +--- Project ':p1'
 \\--- Project ':p2'
      \\--- Project ':p2:p22'
@@ -55,7 +55,7 @@ includeBuild('another')"""
 
         then:
         outputContains """
-Project ':'
+Root project 'my-root-project'
 No sub-projects
 
 Included builds
@@ -78,5 +78,30 @@ includeBuild('another')"""
 
         then:
         outputDoesNotContain "another"
+    }
+
+    def "included builds are only rendered if there are some"() {
+        when:
+        run "projects"
+        then:
+        outputDoesNotContain("Included builds")
+    }
+
+    def "rendering long project descriptions is sensible"() {
+        settingsFile << "rootProject.name = 'my-root-project'"
+        buildFile << """
+            description = '''
+this is a long description
+
+this shouldn't be visible
+            '''
+        """
+        when:
+        run "projects"
+        then:
+        outputContains """
+Root project 'my-root-project' - this is a long description...
+No sub-projects
+"""
     }
 }
