@@ -34,8 +34,7 @@ import java.util.Map;
 public enum ModifierAnnotationCategory implements AnnotationCategory {
     INCREMENTAL(ImmutableSet.of(
         Incremental.class,
-        SkipWhenEmpty.class,
-        IgnoreDirectories.class
+        SkipWhenEmpty.class
     )),
     NORMALIZATION(ImmutableSet.of(
         Classpath.class,
@@ -44,6 +43,9 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
     )),
     OPTIONAL(ImmutableSet.of(
         Optional.class
+    )),
+    DIRECTORY_ONLY(ImmutableSet.of(
+        IgnoreDirectories.class
     ));
 
     private final ImmutableSet<Class<? extends Annotation>> annotations;

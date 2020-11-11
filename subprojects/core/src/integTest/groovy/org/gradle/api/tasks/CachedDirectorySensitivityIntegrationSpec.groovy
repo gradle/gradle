@@ -22,6 +22,13 @@ class CachedDirectorySensitivityIntegrationSpec extends AbstractDirectorySensiti
         buildFile << """
             plugins { id 'base' }
         """
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = file('${testDirectory.file("build-cache").absolutePath}')
+                }
+            }
+        """
     }
 
     @Override

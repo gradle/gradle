@@ -112,6 +112,62 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         api << (API.values() as List<API>)
     }
 
+    @Unroll
+    def "Non-empty directories are tracked when empty directories are ignored (#api)"() {
+        createTaskWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES, api)
+        buildFile << """
+            taskWithInputs {
+                sources.from(project.files("foo", "bar"))
+                outputFile = project.file("\${buildDir}/output.txt")
+            }
+        """
+        file('foo').mkdir()
+        file('foo/a').mkdir()
+        file('foo/a/b').createFile()
+        file('bar').mkdir()
+        file('bar/a').createFile()
+
+        when:
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        result.groupedOutput.task(":taskWithInputs").outcome == statusForReusedOutput
+
+        when:
+        cleanWorkspace()
+        file('foo/a/b') << "foo"
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        cleanWorkspace()
+        file('foo/a').renameTo(file('foo/c'))
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        cleanWorkspace()
+        file('foo').deleteDir()
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        where:
+        api << (API.values() as List<API>)
+    }
+
     enum API {
         RUNTIME_API, ANNOTATION_API
     }
