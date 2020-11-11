@@ -17,23 +17,19 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
 public interface ProjectDetails {
 
     static ProjectDetails of(final Project project) {
-        final String path = project.getPath();
+        final Path path = ((ProjectInternal)project).getIdentityPath();
         final String description = project.getDescription();
-        final boolean isRoot = project == project.getRootProject();
         return new ProjectDetails() {
             @Override
-            public boolean isRootProject() {
-                return isRoot;
-            }
-
-            @Override
-            public String getPath() {
+            public Path getPath() {
                 return path;
             }
 
@@ -58,9 +54,7 @@ public interface ProjectDetails {
         };
     }
 
-    boolean isRootProject();
-
-    String getPath();
+    Path getPath();
 
     @Nullable
     String getDescription();

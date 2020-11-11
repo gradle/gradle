@@ -66,12 +66,8 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     protected String createHeader(ProjectDetails project) {
-        String header;
-        if (project.isRootProject()) {
-            header = "Root project";
-        } else {
-            header = "Project " + project.getPath();
-        }
+        String header = "Project '" + project.getPath() + "'";
+
         String description = project.getDescription();
         if (GUtil.isTrue(description)) {
             header = header + " - " + description;
