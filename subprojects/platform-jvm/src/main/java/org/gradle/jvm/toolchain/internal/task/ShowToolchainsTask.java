@@ -43,7 +43,7 @@ public class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
         .<ReportableToolchain, String>comparing(t -> t.metadata.getDisplayName())
-        .thenComparing(t -> t.metadata.getLangageVersion());
+        .thenComparing(t -> t.metadata.getLanguageVersion());
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 

@@ -24,6 +24,9 @@ dependencies {
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")
     }
+    api(project(":jvm-services")) {
+        because("Exposing jvm metadata via AvailableJavaHomes")
+    }
 
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -41,7 +44,6 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":dependency-management"))
     implementation(project(":configuration-cache"))
-    implementation(project(":jvm-services"))
     implementation(project(":launcher"))
     implementation(project(":internal-testing"))
     implementation(project(":build-events"))

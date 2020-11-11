@@ -285,7 +285,7 @@ class TestTest extends AbstractConventionTaskTest {
 
     def "java version is determined with toolchain if set"() {
         def metadata = Mock(JvmInstallationMetadata)
-        metadata.getLangageVersion() >> Jvm.current().javaVersion
+        metadata.getLanguageVersion() >> Jvm.current().javaVersion
         metadata.getCapabilities() >> Collections.emptySet()
         metadata.getJavaHome() >> Jvm.current().javaHome.toPath()
         def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory())

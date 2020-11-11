@@ -16,14 +16,16 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.launcher.daemon.fixtures.FullyQualifiedGarbageCollector
 
-import static org.gradle.integtests.fixtures.daemon.JavaGarbageCollector.*
-import static org.gradle.launcher.daemon.fixtures.JdkVendor.*
+import static org.gradle.integtests.fixtures.daemon.JavaGarbageCollector.ORACLE_G1
+import static org.gradle.integtests.fixtures.daemon.JavaGarbageCollector.ORACLE_PARALLEL_CMS
 
 class DaemonPerformanceMonitoringCoverage {
     static final def ALL_VERSIONS = [
-        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.8", gc: ORACLE_PARALLEL_CMS),
-        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.8", gc: ORACLE_G1)
+        new FullyQualifiedGarbageCollector(vendor: JvmVendor.KnownJvmVendor.IBM, version: JavaVersion.VERSION_1_8, gc: ORACLE_PARALLEL_CMS),
+        new FullyQualifiedGarbageCollector(vendor: JvmVendor.KnownJvmVendor.ORACLE, version: JavaVersion.VERSION_1_8, gc: ORACLE_G1)
     ]
 }

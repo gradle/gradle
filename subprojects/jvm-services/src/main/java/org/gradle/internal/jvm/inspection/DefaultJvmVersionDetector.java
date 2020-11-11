@@ -32,7 +32,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
 
     @Override
     public JavaVersion getJavaVersion(JavaInfo jvm) {
-        return detector.getMetadata(jvm.getJavaHome()).getLangageVersion();
+        return detector.getMetadata(jvm.getJavaHome()).getLanguageVersion();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
         if(!executable.exists()) {
             throw new ExecException("A problem occurred starting process 'command '" + javaCommand + "''");
         }
-        return detector.getMetadata(executable.getParentFile().getParentFile()).getLangageVersion();
+        return detector.getMetadata(executable.getParentFile().getParentFile()).getLanguageVersion();
     }
 
 }

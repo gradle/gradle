@@ -105,7 +105,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         private final FileFactory fileFactory;
 
         public DefaultJavaInstallation(JvmInstallationMetadata metadata, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
-            this.jvm = Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getImplementationVersion(), metadata.getLangageVersion());
+            this.jvm = Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getImplementationVersion(), metadata.getLanguageVersion());
             this.implementationName = metadata.getDisplayName();
             this.fileCollectionFactory = fileCollectionFactory;
             this.fileFactory = fileFactory;

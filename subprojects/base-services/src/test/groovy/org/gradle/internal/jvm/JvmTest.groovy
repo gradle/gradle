@@ -60,9 +60,9 @@ class JvmTest extends Specification {
                 assert jvm.standaloneJre == null
             }
         } else {
-            assert jvm.jre.homeDir == softwareRoot.file(jreHome)
+            assert jvm.jre == softwareRoot.file(jreHome)
             if (alsoStandaloneJreHome) {
-                assert jvm.standaloneJre.homeDir == softwareRoot.file(jreHome)
+                assert jvm.standaloneJre == softwareRoot.file(jreHome)
             }
         }
         return true
@@ -113,9 +113,9 @@ class JvmTest extends Specification {
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
         jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
-        jvm.embeddedJre.homeDir == software.file('jdk/jre')
+        jvm.embeddedJre == software.file('jdk/jre')
         jvm.standaloneJre == null
-        jvm.jre.homeDir == jvm.embeddedJre.homeDir
+        jvm.jre == jvm.embeddedJre
     }
 
     def "locates JDK and JRE installs for a typical Java 8 JDK installation"() {
@@ -149,10 +149,10 @@ class JvmTest extends Specification {
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
         jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
-        jvm.jre.homeDir == software.file('jdk/jre')
-        jvm.embeddedJre.homeDir == software.file("jdk/jre")
+        jvm.jre == software.file('jdk/jre')
+        jvm.embeddedJre == software.file("jdk/jre")
         jvm.standaloneJre == null
-        jvm.jre.homeDir == jvm.embeddedJre.homeDir
+        jvm.jre == jvm.embeddedJre
     }
 
     def "locates JDK install for a typical Java 9 JDK installation"() {
@@ -244,8 +244,8 @@ class JvmTest extends Specification {
         jvm.javacExecutable == jdkDir.file('bin/javac.exe')
         jvm.javadocExecutable == jdkDir.file('bin/javadoc.exe')
         jvm.embeddedJre == null
-        jvm.standaloneJre.homeDir == jreDir
-        jvm.jre.homeDir == jvm.standaloneJre.homeDir
+        jvm.standaloneJre == jreDir
+        jvm.jre == jvm.standaloneJre
 
         where:
         version    | jreDirName    | jdkDirName
@@ -295,9 +295,9 @@ class JvmTest extends Specification {
         jvm.javaExecutable == jdkDir.file('bin/java.exe')
         jvm.javacExecutable == jdkDir.file('bin/javac.exe')
         jvm.javadocExecutable == jdkDir.file('bin/javadoc.exe')
-        jvm.embeddedJre.homeDir == jdkDir.file('jre')
-        jvm.standaloneJre.homeDir == jreDir
-        jvm.jre.homeDir == jreDir
+        jvm.embeddedJre == jdkDir.file('jre')
+        jvm.standaloneJre == jreDir
+        jvm.jre == jreDir
 
         where:
         version    | jreDirName    | jdkDirName
