@@ -43,6 +43,7 @@ public class PerformanceDatabase {
             config.setUsername(getUserName());
             config.setPassword(getPassword());
             config.setMaximumPoolSize(2);
+            config.setConnectionTimeout(60*1000);
             dataSource = new HikariDataSource(config);
 
             executeInitializers(dataSource.getConnection());
