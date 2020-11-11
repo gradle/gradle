@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -350,7 +350,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava (*)"))
     }
 
-    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "can co-develop plugin applied via plugins block with resolution strategy applied"() {
         given:
         applyPluginFromRepo(buildA, """
@@ -360,7 +359,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                 }
             }
         """)
-
 
         when:
         execute(buildA, "tasks", ["--include-build", "../pluginBuild"])
@@ -378,7 +376,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         outputContains("taskFromPluginBuild")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "can co-develop published plugin applied via plugins block"() {
         given:
         publishPlugin()
