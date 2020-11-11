@@ -37,6 +37,7 @@ import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
@@ -253,8 +254,7 @@ class StandardKotlinScriptEvaluator(
                     classpathHasher,
                     workspaceProvider,
                     fileCollectionFactory
-                ),
-                null
+                )
             ).executionResult.get().output as File
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
@@ -378,24 +378,24 @@ class CompileKotlinScript(
         context: InputChangesContext
     ): UnitOfWork.WorkOutput {
         compileTo(classesDir(context.workspace))
-        return object : UnitOfWork.WorkOutput {
+        return workOutputFor(context)
+    }
+
+    private
+    fun workOutputFor(context: InputChangesContext): UnitOfWork.WorkOutput =
+        object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
             override fun getOutput() = loadRestoredOutput(context.workspace)
         }
-    }
-
-    override fun <T : Any?> withWorkspace(
-        identity: String,
-        action: UnitOfWork.WorkspaceAction<T>
-    ): T = workspaceProvider.withWorkspace("$scriptCacheKeyPrefix/$identity") { workspace, _ ->
-        action.executeInWorkspace(workspace)
-    }
 
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation"
 
     override fun loadRestoredOutput(workspace: File): Any =
         classesDir(workspace)
+
+    override fun getWorkspaceProvider(): WorkspaceProvider =
+        workspaceProvider
 
     private
     fun classesDir(workspace: File) =
@@ -408,10 +408,6 @@ class CompileKotlinScript(
         }
     }
 }
-
-
-private
-const val scriptCacheKeyPrefix = "gradle-kotlin-dsl"
 
 
 private
