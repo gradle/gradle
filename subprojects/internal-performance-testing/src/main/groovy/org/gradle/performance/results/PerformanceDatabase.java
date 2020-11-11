@@ -38,14 +38,11 @@ public class PerformanceDatabase {
 
     private Connection getConnection() throws SQLException {
         if (dataSource == null) {
-            new Throwable().printStackTrace();
-
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(getUrl());
             config.setUsername(getUserName());
             config.setPassword(getPassword());
             config.setMaximumPoolSize(2);
-            config.setConnectionTimeout(60*1000);
             dataSource = new HikariDataSource(config);
 
             executeInitializers(dataSource.getConnection());
@@ -82,7 +79,9 @@ public class PerformanceDatabase {
     }
 
     public <T> T withConnection(ConnectionAction<T> action) throws SQLException {
-        return action.execute(getConnection());
+        try (Connection connection = getConnection()) {
+            return action.execute(connection);
+        }
     }
 
     public <T> T withConnection(String actionName, ConnectionAction<T> action) {
