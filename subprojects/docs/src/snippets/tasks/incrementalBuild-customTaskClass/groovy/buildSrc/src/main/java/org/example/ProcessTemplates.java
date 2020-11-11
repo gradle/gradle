@@ -1,56 +1,36 @@
 // tag::custom-task-class[]
 package org.example;
 
-import java.io.File;
 import java.util.HashMap;
-import org.gradle.api.*;
-import org.gradle.api.file.*;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 
-public class ProcessTemplates extends DefaultTask {
-    private TemplateEngineType templateEngine;
-    private FileCollection sourceFiles;
-    private TemplateData templateData;
-    private File outputDir;
+public abstract class ProcessTemplates extends DefaultTask {
 
     @Input
-    public TemplateEngineType getTemplateEngine() {
-        return this.templateEngine;
-    }
+    public abstract Property<TemplateEngineType> getTemplateEngine();
 
     @InputFiles
-    public FileCollection getSourceFiles() {
-        return this.sourceFiles;
-    }
+    public abstract ConfigurableFileCollection getSourceFiles();
 
     @Nested
-    public TemplateData getTemplateData() {
-        return this.templateData;
-    }
+    public abstract TemplateData getTemplateData();
 
     @OutputDirectory
-    public File getOutputDir() { return this.outputDir; }
+    public abstract DirectoryProperty getOutputDir();
 
-    // + setter methods for the above - assume we’ve defined them
-
-// end::custom-task-class[]
-    public void setTemplateEngine(TemplateEngineType type) { this.templateEngine = type; }
-    public void setSourceFiles(FileCollection files) { this.sourceFiles = files; }
-    public void setTemplateData(TemplateData model) { this.templateData = model; }
-    public void setOutputDir(File dir) { this.outputDir = dir; }
-
-// tag::custom-task-class[]
     @TaskAction
     public void processTemplates() {
         // ...
 // end::custom-task-class[]
-        getProject().copy(new Action<CopySpec>() {
-            public void execute(CopySpec spec) {
-                spec.into(outputDir).
-                    from(sourceFiles).
-                    expand(new HashMap<String, String>(templateData.getVariables()));
-            }
-        });
+        getProject().copy(spec -> spec.
+            into(getOutputDir()).
+            from(getSourceFiles()).
+            expand(new HashMap<>(getTemplateData().getVariables().get()))
+        );
 // tag::custom-task-class[]
     }
 }

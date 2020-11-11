@@ -232,7 +232,6 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 implementation project(':b')
             }
         """
-        file('root.green') << 'root'
     }
 
     def "task input file collection can include the output of artifact transform of project dependencies"() {
@@ -420,8 +419,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         then:
         fixture.assertStateStored()
-        output.count("processing thing1-1.2.jar") == 1
-        output.count("processing thing2-1.2.jar") == 1
+        assertTransformed("thing1-1.2.jar", "thing2-1.2.jar")
         output.count("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]") == 5
 
         when:
@@ -429,7 +427,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         then:
         fixture.assertStateLoaded()
-        outputDoesNotContain("processing")
+        assertTransformed()
         output.count("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]") == 5
     }
 
@@ -994,8 +992,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         then:
         fixture.assertStateStored()
-        outputContains("processing a.jar")
-        outputContains("processing b.jar")
+        outputContains("processing [a.jar]")
+        outputContains("processing [b.jar]")
         outputContains("converting a.jar.green to red")
         outputContains("converting b.jar.green to red")
         outputContains("result = [a.jar.green.red, b.jar.green.red]")
@@ -1046,9 +1044,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskExecuted(":buildSrc:producer:producer")
         result.assertTaskExecuted(":buildSrc:resolve")
         result.assertTaskExecuted(":help")
-        outputContains("processing producer.jar")
-        outputContains("processing test-12.jar")
-        outputContains("processing thing.blue")
+        assertTransformed("producer.jar", "test-12.jar", "thing.blue")
 
         when:
         configurationCacheRun()
@@ -1056,7 +1052,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         then:
         fixture.assertStateLoaded()
         result.assertTasksExecuted(":help")
-        outputDoesNotContain("processing")
+        assertTransformed()
     }
 
     def "reports failure to transform prebuilt file dependency"() {

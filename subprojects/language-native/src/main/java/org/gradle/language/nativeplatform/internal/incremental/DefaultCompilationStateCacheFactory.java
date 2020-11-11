@@ -70,7 +70,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
 
         @Override
         public CompilationState get() {
-            return compilationStateIndexedCache.get(taskPath);
+            return compilationStateIndexedCache.getIfPresent(taskPath);
         }
 
         @Override

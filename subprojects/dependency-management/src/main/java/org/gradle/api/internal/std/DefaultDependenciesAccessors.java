@@ -42,8 +42,8 @@ import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
@@ -61,7 +61,6 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -146,7 +145,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private void executeWork(UnitOfWork work) {
-        CachingResult result = engine.execute(work, null);
+        CachingResult result = engine.execute(work);
         result.getExecutionResult().ifSuccessful(er -> {
             GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
             ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
@@ -261,13 +260,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
-            return workspace.withWorkspace(identity, (workspace, history) -> action.executeInWorkspace(workspace));
-        }
-
-        @Override
-        public Optional<ExecutionHistoryStore> getHistory() {
-            return Optional.of(workspace.getHistory());
+        public WorkspaceProvider getWorkspaceProvider() {
+            return workspace;
         }
 
         protected abstract List<ClassSource> getClassSources();

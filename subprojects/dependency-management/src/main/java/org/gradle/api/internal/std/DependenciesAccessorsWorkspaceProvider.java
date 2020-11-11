@@ -21,11 +21,32 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 
-public class DependenciesAccessorsWorkspaceProvider extends DefaultImmutableWorkspaceProvider {
+import java.io.Closeable;
+
+public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
+    private final DefaultImmutableWorkspaceProvider delegate;
+
     public DependenciesAccessorsWorkspaceProvider(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
-        super("dependencies-accessors", cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion), cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
+        this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
+            cacheRepository
+                .cache(cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion))
+                .withDisplayName("dependencies-accessors"),
+            fileAccessTimeJournal,
+            inMemoryCacheDecoratorFactory,
+            stringInterner);
+    }
+
+    @Override
+    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+        return delegate.withWorkspace(path, action);
+    }
+
+    @Override
+    public void close() {
+        delegate.close();
     }
 }

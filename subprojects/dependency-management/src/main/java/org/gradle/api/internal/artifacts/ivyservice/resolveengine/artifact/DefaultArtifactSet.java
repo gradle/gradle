@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
+import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.Transformation;
@@ -128,7 +128,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             ResolvableArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
             if (resolvedArtifact == null) {
                 CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), new LazyArtifactSource(artifact, moduleSources, artifactResolver));
-                resolvedArtifact = new DefaultResolvedArtifact(ownerId, artifactName, artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+                resolvedArtifact = new DefaultResolvableArtifact(ownerId, artifactName, artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
                 allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
             }
             resolvedArtifacts.add(resolvedArtifact);

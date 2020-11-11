@@ -37,11 +37,11 @@ import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.process.CommandLineArgumentProvider
@@ -284,10 +284,11 @@ class TestTest extends AbstractConventionTaskTest {
     }
 
     def "java version is determined with toolchain if set"() {
-        def probe = Mock(JavaInstallationProbe.ProbeResult)
-        probe.getJavaVersion() >> Jvm.current().javaVersion
-        probe.getJavaHome() >> Jvm.current().javaHome.toPath()
-        def toolchain = new JavaToolchain(probe, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory())
+        def metadata = Mock(JvmInstallationMetadata)
+        metadata.getLanguageVersion() >> Jvm.current().javaVersion
+        metadata.getCapabilities() >> Collections.emptySet()
+        metadata.getJavaHome() >> Jvm.current().javaHome.toPath()
+        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory())
         def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:

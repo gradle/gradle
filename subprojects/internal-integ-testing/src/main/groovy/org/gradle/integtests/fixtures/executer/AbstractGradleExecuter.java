@@ -1305,7 +1305,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         insideKotlinCompilerFlakyStacktrace = true;
                         i++;
                     } else if (insideKotlinCompilerFlakyStacktrace &&
-                        (line.contains("java.rmi.UnmarshalException") || line.contains("java.io.EOFException"))) {
+                        (line.contains("java.rmi.UnmarshalException") || 
+                         line.contains("java.io.EOFException")) ||
+                         // Verbose logging by Jetty when connector is shutdown 
+                         // https://github.com/eclipse/jetty.project/issues/3529      
+                         line.contains("java.nio.channels.CancelledKeyException")) {
                         i++;
                         i = skipStackTrace(lines, i);
                     } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {

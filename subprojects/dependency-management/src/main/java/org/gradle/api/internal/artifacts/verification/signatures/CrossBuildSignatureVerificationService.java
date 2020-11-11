@@ -83,7 +83,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         CacheKey cacheKey = new CacheKey(origin.getAbsolutePath(), signature.getAbsolutePath(), trustedKeys, ignoredKeys);
         HashCode originHash = fileHasher.hash(origin);
         HashCode signatureHash = fileHasher.hash(signature);
-        CacheEntry entry = cache.get(cacheKey);
+        CacheEntry entry = cache.getIfPresent(cacheKey);
         if (entry == null || entry.updated(originHash, signatureHash) || hasExpired(entry)) {
             entry = performActualVerification(origin, signature, trustedKeys, ignoredKeys, originHash, signatureHash);
             cache.put(cacheKey, entry);

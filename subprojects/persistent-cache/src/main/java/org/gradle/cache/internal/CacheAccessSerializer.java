@@ -35,8 +35,8 @@ public class CacheAccessSerializer<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(K key) {
-        return synchronizer.synchronize(() -> cache.get(key));
+    public V getIfPresent(K key) {
+        return synchronizer.synchronize(() -> cache.getIfPresent(key));
     }
 
     @Override

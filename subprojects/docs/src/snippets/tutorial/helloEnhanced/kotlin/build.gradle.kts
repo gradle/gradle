@@ -1,19 +1,19 @@
-val hello by tasks.registering {
+tasks.register("hello") {
     doLast {
         println("Hello Earth")
     }
 }
-hello {
+tasks.named("hello") {
     doFirst {
         println("Hello Venus")
     }
 }
-hello {
+tasks.named("hello") {
     doLast {
         println("Hello Mars")
     }
 }
-hello {
+tasks.named("hello") {
     doLast {
         println("Hello Jupiter")
     }

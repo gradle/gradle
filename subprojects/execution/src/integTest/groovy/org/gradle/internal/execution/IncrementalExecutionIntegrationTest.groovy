@@ -26,7 +26,6 @@ import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.InputChangesInternal
@@ -48,6 +47,7 @@ import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
@@ -648,12 +648,12 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
         virtualFileSystem.invalidateAll()
-        executor.execute(unitOfWork, null)
+        executor.execute(unitOfWork)
     }
 
     String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
-        executor.executeDeferred(unitOfWork, null, cache, new DeferredResultProcessor<Object, String>() {
+        executor.getFromIdentityCacheOrDeferExecution(unitOfWork, cache, new DeferredExecutionHandler<Object, String>() {
             @Override
             String processCachedOutput(Try<Object> cachedResult) {
                 return "cached"
@@ -791,13 +791,14 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                Optional<ExecutionHistoryStore> getHistory() {
-                    return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
-                }
+                WorkspaceProvider getWorkspaceProvider() {
+                    return new WorkspaceProvider() {
+                        @Override
+                        def <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
+                            return action.executeInWorkspace(null, IncrementalExecutionIntegrationTest.this.executionHistoryStore)
+                        }
 
-                @Override
-                <T> T withWorkspace(String identity, UnitOfWork.WorkspaceAction<T> action) {
-                    return action.executeInWorkspace(null)
+                    }
                 }
 
                 @Override

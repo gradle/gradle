@@ -60,7 +60,7 @@ public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
 
     @Override
     protected ModuleArtifactsCacheEntry get(ArtifactsAtRepositoryKey key) {
-        return getCache().get(key);
+        return getCache().getIfPresent(key);
     }
 
     private static class ModuleArtifactsKeySerializer extends AbstractSerializer<ArtifactsAtRepositoryKey> {

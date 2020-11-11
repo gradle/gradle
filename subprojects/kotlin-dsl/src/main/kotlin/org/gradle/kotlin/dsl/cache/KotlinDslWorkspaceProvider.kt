@@ -21,8 +21,11 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.VersionStrategy
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.kotlin.dsl.accessors.accessorsWorkspacePrefix
+import java.io.Closeable
 
 
 class KotlinDslWorkspaceProvider(
@@ -31,11 +34,19 @@ class KotlinDslWorkspaceProvider(
     fileAccessTimeJournal: FileAccessTimeJournal,
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner
-) : DefaultImmutableWorkspaceProvider(
-    "kotlin-dsl",
-    cacheScopeMapping.getBaseDirectory(null, "kotlin-dsl", VersionStrategy.CachePerVersion),
-    cacheRepository,
-    fileAccessTimeJournal,
-    inMemoryCacheDecoratorFactory,
-    stringInterner
-)
+) : WorkspaceProvider, Closeable {
+    private
+    val delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
+        cacheRepository
+            .cache(cacheScopeMapping.getBaseDirectory(null, "kotlin-dsl", VersionStrategy.CachePerVersion))
+            .withDisplayName("kotlin-dsl"),
+        fileAccessTimeJournal,
+        inMemoryCacheDecoratorFactory,
+        stringInterner
+    )
+
+    override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
+        delegate.withWorkspace("$accessorsWorkspacePrefix/$path", action)
+
+    override fun close() = delegate.close()
+}

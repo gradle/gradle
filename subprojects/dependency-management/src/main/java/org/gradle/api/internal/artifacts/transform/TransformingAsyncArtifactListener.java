@@ -110,11 +110,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-            synchronized (this) {
-                prepareInvocation();
-                if (transformedSubject == null && (invocation == null || !invocation.getCachedResult().isPresent())) {
-                    actions.add(this);
-                }
+            if (prepareInvocation()) {
+                actions.add(this);
             }
         }
 
@@ -125,52 +122,82 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void run(@Nullable BuildOperationContext context) {
-            synchronized (this) {
-                finalizeValue();
-            }
+            finalizeValue();
         }
 
         @Override
         public void finalizeNow(boolean requireFiles) {
-            synchronized (this) {
-                finalizeValue();
-            }
+            finalizeValue();
         }
 
-        private void prepareInvocation() {
+        /**
+         * Returns true if this artifact should be queued for execution, false when a value is already available.
+         */
+        private boolean prepareInvocation() {
+            synchronized (this) {
+                if (transformedSubject != null) {
+                    // Already have a result, no need to execute
+                    return false;
+                }
+            }
             if (!artifact.getFileSource().isFinalized()) {
-                return;
+                // No input artifact yet, should execute
+                return true;
             }
             if (!artifact.getFileSource().getValue().isSuccessful()) {
-                transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
-                return;
+                synchronized (this) {
+                    // Failed to resolve input artifact, no need to execute
+                    transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
+                    return false;
+                }
             }
 
-            TransformationSubject initialSubject = TransformationSubject.initial(artifact);
-            this.invocation = createInvocation(initialSubject);
+            CacheableInvocation<TransformationSubject> invocation = createInvocation();
+            synchronized (this) {
+                this.invocation = invocation;
+                if (invocation.getCachedResult().isPresent()) {
+                    // Have already executed the transform, no need to execute
+                    transformedSubject = invocation.getCachedResult().get();
+                    return false;
+                } else {
+                    // Have not executed the transform, should execute
+                    return true;
+                }
+            }
         }
 
-        private void finalizeValue() {
-            if (transformedSubject != null) {
-                return;
+        private Try<TransformationSubject> finalizeValue() {
+            synchronized (this) {
+                if (transformedSubject != null) {
+                    return transformedSubject;
+                }
             }
+
+            artifact.getFileSource().finalizeIfNotAlready();
+            if (!artifact.getFileSource().getValue().isSuccessful()) {
+                synchronized (this) {
+                    transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
+                    return transformedSubject;
+                }
+            }
+
+            CacheableInvocation<TransformationSubject> invocation;
+            synchronized (this) {
+                invocation = this.invocation;
+            }
+
             if (invocation == null) {
-                artifact.getFileSource().finalizeIfNotAlready();
-                prepareInvocation();
+                invocation = createInvocation();
             }
-            if (transformedSubject != null) {
-                return;
+            Try<TransformationSubject> result = invocation.invoke();
+            synchronized (this) {
+                transformedSubject = result;
+                return result;
             }
-            if (invocation.getCachedResult().isPresent()) {
-                // Already calculated
-                transformedSubject = invocation.getCachedResult().get();
-                return;
-            }
-
-            transformedSubject = invocation.invoke();
         }
 
-        private CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject initialSubject) {
+        private CacheableInvocation<TransformationSubject> createInvocation() {
+            TransformationSubject initialSubject = TransformationSubject.initial(artifact);
             BoundTransformationStep initialStep = transformationSteps.get(0);
             CacheableInvocation<TransformationSubject> invocation = initialStep.getTransformation().createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
             for (int i = 1; i < transformationSteps.size(); i++) {
@@ -182,19 +209,17 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            synchronized (this) {
-                finalizeValue();
-                transformedSubject.ifSuccessfulOrElse(
-                    transformedSubject -> {
-                        for (File output : transformedSubject.getFiles()) {
-                            ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
-                            visitor.visitArtifact(variantName, target, resolvedArtifact);
-                        }
-                    },
-                    failure -> visitor.visitFailure(
-                        new TransformException(String.format("Failed to transform %s to match attributes %s.", artifact.getId(), target), failure))
-                );
-            }
+            Try<TransformationSubject> transformedSubject = finalizeValue();
+            transformedSubject.ifSuccessfulOrElse(
+                subject -> {
+                    for (File output : subject.getFiles()) {
+                        ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
+                        visitor.visitArtifact(variantName, target, resolvedArtifact);
+                    }
+                },
+                failure -> visitor.visitFailure(
+                    new TransformException(String.format("Failed to transform %s to match attributes %s.", artifact.getId(), target), failure))
+            );
         }
     }
 }

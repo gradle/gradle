@@ -121,8 +121,8 @@ abstract class AbstractCrossBuildInMemoryCacheTest<K> extends ConcurrentSpec {
         cache.put("b", b)
 
         expect:
-        cache.get("a") == a
-        cache.get("b") == b
-        cache.get("c") == null
+        cache.getIfPresent("a") == a
+        cache.getIfPresent("b") == b
+        cache.getIfPresent("c") == null
     }
 }

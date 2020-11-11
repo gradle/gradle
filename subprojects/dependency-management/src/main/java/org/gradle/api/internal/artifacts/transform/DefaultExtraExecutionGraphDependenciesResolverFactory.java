@@ -17,27 +17,24 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
     public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformationStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
 
-    private final Factory<ResolverResults> graphResults;
-    private final Factory<ResolverResults> artifactResults;
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> graphResults,
-                                                                 Factory<ResolverResults> artifactResults,
+    public DefaultExtraExecutionGraphDependenciesResolverFactory(ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
                                                                  DomainObjectContext owner,
                                                                  CalculatedValueContainerFactory calculatedValueContainerFactory,
                                                                  FilteredResultFactory filteredResultFactory) {
-        this.graphResults = graphResults;
-        this.artifactResults = artifactResults;
+        this.resolutionResultProvider = resolutionResultProvider;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -48,6 +45,6 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
         if (!transformation.requiresDependencies()) {
             return NO_DEPENDENCIES_RESOLVER;
         }
-        return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, graphResults, artifactResults, owner, filteredResultFactory, calculatedValueContainerFactory);
+        return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, resolutionResultProvider, owner, filteredResultFactory, calculatedValueContainerFactory);
     }
 }

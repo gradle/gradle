@@ -31,7 +31,7 @@ import org.gradle.internal.io.ClassLoaderObjectInputStream
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.Subject
 
@@ -44,7 +44,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def testDir = testDirectoryProvider.testDirectory
 
     def cachedDir = testDir.file("cached")
-    def cache = new InMemoryCacheFactory().open(cachedDir, "jars")
+    def cache = new TestInMemoryCacheFactory().open(cachedDir, "jars")
     def cacheBuilder = Stub(CacheBuilder) {
         open() >> cache
         withDisplayName(_) >> { cacheBuilder }

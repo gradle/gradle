@@ -284,7 +284,7 @@ public class Jvm implements JavaInfo {
      * Locates a stand-alone JRE installation for this JVM. Returns null if not found. This is the JRE installed outside the JDK installation.
      */
     @Nullable
-    public Jre getStandaloneJre() {
+    public File getStandaloneJre() {
         if (javaVersion.isJava9Compatible()) {
             return null;
         }
@@ -296,7 +296,7 @@ public class Jvm implements JavaInfo {
                 jreDir = new File(javaHome.getParentFile(), "jre" + javaVersion.getMajorVersion());
             }
             if (jreDir.isDirectory()) {
-                return new DefaultJre(jreDir);
+                return jreDir;
             }
         }
         return null;
@@ -306,21 +306,21 @@ public class Jvm implements JavaInfo {
      * Locates the JRE installation contained within this JVM. Returns null if no JRE installation is available.
      */
     @Nullable
-    public Jre getEmbeddedJre() {
+    public File getEmbeddedJre() {
         File jreDir = new File(javaHome, "jre");
         if (jreDir.isDirectory()) {
-            return new DefaultJre(jreDir);
+            return jreDir;
         }
         return null;
     }
 
     @Nullable
-    public Jre getJre() {
-        Jre standaloneJre = getStandaloneJre();
+    public File getJre() {
+        File standaloneJre = getStandaloneJre();
         if (standaloneJre != null) {
             return standaloneJre;
         }
-        Jre embeddedJre = getEmbeddedJre();
+        File embeddedJre = getEmbeddedJre();
         if (embeddedJre != null) {
             return embeddedJre;
         }
@@ -414,16 +414,4 @@ public class Jvm implements JavaInfo {
         }
     }
 
-    private static class DefaultJre extends Jre {
-        private final File jreDir;
-
-        public DefaultJre(File jreDir) {
-            this.jreDir = jreDir;
-        }
-
-        @Override
-        public File getHomeDir() {
-            return jreDir;
-        }
-    }
 }

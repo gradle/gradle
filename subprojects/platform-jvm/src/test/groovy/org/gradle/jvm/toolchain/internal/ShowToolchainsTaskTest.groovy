@@ -16,14 +16,14 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType
 
 class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
@@ -33,10 +33,12 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         task = project.tasks.create("test", TestShowToolchainsTask.class)
-        task.installationRegistry = Mock(SharedJavaInstallationRegistry)
         detector = Mock(JvmMetadataDetector)
-        task.metadataDetector = detector
         output = new TestStyledTextOutput()
+
+        task.installationRegistry = Mock(SharedJavaInstallationRegistry)
+        task.metadataDetector = detector
+        task.providerFactory = createProviderFactory(true, true)
         task.outputFactory = Mock(StyledTextOutputFactory) {
             create(_ as Class) >> output
         }
@@ -63,6 +65,10 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
+
 {identifier} + AdoptOpenJDK JRE 1.8.0_202{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
@@ -110,14 +116,18 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         task.installationRegistry.listInstallations() >>
             [jdk14, invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
         detector.getMetadata(jdk14) >> metadata("14")
-        detector.getMetadata(invalid) >> newInvalidMetadata(InstallType.INVALID_JDK)
-        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata(InstallType.NO_SUCH_DIRECTORY)
+        detector.getMetadata(invalid) >> newInvalidMetadata()
+        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
         when:
         task.showToolchains()
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
+
 {identifier} + AdoptOpenJDK JRE 14{normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
@@ -133,6 +143,22 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
 
 """
     }
+    def "reports download and detection options"() {
+        given:
+        task.providerFactory = createProviderFactory(false, false)
+        task.installationRegistry.listInstallations() >> []
+
+        when:
+        task.showToolchains()
+
+        then:
+        output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Disabled{normal}
+     | Auto-download:      {description}Disabled{normal}
+
+"""
+    }
 
     def "reports only toolchains with errors"() {
         def invalid = new File("invalid")
@@ -141,14 +167,18 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         given:
         task.installationRegistry.listInstallations() >> [
             invalid, noSuchDirectory].collect {new InstallationLocation(it, "TestSource")}
-        detector.getMetadata(invalid) >> newInvalidMetadata(InstallType.INVALID_JDK)
-        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata(InstallType.NO_SUCH_DIRECTORY)
+        detector.getMetadata(invalid) >> newInvalidMetadata()
+        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
 
         when:
         task.showToolchains()
 
         then:
         output.value == """
+{identifier} + Options{normal}
+     | Auto-detection:     {description}Enabled{normal}
+     | Auto-download:      {description}Enabled{normal}
+
 {identifier} + Invalid toolchains{normal}
 {identifier}     + path{normal}
        | Error:              {description}errorMessage{normal}
@@ -162,14 +192,22 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         return JvmInstallationMetadata.from(new File("path"), implVersion, "adoptopenjdk", "")
     }
 
-    JvmInstallationMetadata newInvalidMetadata(InstallType type) {
+    JvmInstallationMetadata newInvalidMetadata() {
         return JvmInstallationMetadata.failure(new File("path"), "errorMessage")
+    }
+
+    ProviderFactory createProviderFactory(boolean enableDetection, boolean enableDownload) {
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.of(String.valueOf(enableDetection))
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.of(String.valueOf(enableDownload))
+        providerFactory
     }
 
     static class TestShowToolchainsTask extends ShowToolchainsTask {
         def installationRegistry
         def metadataDetector
         def outputFactory
+        def providerFactory
 
         @Override
         protected SharedJavaInstallationRegistry getInstallationRegistry() {
@@ -184,6 +222,11 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
         @Override
         protected StyledTextOutputFactory getTextOutputFactory() {
             outputFactory
+        }
+
+        @Override
+        protected ProviderFactory getProviderFactory() {
+            providerFactory
         }
     }
 }

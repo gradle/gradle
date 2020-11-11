@@ -264,6 +264,13 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             return result;
         }
 
+        @Override
+        public void executeIfNotAlready() {
+            // Only finalize the previous node when executing this node on demand
+            previousTransformationNode.executeIfNotAlready();
+            super.executeIfNotAlready();
+        }
+
         private class TransformPreviousArtifacts implements ValueCalculator<TransformationSubject> {
             private final BuildOperationExecutor buildOperationExecutor;
 

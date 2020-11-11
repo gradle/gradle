@@ -174,7 +174,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         def workerClass = fixture.getWorkActionThatCreatesFiles("ExecutableVerifyingWorkAction")
         workerClass.imports.add("java.net.URL")
         workerClass.action += """
-            assert new File('${normaliseFileSeparators(differentJvm.jre.homeDir.absolutePath)}').canonicalPath.equals(new File(System.getProperty("java.home")).canonicalPath);
+            assert new File('${normaliseFileSeparators(differentJvm.jre.absolutePath)}').canonicalPath.equals(new File(System.getProperty("java.home")).canonicalPath);
         """
         return workerClass
     }

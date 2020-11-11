@@ -50,6 +50,7 @@ import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.CompositeAwareTaskSelector;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
 import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
@@ -59,6 +60,7 @@ import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
 import org.gradle.execution.IncludedBuildLifecycleBuildWorkExecutor;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
+import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
@@ -79,6 +81,7 @@ import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -121,8 +124,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
-        return new TaskSelector(gradle, projectConfigurer);
+    TaskSelector createTaskSelector(GradleInternal gradle, BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer) {
+        return new CompositeAwareTaskSelector(gradle, buildStateRegistry, projectConfigurer, new TaskNameResolver());
     }
 
     OptionReader createOptionReader() {

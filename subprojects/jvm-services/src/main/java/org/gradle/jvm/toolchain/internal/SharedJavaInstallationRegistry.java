@@ -26,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.os.OperatingSystem;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,21 +44,23 @@ public class SharedJavaInstallationRegistry {
     private final BuildOperationExecutor executor;
     private final Supplier<Set<InstallationLocation>> installations;
     private final Logger logger;
+    private final OperatingSystem os;
 
     @Inject
-    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, BuildOperationExecutor executor) {
-        this(suppliers, Logging.getLogger(SharedJavaInstallationRegistry.class), executor);
+    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, BuildOperationExecutor executor, OperatingSystem os) {
+        this(suppliers, Logging.getLogger(SharedJavaInstallationRegistry.class), executor, os);
     }
 
-    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor) {
+    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor, OperatingSystem os) {
         this.logger = logger;
         this.executor = executor;
         this.installations = Suppliers.memoize(() -> collectInBuildOperation(suppliers));
+        this.os = os;
     }
 
     @VisibleForTesting
     static SharedJavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor) {
-        return new SharedJavaInstallationRegistry(suppliers, logger, executor);
+        return new SharedJavaInstallationRegistry(suppliers, logger, executor, OperatingSystem.current());
     }
 
     private Set<InstallationLocation> collectInBuildOperation(List<InstallationSupplier> suppliers) {
@@ -95,10 +98,18 @@ public class SharedJavaInstallationRegistry {
         final File file = location.getLocation();
         try {
             final File canonicalFile = file.getCanonicalFile();
-            return new InstallationLocation(canonicalFile, location.getSource());
+            final File javaHome = findJavaHome(canonicalFile);
+            return new InstallationLocation(javaHome, location.getSource());
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
+    }
+
+    private File findJavaHome(File potentialHome) {
+        if (os.isMacOsX() && new File(potentialHome, "Contents/Home").exists()) {
+            return new File(potentialHome, "Contents/Home");
+        }
+        return potentialHome;
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

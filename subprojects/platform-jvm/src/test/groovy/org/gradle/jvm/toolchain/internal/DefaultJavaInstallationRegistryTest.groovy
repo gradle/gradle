@@ -19,6 +19,8 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.Providers
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -27,19 +29,19 @@ import spock.lang.Specification
 class DefaultJavaInstallationRegistryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def probe = Mock(JavaInstallationProbe)
-    def registry = new DefaultJavaInstallationRegistry(probe, TestUtil.providerFactory(), TestFiles.fileCollectionFactory(), TestFiles.fileFactory())
+    def detector = Mock(JvmMetadataDetector)
+    def registry = new DefaultJavaInstallationRegistry(detector, TestUtil.providerFactory(), TestFiles.fileCollectionFactory(), TestFiles.fileFactory())
 
     def "can query information for current JVM"() {
-        def probeResult = Stub(JavaInstallationProbe.ProbeResult)
+        def metadata = Stub(JvmInstallationMetadata)
         def javaHome = new File("java-home").absoluteFile
 
         when:
         def provider = registry.installationForCurrentVirtualMachine
 
         then:
-        1 * probe.current() >> probeResult
-        _ * probeResult.javaHome >> javaHome.toPath()
+        1 * detector.getMetadata(_) >> metadata
+        _ * metadata.javaHome >> javaHome.toPath()
 
         and:
         provider.present
@@ -49,7 +51,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         def result = provider.get()
 
         then:
-        0 * probe._
+        0 * detector._
 
         and:
         result.installationDirectory.asFile == javaHome
@@ -57,22 +59,22 @@ class DefaultJavaInstallationRegistryTest extends Specification {
 
     def "can lazily query information for installation in directory"() {
         def dir = Stub(Directory)
-        def probeResult = Stub(JavaInstallationProbe.ProbeResult)
+        def metadata = Stub(JvmInstallationMetadata)
         def javaHome = tmpDir.createDir("java-home").absoluteFile
 
         when:
         def provider = registry.installationForDirectory(dir)
 
         then:
-        0 * probe._
+        0 * detector._
 
         when:
         def result = provider.get()
 
         then:
-        1 * probe.checkJdk(javaHome) >> probeResult
+        1 * detector.getMetadata(javaHome) >> metadata
         _ * dir.asFile >> javaHome
-        _ * probeResult.javaHome >> javaHome.toPath()
+        _ * metadata.javaHome >> javaHome.toPath()
 
         and:
         result.installationDirectory.asFile == javaHome
@@ -81,7 +83,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         def result2 = provider.get()
 
         then:
-        0 * probe._
+        0 * detector._
 
         and:
         result2.is(result)
@@ -92,14 +94,14 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         def provider = registry.installationForDirectory(Providers.notDefined())
 
         then:
-        0 * probe._
+        0 * detector._
 
         when:
         def present = provider.present
         def result = provider.getOrNull()
 
         then:
-        0 * probe._
+        0 * detector._
 
         and:
         !present
@@ -116,7 +118,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         def provider = registry.installationForDirectory(dir)
 
         then:
-        0 * probe._
+        0 * detector._
 
         when:
         provider.getOrNull()
@@ -128,6 +130,6 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         e.cause.message == "Directory ${missing} does not exist."
 
         and:
-        0 * probe._
+        0 * detector._
     }
 }

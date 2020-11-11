@@ -1,28 +1,30 @@
-task taskX {
+def taskX = tasks.register('taskX') {
     doLast {
         println 'taskX'
     }
 }
 
-// Using a Groovy Closure
-taskX.dependsOn {
-    tasks.findAll { task -> task.name.startsWith('lib') }
+// Using a Gradle Provider
+taskX.configure {
+    dependsOn(provider {
+        tasks.findAll { task -> task.name.startsWith('lib') }
+    })
 }
 
-task lib1 {
+tasks.register('lib1') {
     doLast {
-        println 'lib1'
+        println('lib1')
     }
 }
 
-task lib2 {
+tasks.register('lib2') {
     doLast {
-        println 'lib2'
+        println('lib2')
     }
 }
 
-task notALib {
+tasks.register('notALib') {
     doLast {
-        println 'notALib'
+        println('notALib')
     }
 }

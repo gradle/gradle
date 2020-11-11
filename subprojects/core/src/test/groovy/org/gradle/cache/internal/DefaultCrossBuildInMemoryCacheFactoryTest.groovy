@@ -65,14 +65,14 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemo
         expect:
         cache.get(String, function) == a
         cache.get(Long, function) == b
-        cache.get(String) == a
-        cache.get(Long) == b
+        cache.getIfPresent(String) == a
+        cache.getIfPresent(Long) == b
 
         cache.put(String, c)
-        cache.get(String) == c
+        cache.getIfPresent(String) == c
 
         cache.clear()
-        cache.get(String) == null
+        cache.getIfPresent(String) == null
     }
 
     def "creates a map whose keys are classes"() {
@@ -90,10 +90,10 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemo
         expect:
         cache.get(String, function) == a
         cache.get(Long, function) == b
-        cache.get(String) == a
-        cache.get(Long) == b
+        cache.getIfPresent(String) == a
+        cache.getIfPresent(Long) == b
 
         cache.put(String, c)
-        cache.get(String) == c
+        cache.getIfPresent(String) == c
     }
 }

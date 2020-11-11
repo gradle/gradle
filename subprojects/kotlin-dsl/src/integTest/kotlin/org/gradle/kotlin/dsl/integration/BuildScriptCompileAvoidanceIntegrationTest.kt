@@ -10,7 +10,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import java.util.UUID
 import java.util.regex.Pattern
@@ -56,6 +55,23 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
+    }
+
+    @Test
+    fun `avoids buildscript recompilation on resource file change in buildSrc`() {
+        val className = givenJavaClassInBuildSrcContains(
+            """
+            public void foo() {
+                System.out.println("foo");
+            }
+            """
+        )
+        withFile("buildSrc/src/main/resources/foo.txt", "foo")
+        withBuildScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        withFile("buildSrc/src/main/resources/foo.txt", "bar")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
     }
 
     @Test
@@ -289,7 +305,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @ToBeFixedForConfigurationCache
     @Test
-    @Ignore
     fun `recompiles buildscript on inline lambda function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
             """
