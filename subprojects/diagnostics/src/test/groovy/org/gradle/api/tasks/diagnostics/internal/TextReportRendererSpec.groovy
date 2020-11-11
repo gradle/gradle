@@ -19,7 +19,6 @@ import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -59,10 +58,10 @@ class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Project ':'")
+        containsLine(textOutput.toString(), "Root project 'test'")
 
         and:
-        1 * project.path >> Path.path(":")
+        1 * project.displayName >> "root project 'test'"
         1 * project.description >> null
     }
 
@@ -82,13 +81,13 @@ class TextReportRendererSpec extends Specification {
 
         and:
         1 * subproject.description >> null
-        1 * subproject.path >> Path.path(":subproject")
+        1 * subproject.displayName >> "project ':subproject'"
     }
 
     def "includes project description in header"() {
         given:
         def project = Mock(ProjectDetails)
-        TestStyledTextOutput textOutput = new TestStyledTextOutput();
+        TestStyledTextOutput textOutput = new TestStyledTextOutput()
 
         when:
         renderer.output = textOutput
@@ -97,10 +96,10 @@ class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Project ':' - this is the root project")
+        containsLine(textOutput.toString(), "Root project 'test' - this is the root project")
 
         and:
-        1 * project.path >> Path.path(":")
+        1 * project.displayName >> "root project 'test'"
         1 * project.getDescription() >> "this is the root project"
     }
 }
