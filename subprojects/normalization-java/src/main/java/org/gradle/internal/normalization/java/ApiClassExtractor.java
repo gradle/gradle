@@ -38,7 +38,7 @@ public class ApiClassExtractor {
     private final ApiMemberWriterFactory apiMemberWriterFactory;
 
     public ApiClassExtractor(Set<String> exportedPackages) {
-        this(exportedPackages, (classReader, classWriter) -> new ApiMemberWriter(new MethodStubbingApiMemberAdapter(classWriter)));
+        this(exportedPackages, classWriter -> new ApiMemberWriter(new MethodStubbingApiMemberAdapter(classWriter)));
     }
 
     public ApiClassExtractor(Set<String> exportedPackages, ApiMemberWriterFactory apiMemberWriterFactory) {
@@ -78,7 +78,7 @@ public class ApiClassExtractor {
             return Optional.empty();
         }
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        ApiMemberSelector visitor = new ApiMemberSelector(originalClassReader.getClassName(), apiMemberWriterFactory.makeApiMemberWriter(originalClassReader, apiClassWriter), apiIncludesPackagePrivateMembers);
+        ApiMemberSelector visitor = new ApiMemberSelector(originalClassReader.getClassName(), apiMemberWriterFactory.makeApiMemberWriter(apiClassWriter), apiIncludesPackagePrivateMembers);
         originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         if (visitor.isPrivateInnerClass()) {
             return Optional.empty();
