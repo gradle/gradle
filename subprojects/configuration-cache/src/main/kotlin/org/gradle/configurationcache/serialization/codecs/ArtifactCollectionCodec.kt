@@ -169,7 +169,7 @@ class FixedArtifactCollection(
                     )
                 }
                 is ResolvedArtifactSet -> {
-                    result.addAll(artifactSetConverter.asResolvedArtifactSupplier(element).get())
+                    result.addAll(artifactSetConverter.asResolvedArtifacts(element))
                 }
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
             }

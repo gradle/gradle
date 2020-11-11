@@ -19,10 +19,11 @@ package org.gradle.util
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.strictlyEquals
+import static org.gradle.util.Path.ROOT
 import static org.gradle.util.Path.path
 
 class PathTest extends Specification {
-    def constructionFromString() {
+    def "construction from string"() {
         expect:
         path(':').getPath() == ':'
         path(':').is(Path.ROOT)
@@ -34,7 +35,7 @@ class PathTest extends Specification {
         path(':a:b:').getPath() == ':a:b'
     }
 
-    def equalsAndHashCode() {
+    def "equals and hashCode"() {
         expect:
         strictlyEquals(Path.ROOT, Path.ROOT)
         strictlyEquals(path('path'), path('path'))
@@ -43,7 +44,7 @@ class PathTest extends Specification {
         !strictlyEquals(path(':a'), path('a'))
     }
 
-    def canGetParent() {
+    def "can get parent"() {
         expect:
         path(':a:b').parent == path(':a')
         path(':a').parent == path(':')
@@ -52,7 +53,7 @@ class PathTest extends Specification {
         path('a').parent == null
     }
 
-    def canGetName() {
+    def "can get name"() {
         expect:
         path(':a:b').name == 'b'
         path(':a').name == 'a'
@@ -61,14 +62,14 @@ class PathTest extends Specification {
         path('a').name == 'a'
     }
 
-    def canCreateChild() {
+    def "can create child"() {
         expect:
         path(':').child("a") == path(":a")
         path(':a').child("b") == path(":a:b")
         path('a:b').child("c") == path("a:b:c")
     }
 
-    def convertsRelativePathToAbsolutePath() {
+    def "converts relative path to absolute path"() {
         when:
         def path = path(':')
 
@@ -82,7 +83,7 @@ class PathTest extends Specification {
         path.absolutePath('path') == ':sub:path'
     }
 
-    def convertsAbsolutePathToAbsolutePath() {
+    def "converts absolute path to absolute path"() {
         def path = path(':')
 
         expect:
@@ -90,7 +91,7 @@ class PathTest extends Specification {
         path.absolutePath(':path') == ':path'
     }
 
-    def convertsAbsolutePathToRelativePath() {
+    def "converts absolute path to relative path"() {
         when:
         def path = path(':')
 
@@ -109,14 +110,14 @@ class PathTest extends Specification {
         path.relativePath(':other:path') == ':other:path'
     }
 
-    def convertsRelativePathToRelativePath() {
+    def 'converts relative path to relative path'() {
         def path = path(':')
 
         expect:
         path.relativePath('path') == 'path'
     }
 
-    def appendsPath() {
+    def "appends path"() {
         expect:
         path(':a:b').append(path(':c:d')) == path(':a:b:c:d')
         path(':a:b').append(path('c:d')) == path(':a:b:c:d')
@@ -124,7 +125,7 @@ class PathTest extends Specification {
         path('a:b').append(path('c:d')) == path('a:b:c:d')
     }
 
-    def appendsPathToAbsolutePath() {
+    def "appends path to absolute path"() {
         when:
         def path = path(':path')
 
@@ -136,7 +137,7 @@ class PathTest extends Specification {
         path.append(Path.path('relative:subpath')) == Path.path(':path:relative:subpath')
     }
 
-    def appendsPathToRelativePath() {
+    def "appends path to relative path"() {
         when:
         def path = path('path')
 
@@ -148,12 +149,95 @@ class PathTest extends Specification {
         path.append(Path.path('relative:subpath')) == Path.path('path:relative:subpath')
     }
 
-    def sortsPathsDepthFirstCaseInsensitive() {
+    def "sorts paths depth-first case-insensitive"() {
         expect:
         paths(['a', 'b', 'A', 'abc']).sort() == paths(['A', 'a', 'abc', 'b'])
         paths([':a', ':b', ':b:a', ':B:a', ':', ':B', ':a:a']).sort() == paths([':', ':a', ':a:a', ':B', ':B:a', ':b', ':b:a'])
         paths(['b', 'b:a', 'a', 'a:a']).sort() == paths(['a', 'a:a', 'b', 'b:a'])
         paths([':', ':a', 'a']).sort() == paths(['a', ':', ':a'])
+    }
+
+    def "counts segments"() {
+        expect:
+        ROOT.segmentCount() == 0
+        path(":").segmentCount() == 0
+        path("a").segmentCount() == 1
+        path(":a").segmentCount() == 1
+        path(":a:b").segmentCount() == 2
+        path("a:b").segmentCount() == 2
+        path(":a:b:c").segmentCount() == 3
+        path("a:b:c").segmentCount() == 3
+    }
+
+    def "removes invalid segments"() {
+        when:
+        path(":a:b").removeFirstSegments(segmentCount)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot remove $segmentCount segments from path :a:b"
+
+        where:
+        segmentCount << [-1, 2]
+    }
+
+    def "removes zero segments"() {
+        expect:
+        ROOT.removeFirstSegments(0) == ROOT
+        path(":").removeFirstSegments(0) == path(":")
+        path("a").removeFirstSegments(0) ==  path("a")
+        path(":a").removeFirstSegments(0) == path(":a")
+        path(":a:b").removeFirstSegments(0) == path(":a:b")
+        path("a:b").removeFirstSegments(0) == path("a:b")
+        path(":a:b:c").removeFirstSegments(0) == path(":a:b:c")
+        path("a:b:c").removeFirstSegments(0) == path("a:b:c")
+    }
+
+    def "removes one segment"() {
+        expect:
+        path(":a:b").removeFirstSegments(1) == path(":b")
+        path("a:b").removeFirstSegments(1) == path("b")
+        path(":a:b:c").removeFirstSegments(1) == path(":b:c")
+        path("a:b:c").removeFirstSegments(1) == path("b:c")
+    }
+
+    def "removes two segments"() {
+        expect:
+        path(":a:b:c").removeFirstSegments(2) == path(":c")
+        path("a:b:c").removeFirstSegments(2) == path("c")
+    }
+
+    def "retrieves segment"() {
+        expect:
+        path(":a:b:c").segment(0) == "a"
+        path(":a:b:c").segment(1) == "b"
+        path(":a:b:c").segment(2) == "c"
+        path("a:b:c").segment(0) == "a"
+        path("a:b:c").segment(1) == "b"
+        path("a:b:c").segment(2) == "c"
+
+        when:
+        path(":a:b:c").segment(3)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Segment index 3 is invalid for path :a:b:c"
+
+        when:
+        path(":a:b:c").segment(-1)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Segment index -1 is invalid for path :a:b:c"
+    }
+
+    def "test if path is absolute"() {
+        expect:
+        path(':').absolute
+        path(':a').absolute
+        !path('a').absolute
+        path(':a:b').absolute
+        !path('a:b').absolute
     }
 
     def paths(List<String> paths) {

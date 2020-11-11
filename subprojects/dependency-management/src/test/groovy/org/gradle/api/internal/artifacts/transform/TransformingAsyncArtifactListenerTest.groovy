@@ -83,7 +83,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
+        2 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
         0 * operationQueue._
     }
 }

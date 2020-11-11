@@ -57,6 +57,15 @@ Previously, projects imported by Eclipse only included dependencies for the main
 
 Since Gradle 6.8, projects imported into Eclipse include the compile and runtime classpath for every source set defined by the build.
 
+=== Deprecations
+
+[[referencing_tasks_from_included_builds]]
+==== Referencing tasks from included builds
+
+Direct references to tasks from included builds in `mustRunAfter`, `shouldRunAfter` and `finalizedBy` task methods have been deprecated.
+Task ordering using `mustRunAfter` and `shouldRunAfter` as well as finalizers specified by `finalizedBy` should be used for task ordering within a build.
+If you happen to have cross-build task ordering defined using above mentioned methods, consider restructuring such builds and decoupling them from one another.
+
 [[changes_6.7]]
 == Upgrading from 6.6
 

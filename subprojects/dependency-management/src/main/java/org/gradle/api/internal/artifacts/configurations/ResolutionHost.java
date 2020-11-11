@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.execution;
+package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
+import org.gradle.internal.DisplayName;
 
-import javax.annotation.Nullable;
-import java.io.File;
+import java.util.Collection;
 
-public abstract class TaskSelector {
-    public abstract Spec<Task> getFilter(String path);
+public interface ResolutionHost {
+    DisplayName displayName(String type);
 
-    public abstract TaskSelection getSelection(String path);
-
-    public abstract TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path);
+    void rethrowFailure(String type, Collection<Throwable> failures);
 }

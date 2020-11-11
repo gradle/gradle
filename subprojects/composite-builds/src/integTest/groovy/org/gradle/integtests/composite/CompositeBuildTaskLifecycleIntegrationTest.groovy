@@ -65,6 +65,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
         includedBuilds << buildB
 
         when:
+        executer.expectDocumentedDeprecationWarning("Using mustRunAfter to reference tasks from another build has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
         fails(buildA, 'a')
 
         then:
@@ -88,6 +89,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
         includedBuilds << buildB
 
         when:
+        executer.expectDocumentedDeprecationWarning("Using shouldRunAfter to reference tasks from another build has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
         fails(buildA, 'a')
 
         then:
@@ -141,6 +143,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
                 }
             """
         }
+        executer.expectDocumentedDeprecationWarning("Using finalizedBy to reference tasks from another build has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
         includedBuilds << buildB
 
         when:
