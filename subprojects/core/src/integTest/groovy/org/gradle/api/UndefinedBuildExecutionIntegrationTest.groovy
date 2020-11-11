@@ -18,7 +18,6 @@ package org.gradle.api
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -46,7 +45,6 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*tasks task.*")
     def "shows deprecation warning when executing #task task in undefined build"() {
         expect:
         executer.expectDocumentedDeprecationWarning("Executing Gradle tasks as part of an undefined build has been deprecated. This will fail with an error in Gradle 7.0. " +

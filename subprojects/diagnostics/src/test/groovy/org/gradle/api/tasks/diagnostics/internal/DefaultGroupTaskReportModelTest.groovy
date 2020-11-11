@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics.internal
 
 class DefaultGroupTaskReportModelTest extends AbstractTaskModelSpec {
     final TaskReportModel target = Mock()
-    final DefaultGroupTaskReportModel model = new DefaultGroupTaskReportModel()
 
     def mergesDefaultGroupIntoOtherGroup() {
         TaskDetails task1 = taskDetails('1')
@@ -27,12 +26,11 @@ class DefaultGroupTaskReportModelTest extends AbstractTaskModelSpec {
         _ * target.getTasksForGroup('a') >> [task1]
         _ * target.getTasksForGroup('') >> [task2]
         _ * target.getTasksForGroup('other') >> [task3]
-        
+
         when:
-        model.build(target)
+        final model = DefaultGroupTaskReportModel.of(target)
 
         then:
-
         model.groups as List == ['a', 'other']
         model.getTasksForGroup('a') as List == [task1]
         model.getTasksForGroup('other') as List == [task2, task3]
@@ -53,7 +51,7 @@ class DefaultGroupTaskReportModelTest extends AbstractTaskModelSpec {
         _ * target.getTasksForGroup('Other') >> [task5]
 
         when:
-        model.build(target)
+        final model = DefaultGroupTaskReportModel.of(target)
 
         then:
         model.groups as List == ['A', 'a', 'Abc', 'Other']
@@ -73,7 +71,7 @@ class DefaultGroupTaskReportModelTest extends AbstractTaskModelSpec {
         _ * target.getTasksForGroup('group') >> ([task6, task3, task7, task4, task5, task1, task8, task2] as LinkedHashSet)
 
         when:
-        model.build(target)
+        final model = DefaultGroupTaskReportModel.of(target)
 
         then:
         model.getTasksForGroup('group') as List == [task1, task2, task3, task4, task5, task6, task7, task8]
@@ -87,7 +85,7 @@ class DefaultGroupTaskReportModelTest extends AbstractTaskModelSpec {
         _ * target.getTasksForGroup('') >> [task2]
 
         when:
-        model.build(target)
+        final model = DefaultGroupTaskReportModel.of(target)
 
         then:
         model.groups as List == ['a', 'other']
@@ -101,7 +99,7 @@ class DefaultGroupTaskReportModelTest extends AbstractTaskModelSpec {
         _ * target.getTasksForGroup('') >> [task1]
 
         when:
-        model.build(target)
+        final model = DefaultGroupTaskReportModel.of(target)
 
         then:
         model.groups as List == ['']

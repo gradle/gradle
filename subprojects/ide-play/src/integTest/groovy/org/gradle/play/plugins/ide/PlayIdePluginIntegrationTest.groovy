@@ -37,7 +37,6 @@ abstract class PlayIdePluginIntegrationTest extends PlayMultiVersionApplicationI
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not blow up when no IDE plugin is applied"() {
         expect:
         succeeds("tasks")

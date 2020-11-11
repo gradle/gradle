@@ -42,7 +42,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "HelpTasksPluginIntegrationTest",
         "BuildDashboardPluginIntegrationTest",
         "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",
@@ -63,7 +62,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         succeeds mainTask
     }
 
-    @ToBeFixedForConfigurationCache
     def "plugin does not force creation of build dir during configuration"() {
         given:
         applyPlugin()
@@ -76,7 +74,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "HelpTasksPluginIntegrationTest",
         "BuildDashboardPluginIntegrationTest",
         "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",

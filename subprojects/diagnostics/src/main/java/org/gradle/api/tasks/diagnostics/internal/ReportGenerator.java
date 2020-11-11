@@ -25,26 +25,42 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+import java.util.function.Function;
 
 
-public class ReportGenerator {
+public final class ReportGenerator {
 
     private final ReportRenderer renderer;
     private final BuildClientMetaData buildClientMetaData;
     private final File outputFile;
     private final StyledTextOutputFactory textOutputFactory;
-    private final ProjectReportGenerator projectReportGenerator;
 
-    public ReportGenerator(ReportRenderer renderer, BuildClientMetaData buildClientMetaData, @Nullable File outputFile,
-                           StyledTextOutputFactory textOutputFactory, ProjectReportGenerator projectReportGenerator) {
+    public ReportGenerator(
+        ReportRenderer renderer,
+        BuildClientMetaData buildClientMetaData,
+        @Nullable File outputFile,
+        StyledTextOutputFactory textOutputFactory
+    ) {
         this.renderer = renderer;
         this.buildClientMetaData = buildClientMetaData;
         this.outputFile = outputFile;
         this.textOutputFactory = textOutputFactory;
-        this.projectReportGenerator = projectReportGenerator;
     }
 
-    public void generateReport(Set<Project> projects) {
+    @FunctionalInterface
+    public interface ReportAction<T> {
+        void execute(T project) throws IOException;
+    }
+
+    public void generateReport(Set<Project> projects, ReportAction<Project> projectReportGenerator) {
+        generateReport(projects, ProjectDetails::of, projectReportGenerator);
+    }
+
+    public <T> void generateReport(
+        Iterable<T> projects,
+        Function<T, ProjectDetails> projectDetailsProvider,
+        ReportAction<T> projectReportGenerator
+    ) {
         try {
             ReportRenderer renderer = getRenderer();
             renderer.setClientMetaData(getClientMetaData());
@@ -54,10 +70,11 @@ public class ReportGenerator {
             } else {
                 renderer.setOutput(getTextOutputFactory().create(getClass()));
             }
-            for (Project project : projects) {
-                renderer.startProject(project);
-                projectReportGenerator.generateReport(project);
-                renderer.completeProject(project);
+            for (T project : projects) {
+                ProjectDetails projectDetails = projectDetailsProvider.apply(project);
+                renderer.startProject(projectDetails);
+                projectReportGenerator.execute(project);
+                renderer.completeProject(projectDetails);
             }
             renderer.complete();
         } catch (IOException e) {

@@ -17,8 +17,6 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
-import org.gradle.api.Rule;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
@@ -38,7 +36,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     private boolean detail;
 
     @Override
-    public void startProject(Project project) {
+    public void startProject(ProjectDetails project) {
         currentProjectHasTasks = false;
         currentProjectHasRules = false;
         hasContent = false;
@@ -47,7 +45,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     }
 
     @Override
-    protected String createHeader(Project project) {
+    protected String createHeader(ProjectDetails project) {
         String header = super.createHeader(project);
         return "Tasks runnable from " + StringUtils.uncapitalize(header);
     }
@@ -118,7 +116,7 @@ public class TaskReportRenderer extends TextReportRenderer {
      *
      * @param rule The rule
      */
-    public void addRule(Rule rule) {
+    public void addRule(RuleDetails rule) {
         if (!currentProjectHasRules) {
             addSubheading("Rules");
         }

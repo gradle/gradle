@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.dependents.internal.TextDependentComponentsReportRenderer;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -145,7 +146,8 @@ public class DependentComponentsReport extends DefaultTask {
                     TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
 
                     reportRenderer.setOutput(textOutput);
-                    reportRenderer.startProject(project);
+                    ProjectDetails projectDetails = ProjectDetails.of(project);
+                    reportRenderer.startProject(projectDetails);
 
                     Set<ComponentSpec> allComponents = getAllComponents(modelRegistry);
                     if (showTestSuites) {
@@ -154,7 +156,7 @@ public class DependentComponentsReport extends DefaultTask {
                     reportRenderer.renderComponents(getReportedComponents(allComponents));
                     reportRenderer.renderLegend();
 
-                    reportRenderer.completeProject(project);
+                    reportRenderer.completeProject(projectDetails);
 
                     reportRenderer.complete();
                 });
