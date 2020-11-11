@@ -18,9 +18,12 @@ package org.gradle.internal.model;
 
 import org.gradle.internal.Try;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents a calculated immutable value that is calculated once and then consumed by multiple threads.
  */
+@ThreadSafe
 public interface CalculatedValue<T> {
     /**
      * Returns the value, failing if it has not been calculated.
