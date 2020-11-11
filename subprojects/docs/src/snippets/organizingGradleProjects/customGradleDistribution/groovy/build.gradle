@@ -1,30 +1,49 @@
+// tag::taskRegistration[]
+import org.gradle.distribution.DownloadGradle
+
+// end::taskRegistration[]
+
+// tag::distribution[]
 plugins {
-    id 'base'
+    id 'distribution'
 }
 
-// This is defined in buildSrc
-import org.gradle.distribution.DownloadGradle
+// end::distribution[]
 
 version = '0.1'
 
-task downloadGradle(type: DownloadGradle) {
-    description = 'Downloads the Gradle distribution with a given version.'
-    gradleVersion = '4.6'
+// tag::taskRegistration[]
+def downloadGradleDistribution =
+        tasks.register("downloadGradleDistribution", DownloadGradle) {
+            description = "Downloads the Gradle distribution with a given version."
+            gradleVersion = "6.7"
+            gradleDistributionType = "bin"
+        }
+// end::taskRegistration[]
+
+// tag::distribution[]
+tasks.named("distZip") {
+    dependsOn(downloadGradleDistribution)
 }
 
-task createCustomGradleDistribution(type: Zip) {
-    description = 'Builds custom Gradle distribution and bundles initialization scripts.'
-
-    dependsOn downloadGradle
-
-    def projectVersion = project.version
-    archiveFileName = downloadGradle.gradleVersion.map { gradleVersion ->
-        "mycompany-gradle-${gradleVersion}-${projectVersion}-bin.zip"
-    }
-
-    from zipTree(downloadGradle.destinationFile)
-
-    from('src/init.d') {
-        into "${downloadGradle.distributionNameBase.get()}/init.d"
+distributions {
+    main {
+        version = downloadGradleDistribution.get().getDistributionNameBase().get()
+        distributionBaseName = "custom"
+        contents { contents ->
+            contents.from(zipTree(downloadGradleDistribution.get().destinationFile.get())) {
+                eachFile {
+                    relativePath =
+                            new RelativePath(
+                                    true,
+                                    *relativePath.segments.findAll {
+                                        it != "gradle-${downloadGradleDistribution.get().gradleVersion.get()}"
+                                    }
+                            )
+                }
+                includeEmptyDirs = false
+            }
+        }
     }
 }
+// end::distribution[]

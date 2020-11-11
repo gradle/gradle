@@ -1,9 +1,17 @@
-logger.lifecycle ("Hello from the custom Gradle distribution")
-
-gradle.projectsLoaded { Gradle gradle ->
-    gradle.allprojects {
+// tag::pluginManagement[]
+settingsEvaluated {
+    pluginManagement {
         repositories {
-            jcenter()
+            gradlePluginPortal()
         }
     }
 }
+// end::pluginManagement[]
+
+// tag::sourceRepository[]
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+// end::sourceRepository[]
