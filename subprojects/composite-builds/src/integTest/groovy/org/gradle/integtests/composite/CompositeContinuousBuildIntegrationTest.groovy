@@ -127,7 +127,6 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         outputContains("Goodbye Friend")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "will rebuild on change for plugin supplied by included build"() {
         // to reduce contention with concurrently executing tests
         requireOwnGradleUserHomeDir()
