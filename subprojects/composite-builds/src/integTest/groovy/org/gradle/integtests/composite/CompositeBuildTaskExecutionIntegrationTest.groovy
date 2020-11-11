@@ -38,6 +38,22 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":other-build:doSomething")
     }
 
+    def "can run included build task included with --include-build"() {
+        setup:
+        settingsFile << ""
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        succeeds("--include-build", "other-build", ":other-build:doSomething")
+    }
+
     def "can run included subproject task"() {
         setup:
         settingsFile << "includeBuild('other-build')"
