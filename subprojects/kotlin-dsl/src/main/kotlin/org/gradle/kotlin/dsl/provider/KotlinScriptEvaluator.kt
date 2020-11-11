@@ -389,7 +389,7 @@ class CompileKotlinScript(
         }
 
     override fun getDisplayName(): String =
-        "Kotlin DSL script compilation"
+        "Kotlin DSL script compilation ($templateId)"
 
     override fun loadRestoredOutput(workspace: File): Any =
         classesDir(workspace)
