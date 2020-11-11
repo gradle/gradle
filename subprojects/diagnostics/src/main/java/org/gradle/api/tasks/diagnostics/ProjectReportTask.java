@@ -20,14 +20,19 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
+import javax.inject.Inject;
 import java.util.List;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * <p>Displays a list of projects in the build. An instance of this type is used when you execute the {@code projects}
@@ -35,6 +40,11 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
  */
 public class ProjectReportTask extends AbstractReportTask {
     private final TextReportRenderer renderer = new TextReportRenderer();
+
+    @Inject
+    public BuildStateRegistry getBuildStateRegistry() {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     protected TextReportRenderer getRenderer() {
@@ -46,11 +56,22 @@ public class ProjectReportTask extends AbstractReportTask {
         BuildClientMetaData metaData = getClientMetaData();
 
         StyledTextOutput textOutput = getRenderer().getTextOutput();
-
-        render(project, new GraphRenderer(textOutput), true, textOutput);
+        render(project, new GraphRenderer(textOutput), false, textOutput, "");
         if (project.getChildProjects().isEmpty()) {
             textOutput.withStyle(Info).text("No sub-projects");
             textOutput.println();
+        }
+
+        if (project.getRootProject().equals(project)) {
+            for (IncludedBuildState build : getBuildStateRegistry().getIncludedBuilds()) {
+                textOutput.println();
+                ProjectInternal includedRoot = build.getConfiguredBuild().getRootProject();
+                render(includedRoot, new GraphRenderer(textOutput), false, textOutput, " (included build)");
+                if (includedRoot.getChildProjects().isEmpty()) {
+                    textOutput.withStyle(Info).text("No sub-projects");
+                    textOutput.println();
+                }
+            }
         }
 
         textOutput.println();
@@ -74,9 +95,9 @@ public class ProjectReportTask extends AbstractReportTask {
     }
 
     private void render(final Project project, GraphRenderer renderer, boolean lastChild,
-                        final StyledTextOutput textOutput) {
+                        final StyledTextOutput textOutput, String projectSuffix) {
         renderer.visit(styledTextOutput -> {
-            styledTextOutput.text(StringUtils.capitalize(project.toString()));
+            styledTextOutput.text(StringUtils.capitalize(project.toString()) + projectSuffix);
             if (GUtil.isTrue(project.getDescription())) {
                 textOutput.withStyle(Description).format(" - %s", project.getDescription());
             }
@@ -84,7 +105,7 @@ public class ProjectReportTask extends AbstractReportTask {
         renderer.startChildren();
         List<Project> children = getChildren(project);
         for (Project child : children) {
-            render(child, renderer, child == children.get(children.size() - 1), textOutput);
+            render(child, renderer, child == children.get(children.size() - 1), textOutput, "");
         }
         renderer.completeChildren();
     }
