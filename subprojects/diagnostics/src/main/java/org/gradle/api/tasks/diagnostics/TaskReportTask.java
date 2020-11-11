@@ -53,11 +53,11 @@ import static java.util.Collections.emptyList;
  * by enabling the command line option {@code --all}.
  */
 public class TaskReportTask extends AbstractReportTask {
-    private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
-    private transient TaskReportRenderer renderer;
 
     private boolean detail;
     private String group;
+    private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
+    private transient TaskReportRenderer renderer;
 
     @Override
     public ReportRenderer getRenderer() {
@@ -137,7 +137,6 @@ public class TaskReportTask extends AbstractReportTask {
     }
 
     private static class ProjectReportModel {
-        public final boolean detail;
         public final ProjectDetails project;
         public final List<String> defaultTasks;
         public final DefaultGroupTaskReportModel tasks;
@@ -145,31 +144,28 @@ public class TaskReportTask extends AbstractReportTask {
 
         public ProjectReportModel(
             ProjectDetails project,
-            boolean detail,
             List<String> defaultTasks,
             DefaultGroupTaskReportModel tasks,
             List<RuleDetails> rules
         ) {
-            this.detail = detail;
+            this.project = project;
             this.defaultTasks = defaultTasks;
             this.tasks = tasks;
             this.rules = rules;
-            this.project = project;
         }
     }
 
     private ProjectReportModel projectReportModelFor(Project project) {
-        boolean detail = isDetail();
         return new ProjectReportModel(
-            ProjectDetails.of(project), detail,
+            ProjectDetails.of(project),
             project.getDefaultTasks(),
-            taskReportModelFor(project, detail),
+            taskReportModelFor(project, isDetail()),
             Strings.isNullOrEmpty(group) ? ruleDetailsFor(project) : emptyList()
         );
     }
 
     private void render(ProjectReportModel reportModel) {
-        renderer.showDetail(reportModel.detail);
+        renderer.showDetail(isDetail());
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;
@@ -206,10 +202,13 @@ public class TaskReportTask extends AbstractReportTask {
         return DefaultGroupTaskReportModel.of(aggregateModel);
     }
 
-    private SingleProjectTaskReportModel buildTaskReportModelFor(final TaskDetailsFactory taskDetailsFactory, final Project subproject) {
+    private SingleProjectTaskReportModel buildTaskReportModelFor(
+        final TaskDetailsFactory taskDetailsFactory,
+        final Project subproject
+    ) {
         return projectStateFor(subproject).fromMutableState(
-            p -> SingleProjectTaskReportModel.forTasks(
-                getProjectTaskLister().listProjectTasks(p),
+            project -> SingleProjectTaskReportModel.forTasks(
+                getProjectTaskLister().listProjectTasks(project),
                 taskDetailsFactory
             )
         );
