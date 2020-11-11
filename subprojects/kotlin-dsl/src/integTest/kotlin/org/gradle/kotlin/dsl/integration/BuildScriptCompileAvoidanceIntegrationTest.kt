@@ -188,6 +188,32 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @ToBeFixedForConfigurationCache
     @Test
+    fun `avoids buildscript recompilation when jar that can not be used for compile avoidance initially on buildsript classpath is touched`() {
+        val (className, jarPath) = buildKotlinJarForBuildScriptClasspath(
+            """
+            inline fun foo() {
+                val sum: (Int, Int) -> Int = { x, y -> x + y }
+                println("foo = " + sum(2, 2))
+            }
+            """
+        )
+
+        withBuildScript(
+            """
+            buildscript {
+                dependencies { classpath(files("$jarPath")) }
+            }
+            $className().foo()
+            """
+        )
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 4")
+
+        existing(jarPath).setLastModified(1)
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo = 4")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
     fun `avoids buildscript recompilation on non ABI change in precompiled script plugin`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
@@ -722,6 +748,34 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         val className = javaSourceFile(baseDir, classBody)
+        build(existing(baseDir), "build")
+        val jarPath = "$baseDir/build/libs/buildscript.jar"
+        assertTrue(existing(jarPath).exists())
+        return Pair(className, jarPath)
+    }
+
+    private
+    fun buildKotlinJarForBuildScriptClasspath(classBody: String): Pair<String, String> {
+        val baseDir = "buildscript"
+        withSettingsIn(
+            baseDir,
+            """
+                rootProject.name = "buildscript"
+            """
+        )
+        withBuildScriptIn(
+            baseDir,
+            """
+                plugins {
+                    `kotlin-dsl`
+                    id("java-library")
+                }
+                repositories {
+                    mavenCentral()
+                }
+            """
+        )
+        val className = kotlinClassSourceFile(baseDir, classBody)
         build(existing(baseDir), "build")
         val jarPath = "$baseDir/build/libs/buildscript.jar"
         assertTrue(existing(jarPath).exists())
