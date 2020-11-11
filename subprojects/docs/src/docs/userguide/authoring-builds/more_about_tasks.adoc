@@ -655,6 +655,10 @@ Implies `<<#incremental,@Incremental>>`.
 | `@link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[PathSensitive]`
 | `File`+++*+++
 | [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
+
+| `@link:{javadocPath}/org/gradle/api/tasks/IgnoreDirectories.html[IgnoreDirectories]`
+| `Iterable&lt;File&gt;`*
+| Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track only changes to the contents of directories and not differences in the directories themselves.  For example, removing, renaming or adding an empty directory somewhere in the directory structure will not make the task out-of-date.
 |===
 
 [NOTE]
