@@ -27,21 +27,6 @@ public interface ProjectDetails {
         final String description = project.getDescription();
         final boolean isRoot = project == project.getRootProject();
         return new ProjectDetails() {
-
-            @Override
-            public int hashCode() {
-                return this.getPath().hashCode();
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (!(obj instanceof ProjectDetails)) {
-                    return false;
-                }
-                ProjectDetails that = (ProjectDetails) obj;
-                return this.getPath().equals(that.getPath());
-            }
-
             @Override
             public boolean isRootProject() {
                 return isRoot;
@@ -55,6 +40,20 @@ public interface ProjectDetails {
             @Override
             public String getDescription() {
                 return description;
+            }
+
+            @Override
+            public int hashCode() {
+                return this.getPath().hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (!(obj instanceof ProjectDetails)) {
+                    return false;
+                }
+                ProjectDetails that = (ProjectDetails) obj;
+                return this.getPath().equals(that.getPath());
             }
         };
     }
