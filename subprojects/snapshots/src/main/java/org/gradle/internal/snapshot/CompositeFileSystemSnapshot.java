@@ -49,4 +49,15 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
         }
         return SnapshotVisitResult.CONTINUE;
     }
+
+    @Override
+    public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+        for (FileSystemSnapshot snapshot : snapshots) {
+            SnapshotVisitResult result = snapshot.accept(pathTracker, visitor);
+            if (result == SnapshotVisitResult.TERMINATE) {
+                return SnapshotVisitResult.TERMINATE;
+            }
+        }
+        return SnapshotVisitResult.CONTINUE;
+    }
 }

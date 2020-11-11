@@ -35,31 +35,4 @@ public interface RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
      * Called after all entries in the directory has been visited.
      */
     default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath, String parentName) {}
-
-    default FileSystemSnapshotHierarchyVisitor asHierarchyVisitor() {
-        RelativePathTracker tracker = new RelativePathTracker();
-        return new FileSystemSnapshotHierarchyVisitor() {
-            @Override
-            public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                tracker.enter(directorySnapshot);
-                RelativePathTrackingFileSystemSnapshotHierarchyVisitor.this.enterDirectory(directorySnapshot, tracker);
-            }
-
-            @Override
-            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                tracker.enter(snapshot);
-                try {
-                    return RelativePathTrackingFileSystemSnapshotHierarchyVisitor.this.visitEntry(snapshot, tracker);
-                } finally {
-                    tracker.leave();
-                }
-            }
-
-            @Override
-            public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                String parentName = tracker.leave();
-                RelativePathTrackingFileSystemSnapshotHierarchyVisitor.this.leaveDirectory(directorySnapshot, tracker, parentName);
-            }
-        };
-    }
 }

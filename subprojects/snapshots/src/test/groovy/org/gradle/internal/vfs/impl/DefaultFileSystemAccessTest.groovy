@@ -16,14 +16,10 @@
 
 package org.gradle.internal.vfs.impl
 
-import org.gradle.internal.RelativePathSupplier
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
-import org.gradle.internal.snapshot.SnapshotVisitResult
+
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
-
-import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @Unroll
 class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
@@ -186,8 +182,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         when:
         allowFileSystemAccess(true)
         def snapshot = read(d, new FileNameFilter({ name -> name.endsWith('1')}))
-        def relativePaths = []
-        snapshot.accept(new RelativePathCapturingVisitor(relativePaths).asHierarchyVisitor())
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         assertIsDirectorySnapshot(snapshot, d)
         relativePaths == ["d1", "d1/f1", "f1"]
@@ -249,26 +244,9 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         when:
         allowFileSystemAccess(false)
         def snapshot = read(d, patterns)
-        def relativePaths = []
-        snapshot.accept(new RelativePathCapturingVisitor(relativePaths).asHierarchyVisitor())
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
 
         then: "The filtered tree uses the cached state"
         relativePaths as Set == ["d1", "d1/f1", "f1"] as Set
-    }
-
-    private static class RelativePathCapturingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
-        private final List<String> relativePaths
-
-        RelativePathCapturingVisitor(List<String> relativePaths) {
-            this.relativePaths = relativePaths
-        }
-
-        @Override
-        SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
-            if (!relativePath.root) {
-                relativePaths << relativePath.toPathString()
-            }
-            return CONTINUE
-        }
     }
 }

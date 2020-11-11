@@ -83,6 +83,29 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
+    public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+        pathTracker.enter(getName());
+        try {
+            SnapshotVisitResult result = visitor.visitEntry(this, pathTracker);
+            switch (result) {
+                case CONTINUE:
+                    visitor.enterDirectory(this, pathTracker);
+                    children.visitChildren((name, child) -> child.accept(pathTracker, visitor));
+                    visitor.leaveDirectory(this, pathTracker, getName());
+                    return CONTINUE;
+                case SKIP_SUBTREE:
+                    return CONTINUE;
+                case TERMINATE:
+                    return SnapshotVisitResult.TERMINATE;
+                default:
+                    throw new AssertionError();
+            }
+        } finally {
+            pathTracker.leave();
+        }
+    }
+
+    @Override
     public void accept(FileSystemLocationSnapshotVisitor visitor) {
         visitor.visitDirectory(this);
     }

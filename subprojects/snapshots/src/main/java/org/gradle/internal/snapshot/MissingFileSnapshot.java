@@ -53,11 +53,6 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
-        return visitor.visitEntry(this);
-    }
-
-    @Override
     public void accept(FileSystemLocationSnapshotVisitor visitor) {
         visitor.visitMissing(this);
     }

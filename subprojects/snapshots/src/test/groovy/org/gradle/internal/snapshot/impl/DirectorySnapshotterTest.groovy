@@ -20,15 +20,13 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.RelativePathSupplier
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,8 +39,6 @@ import spock.lang.Specification
 
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
-
-import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -70,9 +66,6 @@ class DirectorySnapshotterTest extends Specification {
         patterns.include("**/*.txt")
         patterns.exclude("subdir1/**")
 
-        def visited = []
-        def relativePaths = []
-
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
 
@@ -81,11 +74,8 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(({ CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
-            visited << entrySnapshot.absolutePath
-            relativePaths << relativePath.toPathString()
-            return CONTINUE
-        } as RelativePathTrackingFileSystemSnapshotHierarchyVisitor).asHierarchyVisitor())
+        def visited = SnapshotVisitorUtil.getAbsolutePaths(snapshot, true)
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot, true)
 
         then:
         visited.contains(rootTextFile.absolutePath)
@@ -135,9 +125,6 @@ class DirectorySnapshotterTest extends Specification {
         patterns.include("**/*.txt")
         patterns.exclude("subdir1/**")
 
-        def visited = []
-        def relativePaths = []
-
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered)
 
@@ -146,11 +133,8 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(({ CompleteFileSystemLocationSnapshot entrySnapshot, RelativePathSupplier relativePath ->
-            visited << entrySnapshot.absolutePath
-            relativePaths << relativePath.toPathString()
-            CONTINUE
-        } as RelativePathTrackingFileSystemSnapshotHierarchyVisitor).asHierarchyVisitor())
+        def visited = SnapshotVisitorUtil.getAbsolutePaths(snapshot, true)
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot, true)
 
         then:
         visited.contains(rootTextFile.absolutePath)

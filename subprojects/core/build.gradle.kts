@@ -136,6 +136,7 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":snapshots")))
 
     integTestImplementation(project(":workers"))
     integTestImplementation(project(":dependency-management"))

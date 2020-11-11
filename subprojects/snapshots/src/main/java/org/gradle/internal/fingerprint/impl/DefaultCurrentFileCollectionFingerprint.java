@@ -27,6 +27,8 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.RelativePathTracker;
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.util.Map;
@@ -103,6 +105,20 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         }
         for (FileSystemSnapshot root : roots) {
             SnapshotVisitResult result = root.accept(visitor);
+            if (result == SnapshotVisitResult.TERMINATE) {
+                return SnapshotVisitResult.TERMINATE;
+            }
+        }
+        return SnapshotVisitResult.CONTINUE;
+    }
+
+    @Override
+    public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+        if (roots == null) {
+            throw new UnsupportedOperationException("Roots not available.");
+        }
+        for (FileSystemSnapshot root : roots) {
+            SnapshotVisitResult result = root.accept(pathTracker, visitor);
             if (result == SnapshotVisitResult.TERMINATE) {
                 return SnapshotVisitResult.TERMINATE;
             }

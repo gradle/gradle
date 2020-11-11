@@ -17,17 +17,15 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.internal.RelativePathSupplier
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -36,8 +34,6 @@ import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-
-import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -65,16 +61,9 @@ class FileSystemSnapshotBuilderTest extends Specification {
         builder.addFile(new File(basePath, "one/two/some.txt"), ["one", "two", "some.txt"] as String[], "some.txt", fileMetadata())
         builder.addDir(new File(basePath, "three"), ["three"] as String[])
         builder.addFile(new File(basePath, "three/four.txt"), ["three", "four.txt"] as String[], "four.txt", fileMetadata())
-        Set<String> files = [] as Set
-        Set<String> relativePaths = [] as Set
         def result = builder.build()
-        result.accept(({ CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath ->
-            if (!relativePath.root) {
-                files.add(snapshot.absolutePath)
-                relativePaths << relativePath.toPathString()
-            }
-            return CONTINUE
-        } as RelativePathTrackingFileSystemSnapshotHierarchyVisitor).asHierarchyVisitor())
+        def files = SnapshotVisitorUtil.getAbsolutePaths(result) as Set
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(result) as Set
 
         then:
         normalizeFileSeparators(files) == normalizeFileSeparators(expectedRelativePaths.collect { "${basePath}/$it".toString() } as Set)
