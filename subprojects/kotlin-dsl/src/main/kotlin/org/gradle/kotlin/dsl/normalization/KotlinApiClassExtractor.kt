@@ -37,6 +37,7 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import java.util.Optional
 
 
 class KotlinApiClassExtractor : ApiClassExtractor(
@@ -47,7 +48,17 @@ class KotlinApiClassExtractor : ApiClassExtractor(
             MethodCopyingApiMemberAdapter(classReader, classWriter)
         )
     }
-)
+) {
+
+    override fun extractApiClassFrom(originalClassReader: ClassReader): Optional<ByteArray> {
+        try {
+            return super.extractApiClassFrom(originalClassReader)
+        } catch (e: CompileAvoidanceException) {
+            val className = originalClassReader.className
+            throw CompileAvoidanceException("Can not use compile avoidance with class: $className", e)
+        }
+    }
+}
 
 
 private
@@ -89,7 +100,8 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
     override fun writeMethod(method: MethodMember) {
         when {
             method.isInternal() -> return
-            method.isInline() -> inlineMethodWriter.writeMethod(method)
+            // TODO: detect lambdas in public inline methods and treat them as ABI, then inlineMethodWriter.writeMethod(method)
+            method.isInline() -> throw CompileAvoidanceException("Can not use compile avoidance with public inline function: $method")
             else -> super.writeMethod(method)
         }
     }
@@ -178,4 +190,11 @@ class MethodCopyingVisitor(val method: MethodMember, val classWriter: ClassWrite
         }
         return super.visitMethod(access, name, descriptor, signature, exceptions)
     }
+}
+
+
+private
+class CompileAvoidanceException : GradleException {
+    constructor(message: String) : super(message)
+    constructor(message: String, cause: Throwable?) : super(message, cause)
 }
