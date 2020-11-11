@@ -274,21 +274,60 @@ First of all, you will have to communicate the setup process across all develope
 Furthermore, updating the initialization script logic uniformly can prove challenging.
 
 Custom Gradle distributions are a practical solution to this very problem.
-A custom Gradle distribution is comprised of the standard Gradle distribution plus one or many custom initialization scripts.
+A custom Gradle distribution comprises the standard Gradle distribution plus one, or many custom initialization scripts.
 The initialization scripts come bundled with the distribution and are applied every time the build is run.
 Developers only need to point their checked-in <<gradle_wrapper.adoc#gradle_wrapper,Wrapper>> files to the URL of the custom Gradle distribution.
 
 Custom Gradle distributions may also contain a `gradle.properties` file in the root of the distribution, which provide an organization-wide <<build_environment.adoc#sec:gradle_configuration_properties,set of properties that control the build environment>>.
 
-The following steps are typical for creating a custom Gradle distribution:
+[[sub:create_custom_gradle_distribution]]
+=== Creating a custom Gradle distribution
 
-1. Implement logic for downloading and repackaging a Gradle distribution.
-2. Define one or many initialization scripts with the desired logic.
-3. Bundle the initialization scripts with the Gradle distribution.
-4. Upload the Gradle distribution archive to a HTTP server.
-5. Change the Wrapper files of all projects to point to the URL of the custom Gradle distribution.
+At first, you need to download the distribution which is done by an `buildSrc` Gradle task.
 
-.Building a custom Gradle distribution
+.buildSrc download Gradle distribution task
 ====
-include::sample[dir="snippets/organizingGradleProjects/customGradleDistribution/groovy",files="build.gradle[]"]
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/groovy/buildSrc",files="src/main/groovy/org/gradle/distribution/DownloadGradle.groovy[]"]
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/kotlin/buildSrc",files="src/main/kotlin/org/gradle/distribution/DownloadGradle.kt[]"]
 ====
+
+Now we can register and use this task.
+
+.Register and configure the task
+====
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/groovy",files="build.gradle[tags=taskRegistration]"]
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/kotlin",files="build.gradle.kts[tags=taskRegistration]"]
+====
+
+[[sub:configure_with_initialization_scripts]]
+=== Configure Gradle with the help of initialization scripts
+
+.Configure in-house Gradle plugin repository
+====
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/groovy",files="src/main/dist/init.d/repositories.init.gradle[tags=pluginManagement]"]
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/kotlin",files="src/main/dist/init.d/repositories.init.gradle.kts[tags=pluginManagement]"]
+====
+
+.Configure in-house source repository
+====
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/groovy",files="src/main/dist/init.d/repositories.init.gradle[tags=sourceRepository]"]
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/kotlin",files="src/main/dist/init.d/repositories.init.gradle.kts[tags=sourceRepository]"]
+====
+
+[[sub:bundle_custom_gradle_distribution]]
+=== Bundle the custom Gradle distribution
+
+.Bundle a custom Gradle distribution
+====
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/groovy",files="build.gradle[tags=distribution]"]
+include::sample[dir="{snippetsPath}/organizingGradleProjects/customGradleDistribution/kotlin",files="build.gradle.kts[tags=distribution]"]
+====
+
+[[sub:use_custom_gradle_distribution]]
+=== Use the custom Gradle distribution
+
+.Execute Gradle wrapper task to use the custom distribution
+----
+./gradlew wrapper \
+    --gradle-distribution-url 'https://example.com/path/to/custom-distribution-gradle-6.7-bin.zip'
+----

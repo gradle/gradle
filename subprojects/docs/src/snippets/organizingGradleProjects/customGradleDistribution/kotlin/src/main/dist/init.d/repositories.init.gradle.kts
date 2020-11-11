@@ -1,4 +1,4 @@
-
+// tag::pluginManagement[]
 settingsEvaluated {
     pluginManagement {
         repositories {
@@ -6,9 +6,12 @@ settingsEvaluated {
         }
     }
 }
+// end::pluginManagement[]
 
+// tag::sourceRepository[]
 allprojects {
     repositories {
         jcenter()
     }
 }
+// end::sourceRepository[]

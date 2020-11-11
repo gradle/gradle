@@ -32,7 +32,7 @@ open class DownloadGradle : DefaultTask() {
     @TaskAction
     fun doDownloadGradle() {
         val downloadUrl = URL("${gradleDownloadBase.get()}/${getDownloadFileName()}")
-        logger.quiet("Download: '$downloadUrl'")
+        logger.info("Download: '$downloadUrl'")
         destinationFile.get().asFile.writeBytes(downloadUrl.readBytes())
     }
 
