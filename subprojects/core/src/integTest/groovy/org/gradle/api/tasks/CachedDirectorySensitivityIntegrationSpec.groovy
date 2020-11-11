@@ -16,8 +16,12 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.util.TextUtil
+
 
 class CachedDirectorySensitivityIntegrationSpec extends AbstractDirectorySensitivityIntegrationSpec {
+    def buildCachePath = TextUtil.normaliseFileSeparators(testDirectory.file("build-cache").absolutePath)
+
     def setup() {
         buildFile << """
             plugins { id 'base' }
@@ -25,7 +29,7 @@ class CachedDirectorySensitivityIntegrationSpec extends AbstractDirectorySensiti
         settingsFile << """
             buildCache {
                 local {
-                    directory = file('${testDirectory.file("build-cache").absolutePath}')
+                    directory = file('${buildCachePath}')
                 }
             }
         """
