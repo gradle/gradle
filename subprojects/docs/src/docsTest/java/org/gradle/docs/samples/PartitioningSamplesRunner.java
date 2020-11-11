@@ -96,8 +96,6 @@ abstract class PartitioningSamplesRunner extends IntegrationTestSamplesRunner {
         List<Sample> allSamples = super.getChildren();
         return allSamples.stream()
             .filter(s -> sampleIdFilter().test(s.getId()))
-            // TODO: [bm] ignore toolchain samples until we can run them on all agents
-            .filter(s -> !s.getId().contains("toolchain"))
             .collect(Collectors.toList());
     }
 }
