@@ -17,15 +17,16 @@
 package org.gradle.execution.commandline
 
 import org.gradle.api.Task
+import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelectionResult
-import org.gradle.execution.TaskSelector
+import org.gradle.execution.DefaultTaskSelector
 import org.gradle.internal.DefaultTaskExecutionRequest
 import spock.lang.Specification
 
 import static com.google.common.collect.Sets.newHashSet
 
 class CommandLineTaskParserSpec extends Specification {
-    def selector = Mock(TaskSelector)
+    def selector = Mock(DefaultTaskSelector)
     def taskConfigurer = Mock(CommandLineTaskConfigurer)
     def task = Mock(Task)
     def task2 = Mock(Task)
@@ -39,7 +40,7 @@ class CommandLineTaskParserSpec extends Specification {
     def "parses a single task selector"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo'], 'project')
-        def selection = new TaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task))
+        def selection = new TaskSelection(':project', ':foo', asTaskSelectionResults(task))
 
         selector.getSelection('project', null, 'foo') >> selection
 
@@ -53,8 +54,8 @@ class CommandLineTaskParserSpec extends Specification {
     def "parses multiple tasks selectors"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo', 'bar'])
-        def selection1 = new TaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task, task2))
-        def selection2 = new TaskSelector.TaskSelection(':project', ':bar', asTaskSelectionResults(task3))
+        def selection1 = new TaskSelection(':project', ':foo', asTaskSelectionResults(task, task2))
+        def selection2 = new TaskSelection(':project', ':bar', asTaskSelectionResults(task3))
 
         selector.getSelection(null, null, 'foo') >> selection1
         selector.getSelection(null, null, 'bar') >> selection2
@@ -69,9 +70,9 @@ class CommandLineTaskParserSpec extends Specification {
     def "configures tasks if configuration options specified"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo', '--all', 'bar', '--include', 'stuff', 'lastTask'])
-        selector.getSelection(null, null, 'foo') >> new TaskSelector.TaskSelection(':project', 'foo task', asTaskSelectionResults(task, task2))
-        selector.getSelection(null, null, 'bar') >> new TaskSelector.TaskSelection(':project', 'bar task', asTaskSelectionResults(task3))
-        selector.getSelection(null, null, 'lastTask') >> new TaskSelector.TaskSelection(':project', 'last task', asTaskSelectionResults(task3))
+        selector.getSelection(null, null, 'foo') >> new TaskSelection(':project', 'foo task', asTaskSelectionResults(task, task2))
+        selector.getSelection(null, null, 'bar') >> new TaskSelection(':project', 'bar task', asTaskSelectionResults(task3))
+        selector.getSelection(null, null, 'lastTask') >> new TaskSelection(':project', 'last task', asTaskSelectionResults(task3))
 
         when:
         def out = parser.parseTasks(request)
