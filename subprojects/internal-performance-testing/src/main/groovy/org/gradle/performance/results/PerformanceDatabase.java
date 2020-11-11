@@ -16,18 +16,19 @@
 
 package org.gradle.performance.results;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
 public class PerformanceDatabase {
     private static final String PERFORMANCE_DB_URL_PROPERTY_NAME = "org.gradle.performance.db.url";
-    private static final int LOGIN_TIMEOUT_SECONDS = 60;
     private final String databaseName;
     private final List<ConnectionAction<Void>> databaseInitializers;
-    private Connection connection;
+    private HikariDataSource dataSource;
 
     @SafeVarargs
     public PerformanceDatabase(String databaseName, ConnectionAction<Void>... schemaInitializers) {
@@ -35,41 +36,52 @@ public class PerformanceDatabase {
         this.databaseInitializers = Arrays.asList(schemaInitializers);
     }
 
+    private Connection getConnection() throws SQLException {
+        if (dataSource == null) {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(getUrl());
+            config.setUsername(getUserName());
+            config.setPassword(getPassword());
+            config.setMaximumPoolSize(2);
+            dataSource = new HikariDataSource(config);
+
+            executeInitializers(dataSource.getConnection());
+        }
+        return dataSource.getConnection();
+    }
+
+    private void executeInitializers(Connection connection) throws SQLException {
+        for (ConnectionAction<Void> initializer : databaseInitializers) {
+            try {
+                initializer.execute(connection);
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 90096) {
+                    System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
     public static boolean isAvailable() {
         return System.getProperty(PERFORMANCE_DB_URL_PROPERTY_NAME) != null;
     }
 
     public void close() {
-        if (connection != null) {
+        if (dataSource != null) {
             try {
-                connection.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(String.format("Could not close datastore '%s'.", getUrl()), e);
+                dataSource.close();
             } finally {
-                connection = null;
+                dataSource = null;
             }
         }
     }
 
     public <T> T withConnection(ConnectionAction<T> action) throws SQLException {
-        if (connection == null) {
-            DriverManager.setLoginTimeout(LOGIN_TIMEOUT_SECONDS);
-            connection = DriverManager.getConnection(getUrl(), getUserName(), getPassword());
-            for (ConnectionAction<Void> initializer : databaseInitializers) {
-                try {
-                    initializer.execute(connection);
-                } catch (SQLException e) {
-                    if (e.getErrorCode() == 90096) {
-                        System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
-                    } else {
-                        connection.close();
-                        connection = null;
-                        throw e;
-                    }
-                }
-            }
+        try (Connection connection = getConnection()) {
+            return action.execute(connection);
         }
-        return action.execute(connection);
     }
 
     public <T> T withConnection(String actionName, ConnectionAction<T> action) {
