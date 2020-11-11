@@ -48,7 +48,10 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     }
 
     def "applies a filter for excluded tasks before proceeding"() {
-        def filter = Stub(Spec)
+        def filter = Stub(TaskFilter)
+        def filterSpec = Stub(Spec)
+        filter.filterSpec >> filterSpec
+        filter.gradle >> gradle
 
         given:
         _ * startParameter.excludedTaskNames >> ['a']
@@ -58,7 +61,7 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
 
         then:
         1 * selector.getFilter('a') >> filter
-        1 * taskGraph.useFilter(filter)
+        1 * taskGraph.useFilter(filterSpec)
         1 * context.proceed()
     }
 }
