@@ -16,11 +16,9 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "reports project structure with single composite"() {
         given:
         file("settings.gradle") << """rootProject.name = 'my-root-project'
@@ -28,48 +26,23 @@ include('p1')
 include('p2')
 include('p2:p22')
 includeBuild('another')"""
-        file('another/settings.gradle') << """include('a1')
-include('a2')
-include('a2:a22')"""
+        file('another/settings.gradle').touch()
 
         when:
         run ":projects"
 
         then:
         outputContains """
-Root project 'my-root-project'
+Project ':'
 +--- Project ':p1'
 \\--- Project ':p2'
      \\--- Project ':p2:p22'
 
-Project ':another' (included build)
-+--- Project ':another:a1'
-\\--- Project ':another:a2'
-     \\--- Project ':another:a2:a22'
+Included builds
+\\--- Included build ':another'
 """
     }
 
-    @ToBeFixedForConfigurationCache
-    def "reports project structure with single empty composite"() {
-        given:
-        file("settings.gradle") << """rootProject.name = 'my-root-project'
-includeBuild('another')
-        """
-        file('another/settings.gradle') << ""
-
-        when:
-        run ":projects"
-
-        then:
-        outputContains """
-Root project 'my-root-project'
-No sub-projects
-
-Project ':another' (included build)
-No sub-projects"""
-    }
-
-    @ToBeFixedForConfigurationCache
     def "reports project structure with transitive composite"() {
         given:
         file("settings.gradle") << """rootProject.name = 'my-root-project'
@@ -82,17 +55,14 @@ includeBuild('another')"""
 
         then:
         outputContains """
-Root project 'my-root-project'
+Project ':'
 No sub-projects
 
-Project ':another' (included build)
-No sub-projects
-
-Project ':third' (included build)
-\\--- Project ':third:t1'"""
+Included builds
++--- Included build ':another'
+\\--- Included build ':third'"""
     }
 
-    @ToBeFixedForConfigurationCache
     def "included builds are only shown in the context of the root project"() {
         given:
         file("settings.gradle") << """rootProject.name = 'my-root-project'

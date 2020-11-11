@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
@@ -28,6 +27,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
@@ -41,14 +41,14 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 public class ProjectReportTask extends ProjectBasedReportTask {
     private final TextReportRenderer renderer = new TextReportRenderer();
 
-    @Inject
-    public BuildStateRegistry getBuildStateRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     protected TextReportRenderer getRenderer() {
         return renderer;
+    }
+
+    @Inject
+    public BuildStateRegistry getBuildStateRegistry() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -56,22 +56,29 @@ public class ProjectReportTask extends ProjectBasedReportTask {
         BuildClientMetaData metaData = getClientMetaData();
 
         StyledTextOutput textOutput = getRenderer().getTextOutput();
-        render(project, new GraphRenderer(textOutput), false, textOutput, "");
+
+        render(project, new GraphRenderer(textOutput), true, textOutput);
         if (project.getChildProjects().isEmpty()) {
             textOutput.withStyle(Info).text("No sub-projects");
             textOutput.println();
         }
 
-        if (project.getRootProject().equals(project)) {
-            for (IncludedBuildState build : getBuildStateRegistry().getIncludedBuilds()) {
-                textOutput.println();
-                ProjectInternal includedRoot = build.getConfiguredBuild().getRootProject();
-                render(includedRoot, new GraphRenderer(textOutput), false, textOutput, " (included build)");
-                if (includedRoot.getChildProjects().isEmpty()) {
-                    textOutput.withStyle(Info).text("No sub-projects");
-                    textOutput.println();
-                }
+        if (project == project.getRootProject()) {
+            int i=0;
+            Collection<? extends IncludedBuildState> includedBuilds = getBuildStateRegistry().getIncludedBuilds();
+
+            GraphRenderer renderer = new GraphRenderer(textOutput);
+            textOutput.println();
+            textOutput.text("Included builds");
+            textOutput.println();
+            renderer.startChildren();
+            for (IncludedBuildState includedBuildState : includedBuilds) {
+                renderer.visit(text -> {
+                    textOutput.text("Included build '" + includedBuildState.getIdentityPath() + "'");
+                }, (i+1)== includedBuilds.size());
+                i++;
             }
+            renderer.completeChildren();
         }
 
         textOutput.println();
@@ -95,9 +102,9 @@ public class ProjectReportTask extends ProjectBasedReportTask {
     }
 
     private void render(final Project project, GraphRenderer renderer, boolean lastChild,
-                        final StyledTextOutput textOutput, String projectSuffix) {
+                        final StyledTextOutput textOutput) {
         renderer.visit(styledTextOutput -> {
-            styledTextOutput.text(StringUtils.capitalize(project.toString()) + projectSuffix);
+            styledTextOutput.text("Project '" + ((ProjectInternal)project).getIdentityPath() + "'");
             if (GUtil.isTrue(project.getDescription())) {
                 textOutput.withStyle(Description).format(" - %s", project.getDescription());
             }
@@ -105,7 +112,7 @@ public class ProjectReportTask extends ProjectBasedReportTask {
         renderer.startChildren();
         List<Project> children = getChildren(project);
         for (Project child : children) {
-            render(child, renderer, child == children.get(children.size() - 1), textOutput, "");
+            render(child, renderer, child == children.get(children.size() - 1), textOutput);
         }
         renderer.completeChildren();
     }
