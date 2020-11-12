@@ -29,7 +29,7 @@ class TaskDetailsFactoryTest extends AbstractTaskModelSpec {
         project.allprojects >> [project, subproject]
         factory = new TaskDetailsFactory(project)
     }
-    
+
     def createsDetailsForTaskInMainProject() {
         task.project >> project
         task.path >> ':path'
@@ -64,9 +64,12 @@ class TaskDetailsFactoryTest extends AbstractTaskModelSpec {
         task.project >> project
         task.name >> 'task'
         task.description >> 'description'
+        task.path >> ':path'
+        project.relativeProjectPath(':path') >> 'task'
 
         expect:
         def details = factory.create(task)
+        details.path.toString() == 'task'
         details.description == 'description'
     }
 }

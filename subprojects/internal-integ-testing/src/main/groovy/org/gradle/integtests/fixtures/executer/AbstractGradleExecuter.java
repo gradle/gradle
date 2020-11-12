@@ -1305,7 +1305,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         insideKotlinCompilerFlakyStacktrace = true;
                         i++;
                     } else if (insideKotlinCompilerFlakyStacktrace &&
-                        (line.contains("java.rmi.UnmarshalException") || line.contains("java.io.EOFException"))) {
+                        (line.contains("java.rmi.UnmarshalException") || 
+                         line.contains("java.io.EOFException")) ||
+                         // Verbose logging by Jetty when connector is shutdown 
+                         // https://github.com/eclipse/jetty.project/issues/3529      
+                         line.contains("java.nio.channels.CancelledKeyException")) {
                         i++;
                         i = skipStackTrace(lines, i);
                     } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
@@ -1313,10 +1317,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         i++;
                     } else if (line.matches(".*w: .* is deprecated\\..*")) {
                         // A kotlinc warning, ignore
-                        i++;
-                    } else if (line.contains("java.nio.channels.CancelledKeyException")) {
-                        // Verbose logging by Jetty when connector is shutdown
-                        // https://github.com/eclipse/jetty.project/issues/3529
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;

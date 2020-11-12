@@ -21,14 +21,14 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.ProjectReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import javax.inject.Inject;
-import java.util.Collections;
+
+import static java.util.Collections.singleton;
 
 /**
  * Provides information about the build environment for the project that the task is associated with.
@@ -63,16 +63,19 @@ public class BuildEnvironmentReportTask extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        ProjectReportGenerator projectReportGenerator = project -> {
-            Configuration configuration = getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-            renderer.startConfiguration(configuration);
-            renderer.render(configuration);
-            renderer.completeConfiguration(configuration);
-        };
+        reportGenerator().generateReport(
+            singleton(getProject()),
+            project -> {
+                Configuration configuration = project.getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+                renderer.startConfiguration(configuration);
+                renderer.render(configuration);
+                renderer.completeConfiguration(configuration);
+            }
+        );
+    }
 
-        ReportGenerator reportGenerator = new ReportGenerator(renderer, getClientMetaData(), null,
-            getTextOutputFactory(), projectReportGenerator);
-        reportGenerator.generateReport(Collections.singleton(getProject()));
+    private ReportGenerator reportGenerator() {
+        return new ReportGenerator(renderer, getClientMetaData(), null, getTextOutputFactory());
     }
 
     @VisibleForTesting

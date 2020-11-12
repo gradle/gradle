@@ -2,7 +2,7 @@
 > Task :dependentComponents
 
 ------------------------------------------------------------
-Root project
+Root project 'cunit'
 ------------------------------------------------------------
 
 operators - Components that depend on native library 'operators'

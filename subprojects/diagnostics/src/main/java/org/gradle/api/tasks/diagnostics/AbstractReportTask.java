@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
@@ -20,70 +21,38 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.ProjectReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.serialization.Transient;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
+
+import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
+import static org.gradle.api.specs.Specs.satisfyNone;
+import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * The base class for all project report tasks.
  */
 public abstract class AbstractReportTask extends ConventionTask {
+    // todo annotate as required
+    private final Transient.Var<Set<Project>> projects = varOf(new HashSet<>(singleton(getProject())));
     private File outputFile;
 
-    // todo annotate as required
-    private Set<Project> projects;
-
     protected AbstractReportTask() {
-        getOutputs().upToDateWhen(element -> false);
-        projects = new HashSet<>();
-        projects.add(getProject());
-    }
-
-    @Inject
-    protected BuildClientMetaData getClientMetaData() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @TaskAction
-    public void generate() {
-        ProjectReportGenerator projectReportGenerator = project -> {
-            generate(project);
-
-            if (shouldCreateReportFile()) {
-                project.getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(getOutputFile()));
-            }
-        };
-
-        ReportGenerator reportGenerator = new ReportGenerator(getRenderer(), getClientMetaData(), getOutputFile(),
-                getTextOutputFactory(), projectReportGenerator);
-        reportGenerator.generateReport(new TreeSet<>(getProjects()));
-    }
-
-    private boolean shouldCreateReportFile() {
-        return getOutputFile() != null;
+        getOutputs().upToDateWhen(satisfyNone());
     }
 
     @Internal
     protected abstract ReportRenderer getRenderer();
-
-    protected abstract void generate(Project project) throws IOException;
 
     /**
      * Returns the file which the report will be written to. When set to {@code null}, the report is written to {@code System.out}.
@@ -116,7 +85,7 @@ public abstract class AbstractReportTask extends ConventionTask {
     @Internal
     // TODO:LPTR Have the paths of the projects serve as @Input maybe?
     public Set<Project> getProjects() {
-        return projects;
+        return requireNonNull(projects.get());
     }
 
     /**
@@ -125,6 +94,39 @@ public abstract class AbstractReportTask extends ConventionTask {
      * @param projects The set of projects. Must not be null.
      */
     public void setProjects(Set<Project> projects) {
-        this.projects = projects;
+        this.projects.set(projects);
+    }
+
+    String clickableOutputFileUrl() {
+        return new ConsoleRenderer().asClickableFileUrl(getOutputFile());
+    }
+
+    boolean shouldCreateReportFile() {
+        return getOutputFile() != null;
+    }
+
+    ReportGenerator reportGenerator() {
+        return new ReportGenerator(
+            getRenderer(),
+            getClientMetaData(),
+            getOutputFile(),
+            getTextOutputFactory()
+        );
+    }
+
+    void logClickableOutputFileUrl() {
+        if (shouldCreateReportFile()) {
+            getLogger().lifecycle("See the report at: {}", clickableOutputFileUrl());
+        }
+    }
+
+    @Inject
+    protected BuildClientMetaData getClientMetaData() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
     }
 }

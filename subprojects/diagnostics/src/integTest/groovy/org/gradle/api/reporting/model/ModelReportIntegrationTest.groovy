@@ -220,6 +220,7 @@ model {
     //If you're changing this you will also need to change: src/snippets/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
     def "displays a report in the correct format"() {
         given:
+        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 
 @Managed
@@ -254,7 +255,7 @@ model {
 
         then:
         def modelReportOutput = ModelReportOutput.from(output)
-        modelReportOutput.hasTitle("Root project")
+        modelReportOutput.hasTitle("Root project 'test'")
 
         and:
         modelReportOutput.nodeContentEquals('''

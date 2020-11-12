@@ -24,4 +24,18 @@ public interface TaskDetails {
 
     @Nullable
     String getDescription();
+
+    static TaskDetails of(Path path, @Nullable String description) {
+        return new TaskDetails() {
+            @Override
+            public Path getPath() {
+                return path;
+            }
+
+            @Override
+            public String getDescription() {
+                return description;
+            }
+        };
+    }
 }

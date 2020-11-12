@@ -18,7 +18,6 @@ package org.gradle.api.provider
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
@@ -130,7 +129,6 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "missing credentials declared as task inputs do not break tasks listing"() {
         when:
         buildFile << """

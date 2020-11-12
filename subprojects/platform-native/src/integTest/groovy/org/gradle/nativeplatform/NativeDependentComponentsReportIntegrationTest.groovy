@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -207,36 +207,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains('Some non-buildable components were not shown, use --non-buildable or --all to show them.')
     }
 
-    @NotYetImplemented
-    def "always show component if requested even with no buildable binaries"() {
-        given:
-        buildScript simpleCppBuild()
-        buildFile << '''
-            model {
-                components {
-                    main {
-                        binaries.all {
-                            buildable = false
-                        }
-                    }
-                }
-            }
-        '''.stripIndent()
-
-        when:
-        run 'dependentComponents', '--component', 'main'
-
-        then:
-        output.contains '''
-            ------------------------------------------------------------
-            Root project
-            ------------------------------------------------------------
-
-            main - Components that depend on native executable 'main'
-            \\--- main:executable
-            '''.stripIndent()
-    }
-
     @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "displays dependents across projects in a build"() {
         given:
@@ -249,7 +219,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         then:
         output.contains '''
             ------------------------------------------------------------
-            Project :libraries
+            Project ':libraries'
             ------------------------------------------------------------
 
             foo - Components that depend on native library 'foo'
@@ -275,7 +245,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         then: 'reports are not mixed'
         output.contains '''
             ------------------------------------------------------------
-            Project :libraries
+            Project ':libraries'
             ------------------------------------------------------------
 
             bar - Components that depend on native library 'bar'
@@ -296,7 +266,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent()
         output.contains '''
             ------------------------------------------------------------
-            Project :extensions
+            Project ':extensions'
             ------------------------------------------------------------
 
             bazar - Components that depend on native library 'bazar'
@@ -511,7 +481,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         then:
         outputContains """
             ------------------------------------------------------------
-            Root project
+            Root project 'test'
             ------------------------------------------------------------
 
             lib - Components that depend on native library 'lib'
@@ -575,7 +545,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     private static String emptyDependents() {
         return """
             ------------------------------------------------------------
-            Root project
+            Root project 'test'
             ------------------------------------------------------------
 
             No components.

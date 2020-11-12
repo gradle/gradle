@@ -2,7 +2,7 @@
 > Task :dependencies
 
 ------------------------------------------------------------
-Root project
+Root project 'producer'
 ------------------------------------------------------------
 
 compileClasspath - Compile classpath for source set 'main'.

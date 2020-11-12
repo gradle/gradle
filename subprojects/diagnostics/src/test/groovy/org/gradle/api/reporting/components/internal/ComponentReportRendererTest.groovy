@@ -16,11 +16,12 @@
 
 package org.gradle.api.reporting.components.internal
 
-import org.gradle.api.Project
+
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
@@ -28,9 +29,7 @@ import org.gradle.platform.base.SourceComponentSpec
 import spock.lang.Specification
 
 class ComponentReportRendererTest extends Specification {
-    def project = Stub(Project) {
-        toString() >> "<project>"
-    }
+    def project = Stub(ProjectDetails)
     def resolver = Stub(FileResolver)
     def binaryRenderer = Stub(TypeAwareBinaryRenderer)
     def output = new TestStyledTextOutput()
@@ -124,7 +123,7 @@ class ComponentReportRendererTest extends Specification {
                 values() >> [binary1]
             }
         }
-        binaryRenderer.render(binary2, _) >> { BinarySpec binary, TextReportBuilder builder -> builder.output.println("<binary>")}
+        binaryRenderer.render(binary2, _) >> { BinarySpec binary, TextReportBuilder builder -> builder.output.println("<binary>") }
 
         when:
         renderer.startProject(project)

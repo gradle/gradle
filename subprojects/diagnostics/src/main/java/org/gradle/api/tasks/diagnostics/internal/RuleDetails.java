@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.fixtures
+package org.gradle.api.tasks.diagnostics.internal;
 
+import javax.annotation.Nullable;
 
-enum JdkVendor {
-    ORACLE, IBM, UNKNOWN
-
-    static JdkVendor from(String vmname) {
-        if (vmname.equals("IBM J9 VM")) {
-            return IBM
-        }
-
-        if (vmname.startsWith("Java HotSpot(TM)")) {
-            return ORACLE
-        }
-
-        return UNKNOWN
+public interface RuleDetails {
+    static RuleDetails of(String description) {
+        return new RuleDetails() {
+            @Override
+            public String getDescription() {
+                return description;
+            }
+        };
     }
+
+    @Nullable
+    String getDescription();
 }

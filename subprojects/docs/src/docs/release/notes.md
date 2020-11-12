@@ -78,6 +78,11 @@ A non-ABI change can [eliminate build script recompilation altogether now](https
 While changes to `buildSrc` immediately affect the classpath of all the scripts, this improvement is more general and applies to changes in
 any jar on the scripts classpath that can be added by a plugin applied from an included build or added directly via `buildscript {}` block.
 
+**Note**: Kotlin's public [inline functions](https://kotlinlang.org/docs/reference/inline-functions.html#inline-functions) are not supported with compilation avoidance. 
+If such functions appear in the public API of a jar on the buildscript's classpath, that jar will not participate in compilation avoidance.
+For example, if `buildSrc` contains a class with a public inline function, then `buildSrc` will not participate in compilation avoidance and all
+the buildscripts will be recompiled for any change in `buildSrc`.
+
 ### Improved cache hits when normalizing runtime classpaths
 
 For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first [normalizes](userguide/more_about_tasks.html#sec:configure_input_normalization) both inputs and then compares the result.

@@ -80,7 +80,14 @@ public class JavaToolchainQueryService {
     }
 
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
-        return toolchain -> toolchain.getLanguageVersion().equals(spec.getLanguageVersion().get());
+        final Predicate<JavaToolchain> languagePredicate = toolchain -> toolchain.getLanguageVersion().equals(spec.getLanguageVersion().get());
+        final Predicate<? super JavaToolchain> vendorSpec = getVendorPredicate(spec);
+        return languagePredicate.and(vendorSpec);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Predicate<? super JavaToolchain> getVendorPredicate(JavaToolchainSpec spec) {
+        return (Predicate<? super JavaToolchain>) spec.getVendor().get();
     }
 
     private JavaToolchain asToolchain(File javaHome) {

@@ -19,25 +19,26 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.api.Task;
 import org.gradle.util.GUtil;
-import org.gradle.util.Path;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
-    private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
-    private final TaskDetailsFactory factory;
 
-    public SingleProjectTaskReportModel(TaskDetailsFactory factory) {
-        this.factory = factory;
-    }
-
-    public void build(final Collection<? extends Task> tasks) {
+    public static SingleProjectTaskReportModel forTasks(Collection<? extends Task> tasks, TaskDetailsFactory factory) {
+        final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
         for (Task task : tasks) {
             String group = GUtil.isTrue(task.getGroup()) ? task.getGroup() : DEFAULT_GROUP;
-            groups.put(group, new TaskDetailsImpl(task, factory.create(task)));
+            groups.put(group, factory.create(task));
         }
+        return new SingleProjectTaskReportModel(groups);
+    }
+
+    private final SetMultimap<String, TaskDetails> groups;
+
+    private SingleProjectTaskReportModel(SetMultimap<String, TaskDetails> groups) {
+        this.groups = groups;
     }
 
     @Override
@@ -51,34 +52,5 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             throw new IllegalArgumentException(String.format("Unknown group '%s'", group));
         }
         return groups.get(group);
-    }
-
-    private static class TaskDetailsImpl implements TaskDetails {
-        private final Task task;
-        private final TaskDetails details;
-
-        public TaskDetailsImpl(Task task, TaskDetails details) {
-            this.task = task;
-            this.details = details;
-        }
-
-        @Override
-        public Path getPath() {
-            return details.getPath();
-        }
-
-        @Override
-        public String getDescription() {
-            return details.getDescription();
-        }
-
-        @Override
-        public String toString() {
-            return task.toString();
-        }
-
-        public Task getTask() {
-            return task;
-        }
     }
 }

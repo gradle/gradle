@@ -582,7 +582,6 @@ credentials {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
         String credentialsBlock = "credentials(PasswordCredentials)"

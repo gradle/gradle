@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
-import org.gradle.api.Project
 import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -26,7 +25,7 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.containsLine
 
 @CleanupTestDirectory
-public class TextReportRendererSpec extends Specification {
+class TextReportRendererSpec extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     private final TextReportRenderer renderer = new TextReportRenderer();
@@ -49,7 +48,7 @@ public class TextReportRendererSpec extends Specification {
 
     def "write root project header"() {
         given:
-        def project = Mock(Project)
+        def project = Mock(ProjectDetails)
         TestStyledTextOutput textOutput = new TestStyledTextOutput();
 
         when:
@@ -59,17 +58,16 @@ public class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Root project")
+        containsLine(textOutput.toString(), "Root project 'test'")
 
         and:
-        1 * project.rootProject >> project
+        1 * project.displayName >> "root project 'test'"
         1 * project.description >> null
     }
 
     def "write subproject header"() {
         given:
-        def project = Mock(Project)
-        def subproject = Mock(Project)
+        def subproject = Mock(ProjectDetails)
         TestStyledTextOutput textOutput = new TestStyledTextOutput();
 
         when:
@@ -79,18 +77,17 @@ public class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Project <path>")
+        containsLine(textOutput.toString(), "Project ':subproject'")
 
         and:
-        1 * subproject.rootProject >> project
         1 * subproject.description >> null
-        1 * subproject.path >> "<path>"
+        1 * subproject.displayName >> "project ':subproject'"
     }
 
     def "includes project description in header"() {
         given:
-        def project = Mock(Project)
-        TestStyledTextOutput textOutput = new TestStyledTextOutput();
+        def project = Mock(ProjectDetails)
+        TestStyledTextOutput textOutput = new TestStyledTextOutput()
 
         when:
         renderer.output = textOutput
@@ -99,10 +96,10 @@ public class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Root project - this is the root project")
+        containsLine(textOutput.toString(), "Root project 'test' - this is the root project")
 
         and:
-        1 * project.rootProject >> project
-        2 * project.description >> "this is the root project"
+        1 * project.displayName >> "root project 'test'"
+        1 * project.getDescription() >> "this is the root project"
     }
 }

@@ -806,7 +806,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
         withDefaultSettings().appendText(
