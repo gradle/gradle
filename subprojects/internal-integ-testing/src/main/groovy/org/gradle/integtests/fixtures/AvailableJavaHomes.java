@@ -213,6 +213,7 @@ public abstract class AvailableJavaHomes {
             .listInstallations().stream()
             .map(InstallationLocation::getLocation)
             .map(metadataDetector::getMetadata)
+            .filter(JvmInstallationMetadata::isValidInstallation)
             .sorted(Comparator.comparing(JvmInstallationMetadata::getLanguageVersion))
             .collect(Collectors.toList());
 
