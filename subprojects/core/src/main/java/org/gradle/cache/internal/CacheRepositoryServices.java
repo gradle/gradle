@@ -17,10 +17,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheRepository;
-import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
@@ -44,9 +40,5 @@ public class CacheRepositoryServices {
         return new DefaultCacheRepository(
             scopeMapping,
             factory);
-    }
-
-    protected CacheKeyBuilder createCacheKeyBuilder(FileHasher fileHasher, ClasspathHasher classpathHasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new DefaultCacheKeyBuilder(Hashing.defaultFunction(), fileHasher, classpathHasher, classLoaderHierarchyHasher);
     }
 }
