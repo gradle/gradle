@@ -115,7 +115,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
             }
 
             repositories {
-                jcenter()
+                ${jcenterRepository()}
             }
 
             gradlePlugin {
