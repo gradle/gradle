@@ -43,7 +43,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
 
     String expected(String normalised) {
         String raw = """------------------------------------------------------------
-Root project
+Root project 'test'
 ------------------------------------------------------------
 """ + normalised + """
 Note: currently not all plugins register their components, so some components may not be visible here."""

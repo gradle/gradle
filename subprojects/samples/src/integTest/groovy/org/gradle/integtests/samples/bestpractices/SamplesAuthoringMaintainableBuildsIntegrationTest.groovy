@@ -45,7 +45,6 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIn
 
     @Unroll
     @UsesSample('bestPractices/taskGroupDescription')
-    @ToBeFixedForConfigurationCache
     def "can render a task's group and description in tasks report with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

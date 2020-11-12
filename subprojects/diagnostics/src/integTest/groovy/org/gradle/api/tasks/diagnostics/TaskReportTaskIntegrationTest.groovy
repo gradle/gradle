@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -28,7 +27,6 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
     private final static String GROUP = 'Hello world'
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "always renders default tasks running #tasks"() {
         given:
         String projectName = 'test'
@@ -61,7 +59,6 @@ tasks - Displays the tasks runnable from root project '$projectName'.""")
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "always renders task rule running #tasks"() {
         given:
         buildFile << """
@@ -90,7 +87,6 @@ Pattern: ping<ID>
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "renders tasks with and without group running #tasks"() {
         given:
         buildFile << """
@@ -121,7 +117,6 @@ b
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "renders task with dependencies without group in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -149,7 +144,6 @@ b
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "renders grouped task with dependencies in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -179,8 +173,8 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders only tasks in help group running [tasks, --group=build setup"() {
+        settingsFile << "rootProject.name = 'test'"
         buildFile << """
             task mytask {
                 group = "custom"
@@ -192,7 +186,7 @@ b
         then:
         output.contains("""
 ------------------------------------------------------------
-Tasks runnable from root project
+Tasks runnable from root project 'test'
 ------------------------------------------------------------
 
 Build Setup tasks
@@ -207,7 +201,6 @@ To see more detail about a task, run gradle help --task <task>
         !output.contains("custom")
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders tasks in a multi-project build running [tasks]"() {
         given:
         buildFile << multiProjectBuild()
@@ -227,7 +220,6 @@ c
 """)
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders tasks in a multi-project build running [tasks, --all]"() {
         given:
         buildFile << multiProjectBuild()
@@ -251,7 +243,6 @@ c
 """)
     }
 
-    @ToBeFixedForConfigurationCache
     def "task selector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
         given:
         settingsFile << """
@@ -282,7 +273,6 @@ alpha - ALPHA_in_sub1
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "task report includes tasks defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -313,7 +303,6 @@ alpha - ALPHA_in_sub1
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "task report includes tasks with dependencies defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -342,7 +331,6 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    @ToBeFixedForConfigurationCache
     def "task report includes task container rule based tasks defined via model rule"() {
         when:
         buildScript """
@@ -373,7 +361,6 @@ b
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2023")
-    @ToBeFixedForConfigurationCache
     def "can deal with tasks with named task dependencies that are created by rules"() {
         when:
         buildFile << getBuildScriptContent()
@@ -383,7 +370,6 @@ b
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2023")
-    @ToBeFixedForConfigurationCache
     def "can deal with tasks with named task dependencies that are created by rules - multiproject"() {
         when:
         settingsFile << "include 'module'"
@@ -395,7 +381,6 @@ b
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "renders tasks with dependencies created by model rules running #tasks"() {
         when:
         settingsFile << "rootProject.name = 'test-project'"
@@ -441,7 +426,6 @@ model - Displays the configuration model of root project 'test-project'. [deprec
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    @ToBeFixedForConfigurationCache
     def "can run multiple task reports in parallel"() {
         given:
         buildFile << multiProjectBuild()

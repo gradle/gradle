@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,18 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.Project;
+import javax.annotation.Nullable;
 
-import java.io.IOException;
+public interface RuleDetails {
+    static RuleDetails of(String description) {
+        return new RuleDetails() {
+            @Override
+            public String getDescription() {
+                return description;
+            }
+        };
+    }
 
-public interface ProjectReportGenerator {
-    void generateReport(Project project) throws IOException;
+    @Nullable
+    String getDescription();
 }

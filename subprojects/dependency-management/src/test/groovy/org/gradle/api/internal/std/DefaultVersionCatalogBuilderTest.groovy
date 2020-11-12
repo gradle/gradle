@@ -27,10 +27,12 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class DefaultDependenciesModelBuilderTest extends Specification {
+import java.util.function.Supplier
+
+class DefaultVersionCatalogBuilderTest extends Specification {
 
     @Subject
-    DefaultDependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
+    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec), Stub(Supplier))
 
     @Unroll("#notation is an invalid notation")
     def "reasonable error message if notation is invalid"() {
@@ -56,6 +58,25 @@ class DefaultDependenciesModelBuilderTest extends Specification {
 
         where:
         notation << ["", "a", "1a", "A", "Aa", "abc\$", "abc&"]
+    }
+
+    @Unroll
+    def "forbids using #name as a dependency alias"() {
+        when:
+        builder.alias(name).to("org:foo:1.0")
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == "Invalid alias name '$name': it must not end with '$suffix'"
+
+        where:
+        name          | suffix
+        "bundles"     | "bundles"
+        "versions"    | "versions"
+        "fooBundle"   | "bundle"
+        "fooVersion"  | "version"
+        "foo.bundle"  | "bundle"
+        "foo.version" | "version"
     }
 
     @Unroll("#notation is an invalid bundle name")
@@ -138,7 +159,7 @@ class DefaultDependenciesModelBuilderTest extends Specification {
 
         then:
         model.bundleAliases == ["groovy"]
-        model.getBundle("groovy") == ["groovy", "groovy-json"]
+        model.getBundle("groovy").components == ["groovy", "groovy-json"]
 
         model.dependencyAliases == ["groovy", "groovy-json", "guava"]
         model.getDependencyData("guava").version.requiredVersion == '17.0'

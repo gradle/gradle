@@ -25,11 +25,8 @@ import java.util.Comparator;
 import java.util.Set;
 
 public class DefaultGroupTaskReportModel implements TaskReportModel {
-    public static final String OTHER_GROUP = "other";
-    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
-    private SetMultimap<String, TaskDetails> groups;
 
-    public void build(TaskReportModel model) {
+    public static DefaultGroupTaskReportModel of(TaskReportModel model) {
         Comparator<String> keyComparator = GUtil.last(GUtil.last(STRING_COMPARATOR, OTHER_GROUP), DEFAULT_GROUP);
         Comparator<TaskDetails> taskComparator = (task1, task2) -> {
             int diff = STRING_COMPARATOR.compare(task1.getPath().getName(), task2.getPath().getName());
@@ -49,7 +46,7 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
             }
             return parent1.compareTo(parent2);
         };
-        groups = TreeMultimap.create(keyComparator, taskComparator);
+        final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(keyComparator, taskComparator);
         for (String group : model.getGroups()) {
             groups.putAll(group, model.getTasksForGroup(group));
         }
@@ -60,10 +57,19 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
         if (groups.keySet().contains(DEFAULT_GROUP) && groups.keySet().size() > 1) {
             groups.putAll(OTHER_GROUP, groups.removeAll(DEFAULT_GROUP));
         }
+        return new DefaultGroupTaskReportModel(groups);
+    }
+
+    public static final String OTHER_GROUP = "other";
+    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
+    private final SetMultimap<String, TaskDetails> groups;
+
+    private DefaultGroupTaskReportModel(SetMultimap<String, TaskDetails> groups) {
+        this.groups = groups;
     }
 
     @Nullable
-    private String findOtherGroup(Set<String> groupNames) {
+    private static String findOtherGroup(Set<String> groupNames) {
         for (String groupName : groupNames) {
             if (groupName.equalsIgnoreCase(OTHER_GROUP)) {
                 return groupName;

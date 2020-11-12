@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.Project;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
@@ -53,14 +52,14 @@ public interface ReportRenderer {
      *
      * @param project The project, never null.
      */
-    void startProject(Project project);
+    void startProject(ProjectDetails project);
 
     /**
      * Completes visiting a project.
      *
      * @param project The project, never null.
      */
-    void completeProject(Project project);
+    void completeProject(ProjectDetails project);
 
     /**
      * Completes this report. This method must be called last on this renderer.

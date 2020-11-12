@@ -58,7 +58,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.util.TestUtil.providerFactory;
@@ -230,9 +229,10 @@ public abstract class AvailableJavaHomes {
         return Lists.newArrayList(
             new AsdfInstallationSupplier(providerFactory()),
             new BaseDirJvmLocator("/opt"),
+            new BaseDirJvmLocator("/opt/jdk"),
+            new BaseDirJvmLocator("C:\\Program Files\\Java\\"),
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
             new CurrentInstallationSupplier(providerFactory()),
-            new DevInfrastructureJvmLocator(),
             new EnvVariableJvmLocator(),
             new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(providerFactory()),
@@ -260,22 +260,7 @@ public abstract class AvailableJavaHomes {
         }
     }
 
-    private static class DevInfrastructureJvmLocator implements InstallationSupplier {
-
-        @Override
-        public Set<InstallationLocation> get() {
-            return Stream.of("sun-jdk-5", "sun-jdk-6", "ibm-jdk-6", "oracle-jdk-7", "oracle-jdk-8", "oracle-jdk-9")
-                .map(name -> new File("/opt/jdk/", name))
-                .filter(File::exists)
-                .map(home -> new InstallationLocation(home, "dev infrastructure "))
-                .collect(Collectors.toSet());
-        }
-
-    }
-
     private static class BaseDirJvmLocator implements InstallationSupplier {
-
-        private static final Pattern JDK_DIR = Pattern.compile("jdk(\\d+\\.\\d+\\.\\d+(_\\d+)?)");
 
         private final File baseDir;
 
@@ -288,7 +273,9 @@ public abstract class AvailableJavaHomes {
             final File[] files = baseDir.listFiles();
             if (files != null) {
                 return Arrays.stream(files)
-                    .filter(file -> JDK_DIR.matcher(file.getName()).matches())
+                    .filter(File::isDirectory)
+                    .filter(file -> file.getName().toLowerCase().contains("jdk") || file.getName().toLowerCase().contains("jre"))
+                    .filter(file -> new File(file, OperatingSystem.current().getExecutableName("bin/java")).exists())
                     .map(file -> new InstallationLocation(file, "base dir " + baseDir.getName()))
                     .collect(Collectors.toSet());
             }

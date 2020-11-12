@@ -26,7 +26,6 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class DependencyBundleValueSource implements ValueSource<ExternalModuleDependencyBundle, DependencyBundleValueSource.Params> {
@@ -34,15 +33,15 @@ public abstract class DependencyBundleValueSource implements ValueSource<Externa
     interface Params extends ValueSourceParameters {
         Property<String> getBundleName();
 
-        Property<AllDependenciesModel> getConfig();
+        Property<DefaultVersionCatalog> getConfig();
     }
 
     @Override
     public ExternalModuleDependencyBundle obtain() {
         String bundle = getParameters().getBundleName().get();
-        AllDependenciesModel config = getParameters().getConfig().get();
-        List<String> aliases = config.getBundle(bundle);
-        return aliases.stream()
+        DefaultVersionCatalog config = getParameters().getConfig().get();
+        BundleModel bundleModel = config.getBundle(bundle);
+        return bundleModel.getComponents().stream()
             .map(config::getDependencyData)
             .map(this::createDependency)
             .collect(Collectors.toCollection(DefaultBundle::new));

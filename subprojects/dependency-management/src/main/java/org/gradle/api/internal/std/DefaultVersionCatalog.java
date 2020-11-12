@@ -15,24 +15,26 @@
  */
 package org.gradle.api.internal.std;
 
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AllDependenciesModel implements Serializable {
+public class DefaultVersionCatalog implements Serializable {
     private final String name;
+    private final String description;
     private final Map<String, DependencyModel> aliasToDependency;
-    private final Map<String, List<String>> bundles;
-    private final Map<String, ImmutableVersionConstraint> versions;
+    private final Map<String, BundleModel> bundles;
+    private final Map<String, VersionModel> versions;
     private final int hashCode;
 
-    public AllDependenciesModel(String name, Map<String, DependencyModel> aliasToDependency,
-                                Map<String, List<String>> bundles,
-                                Map<String, ImmutableVersionConstraint> versions) {
+    public DefaultVersionCatalog(String name,
+                                 String description,
+                                 Map<String, DependencyModel> aliasToDependency,
+                                 Map<String, BundleModel> bundles,
+                                 Map<String, VersionModel> versions) {
         this.name = name;
+        this.description = description;
         this.aliasToDependency = aliasToDependency;
         this.bundles = bundles;
         this.versions = versions;
@@ -41,6 +43,11 @@ public class AllDependenciesModel implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    // Intentionally not part of state
+    public String getDescription() {
+        return description;
     }
 
     public List<String> getDependencyAliases() {
@@ -68,11 +75,11 @@ public class AllDependenciesModel implements Serializable {
             .collect(Collectors.toList());
     }
 
-    public List<String> getBundle(String name) {
+    public BundleModel getBundle(String name) {
         return bundles.get(name);
     }
 
-    public ImmutableVersionConstraint getVersion(String name) {
+    public VersionModel getVersion(String name) {
         return versions.get(name);
     }
 
@@ -85,7 +92,7 @@ public class AllDependenciesModel implements Serializable {
             return false;
         }
 
-        AllDependenciesModel that = (AllDependenciesModel) o;
+        DefaultVersionCatalog that = (DefaultVersionCatalog) o;
 
         if (!aliasToDependency.equals(that.aliasToDependency)) {
             return false;

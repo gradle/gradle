@@ -318,7 +318,7 @@ model {
         output.contains """> Task :components
 
 ------------------------------------------------------------
-Root project
+Root project 'custom-binary'
 ------------------------------------------------------------
 
 No components defined for this project.

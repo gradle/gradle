@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.catalog.VersionCatalogPlugin;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.internal.component.external.model.DefaultShadowedCapability;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
@@ -114,6 +115,15 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         project.getComponents().add(component);
         component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
         component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
+
+        project.getPluginManager().withPlugin("version-catalog", id -> {
+            // If the Gradle Platform is also applied, then the publication will also publish the Gradle platform
+            // and we configure it to inherit from the runtimeElement dependencies
+            Configuration versionCatalogElements = project.getConfigurations().getByName(VersionCatalogPlugin.VERSION_CATALOG_ELEMENTS);
+            Configuration gradleDependencies = project.getConfigurations().getByName(VersionCatalogPlugin.GRADLE_PLATFORM_DEPENDENCIES);
+            gradleDependencies.extendsFrom(runtimeElements);
+            component.addVariantsFromConfiguration(versionCatalogElements, new JavaConfigurationVariantMapping("compile", false));
+        });
     }
 
     private void createConfigurations(Project project) {

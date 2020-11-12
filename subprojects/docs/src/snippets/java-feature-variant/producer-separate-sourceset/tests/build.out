@@ -2,7 +2,7 @@
 > Task :dependencies
 
 ------------------------------------------------------------
-Root project
+Root project 'producer'
 ------------------------------------------------------------
 
 mongodbSupportCompileClasspath - Compile classpath for source set 'mongodb support'.

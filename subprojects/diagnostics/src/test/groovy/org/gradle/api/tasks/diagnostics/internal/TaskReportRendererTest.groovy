@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics.internal
 
-import org.gradle.api.Rule
 import org.gradle.internal.logging.text.TestStyledTextOutput
 
 class TaskReportRendererTest extends AbstractTaskModelSpec {
@@ -31,8 +30,8 @@ class TaskReportRendererTest extends AbstractTaskModelSpec {
         TaskDetails task1 = taskDetails(':task1', description: 'task1Description')
         taskDetails(':task2')
         TaskDetails task3 = taskDetails(':task3')
-        Rule rule1 = [getDescription: {'rule1Description'}] as Rule
-        Rule rule2 = [getDescription: {'rule2Description'}] as Rule
+        RuleDetails rule1 = [getDescription: {'rule1Description'}] as RuleDetails
+        RuleDetails rule2 = [getDescription: {'rule2Description'}] as RuleDetails
 
         List testDefaultTasks = ['task1', 'task2']
 
@@ -67,8 +66,8 @@ rule2Description
         TaskDetails task1 = taskDetails(':task1', description: 'task1Description', dependencies: [task11, task12])
         TaskDetails task2 = taskDetails(':task2')
         TaskDetails task3 = taskDetails(':task3', dependencies: [task1])
-        Rule rule1 = [getDescription: {'rule1Description'}] as Rule
-        Rule rule2 = [getDescription: {'rule2Description'}] as Rule
+        RuleDetails rule1 = [getDescription: {'rule1Description'}] as RuleDetails
+        RuleDetails rule2 = [getDescription: {'rule2Description'}] as RuleDetails
         List testDefaultTasks = ['task1', 'task2']
 
         when:
@@ -167,7 +166,7 @@ Other tasks
 
         when:
         renderer.completeTasks()
-        renderer.addRule([getDescription: {ruleDescription}] as Rule)
+        renderer.addRule([getDescription: {ruleDescription}] as RuleDetails)
 
         then:
         writer.value == '''No tasks

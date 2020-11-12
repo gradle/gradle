@@ -32,7 +32,7 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
@@ -47,7 +47,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.std.DefaultDependenciesModelBuilder;
+import org.gradle.api.internal.std.DefaultVersionCatalogBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -80,7 +80,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     private final Property<RulesMode> rulesMode;
     private final Property<String> librariesExtensionName;
     private final Property<String> projectsExtensionName;
-    private final Map<String, DependenciesModelBuilderInternal> dependenciesModelBuilders = Maps.newHashMap();
+    private final Map<String, VersionCatalogBuilderInternal> versionCatalogBuilders = Maps.newHashMap();
     private final ObjectFactory objects;
     private final ProviderFactory providers;
     private final Interner<String> strings = Interners.newStrongInterner();
@@ -143,11 +143,12 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
-    public void dependenciesModel(String name, Action<? super DependenciesModelBuilder> spec) {
+    public void versionCatalog(String name, Action<? super VersionCatalogBuilder> spec) {
         validateName(name);
-        DependenciesModelBuilderInternal model = dependenciesModelBuilders.computeIfAbsent(name, n ->
-            objects.newInstance(DefaultDependenciesModelBuilder.class, n, strings, versions, objects, providers, plugins));
-        spec.execute(model);
+        VersionCatalogBuilderInternal model = versionCatalogBuilders.computeIfAbsent(name, n ->
+            objects.newInstance(DefaultVersionCatalogBuilder.class, n, strings, versions, objects, providers, plugins, dependencyResolutionServices));
+        UserCodeApplicationContext.Application current = context.current();
+        model.withContext(current == null ? "Settings" : current.getDisplayName().getDisplayName(), () -> spec.execute(model));
     }
 
     private static void validateName(String name) {
@@ -173,8 +174,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
-    public List<DependenciesModelBuilder> getDependenciesModelBuilders() {
-        return ImmutableList.copyOf(dependenciesModelBuilders.values());
+    public List<VersionCatalogBuilder> getDependenciesModelBuilders() {
+        return ImmutableList.copyOf(versionCatalogBuilders.values());
     }
 
     @Override

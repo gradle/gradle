@@ -21,6 +21,8 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -145,6 +147,48 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         where:
         javaVersion << [5, 6, 7]
+    }
+
+    @Unroll
+    def "skips downloading unsupported vendor #vendor"() {
+        given:
+        def spec = newSpec(8)
+        spec.vendor.set(vendor)
+        def systemInfo = Mock(SystemInfo)
+        systemInfo.architecture >> SystemInfo.Architecture.amd64
+        def operatingSystem = OperatingSystem.MAC_OS
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+
+        when:
+        def file = binary.download(spec, Mock(File))
+
+        then:
+        !file.present
+
+        where:
+        vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
+    }
+
+    @Unroll
+    def "downloads with matching vendor spec using #vendor"() {
+        given:
+        def spec = newSpec(12)
+        spec.vendor.set(vendor)
+        def systemInfo = Mock(SystemInfo)
+        systemInfo.architecture >> SystemInfo.Architecture.amd64
+        def operatingSystem = OperatingSystem.MAC_OS
+        def downloader = Mock(AdoptOpenJdkDownloader)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+
+        when:
+        def targetFile = temporaryFolder.newFile("jdk")
+        binary.download(spec, targetFile)
+
+        then:
+        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
+
+        where:
+        vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
     }
 
     def newSpec(int jdkVersion = 11) {
