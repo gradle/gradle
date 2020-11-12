@@ -32,8 +32,9 @@ import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyD
 public class MerkleDirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
-    private final Deque<Level> stack = new ArrayDeque<>();
+    private final Deque<Directory> directoryStack = new ArrayDeque<>();
     private final boolean sortingRequired;
+    private CompleteFileSystemLocationSnapshot result;
 
     public static MerkleDirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
@@ -45,7 +46,6 @@ public class MerkleDirectorySnapshotBuilder {
 
     private MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
         this.sortingRequired = sortingRequired;
-        stack.addLast(new Result());
     }
 
     public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
@@ -53,7 +53,7 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public void preVisitDirectory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
-        stack.addLast(new Directory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy));
+        directoryStack.addLast(new Directory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy));
     }
 
     public void visitLeafElement(FileSystemLeafSnapshot snapshot) {
@@ -61,7 +61,7 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     public boolean postVisitDirectory() {
-        CompleteFileSystemLocationSnapshot snapshot = stack.removeLast().fold();
+        CompleteFileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
         if (snapshot == null) {
             return false;
         }
@@ -70,17 +70,18 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     private void collectEntry(CompleteFileSystemLocationSnapshot snapshot) {
-        Level level = stack.peekLast();
-        if (level == null) {
-            throw new IllegalStateException("Outside of root");
+        Directory directory = directoryStack.peekLast();
+        if (directory != null) {
+            directory.collectEntry(snapshot);
+        } else {
+            assert result == null;
+            result = snapshot;
         }
-        level.collectEntry(snapshot);
     }
 
     @Nullable
     public CompleteFileSystemLocationSnapshot getResult() {
-        assert stack.size() == 1;
-        return stack.getLast().fold();
+        return result;
     }
 
     public enum EmptyDirectoryHandlingStrategy {
@@ -88,29 +89,7 @@ public class MerkleDirectorySnapshotBuilder {
         EXCLUDE_EMPTY_DIRS
     }
 
-    private interface Level {
-        void collectEntry(CompleteFileSystemLocationSnapshot snapshot);
-
-        @Nullable
-        CompleteFileSystemLocationSnapshot fold();
-    }
-
-    private static class Result implements Level {
-        private CompleteFileSystemLocationSnapshot result;
-
-        @Override
-        public void collectEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            assert result == null;
-            result = snapshot;
-        }
-
-        @Override
-        public CompleteFileSystemLocationSnapshot fold() {
-            return result;
-        }
-    }
-
-    private class Directory implements Level {
+    private class Directory {
         private final AccessType accessType;
         private final String absolutePath;
         private final String name;
@@ -125,12 +104,11 @@ public class MerkleDirectorySnapshotBuilder {
             this.emptyDirectoryHandlingStrategy = emptyDirectoryHandlingStrategy;
         }
 
-        @Override
         public void collectEntry(CompleteFileSystemLocationSnapshot snapshot) {
             children.add(snapshot);
         }
 
-        @Override
+        @Nullable
         public CompleteDirectorySnapshot fold() {
             if (emptyDirectoryHandlingStrategy == EXCLUDE_EMPTY_DIRS && children.isEmpty()) {
                 return null;
