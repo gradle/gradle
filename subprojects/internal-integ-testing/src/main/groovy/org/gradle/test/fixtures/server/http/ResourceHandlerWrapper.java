@@ -24,12 +24,20 @@ import java.util.concurrent.locks.Lock;
 class ResourceHandlerWrapper implements ResourceHandler, WaitPrecondition {
     private final Lock lock;
     private final ResourceHandler handler;
+    private final WaitPrecondition owner;
+    private final boolean autoRelease;
     private boolean started;
     private boolean received;
 
-    ResourceHandlerWrapper(Lock lock, ResourceExpectation expectation) {
+    ResourceHandlerWrapper(Lock lock, ResourceExpectation expectation, WaitPrecondition owner, boolean isAutoRelease) {
         this.lock = lock;
         handler = expectation.create(this);
+        this.owner = owner;
+        this.autoRelease = isAutoRelease;
+    }
+
+    public String getDisplayName() {
+        return handler.getMethod() + " /" + handler.getPath();
     }
 
     void received() {
@@ -82,8 +90,9 @@ class ResourceHandlerWrapper implements ResourceHandler, WaitPrecondition {
     public void assertCanWait() throws IllegalStateException {
         lock.lock();
         try {
-            if (!started) {
-                throw new IllegalStateException(String.format("Cannot wait as the request to '%s' has not been released yet.", getPath()));
+            owner.assertCanWait();
+            if (!autoRelease && !started) {
+                throw new IllegalStateException(String.format("Cannot wait as request %s has not been released yet.", getDisplayName()));
             }
         } finally {
             lock.unlock();

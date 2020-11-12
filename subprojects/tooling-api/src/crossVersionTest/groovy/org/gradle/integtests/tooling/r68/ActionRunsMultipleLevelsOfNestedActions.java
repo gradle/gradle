@@ -22,30 +22,37 @@ import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class ActionRunsNestedActions implements BuildAction<Models> {
+public class ActionRunsMultipleLevelsOfNestedActions implements BuildAction<List<Models>> {
     @Override
-    public Models execute(BuildController controller) {
+    public List<Models> execute(BuildController controller) {
         GradleBuild buildModel = controller.getBuildModel();
-        List<GetProjectModel> projectActions = new ArrayList<GetProjectModel>();
+        List<GetModelViaNestedAction> projectActions = new ArrayList<GetModelViaNestedAction>();
         for (BasicGradleProject project : buildModel.getProjects()) {
-            projectActions.add(new GetProjectModel(project));
+            projectActions.add(new GetModelViaNestedAction(project));
         }
-        List<CustomModel> results = controller.run(projectActions);
-        return new Models(controller.isActionsMayRunInParallel(), results);
+        return controller.run(projectActions);
     }
 
-    static class GetProjectModel implements BuildAction<CustomModel> {
+    static class GetModelViaNestedAction implements BuildAction<Models> {
         private final BasicGradleProject project;
 
-        public GetProjectModel(BasicGradleProject project) {
+        public GetModelViaNestedAction(BasicGradleProject project) {
             this.project = project;
         }
 
         @Override
-        public CustomModel execute(BuildController controller) {
-            return controller.getModel(project, CustomModel.class);
+        public Models execute(BuildController controller) {
+            List<CustomModel> models = controller.run(Arrays.asList(
+                new ActionRunsNestedActions.GetProjectModel(project),
+                new ActionRunsNestedActions.GetProjectModel(project),
+                new ActionRunsNestedActions.GetProjectModel(project),
+                new ActionRunsNestedActions.GetProjectModel(project),
+                new ActionRunsNestedActions.GetProjectModel(project)
+            ));
+            return new Models(controller.isActionsMayRunInParallel(), models);
         }
     }
 }
