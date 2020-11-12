@@ -18,7 +18,6 @@ package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.util.Optional;

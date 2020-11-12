@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.overlap.impl;
+package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.execution.history.OverlappingOutputDetector;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;

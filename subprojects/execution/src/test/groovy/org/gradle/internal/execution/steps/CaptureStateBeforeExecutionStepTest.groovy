@@ -23,9 +23,9 @@ import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.OverlappingOutputDetector
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot

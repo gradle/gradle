@@ -27,8 +27,10 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.OutputFilesRepository
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
@@ -52,8 +54,6 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
-import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId

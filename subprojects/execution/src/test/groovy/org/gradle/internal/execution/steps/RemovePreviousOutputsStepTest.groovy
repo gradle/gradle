@@ -24,9 +24,9 @@ import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork.OutputVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

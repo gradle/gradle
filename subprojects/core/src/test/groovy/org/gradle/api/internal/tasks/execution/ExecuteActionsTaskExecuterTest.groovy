@@ -43,17 +43,18 @@ import org.gradle.internal.execution.DefaultOutputSnapshotter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
+import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
@@ -65,7 +66,6 @@ import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId

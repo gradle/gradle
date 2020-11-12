@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.overlap.impl
+package org.gradle.internal.execution.history.impl
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.file.FileMetadata.AccessType
