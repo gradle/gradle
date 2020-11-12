@@ -32,7 +32,7 @@ public abstract class AbstractCompareStrategy<C, S> {
     }
 
     public boolean visitChangesSince(C previous, C current, String propertyTitle, ChangeVisitor visitor) {
-        if (hasSameRootHashes(current, previous)) {
+        if (hasSameRootHashes(previous, current)) {
             return true;
         }
         return changeDetector.visitChangesSince(indexer.apply(previous), indexer.apply(current), propertyTitle, visitor);
@@ -42,12 +42,6 @@ public abstract class AbstractCompareStrategy<C, S> {
 
     public interface ChangeDetector<S> {
         boolean visitChangesSince(Map<String, S> previous, Map<String, S> current, String propertyTitle, ChangeVisitor visitor);
-    }
-
-    public interface ItemComparator<S> {
-        boolean hasSamePath(S previous, S current);
-
-        boolean hasSameContent(S previous, S current);
     }
 
     public interface ChangeFactory<S> {

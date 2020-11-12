@@ -16,13 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.hash.HashCode;
-
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Compares by absolute paths and file contents. Order does not matter.
  */
@@ -31,46 +24,9 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
     public static final FingerprintCompareStrategy INSTANCE = new AbsolutePathFingerprintCompareStrategy();
 
     private AbsolutePathFingerprintCompareStrategy() {
-        super(AbsolutePathFingerprintCompareStrategy::visitChangesSince);
+        super(new AbsolutePathChangeDetector<>(
+            (previous, current) -> previous.getNormalizedContentHash().equals(current.getNormalizedContentHash()),
+            FINGERPRINT_CHANGE_FACTORY
+        ));
     }
-
-    private static boolean visitChangesSince(
-        Map<String, FileSystemLocationFingerprint> previous,
-        Map<String, FileSystemLocationFingerprint> current,
-        String propertyTitle,
-        ChangeVisitor visitor
-    ) {
-        Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(previous.keySet());
-
-        for (Map.Entry<String, FileSystemLocationFingerprint> currentEntry : current.entrySet()) {
-            String currentAbsolutePath = currentEntry.getKey();
-            FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
-            HashCode currentContentHash = currentFingerprint.getNormalizedContentHash();
-            if (unaccountedForPreviousFingerprints.remove(currentAbsolutePath)) {
-                FileSystemLocationFingerprint previousFingerprint = previous.get(currentAbsolutePath);
-                HashCode previousContentHash = previousFingerprint.getNormalizedContentHash();
-                if (!currentContentHash.equals(previousContentHash)) {
-                    DefaultFileChange modified = DefaultFileChange.modified(currentAbsolutePath, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType(), currentAbsolutePath);
-                    if (!visitor.visitChange(modified)) {
-                        return false;
-                    }
-                }
-                // else, unchanged; check next file
-            } else {
-                DefaultFileChange added = DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType(), currentAbsolutePath);
-                if (!visitor.visitChange(added)) {
-                    return false;
-                }
-            }
-        }
-
-        for (String previousAbsolutePath : unaccountedForPreviousFingerprints) {
-            DefaultFileChange removed = DefaultFileChange.removed(previousAbsolutePath, propertyTitle, previous.get(previousAbsolutePath).getType(), previousAbsolutePath);
-            if (!visitor.visitChange(removed)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 }

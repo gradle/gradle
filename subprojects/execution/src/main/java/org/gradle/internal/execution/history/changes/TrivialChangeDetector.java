@@ -25,12 +25,12 @@ import java.util.Map;
  * Compares collections if both current and previous have at most one element.
  */
 public class TrivialChangeDetector<S> implements ChangeDetector<S> {
-    private final AbstractCompareStrategy.ItemComparator<S> itemComparator;
+    private final ItemComparator<S> itemComparator;
     private final ChangeFactory<S> changeFactory;
     private final ChangeDetector<S> delegate;
 
     public TrivialChangeDetector(
-        AbstractCompareStrategy.ItemComparator<S> itemComparator,
+        ItemComparator<S> itemComparator,
         ChangeFactory<S> changeFactory,
         ChangeDetector<S> delegate
     ) {
@@ -97,5 +97,11 @@ public class TrivialChangeDetector<S> implements ChangeDetector<S> {
             }
             return false;
         }
+    }
+
+    public interface ItemComparator<S> {
+        boolean hasSamePath(S previous, S current);
+
+        boolean hasSameContent(S previous, S current);
     }
 }

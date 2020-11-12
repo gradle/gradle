@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
 public abstract class AbstractFingerprintCompareStrategy extends AbstractCompareStrategy<FileCollectionFingerprint, FileSystemLocationFingerprint> implements FingerprintCompareStrategy {
 
-    private static final ChangeFactory<FileSystemLocationFingerprint> CHANGE_FACTORY = new ChangeFactory<FileSystemLocationFingerprint>() {
+    protected static final ChangeFactory<FileSystemLocationFingerprint> FINGERPRINT_CHANGE_FACTORY = new ChangeFactory<FileSystemLocationFingerprint>() {
         @Override
         public Change added(String path, String propertyTitle, FileSystemLocationFingerprint current) {
             return DefaultFileChange.added(path, propertyTitle, current.getType(), current.getNormalizedPath());
@@ -39,7 +39,7 @@ public abstract class AbstractFingerprintCompareStrategy extends AbstractCompare
         }
     };
 
-    private static final ItemComparator<FileSystemLocationFingerprint> ITEM_COMPARATOR = new ItemComparator<FileSystemLocationFingerprint>() {
+    private static final TrivialChangeDetector.ItemComparator<FileSystemLocationFingerprint> ITEM_COMPARATOR = new TrivialChangeDetector.ItemComparator<FileSystemLocationFingerprint>() {
         @Override
         public boolean hasSamePath(FileSystemLocationFingerprint previous, FileSystemLocationFingerprint current) {
             return previous.getNormalizedPath().equals(current.getNormalizedPath());
@@ -54,7 +54,7 @@ public abstract class AbstractFingerprintCompareStrategy extends AbstractCompare
     public AbstractFingerprintCompareStrategy(ChangeDetector<FileSystemLocationFingerprint> changeDetector) {
         super(
             FileCollectionFingerprint::getFingerprints,
-            new TrivialChangeDetector<>(ITEM_COMPARATOR, CHANGE_FACTORY, changeDetector)
+            new TrivialChangeDetector<>(ITEM_COMPARATOR, FINGERPRINT_CHANGE_FACTORY, changeDetector)
         );
     }
 
