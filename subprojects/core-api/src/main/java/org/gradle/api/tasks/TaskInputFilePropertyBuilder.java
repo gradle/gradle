@@ -84,5 +84,5 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      * @since 6.8
      */
     @Incubating
-    TaskInputFilePropertyBuilder ignoreDirectories(boolean ingoreEmptyDirectories);
+    TaskInputFilePropertyBuilder ignoreDirectories(boolean ignoreEmptyDirectories);
 }

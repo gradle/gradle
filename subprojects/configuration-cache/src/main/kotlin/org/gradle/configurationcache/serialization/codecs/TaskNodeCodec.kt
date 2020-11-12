@@ -230,7 +230,8 @@ sealed class RegisteredProperty {
         val filePropertyType: InputFilePropertyType,
         val skipWhenEmpty: Boolean,
         val incremental: Boolean,
-        val fileNormalizer: Class<out FileNormalizer>?
+        val fileNormalizer: Class<out FileNormalizer>?,
+        val directorySensitivity: DirectorySensitivity
     ) : RegisteredProperty()
 
     data class OutputFile(
@@ -271,6 +272,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeEnum(filePropertyType)
                     writeBoolean(skipWhenEmpty)
                     writeClass(fileNormalizer!!)
+                    writeEnum(directorySensitivity)
                 }
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
@@ -346,7 +348,8 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     filePropertyType,
                     skipWhenEmpty,
                     incremental,
-                    fileNormalizer
+                    fileNormalizer,
+                    directorySensitivity
                 )
             )
         }
@@ -388,6 +391,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val filePropertyType = readEnum<InputFilePropertyType>()
                     val skipWhenEmpty = readBoolean()
                     val normalizer = readClass()
+                    val directorySensitivity = readEnum<DirectorySensitivity>()
                     task.inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
@@ -399,6 +403,9 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         optional(optional)
                         skipWhenEmpty(skipWhenEmpty)
                         withNormalizer(normalizer.uncheckedCast())
+                        if (directorySensitivity != DirectorySensitivity.NONE) {
+                            ignoreDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
+                        }
                     }
                 }
                 else -> {

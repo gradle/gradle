@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.fingerprint.impl.DirectorySensitivity
 import spock.lang.Unroll
 
@@ -171,6 +172,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         api << (API.values() as List<API>)
     }
 
+    @ToBeFixedForConfigurationCache(because = "doesn't like FileCollection in transform parameters")
     def "artifact transforms are sensitive to empty directories by default"() {
         createParameterizedTransformWithSensitivity(DirectorySensitivity.FINGERPRINT_DIRECTORIES)
         file('augmented').mkdir()
@@ -210,6 +212,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         assertTransformExecuted()
     }
 
+    @ToBeFixedForConfigurationCache(because = "doesn't like FileCollection in transform parameters")
     def "artifact transforms ignore empty directories when specified"() {
         createParameterizedTransformWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES)
         file('augmented').mkdir()
@@ -347,6 +350,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
             include(':bar')
         """
         buildFile << """
+            ${showTransformedFilesTask}
             ${unzipTransform}
 
             @CacheableTransform
@@ -428,11 +432,8 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
                 foo project(path: ':bar', configuration: 'foo')
             }
 
-            task showTransformedFiles {
-                inputs.files(configurations.foo)
-                doLast {
-                    configurations.foo.files.each { println it }
-                }
+            task showTransformedFiles(type: ShowTransformedFiles) {
+                artifacts.from(configurations.foo)
             }
 
             project(':bar') {
@@ -499,6 +500,20 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
                     while ((length = source.read(buf)) > 0) {
                         target.write(buf, 0, length)
                     }
+                }
+            }
+        """
+    }
+
+    static String getShowTransformedFilesTask() {
+        return """
+            class ShowTransformedFiles extends DefaultTask {
+                @InputFiles
+                FileCollection artifacts = project.objects.fileCollection()
+
+                @TaskAction
+                void showFiles() {
+                    artifacts.files.each { println it }
                 }
             }
         """
