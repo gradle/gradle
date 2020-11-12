@@ -31,10 +31,15 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
     public static final FingerprintCompareStrategy INSTANCE = new AbsolutePathFingerprintCompareStrategy();
 
     private AbsolutePathFingerprintCompareStrategy() {
+        super(AbsolutePathFingerprintCompareStrategy::visitChangesSince);
     }
 
-    @Override
-    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle) {
+    private static boolean visitChangesSince(
+        Map<String, FileSystemLocationFingerprint> previous,
+        Map<String, FileSystemLocationFingerprint> current,
+        String propertyTitle,
+        ChangeVisitor visitor
+    ) {
         Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(previous.keySet());
 
         for (Map.Entry<String, FileSystemLocationFingerprint> currentEntry : current.entrySet()) {

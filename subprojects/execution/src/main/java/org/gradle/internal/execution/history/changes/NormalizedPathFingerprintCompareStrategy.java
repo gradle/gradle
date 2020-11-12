@@ -37,6 +37,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
     public static final FingerprintCompareStrategy INSTANCE = new NormalizedPathFingerprintCompareStrategy();
 
     private NormalizedPathFingerprintCompareStrategy() {
+        super(NormalizedPathFingerprintCompareStrategy::visitChangesSince);
     }
 
     /**
@@ -50,12 +51,11 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
      *     </li>
      * </ul>
      */
-    @Override
-    protected boolean doVisitChangesSince(
-        ChangeVisitor visitor,
-        Map<String, FileSystemLocationFingerprint> currentFingerprints,
+    private static boolean visitChangesSince(
         Map<String, FileSystemLocationFingerprint> previousFingerprints,
-        String propertyTitle
+        Map<String, FileSystemLocationFingerprint> currentFingerprints,
+        String propertyTitle,
+        ChangeVisitor visitor
     ) {
         ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints.entrySet());
         ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(currentFingerprints, unaccountedForPreviousFiles, previousFingerprints.entrySet());
@@ -81,7 +81,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         return true;
     }
 
-    private Change getChange(
+    private static Change getChange(
         String propertyTitle,
         ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath,
         FileSystemLocationFingerprint previousFingerprint,
