@@ -174,6 +174,7 @@ b
     }
 
     def "renders only tasks in help group running [tasks, --group=build setup"() {
+        settingsFile << "rootProject.name = 'test'"
         buildFile << """
             task mytask {
                 group = "custom"
@@ -185,7 +186,7 @@ b
         then:
         output.contains("""
 ------------------------------------------------------------
-Tasks runnable from root project
+Tasks runnable from root project 'test'
 ------------------------------------------------------------
 
 Build Setup tasks

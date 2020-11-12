@@ -25,7 +25,7 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.containsLine
 
 @CleanupTestDirectory
-public class TextReportRendererSpec extends Specification {
+class TextReportRendererSpec extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     private final TextReportRenderer renderer = new TextReportRenderer();
@@ -58,10 +58,10 @@ public class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Root project")
+        containsLine(textOutput.toString(), "Root project 'test'")
 
         and:
-        1 * project.rootProject >> project
+        1 * project.displayName >> "root project 'test'"
         1 * project.description >> null
     }
 
@@ -77,18 +77,17 @@ public class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Project <path>")
+        containsLine(textOutput.toString(), "Project ':subproject'")
 
         and:
-        1 * subproject.isRootProject() >> false
         1 * subproject.description >> null
-        1 * subproject.path >> "<path>"
+        1 * subproject.displayName >> "project ':subproject'"
     }
 
     def "includes project description in header"() {
         given:
         def project = Mock(ProjectDetails)
-        TestStyledTextOutput textOutput = new TestStyledTextOutput();
+        TestStyledTextOutput textOutput = new TestStyledTextOutput()
 
         when:
         renderer.output = textOutput
@@ -97,10 +96,10 @@ public class TextReportRendererSpec extends Specification {
         renderer.complete()
 
         then:
-        containsLine(textOutput.toString(), "Root project - this is the root project")
+        containsLine(textOutput.toString(), "Root project 'test' - this is the root project")
 
         and:
-        1 * project.isRootProject() >> true
+        1 * project.displayName >> "root project 'test'"
         1 * project.getDescription() >> "this is the root project"
     }
 }

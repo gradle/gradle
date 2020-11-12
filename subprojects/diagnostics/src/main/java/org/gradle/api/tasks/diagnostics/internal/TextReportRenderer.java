@@ -15,13 +15,14 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.BufferedWriter;
@@ -66,12 +67,8 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     protected String createHeader(ProjectDetails project) {
-        String header;
-        if (project.isRootProject()) {
-            header = "Root project";
-        } else {
-            header = "Project " + project.getPath();
-        }
+        String header = StringUtils.capitalize(project.getDisplayName());
+
         String description = project.getDescription();
         if (GUtil.isTrue(description)) {
             header = header + " - " + description;
