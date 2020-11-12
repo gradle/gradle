@@ -29,7 +29,7 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
     private final Map<FileCollectionFingerprinterSpec, FileCollectionFingerprinter> fingerprinters;
 
     public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> fingerprinters) {
-        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> new DefaultFileCollectionFingerprinterSpec(input.getRegisteredType(), input.getDirectorySensitivity())));
+        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> DefaultFileCollectionFingerprinterSpec.from(input.getRegisteredType(), input.getDirectorySensitivity())));
     }
 
     @Override

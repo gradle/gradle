@@ -27,7 +27,7 @@ public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFin
     private final Class<? extends FileNormalizer> normalizer;
     private final DirectorySensitivity directorySensitivity;
 
-    public DefaultFileCollectionFingerprinterSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
+    private DefaultFileCollectionFingerprinterSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
         this.normalizer = normalizer;
         this.directorySensitivity = directorySensitivity;
     }
