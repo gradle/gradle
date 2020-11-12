@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    java
 }
 
 // tag::toolchain-known-vendor[]
@@ -15,7 +15,7 @@ java {
 // tag::toolchain-matching-vendor[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11)
+        languageVersion.set(JavaLanguageVersion.of(11))
         vendor.set(JvmVendorSpec.matching("customString"))
     }
 }
