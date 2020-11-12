@@ -57,7 +57,11 @@ class CompileAvoidanceExceptionReporter : ZipHasher.HashingExceptionReporter {
     override fun report(zipFileSnapshot: RegularFileSnapshot, e: Exception) {
         val jarName = zipFileSnapshot.name
         if (e is CompileAvoidanceException && !isExternalDependency(jarName)) {
-            logger.warn("Cannot use Kotlin build script compile avoidance with {}: {}", jarName, e.message)
+            if (isExternalDependency(jarName)) {
+                logger.info("Cannot use Kotlin build script compile avoidance with {}: {}", jarName, e.message)
+            } else {
+                logger.warn("Cannot use Kotlin build script compile avoidance with {}: {}", jarName, e.message)
+            }
         }
     }
 
