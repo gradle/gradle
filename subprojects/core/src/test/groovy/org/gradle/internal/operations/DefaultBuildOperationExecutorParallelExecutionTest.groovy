@@ -199,7 +199,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "operations are canceled when the generator fails"() {
         def buildQueue = Mock(BuildOperationQueue)
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _) >> { buildQueue }
+            create(_, _, _) >> { buildQueue }
         }
 
         def buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
@@ -227,7 +227,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             waitForCompletion() >> { throw new MultipleBuildOperationFailures(operationFailures, null) }
         }
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _) >> { buildQueue }
+            create(_, _, _) >> { buildQueue }
         }
         def buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),

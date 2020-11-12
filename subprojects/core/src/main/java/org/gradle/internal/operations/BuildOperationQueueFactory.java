@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,5 +19,5 @@ package org.gradle.internal.operations;
 import org.gradle.internal.concurrent.ManagedExecutor;
 
 public interface BuildOperationQueueFactory {
-    <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, BuildOperationQueue.QueueWorker<T> worker);
+    <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<T> worker);
 }

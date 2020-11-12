@@ -108,7 +108,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         for (Supplier<T> action : actions) {
             wrappers.add(new NestedAction<>(action));
         }
-        buildOperationExecutor.runAll(buildOperationQueue -> {
+        buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
             for (NestedAction<T> wrapper : wrappers) {
                 buildOperationQueue.add(wrapper);
             }

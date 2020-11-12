@@ -83,6 +83,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction) {
+        runAll(schedulingAction);
+    }
+
+    @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
         throw new UnsupportedOperationException();
     }
