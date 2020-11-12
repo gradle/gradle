@@ -21,6 +21,7 @@ import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -183,5 +184,38 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             }
         });
         return Optional.of(new PartialDirectoryNode(newChildren));
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        CompleteDirectorySnapshot that = (CompleteDirectorySnapshot) o;
+
+        if (!children.equals(that.children)) {
+            return false;
+        }
+        return contentHash.equals(that.contentHash);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + children.hashCode();
+        result = 31 * result + contentHash.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s@%s/%s(%s)", super.toString(), contentHash, getName(), children);
     }
 }

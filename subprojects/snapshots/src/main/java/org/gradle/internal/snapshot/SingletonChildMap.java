@@ -140,4 +140,9 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     public int hashCode() {
         return entry.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return entry.toString();
+    }
 }

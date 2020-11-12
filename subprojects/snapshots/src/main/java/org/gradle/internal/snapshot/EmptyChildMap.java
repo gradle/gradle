@@ -65,4 +65,9 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     public List<Entry<T>> entries() {
         return Collections.emptyList();
     }
+
+    @Override
+    public String toString() {
+        return "";
+    }
 }

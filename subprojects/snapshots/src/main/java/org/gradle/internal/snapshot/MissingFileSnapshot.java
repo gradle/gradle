@@ -66,4 +66,9 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
         diffListener.nodeRemoved(this);
         return Optional.empty();
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s/%s", super.toString(), getName());
+    }
 }
