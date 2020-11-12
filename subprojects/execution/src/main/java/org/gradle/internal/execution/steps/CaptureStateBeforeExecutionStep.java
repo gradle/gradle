@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingResult;
@@ -32,7 +31,6 @@ import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
-import org.gradle.internal.execution.impl.OutputUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -50,6 +48,7 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.impl.InputUtil.fingerprintInputProperties;
+import static org.gradle.internal.execution.impl.OutputUtil.filterOutputsWithOverlapBeforeExecution;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
@@ -159,12 +158,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
         OverlappingOutputs overlappingOutputs;
         switch (work.getOverlappingOutputHandling()) {
             case DETECT_OVERLAPS:
-                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, outputFileSnapshots);
+                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, unfilteredOutputSnapshots);
                 break;
             case IGNORE_OVERLAPS:
                 overlappingOutputs = null;
@@ -189,42 +188,28 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesBuilder.build();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = inputFileFingerprintsBuilder.build();
 
-        ImmutableSortedMap<String, FileSystemSnapshot> filteredOutputSnapshots = filterOutputSnapshots(
-            outputSnapshotsAfterPreviousExecution,
-            outputFileSnapshots,
-            overlappingOutputs != null);
-
-        return new DefaultBeforeExecutionState(
-            implementation,
-            additionalImplementations,
-            inputProperties,
-            inputFileFingerprints,
-            filteredOutputSnapshots,
-            overlappingOutputs
-        );
-    }
-
-    private static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputSnapshots(
-        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots,
-        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
-        boolean hasOverlappingOutputs
-    ) {
-        return ImmutableSortedMap.copyOfSorted(
-            Maps.transformEntries(beforeExecutionOutputSnapshots, (key, outputSnapshot) -> {
-                    FileSystemSnapshot previousOutputSnapshot = previousOutputSnapshots.get(key);
-                    //noinspection ConstantConditions
-                    return previousOutputSnapshot == null
-                        ? FileSystemSnapshot.EMPTY
-                        : filterOutputSnapshot(outputSnapshot, previousOutputSnapshot, hasOverlappingOutputs);
-                }
-            )
-        );
-    }
-
-    private static FileSystemSnapshot filterOutputSnapshot(FileSystemSnapshot beforeExecutionOutputSnapshots, FileSystemSnapshot previousOutputSnapshot, boolean hasOverlappingOutputs) {
-        return hasOverlappingOutputs
-            ? OutputUtil.filterOutputSnapshotBeforeExecution(previousOutputSnapshot, beforeExecutionOutputSnapshots)
-            : beforeExecutionOutputSnapshots;
+        if (overlappingOutputs != null) {
+            ImmutableSortedMap<String, FileSystemSnapshot> filteredOutputSnapshots = filterOutputsWithOverlapBeforeExecution(
+                outputSnapshotsAfterPreviousExecution,
+                unfilteredOutputSnapshots);
+            return DefaultBeforeExecutionState.withOverlaps(
+                implementation,
+                additionalImplementations,
+                inputProperties,
+                inputFileFingerprints,
+                unfilteredOutputSnapshots,
+                filteredOutputSnapshots,
+                overlappingOutputs
+            );
+        } else {
+            return DefaultBeforeExecutionState.withoutOverlaps(
+                implementation,
+                additionalImplementations,
+                inputProperties,
+                inputFileFingerprints,
+                unfilteredOutputSnapshots
+            );
+        }
     }
 
     private static class ImplementationsBuilder implements UnitOfWork.ImplementationVisitor {

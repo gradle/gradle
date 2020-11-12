@@ -33,9 +33,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
-import static com.google.common.collect.Maps.transformEntries;
-import static org.gradle.internal.execution.impl.OutputUtil.filterOutputSnapshotAfterExecution;
+import static org.gradle.internal.execution.impl.OutputUtil.filterOutputsWithOverlapAfterExecution;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
@@ -94,37 +92,25 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
     }
 
     private ImmutableSortedMap<String, FileSystemSnapshot> captureOutputs(UnitOfWork work, BeforeExecutionContext context) {
-        ImmutableSortedMap<String, FileSystemSnapshot> afterPreviousExecutionOutputSnapshots = context.getAfterPreviousExecutionState()
-            .map(AfterPreviousExecutionState::getOutputFileProperties)
-            .orElse(ImmutableSortedMap.of());
-
-        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
-            .map(BeforeExecutionState::getOutputFileProperties)
-            .orElse(ImmutableSortedMap.of());
-
         boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
             .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
             .isPresent();
 
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
-        return copyOfSorted(transformEntries(
-            afterExecutionOutputSnapshots,
-            (propertyName, afterExecutionOutputSnapshot) -> {
-                // This can never be null as it comes from an ImmutableMap's value
-                assert afterExecutionOutputSnapshot != null;
+        if (hasDetectedOverlappingOutputs) {
+            ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getAfterPreviousExecutionState()
+                .map(AfterPreviousExecutionState::getOutputFileProperties)
+                .orElse(ImmutableSortedMap.of());
 
-                FileSystemSnapshot filteredSnapshots;
-                if (hasDetectedOverlappingOutputs) {
-                    FileSystemSnapshot afterLastExecutionSnapshot = afterPreviousExecutionOutputSnapshots.get(propertyName);
-                    FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
-                    filteredSnapshots = filterOutputSnapshotAfterExecution(afterLastExecutionSnapshot, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot);
-                } else {
-                    filteredSnapshots = afterExecutionOutputSnapshot;
-                }
-                return filteredSnapshots;
-            }
-        ));
+            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution = context.getBeforeExecutionState()
+                .map(BeforeExecutionState::getAllOutputSnapshots)
+                .orElse(ImmutableSortedMap.of());
+
+            return filterOutputsWithOverlapAfterExecution(previousExecutionOutputSnapshots, unfilteredOutputSnapshotsBeforeExecution, unfilteredOutputSnapshotsAfterExecution);
+        } else {
+            return unfilteredOutputSnapshotsAfterExecution;
+        }
     }
 
     /*

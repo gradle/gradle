@@ -25,8 +25,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static OutputUtil.filterOutputSnapshotAfterExecution
-import static OutputUtil.filterOutputSnapshotBeforeExecution
+import static OutputUtil.filterOutputWithOverlapAfterExecution
+import static OutputUtil.filterOutputWithOverlapBeforeExecution
+import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
 
 class OutputUtilTest extends Specification {
 
@@ -42,7 +43,7 @@ class OutputUtilTest extends Specification {
         outputDir.file()
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir]
 
@@ -50,7 +51,7 @@ class OutputUtilTest extends Specification {
         def outputDirFile = outputDir.file("in-output-dir").createFile()
         virtualFileSystem.invalidateAll()
         def afterExecution = snapshotOutput(outputDir)
-        filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)
+        filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
@@ -61,14 +62,14 @@ class OutputUtilTest extends Specification {
         def beforeExecution = snapshotOutput(outputDir)
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir]
 
         when:
         def outputOfCurrent = outputDir.file("outputOfCurrent").createFile()
         def afterExecution = snapshotOutput(outputDir)
-        filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)
+        filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputOfCurrent]
     }
@@ -81,7 +82,7 @@ class OutputUtilTest extends Specification {
         def beforeExecution = snapshotOutput(outputDir)
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(previousExecution, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputWithOverlapAfterExecution(previousExecution, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
@@ -90,16 +91,16 @@ class OutputUtilTest extends Specification {
         def missingFile = temporaryFolder.file("missing")
         def beforeExecution = snapshotOutput(missingFile)
         expect:
-        filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, beforeExecution) == FileSystemSnapshot.EMPTY
+        filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution) == EMPTY
     }
 
     def "added empty dir is captured"() {
         def emptyDir = temporaryFolder.file("emptyDir").createDir()
         def afterExecution = snapshotOutput(emptyDir)
-        def beforeExecution = FileSystemSnapshot.EMPTY
+        def beforeExecution = EMPTY
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [emptyDir]
-        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, afterExecution, afterExecution)) == [emptyDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [emptyDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, afterExecution, afterExecution)) == [emptyDir]
     }
 
     def "updated files in output directory are part of the output"() {
@@ -109,7 +110,7 @@ class OutputUtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = snapshotOutput(outputDir)
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [outputDir, existingFile]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [outputDir, existingFile]
     }
 
     def "updated files are part of the output"() {
@@ -118,20 +119,20 @@ class OutputUtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = snapshotOutput(existingFile)
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [existingFile]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [existingFile]
     }
 
     def "removed files are not considered outputs"() {
         def outputDir = temporaryFolder.createDir("outputDir")
         def outputDirFile = outputDir.file("toBeDeleted").createFile()
-        def afterPreviousExecutionSnapshot = snapshotOutput(outputDir)
-        def beforeExecutionSnapshot = snapshotOutput(outputDir)
+        def previousExecution = snapshotOutput(outputDir)
+        def beforeExecution = snapshotOutput(outputDir)
         outputDirFile.delete()
         def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(afterPreviousExecutionSnapshot, beforeExecutionSnapshot, afterExecution)) == [outputDir]
-        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, afterPreviousExecutionSnapshot, afterExecution)) == [outputDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(previousExecution, beforeExecution, afterExecution)) == [outputDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, previousExecution, afterExecution)) == [outputDir]
     }
 
     def "overlapping directories are not included"() {
@@ -142,18 +143,18 @@ class OutputUtilTest extends Specification {
         def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
     }
 
     def "overlapping files are not part of the before execution snapshot"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
         def outputDirFile = outputDir.createFile("outputDirFile")
-        def afterLastExecution = snapshotOutput(outputDir)
+        def previousExecution = snapshotOutput(outputDir)
         outputDir.createFile("not-in-output")
         def beforeExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotBeforeExecution(afterLastExecution, beforeExecution)) == [outputDir, outputDirFile]
+        collectFiles(filterOutputWithOverlapBeforeExecution(previousExecution, beforeExecution)) == [outputDir, outputDirFile]
     }
 
     private FileSystemSnapshot snapshotOutput(File output) {
@@ -163,7 +164,7 @@ class OutputUtilTest extends Specification {
         return result.get()
     }
 
-    List<File> collectFiles(FileSystemSnapshot fileSystemSnapshots) {
+    private static List<File> collectFiles(FileSystemSnapshot fileSystemSnapshots) {
         SnapshotVisitorUtil.getAbsolutePaths(fileSystemSnapshots, true).collect { new File(it) }
     }
 }

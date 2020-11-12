@@ -29,8 +29,17 @@ public interface BeforeExecutionState extends ExecutionState {
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 
+    /**
+     * Output file properties without overlapping outputs.
+     */
     @Override
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileProperties();
+
+    /**
+     * Output file properties including overlapping outputs.
+     * The same as {@link #getOutputFileProperties()} if no overlapping outputs are detected.
+     */
+    ImmutableSortedMap<String, FileSystemSnapshot> getAllOutputSnapshots();
 
     /**
      * Returns overlapping outputs if they are detected.
