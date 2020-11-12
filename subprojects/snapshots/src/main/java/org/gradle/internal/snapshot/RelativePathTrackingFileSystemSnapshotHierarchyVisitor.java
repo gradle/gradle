@@ -34,5 +34,5 @@ public interface RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
     /**
      * Called after all entries in the directory has been visited.
      */
-    default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath, String parentName) {}
+    default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {}
 }

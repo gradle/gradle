@@ -91,7 +91,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 case CONTINUE:
                     visitor.enterDirectory(this, pathTracker);
                     children.visitChildren((name, child) -> child.accept(pathTracker, visitor));
-                    visitor.leaveDirectory(this, pathTracker, getName());
+                    visitor.leaveDirectory(this, pathTracker);
                     return CONTINUE;
                 case SKIP_SUBTREE:
                     return CONTINUE;
