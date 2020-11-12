@@ -18,20 +18,22 @@ package org.gradle.internal.resources;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry {
     private final Cache<K, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
-    private final Multimap<Long, ResourceLock> threadResourceLockMap = Multimaps.synchronizedListMultimap(ArrayListMultimap.<Long, ResourceLock>create());
+    private final ConcurrentMap<Long, ThreadLockDetails> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails>();
     private final ResourceLockCoordinationService coordinationService;
 
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
@@ -42,7 +44,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         try {
             return resourceLocks.get(key, new Callable<T>() {
                 @Override
-                public T call() throws Exception {
+                public T call() {
                     return createResourceLock(key, producer);
                 }
             });
@@ -57,8 +59,17 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
 
     @Override
     public Collection<? extends ResourceLock> getResourceLocksByCurrentThread() {
-        final Long threadId = Thread.currentThread().getId();
-        return ImmutableList.copyOf(threadResourceLockMap.get(threadId));
+        return ImmutableList.copyOf(detailsForCurrentThread().locks);
+    }
+
+    public <S> S whileDisallowingLockChanges(Factory<S> action) {
+        ThreadLockDetails lockDetails = detailsForCurrentThread();
+        lockDetails.mayChange = false;
+        try {
+            return action.create();
+        } finally {
+            lockDetails.mayChange = true;
+        }
     }
 
     @Override
@@ -90,14 +101,42 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     public void associateResourceLock(ResourceLock resourceLock) {
-        threadResourceLockMap.put(Thread.currentThread().getId(), resourceLock);
+        ThreadLockDetails lockDetails = detailsForCurrentThread();
+        if (!lockDetails.mayChange) {
+            throw new IllegalStateException("This thread may not acquire more locks.");
+        }
+        lockDetails.locks.add(resourceLock);
+    }
+
+    private ThreadLockDetails detailsForCurrentThread() {
+        long id = Thread.currentThread().getId();
+        ThreadLockDetails lockDetails = threadLocks.get(id);
+        if (lockDetails == null) {
+            lockDetails = new ThreadLockDetails();
+            threadLocks.put(id, lockDetails);
+        }
+        return lockDetails;
     }
 
     public void unassociateResourceLock(ResourceLock resourceLock) {
-        threadResourceLockMap.remove(Thread.currentThread().getId(), resourceLock);
+        ThreadLockDetails lockDetails = threadLocks.get(Thread.currentThread().getId());
+        if (!lockDetails.mayChange) {
+            throw new IllegalStateException("This thread may not release any locks.");
+        }
+        lockDetails.locks.remove(resourceLock);
+    }
+
+    public boolean canChangeLocks() {
+        return detailsForCurrentThread().mayChange;
     }
 
     public interface ResourceLockProducer<K, T extends ResourceLock> {
         T create(K key, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction);
+    }
+
+    private static class ThreadLockDetails {
+        // Only accessed by the thread itself, so does not require synchronization
+        private boolean mayChange = true;
+        private final List<ResourceLock> locks = new ArrayList<ResourceLock>();
     }
 }

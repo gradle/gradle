@@ -325,6 +325,63 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         workerLeaseService.projectLockStatistics.totalWaitTimeMillis > -1
     }
 
+    def "fails when attempting to acquire a project lock and changes are disallowed"() {
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        when:
+        workerLeaseService.whileDisallowingProjectLockChanges {
+            workerLeaseService.withLocks([projectLock]) {
+            }
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "This thread may not acquire more locks."
+    }
+
+    def "fails when attempting to release a project lock and changes are disallowed"() {
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        when:
+        workerLeaseService.withLocks([projectLock]) {
+            workerLeaseService.whileDisallowingProjectLockChanges {
+                workerLeaseService.withoutProjectLock {}
+            }
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "This thread may not release any locks."
+    }
+
+    def "does not release project locks in blocking action when changes to locks are disallowed"() {
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        expect:
+        workerLeaseService.withLocks([projectLock]) {
+            workerLeaseService.whileDisallowingProjectLockChanges {
+                assert lockIsHeld(projectLock)
+                workerLeaseService.blocking {
+                    assert lockIsHeld(projectLock)
+                }
+                assert lockIsHeld(projectLock)
+            }
+        }
+    }
+
+    def "releases project locks in blocking action when changes to locks are sallowed"() {
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        expect:
+        workerLeaseService.withLocks([projectLock]) {
+            assert lockIsHeld(projectLock)
+            workerLeaseService.blocking {
+                assert !lockIsHeld(projectLock)
+            }
+            assert lockIsHeld(projectLock)
+        }
+    }
+
     def "does not gather statistics when statistics flag is not set"() {
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 

@@ -90,6 +90,16 @@ class TestWorkerLeaseService implements WorkerLeaseService {
         action.run()
     }
 
+    @Override
+    <T> T whileDisallowingProjectLockChanges(Factory<T> action) {
+        return action.create()
+    }
+
+    @Override
+    void blocking(Runnable action) {
+        action.run()
+    }
+
     private WorkerLeaseRegistry.WorkerLease workerLease() {
         return new WorkerLeaseRegistry.WorkerLease() {
             @Override

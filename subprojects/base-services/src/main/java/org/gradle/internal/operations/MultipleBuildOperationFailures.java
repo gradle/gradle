@@ -35,7 +35,7 @@ public class MultipleBuildOperationFailures extends DefaultMultiCauseException {
         return "Multiple build operations failed.";
     }
 
-    private static String format(String message, Iterable<? extends Throwable> causes, String logLocation) {
+    private static String format(String message, Iterable<? extends Throwable> causes, @Nullable String logLocation) {
         StringBuilder sb = new StringBuilder(message);
         int count = 0;
         for (Throwable cause : causes) {

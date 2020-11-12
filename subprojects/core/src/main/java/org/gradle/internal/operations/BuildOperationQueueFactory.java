@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,7 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.work.WorkerLeaseService;
 
-public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFactory {
-    private final WorkerLeaseService workerLeaseService;
-
-    public DefaultBuildOperationQueueFactory(WorkerLeaseService workerLeaseService) {
-        this.workerLeaseService = workerLeaseService;
-    }
-
-    @Override
-    public <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, BuildOperationQueue.QueueWorker<T> worker) {
-        return new DefaultBuildOperationQueue<T>(workerLeaseService, executor, worker);
-    }
+public interface BuildOperationQueueFactory {
+    <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<T> worker);
 }
