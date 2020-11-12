@@ -231,7 +231,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        DirectorySensitivity getDirectorySensitivity() {
+        DirectorySensitivity getInputArtifactDirectorySensitivity() {
+            return DirectorySensitivity.NONE
+        }
+
+        @Override
+        DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
             return DirectorySensitivity.NONE
         }
     }

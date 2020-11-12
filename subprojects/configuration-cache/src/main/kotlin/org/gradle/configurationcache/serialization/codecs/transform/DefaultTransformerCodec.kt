@@ -49,7 +49,8 @@ class DefaultTransformerCodec(
             writeClass(value.inputArtifactNormalizer)
             writeClass(value.inputArtifactDependenciesNormalizer)
             writeBoolean(value.isCacheable)
-            writeEnum(value.directorySensitivity)
+            writeEnum(value.inputArtifactDirectorySensitivity)
+            writeEnum(value.inputArtifactDependenciesDirectorySensitivity)
             write(value.isolatedParameters)
             // TODO - isolate now and discard node, if isolation is scheduled but has no dependencies
         }
@@ -63,6 +64,7 @@ class DefaultTransformerCodec(
             val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
             val isCacheable = readBoolean()
             val directorySensitivity = readEnum<DirectorySensitivity>()
+            val dependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
             val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransformer.IsolatedParameters, DefaultTransformer.IsolateTransformerParameters>>()
             DefaultTransformer(
                 implementationClass,
@@ -71,10 +73,11 @@ class DefaultTransformerCodec(
                 inputArtifactNormalizer,
                 inputArtifactDependenciesNormalizer,
                 isCacheable,
-                directorySensitivity,
                 fileLookup,
                 actionScheme.instantiationScheme,
-                isolate.owner.service(ServiceRegistry::class.java)
+                isolate.owner.service(ServiceRegistry::class.java),
+                directorySensitivity,
+                dependenciesDirectorySensitivity
             )
         }
     }

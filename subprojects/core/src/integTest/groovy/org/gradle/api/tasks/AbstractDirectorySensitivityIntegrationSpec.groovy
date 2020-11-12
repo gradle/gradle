@@ -22,6 +22,9 @@ import spock.lang.Unroll
 
 
 abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractIntegrationSpec {
+
+    public static final String TRANSFORM_EXECUTED = 'Transform bar.zip (project :bar) with AugmentTransform'
+
     abstract void execute(String... tasks)
 
     abstract void cleanWorkspace()
@@ -168,6 +171,108 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         api << (API.values() as List<API>)
     }
 
+    def "artifact transforms are sensitive to empty directories by default"() {
+        createParameterizedTransformWithSensitivity(DirectorySensitivity.FINGERPRINT_DIRECTORIES)
+        file('augmented').mkdir()
+        file('augmented/a').mkdir()
+        file('augmented/b').mkdir()
+        file('augmented/b/b1').createFile()
+
+        file('bar/foo').mkdir()
+        file('bar/foo/c').mkdir()
+        file('bar/foo/d').mkdir()
+        file('bar/foo/d1').createFile()
+
+        when:
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformExecuted()
+
+        when:
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformSkipped()
+
+        when:
+        file('augmented/e').mkdir()
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformExecuted()
+
+        when:
+        file('bar/foo/f').mkdir()
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformExecuted()
+    }
+
+    def "artifact transforms ignore empty directories when specified"() {
+        createParameterizedTransformWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES)
+        file('augmented').mkdir()
+        file('augmented/a').mkdir()
+        file('augmented/b').mkdir()
+        file('augmented/b/b1').createFile()
+
+        file('bar/foo').mkdir()
+        file('bar/foo/c').mkdir()
+        file('bar/foo/d').mkdir()
+        file('bar/foo/d1').createFile()
+
+        when:
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformExecuted()
+
+        when:
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformSkipped()
+
+        when:
+        file('augmented/e').mkdir()
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformSkipped()
+
+        when:
+        file('bar/foo/f').mkdir()
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformSkipped()
+
+        when:
+        file('augmented/b/b1') << "foo"
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformExecuted()
+
+        when:
+        file('bar/foo/d1') << "foo"
+        execute('showTransformedFiles')
+
+        then:
+        assertTransformExecuted()
+    }
+
+    def assertTransformSkipped() {
+        outputDoesNotContain(TRANSFORM_EXECUTED)
+        return true
+    }
+
+    def assertTransformExecuted() {
+        outputContains(TRANSFORM_EXECUTED)
+        return true
+    }
+
     enum API {
         RUNTIME_API, ANNOTATION_API
     }
@@ -231,6 +336,168 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
                 void doSomething() {
                     outputFile.withWriter { writer ->
                         sources.each { writer.println it }
+                    }
+                }
+            }
+        """
+    }
+
+    void createParameterizedTransformWithSensitivity(DirectorySensitivity directorySensitivity) {
+        settingsFile << """
+            include(':bar')
+        """
+        buildFile << """
+            ${unzipTransform}
+
+            @CacheableTransform
+            abstract class AugmentTransform implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @InputFiles
+                    @PathSensitive(PathSensitivity.RELATIVE)
+                    ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreDirectories.class.simpleName}" : ''}
+                    ConfigurableFileCollection getFiles()
+                }
+
+                @InputArtifact
+                ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreDirectories.class.simpleName}" : ''}
+                @PathSensitive(PathSensitivity.RELATIVE)
+                abstract Provider<FileSystemLocation> getInput()
+
+                @javax.inject.Inject
+                abstract FileSystemOperations getFileSystemOperations()
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    File augmentedDir = outputs.dir("augmented")
+
+                    System.out.println "Augmenting..."
+                    fileSystemOperations.copy {
+                        from input
+                        into augmentedDir
+                    }
+                    parameters.files.each { file ->
+                        fileSystemOperations.copy {
+                            from(file)
+                            into(augmentedDir)
+                        }
+                    }
+                }
+            }
+
+            apply plugin: 'base'
+
+            def augmented = Attribute.of('augmented', Boolean)
+            def artifactType = Attribute.of('artifactType', String)
+
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(augmented)
+                    }
+
+                    artifactTypes {
+                        zip {
+                            attributes.attribute(augmented, false)
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                registerTransform(UnzipTransform) {
+                    from.attribute(augmented, false).attribute(artifactType, "zip")
+                    to.attribute(augmented, false).attribute(artifactType, "directory")
+                }
+                registerTransform(AugmentTransform) {
+                    from.attribute(augmented, false).attribute(artifactType, "directory")
+                    to.attribute(augmented, true).attribute(artifactType, "directory")
+
+                    parameters {
+                        files.from('augmented')
+                    }
+                }
+            }
+
+            configurations {
+                foo {
+                    attributes.attribute(augmented, true)
+                }
+            }
+
+            dependencies {
+                foo project(path: ':bar', configuration: 'foo')
+            }
+
+            task showTransformedFiles {
+                inputs.files(configurations.foo)
+                doLast {
+                    configurations.foo.files.each { println it }
+                }
+            }
+
+            project(':bar') {
+                apply plugin: 'base'
+
+                configurations {
+                    foo
+                }
+
+                task zip(type: Zip) {
+                    from('foo')
+                }
+
+                artifacts {
+                    foo zip
+                }
+            }
+        """
+    }
+
+    static String getUnzipTransform() {
+        return """
+            import java.util.zip.ZipEntry
+            import java.util.zip.ZipInputStream
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            @CacheableTransform
+            abstract class UnzipTransform implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                @PathSensitive(PathSensitivity.RELATIVE)
+                abstract Provider<FileSystemLocation> getZippedFile()
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    File zippedFile = getZippedFile().get().getAsFile()
+                    File unzipDir = outputs.dir(zippedFile.getName())
+                    try {
+                        unzipTo(zippedFile, unzipDir)
+                    } catch (IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e)
+                    }
+                }
+
+                static void unzipTo(File inputZip, File unzipDir) throws IOException {
+                    inputZip.withInputStream { stream ->
+                        ZipInputStream inputStream = new ZipInputStream(stream)
+                        ZipEntry entry
+                        while ((entry = inputStream.getNextEntry()) != null) {
+                            if (entry.isDirectory()) {
+                                new File(unzipDir, entry.getName()).mkdirs()
+                                continue
+                            }
+                            File outFile = new File(unzipDir, entry.getName())
+                            outFile.withOutputStream { outputStream ->
+                                copy(inputStream, outputStream)
+                            }
+                        }
+                    }
+                }
+
+                static void copy(InputStream source, OutputStream target) throws IOException {
+                    byte[] buf = new byte[8192]
+                    int length
+                    while ((length = source.read(buf)) > 0) {
+                        target.write(buf, 0, length)
                     }
                 }
             }

@@ -117,9 +117,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         ProjectInternal producerProject = determineProducerProject(subject);
         TransformationWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
-        FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileCollectionFingerprinterSpec.from(transformer.getInputArtifactNormalizer(), transformer.getDirectorySensitivity()));
+        FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileCollectionFingerprinterSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
         // This could be injected directly to DefaultTransformerInvocationFactory, too
-        FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileCollectionFingerprinterSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getDirectorySensitivity()));
+        FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileCollectionFingerprinterSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
 
         CompleteFileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);

@@ -72,5 +72,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
 
     boolean isIsolated();
 
-    DirectorySensitivity getDirectorySensitivity();
+    DirectorySensitivity getInputArtifactDirectorySensitivity();
+
+    DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity();
 }

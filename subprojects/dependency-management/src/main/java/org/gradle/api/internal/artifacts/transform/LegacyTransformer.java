@@ -121,7 +121,12 @@ public class LegacyTransformer extends AbstractTransformer<org.gradle.api.artifa
     }
 
     @Override
-    public DirectorySensitivity getDirectorySensitivity() {
+    public DirectorySensitivity getInputArtifactDirectorySensitivity() {
+        return DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+    }
+
+    @Override
+    public DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
         return DirectorySensitivity.FINGERPRINT_DIRECTORIES;
     }
 

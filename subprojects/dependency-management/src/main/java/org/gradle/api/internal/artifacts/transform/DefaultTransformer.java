@@ -106,7 +106,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     private final InstanceFactory<? extends TransformAction<?>> instanceFactory;
     private final boolean cacheable;
     private final CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters;
-    private final DirectorySensitivity directorySensitivity;
+    private final DirectorySensitivity artifactDirectorySensitivity;
+    private final DirectorySensitivity dependenciesDirectorySensitivity;
 
     public DefaultTransformer(
         Class<? extends TransformAction<?>> implementationClass,
@@ -115,7 +116,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
         boolean cacheable,
-        DirectorySensitivity directorySensitivity,
+        DirectorySensitivity artifactDirectorySensitivity,
+        DirectorySensitivity dependenciesDirectorySensitivity,
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         IsolatableFactory isolatableFactory,
@@ -137,8 +139,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
-
-        this.directorySensitivity = directorySensitivity;
+        this.artifactDirectorySensitivity = artifactDirectorySensitivity;
+        this.dependenciesDirectorySensitivity = dependenciesDirectorySensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformerParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
                 valueSnapshotter, fileCollectionFactory));
@@ -154,11 +156,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
         boolean cacheable,
-        DirectorySensitivity directorySensitivity,
         FileLookup fileLookup,
         InstantiationScheme actionInstantiationScheme,
-        ServiceLookup internalServices
-    ) {
+        ServiceLookup internalServices,
+        DirectorySensitivity dependenciesDirectorySensitivity,
+        DirectorySensitivity artifactDirectorySensitivity) {
         super(implementationClass, fromAttributes);
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
@@ -169,7 +171,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
         this.isolatedParameters = isolatedParameters;
-        this.directorySensitivity = directorySensitivity;
+        this.artifactDirectorySensitivity = artifactDirectorySensitivity;
+        this.dependenciesDirectorySensitivity = dependenciesDirectorySensitivity;
     }
 
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
@@ -214,8 +217,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     }
 
     @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
+    public DirectorySensitivity getInputArtifactDirectorySensitivity() {
+        return artifactDirectorySensitivity;
+    }
+
+    @Override
+    public DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
+        return dependenciesDirectorySensitivity;
     }
 
     @Override

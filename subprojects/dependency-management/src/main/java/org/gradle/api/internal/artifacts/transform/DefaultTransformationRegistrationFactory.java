@@ -116,7 +116,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         // Should retain this on the metadata rather than calculate on each invocation
         Class<? extends FileNormalizer> inputArtifactNormalizer = null;
         Class<? extends FileNormalizer> dependenciesNormalizer = null;
-        DirectorySensitivity directorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+        DirectorySensitivity artifactDirectorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+        DirectorySensitivity dependenciesDirectorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
             if (propertyType.equals(InputArtifact.class)) {
@@ -124,13 +125,13 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 inputArtifactNormalizer = visitor.normalizer;
-                directorySensitivity = visitor.directorySensitivity;
+                artifactDirectorySensitivity = visitor.directorySensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 dependenciesNormalizer = visitor.normalizer;
-                directorySensitivity = visitor.directorySensitivity;
+                dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
@@ -154,7 +155,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
             FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
             cacheable,
-            directorySensitivity,
+            artifactDirectorySensitivity,
+            dependenciesDirectorySensitivity,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             isolatableFactory,
