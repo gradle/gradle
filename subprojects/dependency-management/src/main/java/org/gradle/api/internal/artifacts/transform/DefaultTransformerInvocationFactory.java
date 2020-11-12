@@ -371,7 +371,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 () -> transformer.getSecondaryInputHash().toString());
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, NON_IDENTITY,
                 inputArtifactProvider,
-                () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
+                () -> inputArtifactFingerprinter.fingerprint(inputArtifactSnapshot));
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, NON_IDENTITY,
                 dependencies,
                 () -> dependenciesFingerprint);

@@ -36,8 +36,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.Collections;
-
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformEntries;
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution;
@@ -120,13 +118,13 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
                 // This can never be null as it comes from an ImmutableMap's value
                 assert afterExecutionOutputSnapshot != null;
 
-                Iterable<FileSystemSnapshot> filteredSnapshots;
+                FileSystemSnapshot filteredSnapshots;
                 if (hasDetectedOverlappingOutputs) {
                     FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);
                     FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
                     filteredSnapshots = filterOutputSnapshotAfterExecution(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot);
                 } else {
-                    filteredSnapshots = Collections.singleton(afterExecutionOutputSnapshot);
+                    filteredSnapshots = afterExecutionOutputSnapshot;
                 }
                 return DefaultCurrentFileCollectionFingerprint.from(filteredSnapshots, IGNORE_MISSING);
             }

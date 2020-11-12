@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.impl
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -25,14 +24,13 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
-import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 class OutputFilterUtilTest extends Specification {
 
@@ -98,7 +96,7 @@ class OutputFilterUtilTest extends Specification {
         def missingFile = temporaryFolder.file("missing")
         def beforeExecution = snapshotOutput(missingFile)
         expect:
-        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution).empty
+        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution) == FileSystemSnapshot.EMPTY
     }
 
     def "added empty dir is captured"() {
@@ -172,17 +170,10 @@ class OutputFilterUtilTest extends Specification {
     }
 
     private CurrentFileCollectionFingerprint fingerprintOutput(File outputDir) {
-        DefaultCurrentFileCollectionFingerprint.from([snapshotOutput(outputDir)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+        DefaultCurrentFileCollectionFingerprint.from(snapshotOutput(outputDir), AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
     }
 
-    List<File> collectFiles(ImmutableList<FileSystemSnapshot> fileSystemSnapshots) {
-        def result = []
-        fileSystemSnapshots.each {
-            it.accept({ CompleteFileSystemLocationSnapshot snapshot ->
-                result.add(snapshot)
-                return CONTINUE
-            } as FileSystemSnapshotHierarchyVisitor)
-        }
-        result.collect { it.absolutePath as File }
+    List<File> collectFiles(FileSystemSnapshot fileSystemSnapshots) {
+        SnapshotVisitorUtil.getAbsolutePaths(fileSystemSnapshots, true).collect { new File(it) }
     }
 }

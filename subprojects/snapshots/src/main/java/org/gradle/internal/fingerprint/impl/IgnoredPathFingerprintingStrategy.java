@@ -50,32 +50,30 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     }
 
     @Override
-    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
-        for (FileSystemSnapshot root : roots) {
-            root.accept(snapshot -> {
-                snapshot.accept(new FileSystemLocationSnapshotVisitor() {
-                    @Override
-                    public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                        visitNonDirectoryEntry(snapshot);
-                    }
+        roots.accept(snapshot -> {
+            snapshot.accept(new FileSystemLocationSnapshotVisitor() {
+                @Override
+                public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                    visitNonDirectoryEntry(snapshot);
+                }
 
-                    @Override
-                    public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                        visitNonDirectoryEntry(snapshot);
-                    }
+                @Override
+                public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                    visitNonDirectoryEntry(snapshot);
+                }
 
-                    private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                        String absolutePath = snapshot.getAbsolutePath();
-                        if (processedEntries.add(absolutePath)) {
-                            builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), snapshot.getHash()));
-                        }
+                private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                    String absolutePath = snapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
+                        builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), snapshot.getHash()));
                     }
-                });
-                return SnapshotVisitResult.CONTINUE;
+                }
             });
-        }
+            return SnapshotVisitResult.CONTINUE;
+        });
         return builder.build();
     }
 

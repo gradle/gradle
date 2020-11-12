@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -38,7 +39,7 @@ class PathNormalizationStrategyTest extends Specification {
     public static final String IGNORED = "IGNORED"
     def fileSystemAccess = TestFiles.fileSystemAccess()
 
-    List<FileSystemSnapshot> roots
+    FileSystemSnapshot roots
     TestFile jarFile1
     TestFile jarFile2
     TestFile resources
@@ -63,13 +64,13 @@ class PathNormalizationStrategyTest extends Specification {
         emptyDir.mkdirs()
         missingFile = file("missing-file")
 
-        roots = [
+        roots = CompositeFileSystemSnapshot.of([
             snapshot(jarFile1),
             snapshot(jarFile2),
             snapshot(resources),
             snapshot(emptyDir),
             snapshot(missingFile)
-        ]
+        ])
     }
 
     private CompleteFileSystemLocationSnapshot snapshot(File file) {

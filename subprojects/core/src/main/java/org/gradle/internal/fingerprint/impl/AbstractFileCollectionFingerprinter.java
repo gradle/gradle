@@ -26,8 +26,6 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.List;
-
 /**
  * Responsible for calculating a {@link FileCollectionFingerprint} for a particular {@link FileCollection}.
  */
@@ -44,12 +42,12 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        List<FileSystemSnapshot> roots = fileCollectionSnapshotter.snapshot(files);
+        FileSystemSnapshot roots = fileCollectionSnapshotter.snapshot(files);
         return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(Iterable<? extends FileSystemSnapshot> roots) {
+    public CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot roots) {
         return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
     }
 

@@ -119,7 +119,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     protected CurrentFileCollectionFingerprint fingerprint(File file, FingerprintingStrategy strategy) {
         MutableReference<CurrentFileCollectionFingerprint> fingerprint = MutableReference.empty()
         fileSystemAccess.read(file.getAbsolutePath()) { snapshot ->
-            fingerprint.set(DefaultCurrentFileCollectionFingerprint.from([snapshot], strategy))
+            fingerprint.set(DefaultCurrentFileCollectionFingerprint.from(snapshot, strategy))
         }
         return fingerprint.get()
     }

@@ -34,6 +34,7 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -41,8 +42,6 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory {
@@ -122,7 +121,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
             entity.visitOutputTrees((treeName, type, root) -> {
                 CompleteFileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
-                List<FileSystemSnapshot> roots = new ArrayList<>();
+                ImmutableList.Builder<FileSystemSnapshot> roots = ImmutableList.builder();
 
                 if (treeSnapshot == null) {
                     MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, AccessType.DIRECT);
@@ -146,7 +145,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
                     default:
                         throw new AssertionError();
                 }
-                builder.put(treeName, DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy));
+                builder.put(treeName, DefaultCurrentFileCollectionFingerprint.from(CompositeFileSystemSnapshot.of(roots.build()), fingerprintingStrategy));
             });
             return builder.build();
         }

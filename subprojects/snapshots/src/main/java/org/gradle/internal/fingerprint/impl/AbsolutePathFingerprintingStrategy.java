@@ -53,42 +53,40 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     }
 
     @Override
-    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
-        for (FileSystemSnapshot root : roots) {
-            root.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
-                @Override
-                public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
-                    snapshot.accept(new FileSystemLocationSnapshotVisitor() {
-                        @Override
-                        public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                            doVisitEntry(directorySnapshot);
-                        }
-
-                        @Override
-                        public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                            doVisitEntry(fileSnapshot);
-                        }
-
-                        @Override
-                        public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                            if (includeMissingRoots || !isRoot) {
-                                doVisitEntry(missingSnapshot);
-                            }
-                        }
-                    });
-                    return SnapshotVisitResult.CONTINUE;
-                }
-
-                private void doVisitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                    String absolutePath = snapshot.getAbsolutePath();
-                    if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
+        roots.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
+            @Override
+            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+                snapshot.accept(new FileSystemLocationSnapshotVisitor() {
+                    @Override
+                    public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                        doVisitEntry(directorySnapshot);
                     }
+
+                    @Override
+                    public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                        doVisitEntry(fileSnapshot);
+                    }
+
+                    @Override
+                    public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                        if (includeMissingRoots || !isRoot) {
+                            doVisitEntry(missingSnapshot);
+                        }
+                    }
+                });
+                return SnapshotVisitResult.CONTINUE;
+            }
+
+            private void doVisitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                String absolutePath = snapshot.getAbsolutePath();
+                if (processedEntries.add(absolutePath)) {
+                    builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
                 }
-            });
-        }
+            }
+        });
         return builder.build();
     }
 
