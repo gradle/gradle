@@ -257,8 +257,8 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         0 * listener._
     }
 
-    private static void changes(FileCollectionFingerprint newFingerprint, FileCollectionFingerprint oldFingerprint, ChangeListener<String> listener) {
-        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(newFingerprint, oldFingerprint, "TYPE") { DefaultFileChange change ->
+    private static void changes(FileCollectionFingerprint current, FileCollectionFingerprint previous, ChangeListener<String> listener) {
+        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(previous, current, "TYPE") { DefaultFileChange change ->
             switch (change.type) {
                 case ChangeTypeInternal.ADDED:
                     listener.added(change.path)
