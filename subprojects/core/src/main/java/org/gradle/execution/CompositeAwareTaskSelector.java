@@ -19,6 +19,7 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -42,11 +43,16 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     @Override
     public Spec<Task> getFilter(String path) {
         Path taskPath = Path.path(path);
-        BuildState build = findIncludedBuild(taskPath);
-        if (build != null) {
-            return getSelector(build).getFilter(taskPath.removeFirstSegments(1).toString());
-        } else {
+        BuildState includedBuild = findIncludedBuild(taskPath);
+
+        if (!taskPath.isAbsolute()) {
             return getUnqualifiedBuildSelector().getFilter(path);
+        } else if (gradle.isRootBuild()) {
+            return includedBuild != null ? Specs.satisfyAll() : getUnqualifiedBuildSelector().getFilter(path);
+        } else if (taskPath.segmentCount() > 1 && taskPath.segment(0).equals(gradle.getRootProject().getName())) {
+            return getUnqualifiedBuildSelector().getFilter(taskPath.removeFirstSegments(1).toString());
+        } else {
+            return Specs.satisfyAll();
         }
     }
 
