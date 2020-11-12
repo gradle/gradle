@@ -144,10 +144,9 @@ class JUnitXmlResultWriterSpec extends Specification {
         given:
         options = new JUnitXmlResultOptions(true, false)
         provider = new BuildableTestResultsProvider()
-        def testClass = provider.testClassResult("com.Foo")
 
         when:
-        testClass {
+        def testClass = provider.testClassResult("com.Foo") {
             stdout "class-out"
             stderr "class-err"
             testcase("m1") {
