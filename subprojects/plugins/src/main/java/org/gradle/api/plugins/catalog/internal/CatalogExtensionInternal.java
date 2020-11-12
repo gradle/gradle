@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.api.plugins.catalog.internal;
 
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.classpath.ClassPath;
+import org.gradle.api.internal.std.DefaultVersionCatalog;
+import org.gradle.api.plugins.catalog.CatalogPluginExtension;
+import org.gradle.api.provider.Provider;
 
-import java.util.List;
+import java.util.Map;
 
-public interface DependenciesAccessors {
-    void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings);
-    void createExtensions(ProjectInternal project);
-    ClassPath getSources();
-    ClassPath getClasses();
+public interface CatalogExtensionInternal extends CatalogPluginExtension {
+    Provider<DefaultVersionCatalog> getVersionCatalog();
+    Provider<Map<String, String>> getPluginVersions();
 }

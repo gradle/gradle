@@ -15,9 +15,10 @@
  */
 package org.gradle.internal.management;
 
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
-import org.gradle.api.internal.std.AllDependenciesModel;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
+import org.gradle.api.internal.std.DefaultVersionCatalog;
 
-public interface DependenciesModelBuilderInternal extends DependenciesModelBuilder {
-    AllDependenciesModel build();
+public interface VersionCatalogBuilderInternal extends VersionCatalogBuilder {
+    DefaultVersionCatalog build();
+    void withContext(String context, Runnable action);
 }

@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.classpath.ClassPath;
+/**
+ * Implementation classes for the Gradle platform plugin.
+ *
+ * @see org.gradle.api.plugins.catalog.VersionCatalogPlugin
+ */
+@NonNullApi
+package org.gradle.api.plugins.catalog.internal;
 
-import java.util.List;
-
-public interface DependenciesAccessors {
-    void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings);
-    void createExtensions(ProjectInternal project);
-    ClassPath getSources();
-    ClassPath getClasses();
-}
+import org.gradle.api.NonNullApi;

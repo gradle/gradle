@@ -20,7 +20,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.SettingsInternal;
@@ -49,7 +49,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.management.DependenciesModelBuilderInternal;
+import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -83,7 +83,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final ClasspathFingerprinter fingerprinter;
-    private final List<AllDependenciesModel> models = Lists.newArrayList();
+    private final List<DefaultVersionCatalog> models = Lists.newArrayList();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
 
     private ClassLoaderScope classLoaderScope;
@@ -108,17 +108,17 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Override
-    public void generateAccessors(List<DependenciesModelBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings) {
+    public void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings) {
         try {
             this.classLoaderScope = classLoaderScope;
             this.models.clear(); // this is used in tests only, shouldn't happen in real context
-            for (DependenciesModelBuilder builder : builders) {
-                AllDependenciesModel model = ((DependenciesModelBuilderInternal) builder).build();
+            for (VersionCatalogBuilder builder : builders) {
+                DefaultVersionCatalog model = ((VersionCatalogBuilderInternal) builder).build();
                 models.add(model);
             }
-            if (models.stream().anyMatch(AllDependenciesModel::isNotEmpty)) {
+            if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe dependency accessors");
-                for (AllDependenciesModel model : models) {
+                for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
                         writeDependenciesAccessors(model);
                     }
@@ -133,7 +133,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
     }
 
-    private void writeDependenciesAccessors(AllDependenciesModel model) {
+    private void writeDependenciesAccessors(DefaultVersionCatalog model) {
         executeWork(new DependencyAccessorUnitOfWork(model));
     }
 
@@ -201,7 +201,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         ExtensionContainer container = project.getExtensions();
         try {
             if (!models.isEmpty()) {
-                for (AllDependenciesModel model : models) {
+                for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
                         Class<? extends ExternalModuleDependencyFactory> factory;
                         synchronized (this) {
@@ -312,9 +312,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         private static final String IN_MODEL_NAME = "modelName";
         private static final String IN_CLASSPATH = "classpath";
 
-        private final AllDependenciesModel model;
+        private final DefaultVersionCatalog model;
 
-        private DependencyAccessorUnitOfWork(AllDependenciesModel model) {
+        private DependencyAccessorUnitOfWork(DefaultVersionCatalog model) {
             this.model = model;
         }
 
@@ -389,9 +389,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private static class DependenciesAccessorClassSource implements ClassSource {
 
         private final String name;
-        private final AllDependenciesModel model;
+        private final DefaultVersionCatalog model;
 
-        private DependenciesAccessorClassSource(String name, AllDependenciesModel model) {
+        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model) {
             this.name = name;
             this.model = model;
         }

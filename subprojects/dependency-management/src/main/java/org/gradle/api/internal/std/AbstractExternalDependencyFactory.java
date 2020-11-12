@@ -24,33 +24,14 @@ import org.gradle.api.provider.ProviderFactory;
 import javax.inject.Inject;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
-    private final AllDependenciesModel config;
+    private final DefaultVersionCatalog config;
     private final ProviderFactory providers;
 
     @Inject
-    protected AbstractExternalDependencyFactory(AllDependenciesModel config,
+    protected AbstractExternalDependencyFactory(DefaultVersionCatalog config,
                                                 ProviderFactory providers) {
         this.config = config;
         this.providers = providers;
-    }
-
-    /**
-     * Returns a single version string from a rich version
-     * constraint, assuming the user knows what they are doing.
-     * @param name the name of the version alias
-     * @return a single version string or an empty string
-     */
-    protected String getVersion(String name) {
-        ImmutableVersionConstraint version = config.getVersion(name);
-        String requiredVersion = version.getRequiredVersion();
-        if (!requiredVersion.isEmpty()) {
-            return requiredVersion;
-        }
-        String strictVersion = version.getStrictVersion();
-        if (!strictVersion.isEmpty()) {
-            return strictVersion;
-        }
-        return version.getPreferredVersion();
     }
 
     protected Provider<MinimalExternalModuleDependency> create(String alias) {
@@ -59,12 +40,40 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
             .forUseAtConfigurationTime();
     }
 
-    protected Provider<ExternalModuleDependencyBundle> createBundle(String name) {
-        return providers.of(DependencyBundleValueSource.class,
-            spec -> spec.parameters(params -> {
-                params.getConfig().set(config);
-                params.getBundleName().set(name);
-            }))
-            .forUseAtConfigurationTime();
+    protected class VersionFactory {
+        /**
+         * Returns a single version string from a rich version
+         * constraint, assuming the user knows what they are doing.
+         *
+         * @param name the name of the version alias
+         * @return a single version string or an empty string
+         */
+        protected Provider<String> getVersion(String name) {
+            return providers.provider(() -> doGetVersion(name));
+        }
+
+        private String doGetVersion(String name) {
+            ImmutableVersionConstraint version = config.getVersion(name).getVersion();
+            String requiredVersion = version.getRequiredVersion();
+            if (!requiredVersion.isEmpty()) {
+                return requiredVersion;
+            }
+            String strictVersion = version.getStrictVersion();
+            if (!strictVersion.isEmpty()) {
+                return strictVersion;
+            }
+            return version.getPreferredVersion();
+        }
+    }
+
+    protected class BundleFactory {
+        protected Provider<ExternalModuleDependencyBundle> createBundle(String name) {
+            return providers.of(DependencyBundleValueSource.class,
+                spec -> spec.parameters(params -> {
+                    params.getConfig().set(config);
+                    params.getBundleName().set(name);
+                }))
+                .forUseAtConfigurationTime();
+        }
     }
 }
