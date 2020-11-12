@@ -48,11 +48,11 @@ public class MerkleDirectorySnapshotBuilder {
         this.sortingRequired = sortingRequired;
     }
 
-    public void preVisitDirectory(CompleteDirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
-        preVisitDirectory(directorySnapshot.getAccessType(), directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), emptyDirectoryHandlingStrategy);
+    public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+        enterDirectory(directorySnapshot.getAccessType(), directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), emptyDirectoryHandlingStrategy);
     }
 
-    public void preVisitDirectory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+    public void enterDirectory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         directoryStack.addLast(new Directory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy));
     }
 
@@ -60,7 +60,7 @@ public class MerkleDirectorySnapshotBuilder {
         collectEntry(snapshot);
     }
 
-    public boolean postVisitDirectory() {
+    public boolean leaveDirectory() {
         CompleteFileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
         if (snapshot == null) {
             return false;

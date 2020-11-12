@@ -277,13 +277,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         RelativePathParser parser = new RelativePathParser(rootEntry.getName());
 
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-        builder.preVisitDirectory(DIRECT, stringInterner.intern(treeRoot.getAbsolutePath()), stringInterner.intern(treeRoot.getName()), INCLUDE_EMPTY_DIRS);
+        builder.enterDirectory(DIRECT, stringInterner.intern(treeRoot.getAbsolutePath()), stringInterner.intern(treeRoot.getName()), INCLUDE_EMPTY_DIRS);
 
         TarArchiveEntry entry;
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, builder::postVisitDirectory);
+            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, builder::leaveDirectory);
             if (outsideOfRoot) {
                 break;
             }
@@ -295,15 +295,15 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 chmodUnpackedFile(entry, file);
                 String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
                 String internedName = stringInterner.intern(parser.getName());
-                builder.preVisitDirectory(DIRECT, internedAbsolutePath, internedName, INCLUDE_EMPTY_DIRS);
+                builder.enterDirectory(DIRECT, internedAbsolutePath, internedName, INCLUDE_EMPTY_DIRS);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
                 builder.visitLeafElement(fileSnapshot);
             }
         }
 
-        parser.exitToRoot(builder::postVisitDirectory);
-        builder.postVisitDirectory();
+        parser.exitToRoot(builder::leaveDirectory);
+        builder.leaveDirectory();
 
         snapshots.put(treeName, builder.getResult());
         return entry;

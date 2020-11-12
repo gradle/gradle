@@ -213,7 +213,7 @@ public class DirectorySnapshotter {
                 AccessType accessType = AccessType.viaSymlink(
                     !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
                 );
-                builder.preVisitDirectory(accessType, intern(remapAbsolutePath(dir)), fileName, INCLUDE_EMPTY_DIRS);
+                builder.enterDirectory(accessType, intern(remapAbsolutePath(dir)), fileName, INCLUDE_EMPTY_DIRS);
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
             } else {
@@ -333,7 +333,7 @@ public class DirectorySnapshotter {
             if (isNotFileSystemLoopException(exc)) {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
-            builder.postVisitDirectory();
+            builder.leaveDirectory();
             parentDirectories.removeFirst();
             return FileVisitResult.CONTINUE;
         }

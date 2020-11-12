@@ -63,7 +63,7 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {
-            builder.preVisitDirectory(directorySnapshot, INCLUDE_EMPTY_DIRS);
+            builder.enterDirectory(directorySnapshot, INCLUDE_EMPTY_DIRS);
         }
 
         @Override
@@ -103,7 +103,7 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {
-            builder.postVisitDirectory();
+            builder.leaveDirectory();
         }
     }
 }

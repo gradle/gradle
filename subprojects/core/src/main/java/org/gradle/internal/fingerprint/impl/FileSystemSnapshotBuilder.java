@@ -142,7 +142,7 @@ public class FileSystemSnapshotBuilder {
         }
 
         public void accept(String directoryPath, String directoryName, MerkleDirectorySnapshotBuilder builder) {
-            builder.preVisitDirectory(determineAccessTypeForLocation(directoryPath), directoryPath, directoryName, INCLUDE_EMPTY_DIRS);
+            builder.enterDirectory(determineAccessTypeForLocation(directoryPath), directoryPath, directoryName, INCLUDE_EMPTY_DIRS);
             for (Map.Entry<String, DirectoryBuilder> entry : subDirs.entrySet()) {
                 String subDirName = entry.getKey();
                 String subDirPath = stringInterner.intern(directoryPath + File.separatorChar + subDirName);
@@ -151,7 +151,7 @@ public class FileSystemSnapshotBuilder {
             for (RegularFileSnapshot fileSnapshot : files.values()) {
                 builder.visitLeafElement(fileSnapshot);
             }
-            builder.postVisitDirectory();
+            builder.leaveDirectory();
         }
     }
 

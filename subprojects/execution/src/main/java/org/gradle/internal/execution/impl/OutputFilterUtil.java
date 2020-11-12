@@ -152,7 +152,7 @@ public class OutputFilterUtil {
             EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy = isOutputDir
                 ? INCLUDE_EMPTY_DIRS
                 : EXCLUDE_EMPTY_DIRS;
-            merkleBuilder.preVisitDirectory(directorySnapshot, emptyDirectoryHandlingStrategy);
+            merkleBuilder.enterDirectory(directorySnapshot, emptyDirectoryHandlingStrategy);
         }
 
         @Override
@@ -197,7 +197,7 @@ public class OutputFilterUtil {
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
-            boolean includedDir = merkleBuilder.postVisitDirectory();
+            boolean includedDir = merkleBuilder.leaveDirectory();
             if (!includedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;
