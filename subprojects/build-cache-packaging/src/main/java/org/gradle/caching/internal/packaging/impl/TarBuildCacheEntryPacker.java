@@ -283,7 +283,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, (path, name) -> builder.postVisitDirectory());
+            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, builder::postVisitDirectory);
             if (outsideOfRoot) {
                 break;
             }
@@ -302,7 +302,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             }
         }
 
-        parser.exitToRoot((path, name) -> builder.postVisitDirectory());
+        parser.exitToRoot(builder::postVisitDirectory);
         builder.postVisitDirectory();
 
         snapshots.put(treeName, builder.getResult());

@@ -45,7 +45,7 @@ public class RelativePathParser {
         return currentPath.substring(sizeOfCommonPrefix + 1);
     }
 
-    public boolean nextPath(String nextPath, boolean directory, DirectoryExitHandler exitDirectoryHandler) {
+    public boolean nextPath(String nextPath, boolean directory, Runnable exitDirectoryHandler) {
         currentPath = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
         String lastDirPath = directoryPaths.peekLast();
         sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentPath, 0, '/');
@@ -63,16 +63,14 @@ public class RelativePathParser {
         return isRoot();
     }
 
-    private boolean exitDirectory(DirectoryExitHandler exitDirectoryHandler) {
-        String absolutePath = directoryPaths.pollLast();
-        if (absolutePath == null) {
+    private boolean exitDirectory(Runnable exitDirectoryHandler) {
+        if (directoryPaths.pollLast() == null) {
             return true;
         }
-        String name = directoryNames.pollLast();
-        if (name == null) {
+        if (directoryNames.pollLast() == null) {
             return true;
         }
-        exitDirectoryHandler.handleExit(absolutePath, name);
+        exitDirectoryHandler.run();
         return false;
     }
 
@@ -88,15 +86,11 @@ public class RelativePathParser {
         return directoryNames.isEmpty() && currentPath.length() == rootLength;
     }
 
-    public void exitToRoot(DirectoryExitHandler exitDirectoryHandler) {
+    public void exitToRoot(Runnable exitDirectoryHandler) {
         while (true) {
             if (exitDirectory(exitDirectoryHandler)) {
                 break;
             }
         }
-    }
-
-    public interface DirectoryExitHandler {
-        void handleExit(String path, String name);
     }
 }
