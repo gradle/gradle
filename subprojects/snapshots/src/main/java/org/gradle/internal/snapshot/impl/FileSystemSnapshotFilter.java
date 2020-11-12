@@ -33,6 +33,8 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+
 public class FileSystemSnapshotFilter {
 
     private FileSystemSnapshotFilter() {
@@ -61,7 +63,7 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {
-            builder.preVisitDirectory(directorySnapshot);
+            builder.preVisitDirectory(directorySnapshot, INCLUDE_EMPTY_DIRS);
         }
 
         @Override
@@ -101,7 +103,7 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath, String parentName) {
-            builder.postVisitDirectory(directorySnapshot.getAccessType(), parentName);
+            builder.postVisitDirectory();
         }
     }
 }

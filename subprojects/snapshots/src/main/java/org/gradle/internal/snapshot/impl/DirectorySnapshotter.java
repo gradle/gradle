@@ -55,6 +55,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
+import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+
 public class DirectorySnapshotter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirectorySnapshotter.class);
     private static final EnumSet<FileVisitOption> DONT_FOLLOW_SYMLINKS = EnumSet.noneOf(FileVisitOption.class);
@@ -208,7 +210,10 @@ public class DirectorySnapshotter {
             String fileName = getInternedFileName(dir);
             relativePathTracker.enter(fileName);
             if (relativePathTracker.isRoot() || shouldVisit(dir, fileName, true, relativePathTracker.getSegments())) {
-                builder.preVisitDirectory(intern(remapAbsolutePath(dir)));
+                AccessType accessType = AccessType.viaSymlink(
+                    !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
+                );
+                builder.preVisitDirectory(accessType, intern(remapAbsolutePath(dir)), fileName, INCLUDE_EMPTY_DIRS);
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
             } else {
@@ -321,17 +326,14 @@ public class DirectorySnapshotter {
 
         @Override
         protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
-            String internedDirName = relativePathTracker.leave();
+            relativePathTracker.leave();
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
-            AccessType accessType = AccessType.viaSymlink(
-                !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
-            );
-            builder.postVisitDirectory(accessType, internedDirName);
+            builder.postVisitDirectory();
             parentDirectories.removeFirst();
             return FileVisitResult.CONTINUE;
         }

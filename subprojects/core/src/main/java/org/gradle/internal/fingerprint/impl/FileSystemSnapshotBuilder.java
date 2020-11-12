@@ -33,6 +33,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+
 public class FileSystemSnapshotBuilder {
 
     private final Interner<String> stringInterner;
@@ -140,7 +142,7 @@ public class FileSystemSnapshotBuilder {
         }
 
         public void accept(String directoryPath, String directoryName, MerkleDirectorySnapshotBuilder builder) {
-            builder.preVisitDirectory(directoryPath);
+            builder.preVisitDirectory(determineAccessTypeForLocation(directoryPath), directoryPath, directoryName, INCLUDE_EMPTY_DIRS);
             for (Map.Entry<String, DirectoryBuilder> entry : subDirs.entrySet()) {
                 String subDirName = entry.getKey();
                 String subDirPath = stringInterner.intern(directoryPath + File.separatorChar + subDirName);
@@ -149,7 +151,7 @@ public class FileSystemSnapshotBuilder {
             for (RegularFileSnapshot fileSnapshot : files.values()) {
                 builder.visitLeafElement(fileSnapshot);
             }
-            builder.postVisitDirectory(determineAccessTypeForLocation(directoryPath), directoryName);
+            builder.postVisitDirectory();
         }
     }
 
