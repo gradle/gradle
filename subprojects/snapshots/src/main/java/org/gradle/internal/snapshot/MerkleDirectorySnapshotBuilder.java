@@ -60,6 +60,10 @@ public class MerkleDirectorySnapshotBuilder {
         collectEntry(snapshot);
     }
 
+    public void collectCompleteDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        collectEntry(directorySnapshot);
+    }
+
     public boolean leaveDirectory() {
         CompleteFileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
         if (snapshot == null) {

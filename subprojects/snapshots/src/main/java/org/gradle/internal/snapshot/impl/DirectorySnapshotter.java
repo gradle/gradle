@@ -17,14 +17,17 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -35,6 +38,7 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +55,6 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
@@ -60,6 +63,23 @@ import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyD
 public class DirectorySnapshotter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirectorySnapshotter.class);
     private static final EnumSet<FileVisitOption> DONT_FOLLOW_SYMLINKS = EnumSet.noneOf(FileVisitOption.class);
+    private static final SymbolicLinkMappings EMPTY_MAPPINGS = new SymbolicLinkMappings() {
+
+        @Override
+        public String remapAbsolutePath(Path path) {
+            return path.toString();
+        }
+
+        @Override
+        public SymbolicLinkMappings withNewMapping(String source, String target, RelativePathTracker currentRelativePathTracker) {
+            return new DefaultSymbolicLinkMappings(ImmutableList.of(new SymbolicLinkMapping(source, target)), currentRelativePathTracker.getSegments());
+        }
+
+        @Override
+        public Iterable<String> getRemappedSegments(Iterable<String> segments) {
+            return segments;
+        }
+    };
 
     private final FileHasher hasher;
     private final Interner<String> stringInterner;
@@ -76,7 +96,7 @@ public class DirectorySnapshotter {
     public CompleteFileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
         try {
             Path rootPath = Paths.get(absolutePath);
-            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector);
+            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_MAPPINGS);
             Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
             return visitor.getResult();
         } catch (IOException e) {
@@ -93,14 +113,14 @@ public class DirectorySnapshotter {
             this.target = target;
         }
 
-        Optional<String> remapPath(String absolutePath) {
+        String remapPath(String absolutePath) {
             if (absolutePath.equals(target)) {
-                return Optional.of(source);
+                return source;
             }
             if (absolutePath.startsWith(target) && absolutePath.charAt(target.length()) == File.separatorChar) {
-                return Optional.of(source + File.separatorChar + absolutePath.substring(target.length() + 1));
+                return source + File.separatorChar + absolutePath.substring(target.length() + 1);
             }
-            return Optional.empty();
+            throw new IllegalArgumentException("Cannot remap path '" + absolutePath + "' which does not have '" + target + "' as a prefix");
         }
     }
 
@@ -177,6 +197,46 @@ public class DirectorySnapshotter {
         }
     }
 
+    private interface SymbolicLinkMappings {
+        String remapAbsolutePath(Path path);
+        @CheckReturnValue
+        SymbolicLinkMappings withNewMapping(String source, String target, RelativePathTracker currentRelativePathTracker);
+        Iterable<String> getRemappedSegments(Iterable<String> segments);
+    }
+
+    private static class DefaultSymbolicLinkMappings implements SymbolicLinkMappings {
+        private final ImmutableList<SymbolicLinkMapping> symbolicLinkMappings;
+        private final Iterable<String> prefixRelativePath;
+
+        public DefaultSymbolicLinkMappings(ImmutableList<SymbolicLinkMapping> symbolicLinkMappings, Iterable<String> prefixRelativePath) {
+            this.symbolicLinkMappings = symbolicLinkMappings;
+            this.prefixRelativePath = prefixRelativePath;
+        }
+
+        @Override
+        public String remapAbsolutePath(Path dir) {
+            String targetAbsolutePath = dir.toString();
+            for (SymbolicLinkMapping symbolicLinkMapping : symbolicLinkMappings) {
+                targetAbsolutePath = symbolicLinkMapping.remapPath(targetAbsolutePath);
+            }
+            return targetAbsolutePath;
+        }
+
+        @Override
+        public SymbolicLinkMappings withNewMapping(String source, String target, RelativePathTracker currentRelativePathTracker) {
+            ImmutableList<SymbolicLinkMapping> newMappings = ImmutableList.<SymbolicLinkMapping>builderWithExpectedSize(symbolicLinkMappings.size() + 1)
+                .add(new SymbolicLinkMapping(source, target))
+                .addAll(symbolicLinkMappings)
+                .build();
+            return new DefaultSymbolicLinkMappings(newMappings, getRemappedSegments(currentRelativePathTracker.getSegments()));
+        }
+
+        @Override
+        public Iterable<String> getRemappedSegments(Iterable<String> segments) {
+            return Iterables.concat(prefixRelativePath, segments);
+        }
+    }
+
     private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
         private final RelativePathTracker relativePathTracker = new RelativePathTracker();
         private final MerkleDirectorySnapshotBuilder builder;
@@ -185,7 +245,7 @@ public class DirectorySnapshotter {
         private final FileHasher hasher;
         private final Interner<String> stringInterner;
         private final DefaultExcludes defaultExcludes;
-        private final Deque<SymbolicLinkMapping> symbolicLinkMappings = new ArrayDeque<>();
+        private final SymbolicLinkMappings symbolicLinkMappings;
         private final Deque<String> parentDirectories = new ArrayDeque<>();
 
         public PathVisitor(
@@ -194,7 +254,8 @@ public class DirectorySnapshotter {
             FileHasher hasher,
             Interner<String> stringInterner,
             DefaultExcludes defaultExcludes,
-            DirectorySnapshotterStatistics.Collector statisticsCollector
+            DirectorySnapshotterStatistics.Collector statisticsCollector,
+            SymbolicLinkMappings symbolicLinkMappings
         ) {
             super(statisticsCollector);
             this.builder = MerkleDirectorySnapshotBuilder.sortingRequired();
@@ -203,6 +264,7 @@ public class DirectorySnapshotter {
             this.hasher = hasher;
             this.stringInterner = stringInterner;
             this.defaultExcludes = defaultExcludes;
+            this.symbolicLinkMappings = symbolicLinkMappings;
         }
 
         @Override
@@ -210,10 +272,7 @@ public class DirectorySnapshotter {
             String fileName = getInternedFileName(dir);
             relativePathTracker.enter(fileName);
             if (relativePathTracker.isRoot() || shouldVisit(dir, fileName, true, relativePathTracker.getSegments())) {
-                AccessType accessType = AccessType.viaSymlink(
-                    !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
-                );
-                builder.enterDirectory(accessType, intern(remapAbsolutePath(dir)), fileName, INCLUDE_EMPTY_DIRS);
+                builder.enterDirectory(AccessType.DIRECT, intern(symbolicLinkMappings.remapAbsolutePath(dir)), fileName, INCLUDE_EMPTY_DIRS);
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
             } else {
@@ -236,9 +295,26 @@ public class DirectorySnapshotter {
                             if (introducesCycle(targetDirString)) {
                                 return FileVisitResult.CONTINUE;
                             }
-                            symbolicLinkMappings.addFirst(new SymbolicLinkMapping(file.toString(), targetDirString));
-                            Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, this);
-                            symbolicLinkMappings.removeFirst();
+                            if (relativePathTracker.isRoot() || shouldVisit(targetDir, internedFileName, true, relativePathTracker.getSegments())) {
+                                PathVisitor subtreeVisitor = new PathVisitor(
+                                    predicate,
+                                    hasBeenFiltered,
+                                    hasher,
+                                    stringInterner,
+                                    defaultExcludes,
+                                    collector,
+                                    symbolicLinkMappings.withNewMapping(file.toString(), targetDirString, relativePathTracker)
+                                );
+                                Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, subtreeVisitor);
+                                CompleteDirectorySnapshot result = (CompleteDirectorySnapshot) subtreeVisitor.getResult();
+                                builder.collectCompleteDirectory(new CompleteDirectorySnapshot(
+                                    intern(symbolicLinkMappings.remapAbsolutePath(file)),
+                                    internedFileName,
+                                    AccessType.VIA_SYMLINK,
+                                    result.getHash(),
+                                    result.getChildren()
+                                ));
+                            }
                         } catch (IOException e) {
                             throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
                         }
@@ -256,16 +332,6 @@ public class DirectorySnapshotter {
 
         private boolean introducesCycle(String targetDirString) {
             return parentDirectories.contains(targetDirString);
-        }
-
-        private String remapAbsolutePath(Path dir) {
-            String targetAbsolutePath = dir.toString();
-            return symbolicLinkMappings.stream()
-                .map(mapping -> mapping.remapPath(targetAbsolutePath))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findFirst()
-                .orElse(targetAbsolutePath);
         }
 
         private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
@@ -286,7 +352,7 @@ public class DirectorySnapshotter {
         }
 
         private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
-            String internedRemappedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
+            String internedRemappedAbsoluteFilePath = intern(symbolicLinkMappings.remapAbsolutePath(absoluteFilePath));
             if (attrs.isRegularFile()) {
                 try {
                     long lastModified = attrs.lastModifiedTime().toMillis();
@@ -363,7 +429,7 @@ public class DirectorySnapshotter {
             if (predicate == null) {
                 return true;
             }
-            boolean allowed = predicate.test(path, internedName, isDirectory, relativePath);
+            boolean allowed = predicate.test(path, internedName, isDirectory, symbolicLinkMappings.getRemappedSegments(relativePath));
             if (!allowed) {
                 hasBeenFiltered.set(true);
             }

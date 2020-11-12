@@ -104,7 +104,7 @@ public interface DirectorySnapshotterStatistics {
     }
 
     abstract class CollectingFileVisitor implements FileVisitor<Path> {
-        private final Collector collector;
+        protected final Collector collector;
 
         public CollectingFileVisitor(Collector collector) {
             this.collector = collector;
@@ -112,7 +112,7 @@ public interface DirectorySnapshotterStatistics {
         }
 
         @Override
-        public final FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        public final FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             collector.recordVisitDirectory();
             return doPreVisitDirectory(dir, attrs);
         }
@@ -120,7 +120,7 @@ public interface DirectorySnapshotterStatistics {
         protected abstract FileVisitResult doPreVisitDirectory(Path dir, BasicFileAttributes attrs);
 
         @Override
-        public final FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        public final FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             collector.recordVisitFile();
             return doVisitFile(file, attrs);
         }
@@ -128,7 +128,7 @@ public interface DirectorySnapshotterStatistics {
         protected abstract FileVisitResult doVisitFile(Path file, BasicFileAttributes attrs);
 
         @Override
-        public final FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+        public final FileVisitResult visitFileFailed(Path file, IOException exc) {
             collector.recordVisitFileFailed();
             return doVisitFileFailed(file, exc);
         }
@@ -136,7 +136,7 @@ public interface DirectorySnapshotterStatistics {
         protected abstract FileVisitResult doVisitFileFailed(Path file, IOException exc);
 
         @Override
-        public final FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+        public final FileVisitResult postVisitDirectory(Path dir, IOException exc) {
             return doPostVisitDirectory(dir, exc);
         }
 
