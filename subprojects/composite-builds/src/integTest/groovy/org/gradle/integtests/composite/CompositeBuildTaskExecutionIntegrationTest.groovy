@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -200,7 +199,6 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         succeeds(":other-build:doSomething", "--content", "do something")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "can list tasks from included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
