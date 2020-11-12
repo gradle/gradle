@@ -32,6 +32,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -101,8 +102,8 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         result.artifactEntryCount == 123
         result.metadata.originMetadata == originMetadata
         result.metadata.resultingSnapshots.keySet() as List == ["outputDir", "outputFile"]
-        result.metadata.resultingSnapshots["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
-        result.metadata.resultingSnapshots["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+        SnapshotVisitorUtil.getAbsolutePaths(result.metadata.resultingSnapshots["outputFile"], true) == [outputFile.absolutePath]
+        SnapshotVisitorUtil.getAbsolutePaths(result.metadata.resultingSnapshots["outputDir"], true) == [outputDir.absolutePath, outputDirFile.absolutePath]
         0 * _
     }
 
