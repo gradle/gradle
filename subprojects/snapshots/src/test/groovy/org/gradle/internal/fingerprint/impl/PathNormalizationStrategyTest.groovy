@@ -116,22 +116,13 @@ class PathNormalizationStrategyTest extends Specification {
         fingerprints[missingFile]                   == missingFile.name
     }
 
-    def "sensitivity ABSOLUTE (include missing = true)"() {
-        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
+    def "sensitivity ABSOLUTE"() {
+        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.INSTANCE)
         expect:
         allFilesToFingerprint.each { file ->
             assert fingerprints[file] == file.absolutePath
         }
         fingerprints.size() == allFilesToFingerprint.size()
-    }
-
-    def "sensitivity ABSOLUTE (include missing = false)"() {
-        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
-        expect:
-        (allFilesToFingerprint - missingFile).each { file ->
-            assert fingerprints[file] == file.absolutePath
-        }
-        fingerprints.size() == allFilesToFingerprint.size() - 1
     }
 
     List<File> getAllFilesToFingerprint() {

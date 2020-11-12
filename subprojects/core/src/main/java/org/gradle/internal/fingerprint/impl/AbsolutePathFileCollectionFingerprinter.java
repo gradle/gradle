@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
     public AbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING, fileCollectionSnapshotter);
+        super(AbsolutePathFingerprintingStrategy.INSTANCE, fileCollectionSnapshotter);
     }
 
     @Override
