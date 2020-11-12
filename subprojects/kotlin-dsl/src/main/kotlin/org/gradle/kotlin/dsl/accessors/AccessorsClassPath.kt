@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -148,7 +147,7 @@ class GenerateProjectAccessors(
         return UnitOfWork.Identity { identityHash }
     }
 
-    override fun getWorkspaceProvider() = workspaceProvider
+    override fun getWorkspaceProvider() = workspaceProvider.accessors
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
@@ -531,14 +530,6 @@ fun inaccessible(type: SchemaType, reasons: List<InaccessibilityReason>): TypeAc
 private
 fun classLoaderScopeOf(project: Project) =
     (project as ProjectInternal).classLoaderScope
-
-
-internal
-const val accessorsWorkspacePrefix = "accessors"
-
-
-internal
-val accessorsCacheKeySpecPrefix = CacheKeySpec.withPrefix(accessorsWorkspacePrefix)
 
 
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {

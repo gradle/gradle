@@ -395,7 +395,7 @@ class CompileKotlinScript(
         classesDir(workspace)
 
     override fun getWorkspaceProvider(): WorkspaceProvider =
-        workspaceProvider
+        workspaceProvider.scripts
 
     private
     fun classesDir(workspace: File) =
