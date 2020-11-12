@@ -694,6 +694,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             $classAnnotations
             public class $className {
                 $classBody
+                // so tests compiling similar scripts against the same java class definitions are isolated from each other
+                public static final int CACHE_BUSTER_${cacheBuster.toString().replace('-', '_')} = 42;
             }
             """
         )
