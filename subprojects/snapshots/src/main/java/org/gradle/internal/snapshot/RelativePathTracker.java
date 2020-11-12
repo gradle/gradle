@@ -42,12 +42,13 @@ public class RelativePathTracker implements RelativePathSupplier {
         }
     }
 
-    public void leave() {
-        if (segments.isEmpty()) {
+    public String leave() {
+        String name = segments.pollLast();
+        if (name == null) {
+            name = rootName;
             rootName = null;
-        } else {
-            segments.removeLast();
         }
+        return name;
     }
 
     @Override
@@ -60,13 +61,31 @@ public class RelativePathTracker implements RelativePathSupplier {
         return segments;
     }
 
+    public String toAbsolutePath() {
+        if (segments.isEmpty()) {
+            return rootName;
+        } else {
+            int length = rootName.length() + segments.size();
+            for (String segment : segments) {
+                length += segment.length();
+            }
+            StringBuilder buffer = new StringBuilder(length);
+            buffer.append(rootName);
+            for (String segment : segments) {
+                buffer.append('/');
+                buffer.append(segment);
+            }
+            return buffer.toString();
+        }
+    }
+
     @Override
     public String toPathString() {
         switch (segments.size()) {
             case 0:
                 return "";
             case 1:
-                return segments.peek();
+                return segments.getLast();
             default:
                 int length = segments.size() - 1;
                 for (String segment : segments) {

@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.execution.history.changes.AbstractCompareStrategy.ChangeDetector;
-import org.gradle.internal.execution.history.changes.AbstractCompareStrategy.ChangeFactory;
+import org.gradle.internal.execution.history.changes.CompareStrategy.ChangeDetector;
+import org.gradle.internal.execution.history.changes.CompareStrategy.ChangeFactory;
 
 import java.util.Map;
 

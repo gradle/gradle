@@ -25,8 +25,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.util.Optional;
 
@@ -49,7 +48,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     }
 
     private void storeState(C context, ExecutionHistoryStore executionHistoryStore, String uniqueId, CurrentSnapshotResult result) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
+        ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs = result.getFinalOutputs();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
             boolean successful = result.getExecutionResult().isSuccessful();
             // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
@@ -71,14 +70,14 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static boolean didChangeOutput(Optional<AfterPreviousExecutionState> afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+    private static boolean didChangeOutput(Optional<AfterPreviousExecutionState> afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> current) {
         // If there is no previous state, then we do have output changes
         if (!afterPreviousExecutionState.isPresent()) {
             return true;
         }
 
         // If there are different output properties compared to the previous execution, then we do have output changes
-        ImmutableSortedMap<String, FileCollectionFingerprint> previous = afterPreviousExecutionState.get().getOutputFileProperties();
+        ImmutableSortedMap<String, FileSystemSnapshot> previous = afterPreviousExecutionState.get().getOutputFileProperties();
         if (!previous.keySet().equals(current.keySet())) {
             return true;
         }

@@ -22,8 +22,8 @@ import spock.lang.Unroll
 
 class TrivialChangeDetectorTest extends Specification {
     def itemComparator = Mock(TrivialChangeDetector.ItemComparator)
-    def changeFactory = Mock(AbstractCompareStrategy.ChangeFactory)
-    def delegate = Mock(AbstractCompareStrategy.ChangeDetector)
+    def changeFactory = Mock(CompareStrategy.ChangeFactory)
+    def delegate = Mock(CompareStrategy.ChangeDetector)
     def detector = new TrivialChangeDetector(itemComparator, changeFactory, delegate)
 
     def change = Mock(Change)

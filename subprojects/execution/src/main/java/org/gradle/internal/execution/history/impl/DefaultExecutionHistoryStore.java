@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -29,6 +29,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -45,10 +46,12 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        Interner<String> stringInterner
     ) {
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
-            new FileCollectionFingerprintSerializer(stringInterner));
+            new FileCollectionFingerprintSerializer(stringInterner),
+            new FileSystemSnapshotSerializer(stringInterner)
+        );
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
         this.store = cache.get().createCache(
@@ -70,7 +73,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties,
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
         boolean successful
     ) {
         store.put(key, new DefaultAfterPreviousExecutionState(
@@ -79,7 +82,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
             additionalImplementations,
             inputProperties,
             prepareForSerialization(inputFileProperties),
-            prepareForSerialization(outputFileProperties),
+            outputFileProperties,
             successful
         ));
     }

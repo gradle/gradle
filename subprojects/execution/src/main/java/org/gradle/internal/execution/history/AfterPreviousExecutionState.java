@@ -19,6 +19,7 @@ package org.gradle.internal.execution.history;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
  * A execution state after the previous execution has finished.
@@ -39,5 +40,5 @@ public interface AfterPreviousExecutionState extends ExecutionState {
     ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();
 
     @Override
-    ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFileProperties();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileProperties();
 }

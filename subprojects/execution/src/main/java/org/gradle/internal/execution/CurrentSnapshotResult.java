@@ -18,16 +18,17 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public interface CurrentSnapshotResult extends SnapshotResult {
     /**
      * Get the snapshots of the outputs of the finished work execution.
+     * @return
      */
     // TODO This shouldn't be represented as a map of CurrentFileCollectionFingerprint objects,
     //      but of CompleteFileSystemLocationSnapshot objects
     @Override
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
+    ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs();
 
     /**
      * Returns the origin metadata of the finished work's output.

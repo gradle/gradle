@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
@@ -41,9 +41,9 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
     private static final byte REGULAR_FILE_FINGERPRINT = 3;
 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
 
-    public FingerprintMapSerializer(StringInterner stringInterner) {
+    public FingerprintMapSerializer(Interner<String> stringInterner) {
         this.stringInterner = stringInterner;
     }
 

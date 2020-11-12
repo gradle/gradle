@@ -17,12 +17,11 @@
 package org.gradle.internal.fingerprint.overlap;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
 
 public interface OverlappingOutputDetector {
     @Nullable
-    OverlappingOutputs detect(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, FileSystemSnapshot> current);
+    OverlappingOutputs detect(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current);
 }

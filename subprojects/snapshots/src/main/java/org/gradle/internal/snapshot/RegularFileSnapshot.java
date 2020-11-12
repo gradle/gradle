@@ -55,11 +55,15 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
 
     @Override
     public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
+        return isContentUpToDate(other) && metadata.equals(((RegularFileSnapshot) other).metadata);
+    }
+
+    @Override
+    public boolean isContentUpToDate(CompleteFileSystemLocationSnapshot other) {
         if (!(other instanceof RegularFileSnapshot)) {
             return false;
         }
-        RegularFileSnapshot otherSnapshot = (RegularFileSnapshot) other;
-        return metadata.equals(otherSnapshot.metadata) && contentHash.equals(otherSnapshot.contentHash);
+        return contentHash.equals(((RegularFileSnapshot) other).contentHash);
     }
 
     @Override

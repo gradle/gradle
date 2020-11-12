@@ -19,15 +19,12 @@ package org.gradle.internal.execution.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -36,15 +33,16 @@ import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisit
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
 import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.SnapshotUtil.index;
 
 /**
- * Filters out fingerprints that are not considered outputs. Entries that are considered outputs are:
+ * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
  * <ul>
  * <li>an entry that did not exist before the execution, but exists after the execution</li>
  * <li>an entry that did exist before the execution, and has been changed during the execution</li>
@@ -53,28 +51,28 @@ import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyD
  */
 public class OutputFilterUtil {
 
-    public static FileSystemSnapshot filterOutputSnapshotBeforeExecution(FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot) {
-        Map<String, FileSystemLocationFingerprint> fingerprints = afterLastExecutionFingerprint.getFingerprints();
+    public static FileSystemSnapshot filterOutputSnapshotBeforeExecution(FileSystemSnapshot afterLastExecutionSnapshot, FileSystemSnapshot beforeExecutionOutputSnapshot) {
+        Map<String, CompleteFileSystemLocationSnapshot> afterLastExecutionSnapshots = index(afterLastExecutionSnapshot);
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) ->
             (!isRoot || snapshot.getType() != FileType.Missing)
-                && fingerprints.containsKey(snapshot.getAbsolutePath())
+                && afterLastExecutionSnapshots.containsKey(snapshot.getAbsolutePath())
         );
         beforeExecutionOutputSnapshot.accept(filteringVisitor);
         return CompositeFileSystemSnapshot.of(filteringVisitor.getNewRoots());
     }
 
-    public static FileSystemSnapshot filterOutputSnapshotAfterExecution(@Nullable FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot, FileSystemSnapshot afterExecutionOutputSnapshot) {
-        Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecutionOutputSnapshot);
-        if (beforeExecutionSnapshots.isEmpty()) {
+    public static FileSystemSnapshot filterOutputSnapshotAfterExecution(@Nullable FileSystemSnapshot afterLastExecutionSnapshot, FileSystemSnapshot beforeExecutionOutputSnapshot, FileSystemSnapshot afterExecutionOutputSnapshot) {
+        Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshotIndex = index(beforeExecutionOutputSnapshot);
+        if (beforeExecutionSnapshotIndex.isEmpty()) {
             return afterExecutionOutputSnapshot;
         }
 
-        Map<String, FileSystemLocationFingerprint> afterLastExecutionFingerprints = afterLastExecutionFingerprint != null
-            ? afterLastExecutionFingerprint.getFingerprints()
+        Map<String, CompleteFileSystemLocationSnapshot> afterLastExecutionSnapshotIndex = afterLastExecutionSnapshot != null
+            ? index(afterLastExecutionSnapshot)
             : ImmutableMap.of();
 
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
-            isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot)
+            isOutputEntry(afterLastExecutionSnapshotIndex.keySet(), beforeExecutionSnapshotIndex, afterExecutionSnapshot, isRoot)
         );
         afterExecutionOutputSnapshot.accept(filteringVisitor);
 
@@ -86,16 +84,10 @@ public class OutputFilterUtil {
         }
     }
 
-    private static Map<String, CompleteFileSystemLocationSnapshot> getAllSnapshots(FileSystemSnapshot fingerprint) {
-        GetAllSnapshotsVisitor allSnapshotsVisitor = new GetAllSnapshotsVisitor();
-        fingerprint.accept(allSnapshotsVisitor);
-        return allSnapshotsVisitor.getSnapshots();
-    }
-
     /**
      * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
      */
-    private static boolean isOutputEntry(Map<String, FileSystemLocationFingerprint> afterPreviousExecutionFingerprints, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
+    private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
         if (isRoot) {
             switch (afterExecutionSnapshot.getType()) {
                 case Missing:
@@ -117,21 +109,7 @@ public class OutputFilterUtil {
             return true;
         }
         // Did we already consider it as an output after the previous execution?
-        return afterPreviousExecutionFingerprints.containsKey(afterExecutionSnapshot.getAbsolutePath());
-    }
-
-    private static class GetAllSnapshotsVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<>();
-
-        @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            snapshots.put(snapshot.getAbsolutePath(), snapshot);
-            return SnapshotVisitResult.CONTINUE;
-        }
-
-        public Map<String, CompleteFileSystemLocationSnapshot> getSnapshots() {
-            return snapshots;
-        }
+        return afterPreviousExecutionLocations.contains(afterExecutionSnapshot.getAbsolutePath());
     }
 
     private static class SnapshotFilteringVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {

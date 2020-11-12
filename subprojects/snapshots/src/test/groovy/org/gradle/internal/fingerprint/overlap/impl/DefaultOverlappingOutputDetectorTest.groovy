@@ -19,9 +19,6 @@ package org.gradle.internal.fingerprint.overlap.impl
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -34,8 +31,8 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
     def detector = new DefaultOverlappingOutputDetector()
 
     def "detects no overlap when there are none"() {
-        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileCollectionFingerprint> of(
-            "output", AbsolutePathFingerprintingStrategy.INCLUDE_MISSING.emptyFingerprint
+        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+            "output", FileSystemSnapshot.EMPTY
         )
         def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "output", FileSystemSnapshot.EMPTY
@@ -46,8 +43,8 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
 
     def "detects overlap when there is a stale root"() {
         def staleFileAddedBetweenExecutions = new RegularFileSnapshot("/absolute/path", "path", HashCode.fromInt(1234), DefaultFileMetadata.file(0, 0, AccessType.DIRECT))
-        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileCollectionFingerprint>of(
-            "output", AbsolutePathFingerprintingStrategy.INCLUDE_MISSING.emptyFingerprint
+        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+            "output", FileSystemSnapshot.EMPTY
         )
         def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot>of(
             "output", staleFileAddedBetweenExecutions
@@ -63,15 +60,12 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
 
     @Unroll
     def "detects overlap when there is a stale #type in an output directory"() {
-        def emptyDirectoryFingerprint = DefaultCurrentFileCollectionFingerprint.from(
-            new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(123), []),
-            AbsolutePathFingerprintingStrategy.INCLUDE_MISSING
-        )
+        def emptyDirectory = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(123), [])
         def directoryWithStaleBrokenSymlink = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(123), [
             staleEntry
         ])
-        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileCollectionFingerprint> of(
-            "output", emptyDirectoryFingerprint
+        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+            "output", emptyDirectory
         )
         def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "output", directoryWithStaleBrokenSymlink

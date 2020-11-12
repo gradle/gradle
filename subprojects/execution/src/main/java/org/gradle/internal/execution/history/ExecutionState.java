@@ -19,6 +19,7 @@ package org.gradle.internal.execution.history;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -46,5 +47,5 @@ public interface ExecutionState {
     /**
      * The file outputs.
      */
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFileProperties();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileProperties();
 }

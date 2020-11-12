@@ -27,9 +27,6 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -39,7 +36,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformEntries;
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution;
-import static org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
@@ -61,9 +57,9 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = operation(
+        ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs = operation(
             operationContext -> {
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputSnapshots = captureOutputs(work, context);
+                ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return outputSnapshots;
             },
@@ -76,7 +72,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
 
         return new CurrentSnapshotResult() {
             @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+            public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
                 return finalOutputs;
             }
 
@@ -97,13 +93,13 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
         };
     }
 
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(UnitOfWork work, BeforeExecutionContext context) {
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints = context.getAfterPreviousExecutionState()
+    private ImmutableSortedMap<String, FileSystemSnapshot> captureOutputs(UnitOfWork work, BeforeExecutionContext context) {
+        ImmutableSortedMap<String, FileSystemSnapshot> afterPreviousExecutionOutputSnapshots = context.getAfterPreviousExecutionState()
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
         ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
-            .map(BeforeExecutionState::getOutputFileSnapshots)
+            .map(BeforeExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
         boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
@@ -120,13 +116,13 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
 
                 FileSystemSnapshot filteredSnapshots;
                 if (hasDetectedOverlappingOutputs) {
-                    FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);
+                    FileSystemSnapshot afterLastExecutionSnapshot = afterPreviousExecutionOutputSnapshots.get(propertyName);
                     FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
-                    filteredSnapshots = filterOutputSnapshotAfterExecution(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot);
+                    filteredSnapshots = filterOutputSnapshotAfterExecution(afterLastExecutionSnapshot, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot);
                 } else {
                     filteredSnapshots = afterExecutionOutputSnapshot;
                 }
-                return DefaultCurrentFileCollectionFingerprint.from(filteredSnapshots, IGNORE_MISSING);
+                return filteredSnapshots;
             }
         ));
     }

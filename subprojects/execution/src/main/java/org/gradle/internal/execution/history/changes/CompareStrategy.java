@@ -16,29 +16,34 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import org.gradle.internal.hash.HashCode;
+
 import java.util.Map;
 import java.util.function.Function;
 
-public abstract class AbstractCompareStrategy<C, S> {
+public class CompareStrategy<C, S> {
     private final Function<C, ? extends Map<String, S>> indexer;
+    private final Function<C, ? extends Multimap<String, HashCode>> rootHasher;
     private final ChangeDetector<S> changeDetector;
 
-    public AbstractCompareStrategy(
+    public CompareStrategy(
         Function<C, ? extends Map<String, S>> indexer,
+        Function<C, ? extends Multimap<String, HashCode>> rootHasher,
         ChangeDetector<S> changeDetector
     ) {
         this.indexer = indexer;
+        this.rootHasher = rootHasher;
         this.changeDetector = changeDetector;
     }
 
     public boolean visitChangesSince(C previous, C current, String propertyTitle, ChangeVisitor visitor) {
-        if (hasSameRootHashes(previous, current)) {
+        if (Iterables.elementsEqual(rootHasher.apply(previous).entries(), rootHasher.apply(current).entries())) {
             return true;
         }
         return changeDetector.visitChangesSince(indexer.apply(previous), indexer.apply(current), propertyTitle, visitor);
     }
-
-    protected abstract boolean hasSameRootHashes(C previous, C current);
 
     public interface ChangeDetector<S> {
         boolean visitChangesSince(Map<String, S> previous, Map<String, S> current, String propertyTitle, ChangeVisitor visitor);

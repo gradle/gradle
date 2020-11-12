@@ -19,8 +19,9 @@ package org.gradle.internal.execution.impl;
 import com.google.common.collect.Ordering;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.SnapshotUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +50,9 @@ public class OutputsCleaner {
         this.directoriesToDelete = new PriorityQueue<>(10, Ordering.natural().reverse());
     }
 
-    public void cleanupOutputs(FileCollectionFingerprint fileCollectionFingerprint) throws IOException {
-        for (Map.Entry<String, FileSystemLocationFingerprint> entry : fileCollectionFingerprint.getFingerprints().entrySet()) {
+    public void cleanupOutputs(FileSystemSnapshot snapshot) throws IOException {
+        // TODO We could make this faster by visiting the snapshot
+        for (Map.Entry<String, CompleteFileSystemLocationSnapshot> entry : SnapshotUtil.index(snapshot).entrySet()) {
             cleanupOutput(new File(entry.getKey()), entry.getValue().getType());
         }
         cleanupDirectories();

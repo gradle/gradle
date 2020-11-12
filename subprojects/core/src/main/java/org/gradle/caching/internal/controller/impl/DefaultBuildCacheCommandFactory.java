@@ -29,10 +29,6 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -91,7 +87,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
             fileSystemAccess.write(roots.build(), () -> {});
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
             // TODO: Update the snapshots from the action
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
+            ImmutableSortedMap<String, FileSystemSnapshot> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
             return new Result<LoadMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -107,7 +103,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
                         }
 
                         @Override
-                        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
+                        public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
                             return snapshots;
                         }
                     };
@@ -115,9 +111,8 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
             };
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends CompleteFileSystemLocationSnapshot> treeSnapshots) {
-            ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
-            FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
+        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotUnpackedData(Map<String, ? extends CompleteFileSystemLocationSnapshot> treeSnapshots) {
+            ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
             entity.visitOutputTrees((treeName, type, root) -> {
                 CompleteFileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
@@ -126,7 +121,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
                 if (treeSnapshot == null) {
                     MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, AccessType.DIRECT);
                     fileSystemAccess.record(missingFileSnapshot);
-                    builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
+                    builder.put(treeName, FileSystemSnapshot.EMPTY);
                     return;
                 }
 
@@ -145,7 +140,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
                     default:
                         throw new AssertionError();
                 }
-                builder.put(treeName, DefaultCurrentFileCollectionFingerprint.from(CompositeFileSystemSnapshot.of(roots.build()), fingerprintingStrategy));
+                builder.put(treeName, CompositeFileSystemSnapshot.of(roots.build()));
             });
             return builder.build();
         }

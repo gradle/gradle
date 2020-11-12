@@ -27,7 +27,8 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.SnapshotUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,11 +98,11 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
                 file -> true,
                 dir -> !outputDirectoriesToPreserve.contains(dir)
             );
-            for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
+            for (FileSystemSnapshot snapshot : previousOutputs.getOutputFileProperties().values()) {
                 try {
                     // Previous outputs can be in a different place than the current outputs
-                    outputChangeListener.beforeOutputChange(fileCollectionFingerprint.getRootPaths());
-                    cleaner.cleanupOutputs(fileCollectionFingerprint);
+                    outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(snapshot).keySet());
+                    cleaner.cleanupOutputs(snapshot);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);
                 }

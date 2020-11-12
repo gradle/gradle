@@ -35,7 +35,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                     }
                     cleanLocalState(context.getWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
-                    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
+                    ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs = cacheHit.getResultingSnapshots();
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
                         public Try<ExecutionResult> getExecutionResult() {
@@ -118,7 +118,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         }
 
                         @Override
-                        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                        public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
                             return finalOutputs;
                         }
                     };

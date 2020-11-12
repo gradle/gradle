@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.execution.history.changes.AbstractCompareStrategy.ChangeDetector;
+import org.gradle.internal.execution.history.changes.CompareStrategy.ChangeDetector;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -28,9 +28,9 @@ import java.util.Set;
 public class AbsolutePathChangeDetector<S> implements ChangeDetector<S> {
 
     private final ItemComparator<S> itemComparator;
-    private final AbstractCompareStrategy.ChangeFactory<S> changeFactory;
+    private final CompareStrategy.ChangeFactory<S> changeFactory;
 
-    public AbsolutePathChangeDetector(ItemComparator<S> itemComparator, AbstractCompareStrategy.ChangeFactory<S> changeFactory) {
+    public AbsolutePathChangeDetector(ItemComparator<S> itemComparator, CompareStrategy.ChangeFactory<S> changeFactory) {
         this.itemComparator = itemComparator;
         this.changeFactory = changeFactory;
     }

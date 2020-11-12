@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.Iterables;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
-public abstract class AbstractFingerprintCompareStrategy extends AbstractCompareStrategy<FileCollectionFingerprint, FileSystemLocationFingerprint> implements FingerprintCompareStrategy {
+public abstract class AbstractFingerprintCompareStrategy extends CompareStrategy<FileCollectionFingerprint, FileSystemLocationFingerprint> implements FingerprintCompareStrategy {
 
     protected static final ChangeFactory<FileSystemLocationFingerprint> FINGERPRINT_CHANGE_FACTORY = new ChangeFactory<FileSystemLocationFingerprint>() {
         @Override
@@ -54,12 +53,8 @@ public abstract class AbstractFingerprintCompareStrategy extends AbstractCompare
     public AbstractFingerprintCompareStrategy(ChangeDetector<FileSystemLocationFingerprint> changeDetector) {
         super(
             FileCollectionFingerprint::getFingerprints,
+            FileCollectionFingerprint::getRootHashes,
             new TrivialChangeDetector<>(ITEM_COMPARATOR, FINGERPRINT_CHANGE_FACTORY, changeDetector)
         );
-    }
-
-    @Override
-    protected boolean hasSameRootHashes(FileCollectionFingerprint previous, FileCollectionFingerprint current) {
-        return Iterables.elementsEqual(previous.getRootHashes().entries(), current.getRootHashes().entries());
     }
 }

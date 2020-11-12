@@ -49,6 +49,11 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
 
     @Override
     public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
+        return isContentUpToDate(other);
+    }
+
+    @Override
+    public boolean isContentUpToDate(CompleteFileSystemLocationSnapshot other) {
         return other instanceof MissingFileSnapshot;
     }
 

@@ -59,6 +59,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -195,10 +196,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
         !result.reusedOutputOriginMetadata.present
 
         result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
-        result.finalOutputs["dir"].rootHashes.size() == 1
+        SnapshotVisitorUtil.getRelativePaths(result.finalOutputs["dir"]) == ["some-file", "some-file-2"]
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
-        afterExecution.outputFileProperties.values()*.rootHashes == result.finalOutputs.values()*.rootHashes
+        afterExecution.outputFileProperties == result.finalOutputs
     }
 
     def "work unit is up-to-date if nothing changes"() {
@@ -219,7 +220,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.executionResult.get().outcome == UP_TO_DATE
-        result.finalOutputs.values()*.rootHashes == finalOutputs.values()*.rootHashes
+        result.finalOutputs == finalOutputs
     }
 
     def "out-of-date for an output file change"() {

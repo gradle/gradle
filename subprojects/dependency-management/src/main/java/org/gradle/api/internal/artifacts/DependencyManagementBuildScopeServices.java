@@ -191,7 +191,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ChecksumService;
@@ -226,6 +225,7 @@ import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -861,7 +861,7 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
+                public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
                     return result.getFinalOutputs();
                 }
 

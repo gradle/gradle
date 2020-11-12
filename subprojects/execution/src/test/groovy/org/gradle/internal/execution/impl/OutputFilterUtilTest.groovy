@@ -18,10 +18,6 @@ package org.gradle.internal.execution.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
@@ -33,8 +29,6 @@ import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSn
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
 
 class OutputFilterUtilTest extends Specification {
-
-    private static final FileCollectionFingerprint EMPTY_OUTPUT_FINGERPRINT = AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
@@ -48,7 +42,7 @@ class OutputFilterUtilTest extends Specification {
         outputDir.file()
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir]
 
@@ -56,7 +50,7 @@ class OutputFilterUtilTest extends Specification {
         def outputDirFile = outputDir.file("in-output-dir").createFile()
         virtualFileSystem.invalidateAll()
         def afterExecution = snapshotOutput(outputDir)
-        filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
+        filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
@@ -67,14 +61,14 @@ class OutputFilterUtilTest extends Specification {
         def beforeExecution = snapshotOutput(outputDir)
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir]
 
         when:
         def outputOfCurrent = outputDir.file("outputOfCurrent").createFile()
         def afterExecution = snapshotOutput(outputDir)
-        filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
+        filteredOutputs = filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputOfCurrent]
     }
@@ -82,7 +76,7 @@ class OutputFilterUtilTest extends Specification {
     def "previous outputs remain outputs"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
         def outputDirFile = outputDir.file("outputOfCurrent").createFile()
-        def previousExecution = fingerprintOutput(outputDir)
+        def previousExecution = snapshotOutput(outputDir)
         outputDir.file("outputOfOther").createFile()
         def beforeExecution = snapshotOutput(outputDir)
 
@@ -96,7 +90,7 @@ class OutputFilterUtilTest extends Specification {
         def missingFile = temporaryFolder.file("missing")
         def beforeExecution = snapshotOutput(missingFile)
         expect:
-        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution) == FileSystemSnapshot.EMPTY
+        filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, beforeExecution) == FileSystemSnapshot.EMPTY
     }
 
     def "added empty dir is captured"() {
@@ -104,8 +98,8 @@ class OutputFilterUtilTest extends Specification {
         def afterExecution = snapshotOutput(emptyDir)
         def beforeExecution = FileSystemSnapshot.EMPTY
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [emptyDir]
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterExecution, afterExecution)) == [emptyDir]
+        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [emptyDir]
+        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, afterExecution, afterExecution)) == [emptyDir]
     }
 
     def "updated files in output directory are part of the output"() {
@@ -115,7 +109,7 @@ class OutputFilterUtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = snapshotOutput(outputDir)
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [outputDir, existingFile]
+        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [outputDir, existingFile]
     }
 
     def "updated files are part of the output"() {
@@ -124,20 +118,20 @@ class OutputFilterUtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = snapshotOutput(existingFile)
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [existingFile]
+        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [existingFile]
     }
 
     def "removed files are not considered outputs"() {
         def outputDir = temporaryFolder.createDir("outputDir")
         def outputDirFile = outputDir.file("toBeDeleted").createFile()
-        def afterPreviousExecutionFingerprint = fingerprintOutput(outputDir)
+        def afterPreviousExecutionSnapshot = snapshotOutput(outputDir)
         def beforeExecutionSnapshot = snapshotOutput(outputDir)
         outputDirFile.delete()
         def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(afterPreviousExecutionFingerprint, beforeExecutionSnapshot, afterExecution)) == [outputDir]
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterPreviousExecutionFingerprint, afterExecution)) == [outputDir]
+        collectFiles(filterOutputSnapshotAfterExecution(afterPreviousExecutionSnapshot, beforeExecutionSnapshot, afterExecution)) == [outputDir]
+        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, afterPreviousExecutionSnapshot, afterExecution)) == [outputDir]
     }
 
     def "overlapping directories are not included"() {
@@ -148,13 +142,13 @@ class OutputFilterUtilTest extends Specification {
         def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
+        collectFiles(filterOutputSnapshotAfterExecution(FileSystemSnapshot.EMPTY, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
     }
 
     def "overlapping files are not part of the before execution snapshot"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
         def outputDirFile = outputDir.createFile("outputDirFile")
-        def afterLastExecution = fingerprintOutput(outputDir)
+        def afterLastExecution = snapshotOutput(outputDir)
         outputDir.createFile("not-in-output")
         def beforeExecution = snapshotOutput(outputDir)
 
@@ -167,10 +161,6 @@ class OutputFilterUtilTest extends Specification {
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         fileSystemAccess.read(output.getAbsolutePath(), result.&set)
         return result.get()
-    }
-
-    private CurrentFileCollectionFingerprint fingerprintOutput(File outputDir) {
-        DefaultCurrentFileCollectionFingerprint.from(snapshotOutput(outputDir), AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
     }
 
     List<File> collectFiles(FileSystemSnapshot fileSystemSnapshots) {

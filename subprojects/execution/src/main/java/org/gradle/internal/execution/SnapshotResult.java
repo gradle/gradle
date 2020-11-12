@@ -17,8 +17,8 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public interface SnapshotResult extends Result {
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
+    ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs();
 }
