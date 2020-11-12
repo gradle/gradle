@@ -16,6 +16,10 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
+import org.gradle.internal.hash.HashCode;
+
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -68,5 +72,14 @@ public class SnapshotUtil {
                 return ReadOnlyFileSystemNode.EMPTY;
             }
         });
+    }
+
+    public static ImmutableMultimap<String, HashCode> getRootHashes(FileSystemSnapshot roots) {
+        ImmutableMultimap.Builder<String, HashCode> builder = ImmutableListMultimap.builder();
+        roots.accept(snapshot -> {
+            builder.put(snapshot.getAbsolutePath(), snapshot.getHash());
+            return SnapshotVisitResult.SKIP_SUBTREE;
+        });
+        return builder.build();
     }
 }

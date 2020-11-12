@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.util.Map;
@@ -57,13 +58,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         this.hashingStrategy = hashingStrategy;
         this.identifier = identifier;
         this.roots = roots;
-
-        final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
-        accept(snapshot -> {
-            builder.put(snapshot.getAbsolutePath(), snapshot.getHash());
-            return SnapshotVisitResult.SKIP_SUBTREE;
-        });
-        this.rootHashes = builder.build();
+        this.rootHashes = SnapshotUtil.getRootHashes(roots);
     }
 
     @Override
