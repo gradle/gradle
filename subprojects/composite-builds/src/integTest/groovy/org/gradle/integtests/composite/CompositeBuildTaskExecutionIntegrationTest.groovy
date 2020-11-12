@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -150,28 +149,54 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         output.count(":other-plugin:jar") == 1
     }
 
-    @NotYetImplemented
     def "can exclude tasks coming from included builds"() {
         setup:
-        settingsFile << "includeBuild('other-build')"
-        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
-        file('other-build/build.gradle') << """
-             def setupTask = tasks.register('setupTask') { task ->
-                doLast {
-                    println 'Setup task'
-                }
+        settingsFile << """
+            rootProject.name = 'root'
+            include('sub')
+            includeBuild('included')
+        """
+        file('included/settings.gradle') << """
+            include('sub')
+        """
+        buildFile << """
+            def test = tasks.register('test')
+            tasks.register('build') {
+                dependsOn test
+                dependsOn gradle.includedBuild('included').task(':build')
             }
-            tasks.register('doSomething') { task ->
-                task.dependsOn setupTask
-                doLast {
-                    println 'do something'
+
+            project(':sub') {
+                def subTest = tasks.register('test')
+                tasks.register('build') {
+                    dependsOn subTest
+                    dependsOn gradle.includedBuild('included').task(':sub:build')
                 }
             }
         """
+        file('included/build.gradle') << """
+            def test = tasks.register('test')
+            tasks.register('build') { dependsOn test }
 
-        expect:
-        succeeds(":other-build:doSomething", "-x", ":other-build:setupTask")
-        outputContains(":other-build:setupTask SKIPPED")
+            project(':sub') {
+                def subTest = tasks.register('test')
+                tasks.register('build') { dependsOn subTest }
+            }
+        """
+
+        when:
+        succeeds(*args)
+
+        then:
+        result.assertTasksExecuted(executed)
+        skipped.each { result.assertTaskNotExecuted(it) }
+
+        where:
+        args                                  | executed                                                                                                            | skipped
+        ["build", "-x", "test"]               | [":build", ":sub:build", ":included:build", ":included:sub:build"]                                                  | [":test", ":sub:test", ":included:test", ":included:sub:test"]
+        ["build", "-x", "sub:test"]           | [":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:build"]                       | [":sub:test", ":included:sub:test"]
+        ["build", "-x", ":sub:test"]          | [":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build"] | [":sub:test"]
+        ["build", "-x", ":included:sub:test"] | [":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build" , ":included:sub:build"]         | [":included:sub:test"]
     }
 
     def "can pass options to task in included build"() {

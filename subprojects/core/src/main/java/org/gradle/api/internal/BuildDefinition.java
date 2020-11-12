@@ -22,9 +22,12 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BuildDefinition {
     @Nullable
@@ -120,6 +123,11 @@ public class BuildDefinition {
         ((StartParameterInternal) includedBuildStartParam).setSearchUpwardsWithoutDeprecationWarning(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
+        List<String> taskNames = startParameter.getExcludedTaskNames().stream()
+            .map(name -> Path.path(name)).filter(p -> !p.isAbsolute() || (p.segmentCount() > 1 && p.segment(0).equals(buildRootDir.getName())))
+            .map(p -> { if (p.isAbsolute()) { return p.removeFirstSegments(1).toString(); } else { return p.toString(); } })
+            .collect(Collectors.toList());
+        includedBuildStartParam.setExcludedTaskNames(taskNames);
         return includedBuildStartParam;
     }
 
