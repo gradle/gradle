@@ -322,7 +322,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         : InputPropertyType.NON_INCREMENTAL;
                 String propertyName = inputFileProperty.getPropertyName();
                 visitor.visitInputFileProperty(propertyName, type, NON_IDENTITY, value, () -> {
-                    FileCollectionFingerprinterSpec fingerprinterSpec = DefaultFileCollectionFingerprinterSpec.from(inputFileProperty.getNormalizer(), inputFileProperty.getEmptyDirectorySensitivity());
+                    FileCollectionFingerprinterSpec fingerprinterSpec = DefaultFileCollectionFingerprinterSpec.from(inputFileProperty.getNormalizer(), inputFileProperty.getDirectorySensitivity());
                     FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fingerprinterSpec);
                     return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
                 });

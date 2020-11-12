@@ -29,14 +29,14 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
     private final Map<FileCollectionFingerprinterSpec, FileCollectionFingerprinter> fingerprinters;
 
     public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> fingerprinters) {
-        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> new DefaultFileCollectionFingerprinterSpec(input.getRegisteredType(), input.getEmptyDirectorySensitivity())));
+        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> new DefaultFileCollectionFingerprinterSpec(input.getRegisteredType(), input.getDirectorySensitivity())));
     }
 
     @Override
     public FileCollectionFingerprinter getFingerprinter(FileCollectionFingerprinterSpec spec) {
         FileCollectionFingerprinter fingerprinter = fingerprinters.get(spec);
         if (fingerprinter == null) {
-            throw new IllegalStateException(String.format("No fingerprinter registered with type '%s' and empty directory sensitivity '%s'", spec.getNormalizer().getName(), spec.getEmptyDirectorySensitivity().name()));
+            throw new IllegalStateException(String.format("No fingerprinter registered with type '%s' and directory sensitivity '%s'", spec.getNormalizer().getName(), spec.getDirectorySensitivity().name()));
         }
         return fingerprinter;
     }

@@ -37,7 +37,7 @@ public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFin
     }
 
     @Override
-    public DirectorySensitivity getEmptyDirectorySensitivity() {
+    public DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
     }
 

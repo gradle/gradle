@@ -68,7 +68,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     }
 
     @Override
-    public DirectorySensitivity getEmptyDirectorySensitivity() {
+    public DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
     }
 }

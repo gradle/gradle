@@ -50,5 +50,5 @@ public interface FileCollectionFingerprinter {
     /**
      * Returns the empty directory sensitivity associated with this fingerprinter.
      */
-    DirectorySensitivity getEmptyDirectorySensitivity();
+    DirectorySensitivity getDirectorySensitivity();
 }

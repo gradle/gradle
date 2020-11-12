@@ -47,7 +47,7 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     }
 
     @Override
-    public DirectorySensitivity getEmptyDirectorySensitivity() {
+    public DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
     }
 

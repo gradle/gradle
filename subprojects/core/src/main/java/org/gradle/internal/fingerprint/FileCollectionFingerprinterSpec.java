@@ -25,5 +25,5 @@ import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 public interface FileCollectionFingerprinterSpec {
     Class<? extends FileNormalizer> getNormalizer();
 
-    DirectorySensitivity getEmptyDirectorySensitivity();
+    DirectorySensitivity getDirectorySensitivity();
 }

@@ -25,7 +25,7 @@ public interface InputFilePropertySpec extends FilePropertySpec {
 
     boolean isIncremental();
 
-    DirectorySensitivity getEmptyDirectorySensitivity();
+    DirectorySensitivity getDirectorySensitivity();
 
     @Nullable
     Object getValue();
