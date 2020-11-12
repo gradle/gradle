@@ -15,40 +15,22 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
-import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-
-import java.util.Set;
 
 /**
  * A {@link BuildConfigurationAction} which filters excluded tasks.
  */
 public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfigurationAction {
-    private final TaskSelector taskSelector;
+    private final TaskFilter taskFilter;
 
-    public ExcludedTaskFilteringBuildConfigurationAction(TaskSelector taskSelector) {
-        this.taskSelector = taskSelector;
+    public ExcludedTaskFilteringBuildConfigurationAction(TaskFilter taskFilter) {
+        this.taskFilter = taskFilter;
     }
 
     @Override
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
-        Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
-        if (!excludedTaskNames.isEmpty()) {
-            Multimap<GradleInternal, Spec<Task>> filters = MultimapBuilder.linkedHashKeys().hashSetValues().build();
-            for (String taskName : excludedTaskNames) {
-                TaskFilter filter = taskSelector.getFilter(taskName);
-                filters.put(filter.getGradle(), filter.getFilterSpec());
-            }
-            for (GradleInternal gradleInternal : filters.keySet()) {
-                gradleInternal.getTaskGraph().useFilter(Specs.intersect(filters.get(gradleInternal)));
-            }
-        }
-
+        taskFilter.excludeTaskNames(gradle.getStartParameter().getExcludedTaskNames());
         context.proceed();
     }
 }

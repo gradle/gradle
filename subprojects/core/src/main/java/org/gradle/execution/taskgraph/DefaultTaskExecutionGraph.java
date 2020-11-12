@@ -31,11 +31,12 @@ import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
+import org.gradle.execution.TaskFilter;
+import org.gradle.execution.TaskFilterListener;
+import org.gradle.execution.TaskSelector;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
@@ -65,10 +66,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
-
 @NonNullApi
-public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
+public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal, TaskFilterListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
     private enum GraphState {
@@ -84,12 +83,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
     private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
+    private final TaskSelector taskSelector;
     private final DefaultExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private GraphState graphState = GraphState.EMPTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
+    private final TaskFilter taskFilter;
 
     private final Set<Task> requestedTasks = Sets.newTreeSet();
 
@@ -106,8 +107,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
         ProjectStateRegistry projectStateRegistry,
-        ServiceRegistry globalServices
-    ) {
+        ServiceRegistry globalServices,
+        TaskFilter taskFilter, TaskSelector taskSelector) {
         this.planExecutor = planExecutor;
         this.nodeExecutors = nodeExecutors;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -119,7 +120,10 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
         this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
+        this.taskSelector = taskSelector;
         this.executionPlan = new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver);
+        this.taskFilter = taskFilter;
+        this.taskFilter.addListener(this);
     }
 
     @Override
@@ -128,9 +132,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void useFilter(Spec<? super Task> filter) {
-        Spec<? super Task> castFilter = filter != null ? filter : uncheckedNonnullCast(Specs.SATISFIES_ALL);
-        executionPlan.useFilter(castFilter);
+    public void onFilter() {
+        executionPlan.useFilter(taskFilter.toSpec(taskSelector));
         graphState = GraphState.DIRTY;
     }
 

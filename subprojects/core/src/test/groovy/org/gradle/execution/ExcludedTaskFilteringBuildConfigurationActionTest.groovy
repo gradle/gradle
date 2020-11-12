@@ -18,7 +18,6 @@ package org.gradle.execution
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.specs.Spec
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
 
@@ -28,7 +27,8 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     final TaskExecutionGraphInternal taskGraph = Mock()
     final DefaultTaskSelector selector = Mock()
     final GradleInternal gradle = Mock()
-    final action = new ExcludedTaskFilteringBuildConfigurationAction(selector)
+    final TaskFilter taskFilter = Mock()
+    final action = new ExcludedTaskFilteringBuildConfigurationAction(taskFilter)
 
     def setup() {
         _ * context.gradle >> gradle
@@ -48,11 +48,6 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     }
 
     def "applies a filter for excluded tasks before proceeding"() {
-        def filter = Stub(TaskFilter)
-        def filterSpec = Stub(Spec)
-        filter.filterSpec >> filterSpec
-        filter.gradle >> gradle
-
         given:
         _ * startParameter.excludedTaskNames >> ['a']
 
@@ -60,8 +55,7 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
         action.configure(context)
 
         then:
-        1 * selector.getFilter('a') >> filter
-        1 * taskGraph.useFilter(filterSpec)
+        1 * taskFilter.excludeTaskNames(*_) >> { assert it[0] == ['a'] as Set }
         1 * context.proceed()
     }
 }

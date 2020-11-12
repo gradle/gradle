@@ -16,7 +16,9 @@
 
 package org.gradle.execution;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -38,7 +40,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     }
 
     @Override
-    public TaskFilter getFilter(String path) {
+    public Spec<Task> getFilter(String path) {
         Path taskPath = Path.path(path);
         BuildState build = findIncludedBuild(taskPath);
         if (build != null) {

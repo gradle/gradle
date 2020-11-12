@@ -33,7 +33,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction taskSelectionAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction], projectStateRegistry, taskFilter)
 
         when:
         buildExecution.select(gradleInternal)
@@ -48,7 +48,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction taskSelectionAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction], projectStateRegistry, taskFilter)
 
         when:
         buildExecution.select(gradleInternal)
@@ -64,7 +64,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction action1 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1],[], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1], [], projectStateRegistry, taskFilter)
 
         when:
         buildExecution.select(gradleInternal)
@@ -78,7 +78,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction configurationAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction],[], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [], projectStateRegistry, taskFilter)
 
         when:
         buildExecution.select(gradleInternal)
@@ -99,7 +99,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction newTaskSelector = Mock()
 
 
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configAction1, configAction2],[givenTaskSelector1, givenTaskSelector2], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configAction1, configAction2], [givenTaskSelector1, givenTaskSelector2], projectStateRegistry, taskFilter)
 
         when:
         buildExecution.setTaskSelectors([newTaskSelector])

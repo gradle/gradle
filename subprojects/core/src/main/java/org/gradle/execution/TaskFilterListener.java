@@ -16,13 +16,6 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
-
-import java.util.Set;
-
-public interface TaskFilter {
-    void addListener(TaskFilterListener listener);
-    void excludeTaskNames(Set<String> excludedTaskNames);
-    Spec<Task> toSpec(TaskSelector taskSelector);
+public interface TaskFilterListener {
+    void onFilter();
 }
