@@ -54,7 +54,9 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
-        this(resourceHasher, (s, e) -> {});
+        this(resourceHasher, (s, e) -> {
+            LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
+        });
     }
 
     public ZipHasher(ResourceHasher resourceHasher, HashingExceptionReporter hashingExceptionReporter) {
@@ -86,13 +88,8 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             return hasher.hash();
         } catch (Exception e) {
             hashingExceptionReporter.report(zipFileSnapshot, e);
-            return hashMalformedZip(zipFileSnapshot, e);
+            return zipFileSnapshot.getHash();
         }
-    }
-
-    private HashCode hashMalformedZip(RegularFileSnapshot zipFileSnapshot, Exception e) {
-        LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", zipFileSnapshot.getName(), e);
-        return zipFileSnapshot.getHash();
     }
 
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
