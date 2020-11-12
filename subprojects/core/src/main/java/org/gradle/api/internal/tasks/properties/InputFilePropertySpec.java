@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 
 import javax.annotation.Nullable;
 

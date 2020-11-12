@@ -31,7 +31,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.work.Incremental;

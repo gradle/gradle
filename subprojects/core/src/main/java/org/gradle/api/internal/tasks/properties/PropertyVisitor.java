@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;

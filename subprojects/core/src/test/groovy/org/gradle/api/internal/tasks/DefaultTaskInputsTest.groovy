@@ -33,7 +33,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

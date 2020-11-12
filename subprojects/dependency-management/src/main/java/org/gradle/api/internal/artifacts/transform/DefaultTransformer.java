@@ -55,7 +55,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterSpec;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterSpec;
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;

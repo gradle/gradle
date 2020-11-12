@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
@@ -29,7 +30,7 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.gradle.internal.fingerprint.impl.DirectorySensitivity.IGNORE_DIRECTORIES;
+import static org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES;
 
 /**
  * Fingerprint file system snapshots normalizing the path to the relative path in a hierarchy.
@@ -87,5 +88,10 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return directorySensitivity;
     }
 }

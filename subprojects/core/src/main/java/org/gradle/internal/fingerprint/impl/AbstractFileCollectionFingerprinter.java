@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -34,15 +35,9 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
     private final FingerprintingStrategy fingerprintingStrategy;
-    private final DirectorySensitivity directorySensitivity;
 
     public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        this(fingerprintingStrategy, DirectorySensitivity.NONE, fileCollectionSnapshotter);
-    }
-
-    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
         this.fingerprintingStrategy = fingerprintingStrategy;
-        this.directorySensitivity = directorySensitivity;
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
     }
 
@@ -69,6 +64,6 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     @Override
     public DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
+        return fingerprintingStrategy.getDirectorySensitivity();
     }
 }

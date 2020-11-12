@@ -49,4 +49,6 @@ public interface FingerprintingStrategy {
     CurrentFileCollectionFingerprint getEmptyFingerprint();
 
     String normalizePath(CompleteFileSystemLocationSnapshot snapshot);
+
+    DirectorySensitivity getDirectorySensitivity();
 }

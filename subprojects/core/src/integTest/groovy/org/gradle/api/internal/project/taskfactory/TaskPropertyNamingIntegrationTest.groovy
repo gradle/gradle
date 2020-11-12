@@ -58,7 +58,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
-            import org.gradle.internal.fingerprint.impl.DirectorySensitivity
+            import org.gradle.internal.fingerprint.DirectorySensitivity
 
             task myTask(type: MyTask) {
                 inputString = "data"
@@ -396,7 +396,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         """
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
-            import org.gradle.internal.fingerprint.impl.DirectorySensitivity
+            import org.gradle.internal.fingerprint.DirectorySensitivity
 
             class PrintInputsAndOutputs extends DefaultTask {
                 @Internal

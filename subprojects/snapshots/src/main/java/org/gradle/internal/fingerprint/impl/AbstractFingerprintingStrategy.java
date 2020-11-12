@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
@@ -36,5 +37,10 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     @Override
     public CurrentFileCollectionFingerprint getEmptyFingerprint() {
         return emptyFingerprint;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return DirectorySensitivity.NONE;
     }
 }

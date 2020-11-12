@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import spock.lang.Unroll
 
 

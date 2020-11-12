@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;

@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
 
 /**
  * Specifies criteria for selecting a {@link FileCollectionFingerprinter}

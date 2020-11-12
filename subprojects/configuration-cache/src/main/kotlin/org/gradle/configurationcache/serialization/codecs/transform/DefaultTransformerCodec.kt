@@ -31,7 +31,7 @@ import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeEnum
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.service.ServiceRegistry
 

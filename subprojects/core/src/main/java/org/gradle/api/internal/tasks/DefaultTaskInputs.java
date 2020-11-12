@@ -37,7 +37,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 
 import javax.annotation.Nullable;
 import java.util.Collections;

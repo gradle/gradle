@@ -56,7 +56,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.fingerprint.impl.DirectorySensitivity
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.util.DeferredUtil
 
 

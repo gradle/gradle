@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.fingerprint;
 
 /**
  * Specifies how a fingerprinter should handle directories that are found in a filecollection.

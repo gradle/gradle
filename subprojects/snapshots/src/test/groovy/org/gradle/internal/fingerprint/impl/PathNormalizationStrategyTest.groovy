@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
