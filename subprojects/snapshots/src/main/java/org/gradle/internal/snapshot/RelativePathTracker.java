@@ -42,13 +42,11 @@ public class RelativePathTracker implements RelativePathSupplier {
         }
     }
 
-    public String leave() {
+    public void leave() {
         if (segments.isEmpty()) {
-            String currentRootName = rootName;
             rootName = null;
-            return currentRootName;
         } else {
-            return segments.removeLast();
+            segments.removeLast();
         }
     }
 
