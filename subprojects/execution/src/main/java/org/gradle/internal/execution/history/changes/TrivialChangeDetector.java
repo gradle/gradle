@@ -22,7 +22,7 @@ import org.gradle.internal.execution.history.changes.AbstractCompareStrategy.Cha
 import java.util.Map;
 
 /**
- * Compares collections if both current and previous have at most one element.
+ * Compares collections if either current or previous are empty, or both current and previous have one element.
  */
 public class TrivialChangeDetector<S> implements ChangeDetector<S> {
     private final ItemComparator<S> itemComparator;

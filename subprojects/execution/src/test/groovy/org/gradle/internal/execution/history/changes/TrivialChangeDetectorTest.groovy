@@ -82,11 +82,39 @@ class TrivialChangeDetectorTest extends Specification {
         0 * _
     }
 
+    def "detects multiple items added to empty"() {
+        when:
+        detector.visitChangesSince([:], [one: 1, two: 2], "test", visitor)
+        then:
+        1 * changeFactory.added("one", "test", 1) >> change
+        then:
+        1 * visitor.visitChange(change) >> true
+        then:
+        1 * changeFactory.added("two", "test", 2) >> change
+        then:
+        1 * visitor.visitChange(change) >> true
+        0 * _
+    }
+
     def "detects item removed"() {
         when:
         detector.visitChangesSince([one: 1], [:], "test", visitor)
         then:
         1 * changeFactory.removed("one", "test", 1) >> change
+        then:
+        1 * visitor.visitChange(change) >> true
+        0 * _
+    }
+
+    def "detects all items removed"() {
+        when:
+        detector.visitChangesSince([one: 1, two: 2], [:], "test", visitor)
+        then:
+        1 * changeFactory.removed("one", "test", 1) >> change
+        then:
+        1 * visitor.visitChange(change) >> true
+        then:
+        1 * changeFactory.removed("two", "test", 2) >> change
         then:
         1 * visitor.visitChange(change) >> true
         0 * _
