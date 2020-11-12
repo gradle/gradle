@@ -35,7 +35,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformEntries;
-import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution;
+import static org.gradle.internal.execution.impl.OutputUtil.filterOutputSnapshotAfterExecution;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;

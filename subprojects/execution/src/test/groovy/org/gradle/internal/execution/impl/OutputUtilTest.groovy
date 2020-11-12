@@ -25,10 +25,10 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution
-import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
+import static OutputUtil.filterOutputSnapshotAfterExecution
+import static OutputUtil.filterOutputSnapshotBeforeExecution
 
-class OutputFilterUtilTest extends Specification {
+class OutputUtilTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())

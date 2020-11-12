@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 
-public class InputFingerprintUtil {
+public class InputUtil {
 
     public static void fingerprintInputProperties(
         UnitOfWork work,

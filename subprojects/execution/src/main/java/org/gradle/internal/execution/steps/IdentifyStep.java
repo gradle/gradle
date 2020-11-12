@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
-import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
+import static org.gradle.internal.execution.impl.InputUtil.fingerprintInputProperties;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;

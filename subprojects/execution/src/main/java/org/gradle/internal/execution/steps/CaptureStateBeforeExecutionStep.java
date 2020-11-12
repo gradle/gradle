@@ -32,7 +32,7 @@ import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
-import org.gradle.internal.execution.impl.OutputFilterUtil;
+import org.gradle.internal.execution.impl.OutputUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -49,7 +49,7 @@ import java.io.File;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
-import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
+import static org.gradle.internal.execution.impl.InputUtil.fingerprintInputProperties;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
@@ -223,7 +223,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
 
     private static FileSystemSnapshot filterOutputSnapshot(FileSystemSnapshot beforeExecutionOutputSnapshots, FileSystemSnapshot previousOutputSnapshot, boolean hasOverlappingOutputs) {
         return hasOverlappingOutputs
-            ? OutputFilterUtil.filterOutputSnapshotBeforeExecution(previousOutputSnapshot, beforeExecutionOutputSnapshots)
+            ? OutputUtil.filterOutputSnapshotBeforeExecution(previousOutputSnapshot, beforeExecutionOutputSnapshots)
             : beforeExecutionOutputSnapshots;
     }
 

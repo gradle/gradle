@@ -41,16 +41,16 @@ import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyD
 import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 import static org.gradle.internal.snapshot.SnapshotUtil.index;
 
-/**
- * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
- * <ul>
- * <li>an entry that did not exist before the execution, but exists after the execution</li>
- * <li>an entry that did exist before the execution, and has been changed during the execution</li>
- * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
- * </ul>
- */
-public class OutputFilterUtil {
+public class OutputUtil {
 
+    /**
+     * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
+     * <ul>
+     * <li>an entry that did not exist before the execution, but exists after the execution</li>
+     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
+     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * </ul>
+     */
     public static FileSystemSnapshot filterOutputSnapshotBeforeExecution(FileSystemSnapshot afterLastExecutionSnapshot, FileSystemSnapshot beforeExecutionOutputSnapshot) {
         Map<String, CompleteFileSystemLocationSnapshot> afterLastExecutionSnapshots = index(afterLastExecutionSnapshot);
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) ->
@@ -61,6 +61,14 @@ public class OutputFilterUtil {
         return CompositeFileSystemSnapshot.of(filteringVisitor.getNewRoots());
     }
 
+    /**
+     * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
+     * <ul>
+     * <li>an entry that did not exist before the execution, but exists after the execution</li>
+     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
+     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * </ul>
+     */
     public static FileSystemSnapshot filterOutputSnapshotAfterExecution(@Nullable FileSystemSnapshot afterLastExecutionSnapshot, FileSystemSnapshot beforeExecutionOutputSnapshot, FileSystemSnapshot afterExecutionOutputSnapshot) {
         Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshotIndex = index(beforeExecutionOutputSnapshot);
         if (beforeExecutionSnapshotIndex.isEmpty()) {
