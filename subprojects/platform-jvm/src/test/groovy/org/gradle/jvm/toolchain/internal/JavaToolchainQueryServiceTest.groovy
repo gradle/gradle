@@ -202,7 +202,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Provisioned toolchain '/path/12.broken' could not be probed."
+        e.message == "Provisioned toolchain '${File.separator}path${File.separator}12.broken' could not be probed."
     }
 
     private JavaToolchainFactory newToolchainFactory() {
