@@ -38,7 +38,8 @@ public abstract class RootTrackingFileSystemSnapshotHierarchyVisitor implements 
 
     @Override
     public final void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        enterDirectory(directorySnapshot, treeDepth++ == 0);
+        enterDirectory(directorySnapshot, treeDepth == 0);
+        treeDepth++;
     }
 
     @Override
@@ -48,6 +49,7 @@ public abstract class RootTrackingFileSystemSnapshotHierarchyVisitor implements 
 
     @Override
     public final void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        leaveDirectory(directorySnapshot, --treeDepth == 0);
+        treeDepth--;
+        leaveDirectory(directorySnapshot, treeDepth == 0);
     }
 }
