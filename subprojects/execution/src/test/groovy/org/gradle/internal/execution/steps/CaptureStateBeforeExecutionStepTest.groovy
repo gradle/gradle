@@ -172,19 +172,19 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         assertOperationForInputsBeforeExecution()
     }
 
-    def "output file properties are fingerprinted"() {
-        def outputFileSnapshot = Mock(FileSystemSnapshot)
+    def "output file properties are snasphotted"() {
+        def outputDirSnapshot = Mock(FileSystemSnapshot)
 
         when:
         step.execute(work, context)
 
         then:
-        _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputDirSnapshot)
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
-            assert state.outputFileProperties == ImmutableSortedMap.of('outputDir', FileSystemSnapshot.EMPTY)
+            assert state.outputFileProperties == ImmutableSortedMap.of('outputDir', outputDirSnapshot)
         }
         0 * _
 
