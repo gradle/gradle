@@ -70,6 +70,10 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return testClassNode.@tests.toInteger()
     }
 
+    int getTestCasesCount() {
+        return testClassNode.testcase.size()
+    }
+
     TestClassExecutionResult withResult(Closure action) {
         action(testClassNode)
         this

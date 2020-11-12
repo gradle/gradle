@@ -50,4 +50,5 @@ public abstract class TestOutputStoreBackedResultsProvider implements TestResult
     public void close() throws IOException {
         CompositeStoppable.stoppable(readers.values()).stop();
     }
+
 }

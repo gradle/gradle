@@ -221,6 +221,25 @@ See the [toolchain documentation](userguide/toolchains.html) for more in-depth i
 When using [dependency injection](userguide/custom_gradle_types.html#service_injection) when developing plugins, tasks or project extensions, it is now possible to use the `@Inject` annotation without explicitly importing it into your build scripts the
 same way it works for other Gradle API classes.
 
+### Test re-run JUnit XML reporting enhancements
+
+A new opt-in [`mergeReruns` option](javadoc/org/gradle/api/tasks/testing/JUnitXmlReport.html#getMergeReruns--) has been added that changes the “JUnit XML” produced by test tasks.
+When enabled, the XML output will be very similar to [the surefire plugin of Apache Maven™](https://maven.apache.org/components/surefire/maven-surefire-plugin/examples/rerun-failing-tests.html) when enabling reruns.
+
+```
+test {
+    reporting.junitXml.mergeReruns = true
+}
+```
+
+If a test fails but is then retried and succeeds, its failures will be recorded as `<flakyFailure>` instead of `<failure>`, within one `<testcase>`. 
+This can be important for build tooling that uses this XML to understand test results, and where distinguishing such passed-on-retry outcomes is important.
+This is the case for the Jenkins CI server and its [Flaky Test Handler plugin](https://plugins.jenkins.io/flaky-test-handler).
+
+This does not add any retry/rerun functionality in and of itself.
+The retry can be performed by the test execution framework, 
+or generically via the separate [Test Retry Gradle plugin](https://github.com/gradle/test-retry-gradle-plugin).
+
 ## Security Improvements
 
 ### Outdated TLS versions are no longer enabled by default

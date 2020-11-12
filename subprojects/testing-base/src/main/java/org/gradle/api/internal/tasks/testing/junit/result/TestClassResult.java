@@ -84,7 +84,6 @@ public class TestClassResult {
         return failuresCount;
     }
 
-
     public int getSkippedCount() {
         return skippedCount;
     }

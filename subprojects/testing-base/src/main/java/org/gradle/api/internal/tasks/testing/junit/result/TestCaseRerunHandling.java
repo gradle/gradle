@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-public enum TestOutputAssociation {
-    WITH_SUITE,
-    WITH_TESTCASE
+public enum TestCaseRerunHandling {
+    DISCRETE,
+    SUREFIRE_FORMAT
 }
