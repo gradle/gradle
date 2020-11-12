@@ -58,7 +58,7 @@ public class OutputFilterUtil {
             (!isRoot || snapshot.getType() != FileType.Missing)
                 && fingerprints.containsKey(snapshot.getAbsolutePath())
         );
-        beforeExecutionOutputSnapshot.accept(filteringVisitor.asHierarchyVisitor());
+        beforeExecutionOutputSnapshot.accept(filteringVisitor);
         return filteringVisitor.getNewRoots();
     }
 
@@ -75,7 +75,7 @@ public class OutputFilterUtil {
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
             isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot)
         );
-        afterExecutionOutputSnapshot.accept(filteringVisitor.asHierarchyVisitor());
+        afterExecutionOutputSnapshot.accept(filteringVisitor);
 
         // Are all file snapshots after execution accounted for as new entries?
         if (filteringVisitor.hasBeenFiltered()) {
@@ -133,7 +133,7 @@ public class OutputFilterUtil {
         }
     }
 
-    private static class SnapshotFilteringVisitor implements RootTrackingFileSystemSnapshotHierarchyVisitor {
+    private static class SnapshotFilteringVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
         private final BiPredicate<CompleteFileSystemLocationSnapshot, Boolean> predicate;
         private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 

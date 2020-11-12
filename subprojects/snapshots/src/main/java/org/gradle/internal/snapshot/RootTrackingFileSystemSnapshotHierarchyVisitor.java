@@ -16,48 +16,38 @@
 
 package org.gradle.internal.snapshot;
 
-public interface RootTrackingFileSystemSnapshotHierarchyVisitor {
+public abstract class RootTrackingFileSystemSnapshotHierarchyVisitor implements FileSystemSnapshotHierarchyVisitor {
+    private int treeDepth;
+
     /**
      * Called before visiting the contents of a directory.
      */
-    default void enterDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {}
+    public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {}
 
     /**
      * Called for each regular file/directory/missing/unavailable file.
      *
      * @return how to continue visiting the rest of the snapshot hierarchy.
      */
-    SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot);
+    public abstract SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot);
 
     /**
      * Called after all entries in the directory has been visited.
      */
-    default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {}
+    public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {}
 
-    default FileSystemSnapshotHierarchyVisitor asHierarchyVisitor() {
-        return new FileSystemSnapshotHierarchyVisitor() {
-            private int treeDepth;
+    @Override
+    public final void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        enterDirectory(directorySnapshot, treeDepth++ == 0);
+    }
 
-            @Override
-            public void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                RootTrackingFileSystemSnapshotHierarchyVisitor.this.enterDirectory(directorySnapshot, isRoot());
-                treeDepth++;
-            }
+    @Override
+    public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        return visitEntry(snapshot, treeDepth == 0);
+    }
 
-            @Override
-            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-                return RootTrackingFileSystemSnapshotHierarchyVisitor.this.visitEntry(snapshot, isRoot());
-            }
-
-            @Override
-            public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                treeDepth--;
-                RootTrackingFileSystemSnapshotHierarchyVisitor.this.leaveDirectory(directorySnapshot, isRoot());
-            }
-
-            private boolean isRoot() {
-                return treeDepth == 0;
-            }
-        };
+    @Override
+    public final void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        leaveDirectory(directorySnapshot, --treeDepth == 0);
     }
 }

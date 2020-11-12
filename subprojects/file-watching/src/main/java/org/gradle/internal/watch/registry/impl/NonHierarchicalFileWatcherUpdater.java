@@ -69,7 +69,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             .forEach(snapshot -> {
                 ImmutableList<String> previousWatchedRoots = watchedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
                 previousWatchedRoots.forEach(path -> decrement(path, changedWatchedDirectories));
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)).asHierarchyVisitor());
+                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
@@ -78,7 +78,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                     .map(Path::toString).collect(Collectors.toList()));
                 watchedDirectoriesForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatchForRoot);
                 directoriesToWatchForRoot.forEach(path -> increment(path, changedWatchedDirectories));
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)).asHierarchyVisitor());
+                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
             });
         updateWatchedDirectories(changedWatchedDirectories);
     }
@@ -169,7 +169,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         changedWatchedDirectories.compute(path, (key, value) -> value == null ? 1 : value + 1);
     }
 
-    private class SubdirectoriesToWatchVisitor implements RootTrackingFileSystemSnapshotHierarchyVisitor {
+    private class SubdirectoriesToWatchVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
         private final Consumer<String> subDirectoryToWatchConsumer;
 
         public SubdirectoriesToWatchVisitor(Consumer<String> subDirectoryToWatchConsumer) {

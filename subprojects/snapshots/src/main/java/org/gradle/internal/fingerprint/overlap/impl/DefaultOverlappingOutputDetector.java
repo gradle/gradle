@@ -64,12 +64,12 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
     private static OverlappingOutputs detect(String propertyName, FileCollectionFingerprint previous, FileSystemSnapshot before) {
         Map<String, FileSystemLocationFingerprint> previousFingerprints = previous.getFingerprints();
         OverlappingOutputsDetectingVisitor outputsDetectingVisitor = new OverlappingOutputsDetectingVisitor(previousFingerprints);
-        before.accept(outputsDetectingVisitor.asHierarchyVisitor());
+        before.accept(outputsDetectingVisitor);
         String overlappingPath = outputsDetectingVisitor.getOverlappingPath();
         return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
     }
 
-    private static class OverlappingOutputsDetectingVisitor implements RootTrackingFileSystemSnapshotHierarchyVisitor {
+    private static class OverlappingOutputsDetectingVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
         private final Map<String, FileSystemLocationFingerprint> previousFingerprints;
         private String overlappingPath;
 

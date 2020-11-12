@@ -52,16 +52,19 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(((RootTrackingFileSystemSnapshotHierarchyVisitor) (snapshot, isRoot) -> {
-                String absolutePath = snapshot.getAbsolutePath();
-                if (processedEntries.add(absolutePath)) {
-                    FileSystemLocationFingerprint fingerprint = isRoot && snapshot.getType() == FileType.Directory
-                        ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY
-                        : new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
-                    builder.put(absolutePath, fingerprint);
+            root.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
+                @Override
+                public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+                    String absolutePath = snapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
+                        FileSystemLocationFingerprint fingerprint = isRoot && snapshot.getType() == FileType.Directory
+                            ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY
+                            : new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
+                        builder.put(absolutePath, fingerprint);
+                    }
+                    return SnapshotVisitResult.CONTINUE;
                 }
-                return SnapshotVisitResult.CONTINUE;
-            }).asHierarchyVisitor());
+            });
         }
         return builder.build();
     }

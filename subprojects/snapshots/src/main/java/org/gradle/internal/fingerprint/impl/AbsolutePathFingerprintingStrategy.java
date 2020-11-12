@@ -87,7 +87,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                         builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
                     }
                 }
-            }.asHierarchyVisitor());
+            });
         }
         return builder.build();
     }

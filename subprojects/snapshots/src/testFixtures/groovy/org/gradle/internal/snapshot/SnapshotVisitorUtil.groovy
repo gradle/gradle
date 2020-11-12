@@ -21,12 +21,15 @@ import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 class SnapshotVisitorUtil {
     static List<String> getAbsolutePaths(FileSystemSnapshot snapshot, boolean includeRoots = false) {
         def absolutePaths = []
-        snapshot.accept(({ entrySnapshot, isRoot ->
-            if (includeRoots || !isRoot) {
-                absolutePaths << entrySnapshot.absolutePath
+        snapshot.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
+            @Override
+            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot, boolean isRoot) {
+                if (includeRoots || !isRoot) {
+                    absolutePaths << entrySnapshot.absolutePath
+                }
+                CONTINUE
             }
-            CONTINUE
-        } as RootTrackingFileSystemSnapshotHierarchyVisitor).asHierarchyVisitor())
+        })
         return absolutePaths
     }
 
