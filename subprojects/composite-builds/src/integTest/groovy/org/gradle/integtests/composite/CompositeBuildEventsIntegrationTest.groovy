@@ -126,8 +126,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('gradle.taskGraphReady', [':', ':buildB', ':pluginD'])
         loggedOncePerBuild('buildListener.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
         loggedOncePerBuild('gradle.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
-
-        logged("Ignoring listeners of task graph ready event, as this build (:buildB) has already executed work.")
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")

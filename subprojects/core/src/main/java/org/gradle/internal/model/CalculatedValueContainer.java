@@ -223,7 +223,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                 return;
             }
             // Lock is contended, so release project locks while waiting to acquire the lock
-            projectLeaseRegistry.withoutProjectLock(lock::lock);
+            projectLeaseRegistry.blocking(lock::lock);
         }
 
         private void releaseLock() {

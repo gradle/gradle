@@ -165,7 +165,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             fireWhenReady();
             hasFiredWhenReady = true;
         } else if (!graphListeners.isEmpty()) {
-            LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
+            LOGGER.info("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
         }
     }
 

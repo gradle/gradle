@@ -97,12 +97,17 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
+    }
+
+    @Override
+    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction) {
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(true, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(new QueueWorker<>(parent, worker), schedulingAction));
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, worker), schedulingAction));
     }
 
     @Nullable
@@ -110,8 +115,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
-    private <O extends BuildOperation> void executeInParallel(BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
-        BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
+    private <O extends BuildOperation> void executeInParallel(boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
+        BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, allowAccessToProjectState, worker);
 
         List<GradleException> failures = Lists.newArrayList();
         try {

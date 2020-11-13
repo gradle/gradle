@@ -161,6 +161,61 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.abi change",
+    "groups" : [ {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.non-abi change",
+    "groups" : [ {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
+    "groups" : [ {
+      "testProject" : "k9AndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "santaTrackerAndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run clean phthalic:assembleDebug",
+    "groups" : [ {
+      "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run help",
+    "groups" : [ {
+      "testProject" : "k9AndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "test" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest.clean assembleDebug with clean transforms cache",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",

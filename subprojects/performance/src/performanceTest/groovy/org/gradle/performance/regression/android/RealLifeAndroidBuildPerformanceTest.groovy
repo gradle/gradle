@@ -20,14 +20,12 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.fixture.AndroidTestProject.K9_ANDROID
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@Ignore
 @RunFor(
     @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild"])
 )

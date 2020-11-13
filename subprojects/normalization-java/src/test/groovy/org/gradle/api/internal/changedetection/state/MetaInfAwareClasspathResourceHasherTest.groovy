@@ -16,25 +16,40 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.file.archive.ZipEntry
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
+import java.util.function.Supplier
+import java.util.jar.Attributes
+import java.util.jar.Manifest
+
 class MetaInfAwareClasspathResourceHasherTest extends Specification {
-    def manifestHasher = Mock(ManifestFileZipEntryHasher)
-    def delegate = Mock(ResourceHasher)
+    public static final String MANIFEST_PATH = 'META-INF/MANIFEST.MF'
 
-    def hasher = new MetaInfAwareClasspathResourceHasher(delegate, manifestHasher)
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
 
-    def "uses manifest file hasher for manifest files"() {
-        when:
-        hasher.hash(zipEntry('META-INF/MANIFEST.MF'))
+    ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
 
-        then:
-        1 * manifestHasher.hash(_)
-        0 * delegate.hash(_)
+    def defaultDelegate = new RuntimeClasspathResourceHasher()
+    def hasher = new MetaInfAwareClasspathResourceHasher(defaultDelegate, manifestResourceFilter)
+    def unfilteredHasher = new MetaInfAwareClasspathResourceHasher(defaultDelegate, ResourceEntryFilter.FILTER_NOTHING)
+
+    void useDelegate(ResourceHasher delegate) {
+        hasher = new MetaInfAwareClasspathResourceHasher(delegate, manifestResourceFilter)
+        unfilteredHasher = new MetaInfAwareClasspathResourceHasher(delegate, ResourceEntryFilter.FILTER_NOTHING)
     }
 
     def "uses delegate for META-INF files that are not manifest files"() {
+        def delegate = Mock(ResourceHasher)
+        useDelegate(delegate)
+
         when:
         hasher.hash(zipEntry('META-INF/foo'))
         hasher.hash(zipEntry('META-INF/foo/MANIFEST.MF'))
@@ -48,31 +63,342 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
 
         then:
         9 * delegate.hash(_)
-        0 * manifestHasher.hash(_)
     }
 
     def "falls back to delegate when manifest hasher fails"() {
+        def delegate = Mock(ResourceHasher)
+        useDelegate(delegate)
+
         when:
-        hasher.hash(zipEntry('META-INF/MANIFEST.MF'))
+        hasher.hash(zipEntry(MANIFEST_PATH, [:], new IOException()))
 
         then:
-        1 * manifestHasher.hash(_) >> { throw new IOException() }
         1 * delegate.hash(_)
     }
 
     def "unexpected failures are thrown"() {
+        def delegate = Mock(ResourceHasher)
+        useDelegate(delegate)
+
         when:
-        hasher.hash(zipEntry('META-INF/MANIFEST.MF'))
+        hasher.hash(zipEntry(MANIFEST_PATH, [:], new IllegalArgumentException()))
 
         then:
-        1 * manifestHasher.hash(_) >> { throw new IllegalArgumentException() }
         0 * delegate.hash(_)
 
         and:
         thrown(IllegalArgumentException)
     }
 
-    def zipEntry(String path) {
+    def "changing unfiltered manifest attributes changes the hashcode"() {
+        given:
+        def attributes1 = ["Implementation-Version": "1.0.0"]
+        def attributes2 = ["Implementation-Version": "1.0.1"]
+
+        when:
+        def manifestEntry1 = zipEntry(MANIFEST_PATH, attributes1)
+        def manifestEntry2 = zipEntry(MANIFEST_PATH, attributes2)
+
+        def hash1 = unfilteredHasher.hash(manifestEntry1)
+        def hash2 = unfilteredHasher.hash(manifestEntry2)
+        def hash3 = hasher.hash(manifestEntry1)
+        def hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash3 != hash4
+
+        and:
+        hash1 == hash3
+        hash2 == hash4
+
+        when:
+        manifestEntry1 = fileSnapshot(MANIFEST_PATH, attributes1)
+        manifestEntry2 = fileSnapshot(MANIFEST_PATH, attributes2)
+
+        hash1 = unfilteredHasher.hash(manifestEntry1)
+        hash2 = unfilteredHasher.hash(manifestEntry2)
+        hash3 = hasher.hash(manifestEntry1)
+        hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash3 != hash4
+
+        and:
+        hash1 == hash3
+        hash2 == hash4
+    }
+
+    def "manifest attributes can be filtered out"() {
+        given:
+        def atributes1 = ["Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)"]
+        def attributes2 = ["Created-By": "1.8.0_232-b19 (Azul Systems, Inc.)"]
+
+        when:
+        def manifestEntry1 = zipEntry(MANIFEST_PATH, atributes1)
+        def manifestEntry2 = zipEntry(MANIFEST_PATH, attributes2)
+
+        def hash1 = unfilteredHasher.hash(manifestEntry1)
+        def hash2 = unfilteredHasher.hash(manifestEntry2)
+        def hash3 = hasher.hash(manifestEntry1)
+        def hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash3 == hash4
+
+        when:
+        manifestEntry1 = fileSnapshot(MANIFEST_PATH, atributes1)
+        manifestEntry2 = fileSnapshot(MANIFEST_PATH, attributes2)
+
+        hash1 = unfilteredHasher.hash(manifestEntry1)
+        hash2 = unfilteredHasher.hash(manifestEntry2)
+        hash3 = hasher.hash(manifestEntry1)
+        hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash3 == hash4
+    }
+
+    def "manifest attributes are case insensitive"() {
+        given:
+        def attributes1 = ["Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)"]
+        def attributes2 = ["created-by": "1.8.0_232-b18 (Azul Systems, Inc.)"]
+
+        when:
+        def manifestEntry1 = zipEntry(MANIFEST_PATH, attributes1)
+        def manifestEntry2 = zipEntry(MANIFEST_PATH, attributes2)
+
+        def hash1 = unfilteredHasher.hash(manifestEntry1)
+        def hash2 = unfilteredHasher.hash(manifestEntry2)
+        def hash3 = hasher.hash(manifestEntry1)
+        def hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash1 == hash2
+        hash3 == hash4
+
+        when:
+        manifestEntry1 = fileSnapshot(MANIFEST_PATH, attributes1)
+        manifestEntry2 = fileSnapshot(MANIFEST_PATH, attributes2)
+
+        hash1 = unfilteredHasher.hash(manifestEntry1)
+        hash2 = unfilteredHasher.hash(manifestEntry2)
+        hash3 = hasher.hash(manifestEntry1)
+        hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash1 == hash2
+        hash3 == hash4
+    }
+
+    def "manifest attributes are section order insensitive"() {
+        given:
+        def attributes1 = [
+            "${Attributes.Name.MANIFEST_VERSION}": "1.0",
+            "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            "${Attributes.Name.IMPLEMENTATION_VERSION}": "1.0",
+
+            "org/gradle/api": [
+                "Sealed": "true"
+            ],
+            "org/gradle/base": [
+                "Sealed": "true"
+            ]
+        ]
+        def atributes2 = [
+            "${Attributes.Name.MANIFEST_VERSION}": "1.0",
+            "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            "${Attributes.Name.IMPLEMENTATION_VERSION}": "1.0",
+
+            "org/gradle/base": [
+                "Sealed": "true"
+            ],
+            "org/gradle/api": [
+                "Sealed": "true"
+            ]
+        ]
+
+        when:
+        def manifestEntry1 = zipEntry(MANIFEST_PATH, attributes1)
+        def manifestEntry2 = zipEntry(MANIFEST_PATH, atributes2)
+
+        def hash1 = unfilteredHasher.hash(manifestEntry1)
+        def hash2 = unfilteredHasher.hash(manifestEntry2)
+        def hash3 = hasher.hash(manifestEntry1)
+        def hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash1 == hash2
+        hash3 == hash4
+
+        when:
+        manifestEntry1 = fileSnapshot(MANIFEST_PATH, attributes1)
+        manifestEntry2 = fileSnapshot(MANIFEST_PATH, atributes2)
+
+        hash1 = unfilteredHasher.hash(manifestEntry1)
+        hash2 = unfilteredHasher.hash(manifestEntry2)
+        hash3 = hasher.hash(manifestEntry1)
+        hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash1 == hash2
+        hash3 == hash4
+    }
+
+    def "manifest attributes are filtered in sub-sections"() {
+        given:
+        def attributes1 = [
+            "${Attributes.Name.MANIFEST_VERSION}": "1.0",
+            "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            "${Attributes.Name.IMPLEMENTATION_VERSION}": "1.0",
+
+            "org/gradle/api": [
+                "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            ],
+            "org/gradle/base": [
+                "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            ]
+        ]
+        def attributes2 = [
+            "${Attributes.Name.MANIFEST_VERSION}": "1.0",
+            "Created-By": "1.8.0_232-b19 (Azul Systems, Inc.)",
+            "${Attributes.Name.IMPLEMENTATION_VERSION}": "1.0",
+
+            "org/gradle/base": [
+                "Created-By": "1.8.0_232-b19 (Azul Systems, Inc.)",
+            ],
+            "org/gradle/api": [
+                "Created-By": "1.8.0_232-b19 (Azul Systems, Inc.)",
+            ]
+        ]
+
+        when:
+        def manifestEntry1 = zipEntry(MANIFEST_PATH, attributes1)
+        def manifestEntry2 = zipEntry(MANIFEST_PATH, attributes2)
+
+        def hash1 = unfilteredHasher.hash(manifestEntry1)
+        def hash2 = unfilteredHasher.hash(manifestEntry2)
+        def hash3 = hasher.hash(manifestEntry1)
+        def hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash3 == hash4
+
+        when:
+        manifestEntry1 = fileSnapshot(MANIFEST_PATH, attributes1)
+        manifestEntry2 = fileSnapshot(MANIFEST_PATH, attributes2)
+
+        hash1 = unfilteredHasher.hash(manifestEntry1)
+        hash2 = unfilteredHasher.hash(manifestEntry2)
+        hash3 = hasher.hash(manifestEntry1)
+        hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash3 == hash4
+    }
+
+    def "manifest attributes in sub-sections are ignored when all attributes are ignored"() {
+        given:
+        def attributes1 = [
+            "${Attributes.Name.MANIFEST_VERSION}": "1.0",
+            "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            "${Attributes.Name.IMPLEMENTATION_VERSION}": "1.0",
+
+            "org/gradle/api": [
+                "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            ],
+            "org/gradle/base": [
+                "Created-By": "1.8.0_232-b18 (Azul Systems, Inc.)",
+            ]
+        ]
+        def attributes2 = [
+            "${Attributes.Name.MANIFEST_VERSION}": "1.0",
+            "Created-By": "1.8.0_232-b19 (Azul Systems, Inc.)",
+            "${Attributes.Name.IMPLEMENTATION_VERSION}": "1.0",
+        ]
+
+        when:
+        def manifestEntry1 = zipEntry(MANIFEST_PATH, attributes1)
+        def manifestEntry2 = zipEntry(MANIFEST_PATH, attributes2)
+
+        def hash1 = unfilteredHasher.hash(manifestEntry1)
+        def hash2 = unfilteredHasher.hash(manifestEntry2)
+        def hash3 = hasher.hash(manifestEntry1)
+        def hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash3 == hash4
+
+        when:
+        manifestEntry1 = fileSnapshot(MANIFEST_PATH, attributes1)
+        manifestEntry2 = fileSnapshot(MANIFEST_PATH, attributes2)
+
+        hash1 = unfilteredHasher.hash(manifestEntry1)
+        hash2 = unfilteredHasher.hash(manifestEntry2)
+        hash3 = hasher.hash(manifestEntry1)
+        hash4 = hasher.hash(manifestEntry2)
+
+        then:
+        hash1 != hash2
+        hash1 != hash3
+        hash2 != hash4
+
+        and:
+        hash3 == hash4
+    }
+
+    void populateAttributes(Attributes attributes, Map<String, Object> attributesMap) {
+        attributesMap.each { String name, Object value ->
+            if (value instanceof String) {
+                attributes.put(new Attributes.Name(name), value)
+            }
+        }
+    }
+
+    def zipEntry(String path, Map<String, Object> attributesMap = [:], Exception exception = null) {
+        ByteArrayOutputStream bos = getManifestByteStream(attributesMap)
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
@@ -86,19 +412,64 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
 
             @Override
             byte[] getContent() throws IOException {
-                return new byte[0]
+                return bos.toByteArray()
             }
 
             @Override
             InputStream getInputStream() {
-                return null
+                if (exception) {
+                    throw exception
+                }
+                return new ByteArrayInputStream(bos.toByteArray())
             }
 
             @Override
             int size() {
-                return 0
+                return bos.size()
             }
         }
         return new ZipEntryContext(zipEntry, path, "foo.zip")
+    }
+
+    def fileSnapshot(String path, Map<String, Object> attributesMap = [:], Exception exception = null) {
+        ByteArrayOutputStream manifestBytes = getManifestByteStream(attributesMap)
+        tmpDir.create()
+        File root = tmpDir.newFolder()
+        File manifestFile = new File(root, MANIFEST_PATH)
+        manifestFile.parentFile.mkdirs()
+        manifestFile.write(manifestBytes.toString())
+        return new RegularFileSnapshotContext() {
+            @Override
+            Supplier<String[]> getRelativePathSegments() {
+                return { path.split('/') }
+            }
+
+            @Override
+            RegularFileSnapshot getSnapshot() {
+                return new RegularFileSnapshot(
+                    manifestFile.absolutePath,
+                    manifestFile.name,
+                    HashCode.fromBytes(manifestBytes.toByteArray()),
+                    DefaultFileMetadata.file(manifestFile.lastModified(), manifestFile.length(), FileMetadata.AccessType.DIRECT)
+                )
+            }
+        }
+    }
+
+    private ByteArrayOutputStream getManifestByteStream(Map<String, Object> attributesMap) {
+        def manifest = new Manifest()
+        def mainAttributes = manifest.getMainAttributes()
+        mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+        populateAttributes(mainAttributes, attributesMap)
+        attributesMap.each { name, value ->
+            if (value instanceof Map) {
+                def secondaryAttributes = new Attributes()
+                populateAttributes(secondaryAttributes, value)
+                manifest.entries.put(name, secondaryAttributes)
+            }
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream()
+        manifest.write(bos)
+        bos
     }
 }

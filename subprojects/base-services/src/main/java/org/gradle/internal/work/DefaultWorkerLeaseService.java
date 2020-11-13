@@ -165,6 +165,22 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
+    public void blocking(Runnable action) {
+        if (projectLockRegistry.canChangeLocks()) {
+            // Need to run the action without the project locks
+            withoutProjectLock(action);
+        } else {
+            // Can just run the action, as it is safe to retain the project locks
+            action.run();
+        }
+    }
+
+    @Override
+    public <T> T whileDisallowingProjectLockChanges(Factory<T> action) {
+        return projectLockRegistry.whileDisallowingLockChanges(action);
+    }
+
+    @Override
     public void withLocks(Iterable<? extends ResourceLock> locks, Runnable runnable) {
         withLocks(locks, Factories.toFactory(runnable));
     }

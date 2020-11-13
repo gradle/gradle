@@ -1,0 +1,15 @@
+[versions]
+groovy = "2.5.6"
+
+[dependencies]
+groovy = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
+groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
+
+guava = "com.google.guava:guava:17.0-jre"
+
+[bundles]
+groovy = ["groovy", "groovy-json"]
+
+[plugins]
+my.awesome.plugin = "1.9"
+my.other.plugin = "1.1"

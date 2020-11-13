@@ -26,8 +26,8 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class DefaultJavaApplication implements JavaApplication {
     private final ApplicationPluginConvention convention;
-    private Property<String> mainModule;
-    private Property<String> mainClass;
+    private final Property<String> mainModule;
+    private final Property<String> mainClass;
 
     public DefaultJavaApplication(ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.convention = convention;

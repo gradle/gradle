@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.management;
 
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
-import org.gradle.api.internal.std.AllDependenciesModel;
+package org.gradle.internal.operations;
 
-public interface DependenciesModelBuilderInternal extends DependenciesModelBuilder {
-    AllDependenciesModel build();
+import org.gradle.internal.concurrent.ManagedExecutor;
+
+public interface BuildOperationQueueFactory {
+    <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<T> worker);
 }
