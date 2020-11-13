@@ -179,10 +179,33 @@ There are many options to configure this feature which are described in the [use
 
 ## New features and usability improvements
 
-### Viewing all available toolchains
+### Java Toolchains
 
 [Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with.
 By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as toolchain.
+
+#### Selecting toolchain by vendor
+
+In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
+`JvmVendorSpec` has a list of well-known JVM vendors recognized by Gradle. The advantage is that Gradle can handle any inconsistencies across JDK versions
+in how exactly the JVM encodes the vendor information.
+
+```
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTOPENJDK
+
+        // alternativly, use custom matching
+        // vendor = JvmVendorSpec.matching("customString")
+    }
+}
+```
+
+Please refer to [the documentation](userguide/toolchains.html#using_toolchains_by_specific_vendors) for more detailed information.
+
+#### Viewing all available toolchains
+
 In order to see which toolchains got detected and their corresponding metadata, Gradle 6.8 now provides some insight with the `javaToolchains` task.
 
 Output of `gradle -q javaToolchains`:
