@@ -64,9 +64,9 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     }
 
     @Override
-    public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
-        for (FileSystemSnapshot outputFileFingerprint : outputFileFingerprints) {
-            outputFileFingerprint.accept(entrySnapshot -> {
+    public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputSnapshots) {
+        for (FileSystemSnapshot outputFileSnapshot : outputSnapshots) {
+            outputFileSnapshot.accept(entrySnapshot -> {
                 entrySnapshot.accept(new FileSystemLocationSnapshotVisitor() {
                     @Override
                     public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {

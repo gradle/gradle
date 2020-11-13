@@ -25,7 +25,7 @@ import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
+import org.gradle.internal.snapshot.FileSystemSnapshot
 
 class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     def step = new SkipUpToDateStep<>(delegate)
@@ -53,7 +53,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     def "executes when outputs are not up to date"() {
         def delegateResult = Mock(CurrentSnapshotResult)
         def delegateOutcome = Try.successful(Mock(Result.ExecutionResult))
-        def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: EmptyCurrentFileCollectionFingerprint.EMPTY])
+        def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: FileSystemSnapshot.EMPTY])
 
         when:
         def result = step.execute(work, context)

@@ -26,5 +26,5 @@ import java.io.File;
 public interface OutputFilesRepository {
     boolean isGeneratedByGradle(File file);
 
-    void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints);
+    void recordOutputs(Iterable<? extends FileSystemSnapshot> outputSnapshots);
 }

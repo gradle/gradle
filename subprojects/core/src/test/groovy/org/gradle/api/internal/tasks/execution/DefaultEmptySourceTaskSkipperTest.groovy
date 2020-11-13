@@ -24,8 +24,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -42,7 +41,6 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
     final outputChangeListener = Mock(OutputChangeListener)
     final skipper = new DefaultEmptySourceTaskSkipper(cleanupRegistry, TestFiles.deleter(), outputChangeListener, taskInputsListeners)
     final fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
-    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
 
     def "skips task when sourceFiles are empty and previous output is empty"() {
         when:
@@ -62,7 +60,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
     def "deletes previous output when sourceFiles are empty"() {
         given:
         def previousFile = temporaryFolder.createFile("output.txt")
-        def previousOutputFiles = fingerprint(previousFile)
+        def previousOutputFiles = snapshot(previousFile)
 
         when:
         def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
@@ -91,7 +89,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
     def "does not delete previous output when they are not safe to delete"() {
         given:
         def previousFile = temporaryFolder.createFile("output.txt")
-        def previousOutputFiles = fingerprint(previousFile)
+        def previousOutputFiles = snapshot(previousFile)
 
         when:
         def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
@@ -133,7 +131,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
             it << "output ${it.name}"
         }
 
-        def previousOutputFiles = fingerprint(outputDir, outputFile)
+        def previousOutputFiles = snapshot(outputDir, outputFile)
 
         def overlappingFile = subDir.file("overlap")
         overlappingFile << "overlapping file"
@@ -174,7 +172,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
     def "exception thrown when sourceFiles are empty and deletes previous output, but delete fails"() {
         given:
         def previousFile = temporaryFolder.createFile("output.txt")
-        def previousOutputFiles = fingerprint(previousFile)
+        def previousOutputFiles = snapshot(previousFile)
 
         when:
         skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
@@ -225,9 +223,9 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         0 * _
     }
 
-    def fingerprint(File... files) {
-        ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of(
-            "output", fingerprinter.fingerprint(TestFiles.fixed(files))
+    def snapshot(File... files) {
+        ImmutableSortedMap.<String, FileSystemSnapshot> of(
+            "output", fileCollectionSnapshotter.snapshot(TestFiles.fixed(files))
         )
     }
 

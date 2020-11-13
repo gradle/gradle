@@ -35,7 +35,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.file.Deleter
 
-class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements FingerprinterFixture {
+class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnasphotterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
 
@@ -57,7 +57,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     def "loads from cache"() {
         def cachedOriginMetadata = Mock(OriginMetadata)
-        def outputsFromCache = fingerprintsOf("test": [])
+        def outputsFromCache = snapshotsOf("test": [])
         def localStateFile = file("local-state.txt") << "local state"
 
         when:
@@ -237,7 +237,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     private void outputStored(Closure storeResult) {
         def originMetadata = Mock(OriginMetadata)
-        def finalOutputs = fingerprintsOf("test": [])
+        def finalOutputs = snapshotsOf("test": [])
         def storeCommand = Mock(BuildCacheStoreCommand)
 
         1 * delegateResult.finalOutputs >> finalOutputs

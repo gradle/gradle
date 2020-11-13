@@ -26,11 +26,11 @@ import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
-class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> implements FingerprinterFixture {
+class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> implements SnasphotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
@@ -46,7 +46,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     }
 
     def outputFile = file("output.txt").text = "output"
-    def finalOutputs = fingerprintsOf(output: outputFile)
+    def finalOutputs = snapshotsOf(output: outputFile)
 
     def step = new StoreExecutionStateStep<BeforeExecutionContext>(delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
@@ -116,7 +116,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> fingerprintsOf([:])
+        1 * afterPreviousExecutionState.outputFileProperties >> snapshotsOf([:])
 
         then:
         interaction { expectStore(false, finalOutputs) }
@@ -144,7 +144,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         0 * _
     }
 
-    void expectStore(boolean successful, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
+    void expectStore(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs) {
         1 * delegateResult.originMetadata >> originMetadata
         1 * executionHistoryStore.store(
             identity.uniqueId,

@@ -136,8 +136,8 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
     def "store invokes packer"() {
         def output = Mock(OutputStream)
         def entity = entity(prop("output"))
-        def outputFingerprints = Mock(Map)
-        def command = commandFactory.createStore(key, entity, outputFingerprints, 421L)
+        def outputSnapshots = Mock(Map)
+        def command = commandFactory.createStore(key, entity, outputSnapshots, 421L)
 
         when:
         def result = command.store(output)
@@ -146,7 +146,7 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         1 * originFactory.createWriter(entity, 421L) >> originWriter
 
         then:
-        1 * packer.pack(entity, outputFingerprints, output, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
+        1 * packer.pack(entity, outputSnapshots, output, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
 
         then:
         result.artifactEntryCount == 123
