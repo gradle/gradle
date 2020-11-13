@@ -37,11 +37,10 @@ import org.junit.Test
 import org.junit.Ignore
 import java.util.UUID
 
-
+@Ignore("https://github.com/gradle/gradle-private/issues/3233")
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
-    @Ignore("https://github.com/gradle/gradle-private/issues/3233")
     fun `same script, target type & classpath`() {
 
         // given: multi-project build with same build files
