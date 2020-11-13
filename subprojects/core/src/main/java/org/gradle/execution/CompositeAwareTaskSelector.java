@@ -43,17 +43,35 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     @Override
     public Spec<Task> getFilter(String path) {
         Path taskPath = Path.path(path);
-        BuildState includedBuild = findIncludedBuild(taskPath);
-
-        if (!taskPath.isAbsolute()) {
-            return getUnqualifiedBuildSelector().getFilter(path);
-        } else if (gradle.isRootBuild()) {
-            return includedBuild != null ? Specs.satisfyAll() : getUnqualifiedBuildSelector().getFilter(path);
-        } else if (taskPath.segmentCount() > 1 && taskPath.segment(0).equals(gradle.getRootProject().getName())) {
-            return getUnqualifiedBuildSelector().getFilter(taskPath.removeFirstSegments(1).toString());
+        if (taskPath.isAbsolute()) {
+            if (gradle.isRootBuild()) {
+                if (pathReferencesAnyIncludedBuilds(taskPath)) {
+                    return Specs.satisfyAll();
+                } else {
+                    return getUnqualifiedBuildSelector().getFilter(path);
+                }
+            } else {
+                if (pathReferencesThisIncludedBuild(taskPath)) {
+                    return getUnqualifiedBuildSelector().getFilter(taskPath.removeFirstSegments(1).toString());
+                } else {
+                    return Specs.satisfyAll();
+                }
+            }
         } else {
-            return Specs.satisfyAll();
+            if (gradle.isRootBuild()) {
+                return getUnqualifiedBuildSelector().getFilter(path);
+            } else {
+                return Specs.satisfyAll();
+            }
         }
+    }
+
+    private boolean pathReferencesAnyIncludedBuilds(Path taskPath) {
+        return findIncludedBuild(taskPath) != null;
+    }
+
+    private boolean pathReferencesThisIncludedBuild(Path taskPath) {
+        return taskPath.segmentCount() > 1 && taskPath.segment(0).equals(gradle.getRootProject().getName());
     }
 
     @Override
