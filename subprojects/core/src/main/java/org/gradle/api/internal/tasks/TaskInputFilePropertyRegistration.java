@@ -24,5 +24,5 @@ public interface TaskInputFilePropertyRegistration extends TaskPropertyRegistrat
     Class<? extends FileNormalizer> getNormalizer();
     InputFilePropertyType getFilePropertyType();
     boolean isSkipWhenEmpty();
-    DirectorySensitivity getEmptyDirectorySensitivity();
+    DirectorySensitivity getDirectorySensitivity();
 }

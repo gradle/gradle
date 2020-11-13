@@ -47,7 +47,7 @@ public interface FileCollectionFingerprinter {
     String normalizePath(CompleteFileSystemLocationSnapshot root);
 
     /**
-     * Returns the empty directory sensitivity associated with this fingerprinter.
+     * Returns the directory sensitivity associated with this fingerprinter.
      */
     DirectorySensitivity getDirectorySensitivity();
 }

@@ -84,7 +84,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 registration.getPropertyName(),
                 registration.isOptional(),
                 registration.isSkipWhenEmpty(),
-                registration.getEmptyDirectorySensitivity(),
+                registration.getDirectorySensitivity(),
                 false,
                 registration.getNormalizer(),
                 registration.getValue(),

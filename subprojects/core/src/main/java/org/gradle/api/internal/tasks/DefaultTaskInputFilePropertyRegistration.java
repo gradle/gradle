@@ -93,7 +93,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public DirectorySensitivity getEmptyDirectorySensitivity() {
+    public DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
     }
 

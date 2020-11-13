@@ -50,7 +50,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
             value,
             skipWhenEmpty,
             incremental,
-                directorySensitivity
+            directorySensitivity
         ));
         if (skipWhenEmpty) {
             hasSourceFiles = true;

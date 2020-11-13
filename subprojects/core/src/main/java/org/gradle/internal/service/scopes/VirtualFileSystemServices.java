@@ -419,7 +419,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new RelativePathFileCollectionFingerprinter(stringInterner, DirectorySensitivity.FINGERPRINT_DIRECTORIES, fileCollectionSnapshotter);
         }
 
-        RelativePathFileCollectionFingerprinter createRelativePathIgnoreEmptyFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        RelativePathFileCollectionFingerprinter createRelativePathIgnoreDirectoriesFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
             return new RelativePathFileCollectionFingerprinter(stringInterner, DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
         }
 
@@ -427,7 +427,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new NameOnlyFileCollectionFingerprinter(DirectorySensitivity.FINGERPRINT_DIRECTORIES, fileCollectionSnapshotter);
         }
 
-        NameOnlyFileCollectionFingerprinter createNameOnlyIgnoreEmptyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        NameOnlyFileCollectionFingerprinter createNameOnlyIgnoreDirectoriesFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
             return new NameOnlyFileCollectionFingerprinter(DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
         }
 

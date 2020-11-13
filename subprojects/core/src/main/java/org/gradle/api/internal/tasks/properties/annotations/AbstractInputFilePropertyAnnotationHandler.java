@@ -76,7 +76,8 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,
-            getFilePropertyType());
+            getFilePropertyType()
+        );
     }
 
     @Override
