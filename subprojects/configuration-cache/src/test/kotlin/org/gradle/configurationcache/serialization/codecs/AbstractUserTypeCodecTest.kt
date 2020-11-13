@@ -165,7 +165,6 @@ abstract class AbstractUserTypeCodecTest {
         classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
         valueSnapshotter = mock(),
-        buildServiceRegistry = mock(),
         managedFactoryRegistry = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
@@ -175,6 +174,7 @@ abstract class AbstractUserTypeCodecTest {
         patternSetFactory = mock(),
         fileOperations = mock(),
         fileFactory = mock(),
-        includedTaskGraph = mock()
+        includedTaskGraph = mock(),
+        buildStateRegistry = mock()
     )
 }
