@@ -48,6 +48,7 @@ https://plugins.gradle.org/plugin/nu.studer.credentials[Gradle Credentials plugi
 
 Once you have the API key you can publish as many plugins as you like.
 
+[[plugin-publishing-plugin]]
 == Add the {publishplugin} to the project
 
 Add the {publishplugin} to the `plugins` block.
@@ -184,8 +185,41 @@ If you browse the associated page on the {portal} for the https://plugins.gradle
 .GradleTest plugin metadata on the {portal}
 image::plugin-portal-plugin-page.png[]
 
+[[custom-plugin-repositories]]
+== Publish your plugin to a local repository
 
-== Publish your plugin
+To check how the artifacts of your published plugin look, or to use it only locally or internal in your company, you can publish it to any maven repository, including a local folder.
+For that, you only need to <<publishing_maven.adoc#publishing_maven:repositories,configure repositories for publishing>>.
+Then you can run the `publish` task to publish your plugin to all repositories you have defined.
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+publishing {
+    repositories {
+        maven {
+            name = 'localPluginRepository'
+            url = '../local-plugin-repository'
+        }
+    }
+}
+----
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+publishing {
+    repositories {
+        maven {
+            name = "localPluginRepository"
+            url = uri("../local-plugin-repository")
+        }
+    }
+}
+----
+
+To use the repository in another build, you have to add it to <<plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in you `settings.gradle(.kts)` file.
+
+== Publish your plugin to the Plugin Portal
 
 Publish the plugin by using the `publishPlugin` task.
 
