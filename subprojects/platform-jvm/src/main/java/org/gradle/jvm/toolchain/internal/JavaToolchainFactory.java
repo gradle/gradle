@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Optional;
 
 public class JavaToolchainFactory {
 
@@ -36,9 +37,15 @@ public class JavaToolchainFactory {
         this.fileFactory = fileFactory;
     }
 
-    public JavaToolchain newInstance(File javaHome) {
+    public Optional<JavaToolchain> newInstance(File javaHome) {
         final JavaInstallationProbe.ProbeResult probeResult = probeService.checkJdk(javaHome);
-        return new JavaToolchain(probeResult, compilerFactory, toolFactory, fileFactory);
+        final JavaInstallationProbe.InstallType type = probeResult.getInstallType();
+        if(type == JavaInstallationProbe.InstallType.IS_JRE || type == JavaInstallationProbe.InstallType.IS_JDK) {
+            JavaToolchain toolchain = new JavaToolchain(probeResult, compilerFactory, toolFactory, fileFactory);
+            return Optional.of(toolchain);
+        }
+        return Optional.empty();
+
     }
 
 }

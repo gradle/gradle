@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.Providers
@@ -95,6 +96,22 @@ class JavaToolchainQueryServiceTest extends Specification {
         e.message == "No compatible toolchains found for request filter: {languageVersion=12} (auto-detect true, auto-download true)"
     }
 
+    def "ignores invalid toolchains when finding a matching one"() {
+        given:
+        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "8.0.broken"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion.asInt() == 8
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.242.hs-adpt")
+    }
+
     def "returns no toolchain if filter is not configured"() {
         given:
         def registry = createInstallationRegistry(["8", "9", "10"])
@@ -132,22 +149,55 @@ class JavaToolchainQueryServiceTest extends Specification {
         installed
     }
 
+    def "handles broken provisioned toolchain"() {
+        given:
+        def registry = createInstallationRegistry([])
+        def toolchainFactory = newToolchainFactory()
+        def installed = false
+        def provisionService = new JavaToolchainProvisioningService() {
+            Optional<File> tryInstall(JavaToolchainSpec spec) {
+                installed = true
+                Optional.of(new File("/path/12.broken"))
+            }
+        }
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService, createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(12))
+        def toolchain = queryService.findMatchingToolchain(filter)
+        toolchain.get()
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Provisioned toolchain '${File.separator}path${File.separator}12.broken' could not be probed."
+    }
+
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JavaInstallationProbe), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            JavaToolchain newInstance(File javaHome) {
-                return new JavaToolchain(newProbe(javaHome), compilerFactory, toolFactory, TestFiles.fileFactory())
+            Optional<JavaToolchain> newInstance(File javaHome) {
+                def probe = newProbe(javaHome)
+                if(probe.installType != JavaInstallationProbe.InstallType.INVALID_JDK) {
+                    def toolchain = new JavaToolchain(probe, compilerFactory, toolFactory, TestFiles.fileFactory())
+                    return Optional.of(toolchain);
+                }
+                return Optional.empty();
             }
         }
         toolchainFactory
     }
 
     def newProbe(File javaHome) {
+        if(javaHome.name.contains("broken")) {
+            return JavaInstallationProbe.ProbeResult.failure(JavaInstallationProbe.InstallType.INVALID_JDK, "errorMessage")
+        }
         Mock(JavaInstallationProbe.ProbeResult) {
             getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
             getJavaHome() >> javaHome.absoluteFile.toPath()
             getImplementationJavaVersion() >> javaHome.name.replace("zzz", "999")
+            getInstallType() >> JavaInstallationProbe.InstallType.IS_JDK
         }
     }
 

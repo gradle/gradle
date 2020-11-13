@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
@@ -28,6 +29,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class JavaToolchainQueryService {
 
@@ -63,6 +65,8 @@ public class JavaToolchainQueryService {
     private JavaToolchain query(JavaToolchainSpec filter) {
         return registry.listInstallations().stream()
             .map(this::asToolchain)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .filter(matchingToolchain(filter))
             .sorted(new JavaToolchainComparator())
             .findFirst()
@@ -71,18 +75,25 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
         final Optional<File> installation = installService.tryInstall(spec);
-        return installation.map(this::asToolchain).orElseThrow(() -> noToolchainAvailable(spec));
+        final Optional<JavaToolchain> toolchain = installation
+            .map(this::asToolchain)
+            .orElseThrow(noToolchainAvailable(spec));
+        return toolchain.orElseThrow(provisionedToolchainIsInvalid(installation::get));
     }
 
-    private NoToolchainAvailableException noToolchainAvailable(JavaToolchainSpec spec) {
-        return new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
+    private Supplier<GradleException> noToolchainAvailable(JavaToolchainSpec spec) {
+        return () -> new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
+    }
+
+    private Supplier<GradleException> provisionedToolchainIsInvalid(Supplier<File> javaHome) {
+        return () -> new GradleException("Provisioned toolchain '" + javaHome.get() + "' could not be probed.");
     }
 
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
         return toolchain -> toolchain.getLanguageVersion().equals(spec.getLanguageVersion().get());
     }
 
-    private JavaToolchain asToolchain(File javaHome) {
+    private Optional<JavaToolchain> asToolchain(File javaHome) {
         return toolchainFactory.newInstance(javaHome);
     }
 }
