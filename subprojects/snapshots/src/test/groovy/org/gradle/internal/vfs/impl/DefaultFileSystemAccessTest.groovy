@@ -16,9 +16,7 @@
 
 package org.gradle.internal.vfs.impl
 
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -183,11 +181,10 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         when:
         allowFileSystemAccess(true)
         def snapshot = read(d, new FileNameFilter({ name -> name.endsWith('1')}))
-        def visitor = new RelativePathCapturingVisitor()
-        snapshot.accept(visitor)
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         assertIsDirectorySnapshot(snapshot, d)
-        visitor.relativePaths == ["d1", "d1/f1", "f1"]
+        relativePaths == ["d1", "d1/f1", "f1"]
 
         when:
         // filtered snapshots are currently not stored in the VFS
@@ -246,40 +243,9 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         when:
         allowFileSystemAccess(false)
         def snapshot = read(d, patterns)
-        def relativePaths = [] as Set
-        snapshot.accept(new FileSystemSnapshotVisitor() {
-            private Deque<String> relativePath = new ArrayDeque<String>()
-            private boolean seenRoot = false
-
-            @Override
-            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                if (!seenRoot) {
-                    seenRoot = true
-                } else {
-                    relativePath.addLast(directorySnapshot.name)
-                    relativePaths.add(relativePath.join("/"))
-                }
-                return true
-            }
-
-            @Override
-            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                relativePath.addLast(fileSnapshot.name)
-                relativePaths.add(relativePath.join("/"))
-                relativePath.removeLast()
-            }
-
-            @Override
-            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                if (relativePath.isEmpty()) {
-                    seenRoot = false
-                } else {
-                    relativePath.removeLast()
-                }
-            }
-        })
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
 
         then: "The filtered tree uses the cached state"
-        relativePaths == ["d1", "d1/f1", "f1"] as Set
+        relativePaths as Set == ["d1", "d1/f1", "f1"] as Set
     }
 }

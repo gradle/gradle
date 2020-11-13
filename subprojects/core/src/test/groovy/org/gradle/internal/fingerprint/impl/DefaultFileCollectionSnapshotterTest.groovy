@@ -28,16 +28,17 @@ import org.gradle.api.resources.ResourceException
 import org.gradle.api.resources.internal.LocalResourceAdapter
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.internal.Factory
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 import javax.annotation.Nullable
+
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 class DefaultFileCollectionSnapshotterTest extends Specification {
     @Rule
@@ -162,7 +163,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
 
         then:
         assert snapshots.size() == 1
-        assert getSnapshotInfo(snapshots[0]) == [null, 0]
+        assert getSnapshotCount(snapshots[0]) == 0
     }
 
     def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
@@ -228,31 +229,15 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
 
     void assertSingleFileSnapshot(snapshots) {
         assert snapshots.size() == 1
-        assert getSnapshotInfo(snapshots[0]) == [null, 1]
+        assert getSnapshotCount(snapshots[0]) == 1
     }
 
-    private static List getSnapshotInfo(FileSystemSnapshot tree) {
-        String rootPath = null
+    private static int getSnapshotCount(FileSystemSnapshot tree) {
         int count = 0
-        tree.accept(new FileSystemSnapshotVisitor() {
-            @Override
-            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                if (rootPath == null) {
-                    rootPath = directorySnapshot.absolutePath
-                }
-                count++
-                return true
-            }
-
-            @Override
-            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                count++
-            }
-
-            @Override
-            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            }
-        })
-        return [rootPath, count]
+        tree.accept({ CompleteFileSystemLocationSnapshot snapshot ->
+            count++
+            return CONTINUE
+        } as FileSystemSnapshotHierarchyVisitor)
+        return count
     }
 }

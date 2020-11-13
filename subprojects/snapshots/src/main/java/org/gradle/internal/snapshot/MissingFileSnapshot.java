@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * A snapshot of a missing file or a broken symbolic link or a named pipe.
  */
-public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot {
+public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot implements FileSystemLeafSnapshot {
     private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
 
     public MissingFileSnapshot(String absolutePath, String name, AccessType accessType) {
@@ -53,8 +53,13 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visitFile(this);
+    public void accept(FileSystemLocationSnapshotVisitor visitor) {
+        visitor.visitMissing(this);
+    }
+
+    @Override
+    public <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer) {
+        return transformer.visitMissing(this);
     }
 
     public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {

@@ -23,8 +23,12 @@ import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
@@ -165,35 +169,39 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         changedWatchedDirectories.compute(path, (key, value) -> value == null ? 1 : value + 1);
     }
 
-    private class SubdirectoriesToWatchVisitor implements FileSystemSnapshotVisitor {
+    private class SubdirectoriesToWatchVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
         private final Consumer<String> subDirectoryToWatchConsumer;
-        private boolean root;
 
         public SubdirectoriesToWatchVisitor(Consumer<String> subDirectoryToWatchConsumer) {
             this.subDirectoryToWatchConsumer = subDirectoryToWatchConsumer;
-            this.root = true;
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (root) {
-                root = false;
-                return true;
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+            if (isRoot) {
+                return SnapshotVisitResult.CONTINUE;
             }
-            if (watchableHierarchies.ignoredForWatching(directorySnapshot)) {
-                return false;
-            } else {
-                subDirectoryToWatchConsumer.accept(directorySnapshot.getAbsolutePath());
-                return true;
-            }
-        }
+            return snapshot.accept(new FileSystemLocationSnapshotTransformer<SnapshotVisitResult>() {
+                @Override
+                public SnapshotVisitResult visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    if (watchableHierarchies.ignoredForWatching(directorySnapshot)) {
+                        return SnapshotVisitResult.SKIP_SUBTREE;
+                    } else {
+                        subDirectoryToWatchConsumer.accept(directorySnapshot.getAbsolutePath());
+                        return SnapshotVisitResult.CONTINUE;
+                    }
+                }
 
-        @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-        }
+                @Override
+                public SnapshotVisitResult visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                    return SnapshotVisitResult.CONTINUE;
+                }
 
-        @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                @Override
+                public SnapshotVisitResult visitMissing(MissingFileSnapshot missingSnapshot) {
+                    return SnapshotVisitResult.CONTINUE;
+                }
+            });
         }
     }
 }

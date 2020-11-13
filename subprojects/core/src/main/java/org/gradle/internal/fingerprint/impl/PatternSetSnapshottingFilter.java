@@ -213,14 +213,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public RelativePath getRelativePath() {
-            String[] segments = new String[Iterables.size(relativePath) + 1];
-            int i = 0;
-            for (String segment : relativePath) {
-                segments[i] = segment;
-                i++;
-            }
-            segments[i] = name;
-            return new RelativePath(!isDirectory, segments);
+            return new RelativePath(!isDirectory, Iterables.toArray(relativePath, String.class));
         }
 
         @Override

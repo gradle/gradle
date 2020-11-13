@@ -46,7 +46,7 @@ class SnapshotWatchedDirectoryFinderTest extends Specification {
     }
 
     private static CompleteDirectorySnapshot directorySnapshot(String absolutePath) {
-        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [], Hashing.md5().hashString(absolutePath), AccessType.DIRECT)
+        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), AccessType.DIRECT, Hashing.md5().hashString(absolutePath), [])
     }
 
     private static Set<String> normalizeLineSeparators(Set<String> paths) {

@@ -19,22 +19,23 @@ package org.gradle.internal.snapshot;
 /**
  * Visitor for {@link FileSystemSnapshot}.
  */
-public interface FileSystemSnapshotVisitor {
+public interface FileSystemSnapshotHierarchyVisitor {
 
     /**
      * Called before visiting the contents of a directory.
+     */
+    default void enterDirectory(CompleteDirectorySnapshot directorySnapshot) {}
+
+    /**
+     * Called for each regular file/directory/missing/unavailable file.
      *
-     * @return Whether the subtree should be visited.
+     * @return how to continue visiting the rest of the snapshot hierarchy.
      */
-    boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot);
+    SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot);
 
     /**
-     * Called for each regular/missing/unavailable file.
+     * Called after all entries in the directory has been visited.
      */
-    void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot);
+    default void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {}
 
-    /**
-     * Called when leaving a directory.
-     */
-    void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot);
 }

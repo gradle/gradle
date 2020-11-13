@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
+
 /**
  * A complete snapshot of an existing directory.
  *
@@ -34,22 +37,16 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     private final ChildMap<CompleteFileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
-        this(
-            absolutePath,
-            name,
-            ChildMapFactory.childMapFromSorted(children.stream()
-                .map(it -> new ChildMap.Entry<>(it.getName(), it))
-                .collect(Collectors.toList())),
-            contentHash,
-            accessType
-        );
+    public CompleteDirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, List<CompleteFileSystemLocationSnapshot> children) {
+        this(absolutePath, name, accessType, contentHash, childMapFromSorted(children.stream()
+            .map(it -> new ChildMap.Entry<>(it.getName(), it))
+            .collect(Collectors.toList())));
     }
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, ChildMap<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
+    public CompleteDirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, ChildMap<CompleteFileSystemLocationSnapshot> children) {
         super(absolutePath, name, accessType);
-        this.children = children;
         this.contentHash = contentHash;
+        this.children = children;
     }
 
     @Override
@@ -68,12 +65,54 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
-        if (!visitor.preVisitDirectory(this)) {
-            return;
+    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
+        SnapshotVisitResult result = visitor.visitEntry(this);
+        switch (result) {
+            case CONTINUE:
+                visitor.enterDirectory(this);
+                children.visitChildren((name, child) -> child.accept(visitor));
+                visitor.leaveDirectory(this);
+                return CONTINUE;
+            case SKIP_SUBTREE:
+                return CONTINUE;
+            case TERMINATE:
+                return SnapshotVisitResult.TERMINATE;
+            default:
+                throw new AssertionError();
         }
-        children.visitChildren((__, child) -> child.accept(visitor));
-        visitor.postVisitDirectory(this);
+    }
+
+    @Override
+    public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+        pathTracker.enter(getName());
+        try {
+            SnapshotVisitResult result = visitor.visitEntry(this, pathTracker);
+            switch (result) {
+                case CONTINUE:
+                    visitor.enterDirectory(this, pathTracker);
+                    children.visitChildren((name, child) -> child.accept(pathTracker, visitor));
+                    visitor.leaveDirectory(this, pathTracker);
+                    return CONTINUE;
+                case SKIP_SUBTREE:
+                    return CONTINUE;
+                case TERMINATE:
+                    return SnapshotVisitResult.TERMINATE;
+                default:
+                    throw new AssertionError();
+            }
+        } finally {
+            pathTracker.leave();
+        }
+    }
+
+    @Override
+    public void accept(FileSystemLocationSnapshotVisitor visitor) {
+        visitor.visitDirectory(this);
+    }
+
+    @Override
+    public <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer) {
+        return transformer.visitDirectory(this);
     }
 
     @VisibleForTesting
