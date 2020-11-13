@@ -21,9 +21,10 @@ import org.gradle.internal.jvm.Jvm
 
 class LowerToolchainGroovyCompileIntegrationTest extends AbstractToolchainGroovyCompileIntegrationTest {
 
+    @Override
     Jvm computeJdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
-            it.javaVersion < Jvm.current().javaVersion && it.javaVersion.isJava8Compatible()
+            it.languageVersion < Jvm.current().javaVersion && it.languageVersion.isJava8Compatible()
         }
     }
 }

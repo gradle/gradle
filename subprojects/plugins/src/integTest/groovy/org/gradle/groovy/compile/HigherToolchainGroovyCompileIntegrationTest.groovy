@@ -22,11 +22,10 @@ import org.gradle.internal.jvm.Jvm
 
 class HigherToolchainGroovyCompileIntegrationTest extends AbstractToolchainGroovyCompileIntegrationTest {
 
-
     @Override
     Jvm computeJdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
-            it.javaVersion > Jvm.current().javaVersion && JavaVersion.VERSION_15.isCompatibleWith(it.javaVersion)
+            it.languageVersion > Jvm.current().javaVersion && JavaVersion.VERSION_15.isCompatibleWith(it.languageVersion)
         }
     }
 }
