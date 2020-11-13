@@ -412,7 +412,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter);
+            return new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.FINGERPRINT_DIRECTORIES, fileCollectionSnapshotter);
+        }
+
+        AbsolutePathFileCollectionFingerprinter createAbsolutePathIgnoreDirectoriesFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.IGNORE_DIRECTORIES, fileCollectionSnapshotter);
         }
 
         RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {

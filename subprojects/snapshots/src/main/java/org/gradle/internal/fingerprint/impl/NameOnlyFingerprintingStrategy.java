@@ -59,7 +59,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             @Override
             public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
-                if (processedEntries.add(absolutePath)) {
+                if (processedEntries.add(absolutePath) && shouldFingerprint(snapshot)) {
                     if (snapshot.getType() == FileType.Directory && directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES) {
                         return SnapshotVisitResult.CONTINUE;
                     }
@@ -72,6 +72,10 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             }
         });
         return builder.build();
+    }
+
+    private boolean shouldFingerprint(CompleteFileSystemLocationSnapshot snapshot) {
+        return !(snapshot.getType() == FileType.Directory && directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES);
     }
 
     @Override

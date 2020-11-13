@@ -21,5 +21,5 @@ import org.gradle.api.tasks.FileNormalizer;
 /**
  * {@link FileNormalizer} that uses absolute paths for input files. The default.
  */
-public interface AbsolutePathInputNormalizer extends FileNormalizer {
+public interface AbsolutePathInputNormalizer extends FileNormalizer, DirectorySensitiveNormalizer {
 }

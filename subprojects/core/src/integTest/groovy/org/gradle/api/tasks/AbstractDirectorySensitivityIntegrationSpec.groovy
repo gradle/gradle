@@ -33,8 +33,8 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
     abstract String getStatusForReusedOutput()
 
     @Unroll
-    def "task is sensitive to empty directories by default (#api)"() {
-        createTaskWithSensitivity(DirectorySensitivity.FINGERPRINT_DIRECTORIES, api)
+    def "task is sensitive to empty directories by default (#api, #pathSensitivity)"() {
+        createTaskWithSensitivity(DirectorySensitivity.FINGERPRINT_DIRECTORIES, api, pathSensitivity)
         buildFile << """
             taskWithInputs {
                 sources.from(project.files("foo", "bar"))
@@ -58,7 +58,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         execute("taskWithInputs")
 
         then:
-        result.groupedOutput.task(":taskWithInputs").outcome == statusForReusedOutput
+        reused(":taskWithInputs")
 
         when:
         cleanWorkspace()
@@ -71,12 +71,12 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        api << (API.values() as List<API>)
+        [api, pathSensitivity] << [API.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
     @Unroll
-    def "empty directories are ignored when specified (#api)"() {
-        createTaskWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES, api)
+    def "empty directories are ignored when specified (#api, #pathSensitivity)"() {
+        createTaskWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES, api, pathSensitivity)
         buildFile << """
             taskWithInputs {
                 sources.from(project.files("foo", "bar"))
@@ -100,7 +100,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         execute("taskWithInputs")
 
         then:
-        result.groupedOutput.task(":taskWithInputs").outcome == statusForReusedOutput
+        reused(":taskWithInputs")
 
         when:
         cleanWorkspace()
@@ -110,15 +110,15 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         execute("taskWithInputs")
 
         then:
-        result.groupedOutput.task(":taskWithInputs").outcome == statusForReusedOutput
+        reused(":taskWithInputs")
 
         where:
-        api << (API.values() as List<API>)
+        [api, pathSensitivity] << [API.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
     @Unroll
-    def "Non-empty directories are tracked when empty directories are ignored (#api)"() {
-        createTaskWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES, api)
+    def "Non-empty directories are tracked when empty directories are ignored (#api, #pathSensitivity)"() {
+        createTaskWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES, api, pathSensitivity)
         buildFile << """
             taskWithInputs {
                 sources.from(project.files("foo", "bar"))
@@ -142,7 +142,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         execute("taskWithInputs")
 
         then:
-        result.groupedOutput.task(":taskWithInputs").outcome == statusForReusedOutput
+        reused(":taskWithInputs")
 
         when:
         cleanWorkspace()
@@ -158,7 +158,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         execute("taskWithInputs")
 
         then:
-        executedAndNotSkipped(":taskWithInputs")
+        executedUnlessNameOnly(":taskWithInputs", pathSensitivity)
 
         when:
         cleanWorkspace()
@@ -169,7 +169,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        api << (API.values() as List<API>)
+        [api, pathSensitivity] << [API.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
     @ToBeFixedForConfigurationCache(because = "doesn't like FileCollection in transform parameters")
@@ -266,6 +266,20 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         assertTransformExecuted()
     }
 
+    def reused(String taskPath) {
+        assert result.groupedOutput.task(taskPath).outcome == statusForReusedOutput
+        return true
+    }
+
+    def executedUnlessNameOnly(String taskPath, PathSensitivity pathSensitivity) {
+        if (pathSensitivity == PathSensitivity.NAME_ONLY) {
+            reused(taskPath)
+        } else {
+            executedAndNotSkipped(taskPath)
+        }
+        return true
+    }
+
     def assertTransformSkipped() {
         outputDoesNotContain(TRANSFORM_EXECUTED)
         return true
@@ -280,25 +294,25 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         RUNTIME_API, ANNOTATION_API
     }
 
-    void createTaskWithSensitivity(DirectorySensitivity emptyDirectorySensitivity, API api) {
+    void createTaskWithSensitivity(DirectorySensitivity emptyDirectorySensitivity, API api, PathSensitivity pathSensitivity = PathSensitivity.RELATIVE) {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs)
         """
         if (api == API.RUNTIME_API) {
-            createRuntimeApiTaskWithSensitivity(emptyDirectorySensitivity)
+            createRuntimeApiTaskWithSensitivity(emptyDirectorySensitivity, pathSensitivity)
         } else if (api == API.ANNOTATION_API) {
-            createAnnotatedTaskWithSensitivity(emptyDirectorySensitivity)
+            createAnnotatedTaskWithSensitivity(emptyDirectorySensitivity, pathSensitivity)
         } else {
             throw new IllegalArgumentException()
         }
     }
 
-    void createAnnotatedTaskWithSensitivity(DirectorySensitivity directorySensitivity) {
+    void createAnnotatedTaskWithSensitivity(DirectorySensitivity directorySensitivity, PathSensitivity pathSensitivity) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
                 @InputFiles
-                @PathSensitive(PathSensitivity.RELATIVE)
+                @PathSensitive(PathSensitivity.${pathSensitivity.name()})
                 ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreDirectories.class.simpleName}" : ''}
                 FileCollection sources
 
@@ -319,7 +333,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         """
     }
 
-    void createRuntimeApiTaskWithSensitivity(DirectorySensitivity directorySensitivity) {
+    void createRuntimeApiTaskWithSensitivity(DirectorySensitivity directorySensitivity, PathSensitivity pathSensitivity) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
@@ -330,7 +344,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
                     sources = project.files()
 
                     inputs.files(sources)
-                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                        .withPathSensitivity(PathSensitivity.${pathSensitivity.name()})
                         ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? '.ignoreDirectories()' : ''}
                         .withPropertyName('sources')
                 }

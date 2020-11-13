@@ -118,7 +118,7 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     def "sensitivity ABSOLUTE"() {
-        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.INSTANCE)
+        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.FINGERPRINT_DIRECTORIES)
         expect:
         allFilesToFingerprint.each { file ->
             assert fingerprints[file] == file.absolutePath

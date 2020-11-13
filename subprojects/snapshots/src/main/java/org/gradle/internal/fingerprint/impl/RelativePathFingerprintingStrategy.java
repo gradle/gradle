@@ -64,7 +64,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         HashSet<String> processedEntries = new HashSet<>();
         roots.accept(new PathTracker(), (snapshot, relativePath) -> {
             String absolutePath = snapshot.getAbsolutePath();
-            if (processedEntries.add(absolutePath)) {
+            if (processedEntries.add(absolutePath) && shouldFingerprint(snapshot)) {
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
@@ -83,6 +83,10 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
             return SnapshotVisitResult.CONTINUE;
         });
         return builder.build();
+    }
+
+    private boolean shouldFingerprint(CompleteFileSystemLocationSnapshot snapshot) {
+        return !(snapshot.getType() == FileType.Directory && directorySensitivity == IGNORE_DIRECTORIES);
     }
 
     @Override
