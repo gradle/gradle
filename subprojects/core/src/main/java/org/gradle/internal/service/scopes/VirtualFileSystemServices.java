@@ -322,7 +322,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                         return Optional.of(new LinuxFileWatcherRegistryFactory(watchFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
-                    LOGGER.info("Native file system watching is not available for this operating system.", e);
+                    LOGGER.debug("Native file system watching is not available for this operating system.", e);
                 }
             }
             return Optional.empty();
