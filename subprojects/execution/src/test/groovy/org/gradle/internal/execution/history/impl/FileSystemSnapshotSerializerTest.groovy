@@ -16,13 +16,17 @@
 
 package org.gradle.internal.execution.history.impl
 
+import org.apache.commons.io.FilenameUtils
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.serialize.AbstractEncoder
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 
+import static java.lang.Math.abs
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 import static org.gradle.internal.file.impl.DefaultFileMetadata.file
@@ -32,6 +36,7 @@ import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
 class FileSystemSnapshotSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
     def serializer = new FileSystemSnapshotSerializer(stringInterner)
+    def pseudoRandom = new Random(1234L)
 
     @Override
     Class<? extends AbstractEncoder> getEncoder() {
@@ -67,15 +72,15 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
     }
 
     def "reads and writes directory snapshot hierarchies"() {
-        def snapshots = new CompleteDirectorySnapshot("/home/lptr/dev", "dev", DIRECT, fromInt(1111), [
-            new RegularFileSnapshot("/home/lptr/dev/one.txt", "one.txt", fromInt(1234), file(1, 1, DIRECT)),
-            new RegularFileSnapshot("/home/lptr/dev/two.txt", "two.txt", fromInt(4321), file(5, 28, DIRECT)),
-            new CompleteDirectorySnapshot("/home/lptr/dev/empty", "empty", DIRECT, fromInt(2222), []),
-            new CompleteDirectorySnapshot("/home/lptr/dev/sub", "sub", DIRECT, fromInt(3333), [
-                new RegularFileSnapshot("/home/lptr/dev/sub/three.txt", "three.txt", fromInt(5678), file(2, 2, DIRECT)),
-                new RegularFileSnapshot("/home/lptr/dev/sub/four.txt", "four.txt", fromInt(8765), file(4, 0, DIRECT)),
+        def snapshots = directory("/home/lptr/dev", [
+            regularFile("/home/lptr/dev/one.txt"),
+            regularFile("/home/lptr/dev/two.txt"),
+            directory("/home/lptr/dev/empty", []),
+            directory("/home/lptr/dev/sub", [
+                regularFile("/home/lptr/dev/sub/three.txt"),
+                regularFile("/home/lptr/dev/sub/four.txt"),
             ]),
-            new RegularFileSnapshot("/home/lptr/dev/link", "link", fromInt(8765), file(4, 0, VIA_SYMLINK)),
+            regularFile("/home/lptr/dev/link", VIA_SYMLINK),
         ])
 
         when:
@@ -87,8 +92,8 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
 
     def "reads and writes composite snapshots"() {
         def snapshots = CompositeFileSystemSnapshot.of([
-            new CompleteDirectorySnapshot("/home/lptr/dev", "dev", DIRECT, fromInt(1111), []),
-            new RegularFileSnapshot("/home/lptr/dev/one.txt", "one.txt", fromInt(1234), file(1, 1, DIRECT)),
+            directory("/home/lptr/dev", []),
+            regularFile("/home/lptr/dev/one.txt"),
         ])
 
         when:
@@ -96,5 +101,23 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
 
         then:
         out == snapshots
+    }
+
+    private CompleteFileSystemLocationSnapshot directory(String absolutePath, AccessType accessType = DIRECT, List<CompleteFileSystemLocationSnapshot> children) {
+        new CompleteDirectorySnapshot(
+            FilenameUtils.separatorsToSystem(absolutePath),
+            FilenameUtils.getName(absolutePath),
+            accessType,
+            fromInt(pseudoRandom.nextInt()),
+            children as List
+        )
+    }
+
+    private CompleteFileSystemLocationSnapshot regularFile(String absolutePath, AccessType accessType = DIRECT) {
+        new RegularFileSnapshot(
+            FilenameUtils.separatorsToSystem(absolutePath),
+            FilenameUtils.getName(absolutePath),
+            fromInt(pseudoRandom.nextInt()),
+            file(abs(pseudoRandom.nextLong()), abs(pseudoRandom.nextLong()), accessType))
     }
 }

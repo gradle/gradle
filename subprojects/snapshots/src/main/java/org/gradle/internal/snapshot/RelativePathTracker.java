@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.RelativePathSupplier;
 
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -72,7 +73,7 @@ public class RelativePathTracker implements RelativePathSupplier {
             StringBuilder buffer = new StringBuilder(length);
             buffer.append(rootName);
             for (String segment : segments) {
-                buffer.append('/');
+                buffer.append(File.separatorChar);
                 buffer.append(segment);
             }
             return buffer.toString();
