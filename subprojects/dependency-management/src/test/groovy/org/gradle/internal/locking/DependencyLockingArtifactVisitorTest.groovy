@@ -100,6 +100,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
         then:
         2 * node.owner >> component
+        1 * node.root >> false
         1 * component.componentId >> identifier
         1 * identifier.version >> ''
         1 * component.metadata >> metadata
@@ -121,9 +122,30 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
         then:
         2 * node.owner >> component
+        1 * node.root >> false
         1 * component.componentId >> identifier
         1 * component.metadata >> null
         0 * _
+    }
+
+    def 'ignores root node'() {
+        given:
+        startWithState([])
+
+        DependencyGraphComponent component = Mock()
+        ComponentIdentifier identifier = Mock()
+
+        when:
+        visitor.visitNode(rootNode)
+
+        then:
+        2 * rootNode.owner >> component
+        1 * rootNode.root >> true
+        1 * component.componentId >> identifier
+        1 * component.metadata >> null
+
+        and:
+        visitor.allResolvedModules.empty
     }
 
     def 'finishes without error when visited match expected'() {

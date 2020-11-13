@@ -25,10 +25,11 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.RelativePathTracker;
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.util.Map;
 
@@ -59,21 +60,9 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
-        accept(new FileSystemSnapshotVisitor() {
-            @Override
-            public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
-                return false;
-            }
-
-            @Override
-            public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
-            }
-
-            @Override
-            public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            }
+        accept(snapshot -> {
+            builder.put(snapshot.getAbsolutePath(), snapshot.getHash());
+            return SnapshotVisitResult.SKIP_SUBTREE;
         });
         this.rootHashes = builder.build();
     }
@@ -110,13 +99,31 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
+    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }
         for (FileSystemSnapshot root : roots) {
-            root.accept(visitor);
+            SnapshotVisitResult result = root.accept(visitor);
+            if (result == SnapshotVisitResult.TERMINATE) {
+                return SnapshotVisitResult.TERMINATE;
+            }
         }
+        return SnapshotVisitResult.CONTINUE;
+    }
+
+    @Override
+    public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+        if (roots == null) {
+            throw new UnsupportedOperationException("Roots not available.");
+        }
+        for (FileSystemSnapshot root : roots) {
+            SnapshotVisitResult result = root.accept(pathTracker, visitor);
+            if (result == SnapshotVisitResult.TERMINATE) {
+                return SnapshotVisitResult.TERMINATE;
+            }
+        }
+        return SnapshotVisitResult.CONTINUE;
     }
 
     @Override

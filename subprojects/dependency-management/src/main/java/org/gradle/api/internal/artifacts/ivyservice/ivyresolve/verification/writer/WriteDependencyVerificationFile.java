@@ -323,7 +323,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void resolveAllConfigurationsConcurrently(Gradle gradle) {
-        buildOperationExecutor.runAll(queue -> {
+        buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
             Set<Project> allprojects = gradle.getRootProject().getAllprojects();
             for (Project project : allprojects) {
                 queue.add(new RunnableBuildOperation() {

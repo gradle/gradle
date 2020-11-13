@@ -24,10 +24,9 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -67,9 +66,6 @@ class DirectorySnapshotterTest extends Specification {
         patterns.include("**/*.txt")
         patterns.exclude("subdir1/**")
 
-        def visited = []
-        def relativePaths = []
-
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
 
@@ -78,13 +74,8 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(new RelativePathTrackingVisitor() {
-            @Override
-            void visit(String absolutePath, Deque<String> relativePath) {
-                visited << absolutePath
-                relativePaths << relativePath.join("/")
-            }
-        })
+        def visited = SnapshotVisitorUtil.getAbsolutePaths(snapshot, true)
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot, true)
 
         then:
         visited.contains(rootTextFile.absolutePath)
@@ -94,19 +85,20 @@ class DirectorySnapshotterTest extends Specification {
         visited.contains(excludedFile.absolutePath)
         !visited.contains(notUnderRoot.absolutePath)
         !visited.contains(doesNotExist.absolutePath)
-        relativePaths as Set == (['root'] + [
+        relativePaths as Set == [
+            '',
             'a',
             'a/b', 'a/b/c.txt',
             'a/c', 'a/c/c.txt', 'a/b/c.html',
             'subdir1', 'subdir1/a', 'subdir1/a/b', 'subdir1/a/b/c.html',
             'a.txt'
-        ].collect { 'root/' + it }) as Set
+        ] as Set
     }
 
     def "should snapshot file system root"() {
         given:
         def fileSystemRoot = fileSystemRoot()
-        def patterns = new PatternSet().exclude("*")
+        def patterns = new PatternSet().exclude("**/*")
 
         when:
         def snapshot = directorySnapshotter.snapshot(fileSystemRoot, directoryWalkerPredicate(patterns) , actuallyFiltered)
@@ -133,9 +125,6 @@ class DirectorySnapshotterTest extends Specification {
         patterns.include("**/*.txt")
         patterns.exclude("subdir1/**")
 
-        def visited = []
-        def relativePaths = []
-
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered)
 
@@ -144,13 +133,8 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
 
         when:
-        snapshot.accept(new RelativePathTrackingVisitor() {
-            @Override
-            void visit(String absolutePath, Deque<String> relativePath) {
-                visited << absolutePath
-                relativePaths << relativePath.join("/")
-            }
-        })
+        def visited = SnapshotVisitorUtil.getAbsolutePaths(snapshot, true)
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot, true)
 
         then:
         visited.contains(rootTextFile.absolutePath)
@@ -161,11 +145,11 @@ class DirectorySnapshotterTest extends Specification {
         !visited.contains(notUnderRoot.absolutePath)
         !visited.contains(doesNotExist.absolutePath)
         relativePaths as Set == [
-            'root',
-            'root/a',
-            'root/a/b', 'root/a/b/c.txt',
-            'root/a/c', 'root/a/c/c.txt',
-            'root/a.txt'
+            '',
+            'a',
+            'a/b', 'a/b/c.txt',
+            'a/c', 'a/c/c.txt',
+            'a.txt'
         ] as Set
     }
 
@@ -314,30 +298,5 @@ class DirectorySnapshotterTest extends Specification {
 
     private static SnapshottingFilter.DirectoryWalkerPredicate directoryWalkerPredicate(PatternSet patternSet) {
         return new PatternSetSnapshottingFilter(patternSet, TestFiles.fileSystem()).asDirectoryWalkerPredicate
-    }
-
-    private abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {
-        private Deque<String> relativePath = new ArrayDeque<String>()
-
-        @Override
-        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePath.addLast(directorySnapshot.name)
-            visit(directorySnapshot.absolutePath, relativePath)
-            return true
-        }
-
-        @Override
-        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            relativePath.addLast(fileSnapshot.name)
-            visit(fileSnapshot.absolutePath, relativePath)
-            relativePath.removeLast()
-        }
-
-        @Override
-        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            relativePath.removeLast()
-        }
-
-        abstract void visit(String absolutePath, Deque<String> relativePath)
     }
 }

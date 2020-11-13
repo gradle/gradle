@@ -44,7 +44,9 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 @SuppressWarnings("deprecation")
@@ -108,7 +110,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         for (Supplier<T> action : actions) {
             wrappers.add(new NestedAction<>(action));
         }
-        buildOperationExecutor.runAll(buildOperationQueue -> {
+        buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
             for (NestedAction<T> wrapper : wrappers) {
                 buildOperationQueue.add(wrapper);
             }
@@ -155,7 +157,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     private GradleInternal findBuild(GradleBuildIdentity buildIdentity) {
-        GradleInternal build = findBuild(gradle, buildIdentity);
+        Set<GradleInternal> visited = new HashSet<>();
+        GradleInternal build = findBuild(gradle, buildIdentity, visited);
         if (build != null) {
             return build;
         } else {
@@ -163,14 +166,20 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         }
     }
 
-    private GradleInternal findBuild(GradleInternal rootBuild, GradleBuildIdentity buildIdentity) {
+    private GradleInternal findBuild(GradleInternal rootBuild, GradleBuildIdentity buildIdentity, Set<GradleInternal> visited) {
         if (rootBuild.getRootProject().getProjectDir().equals(buildIdentity.getRootDir())) {
             return rootBuild;
         }
         for (IncludedBuild includedBuild : rootBuild.getIncludedBuilds()) {
-            GradleInternal matchingBuild = findBuild(((IncludedBuildState) includedBuild).getConfiguredBuild(), buildIdentity);
-            if (matchingBuild != null) {
-                return matchingBuild;
+            if (includedBuild instanceof IncludedBuildState) {
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                if (!visited.contains(build)) {
+                    visited.add(build);
+                    GradleInternal matchingBuild = findBuild(build, buildIdentity, visited);
+                    if (matchingBuild != null) {
+                        return matchingBuild;
+                    }
+                }
             }
         }
         return null;

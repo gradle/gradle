@@ -368,6 +368,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     def "useConfigurationScript"() {
         Assume.assumeFalse(versionLowerThan("2.1"))
+        Assume.assumeFalse('Test must run with 9+, cannot guarantee that with a lower toolchain', getClass().name.contains("LowerToolchain"))
 
         expect:
         fails("compileGroovy")
@@ -392,6 +393,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     // JavaFx was removed in JDK 10
     @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def "compileJavaFx8Code"() {
+        Assume.assumeFalse("Setup invalid with toolchains", getClass().name.contains('Toolchain') && !getClass().name.contains('SameToolchain'))
+
         expect:
         succeeds("compileGroovy")
     }
@@ -578,7 +581,10 @@ ${compilerConfiguration()}
 
     def writeAnnotationProcessorProject() {
         file("processor").create {
-            file("build.gradle") << "apply plugin: 'java'"
+            file("build.gradle") << """apply plugin: 'java'
+
+${annotationProcessorExtraSetup()}
+"""
             "src/main" {
                 file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
                 "java/com/test/" {
@@ -663,6 +669,10 @@ ${compilerConfiguration()}
                 }
             }
         }
+    }
+
+    String annotationProcessorExtraSetup() {
+        ""
     }
 
     String checkCompileOutput(String errorMessage) {

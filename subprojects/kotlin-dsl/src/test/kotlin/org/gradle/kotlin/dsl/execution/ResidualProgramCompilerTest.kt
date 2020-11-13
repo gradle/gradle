@@ -163,7 +163,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                     scriptTemplateId = stage2SettingsTemplateId,
                     // localClassPathHash = emptyHashCode, // only applicable once we have accessors
                     sourceHash = sourceHash,
-                    accessorsClassPath = null
+                    accessorsClassPath = ClassPath.EMPTY
                 )
             }
 
@@ -172,7 +172,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                 scriptHost,
                 stage2SettingsTemplateId,
                 sourceHash,
-                null
+                ClassPath.EMPTY
             )
 
             verify(programHost).compileSecondStageOf(
@@ -182,7 +182,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                 sourceHash,
                 ProgramKind.TopLevel,
                 ProgramTarget.Settings,
-                null
+                ClassPath.EMPTY
             )
         }
     }
@@ -279,7 +279,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                     scriptHost = scriptHost,
                     scriptTemplateId = stage2SettingsTemplateId,
                     sourceHash = sourceHash,
-                    accessorsClassPath = null
+                    accessorsClassPath = ClassPath.EMPTY
                 )
             }
         }
@@ -534,7 +534,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                     scriptTemplateId = stage2SettingsTemplateId,
                     // localClassPathHash = emptyHashCode, // only applicable once we have accessors
                     sourceHash = sourceHash,
-                    accessorsClassPath = null
+                    accessorsClassPath = ClassPath.EMPTY
                 )
 
                 verify(programHost).compileSecondStageOf(

@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint.overlap.impl;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
@@ -25,8 +24,12 @@ import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -66,19 +69,8 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
     }
 
-    private static boolean changedSincePreviousExecution(HashCode contentHash, HashCode previousContentHash) {
-        // _changed_ since last execution, possibly by another task
-        return !contentHash.equals(previousContentHash);
-    }
-
-    private static boolean createdSincePreviousExecution(@Nullable HashCode previousContentHash) {
-        // created since last execution, possibly by another task
-        return previousContentHash == null;
-    }
-
-    private static class OverlappingOutputsDetectingVisitor implements FileSystemSnapshotVisitor {
+    private static class OverlappingOutputsDetectingVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
         private final Map<String, FileSystemLocationFingerprint> previousFingerprints;
-        private int treeDepth = 0;
         private String overlappingPath;
 
         public OverlappingOutputsDetectingVisitor(Map<String, FileSystemLocationFingerprint> previousFingerprints) {
@@ -86,46 +78,53 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            treeDepth++;
-            if (overlappingPath == null) {
-                overlappingPath = detectOverlappingPath(directorySnapshot);
-            }
-            return overlappingPath == null;
-        }
-
-        @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            if (overlappingPath == null) {
-                overlappingPath = detectOverlappingPath(fileSnapshot);
-            }
-        }
-
-        @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            treeDepth--;
-        }
-
-        @Nullable
-        private String detectOverlappingPath(CompleteFileSystemLocationSnapshot beforeSnapshot) {
-            String path = beforeSnapshot.getAbsolutePath();
-            HashCode contentHash = beforeSnapshot.getHash();
-            FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
-            HashCode previousContentHash = previousFingerprint == null ? null : previousFingerprint.getNormalizedContentHash();
-            // Missing files can be ignored
-            if (!isRoot() || beforeSnapshot.getType() != FileType.Missing) {
-                if (createdSincePreviousExecution(previousContentHash)
-                    || (beforeSnapshot.getType() != previousFingerprint.getType())
-                    // The fingerprint hashes for non-regular files are slightly different to the snapshot hashes, we only need to compare them for regular files
-                    || (beforeSnapshot.getType() == FileType.RegularFile && changedSincePreviousExecution(contentHash, previousContentHash))) {
-                    return path;
+        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+            boolean newContent = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
+                @Override
+                public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    // Check if a new directory appeared. For matching directories don't check content
+                    // hash as we should detect individual entries that are different instead)
+                    return hasNewContent(directorySnapshot, null);
                 }
+
+                @Override
+                public Boolean visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                    // Check if a new file has appeared, or if an existing file's content has changed
+                    return hasNewContent(fileSnapshot, fileSnapshot.getHash());
+                }
+
+                @Override
+                public Boolean visitMissing(MissingFileSnapshot missingSnapshot) {
+                    // If the root has gone missing then we don't have overlaps
+                    if (isRoot) {
+                        return false;
+                    }
+                    // Otherwise check for newly added broken symlinks and unreadable files
+                    return hasNewContent(missingSnapshot, null);
+                }
+            });
+            if (newContent) {
+                overlappingPath = snapshot.getAbsolutePath();
+                return SnapshotVisitResult.TERMINATE;
+            } else {
+                return SnapshotVisitResult.CONTINUE;
             }
-            return null;
         }
 
-        private boolean isRoot() {
-            return treeDepth == 0;
+        private boolean hasNewContent(CompleteFileSystemLocationSnapshot snapshot, @Nullable HashCode currentContentHash) {
+            FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(snapshot.getAbsolutePath());
+            // Created since last execution, possibly by another task
+            if (previousFingerprint == null) {
+                return true;
+            }
+            if (snapshot.getType() != previousFingerprint.getType()) {
+                return true;
+            }
+            if (currentContentHash == null) {
+                return false;
+            }
+            // Content changed since last execution
+            return !currentContentHash.equals(previousFingerprint.getNormalizedContentHash());
         }
 
         @Nullable

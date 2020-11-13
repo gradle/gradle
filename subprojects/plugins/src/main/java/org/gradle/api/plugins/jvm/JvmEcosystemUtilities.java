@@ -20,8 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -75,9 +78,9 @@ public interface JvmEcosystemUtilities {
      * Configures a configuration so that its exposed target jvm version is inferred from
      * the specified source set.
      * @param configuration the configuration to configure
-     * @param sourceSet the source set which serves as reference for inference
+     * @param compileTask the compile task which serves as reference for inference
      */
-    void useDefaultTargetPlatformInference(Configuration configuration, SourceSet sourceSet);
+    <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask);
 
     /**
      * Registers a new source directory for a source set, assuming that it will be compiled by

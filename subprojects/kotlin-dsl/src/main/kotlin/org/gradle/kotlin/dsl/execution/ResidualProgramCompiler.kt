@@ -34,7 +34,6 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.ASTORE
@@ -434,7 +433,7 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
-        if (requiresAccessors()) emitAccessorsClassPathForScriptHost() else ACONST_NULL()
+        if (requiresAccessors()) emitAccessorsClassPathForScriptHost() else GETSTATIC(ClassPath::EMPTY)
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
             "(" +

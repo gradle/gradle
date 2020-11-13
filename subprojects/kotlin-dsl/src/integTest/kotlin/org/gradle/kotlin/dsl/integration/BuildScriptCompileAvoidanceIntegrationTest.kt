@@ -4,7 +4,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
-import org.gradle.kotlin.dsl.provider.SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY
 import org.gradle.util.Matchers.isEmpty
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItem
@@ -15,6 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 import java.util.UUID
 import java.util.regex.Pattern
 
@@ -47,7 +47,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenJavaClassInBuildSrcContains(
@@ -70,7 +70,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withFile("buildSrc/src/main/resources/foo.txt", "foo")
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withFile("buildSrc/src/main/resources/foo.txt", "bar")
@@ -86,7 +86,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenJavaClassInBuildSrcContains(
@@ -109,7 +109,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenJavaClassInBuildSrcContains(
@@ -134,7 +134,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
 
-        withBuildScript(
+        withUniqueScript(
             """
             buildscript {
                 dependencies { classpath(files("$jarPath")) }
@@ -165,7 +165,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
 
-        withBuildScript(
+        withUniqueScript(
             """
             buildscript {
                 dependencies { classpath(files("$jarPath")) }
@@ -198,7 +198,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
 
-        withBuildScript(
+        withUniqueScript(
             """
             buildscript {
                 dependencies { classpath(files("$jarPath")) }
@@ -222,7 +222,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 println("foo")
             """
         )
-        withBuildScript(
+        withUniqueScript(
             """
                 plugins {
                     id("$pluginId")
@@ -250,7 +250,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 println("foo")
             """
         )
-        withBuildScript(
+        withUniqueScript(
             """
                 plugins {
                     id("$pluginId")
@@ -280,7 +280,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 tasks.register("foo")
             """
         )
-        withBuildScript(
+        withUniqueScript(
             """
                 plugins {
                     id("$pluginId")
@@ -311,7 +311,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 println("foo")
             """
         )
-        withBuildScript(
+        withUniqueScript(
             """
                 plugins {
                     id("$pluginId")
@@ -342,7 +342,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
             .assertContainsCompileAvoidanceWarning("Cannot use Kotlin build script compile avoidance with buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
 
@@ -368,7 +368,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 4")
             .assertContainsCompileAvoidanceWarning("Cannot use Kotlin build script compile avoidance with buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
             .assertNumberOfCompileAvoidanceWarnings(1)
@@ -397,7 +397,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         val resourceFile = withFile("buildSrc/src/main/resources/foo.txt", "foo")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
 
@@ -417,7 +417,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$packageName.foo()")
+        withUniqueScript("$packageName.foo()")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinScriptInBuildSrcContains(
@@ -442,7 +442,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$packageName.foo()")
+        withUniqueScript("$packageName.foo()")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
             .assertContainsCompileAvoidanceWarning("Cannot use Kotlin build script compile avoidance with buildSrc.jar: class com/example/FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
 
@@ -469,7 +469,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        withBuildScript("$className().foo()")
+        withUniqueScript("$className().foo()")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinClassInBuildSrcContains(
@@ -492,7 +492,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             const val FOO = "foo"
             """
         )
-        withBuildScript("println($packageName.FOO)")
+        withUniqueScript("println($packageName.FOO)")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinScriptInBuildSrcContains(
@@ -520,7 +520,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 project.extensions.create<TestExtension>("foo")
             """
         )
-        withBuildScript(
+        withUniqueScript(
             """
                 plugins {
                     id("$pluginId")
@@ -563,7 +563,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """,
             multifileAnnotations
         )
-        withBuildScript("println($packageName.foo() + $packageName.bar())")
+        withUniqueScript("println($packageName.foo() + $packageName.bar())")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foobar")
 
         givenKotlinScriptInBuildSrcContains(
@@ -604,7 +604,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """,
             multifileAnnotations
         )
-        withBuildScript("println($packageName.foo() + $packageName.bar())")
+        withUniqueScript("println($packageName.foo() + $packageName.bar())")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foobar")
             .assertContainsCompileAvoidanceWarning("Cannot use Kotlin build script compile avoidance with buildSrc.jar")
 
@@ -649,7 +649,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """,
             multifileAnnotations
         )
-        withBuildScript("println($packageName.foo() + $packageName.bar())")
+        withUniqueScript("println($packageName.foo() + $packageName.bar())")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foobar")
 
         givenKotlinScriptInBuildSrcContains(
@@ -681,7 +681,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """,
             "@kotlin.Metadata(k=42, mv={1, 4, 0})"
         )
-        withBuildScript("println(\"foo\")")
+        withUniqueScript("println(\"foo\")")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
             .assertContainsCompileAvoidanceWarning("Cannot use Kotlin build script compile avoidance with buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata with kind: 42 on class com/example/Foo - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
 
@@ -707,17 +707,28 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """,
             "@kotlin.Metadata(k=42, mv={1, 4, 0})"
         )
-        withBuildScript("println(\"foo\")")
+        withUniqueScript("println(\"foo\")")
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
             .assertContainsCompileAvoidanceWarning("Cannot use Kotlin build script compile avoidance with buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata with kind: 42 on class com/example/Foo - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
         configureProject().assertBuildScriptCompilationAvoided()
     }
 
     private
+    fun withUniqueScript(script: String) = withBuildScript(script).apply {
+        bustScriptCache()
+    }
+
+    private
     fun withKotlinDslPluginInBuildSrc() {
         // this is to force buildSrc/build.gradle.kts to be written to test-local buildscript cache
         // and not to be reused from daemon's cache from other tests when daemon is in use
-        withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin()).appendText(
+        withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin())
+            .bustScriptCache()
+    }
+
+    private
+    fun File.bustScriptCache() {
+        appendText(
             """
                 val cacheBuster = "$cacheBuster"
             """
@@ -845,7 +856,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     private
     fun configureProject(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
-        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${testDirectoryProvider.testDirectory}")
         val output = executer.withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
@@ -853,14 +863,12 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     private
     fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
-        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${testDirectoryProvider.testDirectory}")
         val output = executer.withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output, true)
     }
 
     private
     fun configureProjectAndExpectCompileFailure(expectedFailure: String) {
-        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${testDirectoryProvider.testDirectory}")
         val error = executer.runWithFailure().error
         assertThat(error, containsString(expectedFailure))
     }
@@ -870,7 +878,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     // leaving this one as a workaround for test cases that have precompiled script plugins until the underlying issue is fixed
     private
     fun configureProjectWithDebugOutput(vararg tasks: String): DebugOutputFixture {
-        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${testDirectoryProvider.testDirectory}")
         return DebugOutputFixture(executer.withArgument("--debug").withTasks(*tasks).run().normalizedOutput)
     }
 }

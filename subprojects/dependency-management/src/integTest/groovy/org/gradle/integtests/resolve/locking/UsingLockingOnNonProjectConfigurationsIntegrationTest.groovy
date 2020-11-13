@@ -404,6 +404,65 @@ dependencies {
         unique << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache
+    @Unroll
+    def 'settings locking (unique: #unique)'() {
+        given:
+        mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
+        mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
+        mavenRepo.module('org.bar', 'bar', '1.0').publish()
+        mavenRepo.module('org.bar', 'bar', '1.1').publish()
+
+        settingsFile << """
+buildscript {
+    repositories {
+        maven {
+            url = '$mavenRepo.uri'
+        }
+    }
+
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    dependencies {
+        classpath 'org.bar:bar:[1.0,2.0)'
+    }
+}
+
+rootProject.name = 'foo-bar-locking'
+"""
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
+        buildFile << """
+buildscript {
+    repositories {
+        maven {
+            url = '$mavenRepo.uri'
+        }
+    }
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    dependencies {
+        classpath 'org.foo:foo-plugin:[1.0,2.0)'
+    }
+}
+"""
+
+        when:
+        succeeds 'buildEnvironment', '--write-locks'
+
+        then:
+        lockfileFixture.verifyNonUniqueSettingsLockfile('classpath', ['org.bar:bar:1.1'])
+        lockfileFixture.verifyBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.1'], unique)
+
+        where:
+        unique << [true, false]
+    }
+
+
+
     def addPlugin() {
         pluginBuilder.addPlugin("System.out.println(\"Hello World\");", 'bar.plugin')
         pluginBuilder.publishAs('org.bar', 'bar-plugin', '1.0', pluginRepo, executer).allowAll()

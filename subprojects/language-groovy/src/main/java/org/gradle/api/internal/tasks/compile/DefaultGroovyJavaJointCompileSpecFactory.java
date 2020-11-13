@@ -17,10 +17,13 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+
+import javax.annotation.Nullable;
 
 public class DefaultGroovyJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultGroovyJavaJointCompileSpec> {
-    public DefaultGroovyJavaJointCompileSpecFactory(CompileOptions compileOptions) {
-        super(compileOptions);
+    public DefaultGroovyJavaJointCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata javaInstallationMetadata) {
+        super(compileOptions, javaInstallationMetadata);
     }
 
     @Override

@@ -90,6 +90,11 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     @Override
+    public boolean isRootScript() {
+        return true;
+    }
+
+    @Override
     public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
         return new CalculatedModelValueImpl<>(initialValue);
     }

@@ -23,16 +23,16 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
 
 class OutputFilterUtilTest extends Specification {
 
@@ -178,22 +178,10 @@ class OutputFilterUtilTest extends Specification {
     List<File> collectFiles(ImmutableList<FileSystemSnapshot> fileSystemSnapshots) {
         def result = []
         fileSystemSnapshots.each {
-            it.accept(new FileSystemSnapshotVisitor() {
-                @Override
-                boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                    result.add(directorySnapshot)
-                    return true
-                }
-
-                @Override
-                void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                    result.add(fileSnapshot)
-                }
-
-                @Override
-                void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-                }
-            })
+            it.accept({ CompleteFileSystemLocationSnapshot snapshot ->
+                result.add(snapshot)
+                return CONTINUE
+            } as FileSystemSnapshotHierarchyVisitor)
         }
         result.collect { it.absolutePath as File }
     }

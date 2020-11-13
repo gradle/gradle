@@ -128,11 +128,10 @@ class SimplifiedKotlinScriptEvaluator(
         override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
 
         override fun cachedDirFor(
-            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
-            compilationClassPathHash: HashCode,
-            accessorsClassPath: ClassPath?,
+            compilationClassPath: ClassPath,
+            accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = baseCacheDir.resolve(sourceHash.toString()).resolve(templateId).also { cacheDir ->
             cacheDir.mkdirs()
@@ -148,7 +147,13 @@ class SimplifiedKotlinScriptEvaluator(
         override fun startCompilerOperation(description: String): AutoCloseable =
             mock()
 
-        override fun loadClassInChildScopeOf(classLoaderScope: ClassLoaderScope, childScopeId: String, location: File, className: String, accessorsClassPath: ClassPath?): CompiledScript =
+        override fun loadClassInChildScopeOf(
+            classLoaderScope: ClassLoaderScope,
+            childScopeId: String,
+            location: File,
+            className: String,
+            accessorsClassPath: ClassPath
+        ): CompiledScript =
             DummyCompiledScript(
                 classLoaderFor(scriptRuntimeClassPath + DefaultClassPath.of(location))
                     .also { classLoaders += it }
@@ -177,14 +182,14 @@ class SimplifiedKotlinScriptEvaluator(
 }
 
 
-class DummyCompiledScript(override val programFor: Class<*>) : CompiledScript {
+class DummyCompiledScript(override val program: Class<*>) : CompiledScript {
     override fun onReuse() {
     }
 
     override fun equals(other: Any?) = when {
         other === this -> true
         other == null || other.javaClass != this.javaClass -> false
-        else -> programFor == (other as DummyCompiledScript).programFor
+        else -> program == (other as DummyCompiledScript).program
     }
 }
 

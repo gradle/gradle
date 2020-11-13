@@ -27,7 +27,7 @@ import java.util.Optional;
  *
  * The snapshot includes the content hash of the file.
  */
-public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot {
+public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot implements FileSystemLeafSnapshot {
     private final HashCode contentHash;
     private final FileMetadata metadata;
 
@@ -62,8 +62,13 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visitFile(this);
+    public void accept(FileSystemLocationSnapshotVisitor visitor) {
+        visitor.visitRegularFile(this);
+    }
+
+    @Override
+    public <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer) {
+        return transformer.visitRegularFile(this);
     }
 
     @Override

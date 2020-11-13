@@ -27,7 +27,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<FileSystemNode, CompleteFileSystemLocationSnapshot> {
     @Override
     protected FileSystemNode createInitialRootNode(ChildMap<CompleteFileSystemLocationSnapshot> children) {
-        return new CompleteDirectorySnapshot("/root/some/path", PathUtil.getFileName("path"), children, HashCode.fromInt(1234), AccessType.DIRECT).asFileSystemNode()
+        return new CompleteDirectorySnapshot("/root/some/path", PathUtil.getFileName("path"), AccessType.DIRECT, HashCode.fromInt(1234), children).asFileSystemNode()
     }
 
     @Override

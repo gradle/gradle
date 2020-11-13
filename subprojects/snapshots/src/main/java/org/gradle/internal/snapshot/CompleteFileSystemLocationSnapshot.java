@@ -72,4 +72,19 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
      * Whether the file system location represented by this snapshot is a symlink or not.
      */
     FileMetadata.AccessType getAccessType();
+
+    void accept(FileSystemLocationSnapshotVisitor visitor);
+    <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer);
+
+    interface FileSystemLocationSnapshotVisitor {
+        default void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {};
+        default void visitRegularFile(RegularFileSnapshot fileSnapshot) {};
+        default void visitMissing(MissingFileSnapshot missingSnapshot) {};
+    }
+
+    interface FileSystemLocationSnapshotTransformer<T> {
+        T visitDirectory(CompleteDirectorySnapshot directorySnapshot);
+        T visitRegularFile(RegularFileSnapshot fileSnapshot);
+        T visitMissing(MissingFileSnapshot missingSnapshot);
+    }
 }

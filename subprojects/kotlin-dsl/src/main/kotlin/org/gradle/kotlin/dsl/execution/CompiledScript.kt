@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.execution
 
 
 interface CompiledScript {
-    val programFor: Class<*>
+    val program: Class<*>
 
     fun onReuse()
 }

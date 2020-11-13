@@ -84,7 +84,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         if (metadata != null && metadata.isChanging()) {
             changing = true;
         }
-        if (identifier instanceof ModuleComponentIdentifier) {
+        if (!node.isRoot() && identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) identifier;
             if (identifier instanceof MavenUniqueSnapshotComponentIdentifier) {
                 id = ((MavenUniqueSnapshotComponentIdentifier) id).getSnapshotComponent();

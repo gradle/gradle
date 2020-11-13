@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest implements PluginDslSupport {
 
@@ -155,7 +156,7 @@ lib2.module = "org.gradle.test:lib2"
 lib2.version = "1.0
 
 [bundles]
-my = ["lib", "lib2"]
+myBundle = ["lib", "lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
@@ -163,7 +164,7 @@ my = ["lib", "lib2"]
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(libs.myBundle)
+                implementation(libs.bundles.myBundle)
             }
         """
 
@@ -192,7 +193,7 @@ lib2.module = "org.gradle.test:lib2"
 lib2.version = "1.0
 
 [bundles]
-my = ["lib", "lib2"]
+myBundle = ["lib", "lib2"]
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
@@ -200,7 +201,7 @@ my = ["lib", "lib2"]
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(libs.myBundle) {
+                implementation(libs.bundles.myBundle) {
                     version {
                         require '1.1'
                     }
@@ -293,8 +294,8 @@ lib = "org.gradle.test:lib:1.0"
 """
         file("buildSrc/settings.gradle") << """
             dependencyResolutionManagement {
-                dependenciesModel("libs") {
-                    from(file("../gradle/dependencies.toml"))
+                versionCatalog("libs") {
+                    from(files("../gradle/dependencies.toml"))
                 }
             }
         """
@@ -431,7 +432,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         """
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel("libs") {
+                versionCatalog("libs") {
                     alias('other').to('org.gradle.test:other:1.0')
                 }
             }
@@ -469,7 +470,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
         """
         settingsFile << """
             dependencyResolutionManagement {
-                dependenciesModel("libs") {
+                versionCatalog("libs") {
                     alias('my-lib').to('org.gradle.test:lib:1.0')
                 }
             }
@@ -645,6 +646,24 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
                 edge('org.gradle.test:lib2:{strictly [1.0, 2.0]; prefer 1.1}', 'org.gradle.test:lib2:1.1')
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15029")
+    def "reasonable error message if an imported catalog doesn't exist"() {
+        def path = file("missing.toml").absolutePath
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalog('libs') {
+                    from(files("missing.toml"))
+                }
+            }
+        """
+
+        when:
+        fails ':help'
+
+        then:
+        failure.assertHasCause "Catalog file $path doesn't exist"
     }
 
     private GradleExecuter withConfigurationCache() {

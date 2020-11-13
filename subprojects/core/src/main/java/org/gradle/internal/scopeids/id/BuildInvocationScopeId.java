@@ -17,6 +17,8 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * The ID of a single build invocation.
@@ -28,6 +30,7 @@ import org.gradle.internal.id.UniqueId;
  *
  * This ID is, by definition, not persistent.
  */
+@ServiceScope(Scopes.Gradle.class)
 public final class BuildInvocationScopeId extends ScopeId {
 
     public BuildInvocationScopeId(UniqueId id) {
