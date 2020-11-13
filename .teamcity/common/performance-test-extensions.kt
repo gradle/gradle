@@ -60,6 +60,7 @@ const val individualPerformanceTestArtifactRules = """
 subprojects/*/build/test-results-*.zip => results
 subprojects/*/build/tmp/**/log.txt => failure-logs
 subprojects/*/build/tmp/**/profile.log => failure-logs
+subprojects/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
 fun BuildSteps.killGradleProcessesStep(os: Os) {
