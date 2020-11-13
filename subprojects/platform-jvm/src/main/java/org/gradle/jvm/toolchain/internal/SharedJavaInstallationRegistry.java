@@ -79,10 +79,18 @@ public class SharedJavaInstallationRegistry {
 
     private File canonicalize(File file) {
         try {
-            return file.getCanonicalFile();
+            final File canonicalFile = file.getCanonicalFile();
+            return findJavaHome(canonicalFile);
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
+    }
+
+    private File findJavaHome(File potentialHome) {
+        if (new File(potentialHome, "Contents/Home").exists()) {
+            return new File(potentialHome, "Contents/Home");
+        }
+        return potentialHome;
     }
 
 }

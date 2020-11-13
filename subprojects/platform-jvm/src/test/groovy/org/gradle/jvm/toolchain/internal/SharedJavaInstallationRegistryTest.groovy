@@ -75,6 +75,20 @@ class SharedJavaInstallationRegistryTest extends Specification {
         installations.is(installations2)
     }
 
+    def "normalize installations to account for macOS folder layout"() {
+        given:
+        def tmpWithMacOsLayout = createTempDir()
+        def expectedHome = new File(tmpWithMacOsLayout, "Contents/Home")
+        assert expectedHome.mkdirs()
+        def registry = newRegistry(tmpWithMacOsLayout)
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations.containsAll(expectedHome)
+    }
+
     @Unroll
     def "warns and filters invalid installations, exists: #exists, directory: #directory"() {
         given:
