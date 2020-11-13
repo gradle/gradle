@@ -24,9 +24,9 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Ignore
 
 import org.junit.Test
-import spock.lang.Ignore
 
 import java.io.File
 

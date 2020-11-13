@@ -34,7 +34,7 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.junit.Test
-import spock.lang.Ignore
+import org.junit.Ignore
 import java.util.UUID
 
 
