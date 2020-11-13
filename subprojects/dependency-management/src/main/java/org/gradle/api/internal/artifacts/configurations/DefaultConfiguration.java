@@ -461,16 +461,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void runDependencyActions() {
-        defaultDependencyActions.execute(dependencies);
-        withDependencyActions.execute(dependencies);
+        owner.getModel().applyToMutableState(o -> {
+            defaultDependencyActions.execute(dependencies);
+            withDependencyActions.execute(dependencies);
 
-        // Discard actions after execution
-        defaultDependencyActions = ImmutableActionSet.empty();
-        withDependencyActions = ImmutableActionSet.empty();
+            // Discard actions after execution
+            defaultDependencyActions = ImmutableActionSet.empty();
+            withDependencyActions = ImmutableActionSet.empty();
 
-        for (Configuration superConfig : extendsFrom) {
-            ((ConfigurationInternal) superConfig).runDependencyActions();
-        }
+            for (Configuration superConfig : extendsFrom) {
+                ((ConfigurationInternal) superConfig).runDependencyActions();
+            }
+        });
     }
 
     @Override
