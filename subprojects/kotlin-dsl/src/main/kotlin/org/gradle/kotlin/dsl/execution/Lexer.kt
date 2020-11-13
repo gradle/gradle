@@ -42,14 +42,6 @@ class UnexpectedBlockOrder(val identifier: TopLevelBlockId, override val locatio
     UnexpectedBlock("Unexpected `$identifier` block found. `$identifier` can not appear before `$expectedFirstIdentifier`.")
 
 
-private
-enum class State {
-    SearchingTopLevelBlock,
-    SearchingBlockStart,
-    SearchingBlockEnd
-}
-
-
 data class Packaged<T>(
     val packageName: String?,
     val document: T
@@ -99,7 +91,7 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
                 if (topLevelBlock.tokenText == identifier) {
                     state = State.SearchingBlockStart
                     inTopLevelBlock = topLevelBlock
-                    blockIdentifier = tokenStart..(tokenEnd - 1)
+                    blockIdentifier = tokenStart until tokenEnd
                     return true
                 }
             }
@@ -119,7 +111,7 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
 
                 in COMMENTS -> {
                     comments.add(
-                        tokenStart..(tokenEnd - 1)
+                        tokenStart until tokenEnd
                     )
                 }
 
@@ -188,9 +180,17 @@ fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<Lexe
 
 
 private
+enum class State {
+    SearchingTopLevelBlock,
+    SearchingBlockStart,
+    SearchingBlockEnd
+}
+
+
+private
 fun KotlinLexer.parseQualifiedName(): String =
     StringBuilder().run {
-        while (tokenType == KtTokens.IDENTIFIER || tokenType == KtTokens.DOT) {
+        while (tokenType == IDENTIFIER || tokenType == KtTokens.DOT) {
             append(tokenText)
             advance()
         }

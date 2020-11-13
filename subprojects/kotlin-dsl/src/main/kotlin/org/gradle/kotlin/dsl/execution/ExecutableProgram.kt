@@ -67,7 +67,7 @@ abstract class ExecutableProgram {
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode,
-            accessorsClassPath: ClassPath?
+            accessorsClassPath: ClassPath
         )
 
         fun compileSecondStageOf(
@@ -77,7 +77,7 @@ abstract class ExecutableProgram {
             sourceHash: HashCode,
             programKind: ProgramKind,
             programTarget: ProgramTarget,
-            accessorsClassPath: ClassPath?
+            accessorsClassPath: ClassPath
         ): CompiledScript
 
         fun handleScriptException(

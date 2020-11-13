@@ -149,7 +149,7 @@ class GeneratePluginAccessors(
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = UnitOfWork.Identity { classLoaderHash.toString() }
 
-    override fun getWorkspaceProvider() = workspaceProvider
+    override fun getWorkspaceProvider() = workspaceProvider.accessors
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 

@@ -31,13 +31,14 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.scripts.ScriptExecutionListener
-import org.gradle.kotlin.dsl.cache.ScriptCache
+import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinApiClassExtractor
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -93,13 +94,15 @@ object BuildServices {
         kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
         scriptSourceHasher: ScriptSourceHasher,
         classpathHasher: ClasspathHasher,
-        scriptCache: ScriptCache,
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
         buildOperationExecutor: BuildOperationExecutor,
         cachedClasspathTransformer: CachedClasspathTransformer,
         listenerManager: ListenerManager,
-        @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer
+        executionEngine: ExecutionEngine,
+        workspaceProvider: KotlinDslWorkspaceProvider,
+        @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer,
+        fileCollectionFactory: FileCollectionFactory
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -112,12 +115,14 @@ object BuildServices {
             kotlinScriptBasePluginsApplicator,
             scriptSourceHasher,
             classpathHasher,
-            scriptCache,
             implicitImports,
             progressLoggerFactory,
             buildOperationExecutor,
             cachedClasspathTransformer,
-            listenerManager.getBroadcaster(ScriptExecutionListener::class.java)
+            listenerManager.getBroadcaster(ScriptExecutionListener::class.java),
+            executionEngine,
+            workspaceProvider,
+            fileCollectionFactory
         )
 
     @Suppress("unused")
