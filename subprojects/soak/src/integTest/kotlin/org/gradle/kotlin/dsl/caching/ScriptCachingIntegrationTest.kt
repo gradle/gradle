@@ -37,6 +37,7 @@ import org.junit.Test
 import org.junit.Ignore
 import java.util.UUID
 
+
 @Ignore("https://github.com/gradle/gradle-private/issues/3233")
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
