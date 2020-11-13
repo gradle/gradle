@@ -12,12 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 [[multi_project_builds]]
-= Multi-Project Builds in Gradle
+= Structuring and Building a Software Component with Gradle
 
-A multi-project build in Gradle consists of one root project, and one or more subprojects.
+If you are building a software of a certain size with Gradle, you have two basic structuring mechanisms.
+First, this chapter describes how to structure your software project using a Gradle multi-project.
+In this documentation, we consider this to be a single _software component_ which is structured internally.
+Second, you may regard your software as a _software product_ that is composed of multiple _software components_ where each component is represented by a separate Gradle build.
+This is described in detail in the chapter on <<structuring_software_products.adoc#,structuring software products with Gradle>>
 
 [[sec:creating_multi_project_builds]]
 == Creating a multi-project build
+
+A multi-project build in Gradle consists of one root project, and one or more subprojects.
 
 A basic multi-project build contains a root project and a single subproject.
 This is a structure of a multi-project build that contains a single subproject called `app`:
