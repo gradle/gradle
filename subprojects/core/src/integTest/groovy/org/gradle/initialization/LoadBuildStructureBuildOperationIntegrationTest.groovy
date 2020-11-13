@@ -53,6 +53,8 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "settings with master folder are exposed correctly"() {
+        // because the 'master' directory special treatment deprecation message is emitted early in the build and only appears on warm daemons
+        executer.noDeprecationChecks()
 
         def customSettingsFile = file("master/settings.gradle")
         customSettingsFile << """
