@@ -60,17 +60,18 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
 $performanceResultsDir => perf-results/
 subprojects/$performanceProjectName/build/$taskName => report/
 """
-
-    gradleRunnerStep(
-        model,
-        ":$performanceProjectName:$taskName --channel %performance.channel%",
-        extraParameters = listOf(
-            "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
-            "-Porg.gradle.performance.db.url" to "%performance.db.url%",
-            "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-            "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%"
-        ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
-    )
+    if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
+        gradleRunnerStep(
+            model,
+            ":$performanceProjectName:$taskName --channel %performance.channel%",
+            extraParameters = listOf(
+                "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
+                "-Porg.gradle.performance.db.url" to "%performance.db.url%",
+                "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+                "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%"
+            ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
+        )
+    }
 
     dependencies {
         snapshotDependencies(performanceTestProject.performanceTests)
