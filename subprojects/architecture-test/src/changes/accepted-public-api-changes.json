@@ -511,6 +511,22 @@
             "changes": [
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Compatibility with the configuration cache precludes project access at execution time.",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.generate()",
+            "acceptation": "Compatibility with the configuration cache precludes project access at execution time.",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

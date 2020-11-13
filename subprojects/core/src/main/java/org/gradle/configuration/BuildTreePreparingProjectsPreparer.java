@@ -18,6 +18,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.DependenciesAccessors;
@@ -79,7 +80,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
         File dependenciesFile = new File(settings.getSettingsDir(), "gradle/dependencies.toml");
         if (dependenciesFile.exists()) {
-            dm.dependenciesModel(defaultLibrary, builder -> builder.from(dependenciesFile));
+            dm.versionCatalog(defaultLibrary, builder -> builder.from(services.get(FileCollectionFactory.class).fixed(dependenciesFile)));
         }
         accessors.generateAccessors(dm.getDependenciesModelBuilders(), classLoaderScope, settings);
     }

@@ -78,6 +78,11 @@ A non-ABI change can [eliminate build script recompilation altogether now](https
 While changes to `buildSrc` immediately affect the classpath of all the scripts, this improvement is more general and applies to changes in
 any jar on the scripts classpath that can be added by a plugin applied from an included build or added directly via `buildscript {}` block.
 
+**Note**: Kotlin's public [inline functions](https://kotlinlang.org/docs/reference/inline-functions.html#inline-functions) are not supported with compilation avoidance. 
+If such functions appear in the public API of a jar on the buildscript's classpath, that jar will not participate in compilation avoidance.
+For example, if `buildSrc` contains a class with a public inline function, then `buildSrc` will not participate in compilation avoidance and all
+the buildscripts will be recompiled for any change in `buildSrc`.
+
 ### Improved cache hits when normalizing runtime classpaths
 
 For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first [normalizes](userguide/more_about_tasks.html#sec:configure_input_normalization) both inputs and then compares the result.
@@ -182,6 +187,10 @@ In order to see which toolchains got detected and their corresponding metadata, 
 
 Output of `gradle -q javaToolchains`:
 ```
+ + Options
+     | Auto-detection:     Enabled
+     | Auto-download:      Enabled
+
  + AdoptOpenJDK 1.8.0_242
      | Location:           /path/to/8.0.242.hs-adpt/jre
      | Language Version:   8
@@ -236,6 +245,17 @@ we recommend updating to the latest minor JDK version.
 This version of Gradle fixes problems with projects that use custom source sets, like additional functional test source sets.
 
 Custom source sets are now imported into Eclipse automatically and no longer require manual configuration in the build.
+
+## Composite build improvements
+
+### Executing tasks from an included build
+
+Gradle now allows users to execute tasks from included builds directly from the command-line. For example, if your build includes `my-other-project` as an included build and it has a subproject `sub` with a task `foo`, then you can execute `foo` with the following command:
+
+    gradle :my-other-project:sub:foo
+
+Note, unlike a multi-project build, running `gradle build` will _not_ run the `build` task in all of the included builds.
+You could introduce [task dependencies](https://docs.gradle.org/current/userguide/composite_builds.html#included_build_task_dependencies) to tasks in included builds if you wanted to recreate this behavior for included builds.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

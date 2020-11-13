@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Issue
 
 /**
@@ -361,127 +360,6 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         buildC.buildFile << """
             task c {
                 dependsOn gradle.includedBuild('buildB').task(':b')
-            }
-        """
-        buildC.settingsFile << """
-            includeBuild('../buildB')
-        """
-
-        when:
-        resolveFails(":a")
-
-        then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
-:buildB:b
-\\--- :buildC:c
-     \\--- :buildB:b (*)""")
-    }
-
-    // TODO: this ends up in a deadlock. Figure out if this is a valid use case and what to do with it.
-    @Ignore
-    def "direct mustRunAfter cycle between included builds including one another"() {
-        given:
-        buildA.buildFile << """
-            task a {
-                dependsOn gradle.includedBuild('buildB').task(':b')
-            }
-        """
-        buildB.buildFile << """
-            task b {
-                dependsOn gradle.includedBuild('buildC').task(':c')
-            }
-        """
-        buildB.settingsFile << """
-            includeBuild('../buildC')
-        """
-        buildC.buildFile << """
-            task c {
-                mustRunAfter gradle.includedBuild('buildB').task(':b')
-            }
-        """
-        buildC.settingsFile << """
-            includeBuild('../buildB')
-        """
-
-        when:
-        resolveFails(":a")
-
-        then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
-:buildB:b
-\\--- :buildC:c
-     \\--- :buildB:b (*)""")
-    }
-
-    // TODO: this ends up in a deadlock. Figure out if this is a valid use case and what to do with it.
-    @Ignore
-    def "indirect mustRunAfter cycle between included builds including one another"() {
-        given:
-        buildA.buildFile << """
-            task a {
-                dependsOn gradle.includedBuild('buildB').task(':b')
-            }
-        """
-        buildB.buildFile << """
-            task b {
-                dependsOn gradle.includedBuild('buildC').task(':c')
-            }
-        """
-        buildB.settingsFile << """
-            includeBuild('../buildC')
-        """
-        buildC.buildFile << """
-            task c {
-                dependsOn gradle.includedBuild('buildD').task(':d')
-            }
-        """
-        buildC.settingsFile << """
-            includeBuild('../buildD')
-        """
-
-        def buildD = singleProjectBuild('buildD')
-        buildD.buildFile << """
-            task d {
-                mustRunAfter gradle.includedBuild('buildB').task(':b')
-            }
-        """
-        buildD.settingsFile << """
-            includeBuild('../buildB')
-        """
-        includedBuilds << buildD
-
-        when:
-        resolveFails(":a")
-
-        then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
-:buildB:b
-\\--- :buildC:c
-     \\--- :buildD:d
-          \\--- :buildB:b (*)""")
-    }
-
-    // TODO: this does not respect the finalizer from buildC which should cause a cycle.
-    // Instead, :buildC:c, :buildB:b and :a are executed.
-    @Ignore
-    def "direct finalizedBy cycle between included builds including one another"() {
-        given:
-        buildA.buildFile << """
-            task a {
-                dependsOn gradle.includedBuild('buildB').task(':b')
-            }
-        """
-        buildB.buildFile << """
-            task b {
-                dependsOn gradle.includedBuild('buildC').task(':c')
-            }
-        """
-        buildB.settingsFile << """
-            includeBuild('../buildC')
-        """
-        buildC.buildFile << """
-            task c {
-                finalizedBy gradle.includedBuild('buildB').task(':b')
             }
         """
         buildC.settingsFile << """

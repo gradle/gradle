@@ -334,7 +334,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish'
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")

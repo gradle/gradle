@@ -19,8 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.internal.hash.HashCode;
@@ -30,9 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +69,8 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
         if (resourceEntryFilter == null) {
             return delegate.hash(snapshotContext);
         } else {
-            try {
-                return hashProperties(FileUtils.readFileToByteArray(new File(snapshotContext.getSnapshot().getAbsolutePath())), resourceEntryFilter);
+            try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
+                return hashProperties(propertiesFileInputStream, resourceEntryFilter);
             } catch (IOException e) {
                 LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
                 return delegate.hash(snapshotContext);
@@ -88,7 +86,7 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
             return delegate.hash(zipEntryContext);
         } else {
             try {
-                return hashProperties(ByteStreams.toByteArray(zipEntryContext.getEntry().getInputStream()), resourceEntryFilter);
+                return hashProperties(zipEntryContext.getEntry().getInputStream(), resourceEntryFilter);
             } catch (IOException e) {
                 LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
                 return delegate.hash(zipEntryContext);
@@ -112,10 +110,10 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
         }
     }
 
-    private HashCode hashProperties(byte[] entryBytes, ResourceEntryFilter propertyResourceFilter) throws IOException {
+    private HashCode hashProperties(InputStream inputStream, ResourceEntryFilter propertyResourceFilter) throws IOException {
         Hasher hasher = Hashing.newHasher();
         Properties properties = new Properties();
-        properties.load(new InputStreamReader(new ByteArrayInputStream(entryBytes), new PropertyResourceBundleFallbackCharset()));
+        properties.load(new InputStreamReader(inputStream, new PropertyResourceBundleFallbackCharset()));
         Map<String, String> entries = Maps.fromProperties(properties);
         entries
             .entrySet()

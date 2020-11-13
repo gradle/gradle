@@ -15,14 +15,14 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.Project;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.BufferedWriter;
@@ -61,26 +61,23 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     @Override
-    public void startProject(Project project) {
+    public void startProject(ProjectDetails project) {
         String header = createHeader(project);
         builder.heading(header);
     }
 
-    protected String createHeader(Project project) {
-        String header;
-        if (project.getRootProject() == project) {
-            header = "Root project";
-        } else {
-            header = "Project " + project.getPath();
-        }
-        if (GUtil.isTrue(project.getDescription())) {
-            header = header + " - " + project.getDescription();
+    protected String createHeader(ProjectDetails project) {
+        String header = StringUtils.capitalize(project.getDisplayName());
+
+        String description = project.getDescription();
+        if (GUtil.isTrue(description)) {
+            header = header + " - " + description;
         }
         return header;
     }
 
     @Override
-    public void completeProject(Project project) {
+    public void completeProject(ProjectDetails project) {
     }
 
     @Override

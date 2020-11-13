@@ -222,8 +222,8 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                 // Lock not contended - can proceed
                 return;
             }
-            // Lock is contended, so release project locks while waiting to accquire the lock
-            projectLeaseRegistry.withoutProjectLock(lock::lock);
+            // Lock is contended, so release project locks while waiting to acquire the lock
+            projectLeaseRegistry.blocking(lock::lock);
         }
 
         private void releaseLock() {

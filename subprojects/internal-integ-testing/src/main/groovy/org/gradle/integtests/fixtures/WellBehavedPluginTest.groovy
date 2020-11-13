@@ -42,7 +42,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "HelpTasksPluginIntegrationTest",
         "BuildDashboardPluginIntegrationTest",
         "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",
@@ -63,7 +62,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         succeeds mainTask
     }
 
-    @ToBeFixedForConfigurationCache
     def "plugin does not force creation of build dir during configuration"() {
         given:
         applyPlugin()
@@ -76,7 +74,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "HelpTasksPluginIntegrationTest",
         "BuildDashboardPluginIntegrationTest",
         "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",
@@ -133,7 +130,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         def appliesBasePlugin = !(pluginName in [
             'build-dashboard', 'build-init', 'help-tasks', 'wrapper',
             'ivy-publish', 'maven-publish', 'publishing',
-            'eclipse', 'idea',
+            'eclipse', 'idea', 'version-catalog'
         ])
         if (GradleContextualExecuter.isConfigCache() && appliesBasePlugin) {
             assert output.count("configuring :") == 2

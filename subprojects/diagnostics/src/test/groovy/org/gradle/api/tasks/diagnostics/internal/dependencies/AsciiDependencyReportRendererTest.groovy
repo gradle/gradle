@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.dependencies
 
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.internal.deprecation.DeprecatableConfiguration
@@ -30,9 +31,12 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
     }
 
     def "informs if no configurations"() {
+        given:
+        def projectDetails = ProjectDetails.of(project)
+
         when:
-        renderer.startProject(project);
-        renderer.completeProject(project);
+        renderer.startProject(projectDetails)
+        renderer.completeProject(projectDetails)
 
         then:
         textOutput.value.contains('No configurations')

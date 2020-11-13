@@ -17,9 +17,8 @@
 package org.gradle.internal.normalization.java;
 
 import org.gradle.internal.normalization.java.impl.ApiMemberWriter;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
 public interface ApiMemberWriterFactory {
-    ApiMemberWriter makeApiMemberWriter(ClassReader classReader, ClassWriter classWriter);
+    ApiMemberWriter makeApiMemberWriter(ClassWriter classWriter);
 }

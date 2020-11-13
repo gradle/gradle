@@ -24,10 +24,6 @@ import java.util.Collection;
 public interface ProjectLeaseRegistry {
     /**
      * Get a lock for the specified project.
-     *
-     * @param buildIdentityPath
-     * @param projectIdentityPath
-     * @return the requested {@link ResourceLock}
      */
     ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath);
 
@@ -56,4 +52,24 @@ public interface ProjectLeaseRegistry {
      * lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
     void withoutProjectLock(Runnable action);
+
+    /**
+     * Performs some blocking action. If the current thread is allowed to make changes to project locks, then release all locks
+     * then run the action and reacquire any locks.
+     * If the current thread is not allowed to make changes to the project locks (via {@link #whileDisallowingProjectLockChanges(Factory)},
+     * then it is safe to run the action without releasing the locks.
+     */
+    void blocking(Runnable action);
+
+    /**
+     * Runs the given action and disallows the current thread from attempting to acquire or release any project locks.
+     * Applying this constraint means that the thread will not block waiting for a project lock and cause a deadlock.
+     * This constraint also means that it does not need to release its project locks when it needs to block while waiting for some operation to complete.
+     *
+     * <p>While in this method, calls to {@link #blocking(Runnable)} will not cause this thread to release or reacquire any project locks.</p>
+     *
+     * <p>This should become the default and only behaviour for all worker threads, and locks are acquired and released only when starting and finishing an execution node.
+     * For now, this is an opt-in behaviour.</p>
+     */
+    <T> T whileDisallowingProjectLockChanges(Factory<T> action);
 }

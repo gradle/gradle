@@ -64,7 +64,8 @@ class RepoScriptBlockUtil {
         GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven'),
         KOTLINX('https://kotlin.bintray.com/kotlinx/', System.getProperty('https://kotlin.bintray.com/kotlinx/'), 'maven'),
-        KOTLIN_EAP('https://dl.bintray.com/kotlin/kotlin-eap/', System.getProperty('org.gradle.integtest.mirrors.kotlineap'), 'maven')
+        KOTLIN_EAP('https://dl.bintray.com/kotlin/kotlin-eap/', System.getProperty('org.gradle.integtest.mirrors.kotlineap'), 'maven'),
+        KOTLIN_DEV('https://dl.bintray.com/kotlin/kotlin-dev/', System.getProperty('org.gradle.integtest.mirrors.kotlindev'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -192,7 +193,7 @@ class RepoScriptBlockUtil {
         return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
-            
+
             apply plugin: MirrorPlugin
 
             @CompileStatic
@@ -217,7 +218,7 @@ class RepoScriptBlockUtil {
                         }
                     }
                 }
-                
+
                 void withMirrors(RepositoryHandler repos) {
                     repos.all { repo ->
                         if (repo instanceof MavenArtifactRepository) {
@@ -227,7 +228,7 @@ class RepoScriptBlockUtil {
                         }
                     }
                 }
-    
+
                 void mirror(MavenArtifactRepository repo) {
                     ${mirrorConditions}
                 }
@@ -235,7 +236,7 @@ class RepoScriptBlockUtil {
                 void mirror(IvyArtifactRepository repo) {
                     ${mirrorConditions}
                 }
-                
+
                 // We see them as equal:
                 // https://repo.maven.apache.org/maven2/ and http://repo.maven.apache.org/maven2
                 String normalizeUrl(Object url) {

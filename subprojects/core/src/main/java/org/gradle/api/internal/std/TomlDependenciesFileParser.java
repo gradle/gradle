@@ -21,7 +21,7 @@ import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
@@ -50,7 +50,7 @@ public class TomlDependenciesFileParser {
         VERSIONS_KEY
     );
 
-    public static void parse(InputStream in, DependenciesModelBuilder builder, PluginDependenciesSpec plugins) throws IOException {
+    public static void parse(InputStream in, VersionCatalogBuilder builder, PluginDependenciesSpec plugins, ImportConfiguration importConfig) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
         TomlParseResult result = Toml.parse(in);
         TomlTable dependenciesTable = result.getTable(DEPENDENCIES_KEY);
@@ -61,13 +61,13 @@ public class TomlDependenciesFileParser {
         if (!unknownTle.isEmpty()) {
             throw new InvalidUserDataException("Unknown top level elements " + unknownTle);
         }
-        parseDependencies(dependenciesTable, builder, strictVersionParser);
-        parseBundles(bundlesTable, builder);
-        parsePlugins(pluginsTable, plugins);
-        parseVersions(versionsTable, builder, strictVersionParser);
+        parseDependencies(dependenciesTable, builder, strictVersionParser, importConfig);
+        parseBundles(bundlesTable, builder, importConfig);
+        parsePlugins(pluginsTable, plugins, importConfig);
+        parseVersions(versionsTable, builder, strictVersionParser, importConfig);
     }
 
-    private static void parseDependencies(@Nullable TomlTable dependenciesTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
+    private static void parseDependencies(@Nullable TomlTable dependenciesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
         if (dependenciesTable == null) {
             return;
         }
@@ -77,11 +77,13 @@ public class TomlDependenciesFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            parseDependency(alias, dependenciesTable, builder, strictVersionParser);
+            if (importConfig.includeDependency(alias)) {
+                parseDependency(alias, dependenciesTable, builder, strictVersionParser);
+            }
         }
     }
 
-    private static void parseVersions(@Nullable TomlTable versionsTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
+    private static void parseVersions(@Nullable TomlTable versionsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser, ImportConfiguration importConfig) {
         if (versionsTable == null) {
             return;
         }
@@ -91,30 +93,36 @@ public class TomlDependenciesFileParser {
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
         for (String alias : keys) {
-            parseVersion(alias, versionsTable, builder, strictVersionParser);
+            if (importConfig.includeVersion(alias)) {
+                parseVersion(alias, versionsTable, builder, strictVersionParser);
+            }
         }
     }
 
-    private static void parseBundles(@Nullable TomlTable bundlesTable, DependenciesModelBuilder builder) {
+    private static void parseBundles(@Nullable TomlTable bundlesTable, VersionCatalogBuilder builder, ImportConfiguration importConfig) {
         if (bundlesTable == null) {
             return;
         }
         List<String> keys = bundlesTable.keySet().stream().sorted().collect(Collectors.toList());
         for (String alias : keys) {
-            List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
-                .map(String::valueOf)
-                .collect(Collectors.toList());
-            builder.bundle(alias, bundled);
+            if (importConfig.includeBundle(alias)) {
+                List<String> bundled = expectArray("bundle", alias, bundlesTable, alias).toList().stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.toList());
+                builder.bundle(alias, bundled);
+            }
         }
     }
 
-    private static void parsePlugins(@Nullable TomlTable pluginsTable, PluginDependenciesSpec builder) {
+    private static void parsePlugins(@Nullable TomlTable pluginsTable, PluginDependenciesSpec builder, ImportConfiguration importConfig) {
         if (pluginsTable == null) {
             return;
         }
         List<String> keys = pluginsTable.dottedKeySet().stream().sorted().collect(Collectors.toList());
         for (String id : keys) {
-            builder.id(id).version(expectString("plugin", id, pluginsTable, null));
+            if (importConfig.includePlugin(id)) {
+                builder.id(id).version(expectString("plugin", id, pluginsTable, null));
+            }
         }
     }
 
@@ -149,7 +157,7 @@ public class TomlDependenciesFileParser {
         }
     }
 
-    private static void parseDependency(String alias, TomlTable dependenciesTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
+    private static void parseDependency(String alias, TomlTable dependenciesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         Object gav = dependenciesTable.get(alias);
         if (gav instanceof String) {
             List<String> splitted = SPLITTER.splitToList((String) gav);
@@ -213,7 +221,7 @@ public class TomlDependenciesFileParser {
         registerDependency(builder, alias, group, name, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
     }
 
-    private static void parseVersion(String alias, TomlTable versionsTable, DependenciesModelBuilder builder, StrictVersionParser strictVersionParser) {
+    private static void parseVersion(String alias, TomlTable versionsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
         String require = null;
         String strictly = null;
         String prefer = null;
@@ -254,7 +262,7 @@ public class TomlDependenciesFileParser {
         return string;
     }
 
-    private static void registerDependency(DependenciesModelBuilder builder,
+    private static void registerDependency(VersionCatalogBuilder builder,
                                            String alias,
                                            String group,
                                            String name,
@@ -264,7 +272,7 @@ public class TomlDependenciesFileParser {
                                            @Nullable String prefer,
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
-        DependenciesModelBuilder.LibraryAliasBuilder aliasBuilder = builder.alias(alias).to(group, name);
+        VersionCatalogBuilder.LibraryAliasBuilder aliasBuilder = builder.alias(alias).to(group, name);
         if (versionRef != null) {
             aliasBuilder.versionRef(versionRef);
             return;
@@ -288,7 +296,7 @@ public class TomlDependenciesFileParser {
         });
     }
 
-    private static void registerVersion(DependenciesModelBuilder builder,
+    private static void registerVersion(VersionCatalogBuilder builder,
                                         String alias,
                                         @Nullable String require,
                                         @Nullable String strictly,

@@ -20,7 +20,7 @@ import com.google.common.collect.Interners
 import groovy.transform.CompileStatic
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -30,9 +30,20 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.annotation.Nullable
+import java.util.function.Supplier
+
+import static org.gradle.api.internal.std.IncludeExcludePredicate.acceptAll
 
 class TomlDependenciesFileParserTest extends Specification {
-    final DependenciesModelBuilder builder = new DefaultDependenciesModelBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(PluginDependenciesSpec))
+    final ImportConfiguration importConf = new ImportConfiguration(acceptAll(), acceptAll(), acceptAll(), acceptAll())
+    final VersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs",
+        Interners.newStrongInterner(),
+        Interners.newStrongInterner(),
+        TestUtil.objectFactory(),
+        TestUtil.providerFactory(),
+        Stub(PluginDependenciesSpec),
+        Stub(Supplier),
+    )
     final Map<String, TestPlugin> plugins = [:].withDefault { new TestPlugin() }
     final PluginDependenciesSpec pluginsSpec = new PluginDependenciesSpec() {
         @Override
@@ -40,7 +51,7 @@ class TomlDependenciesFileParserTest extends Specification {
             plugins[id]
         }
     }
-    AllDependenciesModel model
+    DefaultVersionCatalog model
 
     def "parses a file with a single dependency and nothing else"() {
         when:
@@ -264,7 +275,7 @@ class TomlDependenciesFileParserTest extends Specification {
     }
 
     void hasBundle(String id, List<String> expectedElements) {
-        def bundle = model.getBundle(id)
+        def bundle = model.getBundle(id)?.components
         assert bundle != null: "Expected a bundle with name $id but it wasn't found"
         assert bundle == expectedElements
     }
@@ -274,14 +285,14 @@ class TomlDependenciesFileParserTest extends Specification {
     }
 
     void hasVersion(String id, String version) {
-        def versionConstraint = model.getVersion(id)
+        def versionConstraint = model.getVersion(id)?.version
         assert versionConstraint != null : "Expected a version constraint with name $id but didn't find one"
         def actual = versionConstraint.toString()
         assert actual == version
     }
 
     private void parse(String name) {
-        TomlDependenciesFileParser.parse(toml(name), builder, pluginsSpec)
+        TomlDependenciesFileParser.parse(toml(name), builder, pluginsSpec, importConf)
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
     }

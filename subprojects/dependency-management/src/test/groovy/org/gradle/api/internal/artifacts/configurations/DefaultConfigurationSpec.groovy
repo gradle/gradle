@@ -309,7 +309,7 @@ class DefaultConfigurationSpec extends Specification {
         def fileSet = [new File("somePath")] as Set
 
         given:
-        expectResolved(fileSet);
+        expectResolved(fileSet)
 
         when:
         def resolved = configuration.resolve()
@@ -372,16 +372,16 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def fileCollectionWithDependencies() {
-        def dependency1 = dependency("group1", "name", "version");
-        def dependency2 = dependency("group2", "name", "version");
+        def dependency1 = dependency("group1", "name", "version")
+        def dependency2 = dependency("group2", "name", "version")
         def configuration = conf()
 
         when:
         def fileCollection = configuration.fileCollection(dependency1)
 
         then:
-        fileCollection.getDependencySpec().isSatisfiedBy(dependency1)
-        !fileCollection.getDependencySpec().isSatisfiedBy(dependency2)
+        fileCollection.dependencySpec.isSatisfiedBy(dependency1)
+        !fileCollection.dependencySpec.isSatisfiedBy(dependency2)
     }
 
     def fileCollectionWithSpec() {
@@ -392,7 +392,7 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(spec)
 
         then:
-        fileCollection.getDependencySpec() == spec
+        fileCollection.dependencySpec == spec
     }
 
     def fileCollectionWithClosureSpec() {
@@ -403,8 +403,8 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(closure)
 
         then:
-        fileCollection.getDependencySpec().isSatisfiedBy(dependency("group1", "name", "version"))
-        !fileCollection.getDependencySpec().isSatisfiedBy(dependency("group2", "name", "version"))
+        fileCollection.dependencySpec.isSatisfiedBy(dependency("group1", "name", "version"))
+        !fileCollection.dependencySpec.isSatisfiedBy(dependency("group2", "name", "version"))
     }
 
     def filesWithDependencies() {
@@ -437,7 +437,7 @@ class DefaultConfigurationSpec extends Specification {
         def fileSet = [new File("somePath")] as Set
 
         when:
-        prepareForFilesBySpec(fileSet);
+        prepareForFilesBySpec(fileSet)
 
         then:
         configuration.files(closure) == fileSet
@@ -793,7 +793,7 @@ class DefaultConfigurationSpec extends Specification {
         and:
         def copiedConfiguration = configuration.copy(new Spec<Dependency>() {
             boolean isSatisfiedBy(Dependency element) {
-                return !element.getGroup().equals("group3");
+                return !element.getGroup().equals("group3")
             }
         })
 
@@ -870,7 +870,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.transitive = false
         configuration.description = "descript"
         configuration.exclude([group: "value"])
-        configuration.exclude([group: "value2"]);
+        configuration.exclude([group: "value2"])
         configuration.artifacts.add(artifact("name1", "ext1", "type1", "classifier1"))
         configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
         configuration.dependencies.add(dependency("group1", "name1", "version1"))
@@ -1345,13 +1345,13 @@ class DefaultConfigurationSpec extends Specification {
         when:
         conf.dependencies.add(Mock(Dependency))
         then:
-        def exDependency = thrown(InvalidUserDataException);
+        def exDependency = thrown(InvalidUserDataException)
         exDependency.message == "Cannot change dependencies of dependency configuration ':conf' after it has been resolved."
 
         when:
         conf.artifacts.add(Mock(PublishArtifact))
         then:
-        def exArtifact = thrown(InvalidUserDataException);
+        def exArtifact = thrown(InvalidUserDataException)
         exArtifact.message == "Cannot change artifacts of dependency configuration ':conf' after it has been resolved."
     }
 
@@ -1434,7 +1434,7 @@ class DefaultConfigurationSpec extends Specification {
         prepareForFilesBySpec([] as Set)
 
         given:
-        configuration.resolve();
+        configuration.resolve()
 
         when:
         configuration.setTransitive(true)
@@ -1622,15 +1622,15 @@ class DefaultConfigurationSpec extends Specification {
 
     def dumpString() {
         when:
-        def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
-        def otherConfSimilarDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
-        def otherConfDependency = dependency("dumpgroup2", "dumpname2", "dumpversion2");
-        def otherConf = conf("dumpConf");
-        otherConf.getDependencies().add(otherConfDependency);
-        otherConf.getDependencies().add(otherConfSimilarDependency);
+        def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1")
+        def otherConfSimilarDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1")
+        def otherConfDependency = dependency("dumpgroup2", "dumpname2", "dumpversion2")
+        def otherConf = conf("dumpConf")
+        otherConf.getDependencies().add(otherConfDependency)
+        otherConf.getDependencies().add(otherConfSimilarDependency)
 
         def configuration = conf().extendsFrom(otherConf)
-        configuration.getDependencies().add(configurationDependency);
+        configuration.getDependencies().add(configurationDependency)
 
         then:
         configuration.dump() == """
@@ -1737,7 +1737,7 @@ All Artifacts:
     }
 
     private dependency(String group, String name, String version) {
-        new DefaultExternalModuleDependency(group, name, version);
+        new DefaultExternalModuleDependency(group, name, version)
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":") {
@@ -1759,7 +1759,7 @@ All Artifacts:
     }
 
     private DefaultPublishArtifact artifact(String name, String extension, String type, String classifier) {
-        return new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(name));
+        return new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(name))
     }
 
     private DefaultPublishArtifact artifact(Map props = [:]) {

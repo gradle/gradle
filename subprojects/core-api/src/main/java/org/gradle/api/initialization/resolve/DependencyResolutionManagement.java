@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.provider.Property;
-import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -54,12 +54,11 @@ public interface DependencyResolutionManagement {
     ComponentMetadataHandler getComponents();
 
     /**
-     * Configures the dependency model, which will be used
-     * to generate type safe accessors for dependencies.
+     * Configures a version catalog which will be used to generate type safe accessors for dependencies.
      * @param name the name of the extension which is going to be generated for this model
      * @param spec the spec to configure the dependencies
      */
-    void dependenciesModel(String name, Action<? super DependenciesModelBuilder> spec);
+    void versionCatalog(String name, Action<? super VersionCatalogBuilder> spec);
 
     /**
      * Returns the name of the extension generated for type-safe project accessors.

@@ -158,7 +158,7 @@ model {
         output.contains """> Task :components
 
 ------------------------------------------------------------
-Root project
+Root project 'custom-component'
 ------------------------------------------------------------
 
 SampleComponent 'sampleLib'

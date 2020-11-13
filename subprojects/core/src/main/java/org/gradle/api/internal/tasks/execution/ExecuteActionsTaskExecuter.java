@@ -178,7 +178,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
-        CachingResult result = executionEngine.execute(work, context.getTaskExecutionMode().getRebuildReason().orElse(null));
+        CachingResult result = context.getTaskExecutionMode().getRebuildReason()
+            .map(rebuildReason -> executionEngine.rebuild(work, rebuildReason))
+            .orElseGet(() -> executionEngine.execute(work));
         result.getExecutionResult().ifSuccessfulOrElse(
             executionResult -> state.setOutcome(TaskExecutionOutcome.valueOf(executionResult.getOutcome())),
             failure -> state.setOutcome(new TaskExecutionException(task, failure))

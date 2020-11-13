@@ -22,14 +22,16 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":jvm-services"))
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
     testImplementation(testFixtures(project(":core")))
 
+    integTestImplementation(project(":file-watching"))
+    integTestImplementation(project(":jvm-services"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":persistent-cache"))
-    integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":file-watching"))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
 

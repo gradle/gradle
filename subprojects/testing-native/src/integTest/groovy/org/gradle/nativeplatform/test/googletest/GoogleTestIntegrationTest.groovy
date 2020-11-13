@@ -516,7 +516,6 @@ model {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1000")
-    @ToBeFixedForConfigurationCache
     def "can configure legacy plugin"() {
         given:
         buildFile << """

@@ -18,7 +18,6 @@ package org.gradle.jvm.toolchain
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -36,7 +35,6 @@ class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
         StringUtils.countMatches(result.output, ":javaToolchains") == 1
     }
 
-    @ToBeFixedForConfigurationCache
     def "showsToolchains is properly visible as task"() {
         when:
         run("tasks")

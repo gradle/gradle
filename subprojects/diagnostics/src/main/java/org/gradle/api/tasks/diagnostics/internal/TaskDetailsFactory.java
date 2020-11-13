@@ -31,27 +31,12 @@ public class TaskDetailsFactory {
     }
 
     public TaskDetails create(final Task task) {
-        final String path;
-        Project project = task.getProject();
-        if (projects.contains(project)) {
-            path = this.project.relativeProjectPath(task.getPath());
-        } else {
-            path = task.getPath();
-        }
-        return new TaskDetails() {
-            private Path cachedPath;
-            @Override
-            public Path getPath() {
-                if (cachedPath == null) {
-                    cachedPath = Path.path(path);
-                }
-                return cachedPath;
-            }
-
-            @Override
-            public String getDescription() {
-                return task.getDescription();
-            }
-        };
+        String path = projects.contains(task.getProject())
+            ? project.relativeProjectPath(task.getPath())
+            : task.getPath();
+        return TaskDetails.of(
+            Path.path(path),
+            task.getDescription()
+        );
     }
 }

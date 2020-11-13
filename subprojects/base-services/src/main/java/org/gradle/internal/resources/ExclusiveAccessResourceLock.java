@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
-    private ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
     public ExclusiveAccessResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
         super(displayName, coordinationService, lockAction, unlockAction);

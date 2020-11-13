@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
@@ -62,7 +61,6 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
         assertTaskExecuted(":buildB", ":jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "passes system property arguments to included build"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -70,7 +68,7 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
 
         [buildA, buildB].each {
             it.buildFile << """
-    if (System.properties['passedProperty'] != "foo") {
+    if (providers.systemProperty('passedProperty').forUseAtConfigurationTime().orNull != "foo") {
         throw new RuntimeException("property not passed to build")
     }
 """

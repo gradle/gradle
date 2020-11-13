@@ -36,7 +36,7 @@ import java.util.TreeSet;
 /**
  * Displays the dependency tree for a configuration.
  */
-public abstract class AbstractDependencyReportTask extends AbstractReportTask {
+public abstract class AbstractDependencyReportTask extends ProjectBasedReportTask {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 

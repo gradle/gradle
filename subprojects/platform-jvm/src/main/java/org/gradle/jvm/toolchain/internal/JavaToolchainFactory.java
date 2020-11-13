@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Optional;
 
 public class JavaToolchainFactory {
 
@@ -38,9 +39,13 @@ public class JavaToolchainFactory {
         this.fileFactory = fileFactory;
     }
 
-    public JavaToolchain newInstance(File javaHome) {
+    public Optional<JavaToolchain> newInstance(File javaHome) {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
-        return new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory);
+        if(metadata.isValidInstallation()) {
+            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory);
+            return Optional.of(toolchain);
+        }
+        return Optional.empty();
     }
 
 }

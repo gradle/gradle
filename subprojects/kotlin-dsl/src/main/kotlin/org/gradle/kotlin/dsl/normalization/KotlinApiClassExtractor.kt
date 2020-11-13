@@ -34,24 +34,27 @@ import org.gradle.internal.normalization.java.impl.MethodStubbingApiMemberAdapte
 import org.gradle.internal.normalization.java.impl.SimpleAnnotationValue
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+import java.util.Optional
 
 
 class KotlinApiClassExtractor : ApiClassExtractor(
     emptySet(),
-    { classReader, classWriter ->
-        KotlinApiMemberWriter(
-            MethodStubbingApiMemberAdapter(classWriter),
-            MethodCopyingApiMemberAdapter(classReader, classWriter)
-        )
+    { classWriter -> KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter)) }
+) {
+
+    override fun extractApiClassFrom(originalClassReader: ClassReader): Optional<ByteArray> {
+        try {
+            return super.extractApiClassFrom(originalClassReader)
+        } catch (e: CompileAvoidanceException) {
+            val className = originalClassReader.className
+            throw CompileAvoidanceException("Can not use compile avoidance with class: $className", e)
+        }
     }
-)
+}
 
 
 private
-class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWriter: MethodCopyingApiMemberAdapter) : ApiMemberWriter(apiMemberAdapter) {
+class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(apiMemberAdapter) {
 
     val kotlinMetadataAnnotationSignature = "Lkotlin/Metadata;"
 
@@ -89,7 +92,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
     override fun writeMethod(method: MethodMember) {
         when {
             method.isInternal() -> return
-            method.isInline() -> inlineMethodWriter.writeMethod(method)
+            method.isInline() -> throw CompileAvoidanceException("Can not use compile avoidance with public inline function: $method")
             else -> super.writeMethod(method)
         }
     }
@@ -162,20 +165,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
 
 
 private
-class MethodCopyingApiMemberAdapter(val classReader: ClassReader, val classWriter: ClassWriter) {
-    fun writeMethod(method: MethodMember) {
-        classReader.accept(MethodCopyingVisitor(method, classWriter), ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
-    }
-}
-
-
-private
-class MethodCopyingVisitor(val method: MethodMember, val classWriter: ClassWriter) : ClassVisitor(Opcodes.ASM7) {
-
-    override fun visitMethod(access: Int, name: String?, descriptor: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-        if (method.access == access && method.name == name && method.typeDesc == descriptor && method.signature == signature) {
-            return classWriter.visitMethod(access, name, descriptor, signature, exceptions)
-        }
-        return super.visitMethod(access, name, descriptor, signature, exceptions)
-    }
+class CompileAvoidanceException : GradleException {
+    constructor(message: String) : super(message)
+    constructor(message: String, cause: Throwable?) : super(message, cause)
 }

@@ -73,13 +73,19 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global
      * build operation thread pool. Operations may execute concurrently. Blocks until all operations are complete.
+     *
+     * <p>Actions are not permitted to access any mutable project state. Generally, this is preferred.</p>
      */
     <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction);
+
+    <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction);
 
     /**
      * Submits an arbitrary number of operations, created synchronously by the scheduling action, to be executed by the supplied
      * worker in the global build operation thread pool. Operations may execute concurrently, so the worker should be thread-safe.
      * Blocks until all operations are complete.
+     *
+     * <p>Actions are not permitted to access any mutable project state. Generally, this is preferred.</p>
      */
     <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction);
 }

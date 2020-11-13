@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.normalization
 
+import org.gradle.api.GradleException
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -48,7 +49,8 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         ).assertSameApi()
     }
 
-    @Test
+    // test throws until we can detect lambdas in inline functions and treat them as ABI
+    @Test(expected = GradleException::class)
     fun `changes to inline method bodies change generated API class`() {
         givenChangingClass(
             "Foo",
@@ -67,7 +69,8 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         ).assertApiChanged()
     }
 
-    @Test
+    // test throws until we can detect lambdas in inline functions and treat them as ABI
+    @Test(expected = GradleException::class)
     fun `changes to standalone inline method bodies change generated API class`() {
         givenChangingScript(
             "Foo",

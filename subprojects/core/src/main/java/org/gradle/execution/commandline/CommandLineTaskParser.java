@@ -19,6 +19,7 @@ package org.gradle.execution.commandline;
 import com.google.common.collect.Lists;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
+import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelector;
 
 import java.util.LinkedList;
@@ -34,12 +35,12 @@ public class CommandLineTaskParser {
         this.taskSelector = taskSelector;
     }
 
-    public List<TaskSelector.TaskSelection> parseTasks(TaskExecutionRequest taskExecutionRequest) {
-        List<TaskSelector.TaskSelection> out = Lists.newArrayList();
+    public List<TaskSelection> parseTasks(TaskExecutionRequest taskExecutionRequest) {
+        List<TaskSelection> out = Lists.newArrayList();
         List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
             String path = remainingPaths.remove(0);
-            TaskSelector.TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), taskExecutionRequest.getRootDir(), path);
+            TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), taskExecutionRequest.getRootDir(), path);
             Set<Task> tasks = selection.getTasks();
             remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
             out.add(selection);
