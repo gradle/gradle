@@ -61,7 +61,8 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 ====
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
-Given the snippet below, only toolchain are taken into accounts whos `java.vendor` property contains the given match string. Matching is done case-insensitive.
+
+Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string. Matching is done case-insensitive.
 
 ====
 include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
