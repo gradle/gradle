@@ -151,38 +151,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
     def "can exclude tasks coming from included builds"() {
         setup:
-        settingsFile << """
-            rootProject.name = 'root'
-            include('sub')
-            includeBuild('included')
-        """
-        file('included/settings.gradle') << """
-            include('sub')
-        """
-        buildFile << """
-            def test = tasks.register('test')
-            tasks.register('build') {
-                dependsOn test
-                dependsOn gradle.includedBuild('included').task(':build')
-            }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') {
-                    dependsOn subTest
-                    dependsOn gradle.includedBuild('included').task(':sub:build')
-                }
-            }
-        """
-        file('included/build.gradle') << """
-            def test = tasks.register('test')
-            tasks.register('build') { dependsOn test }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') { dependsOn subTest }
-            }
-        """
+        setupComplexExample()
 
         when:
         succeeds(*args)
@@ -199,38 +168,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
     def "cannot use unqualified task paths  to exclude tasks from included builds"() {
         setup:
-        settingsFile << """
-            rootProject.name = 'root'
-            include('sub')
-            includeBuild('included')
-        """
-        file('included/settings.gradle') << """
-            include('sub')
-        """
-        buildFile << """
-            def test = tasks.register('test')
-            tasks.register('build') {
-                dependsOn test
-                dependsOn gradle.includedBuild('included').task(':build')
-            }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') {
-                    dependsOn subTest
-                    dependsOn gradle.includedBuild('included').task(':sub:build')
-                }
-            }
-        """
-        file('included/build.gradle') << """
-            def test = tasks.register('test')
-            tasks.register('build') { dependsOn test }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') { dependsOn subTest }
-            }
-        """
+        setupComplexExample()
 
         when:
         run(*args)
@@ -247,38 +185,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
     def "cannot use unqualified absolute paths to to exclude task from included build"() {
         setup:
-        settingsFile << """
-            rootProject.name = 'root'
-            include('sub')
-            includeBuild('included')
-        """
-        file('included/settings.gradle') << """
-            include('sub')
-        """
-        buildFile << """
-            def test = tasks.register('test')
-            tasks.register('build') {
-                dependsOn test
-                dependsOn gradle.includedBuild('included').task(':build')
-            }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') {
-                    dependsOn subTest
-                    dependsOn gradle.includedBuild('included').task(':sub:build')
-                }
-            }
-        """
-        file('included/build.gradle') << """
-            def test = tasks.register('test')
-            tasks.register('build') { dependsOn test }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') { dependsOn subTest }
-            }
-        """
+        setupComplexExample()
 
         expect:
         runAndFail("build", "-x", "included:test")
@@ -482,5 +389,40 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         succeeds("doSomething")
         outputContains("do something")
+    }
+
+    private def setupComplexExample() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include('sub')
+            includeBuild('included')
+        """
+        file('included/settings.gradle') << """
+            include('sub')
+        """
+        buildFile << """
+            def test = tasks.register('test')
+            tasks.register('build') {
+                dependsOn test
+                dependsOn gradle.includedBuild('included').task(':build')
+            }
+
+            project(':sub') {
+                def subTest = tasks.register('test')
+                tasks.register('build') {
+                    dependsOn subTest
+                    dependsOn gradle.includedBuild('included').task(':sub:build')
+                }
+            }
+        """
+        file('included/build.gradle') << """
+            def test = tasks.register('test')
+            tasks.register('build') { dependsOn test }
+
+            project(':sub') {
+                def subTest = tasks.register('test')
+                tasks.register('build') { dependsOn subTest }
+            }
+        """
     }
 }
