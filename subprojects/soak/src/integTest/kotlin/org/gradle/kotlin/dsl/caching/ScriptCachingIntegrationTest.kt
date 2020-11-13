@@ -34,12 +34,14 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.junit.Test
+import spock.lang.Ignore
 import java.util.UUID
 
 
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
+    @Ignore("https://github.com/gradle/gradle-private/issues/3233")
     fun `same script, target type & classpath`() {
 
         // given: multi-project build with same build files

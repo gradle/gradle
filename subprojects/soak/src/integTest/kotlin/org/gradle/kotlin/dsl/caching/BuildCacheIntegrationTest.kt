@@ -26,6 +26,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import spock.lang.Ignore
 
 import java.io.File
 
@@ -59,6 +60,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     @Test
+    @Ignore("https://github.com/gradle/gradle-private/issues/3233")
     fun `build cache integration can be disabled via system property`() {
 
         val buildCacheDir = existing("build-cache")
