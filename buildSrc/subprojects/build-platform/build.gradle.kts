@@ -39,6 +39,7 @@ dependencies {
         api("org.gradle:test-retry-gradle-plugin:1.1.7")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.6.0")
+        api("com.diffplug.spotless:spotless-plugin-gradle:5.7.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
