@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.resources.ResourceHandler
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -552,6 +553,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         type                             | reference                                                   | invocation
         Logger.name                      | "logger"                                                    | "info('hi')"
         ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
+        ResourceHandler.name             | "resources"                                                 | "toString()"
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
