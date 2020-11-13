@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
@@ -282,6 +283,13 @@ public class JavaPlugin implements Plugin<Project> {
      */
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
+    /**
+     * The name of the Java {@link SoftwareComponent}.
+     *
+     * @since TODO
+     */
+    public static final String SOFTWARE_COMPONENT_NAME = "java";
+
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
     private final JvmPluginServices jvmServices;
@@ -376,7 +384,7 @@ public class JavaPlugin implements Plugin<Project> {
     private void registerSoftwareComponents(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
         // the main "Java" component
-        AdhocComponentWithVariants java = softwareComponentFactory.adhoc("java");
+        AdhocComponentWithVariants java = softwareComponentFactory.adhoc(SOFTWARE_COMPONENT_NAME);
         java.addVariantsFromConfiguration(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("compile", false));
         java.addVariantsFromConfiguration(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("runtime", false));
         project.getComponents().add(java);

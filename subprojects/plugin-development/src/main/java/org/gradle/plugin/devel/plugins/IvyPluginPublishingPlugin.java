@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
@@ -65,7 +66,7 @@ class IvyPluginPublishingPlugin implements Plugin<Project> {
                 if (!pluginDevelopment.isAutomatedPublishing()) {
                     return;
                 }
-                SoftwareComponent mainComponent = project.getComponents().getByName("java");
+                SoftwareComponent mainComponent = project.getComponents().getByName(JavaPlugin.SOFTWARE_COMPONENT_NAME);
                 IvyPublication mainPublication = addMainPublication(publishing, mainComponent);
                 addMarkerPublications(mainPublication, publishing, pluginDevelopment);
             }
