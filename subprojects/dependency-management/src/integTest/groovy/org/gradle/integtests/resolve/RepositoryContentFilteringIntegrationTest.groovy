@@ -666,6 +666,50 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         succeeds("help")
     }
 
+    @Unroll
+    def "can filter dynamic versions using #notation"() {
+        def modIvy = ivyHttpRepo.module('org', 'foo', '1.1').publish()
+        def modMaven = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+
+        given:
+        repositories {
+            maven("""content { details ->
+                $notation
+            }""")
+            ivy("""content { details ->
+                $notation
+            }""")
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.+"
+            }
+        """
+
+        when:
+        ivyHttpRepo.directoryList('org', 'foo').expectGet()
+        mavenHttpRepo.getModuleMetaData('org', 'foo').expectGet()
+        modMaven.pom.expectGet()
+        modMaven.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:1.+', 'org:foo:1.0')
+            }
+        }
+
+        where:
+        notation << [
+            "excludeVersion('org', 'foo', '1.1')",
+            "excludeVersionByRegex('org', 'foo', '1\\\\.1')",
+            "includeVersion('org', 'foo', '1.0')",
+            "includeVersionByRegex('org', 'foo', '1\\\\.0')",
+        ]
+    }
+
     static String checkConfIsUnresolved() {
         """def confIncoming = configurations.conf.incoming.resolutionResult.allDependencies
                     assert confIncoming.every { it instanceof UnresolvedDependencyResult }"""
