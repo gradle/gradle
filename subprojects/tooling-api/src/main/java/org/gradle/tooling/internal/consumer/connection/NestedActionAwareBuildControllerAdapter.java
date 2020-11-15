@@ -37,6 +37,11 @@ public class NestedActionAwareBuildControllerAdapter extends ParameterAwareBuild
     }
 
     @Override
+    public boolean isActionsMayRunInParallel() {
+        return controller.isActionsMayRunInParallel();
+    }
+
+    @Override
     public <T> List<T> run(Collection<? extends BuildAction<? extends T>> buildActions) {
         List<Supplier<T>> wrappers = new ArrayList<Supplier<T>>(buildActions.size());
         for (final BuildAction<? extends T> action : buildActions) {

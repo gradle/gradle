@@ -104,6 +104,11 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     @Override
+    public boolean isActionsMayRunInParallel() {
+        return true;
+    }
+
+    @Override
     public <T> List<T> run(List<Supplier<T>> actions) {
         assertCanQuery();
         List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());

@@ -22,6 +22,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -29,7 +30,7 @@ import java.util.concurrent.locks.Lock;
 class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest, ResponseProducer {
     private final byte[] content;
     private final Lock lock;
-    private final int timeoutMs;
+    private final Duration timeout;
     private final Condition condition;
     private final WaitPrecondition precondition;
     private boolean requestStarted;
@@ -38,9 +39,9 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
     private long mostRecentEvent;
     private AssertionError failure;
 
-    SendPartialResponseThenBlock(Lock lock, int timeoutMs, WaitPrecondition precondition, byte[] content) {
+    SendPartialResponseThenBlock(Lock lock, Duration timeout, WaitPrecondition precondition, byte[] content) {
         this.lock = lock;
-        this.timeoutMs = timeoutMs;
+        this.timeout = timeout;
         condition = lock.newCondition();
         this.precondition = precondition;
         this.content = content;
@@ -61,7 +62,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
             requestStarted = true;
             condition.signalAll();
             while (!released && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - clock.getCurrentTime();
+                long waitMs = mostRecentEvent + timeout.toMillis() - clock.getCurrentTime();
                 if (waitMs < 0) {
                     System.out.println(String.format("[%d] timeout waiting to be released after sending some content", requestId));
                     failure = new AssertionError("Timeout waiting to be released after sending some content.");
@@ -98,7 +99,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
             }
 
             while (!requestStarted && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - clock.getCurrentTime();
+                long waitMs = mostRecentEvent + timeout.toMillis() - clock.getCurrentTime();
                 if (waitMs < 0) {
                     failure = new AssertionError("Timeout waiting request to block.");
                     condition.signalAll();

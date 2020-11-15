@@ -25,12 +25,13 @@ import org.hamcrest.Matcher;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.locks.Lock;
 
 class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, ResourceExpectation, BlockingRequest {
     private final String method;
     private final String path;
-    private final int timeoutMs;
+    private final Duration timeout;
     private final Lock lock;
 
     private ResponseProducer producer = new ResponseProducer() {
@@ -43,10 +44,10 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
     private BlockingRequest blockingRequest;
     private WaitPrecondition precondition;
 
-    ExpectMethod(String method, String path, int timeoutMs, Lock lock) {
+    ExpectMethod(String method, String path, Duration timeout, Lock lock) {
         this.method = method;
         this.path = path;
-        this.timeoutMs = timeoutMs;
+        this.timeout = timeout;
         this.lock = lock;
     }
 
@@ -111,7 +112,7 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
         if (content.length < 1024) {
             throw new IllegalArgumentException("Content is too short.");
         }
-        SendPartialResponseThenBlock block = new SendPartialResponseThenBlock(lock, timeoutMs, new WaitPrecondition() {
+        SendPartialResponseThenBlock block = new SendPartialResponseThenBlock(lock, timeout, new WaitPrecondition() {
             @Override
             public void assertCanWait() throws IllegalStateException {
                 ExpectMethod.this.precondition.assertCanWait();

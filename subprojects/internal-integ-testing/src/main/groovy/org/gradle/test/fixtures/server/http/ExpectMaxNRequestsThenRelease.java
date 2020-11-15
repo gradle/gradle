@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,26 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
 
-/**
- * A cyclic barrier for {@link BlockingHttpServer} where expectations are optional.
- */
-class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOfRequestHandler {
-    CyclicBarrierAnyOfOptionalRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
-        super(lock, testId, timeoutMs, maxConcurrent, previous, expectedRequests);
+public class ExpectMaxNRequestsThenRelease extends ExpectMaxNConcurrentRequests {
+    public ExpectMaxNRequestsThenRelease(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
+        super(lock, testId, timeout, maxConcurrent, previous, expectedRequests);
     }
 
     @Override
-    public void assertComplete(Collection<Throwable> failures) throws AssertionError {
-        // Don't care
+    protected boolean isAutoRelease() {
+        return true;
     }
 
     @Override
-    public void releaseAll() {
-        doReleaseAll();
+    protected void onExpectedRequestsReceived(BlockingHttpServer.BlockingHandler handler, int yetToBeReceived) {
+        if (yetToBeReceived > 0) {
+            handler.release(1);
+        } else {
+            handler.releaseAll();
+        }
     }
 }

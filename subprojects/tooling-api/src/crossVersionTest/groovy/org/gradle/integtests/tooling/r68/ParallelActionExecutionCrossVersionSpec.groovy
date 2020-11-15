@@ -66,10 +66,68 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    @TargetGradleVersion(">=3.4")
-    def "build action can run nested actions that request models that require dependency resolution"() {
+    @TargetGradleVersion(">=6.8")
+    def "nested actions that query a project model run in parallel when target Gradle version supports it and --parallel is used"() {
         given:
+        setupBuildWithDependencyResolution()
+
+        expect:
+        server.expectConcurrent('root', 'a', 'b')
+        def models = withConnection {
+            def action = action(new ActionRunsNestedActions())
+            action.standardOutput = System.out
+            action.standardError = System.err
+            action.addArguments("--parallel")
+            action.run()
+        }
+
+        models.mayRunInParallel
+        models.projects.path == [':', ':a', ':b']
+    }
+
+    @TargetGradleVersion(">=6.8")
+    def "nested actions that query a project model do not run in parallel when target Gradle version supports it and --no-parallel is used"() {
+        given:
+        setupBuildWithDependencyResolution()
+
+        expect:
+        server.expectConcurrent(1, 'root', 'a', 'b')
+        def models = withConnection {
+            def action = action(new ActionRunsNestedActions())
+            action.standardOutput = System.out
+            action.standardError = System.err
+            action.addArguments("--no-parallel")
+            action.run()
+        }
+
+        models.mayRunInParallel
+        models.projects.path == [':', ':a', ':b']
+    }
+
+    @TargetGradleVersion(">=3.4 <6.8")
+    def "nested actions do not run in parallel when target Gradle version does not support it"() {
+        given:
+        setupBuildWithDependencyResolution()
+
+        expect:
+        server.expect('root')
+        server.expect('a')
+        server.expect('b')
+        def models = withConnection {
+            def action = action(new ActionRunsNestedActions())
+            action.standardOutput = System.out
+            action.standardError = System.err
+            action.addArguments("--parallel")
+            action.run()
+        }
+
+        !models.mayRunInParallel
+        models.projects.path == [':', ':a', ':b']
+    }
+
+    def "nested action can run further nested actions"() {
         settingsFile << """
+            rootProject.name = 'root'
             include 'a', 'b'
         """
         buildFile << """
@@ -77,21 +135,36 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
                 apply plugin: CustomPlugin
                 apply plugin: 'java'
             }
-            dependencies {
-                implementation project('a')
-                implementation project('b')
-            }
         """
+
         expect:
         def models = withConnection {
-            action(new ActionRunsNestedActions()).run()
+            def action = action(new ActionRunsMultipleLevelsOfNestedActions())
+            action.standardOutput = System.out
+            action.standardError = System.err
+            action.addArguments("--parallel")
+            action.run()
         }
-        models.projects.path == [':', ':a', ':b']
+
+        models.size() == 3
+        models.every { it.projects.size() == 5 }
     }
 
-    @TargetGradleVersion(">=6.8")
-    def "nested actions run in parallel when target Gradle version supports it and --parallel is used"() {
-        given:
+    def "propagates nested action failures"() {
+        when:
+        withConnection {
+            action(new ActionRunsBrokenNestedActions()).run()
+        }
+
+        then:
+        def e = thrown(BuildActionFailureException)
+        e.cause instanceof RuntimeException
+        TextUtil.normaliseLineSeparators(e.cause.message) == """Multiple build operations failed.
+    broken: one
+    broken: two"""
+    }
+
+    def setupBuildWithDependencyResolution() {
         server.start()
 
         settingsFile << """
@@ -112,30 +185,5 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
                 implementation project('b')
             }
         """
-
-        expect:
-        server.expectConcurrent('root', 'a', 'b')
-        def models = withConnection {
-            def action = action(new ActionRunsNestedActions())
-            action.standardOutput = System.out
-            action.standardError = System.err
-            action.addArguments("--parallel")
-            action.run()
-        }
-        models.projects.path == [':', ':a', ':b']
-    }
-
-    def "propagates nested action failures"() {
-        when:
-        withConnection {
-            action(new ActionRunsBrokenNestedActions()).run()
-        }
-
-        then:
-        def e = thrown(BuildActionFailureException)
-        e.cause instanceof RuntimeException
-        TextUtil.normaliseLineSeparators(e.cause.message) == """Multiple build operations failed.
-    broken: one
-    broken: two"""
     }
 }
