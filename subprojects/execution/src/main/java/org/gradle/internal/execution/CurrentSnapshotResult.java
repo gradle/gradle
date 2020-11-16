@@ -23,7 +23,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 public interface CurrentSnapshotResult extends SnapshotResult {
     /**
      * Get the snapshots of the outputs of the finished work execution.
-     * @return
      */
     // TODO This shouldn't be represented as a map of CurrentFileCollectionFingerprint objects,
     //      but of CompleteFileSystemLocationSnapshot objects
