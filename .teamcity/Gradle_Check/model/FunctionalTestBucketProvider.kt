@@ -19,25 +19,18 @@ import java.util.LinkedList
 
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 10
 
-// 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12
-// 2.0, 2.1, 2.2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11, 2.12, 2.13, 2.14.1,
-// 3.0, 3.1, 3.2.1, 3.3, 3.4.1, 3.5.1,
-// 4.0.2, 4.1, 4.2.1, 4.3.1, 4.4.1, 4.5.1, 4.6, 4.7, 4.8.1, 4.9, 4.10.3,
-// 5.0, 5.1.1, 5.2.1, 5.3.1, 5.4.1, 5.5.1, 5.6.4,
-// 6.0.1, 6.1
-
 val CROSS_VERSION_BUCKETS = listOf(
-    listOf("0.0", "2.0"), // 0.0 <= version < 2.0
-    listOf("2.0", "2.8"), // 2.0 <= version < 2.8
-    listOf("2.8", "3.0"), // 2.8 <= version < 3.0
-    listOf("3.0", "3.3"), // 3.0 <= version < 3.3
+    listOf("0.0", "2.8"), // 0.0 <= version < 2.8
+    listOf("2.8", "3.3"), // 2.8 <= version < 3.3
     listOf("3.3", "4.1"), // 3.3 <= version < 4.1
     listOf("4.1", "4.5"), // 4.1 <=version < 4.5
     listOf("4.5", "4.8"), // 4.5 <=version < 4.8
     listOf("4.8", "5.0"), // 4.8 <=version < 5.0
     listOf("5.0", "5.4"), // 5.0 <=version < 5.4
-    listOf("5.4", "6.0"), // 5.4 <=version < 6.0
-    listOf("6.0", "99.0") // 6.0 <=version < 99.0
+    listOf("5.4", "5.5"), // 5.4 <=version < 5.5
+    listOf("5.5", "6.1"), // 5.5 <=version < 6.1
+    listOf("6.1", "6.4"), // 6.1 <=version < 6.4
+    listOf("6.4", "99.0") // 6.4 <=version < 99.0
 )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>
