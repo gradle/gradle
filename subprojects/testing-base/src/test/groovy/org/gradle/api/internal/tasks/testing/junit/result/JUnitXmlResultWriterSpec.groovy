@@ -25,21 +25,21 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static TestOutputAssociation.WITH_SUITE
-import static TestOutputAssociation.WITH_TESTCASE
 import static java.util.Collections.emptyList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
-import static org.gradle.api.tasks.testing.TestResult.ResultType.*
+import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)
-    private mode = WITH_SUITE
+    private options = new JUnitXmlResultOptions(false, false)
 
     protected JUnitXmlResultWriter getGenerator() {
-        new JUnitXmlResultWriter("localhost", provider, mode)
+        new JUnitXmlResultWriter("localhost", provider, options)
     }
 
     private startTime = 1353344968049
@@ -59,14 +59,14 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
-                .assertTestCount(4, 1, 1, 0)
-                .assertTestFailed("some failing test", equalTo('failure message'))
-                .assertTestsSkipped("some skipped test")
-                .assertTestsExecuted("some test", "some test two", "some failing test")
-                .assertStdout(equalTo("""1st output message
+            .assertTestCount(4, 1, 1, 0)
+            .assertTestFailed("some failing test", equalTo('failure message'))
+            .assertTestsSkipped("some skipped test")
+            .assertTestsExecuted("some test", "some test two", "some failing test")
+            .assertStdout(equalTo("""1st output message
 2nd output message
 """))
-                .assertStderr(equalTo("err"))
+            .assertStderr(equalTo("err"))
 
         and:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
@@ -142,21 +142,20 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "can generate with output per test"() {
         given:
-        mode = WITH_TESTCASE
+        options = new JUnitXmlResultOptions(true, false)
         provider = new BuildableTestResultsProvider()
-        def testClass = provider.testClassResult("com.Foo")
 
         when:
-        testClass.with {
+        def testClass = provider.testClassResult("com.Foo") {
             stdout "class-out"
             stderr "class-err"
-            testcase("m1").with {
+            testcase("m1") {
                 stderr " m1-err-1"
                 stdout " m1-out-1"
                 stdout " m1-out-2"
                 stderr " m1-err-2"
             }
-            testcase("m2").with {
+            testcase("m2") {
                 stderr " m2-err-1"
                 stdout " m2-out-1"
                 stdout " m2-out-2"
@@ -168,11 +167,11 @@ class JUnitXmlResultWriterSpec extends Specification {
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.Foo" tests="2" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
-  <testcase name="m1" classname="com.Foo" time="0.1">
+  <testcase name="m1" classname="com.Foo" time="1.0">
     <system-out><![CDATA[ m1-out-1 m1-out-2]]></system-out>
     <system-err><![CDATA[ m1-err-1 m1-err-2]]></system-err>
   </testcase>
-  <testcase name="m2" classname="com.Foo" time="0.1">
+  <testcase name="m2" classname="com.Foo" time="1.0">
     <system-out><![CDATA[ m2-out-1 m2-out-2]]></system-out>
     <system-err><![CDATA[ m2-err-1 m2-err-2]]></system-err>
   </testcase>

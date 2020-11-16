@@ -36,7 +36,8 @@ import spock.lang.Unroll
 
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
-    @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     private resultsProvider = Mock(TestResultsProvider)
     BuildOperationExecutor buildOperationExecutor
     Binary2JUnitXmlReportGenerator generator
@@ -47,7 +48,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
-        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationExecutor, "localhost")
+        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, new JUnitXmlResultOptions(false, false), buildOperationExecutor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
     }
@@ -77,14 +78,14 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         0 * generator.xmlWriter._
 
         where:
-        numThreads << [ 1, 4 ]
+        numThreads << [1, 4]
     }
 
     def "adds context information to the failure if something goes wrong"() {
         generator = generatorWithMaxThreads(1)
 
         def fooTest = new TestClassResult(1, 'FooTest', 100)
-                .add(new TestMethodResult(1, "foo"))
+            .add(new TestMethodResult(1, "foo"))
 
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)

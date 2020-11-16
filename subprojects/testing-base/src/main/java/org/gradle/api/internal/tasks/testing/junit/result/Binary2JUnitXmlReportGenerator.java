@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
@@ -39,14 +40,17 @@ public class Binary2JUnitXmlReportGenerator {
 
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
-    private JUnitXmlResultWriter xmlWriter;
+
+    @VisibleForTesting
+    JUnitXmlResultWriter xmlWriter;
+
     private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation, BuildOperationExecutor buildOperationExecutor, String hostName) {
+    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options, BuildOperationExecutor buildOperationExecutor, String hostName) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.xmlWriter = new JUnitXmlResultWriter(hostName, testResultsProvider, outputAssociation);
+        this.xmlWriter = new JUnitXmlResultWriter(hostName, testResultsProvider, options);
         this.buildOperationExecutor = buildOperationExecutor;
     }
 

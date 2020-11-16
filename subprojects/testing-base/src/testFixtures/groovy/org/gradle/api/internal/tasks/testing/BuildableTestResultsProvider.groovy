@@ -34,18 +34,18 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     Map<Long, BuildableTestClassResult> testClasses = [:]
     long idCounter = 1
 
-    BuildableTestClassResult testClassResult(String className, Closure configClosure = {}) {
+    BuildableTestClassResult testClassResult(String className, @DelegatesTo(value = BuildableTestClassResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
         BuildableTestClassResult testSuite = new BuildableTestClassResult(idCounter++, className, timestamp)
         testSuite.with(configClosure)
         testClasses[testSuite.id] = testSuite
     }
 
-    void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(id, 0, true, destination, writer)
+    void writeAllOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
+        doWrite(classId, 0, true, destination, writer)
     }
 
-    void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(id, 0, false, destination, writer)
+    void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
+        doWrite(classId, 0, false, destination, writer)
     }
 
     void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
@@ -75,6 +75,11 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         testClasses[classId]?.outputEvents?.find { it.testOutputEvent.destination == destination }
     }
 
+    @Override
+    boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
+        testClasses[classId]?.outputEvents?.find { it.testId == testId && it.testOutputEvent.destination == destination }
+    }
+
     static class BuildableOutputEvent {
         long testId
         TestOutputEvent testOutputEvent
@@ -90,18 +95,19 @@ class BuildableTestResultsProvider implements TestResultsProvider {
 
         long duration = 1000
 
+        Map<String, Integer> methodCounter = [:]
+
         BuildableTestClassResult(long id, String className, long startTime) {
             super(id, className, startTime)
         }
 
-        BuildableTestMethodResult testcase(String name, Closure configClosure = {}) {
-            BuildableTestMethodResult methodResult = new BuildableTestMethodResult(idCounter++, name, outputEvents, new SimpleTestResult())
-            add(methodResult)
-            ConfigureUtil.configure(configClosure, methodResult)
+        BuildableTestMethodResult testcase(String name, @DelegatesTo(value = BuildableTestMethodResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
+            testcase(idCounter++, name, configClosure)
         }
 
-        BuildableTestMethodResult testcase(long id, String name, Closure configClosure = {}) {
-            BuildableTestMethodResult methodResult = new BuildableTestMethodResult(id, name, outputEvents, new SimpleTestResult())
+        BuildableTestMethodResult testcase(long id, String name, @DelegatesTo(value = BuildableTestMethodResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
+            def duration = methodCounter.compute(name) { ignored, value ->  value == null ? 1 : value + 1 } * 1000
+            BuildableTestMethodResult methodResult = new BuildableTestMethodResult(id, name, outputEvents, new SimpleTestResult(duration))
             add(methodResult)
             ConfigureUtil.configure(configClosure, methodResult)
         }

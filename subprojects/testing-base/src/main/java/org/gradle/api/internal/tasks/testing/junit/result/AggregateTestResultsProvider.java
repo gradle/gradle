@@ -99,20 +99,33 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     }
 
     @Override
-    public boolean hasOutput(long id, final TestOutputEvent.Destination destination) {
+    public boolean hasOutput(long classId, final TestOutputEvent.Destination destination) {
         return Iterables.any(
-                classOutputProviders.get(id),
-                new Predicate<DelegateProvider>() {
-                    @Override
-                    public boolean apply(DelegateProvider delegateProvider) {
-                        return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
-                    }
-                });
+            classOutputProviders.get(classId),
+            new Predicate<DelegateProvider>() {
+                @Override
+                public boolean apply(DelegateProvider delegateProvider) {
+                    return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
+                }
+            });
     }
 
     @Override
-    public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        for (DelegateProvider delegateProvider : classOutputProviders.get(id)) {
+    public boolean hasOutput(long classId, final long testId, final TestOutputEvent.Destination destination) {
+        return Iterables.any(
+            classOutputProviders.get(classId),
+            new Predicate<DelegateProvider>() {
+                @Override
+                public boolean apply(DelegateProvider delegateProvider) {
+                    return delegateProvider.provider.hasOutput(delegateProvider.id, testId, destination);
+                }
+            });
+
+    }
+
+    @Override
+    public void writeAllOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
+        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
             delegateProvider.provider.writeAllOutput(delegateProvider.id, destination, writer);
         }
     }
@@ -128,8 +141,8 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     }
 
     @Override
-    public void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        for (DelegateProvider delegateProvider : classOutputProviders.get(id)) {
+    public void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
+        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
             delegateProvider.provider.writeNonTestOutput(delegateProvider.id, destination, writer);
         }
     }
