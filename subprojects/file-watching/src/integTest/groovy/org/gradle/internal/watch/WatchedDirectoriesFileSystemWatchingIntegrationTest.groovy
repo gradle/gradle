@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -107,7 +108,9 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run("assemble", "--info")
         then:
         skipped(":includedBuild:jar")
-        assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * 2)
+        // configuration cache registers all build directories at startup so the cache fingerprint can be checked
+        def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 3 : 2
+        assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
 
         when:
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
