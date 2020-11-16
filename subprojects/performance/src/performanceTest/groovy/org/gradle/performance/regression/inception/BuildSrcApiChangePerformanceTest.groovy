@@ -26,7 +26,7 @@ import org.junit.experimental.categories.Category
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        def targetVersion = "6.7-20200812220226+0000"
+        def targetVersion = "6.7.1-20201115001315+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumBaseVersion = GradleVersion.version(targetVersion).baseVersion.version
     }
