@@ -29,8 +29,8 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -115,32 +115,18 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
             entity.visitOutputTrees((treeName, type, root) -> {
                 CompleteFileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
-                String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
-                ImmutableList.Builder<FileSystemSnapshot> roots = ImmutableList.builder();
-
                 if (treeSnapshot == null) {
+                    String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
                     MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, AccessType.DIRECT);
                     fileSystemAccess.record(missingFileSnapshot);
                     builder.put(treeName, FileSystemSnapshot.EMPTY);
-                    return;
+                } else {
+                    if (type == TreeType.FILE && treeSnapshot.getType() != FileType.RegularFile) {
+                        throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
+                    }
+                    fileSystemAccess.record(treeSnapshot);
+                    builder.put(treeName, treeSnapshot);
                 }
-
-                switch (type) {
-                    case FILE:
-                        if (treeSnapshot.getType() != FileType.RegularFile) {
-                            throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
-                        }
-                        roots.add(treeSnapshot);
-                        fileSystemAccess.record(treeSnapshot);
-                        break;
-                    case DIRECTORY:
-                        roots.add(treeSnapshot);
-                        fileSystemAccess.record(treeSnapshot);
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
-                builder.put(treeName, CompositeFileSystemSnapshot.of(roots.build()));
             });
             return builder.build();
         }
