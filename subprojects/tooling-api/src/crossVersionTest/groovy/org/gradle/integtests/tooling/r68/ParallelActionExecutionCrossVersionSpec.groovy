@@ -125,6 +125,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         models.projects.path == [':', ':a', ':b']
     }
 
+    @TargetGradleVersion(">=3.4")
     def "nested action can run further nested actions"() {
         settingsFile << """
             rootProject.name = 'root'
