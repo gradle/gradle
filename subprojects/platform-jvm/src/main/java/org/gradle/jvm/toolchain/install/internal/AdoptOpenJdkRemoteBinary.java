@@ -23,6 +23,7 @@ import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import javax.inject.Inject;
@@ -75,7 +76,14 @@ public class AdoptOpenJdkRemoteBinary {
             determineOs() +
             "/" +
             determineArch() +
-            "/jdk/hotspot/normal/adoptopenjdk");
+            "/jdk/" +
+            determineImplementation(spec) +
+            "/normal/adoptopenjdk");
+    }
+
+    private String determineImplementation(JavaToolchainSpec spec) {
+        final JvmImplementation implementation = spec.getImplementation().getOrNull();
+        return implementation == JvmImplementation.J9 ? "openj9" : "hotspot";
     }
 
     public String toFilename(JavaToolchainSpec spec) {

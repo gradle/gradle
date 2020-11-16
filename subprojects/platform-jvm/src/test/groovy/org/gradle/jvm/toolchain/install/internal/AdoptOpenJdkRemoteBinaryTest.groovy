@@ -21,6 +21,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
@@ -189,6 +190,24 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         where:
         vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
+    }
+
+    def "downloads j9 impl if requested"() {
+        given:
+        def spec = newSpec(12)
+        spec.implementation.set(JvmImplementation.J9)
+        def systemInfo = Mock(SystemInfo)
+        systemInfo.architecture >> SystemInfo.Architecture.amd64
+        def operatingSystem = OperatingSystem.MAC_OS
+        def downloader = Mock(AdoptOpenJdkDownloader)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+
+        when:
+        def targetFile = temporaryFolder.newFile("jdk")
+        binary.download(spec, targetFile)
+
+        then:
+        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
     }
 
     def newSpec(int jdkVersion = 11) {
