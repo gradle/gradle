@@ -21,6 +21,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
@@ -42,6 +43,7 @@ import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
+    private final BuildIdentifier buildIdentifier;
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
     private final InstantiatorFactory instantiatorFactory;
     private final ServiceRegistry services;
@@ -52,7 +54,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
 
-    public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry leaseRegistry) {
+    public DefaultBuildServicesRegistry(BuildIdentifier buildIdentifier, DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry leaseRegistry) {
+        this.buildIdentifier = buildIdentifier;
         this.registrations = Cast.uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
         this.instantiatorFactory = instantiatorFactory;
         this.services = services;
@@ -131,7 +134,16 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         P parameters,
         @Nullable Integer maxParallelUsages
     ) {
-        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameters, isolationScheme, instantiatorFactory.injectScheme(), isolatableFactory, services);
+        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(
+            buildIdentifier,
+            name,
+            implementationType,
+            parameters,
+            isolationScheme,
+            instantiatorFactory.injectScheme(),
+            isolatableFactory,
+            services
+        );
 
         DefaultServiceRegistration<T, P> registration = Cast.uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));
         registration.getMaxParallelUsages().set(maxParallelUsages);

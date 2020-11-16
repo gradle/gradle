@@ -81,6 +81,7 @@ import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
@@ -297,8 +298,26 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    BuildServiceRegistryInternal createSharedServiceRegistry(Instantiator instantiator, DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
-        return instantiator.newInstance(DefaultBuildServicesRegistry.class, factory, instantiatorFactory, services, listenerManager, isolatableFactory, sharedResourceLeaseRegistry);
+    BuildServiceRegistryInternal createSharedServiceRegistry(
+        BuildState buildState,
+        Instantiator instantiator,
+        DomainObjectCollectionFactory factory,
+        InstantiatorFactory instantiatorFactory,
+        ServiceRegistry services,
+        ListenerManager listenerManager,
+        IsolatableFactory isolatableFactory,
+        SharedResourceLeaseRegistry sharedResourceLeaseRegistry
+    ) {
+        return instantiator.newInstance(
+            DefaultBuildServicesRegistry.class,
+            buildState.getBuildIdentifier(),
+            factory,
+            instantiatorFactory,
+            services,
+            listenerManager,
+            isolatableFactory,
+            sharedResourceLeaseRegistry
+        );
     }
 
     protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {

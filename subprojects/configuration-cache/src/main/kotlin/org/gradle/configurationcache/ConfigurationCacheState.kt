@@ -106,6 +106,18 @@ class ConfigurationCacheState(
             build,
             storedBuilds()
         )
+        writeRootEventListenerSubscriptions(gradle)
+    }
+
+    private
+    suspend fun DefaultReadContext.readRootBuild(createBuild: (String) -> ConfigurationCacheBuild) {
+        val rootProjectName = readString()
+        val build = createBuild(rootProjectName)
+        val gradle = build.gradle
+        readBuildTreeState(gradle)
+        readBuildState(build)
+        readRootEventListenerSubscriptions(gradle)
+        build.prepareForTaskExecution()
     }
 
     private
@@ -115,15 +127,6 @@ class ConfigurationCacheState(
             override fun store(build: BuildDefinition): Boolean =
                 stored.add(build.buildRootDir!!)
         }
-
-    private
-    suspend fun DefaultReadContext.readRootBuild(createBuild: (String) -> ConfigurationCacheBuild) {
-        val rootProjectName = readString()
-        val build = createBuild(rootProjectName)
-        readBuildTreeState(build.gradle)
-        readBuildState(build)
-        build.prepareForTaskExecution()
-    }
 
     internal
     suspend fun DefaultWriteContext.writeBuildState(build: VintageGradleBuild, storedBuilds: StoredBuilds) {
@@ -163,9 +166,6 @@ class ConfigurationCacheState(
             withDebugFrame({ "build cache" }) {
                 writeBuildCacheConfiguration(gradle)
             }
-            withDebugFrame({ "listener subscriptions" }) {
-                writeBuildEventListenerSubscriptions(gradle)
-            }
             writeGradleEnterprisePluginManager(gradle)
         }
     }
@@ -175,8 +175,25 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             // per build tree
             readBuildCacheConfiguration(gradle)
-            readBuildEventListenerSubscriptions(gradle)
             readGradleEnterprisePluginManager(gradle)
+        }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeRootEventListenerSubscriptions(gradle: GradleInternal) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            // per build tree
+            withDebugFrame({ "listener subscriptions" }) {
+                writeBuildEventListenerSubscriptions(gradle)
+            }
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readRootEventListenerSubscriptions(gradle: GradleInternal) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            // per build tree
+            readBuildEventListenerSubscriptions(gradle)
         }
     }
 
