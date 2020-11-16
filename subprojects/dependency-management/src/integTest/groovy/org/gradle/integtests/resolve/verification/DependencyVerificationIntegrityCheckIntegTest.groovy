@@ -1055,4 +1055,40 @@ This can indicate that a dependency has been compromised. Please carefully verif
 """
     }
 
+    def "reasonable error message for dependencies of init scripts which are missing from verification file"() {
+        file("init.gradle") << """
+            initscript {
+                repositories {
+                    maven { url "${mavenHttpRepo.uri}" }
+                }
+                dependencies {
+                    classpath 'org:foo:1.0'
+                }
+            }
+        """
+
+        def mod = mavenHttpRepo.module('org', 'foo', '1.0')
+            .publish()
+
+        createMetadataFile {
+        }
+
+        buildFile << """
+            tasks.register("noop") {
+            }
+        """
+
+        when:
+        mod.pom.expectGet()
+        mod.artifact.expectGet()
+        executer.withArguments("-I", "init.gradle")
+        fails 'noop'
+
+        then:
+        outputContains "Gradle properties are not loaded yet, any customization to dependency verification will be ignored until the main build script is loaded."
+        failure.assertHasDescription """Dependency verification failed for configuration 'classpath'
+2 artifacts failed verification:
+  - foo-1.0.jar (org:foo:1.0) from repository maven
+  - foo-1.0.pom (org:foo:1.0) from repository maven"""
+    }
 }
