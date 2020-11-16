@@ -69,6 +69,17 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-vendor]"]
 ====
 
+=== Selecting toolchains by their virtual machine implementation
+
+If your project requires a specific implementation, you can filter based on the implementation as well.
+For example, to use an [Open J9](https://www.eclipse.org/openj9/) JVM, distributed via [AdoptOpenJDK](https://adoptopenjdk.net/), you can specify the filter as shown in the example below.
+
+====
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
+include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-implementation]"]
+====
+
+
 == Specify custom toolchains for individual tasks
 
 In case you want to tweak which toolchain is used for a specific task, you can specify the exact tool a task is using.

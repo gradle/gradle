@@ -186,7 +186,7 @@ There are many options to configure this feature which are described in the [use
 [Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with.
 By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as toolchain.
 
-#### Selecting toolchain by vendor
+#### Selecting toolchain by vendor and implementation
 
 In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
 `JvmVendorSpec` has a list of well-known JVM vendors recognized by Gradle. The advantage is that Gradle can handle any inconsistencies across JDK versions
@@ -200,6 +200,19 @@ java {
 
         // alternativly, use custom matching
         // vendor = JvmVendorSpec.matching("customString")
+    }
+}
+```
+
+If the vendor is not enough to select the appropriate toolchain, you may as well filter by the implementation of the virtual machine.
+For example, to use an [Open J9](https://www.eclipse.org/openj9/) JVM, distributed via [AdoptOpenJDK](https://adoptopenjdk.net/), you can filter by the implementation as shown in the example below. 
+
+```
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTOPENJDK
+        implementation = JvmImplementation.J9
     }
 }
 ```
