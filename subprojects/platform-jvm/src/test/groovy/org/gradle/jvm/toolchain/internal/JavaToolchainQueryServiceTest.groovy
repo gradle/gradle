@@ -225,6 +225,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         if(javaHome.name.contains("broken")) {
             return JvmInstallationMetadata.failure(javaHome, "errorMessage")
         }
+        if(javaHome.name.contains("broken")) {
+            return JavaInstallationProbe.ProbeResult.failure(JavaInstallationProbe.InstallType.INVALID_JDK, "errorMessage")
+        }
         Mock(JvmInstallationMetadata) {
             getLanguageVersion() >> JavaVersion.toVersion(javaHome.name)
             getJavaHome() >> javaHome.absoluteFile.toPath()
