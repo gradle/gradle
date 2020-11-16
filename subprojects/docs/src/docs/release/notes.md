@@ -223,7 +223,7 @@ same way it works for other Gradle API classes.
 
 ### Test re-run JUnit XML reporting enhancements
 
-The [`Test` task](dsl/org.gradle.api.tasks.testing.Test.html), used for executing JVM tests, reports the test results as HTML and as a set of XML files in the “JUnit XML” pseudo standard.
+The [`Test` task](dsl/org.gradle.api.tasks.testing.Test.html), used for [executing JVM tests](userguide/java_testing.html#test_reporting), reports test results as HTML and as a set of XML files in the “JUnit XML” pseudo standard.
 It is common for CI servers and other tooling to observe test results via the XML files.
 A new [`mergeReruns` option](javadoc/org/gradle/api/tasks/testing/JUnitXmlReport.html#getMergeReruns--) has been added that changes how tests that are executed more than once are reported in the XML files.
 
