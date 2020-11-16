@@ -44,34 +44,19 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     public Spec<Task> getFilter(String path) {
         Path taskPath = Path.path(path);
         if (taskPath.isAbsolute()) {
-            if (gradle.isRootBuild()) {
-                if (pathReferencesAnyIncludedBuilds(taskPath)) {
-                    return Specs.satisfyAll();
-                } else {
-                    return getUnqualifiedBuildSelector().getFilter(path);
-                }
-            } else {
-                if (pathReferencesThisIncludedBuild(taskPath)) {
-                    return getUnqualifiedBuildSelector().getFilter(taskPath.removeFirstSegments(1).toString());
-                } else {
-                    return Specs.satisfyAll();
-                }
-            }
-        } else {
-            if (gradle.isRootBuild()) {
-                return getUnqualifiedBuildSelector().getFilter(path);
-            } else {
-                return Specs.satisfyAll();
+            BuildState build = findIncludedBuild(taskPath);
+            // Exclusion was for an included build, use it
+            if (build != null) {
+                return getSelector(build).getFilter(taskPath.removeFirstSegments(1).toString());
             }
         }
-    }
-
-    private boolean pathReferencesAnyIncludedBuilds(Path taskPath) {
-        return findIncludedBuild(taskPath) != null;
-    }
-
-    private boolean pathReferencesThisIncludedBuild(Path taskPath) {
-        return taskPath.segmentCount() > 1 && taskPath.segment(0).equals(gradle.getRootProject().getName());
+        // Exclusion didn't match an included build, so it might be a subproject of the root build or a relative path
+        if (gradle.isRootBuild()) {
+            return getUnqualifiedBuildSelector().getFilter(path);
+        } else {
+            // Included build ignores this exclusion since it doesn't apply directly to it
+            return Specs.satisfyAll();
+        }
     }
 
     @Override

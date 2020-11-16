@@ -149,48 +149,6 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         output.count(":other-plugin:jar") == 1
     }
 
-    def "can exclude tasks coming from included builds"() {
-        setup:
-        setupComplexExample()
-
-        when:
-        succeeds(*args)
-
-        then:
-        result.assertTasksExecuted(executed)
-        skipped.each { result.assertTaskNotExecuted(it) }
-
-        where:
-        args                                  | executed                                                                                                            | skipped
-        ["build", "-x", ":sub:test"]          | [":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build"] | [":sub:test"]
-        ["build", "-x", ":included:sub:test"] | [":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build" , ":included:sub:build"]         | [":included:sub:test"]
-    }
-
-    def "cannot use unqualified task paths  to exclude tasks from included builds"() {
-        setup:
-        setupComplexExample()
-
-        when:
-        run(*args)
-
-        then:
-        result.assertTasksExecuted(executed)
-        if (!skipped.empty) { skipped.each { result.assertTaskNotExecuted(it) } }
-
-        where:
-        args                                  | executed                                                                                                                         | skipped
-        ["build", "-x", "test"]               | [":build", ":sub:build", ":included:build", ":included:sub:build", ":included:test", ":included:sub:test"]                       | [":test", ":sub:test"]
-        ["build", "-x", "sub:test"]           | [":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build"]              | [":sub:test"]
-    }
-
-    def "cannot use unqualified absolute paths to to exclude task from included build"() {
-        setup:
-        setupComplexExample()
-
-        expect:
-        runAndFail("build", "-x", "included:test")
-    }
-
     def "can pass options to task in included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
@@ -389,40 +347,5 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         succeeds("doSomething")
         outputContains("do something")
-    }
-
-    private def setupComplexExample() {
-        settingsFile << """
-            rootProject.name = 'root'
-            include('sub')
-            includeBuild('included')
-        """
-        file('included/settings.gradle') << """
-            include('sub')
-        """
-        buildFile << """
-            def test = tasks.register('test')
-            tasks.register('build') {
-                dependsOn test
-                dependsOn gradle.includedBuild('included').task(':build')
-            }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') {
-                    dependsOn subTest
-                    dependsOn gradle.includedBuild('included').task(':sub:build')
-                }
-            }
-        """
-        file('included/build.gradle') << """
-            def test = tasks.register('test')
-            tasks.register('build') { dependsOn test }
-
-            project(':sub') {
-                def subTest = tasks.register('test')
-                tasks.register('build') { dependsOn subTest }
-            }
-        """
     }
 }
