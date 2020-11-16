@@ -27,7 +27,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.7-20200907231737+0000"]
+        runner.targetVersions = ["6.7.1-20201115001315+0000"]
         runner.minimumBaseVersion = "2.11"
     }
 
