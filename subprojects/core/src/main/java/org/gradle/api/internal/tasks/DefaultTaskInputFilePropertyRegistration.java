@@ -105,7 +105,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     @Override
     public TaskInputFilePropertyBuilder ignoreDirectories(boolean ingoreDirectories) {
-        this.directorySensitivity = ingoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+        this.directorySensitivity = ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.FINGERPRINT_DIRECTORIES;
         return this;
     }
 
