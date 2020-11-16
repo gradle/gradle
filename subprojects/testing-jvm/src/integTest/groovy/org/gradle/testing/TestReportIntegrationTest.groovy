@@ -24,8 +24,10 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.hamcrest.CoreMatchers
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -366,6 +368,7 @@ public class SubClassTests extends SuperClassTests {
 
     def "can enable merge rerun in xml report"() {
         when:
+        assumeTrue("This test uses JUnit4-specific API", version == JUnitCoverage.NEWEST)
         buildScript """
             $junitSetup
             test.reports.junitXml.mergeReruns = true
@@ -384,6 +387,7 @@ public class SubClassTests extends SuperClassTests {
 
     def "merge rerun defaults to false"() {
         when:
+        Assume.assumeTrue("This test uses JUnit4-specific API", version == JUnitCoverage.NEWEST)
         buildScript """
             $junitSetup
         """
