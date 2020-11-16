@@ -27,7 +27,7 @@ internal
 sealed class ConfigurationCacheFingerprint {
 
     data class Header(
-        val buildDirs: Set<File>
+        val buildRootDirs: Set<File>
     )
 
     data class GradleEnvironment(

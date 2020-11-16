@@ -215,8 +215,7 @@ class ConfigurationCacheFingerprintController internal constructor(
 private
 fun writeConfigurationCacheFingerprintHeaderTo(outputStream: OutputStream, header: ConfigurationCacheFingerprint.Header) {
     KryoBackedEncoder(outputStream).apply {
-        // write header
-        writeCollection(header.buildDirs) { buildDir ->
+        writeCollection(header.buildRootDirs) { buildDir ->
             writeString(buildDir.path)
         }
         flush()

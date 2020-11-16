@@ -86,11 +86,10 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored root build directories.
      */
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild): HashSet<File> {
-        return writeRootBuild(build).also {
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild): HashSet<File> =
+        writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
-    }
 
     suspend fun DefaultReadContext.readRootBuildState(createBuild: (String) -> ConfigurationCacheBuild) {
         readRootBuild(createBuild)
@@ -112,7 +111,7 @@ class ConfigurationCacheState(
             storedBuilds
         )
         writeRootEventListenerSubscriptions(gradle)
-        return storedBuilds.stored
+        return storedBuilds.buildRootDirs
     }
 
     private
@@ -128,9 +127,9 @@ class ConfigurationCacheState(
 
     private
     fun storedBuilds() = object : StoredBuilds {
-        val stored = hashSetOf<File>()
+        val buildRootDirs = hashSetOf<File>()
         override fun store(build: BuildDefinition): Boolean =
-            stored.add(build.buildRootDir!!)
+            buildRootDirs.add(build.buildRootDir!!)
     }
 
     internal
