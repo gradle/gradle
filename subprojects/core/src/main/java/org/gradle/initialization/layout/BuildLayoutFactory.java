@@ -98,7 +98,7 @@ public class BuildLayoutFactory {
     }
 
     private static void deprecateMasterSubdirectoryForRootBuild() {
-        DeprecationLogger.deprecateBehaviour("Resolving root build in directory named 'master' from a sibling subproject has been deprecated.")
+        DeprecationLogger.deprecateBehaviour("Searching for settings files in a directory named 'master' from a sibling directory has been deprecated.")
             .willBeRemovedInGradle7()
             .withUpgradeGuideSection(6, "master_subdirectory_root_build")
             .nagUser();
