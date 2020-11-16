@@ -48,13 +48,12 @@ class ConfigurationCacheIO internal constructor(
      * See [ConfigurationCacheState.writeRootBuildState].
      */
     internal
-    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile): Set<File> {
-        return writeConfigurationCacheState(stateFile) { cacheState ->
+    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile): Set<File> =
+        writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
             }
         }
-    }
 
     internal
     fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile) {
