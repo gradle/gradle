@@ -67,7 +67,7 @@ Task ordering using `mustRunAfter` and `shouldRunAfter` as well as finalizers sp
 If you happen to have cross-build task ordering defined using above mentioned methods, consider restructuring such builds and decoupling them from one another.
 
 [[master_subdirectory_root_build]]
-==== Resolving root build in 'master' from a sibling subproject
+==== Searching for settings files in 'master' directories
 
 Resolving root build in a directory named `master` when Gradle is invoked from a sibling subproject has been deprecated.
 If a build uses a directory named `master` to define the root build, and you want to keep the ability to invoke Gradle
