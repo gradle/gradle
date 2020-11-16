@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
@@ -37,23 +36,21 @@ import java.nio.file.Path;
 
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
-    private final boolean isJdk;
     private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
     private final Directory javaHome;
     private final VersionNumber implementationVersion;
     private final JavaLanguageVersion javaVersion;
-    private final JvmVendor vendor;
+    private final JvmInstallationMetadata metadata;
 
     @Inject
     public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
         this.javaHome = fileFactory.dir(computeEnclosingJavaHome(metadata.getJavaHome()).toFile());
         this.javaVersion = JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
-        this.isJdk = metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER);
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
         this.implementationVersion = VersionNumber.parse(metadata.getImplementationVersion());
-        this.vendor = metadata.getVendor();
+        this.metadata = metadata;
     }
 
     @Internal
@@ -88,12 +85,12 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     @Internal
     public boolean isJdk() {
-        return isJdk;
+        return metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER);
     }
 
     @Internal
-    JvmVendor getVendor() {
-        return vendor;
+    public JvmInstallationMetadata getMetadata() {
+        return metadata;
     }
 
     @Internal

@@ -21,6 +21,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
@@ -29,11 +30,13 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
 
     private final Property<JavaLanguageVersion> languageVersion;
     private final Property<JvmVendorSpec> vendor;
+    private final Property<JvmImplementation> implementation;
 
     @Inject
     public DefaultToolchainSpec(ObjectFactory factory) {
         this.languageVersion = factory.property(JavaLanguageVersion.class);
         this.vendor = factory.property(JvmVendorSpec.class).convention(DefaultJvmVendorSpec.any());
+        this.implementation = factory.property(JvmImplementation.class).convention(JvmImplementation.VENDOR_SPECIFIC);
     }
 
     @Override
@@ -46,6 +49,11 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
         return vendor;
     }
 
+    @Override
+    public Property<JvmImplementation> getImplementation() {
+        return implementation;
+    }
+
     public boolean isConfigured() {
         return languageVersion.isPresent();
     }
@@ -56,6 +64,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
         builder.omitNullValues();
         builder.add("languageVersion", languageVersion.map(JavaLanguageVersion::toString).getOrElse("unspecified"));
         builder.add("vendor", vendor.map(JvmVendorSpec::toString).getOrNull());
+        builder.add("implementation", implementation.map(JvmImplementation::toString).getOrNull());
         return builder.toString();
     }
 

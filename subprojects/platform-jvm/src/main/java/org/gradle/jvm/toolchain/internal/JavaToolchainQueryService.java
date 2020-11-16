@@ -21,7 +21,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
 
@@ -93,7 +95,16 @@ public class JavaToolchainQueryService {
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
         final Predicate<JavaToolchain> languagePredicate = toolchain -> toolchain.getLanguageVersion().equals(spec.getLanguageVersion().get());
         final Predicate<? super JavaToolchain> vendorSpec = getVendorPredicate(spec);
-        return languagePredicate.and(vendorSpec);
+        final Predicate<? super JavaToolchain> implementationPredicate = getImplementationPredicate(spec);
+        return languagePredicate.and(vendorSpec).and(implementationPredicate);
+    }
+
+    private Predicate<? super JavaToolchain> getImplementationPredicate(JavaToolchainSpec spec) {
+        return toolchain -> {
+            final boolean isJ9Vm = toolchain.getMetadata().hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE);
+            final boolean j9Requested = spec.getImplementation().get() == JvmImplementation.J9;
+            return !j9Requested || isJ9Vm;
+        };
     }
 
     @SuppressWarnings("unchecked")

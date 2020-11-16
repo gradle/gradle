@@ -44,4 +44,12 @@ public interface JavaToolchainSpec extends Describable {
      */
     Property<JvmVendorSpec> getVendor();
 
+    /**
+     * The virtual machine implementation of the toolchain.
+     * <p>By default, any implementation (hotspot, j9, ...) is eligible.</p>
+     *
+     * @since 6.8
+     */
+    Property<JvmImplementation> getImplementation();
+
 }
