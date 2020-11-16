@@ -17,5 +17,5 @@
 package org.gradle.internal.fingerprint;
 
 public interface FileCollectionFingerprinterRegistry {
-    FileCollectionFingerprinter getFingerprinter(FileCollectionFingerprinterSpec spec);
+    FileCollectionFingerprinter getFingerprinter(FingerprinterSpec spec);
 }

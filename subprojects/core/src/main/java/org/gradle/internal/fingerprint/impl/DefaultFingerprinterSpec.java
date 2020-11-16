@@ -19,15 +19,15 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitiveNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterSpec;
+import org.gradle.internal.fingerprint.FingerprinterSpec;
 
 import java.util.Objects;
 
-public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFingerprinterSpec {
+public class DefaultFingerprinterSpec implements FingerprinterSpec {
     private final Class<? extends FileNormalizer> normalizer;
     private final DirectorySensitivity directorySensitivity;
 
-    private DefaultFileCollectionFingerprinterSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
+    private DefaultFingerprinterSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
         this.normalizer = normalizer;
         this.directorySensitivity = directorySensitivity;
     }
@@ -42,11 +42,11 @@ public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFin
         return directorySensitivity;
     }
 
-    public static FileCollectionFingerprinterSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
+    public static FingerprinterSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
         if (DirectorySensitiveNormalizer.class.isAssignableFrom(normalizer)) {
-            return new DefaultFileCollectionFingerprinterSpec(normalizer, directorySensitivity);
+            return new DefaultFingerprinterSpec(normalizer, directorySensitivity);
         } else {
-            return new DefaultFileCollectionFingerprinterSpec(normalizer, DirectorySensitivity.NONE);
+            return new DefaultFingerprinterSpec(normalizer, DirectorySensitivity.NONE);
         }
     }
 
@@ -58,7 +58,7 @@ public class DefaultFileCollectionFingerprinterSpec implements FileCollectionFin
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultFileCollectionFingerprinterSpec that = (DefaultFileCollectionFingerprinterSpec) o;
+        DefaultFingerprinterSpec that = (DefaultFingerprinterSpec) o;
         return normalizer.equals(that.normalizer) &&
             directorySensitivity == that.directorySensitivity;
     }

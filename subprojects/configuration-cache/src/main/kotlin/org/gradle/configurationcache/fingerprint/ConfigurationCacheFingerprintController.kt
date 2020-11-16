@@ -32,7 +32,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterSpec
+import org.gradle.internal.fingerprint.impl.DefaultFingerprinterSpec
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -62,7 +62,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Stoppable {
     private
-    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileCollectionFingerprinterSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.FINGERPRINT_DIRECTORIES))
+    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFingerprinterSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.FINGERPRINT_DIRECTORIES))
 
     private
     abstract class WritingState {

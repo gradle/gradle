@@ -53,8 +53,8 @@ import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterSpec;
-import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterSpec;
+import org.gradle.internal.fingerprint.FingerprinterSpec;
+import org.gradle.internal.fingerprint.impl.DefaultFingerprinterSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
@@ -295,8 +295,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             @Override
             public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
-                FileCollectionFingerprinterSpec fileCollectionFingerprinterSpec = DefaultFileCollectionFingerprinterSpec.from(FileParameterUtils.normalizerOrDefault(fileNormalizer), directorySensitivity);
-                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fileCollectionFingerprinterSpec);
+                FingerprinterSpec fingerprinterSpec = DefaultFingerprinterSpec.from(FileParameterUtils.normalizerOrDefault(fileNormalizer), directorySensitivity);
+                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fingerprinterSpec);
                 FileCollection inputFileValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(inputFileValue);
                 inputFileParameterFingerprintsBuilder.put(propertyName, fingerprint);

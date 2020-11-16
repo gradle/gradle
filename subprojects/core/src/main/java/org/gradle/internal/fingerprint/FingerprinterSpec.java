@@ -21,7 +21,7 @@ import org.gradle.api.tasks.FileNormalizer;
 /**
  * Specifies criteria for selecting a {@link FileCollectionFingerprinter}
  */
-public interface FileCollectionFingerprinterSpec {
+public interface FingerprinterSpec {
     Class<? extends FileNormalizer> getNormalizer();
 
     DirectorySensitivity getDirectorySensitivity();
