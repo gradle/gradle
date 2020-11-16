@@ -98,13 +98,13 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public TaskInputFilePropertyBuilder ignoreDirectories() {
+    public TaskInputFilePropertyBuilder ignoreEmptyDirectories() {
         this.directorySensitivity = DirectorySensitivity.IGNORE_DIRECTORIES;
         return this;
     }
 
     @Override
-    public TaskInputFilePropertyBuilder ignoreDirectories(boolean ingoreDirectories) {
+    public TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreDirectories) {
         this.directorySensitivity = ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.FINGERPRINT_DIRECTORIES;
         return this;
     }

@@ -72,18 +72,21 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
 
     /**
      * Ignore directories during up-to-date checks.  When this is set, only the contents of directories
-     * will be considered, but not the directories themselves.
+     * will be considered, but not the directories themselves.  Changes to empty directories, and directories that
+     * contain only empty directories, will be ignored.
      *
      * @since 6.8
      */
     @Incubating
-    TaskInputFilePropertyBuilder ignoreDirectories();
+    TaskInputFilePropertyBuilder ignoreEmptyDirectories();
 
     /**
      * Sets whether directories should be considered during up-to-date checks.  Defaults to false.
      *
+     * See {@link #ignoreEmptyDirectories()}.
+     *
      * @since 6.8
      */
     @Incubating
-    TaskInputFilePropertyBuilder ignoreDirectories(boolean ignoreEmptyDirectories);
+    TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreEmptyDirectories);
 }

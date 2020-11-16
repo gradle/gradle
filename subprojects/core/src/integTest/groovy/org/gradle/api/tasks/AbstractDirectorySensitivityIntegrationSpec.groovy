@@ -313,7 +313,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
             class TaskWithInputs extends DefaultTask {
                 @InputFiles
                 @PathSensitive(PathSensitivity.${pathSensitivity.name()})
-                ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreDirectories.class.simpleName}" : ''}
+                ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreEmptyDirectories.class.simpleName}" : ''}
                 FileCollection sources
 
                 @OutputFile
@@ -345,7 +345,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
 
                     inputs.files(sources)
                         .withPathSensitivity(PathSensitivity.${pathSensitivity.name()})
-                        ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? '.ignoreDirectories()' : ''}
+                        ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? '.ignoreEmptyDirectories()' : ''}
                         .withPropertyName('sources')
                 }
 
@@ -372,12 +372,12 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
                 interface Parameters extends TransformParameters {
                     @InputFiles
                     @PathSensitive(PathSensitivity.RELATIVE)
-                    ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreDirectories.class.simpleName}" : ''}
+                    ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreEmptyDirectories.class.simpleName}" : ''}
                     ConfigurableFileCollection getFiles()
                 }
 
                 @InputArtifact
-                ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreDirectories.class.simpleName}" : ''}
+                ${directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? "@${IgnoreEmptyDirectories.class.simpleName}" : ''}
                 @PathSensitive(PathSensitivity.RELATIVE)
                 abstract Provider<FileSystemLocation> getInput()
 
