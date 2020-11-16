@@ -20,20 +20,20 @@ import java.io.File;
 
 public class SettingsLocation {
     private final File settingsDir;
+
     @Nullable
     private final File settingsFile;
 
-    private boolean settingsLoadedFromDeprecatedMasterDirectory = false;
+    private final boolean settingsLoadedFromMasterDirectory;
 
-    public SettingsLocation(File settingsDir, @Nullable File settingsFile, boolean settingsLoadedFromDeprecatedMasterDirectory) {
+    public SettingsLocation(File settingsDir, @Nullable File settingsFile, boolean settingsLoadedFromMasterDirectory) {
         this.settingsDir = settingsDir;
         this.settingsFile = settingsFile;
-        this.settingsLoadedFromDeprecatedMasterDirectory = settingsLoadedFromDeprecatedMasterDirectory;
+        this.settingsLoadedFromMasterDirectory = settingsLoadedFromMasterDirectory;
     }
 
     public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
-        this.settingsDir = settingsDir;
-        this.settingsFile = settingsFile;
+        this(settingsDir, settingsFile, false);
     }
 
     /**
@@ -51,8 +51,8 @@ public class SettingsLocation {
         return settingsFile;
     }
 
-    boolean settingsLoadedFromDeprecatedMasterDirectory() {
-        return settingsLoadedFromDeprecatedMasterDirectory;
+    boolean isSettingsLoadedFromMasterDirectory() {
+        return settingsLoadedFromMasterDirectory;
     }
 }
 

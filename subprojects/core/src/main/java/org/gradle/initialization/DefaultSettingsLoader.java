@@ -54,7 +54,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         StartParameter startParameter = gradle.getStartParameter();
 
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        if (settingsLocation.settingsLoadedFromDeprecatedMasterDirectory()) {
+        if (settingsLocation.isSettingsLoadedFromMasterDirectory()) {
             DeprecationLogger.deprecateBehaviour("Searching for settings files in a directory named 'master' from a sibling directory has been deprecated.")
                 .willBeRemovedInGradle7()
                 .withUpgradeGuideSection(6, "master_subdirectory_root_build")
