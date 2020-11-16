@@ -120,6 +120,7 @@ public class BuildDefinition {
         ((StartParameterInternal) includedBuildStartParam).setSearchUpwardsWithoutDeprecationWarning(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
+        includedBuildStartParam.setExcludedTaskNames(startParameter.getExcludedTaskNames());
         return includedBuildStartParam;
     }
 
