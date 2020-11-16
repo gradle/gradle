@@ -111,7 +111,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         def metadata = detector.getMetadata(javaHome)
 
         then:
-        assert metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_IMPLEMENTATION) == isJ9
+        assert metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) == isJ9
 
         where:
         jdk              | systemProperties         | isJ9

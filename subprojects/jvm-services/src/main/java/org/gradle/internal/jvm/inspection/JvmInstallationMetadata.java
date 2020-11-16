@@ -30,7 +30,7 @@ import java.util.Set;
 public interface JvmInstallationMetadata {
 
     enum JavaInstallationCapability {
-        JAVA_COMPILER, J9_IMPLEMENTATION
+        JAVA_COMPILER, J9_VIRTUAL_MACHINE
     }
 
     static DefaultJvmInstallationMetadata from(File javaHome, String implementationVersion, String vendor, String implementationName) {
@@ -134,7 +134,7 @@ public interface JvmInstallationMetadata {
             }
             boolean isJ9vm = implementationName.contains("J9");
             if(isJ9vm) {
-                capabilities.add(JavaInstallationCapability.J9_IMPLEMENTATION);
+                capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
             }
             return capabilities;
         }
