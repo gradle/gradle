@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.plugins.ide.tooling.r31.IdeaProjectUtil
 import org.gradle.plugins.ide.tooling.r33.FetchEclipseProjects
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 @ToolingApiVersion('>=6.8')
 @TargetGradleVersion(">=6.8")
@@ -138,5 +139,38 @@ class CompositeBuildModuleCycleCrossVersionSpec extends ToolingApiSpecification 
 
         then:
         eclipseProjects.collect { it.name } == ['module-root', 'module-a']
+    }
+
+    def "Eclipse model builder can handle cycles between included builds"() {
+        given:
+        compositeWithDirectIncludeCycle()
+
+        when:
+        def model = withConnection { getModel(HierarchicalEclipseProject) }
+
+        then:
+        model.name == 'module-root'
+    }
+
+    def "Eclipse model builder can handle indirect cycles between included builds"() {
+        given:
+        compositeWithIndirectIncludeCycle()
+
+        when:
+        def model = withConnection { getModel(HierarchicalEclipseProject) }
+
+        then:
+        model.name == 'module-root'
+    }
+
+    def "Eclipse model builder can handle cycles involving the root build"() {
+        given:
+        compositeWithRootInvolvingIncludeCycle()
+
+        when:
+        def model = withConnection { getModel(HierarchicalEclipseProject) }
+
+        then:
+        model.name == 'module-root'
     }
 }
