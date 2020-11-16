@@ -52,6 +52,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
                     file('root/gradle.properties').text = "systemProp.greeting=$greeting"
                     return configurationCacheRun('greet')
                 case SystemPropertySource.GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR:
+                    // because the 'master' directory special treatment deprecation message is not emitted when configuration is loaded form config cache
+                    executer.noDeprecationChecks()
+
                     file('master/gradle.properties').text = "systemProp.greeting=$greeting"
                     file('master/settings.gradle').text = """
                         rootProject.projectDir = file('../root')
@@ -754,7 +757,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         when:
         configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
-        
+
         then:
         configurationCache.assertStateStored()
 
