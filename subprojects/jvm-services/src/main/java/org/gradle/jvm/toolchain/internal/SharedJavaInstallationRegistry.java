@@ -109,7 +109,15 @@ public class SharedJavaInstallationRegistry {
         if (os.isMacOsX() && new File(potentialHome, "Contents/Home").exists()) {
             return new File(potentialHome, "Contents/Home");
         }
+        final File standaloneJre = new File(potentialHome, "jre");
+        if(!hasJavaExecutable(potentialHome) && hasJavaExecutable(standaloneJre)) {
+            return standaloneJre;
+        }
         return potentialHome;
+    }
+
+    private boolean hasJavaExecutable(File potentialHome) {
+        return new File(potentialHome, os.getExecutableName("bin/java")).exists();
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
