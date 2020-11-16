@@ -18,7 +18,6 @@ package org.gradle.initialization.layout;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 
@@ -68,43 +67,31 @@ public class BuildLayoutFactory {
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
         File settingsFile = findExistingSettingsFileIn(currentDir);
-        if (settingsFile == null) {
-            settingsFile = findSettingsFileInMasterSubdirectory(currentDir);
-            if (settingsFile != null) {
-                deprecateMasterSubdirectoryForRootBuild();
-            }
-        }
         if (settingsFile != null) {
             return layout(currentDir, settingsFile);
         }
+        settingsFile = findExistingSettingsFileIn(new File(currentDir, "master"));
+        if (settingsFile != null) {
+            return layoutWithDeprecatedMasterDirectoryFlag(currentDir, settingsFile);
+        }
         for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
             settingsFile = findExistingSettingsFileIn(candidate);
-            if (settingsFile == null) {
-                settingsFile = findSettingsFileInMasterSubdirectory(candidate);
-            }
             if (settingsFile != null) {
                 return layout(candidate, settingsFile);
+            }
+            settingsFile = findExistingSettingsFileIn(new File(candidate, "master"));
+            if (settingsFile != null) {
+                return layoutWithDeprecatedMasterDirectoryFlag(candidate, settingsFile);
             }
         }
         return layout(currentDir, new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
     }
 
-    private File findSettingsFileInMasterSubdirectory(File root) {
-        File settingsFile = findExistingSettingsFileIn(new File(root, "master"));
-        if (settingsFile != null) {
-            deprecateMasterSubdirectoryForRootBuild();
-        }
-        return settingsFile;
-    }
-
-    private static void deprecateMasterSubdirectoryForRootBuild() {
-        DeprecationLogger.deprecateBehaviour("Searching for settings files in a directory named 'master' from a sibling directory has been deprecated.")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(6, "master_subdirectory_root_build")
-            .nagUser();
-    }
-
     private BuildLayout layout(File rootDir, File settingsFile) {
         return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile));
+    }
+
+    private BuildLayout layoutWithDeprecatedMasterDirectoryFlag(File rootDir, File settingsFile) {
+        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), true);
     }
 }

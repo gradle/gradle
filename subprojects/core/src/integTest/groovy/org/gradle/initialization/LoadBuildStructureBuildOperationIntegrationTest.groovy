@@ -53,8 +53,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "settings with master folder are exposed correctly"() {
-        // because the 'master' directory special treatment deprecation message is emitted early in the build and only appears on warm daemons
-        executer.noDeprecationChecks()
+        executer.expectDocumentedDeprecationWarning("Searching for settings files in a directory named 'master' from a sibling directory has been deprecated. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#master_subdirectory_root_build")
 
         def customSettingsFile = file("master/settings.gradle")
         customSettingsFile << """

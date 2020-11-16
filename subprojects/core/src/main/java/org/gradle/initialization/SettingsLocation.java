@@ -23,6 +23,14 @@ public class SettingsLocation {
     @Nullable
     private final File settingsFile;
 
+    private boolean settingsLoadedFromDeprecatedMasterDirectory = false;
+
+    public SettingsLocation(File settingsDir, @Nullable File settingsFile, boolean settingsLoadedFromDeprecatedMasterDirectory) {
+        this.settingsDir = settingsDir;
+        this.settingsFile = settingsFile;
+        this.settingsLoadedFromDeprecatedMasterDirectory = settingsLoadedFromDeprecatedMasterDirectory;
+    }
+
     public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
         this.settingsDir = settingsDir;
         this.settingsFile = settingsFile;
@@ -41,6 +49,10 @@ public class SettingsLocation {
     @Nullable
     public File getSettingsFile() {
         return settingsFile;
+    }
+
+    boolean settingsLoadedFromDeprecatedMasterDirectory() {
+        return settingsLoadedFromDeprecatedMasterDirectory;
     }
 }
 
