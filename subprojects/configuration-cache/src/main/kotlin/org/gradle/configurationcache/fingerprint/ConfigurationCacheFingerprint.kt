@@ -26,6 +26,10 @@ import java.io.File
 internal
 sealed class ConfigurationCacheFingerprint {
 
+    data class Header(
+        val buildDirs: Set<File>
+    )
+
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
         val jvm: String

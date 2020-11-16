@@ -31,6 +31,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -43,9 +44,12 @@ class ConfigurationCacheIO internal constructor(
     private val beanConstructors: BeanConstructors
 ) {
 
+    /**
+     * See [ConfigurationCacheState.writeRootBuildState].
+     */
     internal
-    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) {
-        writeConfigurationCacheState(stateFile) { cacheState ->
+    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile): Set<File> {
+        return writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
             }
@@ -80,13 +84,13 @@ class ConfigurationCacheIO internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(
+    fun <T> writeConfigurationCacheState(
         stateFile: ConfigurationCacheStateFile,
-        action: suspend DefaultWriteContext.(ConfigurationCacheState) -> Unit
-    ) {
+        action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
+    ): T {
         val build = host.currentBuild
         val (context, codecs) = writerContextFor(stateFile.outputStream(), build.gradle.rootProject.name + " state")
-        context.useToRun {
+        return context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile))
             }
