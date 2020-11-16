@@ -167,7 +167,6 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
-            // per build tree
             withDebugFrame({ "build cache" }) {
                 writeBuildCacheConfiguration(gradle)
             }
@@ -178,7 +177,6 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
-            // per build tree
             readBuildCacheConfiguration(gradle)
             readGradleEnterprisePluginManager(gradle)
         }
