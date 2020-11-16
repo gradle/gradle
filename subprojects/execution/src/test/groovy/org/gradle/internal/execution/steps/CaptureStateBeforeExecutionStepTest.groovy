@@ -172,7 +172,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         assertOperationForInputsBeforeExecution()
     }
 
-    def "output file properties are snasphotted"() {
+    def "output file properties are snapshotted"() {
         def outputDirSnapshot = Mock(FileSystemSnapshot)
 
         when:
