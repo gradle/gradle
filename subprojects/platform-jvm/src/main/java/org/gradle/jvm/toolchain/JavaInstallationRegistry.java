@@ -26,8 +26,10 @@ import org.gradle.api.provider.Provider;
  * <p>An instance of this service is available for injection into tasks, plugins and other types.
  *
  * @since 6.2
+ * @deprecated Use <a href="https://docs.gradle.org/current/userguide/toolchains.html">Java Toolchains</a> instead.
  */
 @Incubating
+@Deprecated
 public interface JavaInstallationRegistry {
     /**
      * Returns the Java installation for the current virtual machine.
