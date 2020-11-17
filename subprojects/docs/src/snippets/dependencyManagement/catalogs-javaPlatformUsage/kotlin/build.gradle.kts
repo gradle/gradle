@@ -21,7 +21,7 @@ plugins {
 
 dependencies {
     constraints {
-        api(libs.mylib) { version { require("1.1") } }
+        api(libs.mylib)
     }
 }
 // end::platform_uses_catalog[]
