@@ -262,7 +262,7 @@ When this new option is enabled, if a test fails but is then retried and succeed
 This is the same as the reporting produced by the [surefire plugin of Apache Maven™](https://maven.apache.org/components/surefire/maven-surefire-plugin/examples/rerun-failing-tests.html), when enabling reruns.
 If your CI server understands this format, it will indicate that the test was flaky.
 
-This option is disable by default, causing each test execution to be listed as a separate `<testcase>` in the XML.
+This option is disabled by default, causing each test execution to be listed as a separate `<testcase>` in the XML.
 This means that when a test is executed multiple times, due to a retry-on-failure mechanism for example, it is listed multiple times.
 This is also the behavior for all previous Gradle versions.
 
