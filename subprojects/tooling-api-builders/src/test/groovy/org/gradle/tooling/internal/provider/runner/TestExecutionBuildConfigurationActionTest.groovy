@@ -25,11 +25,15 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestFilter
 import org.gradle.execution.BuildExecutionContext
+import org.gradle.execution.TaskNameResolver
+import org.gradle.execution.TaskSelection
+import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.internal.build.event.types.DefaultTestDescriptor
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
-import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -40,6 +44,8 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     public static final String TEST_TASK_NAME = ":test"
 
     ProjectInternal projectInternal
+    ServiceRegistry serviceRegistry = Mock()
+    TaskSelector taskSelector = Mock()
     Test testTask
     TaskContainerInternal tasksContainerInternal
     TestFilter testFilter
@@ -73,6 +79,8 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         1 * gradleInternal.getTaskGraph() >> taskGraph
         1 * buildContext.getGradle() >> gradleInternal
         _ * gradleInternal.getRootProject() >> projectInternal
+        _ * gradleInternal.getServices() >> serviceRegistry
+        _ * serviceRegistry.get(TaskSelector) >> taskSelector
     }
 
     def "empty test execution request configures no tasks"() {
@@ -131,6 +139,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         _ * testTaskCollection.toArray() >> [testTask].toArray()
         _ * tasksContainerInternal.withType(Test) >> testTaskCollection
         _ * testTask.getOutputs() >> outputsInternal
+        _ * taskSelector.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, new TaskNameResolver.FixedTaskSelectionResult(testTaskCollection))
     }
 
     private DefaultTestDescriptor testDescriptor() {
