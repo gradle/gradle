@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl;
+package org.gradle.internal.execution.history.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -46,7 +46,7 @@ import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyD
 import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 import static org.gradle.internal.snapshot.SnapshotUtil.index;
 
-public class OutputUtil {
+public class OutputSnapshotUtil {
 
     /**
      * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:

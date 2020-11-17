@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl
+package org.gradle.internal.execution.history.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
@@ -25,11 +25,11 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static OutputUtil.filterOutputWithOverlapAfterExecution
-import static OutputUtil.filterOutputWithOverlapBeforeExecution
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputWithOverlapAfterExecution
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputWithOverlapBeforeExecution
 import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
 
-class OutputUtilTest extends Specification {
+class OutputSnapshotUtilTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())

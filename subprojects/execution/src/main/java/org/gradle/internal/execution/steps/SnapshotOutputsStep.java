@@ -33,7 +33,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import static org.gradle.internal.execution.impl.OutputUtil.filterOutputsWithOverlapAfterExecution;
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsWithOverlapAfterExecution;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;

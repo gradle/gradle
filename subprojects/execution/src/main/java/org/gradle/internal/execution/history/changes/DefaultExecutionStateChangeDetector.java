@@ -25,7 +25,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import static org.gradle.internal.execution.impl.OutputUtil.filterOutputsWithOverlapBeforeExecution;
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsWithOverlapBeforeExecution;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
