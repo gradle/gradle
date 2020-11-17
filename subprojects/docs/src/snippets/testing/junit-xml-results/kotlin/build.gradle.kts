@@ -24,7 +24,7 @@ project.setProperty("testResultsDirName", "$buildDir/junit-xml")
 
 // tag::configure-content[]
 tasks.test {
-    reports.apply {
+    reports {
         junitXml.apply {
             isOutputPerTestCase = true // defaults to false
             mergeReruns.set(true) // defaults to false
