@@ -55,7 +55,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs = operation(
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
@@ -70,8 +70,8 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
 
         return new CurrentSnapshotResult() {
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
-                return finalOutputs;
+            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                return outputFilesProduceByWork;
             }
 
             @Override

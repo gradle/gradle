@@ -20,5 +20,5 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public interface SnapshotResult extends Result {
-    ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork();
 }

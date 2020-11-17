@@ -24,10 +24,10 @@ public interface CurrentSnapshotResult extends SnapshotResult {
     /**
      * Get the snapshots of the outputs of the finished work execution.
      */
-    // TODO This shouldn't be represented as a map of CurrentFileCollectionFingerprint objects,
+    // TODO This shouldn't be represented as a map of FileSystemSnapshot objects,
     //      but of CompleteFileSystemLocationSnapshot objects
     @Override
-    ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork();
 
     /**
      * Returns the origin metadata of the finished work's output.

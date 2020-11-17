@@ -195,11 +195,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
-        SnapshotVisitorUtil.getRelativePaths(result.finalOutputs["dir"]) == ["some-file", "some-file-2"]
+        result.outputFilesProduceByWork.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
+        SnapshotVisitorUtil.getRelativePaths(result.outputFilesProduceByWork["dir"]) == ["some-file", "some-file-2"]
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
-        afterExecution.outputFilesProducedByWork == result.finalOutputs
+        afterExecution.outputFilesProducedByWork == result.outputFilesProduceByWork
     }
 
     def "work unit is up-to-date if nothing changes"() {
@@ -210,7 +210,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        def finalOutputs = result.finalOutputs
+        def outputFilesProduceByWork = result.outputFilesProduceByWork
 
         when:
         buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -220,7 +220,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.executionResult.get().outcome == UP_TO_DATE
-        result.finalOutputs == finalOutputs
+        result.outputFilesProduceByWork == outputFilesProduceByWork
     }
 
     def "out-of-date for an output file change"() {

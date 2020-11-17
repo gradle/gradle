@@ -48,13 +48,13 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     }
 
     private void storeState(C context, ExecutionHistoryStore executionHistoryStore, String uniqueId, CurrentSnapshotResult result) {
-        ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs = result.getFinalOutputs();
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = result.getOutputFilesProduceByWork();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
             boolean successful = result.getExecutionResult().isSuccessful();
             // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
             // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
             if (successful
-                || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
+                || didChangeOutput(context.getAfterPreviousExecutionState(), outputFilesProducedByWork)) {
                 executionHistoryStore.store(
                     uniqueId,
                     result.getOriginMetadata(),
@@ -62,7 +62,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
                     beforeExecutionState.getAdditionalImplementations(),
                     beforeExecutionState.getInputProperties(),
                     beforeExecutionState.getInputFileProperties(),
-                    finalOutputs,
+                    outputFilesProducedByWork,
                     successful
                 );
             }

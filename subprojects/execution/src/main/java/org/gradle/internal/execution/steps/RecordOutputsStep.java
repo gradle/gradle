@@ -37,7 +37,7 @@ public class RecordOutputsStep<C extends Context> implements Step<C, CurrentSnap
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         CurrentSnapshotResult result = delegate.execute(work, context);
-        outputFilesRepository.recordOutputs(result.getFinalOutputs().values());
+        outputFilesRepository.recordOutputs(result.getOutputFilesProduceByWork().values());
         return result;
     }
 }

@@ -67,7 +67,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
         result.reused
         result.originMetadata == cachedOriginMetadata
-        result.finalOutputs == outputsFromCache
+        result.outputFilesProduceByWork == outputsFromCache
 
         interaction { withValidCacheKey() }
 
@@ -237,13 +237,13 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     private void outputStored(Closure storeResult) {
         def originMetadata = Mock(OriginMetadata)
-        def finalOutputs = snapshotsOf("test": [])
+        def outputFilesProduceByWork = snapshotsOf("test": [])
         def storeCommand = Mock(BuildCacheStoreCommand)
 
-        1 * delegateResult.finalOutputs >> finalOutputs
+        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
         1 * delegateResult.originMetadata >> originMetadata
         1 * originMetadata.executionTime >> 123L
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, finalOutputs, 123L) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProduceByWork, 123L) >> storeCommand
         1 * buildCacheController.store(storeCommand) >> { storeResult() }
     }
 }

@@ -67,7 +67,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     }
 
                     @Override
-                    public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
+                    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
                         return afterPreviousExecutionState.getOutputFilesProducedByWork();
                     }
 
@@ -107,8 +107,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
-                return result.getFinalOutputs();
+            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                return result.getOutputFilesProduceByWork();
             }
 
             @Override

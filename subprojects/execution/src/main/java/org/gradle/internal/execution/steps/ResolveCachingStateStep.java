@@ -151,8 +151,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
-                return result.getFinalOutputs();
+            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                return result.getOutputFilesProduceByWork();
             }
 
             @Override

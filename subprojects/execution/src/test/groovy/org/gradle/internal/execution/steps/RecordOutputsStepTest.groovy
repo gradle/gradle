@@ -24,7 +24,7 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Snasph
     def step = new RecordOutputsStep<>(outputFilesRepository, delegate)
 
     def outputFile = file("output.txt").text = "output"
-    def finalOutputs = snapshotsOf(output: outputFile)
+    def outputFilesProduceByWork = snapshotsOf(output: outputFile)
 
     def delegateResult = Mock(CurrentSnapshotResult)
 
@@ -37,10 +37,10 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Snasph
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.finalOutputs >> finalOutputs
+        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
 
         then:
-        1 * outputFilesRepository.recordOutputs(finalOutputs.values())
+        1 * outputFilesRepository.recordOutputs(outputFilesProduceByWork.values())
         0 * _
     }
 }

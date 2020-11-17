@@ -75,7 +75,7 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
                     }
 
                     @Override
-                    public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
+                    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
                         return ImmutableSortedMap.of();
                     }
 
