@@ -190,32 +190,12 @@ image::plugin-portal-plugin-page.png[]
 
 To check how the artifacts of your published plugin look, or to use it only locally or internal in your company, you can publish it to any maven repository, including a local folder.
 For that, you only need to <<publishing_maven.adoc#publishing_maven:repositories,configure repositories for publishing>>.
-Then you can run the `publish` task to publish your plugin to all repositories you have defined.
+Then you can run the `publish` task to publish your plugin to all repositories you have defined (but not the {portal}).
 
-.build.gradle
-[source.multi-language-sample,groovy]
-----
-publishing {
-    repositories {
-        maven {
-            name = 'localPluginRepository'
-            url = '../local-plugin-repository'
-        }
-    }
-}
-----
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
-----
-publishing {
-    repositories {
-        maven {
-            name = "localPluginRepository"
-            url = uri("../local-plugin-repository")
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=local_repository]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=local_repository]"]
+====
 
 To use the repository in another build, you have to add it to <<plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in you `settings.gradle(.kts)` file.
 
