@@ -152,6 +152,8 @@ public class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
+    private boolean containsTestFixtures;
+
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
@@ -354,5 +356,18 @@ public class EclipseClasspath {
             referenceFactory.addPathVariable(entry.getKey(), entry.getValue());
         }
         return referenceFactory;
+    }
+
+    /**
+     * Returns {@code true} if the classpath contains test fixture classes that should be visible
+     * through incoming project dependencies.
+     *
+     */
+    public boolean getContainsTestFixtures() {
+        return containsTestFixtures;
+    }
+
+    public void setContainsTestFixtures(boolean containsTestFixtures) {
+        this.containsTestFixtures = containsTestFixtures;
     }
 }

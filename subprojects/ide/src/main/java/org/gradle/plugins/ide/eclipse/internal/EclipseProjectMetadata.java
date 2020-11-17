@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.plugins.ide.eclipse.model.EclipseProject;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 
 import java.io.File;
@@ -28,11 +28,11 @@ import java.util.Collections;
 import java.util.Set;
 
 public class EclipseProjectMetadata implements IdeProjectMetadata {
-    private final EclipseProject eclipseProject;
+    private final EclipseModel eclipseProject;
     private final File projectDir;
     private final TaskProvider<? extends Task> generatorTask;
 
-    public EclipseProjectMetadata(EclipseProject eclipseProject, File projectDir, TaskProvider<? extends Task> generatorTask) {
+    public EclipseProjectMetadata(EclipseModel eclipseProject, File projectDir, TaskProvider<? extends Task> generatorTask) {
         this.eclipseProject = eclipseProject;
         this.projectDir = projectDir;
         this.generatorTask = generatorTask;
@@ -40,11 +40,11 @@ public class EclipseProjectMetadata implements IdeProjectMetadata {
 
     @Override
     public DisplayName getDisplayName() {
-        return Describables.withTypeAndName("Eclipse project", eclipseProject.getName());
+        return Describables.withTypeAndName("Eclipse project", eclipseProject.getProject().getName());
     }
 
     public String getName() {
-        return eclipseProject.getName();
+        return eclipseProject.getProject().getName();
     }
 
     @Override
@@ -55,5 +55,9 @@ public class EclipseProjectMetadata implements IdeProjectMetadata {
     @Override
     public Set<? extends Task> getGeneratorTasks() {
         return Collections.singleton(generatorTask.get());
+    }
+
+    public boolean hasJavaTestFixtures() {
+        return eclipseProject.getClasspath().getContainsTestFixtures();
     }
 }
