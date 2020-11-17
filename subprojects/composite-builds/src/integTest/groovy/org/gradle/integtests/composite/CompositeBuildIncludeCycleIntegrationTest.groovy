@@ -153,4 +153,41 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         then:
         result.assertTasksExecuted(':x2:compileJava', ':buildA:compileJava', ':x1:compileJava')
     }
+
+    def "can depend back on root build and back on an included build"() {
+        given:
+        def buildX = multiProjectBuild('buildX', ['x1', 'x2', 'x3']) {
+            buildFile << """
+                subprojects { apply plugin: 'java-library'}
+                project(':x1') {
+                    dependencies { api 'org.test:theNameOfBuildA' }
+                }
+                project(':x2') {
+                    dependencies { api 'org.test:buildB' }
+                }
+            """
+            settingsFile << """
+                includeBuild '../buildA'
+                includeBuild '../buildB'
+            """
+        }
+
+        buildA.buildFile << """
+            apply plugin: 'java-library'
+            dependencies { api 'org.test:x2' }
+        """
+        buildA.settingsFile << """
+            rootProject.name = 'theNameOfBuildA'
+        """
+        buildB.buildFile << """
+            apply plugin: 'java-library'
+            dependencies { api 'org.test:x3' }
+        """
+
+        when:
+        execute(buildX, ':x1:compileJava')
+
+        then:
+        result.assertTasksExecuted(':x3:compileJava', ':buildB:compileJava', ':x2:compileJava', ':buildA:compileJava', ':x1:compileJava')
+    }
 }
