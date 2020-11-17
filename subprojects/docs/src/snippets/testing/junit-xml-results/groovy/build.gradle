@@ -12,8 +12,8 @@ dependencies {
 
 // tag::configure-location-task[]
 test {
-    reporting {
-        junitXml.outputLocation.set(projectLayout.buildDirectory.dir("test-junit-xml"))
+    reports {
+        junitXml.outputLocation.set(layout.buildDirectory.dir("test-junit-xml"))
     }
 }
 // end::configure-location-task[]
@@ -24,7 +24,7 @@ testResultsDirName = "$buildDir/junit-xml"
 
 // tag::configure-content[]
 test {
-    reporting {
+    reports {
         junitXml {
             outputPerTestCase = true // defaults to false
             mergeReruns = true // defaults to false

@@ -254,7 +254,7 @@ A new `mergeReruns` has been added that changes how tests that are executed more
 
 ```
 test {
-    reporting.junitXml.mergeReruns = true
+    reports.junitXml.mergeReruns = true
 }
 ```
 
