@@ -84,7 +84,7 @@ class ConfigurationCacheState(
 ) {
     /**
      * Writes the state for the whole build starting from the given root [build] and returns the set
-     * of stored root build directories.
+     * of stored included build directories.
      */
     suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild): HashSet<File> =
         writeRootBuild(build).also {

@@ -34,6 +34,10 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -198,20 +202,57 @@ class ConfigurationCacheIO internal constructor(
 
 internal
 fun writeConfigurationCacheFingerprintHeaderTo(outputStream: OutputStream, header: ConfigurationCacheFingerprint.Header) {
-    KryoBackedEncoder(outputStream).apply {
-        writeCollection(header.buildRootDirs) { buildDir ->
-            writeString(buildDir.path)
-        }
-        flush()
+    val buildRootDirs = header.includedBuildRootDirs
+    if (buildRootDirs.isEmpty()) {
+        outputStream.writeInt(0)
+        return
+    }
+    ByteArrayOutputStream().let { bos ->
+        writeFileSetTo(bos, buildRootDirs)
+        outputStream.writeInt(bos.size())
+        bos.writeTo(outputStream)
     }
 }
 
 
 internal
-fun readConfigurationCacheFingerprintHeaderFrom(inputStream: InputStream) = ConfigurationCacheFingerprint.Header(
-    KryoBackedDecoder(inputStream, 1).run {
+fun readConfigurationCacheFingerprintHeaderFrom(inputStream: InputStream): ConfigurationCacheFingerprint.Header? {
+    val headerSize = inputStream.readInt()
+    if (headerSize == 0) {
+        return null
+    }
+
+    val headerBytes = ByteArray(headerSize)
+    require(inputStream.read(headerBytes) == headerSize)
+
+    return ConfigurationCacheFingerprint.Header(
+        readFileSetFrom(ByteArrayInputStream(headerBytes))
+    )
+}
+
+
+private
+fun writeFileSetTo(outputStream: OutputStream, files: Set<File>) {
+    KryoBackedEncoder(outputStream).useToRun {
+        writeCollection(files) { file ->
+            writeString(file.path)
+        }
+    }
+}
+
+
+private
+fun readFileSetFrom(inputStream: InputStream) =
+    KryoBackedDecoder(inputStream).run {
         readCollectionInto(::LinkedHashSet) {
             File(readString())
         }
     }
-)
+
+
+private
+fun OutputStream.writeInt(i: Int) = DataOutputStream(this).writeInt(i)
+
+
+private
+fun InputStream.readInt() = DataInputStream(this).readInt()

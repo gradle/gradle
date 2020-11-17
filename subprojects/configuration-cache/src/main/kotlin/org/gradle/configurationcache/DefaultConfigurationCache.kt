@@ -184,10 +184,10 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheFiles(layout: ConfigurationCacheRepository.Layout) {
-        val storedBuildRootDirs = writeConfigurationCacheState(layout.state)
+        val includedBuildRootDirs = writeConfigurationCacheState(layout.state)
         writeConfigurationCacheFingerprint(
             layout.fingerprint,
-            ConfigurationCacheFingerprint.Header(storedBuildRootDirs)
+            ConfigurationCacheFingerprint.Header(includedBuildRootDirs)
         )
     }
 
@@ -234,8 +234,12 @@ class DefaultConfigurationCache internal constructor(
     private
     fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
         fingerprintFile.inputStream().use { fingerprintInputStream ->
-            val fingerprintHeader = readConfigurationCacheFingerprintHeaderFrom(fingerprintInputStream)
-            registerWatchableBuildDirectories(fingerprintHeader.buildRootDirs)
+            // Register all included build root directories as watchable hierarchies
+            // so we can load the fingerprint for build scripts and other files from included builds
+            // without violating file system invariants.
+            readConfigurationCacheFingerprintHeaderFrom(fingerprintInputStream)?.run {
+                registerWatchableBuildDirectories(includedBuildRootDirs)
+            }
             checkFingerprint(fingerprintInputStream)
         }
 
