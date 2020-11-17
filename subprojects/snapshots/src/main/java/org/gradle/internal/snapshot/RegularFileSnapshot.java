@@ -20,7 +20,6 @@ import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -80,34 +79,6 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         diffListener.nodeRemoved(this);
         return Optional.empty();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        RegularFileSnapshot that = (RegularFileSnapshot) o;
-
-        if (!contentHash.equals(that.contentHash)) {
-            return false;
-        }
-        return metadata.equals(that.metadata);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + contentHash.hashCode();
-        result = 31 * result + metadata.hashCode();
-        return result;
     }
 
     @Override

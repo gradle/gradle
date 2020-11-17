@@ -108,13 +108,16 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
 
         AbstractCompleteFileSystemLocationSnapshot that = (AbstractCompleteFileSystemLocationSnapshot) o;
 
-        if (!absolutePath.equals(that.absolutePath)) {
+        if (accessType != that.accessType) {
             return false;
         }
         if (!name.equals(that.name)) {
             return false;
         }
-        return accessType == that.accessType;
+        if (!absolutePath.equals(that.absolutePath)) {
+            return false;
+        }
+        return getHash().equals(that.getHash());
     }
 
     @Override
@@ -122,6 +125,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         int result = absolutePath.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + accessType.hashCode();
+        result = 31 * result + getHash().hashCode();
         return result;
     }
 
