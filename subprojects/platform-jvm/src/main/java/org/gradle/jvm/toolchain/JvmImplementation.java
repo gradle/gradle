@@ -16,14 +16,23 @@
 
 package org.gradle.jvm.toolchain;
 
-public enum JvmImplementation {
 
-    VENDOR_SPECIFIC("vendor-specific"),
-    J9("J9");
+import org.gradle.api.Incubating;
+
+/**
+ * Represents a filter for a implementation of a Java Virtual Machine.
+ *
+ * @since 6.8
+ */
+@Incubating
+public final class JvmImplementation {
+
+    public static final JvmImplementation VENDOR_SPECIFIC = new JvmImplementation("vendor-specific");
+    public static final JvmImplementation J9 = new JvmImplementation("J9");
 
     private final String displayName;
 
-    JvmImplementation(String displayName) {
+    private JvmImplementation(String displayName) {
         this.displayName = displayName;
     }
 
