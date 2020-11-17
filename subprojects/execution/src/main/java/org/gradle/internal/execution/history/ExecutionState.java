@@ -45,7 +45,7 @@ public interface ExecutionState {
     ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFileProperties();
 
     /**
-     * The file outputs.
+     * The outputs produced by the work (so no interleaved outputs and without the missing roots).
      */
-    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileProperties();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork();
 }

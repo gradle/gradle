@@ -68,7 +68,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
                     @Override
                     public ImmutableSortedMap<String, FileSystemSnapshot> getFinalOutputs() {
-                        return afterPreviousExecutionState.getOutputFileProperties();
+                        return afterPreviousExecutionState.getOutputFilesProducedByWork();
                     }
 
                     @Override

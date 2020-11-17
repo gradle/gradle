@@ -199,7 +199,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         SnapshotVisitorUtil.getRelativePaths(result.finalOutputs["dir"]) == ["some-file", "some-file-2"]
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
-        afterExecution.outputFileProperties == result.finalOutputs
+        afterExecution.outputFilesProducedByWork == result.finalOutputs
     }
 
     def "work unit is up-to-date if nothing changes"() {

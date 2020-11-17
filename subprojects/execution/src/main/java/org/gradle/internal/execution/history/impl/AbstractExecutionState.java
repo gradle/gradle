@@ -66,7 +66,7 @@ public class AbstractExecutionState<C extends FileCollectionFingerprint> impleme
     }
 
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileProperties() {
+    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork() {
         return outputFileProperties;
     }
 }

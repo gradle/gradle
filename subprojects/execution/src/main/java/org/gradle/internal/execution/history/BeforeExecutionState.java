@@ -33,13 +33,13 @@ public interface BeforeExecutionState extends ExecutionState {
      * Output file properties without overlapping outputs.
      */
     @Override
-    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileProperties();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork();
 
     /**
      * Output file properties including overlapping outputs.
-     * The same as {@link #getOutputFileProperties()} if no overlapping outputs are detected.
+     * The same as {@link #getOutputFilesProducedByWork()} if no overlapping outputs are detected.
      */
-    ImmutableSortedMap<String, FileSystemSnapshot> getAllOutputSnapshots();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots();
 
     /**
      * Returns overlapping outputs if they are detected.

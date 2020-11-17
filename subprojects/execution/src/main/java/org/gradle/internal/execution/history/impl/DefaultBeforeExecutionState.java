@@ -92,7 +92,7 @@ public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentF
     }
 
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> getAllOutputSnapshots() {
+    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots() {
         return unfilteredOutputFileProperties;
     }
 

@@ -103,7 +103,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def previousState = Stub(AfterPreviousExecutionState) {
         getInputProperties() >> ImmutableSortedMap.of()
         getInputFileProperties() >> ImmutableSortedMap.of()
-        getOutputFileProperties() >> ImmutableSortedMap.of()
+        getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
     def executionContext = Stub(TaskExecutionContext) {
         getTaskProperties() >> taskProperties

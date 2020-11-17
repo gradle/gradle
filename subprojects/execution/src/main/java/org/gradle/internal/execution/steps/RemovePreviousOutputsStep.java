@@ -98,7 +98,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
                 file -> true,
                 dir -> !outputDirectoriesToPreserve.contains(dir)
             );
-            for (FileSystemSnapshot snapshot : previousOutputs.getOutputFileProperties().values()) {
+            for (FileSystemSnapshot snapshot : previousOutputs.getOutputFilesProducedByWork().values()) {
                 try {
                     // Previous outputs can be in a different place than the current outputs
                     outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(snapshot).keySet());

@@ -77,7 +77,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
         }
 
         // If there are different output properties compared to the previous execution, then we do have output changes
-        ImmutableSortedMap<String, FileSystemSnapshot> previous = afterPreviousExecutionState.get().getOutputFileProperties();
+        ImmutableSortedMap<String, FileSystemSnapshot> previous = afterPreviousExecutionState.get().getOutputFilesProducedByWork();
         if (!previous.keySet().equals(current.keySet())) {
             return true;
         }

@@ -116,7 +116,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> snapshotsOf([:])
+        1 * afterPreviousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
 
         then:
         interaction { expectStore(false, finalOutputs) }
@@ -140,7 +140,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
         then:
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> finalOutputs
+        1 * afterPreviousExecutionState.outputFilesProducedByWork >> finalOutputs
         0 * _
     }
 

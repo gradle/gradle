@@ -100,11 +100,11 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
 
         if (hasDetectedOverlappingOutputs) {
             ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getAfterPreviousExecutionState()
-                .map(AfterPreviousExecutionState::getOutputFileProperties)
+                .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
                 .orElse(ImmutableSortedMap.of());
 
             ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution = context.getBeforeExecutionState()
-                .map(BeforeExecutionState::getAllOutputSnapshots)
+                .map(BeforeExecutionState::getOutputFileLocationSnapshots)
                 .orElse(ImmutableSortedMap.of());
 
             return filterOutputsWithOverlapAfterExecution(previousExecutionOutputSnapshots, unfilteredOutputSnapshotsBeforeExecution, unfilteredOutputSnapshotsAfterExecution);

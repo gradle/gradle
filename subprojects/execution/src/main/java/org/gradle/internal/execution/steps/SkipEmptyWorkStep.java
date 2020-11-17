@@ -41,7 +41,7 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
     @Override
     public CachingResult execute(UnitOfWork work, C context) {
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution = context.getAfterPreviousExecutionState()
-            .map(AfterPreviousExecutionState::getOutputFileProperties)
+            .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
         UnitOfWork.Identity identity = context.getIdentity();
         return work.skipIfInputsEmpty(outputFilesAfterPreviousExecution)

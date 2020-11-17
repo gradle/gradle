@@ -549,7 +549,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public FileCollectionInternal createDelegate() {
-            List<File> outputs = previousExecution.getOutputFileProperties().values().stream()
+            List<File> outputs = previousExecution.getOutputFilesProducedByWork().values().stream()
                 .map(SnapshotUtil::index)
                 .map(Map::keySet)
                 .flatMap(Collection::stream)

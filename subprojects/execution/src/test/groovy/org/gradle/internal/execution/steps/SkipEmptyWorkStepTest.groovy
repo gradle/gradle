@@ -50,7 +50,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         result == delegateResult
 
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> outputSnapshots
+        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputSnapshots
         _ * work.skipIfInputsEmpty(outputSnapshots) >> Optional.empty()
 
         then:
@@ -67,7 +67,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         result.executionResult.get().outcome == outcome
 
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> outputSnapshots
+        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputSnapshots
         _ * work.skipIfInputsEmpty(outputSnapshots) >> Optional.of(outcome)
 
         then:

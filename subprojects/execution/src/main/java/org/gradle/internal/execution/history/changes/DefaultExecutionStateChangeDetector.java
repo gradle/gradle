@@ -61,13 +61,14 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getOutputFileProperties(),
-            thisExecution.getOutputFileProperties(),
+            lastExecution.getOutputFilesProducedByWork(),
+            thisExecution.getOutputFilesProducedByWork(),
             "Output",
             executable);
+        // TODO create filtered current outputs
         OutputFileChanges outputFileChanges = new OutputFileChanges(
-            lastExecution.getOutputFileProperties(),
-            thisExecution.getOutputFileProperties()
+            lastExecution.getOutputFilesProducedByWork(),
+            thisExecution.getOutputFilesProducedByWork()
         );
 
         // Collect changes that would trigger a rebuild

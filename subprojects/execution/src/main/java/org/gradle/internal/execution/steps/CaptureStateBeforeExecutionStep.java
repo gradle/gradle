@@ -155,7 +155,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             .map(ExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
         ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterPreviousExecution = afterPreviousExecutionState
-            .map(AfterPreviousExecutionState::getOutputFileProperties)
+            .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
 
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());

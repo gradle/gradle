@@ -189,7 +189,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
-        1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
+        1 * afterPreviousExecution.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
         1 * outputChangeListener.beforeOutputChange(_ as Iterable) >> { Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] }
         1 * outputChangeListener.beforeOutputChange(_ as Iterable) >> { Iterable<String> paths -> paths as List == [outputs.file.absolutePath] }
     }

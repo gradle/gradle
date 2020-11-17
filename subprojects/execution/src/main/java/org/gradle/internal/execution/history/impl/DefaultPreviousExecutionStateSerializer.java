@@ -99,7 +99,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
         writeInputProperties(encoder, execution.getInputProperties());
         writeFingerprints(encoder, execution.getInputFileProperties());
-        writeSnapshots(encoder, execution.getOutputFileProperties());
+        writeSnapshots(encoder, execution.getOutputFilesProducedByWork());
 
         encoder.writeBoolean(execution.isSuccessful());
     }
