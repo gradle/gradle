@@ -478,7 +478,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:17'
-   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo:{strictly 15}'""")
+   Dependency path ':test:unspecified' --> 'test:other:unspecified' (conf) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -564,7 +564,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:17'
-   Dependency path ':test:unspecified' --> 'org:bar:1' --> 'org:foo:{strictly 15}'""")
+   Dependency path ':test:unspecified' --> 'org:bar:1' (runtime) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -794,9 +794,10 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
+        def selected = GradleMetadataResolveRunner.gradleMetadataPublished || GradleMetadataResolveRunner.useMaven() ? 'runtime' : 'default'
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:{require 1.0; reject 1.1}'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:1.1'""")
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' ($selected) --> 'org:foo:1.1'""")
     }
 
     def "can reject a version range"() {
