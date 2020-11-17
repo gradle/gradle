@@ -141,6 +141,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
             buildController.stop();
         }
     }
+
+    @Override
+    public GradleInternal getBuild() {
+        return gradleLauncher.getGradle();
+    }
 }
 
 

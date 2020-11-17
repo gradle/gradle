@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
@@ -84,4 +85,6 @@ public interface BuildState {
      * The root directory of the build.
      */
     File getBuildRootDir();
+
+    GradleInternal getBuild();
 }

@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
@@ -100,5 +101,10 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public File getBuildRootDir() {
         return gradleLauncher.getBuildRootDir();
+    }
+
+    @Override
+    public GradleInternal getBuild() {
+        return gradleLauncher.getGradle();
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.Pair;
 
 import java.util.Set;
@@ -29,8 +28,6 @@ public interface CompositeBuildParticipantBuildState extends BuildState {
      * Identities of the modules represented by the projects of this build.
      */
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
-
-    GradleInternal getBuild();
 
     /**
      * Creates a copy of the identifier for a project in this build, to use in the dependency resolution result from some other build

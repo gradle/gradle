@@ -120,6 +120,7 @@ public class ProjectBuilderImpl {
 
         GradleInternal gradle = buildServices.get(InstantiatorFactory.class).decorateLenient().newInstance(DefaultGradle.class, null, startParameter, buildServices.get(ServiceRegistryFactory.class));
         gradle.setIncludedBuilds(Collections.emptyList());
+        build.setGradle(gradle); // the TestRootBuild instance cannot be created after GradleInternal
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
@@ -198,6 +199,7 @@ public class ProjectBuilderImpl {
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
         private final File rootProjectDir;
+        private GradleInternal gradle;
 
         public TestRootBuild(File rootProjectDir) {
             this.rootProjectDir = rootProjectDir;
@@ -260,6 +262,15 @@ public class ProjectBuilderImpl {
         @Override
         public File getBuildRootDir() {
             return rootProjectDir;
+        }
+
+        @Override
+        public GradleInternal getBuild() {
+            return gradle;
+        }
+
+        public void setGradle(GradleInternal gradle) {
+            this.gradle = gradle;
         }
     }
 }
