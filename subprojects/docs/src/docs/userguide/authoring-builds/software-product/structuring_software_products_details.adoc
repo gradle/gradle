@@ -1,4 +1,4 @@
-= Customizing a Software Product build setups
+= Customizing a Software Product build
 
 This chapter covers more details on selected topics related to <<structuring_software_products.adoc#,structuring and building a software product with Gradle>>.
 
@@ -9,7 +9,7 @@ You have several options to interact with a build that is a composition of multi
 === Using an umbrella build
 
 If all your builds are located in one folder structure, you can have an umbrella build in a root folder that includes all builds.
-You can then call tasks from the root project by addressing one of the builds.
+You can then <<composite_builds.adoc#composite_build_executing_tasks,call tasks from the root project by addressing one of the builds>>.
 Usually, you would then put the <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> into the root as well.
 link:../samples/sample_structuring_software_projects.html[The sample]
 on structuring software projects contains such an umbrella build in the root.
