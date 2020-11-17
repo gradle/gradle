@@ -39,8 +39,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture non-file input changes
         ChangeContainer inputPropertyChanges = new PropertyChanges(
-            lastExecution.getInputProperties(),
-            thisExecution.getInputProperties(),
+            lastExecution.getInputProperties().keySet(),
+            thisExecution.getInputProperties().keySet(),
             "Input",
             executable);
         ChangeContainer inputPropertyValueChanges = new InputValueChanges(
@@ -50,8 +50,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture input files state
         ChangeContainer inputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getInputFileProperties(),
-            thisExecution.getInputFileProperties(),
+            lastExecution.getInputFileProperties().keySet(),
+            thisExecution.getInputFileProperties().keySet(),
             "Input file",
             executable);
         InputFileChanges nonIncrementalInputFileChanges = incrementalInputProperties.nonIncrementalChanges(
@@ -61,8 +61,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getOutputFilesProducedByWork(),
-            thisExecution.getOutputFilesProducedByWork(),
+            lastExecution.getOutputFilesProducedByWork().keySet(),
+            thisExecution.getOutputFilesProducedByWork().keySet(),
             "Output",
             executable);
         // TODO create filtered current outputs

@@ -81,7 +81,7 @@ public class SortedMapDiffUtil {
             }
         }
 
-        while(previousEntries.hasNext()) {
+        while (previousEntries.hasNext()) {
             if (!diffListener.removed(previousEntries.next().getKey())) {
                 return false;
             }

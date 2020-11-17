@@ -16,18 +16,25 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
+
+import java.util.stream.Stream;
 
 public class PropertyChanges implements ChangeContainer {
 
-    private final ImmutableSortedMap<String, ?> previous;
-    private final ImmutableSortedMap<String, ?> current;
+    private final ImmutableSortedSet<String> previous;
+    private final ImmutableSortedSet<String> current;
     private final String title;
     private final Describable executable;
 
-    // TODO This should actually compare a SortedSet
-    protected PropertyChanges(ImmutableSortedMap<String, ?> previous, ImmutableSortedMap<String, ?> current, String title, Describable executable) {
+    public PropertyChanges(
+        ImmutableSortedSet<String> previous,
+        ImmutableSortedSet<String> current,
+        String title,
+        Describable executable
+    ) {
         this.previous = previous;
         this.current = current;
         this.title = title;
@@ -35,25 +42,20 @@ public class PropertyChanges implements ChangeContainer {
     }
 
     @Override
-    public boolean accept(final ChangeVisitor visitor) {
-        return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, Object, Object>() {
-            @Override
-            public boolean removed(String previousProperty) {
-                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been removed for %s",
-                        title, previousProperty, executable.getDisplayName()));
-            }
-
-            @Override
-            public boolean added(String currentProperty) {
-                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been added for %s",
-                        title, currentProperty, executable.getDisplayName()));
-            }
-
-            @Override
-            public boolean updated(String property, Object previous, Object current) {
-                // Ignore
-                return true;
-            }
-        });
+    public boolean accept(ChangeVisitor visitor) {
+        if (previous.equals(current)) {
+            return true;
+        }
+        Stream<DescriptiveChange> removedProperties = Sets.difference(previous, current).stream()
+            .map(removedProperty -> new DescriptiveChange("%s property '%s' has been removed for %s",
+                title, removedProperty, executable.getDisplayName()));
+        Stream<DescriptiveChange> addedProperties = Sets.difference(current, previous).stream()
+            .map(addedProperty -> new DescriptiveChange("%s property '%s' has been added for %s",
+                title, addedProperty, executable.getDisplayName()));
+        return Stream.concat(removedProperties, addedProperties)
+            .map(visitor::visitChange)
+            .filter(shouldContinue -> !shouldContinue)
+            .findFirst()
+            .orElse(true);
     }
 }
