@@ -115,18 +115,18 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
             entity.visitOutputTrees((treeName, type, root) -> {
                 CompleteFileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
+                CompleteFileSystemLocationSnapshot resultingSnapshot;
                 if (treeSnapshot == null) {
                     String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
-                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, AccessType.DIRECT);
-                    fileSystemAccess.record(missingFileSnapshot);
-                    builder.put(treeName, FileSystemSnapshot.EMPTY);
+                    resultingSnapshot = new MissingFileSnapshot(internedAbsolutePath, AccessType.DIRECT);
                 } else {
                     if (type == TreeType.FILE && treeSnapshot.getType() != FileType.RegularFile) {
                         throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
                     }
-                    fileSystemAccess.record(treeSnapshot);
-                    builder.put(treeName, treeSnapshot);
+                    resultingSnapshot = treeSnapshot;
                 }
+                fileSystemAccess.record(resultingSnapshot);
+                builder.put(treeName, resultingSnapshot);
             });
             return builder.build();
         }
