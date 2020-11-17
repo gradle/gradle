@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.fingerprint.InvalidationReason
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
@@ -33,8 +34,10 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.IncubationLogger
 import java.io.File
+import java.io.FileInputStream
 import java.io.OutputStream
 
 
@@ -181,20 +184,26 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheFiles(layout: ConfigurationCacheRepository.Layout) {
-        writeConfigurationCacheState(layout.state)
-        writeConfigurationCacheFingerprint(layout.fingerprint)
+        val includedBuildRootDirs = writeConfigurationCacheState(layout.state)
+        writeConfigurationCacheFingerprint(
+            layout.fingerprint,
+            ConfigurationCacheFingerprint.Header(includedBuildRootDirs)
+        )
     }
 
     private
-    fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) {
-        service<ProjectStateRegistry>().withMutableStateOfAllProjects {
-            cacheIO.writeRootBuildStateTo(stateFile)
+    fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile): Set<File> =
+        service<ProjectStateRegistry>().withMutableStateOfAllProjects(
+            Factory { cacheIO.writeRootBuildStateTo(stateFile) }
+        )
+
+    private
+    fun writeConfigurationCacheFingerprint(fingerprintFile: File, header: ConfigurationCacheFingerprint.Header) {
+        fingerprintFile.outputStream().use { outputStream ->
+            writeConfigurationCacheFingerprintHeaderTo(outputStream, header)
+            cacheFingerprintController.commitFingerprintTo(outputStream)
         }
     }
-
-    private
-    fun writeConfigurationCacheFingerprint(fingerprintFile: File) =
-        cacheFingerprintController.commitFingerprintTo(fingerprintFile)
 
     private
     fun startCollectingCacheFingerprint() {
@@ -224,13 +233,34 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
-        cacheIO.withReadContextFor(fingerprintFile.inputStream()) { codecs ->
+        fingerprintFile.inputStream().use { fingerprintInputStream ->
+            // Register all included build root directories as watchable hierarchies
+            // so we can load the fingerprint for build scripts and other files from included builds
+            // without violating file system invariants.
+            readConfigurationCacheFingerprintHeaderFrom(fingerprintInputStream)?.run {
+                registerWatchableBuildDirectories(includedBuildRootDirs)
+            }
+            checkFingerprint(fingerprintInputStream)
+        }
+
+    private
+    fun checkFingerprint(inputStream: FileInputStream): InvalidationReason? =
+        cacheIO.withReadContextFor(inputStream) { codecs ->
             withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
                 cacheFingerprintController.run {
                     checkFingerprint()
                 }
             }
         }
+
+    private
+    fun registerWatchableBuildDirectories(buildDirs: Set<File>) {
+        if (buildDirs.isNotEmpty()) {
+            buildDirs.forEach(
+                service<BuildLifecycleAwareVirtualFileSystem>()::registerWatchableHierarchy
+            )
+        }
+    }
 
     private
     fun loadGradleProperties() {

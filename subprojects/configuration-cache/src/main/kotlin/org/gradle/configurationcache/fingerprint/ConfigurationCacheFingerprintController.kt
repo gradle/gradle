@@ -68,7 +68,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun stop(): WritingState =
             illegalStateFor("stop")
 
-        open fun commit(fingerprintFile: File): WritingState =
+        open fun commit(outputStream: OutputStream): WritingState =
             illegalStateFor("commit")
 
         abstract fun dispose(): WritingState
@@ -117,11 +117,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
-        override fun commit(fingerprintFile: File): WritingState {
+        override fun commit(outputStream: OutputStream): WritingState {
             dispose()
-            fingerprintFile
-                .outputStream()
-                .use(outputStream::writeTo)
+            this.outputStream.writeTo(outputStream)
             return Idle()
         }
 
@@ -143,8 +141,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.stop()
     }
 
-    fun commitFingerprintTo(fingerprintFile: File) {
-        writingState = writingState.commit(fingerprintFile)
+    fun commitFingerprintTo(outputStream: OutputStream) {
+        writingState = writingState.commit(outputStream)
     }
 
     override fun stop() {

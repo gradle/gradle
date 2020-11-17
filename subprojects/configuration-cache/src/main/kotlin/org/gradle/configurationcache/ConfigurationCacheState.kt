@@ -82,11 +82,14 @@ class ConfigurationCacheState(
     private val codecs: Codecs,
     private val stateFile: ConfigurationCacheStateFile
 ) {
-
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
-        writeRootBuild(build)
-        writeInt(0x1ecac8e)
-    }
+    /**
+     * Writes the state for the whole build starting from the given root [build] and returns the set
+     * of stored included build directories.
+     */
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild): HashSet<File> =
+        writeRootBuild(build).also {
+            writeInt(0x1ecac8e)
+        }
 
     suspend fun DefaultReadContext.readRootBuildState(createBuild: (String) -> ConfigurationCacheBuild) {
         readRootBuild(createBuild)
@@ -96,17 +99,19 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild) {
+    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild): HashSet<File> {
         val gradle = build.gradle
         withDebugFrame({ "Gradle" }) {
             writeString(gradle.rootProject.name)
             writeBuildTreeState(gradle)
         }
+        val storedBuilds = storedBuilds()
         writeBuildState(
             build,
-            storedBuilds()
+            storedBuilds
         )
         writeRootEventListenerSubscriptions(gradle)
+        return storedBuilds.buildRootDirs
     }
 
     private
@@ -121,12 +126,11 @@ class ConfigurationCacheState(
     }
 
     private
-    fun storedBuilds(): StoredBuilds =
-        object : StoredBuilds {
-            val stored = hashSetOf<File>()
-            override fun store(build: BuildDefinition): Boolean =
-                stored.add(build.buildRootDir!!)
-        }
+    fun storedBuilds() = object : StoredBuilds {
+        val buildRootDirs = hashSetOf<File>()
+        override fun store(build: BuildDefinition): Boolean =
+            buildRootDirs.add(build.buildRootDir!!)
+    }
 
     internal
     suspend fun DefaultWriteContext.writeBuildState(build: VintageGradleBuild, storedBuilds: StoredBuilds) {
@@ -162,7 +166,6 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
-            // per build tree
             withDebugFrame({ "build cache" }) {
                 writeBuildCacheConfiguration(gradle)
             }
@@ -173,7 +176,6 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
-            // per build tree
             readBuildCacheConfiguration(gradle)
             readGradleEnterprisePluginManager(gradle)
         }

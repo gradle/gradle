@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -24,13 +25,20 @@ import org.gradle.configurationcache.serialization.LoggingTracer
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
+import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -43,14 +51,16 @@ class ConfigurationCacheIO internal constructor(
     private val beanConstructors: BeanConstructors
 ) {
 
+    /**
+     * See [ConfigurationCacheState.writeRootBuildState].
+     */
     internal
-    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) {
+    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile): Set<File> =
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
             }
         }
-    }
 
     internal
     fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile) {
@@ -80,13 +90,13 @@ class ConfigurationCacheIO internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(
+    fun <T> writeConfigurationCacheState(
         stateFile: ConfigurationCacheStateFile,
-        action: suspend DefaultWriteContext.(ConfigurationCacheState) -> Unit
-    ) {
+        action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
+    ): T {
         val build = host.currentBuild
         val (context, codecs) = writerContextFor(stateFile.outputStream(), build.gradle.rootProject.name + " state")
-        context.useToRun {
+        return context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile))
             }
@@ -188,3 +198,61 @@ class ConfigurationCacheIO internal constructor(
     inline fun <reified T> factory() =
         host.factory(T::class.java)
 }
+
+
+internal
+fun writeConfigurationCacheFingerprintHeaderTo(outputStream: OutputStream, header: ConfigurationCacheFingerprint.Header) {
+    val buildRootDirs = header.includedBuildRootDirs
+    if (buildRootDirs.isEmpty()) {
+        outputStream.writeInt(0)
+        return
+    }
+    ByteArrayOutputStream().let { bos ->
+        writeFileSetTo(bos, buildRootDirs)
+        outputStream.writeInt(bos.size())
+        bos.writeTo(outputStream)
+    }
+}
+
+
+internal
+fun readConfigurationCacheFingerprintHeaderFrom(inputStream: InputStream): ConfigurationCacheFingerprint.Header? {
+    val headerSize = inputStream.readInt()
+    if (headerSize == 0) {
+        return null
+    }
+
+    val headerBytes = ByteArray(headerSize)
+    require(inputStream.read(headerBytes) == headerSize)
+
+    return ConfigurationCacheFingerprint.Header(
+        readFileSetFrom(ByteArrayInputStream(headerBytes))
+    )
+}
+
+
+private
+fun writeFileSetTo(outputStream: OutputStream, files: Set<File>) {
+    KryoBackedEncoder(outputStream).useToRun {
+        writeCollection(files) { file ->
+            writeString(file.path)
+        }
+    }
+}
+
+
+private
+fun readFileSetFrom(inputStream: InputStream) =
+    KryoBackedDecoder(inputStream).run {
+        readCollectionInto(::LinkedHashSet) {
+            File(readString())
+        }
+    }
+
+
+private
+fun OutputStream.writeInt(i: Int) = DataOutputStream(this).writeInt(i)
+
+
+private
+fun InputStream.readInt() = DataInputStream(this).readInt()
