@@ -9,7 +9,7 @@ WARNING: Central declaration of dependencies is an incubating feature.
 [[sub:version-catalog]]
 === Using a version catalog
 
-A _version catalog_ is a list of dependencies, represented as dependency coordinates only, that a user can pick from when declaring dependencies in a build script.
+A _version catalog_ is a list of dependencies, represented as dependency coordinates, that a user can pick from when declaring dependencies in a build script.
 
 For example, instead of declaring a dependency using a string notation, the dependency coordinates can be picked from a _version catalog_:
 
@@ -21,14 +21,14 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 
 In this context, `libs` is a catalog and `groovy` represents a dependency available in this catalog. A version catalog provides a number of advantages over declaring the dependencies directly in build scripts:
 
-- for each catalog, Gradle generates _type-safe accessors_ so that you can easily add dependencies with autocompletion in the IDE
-- catalogs are visible to all projects of a build: in a single place, you can declare the version of a dependency and make sure that if you change this version, it's done in every subproject
-- catalogs can declare <<platforms.adoc#sec:dependency-bundles, dependency bundles>>, which are "groups of dependencies" which are commonly used together
-- catalogs can separate the group and name of a dependency from its actual version and use <<platforms.adoc#sec:common-version-numbers, version references>> instead, making it possible to share a version declaration for different dependencies.
+- For each catalog, Gradle generates _type-safe accessors_ so that you can easily add dependencies with autocompletion in the IDE.
+- Each catalog is visible to all projects of a build. It is a central place to declare a version of a dependency and to make sure that a change to that version applies to every subproject.
+- Catalogs can declare <<platforms.adoc#sec:dependency-bundles, dependency bundles>>, which are "groups of dependencies" that are commonly used together.
+- Catalogs can separate the group and name of a dependency from its actual version and use <<platforms.adoc#sec:common-version-numbers, version references>> instead, making it possible to share a version declaration between multiple dependencies.
 
 Adding a dependency using the `libs.someLib` notation works exactly like if you had hardcoded the group, artifact and version directly in the build script.
 
-WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version and can consist of <<rich_versions.adoc#rich-version-constraints,rich versions>>. It's not necessarily what is going to be resolved in a dependency graph: the usual conflict resolution still happens.
+WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>. That version is not necessarily the version that is selected during <<dependency_resolution#,conflict resolution>>. 
 
 [[sub:version-catalog-declaration]]
 === Declaring a version catalog
@@ -65,7 +65,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 
 Dependencies declared in a catalog are exposed to build scripts via an extension corresponding to their name.
 In the example above, because the catalog declared in settings is named `libs`, the extension is available via the name `libs` in all build scripts of the current build.
-Declaring a dependency using the following notation:
+Declaring dependencies using the following notation...
 
 .Dependency notation correspondance
 ====
@@ -73,7 +73,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_catalog]"]
 ====
 
-is **strictly equivalent** to writing:
+...has **exactly the same** effect as writing:
 
 .Dependency notation correspondance
 ====
@@ -105,7 +105,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_bundle]"]
 ====
 
-The semantics are again strictly equivalent: adding a single bundle is equivalent to adding individually the dependencies which are part of the bundle.
+The semantics are again equivalent: adding a single bundle is equivalent to adding all dependencies which are part of the bundle individually.
 
 [[sub:conventional-dependencies-toml]]
 === The dependencies.toml file
@@ -117,10 +117,10 @@ Additionally, this file can be used to declare the default plugin versions for p
 [WARNING]
 ====
 Declaring a `dependencies.toml` file doesn't make it the single source of truth for dependencies: it's a conventional location where dependencies can be declared.
-As soon as you start using catalogs it's strongly recommended to declare all your dependencies in a catalog and not hardcode group/artifact/version strings in build scripts.
-But be aware that it's likely that some plugins add dependencies transparently, therefore dependencies defined outside of this file.
+As soon as you start using catalogs, it's strongly recommended to declare all your dependencies in a catalog and not hardcode group/artifact/version strings in build scripts.
+Be aware that it may happen that plugins add dependencies, which are dependencies defined outside of this file.
 
-Just like `src/main/java` is a convention to find the Java sources which doesn't prevent additional source directories to be declared (either in a build script or a plugin), the presence of the `dependencies.toml` file doesn't mean that it's impossible to declare dependencies elsewhere.
+Just like `src/main/java` is a convention to find the Java sources, which doesn't prevent additional source directories to be declared (either in a build script or a plugin), the presence of the `dependencies.toml` file doesn't prevent the declaration of dependencies elsewhere.
 
 The presence of this file does, however, suggest that most dependencies, if not all, will be declared in this file.
 Therefore, updating a dependency version, for most users, should only consists of changing a line in this file.
@@ -150,7 +150,6 @@ For example:
 .The dependencies.toml file
 ====
 include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/gradle",files="dependencies.toml"]
-include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin/gradle",files="dependencies.toml"]
 ====
 
 Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<rich_versions.adoc#rich-version-constraints,rich versions>>:
@@ -173,7 +172,6 @@ Dependency declaration can either be declared as a simple string, in which case 
 .Different dependency notations
 ====
 include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/gradle",files="test-dependencies.toml"]
-include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin/gradle",files="test-dependencies.toml"]
 ====
 
 In case you want to reference a version declared in the `[versions]` section, you should use the `version.ref` property:
@@ -253,7 +251,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="
 === The version catalog plugin
 
 While importing catalogs from local files is convenient, it doesn't solve the problem of sharing a catalog in an organization or for external consumers.
-One option to share a catalog is to write a settings plugin, publish it on the Gradle plugin portal, and let the consumers apply the plugin on their settings file.
+One option to share a catalog is to write a settings plugin, publish it on the Gradle plugin portal or an internal repository, and let the consumers apply the plugin on their settings file.
 
 Alternatively, Gradle offers a _version catalog_ plugin, which offers the ability to declare, then publish a catalog.
 
@@ -350,7 +348,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/
 
 In the example above, any dependency which was using the `groovy` version as reference will be automatically updated to use `3.0.6`.
 
-NOTE: Again overwriting a version doesn't mean that the actual _resolved_ dependency version will be the same: this only changes what is _imported_, that is to say what is used when declaring a dependency. The actual version will be subject to traditional conflict resolution, if any.
+NOTE: Again, overwriting a version doesn't mean that the actual _resolved_ dependency version will be the same: this only changes what is _imported_, that is to say what is used when declaring a dependency. The actual version will be subject to traditional conflict resolution, if any.
 
 [[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
@@ -418,13 +416,13 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 [[sub:platforms-vs-catalog]]
 == Should I use a platform or a catalog?
 
-Because platforms and catalogs both talk about dependency versions, can both be used to share dependency versions in a project, there might be a confusion regarding what to use and if one is preferable to the other.
+Because platforms and catalogs both talk about dependency versions and can both be used to share dependency versions in a project, there might be a confusion regarding what to use and if one is preferable to the other.
 
-Ignoring the incubating state of version catalogs, the answer is that you should always use catalogs and _maybe_ use platforms in addition.
+The answer is that you should always use catalogs and _maybe_ use platforms in addition.
 
 A catalog helps with centralizing the dependency versions and is only, as it name implies, a catalog of dependencies you can pick from.
 We recommend using it to declare the coordinates of your dependencies, in all cases.
-It will be used by Gradle to generate type-safe accessors, present short-hand notations for external dependencies and it allows sharing easily those coordinates between different projects.
+It will be used by Gradle to generate type-safe accessors, present short-hand notations for external dependencies and it allows sharing those coordinates between different projects easily.
 Using a catalog will not have any kind of consequence on downstream consumers: it's transparent to them.
 
 A platform is a more heavyweight construct: it's a component of a dependency graph, like any other library.
@@ -453,4 +451,3 @@ dependencies {
     }
 }
 ```
-
