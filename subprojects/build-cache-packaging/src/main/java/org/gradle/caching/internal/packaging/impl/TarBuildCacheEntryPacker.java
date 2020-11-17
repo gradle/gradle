@@ -43,8 +43,8 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSyste
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
@@ -151,7 +151,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private long packTree(String name, TreeType type, FileSystemSnapshot snapshots, TarArchiveOutputStream tarOutput) {
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, filePermissionAccess);
-        snapshots.accept(new RelativePathTracker(), packingVisitor);
+        snapshots.accept(new PathTracker(), packingVisitor);
         return packingVisitor.getPackedEntryCount();
     }
 
@@ -405,7 +405,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         private String getTargetPath(RelativePathSupplier relativePath) {
             return relativePath.isRoot()
                 ? treePath
-                : treeRoot + relativePath.toPathString();
+                : treeRoot + relativePath.toRelativePath();
         }
 
         private void storeMissingTree(String treePath, TarArchiveOutputStream tarOutput) {

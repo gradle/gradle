@@ -27,7 +27,7 @@ import java.util.Iterator;
 /**
  * Tracks the relative path. Useful when visiting {@link CompleteFileSystemLocationSnapshot}s.
  */
-public class RelativePathTracker implements RelativePathSupplier {
+public class PathTracker implements RelativePathSupplier {
     private final Deque<String> segments = new ArrayDeque<>();
     private String rootName;
 
@@ -62,6 +62,9 @@ public class RelativePathTracker implements RelativePathSupplier {
         return segments;
     }
 
+    /**
+     * Returns the absolute path with system file separators.
+     */
     public String toAbsolutePath() {
         if (segments.isEmpty()) {
             return rootName;
@@ -80,8 +83,11 @@ public class RelativePathTracker implements RelativePathSupplier {
         }
     }
 
+    /**
+     * Returns the relative path using '{@literal /}' as the separator.
+     */
     @Override
-    public String toPathString() {
+    public String toRelativePath() {
         switch (segments.size()) {
             case 0:
                 return "";

@@ -26,7 +26,7 @@ public interface FileSystemLeafSnapshot extends CompleteFileSystemLocationSnapsh
     }
 
     @Override
-    default SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+    default SnapshotVisitResult accept(PathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
         pathTracker.enter(getName());
         try {
             return visitor.visitEntry(this, pathTracker);

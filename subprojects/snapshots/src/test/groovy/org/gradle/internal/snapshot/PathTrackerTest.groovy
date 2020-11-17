@@ -19,14 +19,14 @@ package org.gradle.internal.snapshot
 import org.apache.commons.io.FilenameUtils
 import spock.lang.Specification
 
-class RelativePathTrackerTest extends Specification {
-    def tracker = new RelativePathTracker()
+class PathTrackerTest extends Specification {
+    def tracker = new PathTracker()
 
     def "can handle empty"() {
         expect:
         tracker.root
         tracker.segments.empty
-        tracker.toPathString() == ""
+        tracker.toRelativePath() == ""
         tracker.toAbsolutePath() == null
     }
 
@@ -36,7 +36,7 @@ class RelativePathTrackerTest extends Specification {
         then:
         tracker.root
         tracker.segments.empty
-        tracker.toPathString() == ""
+        tracker.toRelativePath() == ""
         tracker.toAbsolutePath() == "root"
 
         when:
@@ -45,7 +45,7 @@ class RelativePathTrackerTest extends Specification {
         name == "root"
         tracker.root
         tracker.segments.empty
-        tracker.toPathString() == ""
+        tracker.toRelativePath() == ""
     }
 
     def "can enter and leave first level"() {
@@ -56,7 +56,7 @@ class RelativePathTrackerTest extends Specification {
         then:
         !tracker.root
         tracker.segments as List == ["first"]
-        tracker.toPathString() == "first"
+        tracker.toRelativePath() == "first"
         tracker.toAbsolutePath() == FilenameUtils.separatorsToSystem("root/first")
 
         when:
@@ -65,7 +65,7 @@ class RelativePathTrackerTest extends Specification {
         name == "first"
         tracker.root
         tracker.segments.empty
-        tracker.toPathString() == ""
+        tracker.toRelativePath() == ""
         tracker.toAbsolutePath() == "root"
     }
 
@@ -78,7 +78,7 @@ class RelativePathTrackerTest extends Specification {
         then:
         !tracker.root
         tracker.segments as List == ["first", "second"]
-        tracker.toPathString() == "first/second"
+        tracker.toRelativePath() == "first/second"
         tracker.toAbsolutePath() == FilenameUtils.separatorsToSystem("root/first/second")
 
         when:
@@ -87,7 +87,7 @@ class RelativePathTrackerTest extends Specification {
         name == "second"
         !tracker.root
         tracker.segments as List == ["first"]
-        tracker.toPathString() == "first"
+        tracker.toRelativePath() == "first"
         tracker.toAbsolutePath() == FilenameUtils.separatorsToSystem("root/first")
     }
 }

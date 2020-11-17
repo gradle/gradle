@@ -28,9 +28,9 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.PathUtil;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
@@ -60,7 +60,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
     public FileSystemSnapshot read(Decoder decoder) throws Exception {
         SnapshotStack stack = new SnapshotStack();
         stack.push();
-        RelativePathTracker pathTracker = new RelativePathTracker();
+        PathTracker pathTracker = new PathTracker();
         while (true) {
             EntryType type = readEntryType(decoder);
             if (type == EntryType.END) {
