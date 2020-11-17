@@ -136,13 +136,13 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
 
         private final BuildCacheKey cacheKey;
         private final CacheableEntity entity;
-        private final Map<String, ? extends FileSystemSnapshot> fingerprints;
+        private final Map<String, ? extends FileSystemSnapshot> snapshots;
         private final long executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> fingerprints, long executionTime) {
+        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, long executionTime) {
             this.cacheKey = cacheKey;
             this.entity = entity;
-            this.fingerprints = fingerprints;
+            this.snapshots = snapshots;
             this.executionTime = executionTime;
         }
 
@@ -153,7 +153,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
+            final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, output, originMetadataFactory.createWriter(entity, executionTime));
             return packResult::getEntries;
         }
     }
