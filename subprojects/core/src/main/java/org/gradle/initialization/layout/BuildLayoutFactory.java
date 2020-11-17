@@ -67,19 +67,21 @@ public class BuildLayoutFactory {
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
         File settingsFile = findExistingSettingsFileIn(currentDir);
-        if (settingsFile == null) {
-            settingsFile = findExistingSettingsFileIn(new File(currentDir, "master"));
-        }
         if (settingsFile != null) {
             return layout(currentDir, settingsFile);
         }
+        settingsFile = findExistingSettingsFileIn(new File(currentDir, "master"));
+        if (settingsFile != null) {
+            return layoutWithDeprecatedMasterDirectoryFlag(currentDir, settingsFile);
+        }
         for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
             settingsFile = findExistingSettingsFileIn(candidate);
-            if (settingsFile == null) {
-                settingsFile = findExistingSettingsFileIn(new File(candidate, "master"));
-            }
             if (settingsFile != null) {
                 return layout(candidate, settingsFile);
+            }
+            settingsFile = findExistingSettingsFileIn(new File(candidate, "master"));
+            if (settingsFile != null) {
+                return layoutWithDeprecatedMasterDirectoryFlag(candidate, settingsFile);
             }
         }
         return layout(currentDir, new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
@@ -87,5 +89,9 @@ public class BuildLayoutFactory {
 
     private BuildLayout layout(File rootDir, File settingsFile) {
         return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile));
+    }
+
+    private BuildLayout layoutWithDeprecatedMasterDirectoryFlag(File rootDir, File settingsFile) {
+        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), true);
     }
 }

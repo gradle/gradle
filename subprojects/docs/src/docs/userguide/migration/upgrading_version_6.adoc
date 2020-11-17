@@ -66,6 +66,16 @@ Direct references to tasks from included builds in `mustRunAfter`, `shouldRunAft
 Task ordering using `mustRunAfter` and `shouldRunAfter` as well as finalizers specified by `finalizedBy` should be used for task ordering within a build.
 If you happen to have cross-build task ordering defined using above mentioned methods, consider restructuring such builds and decoupling them from one another.
 
+[[master_subdirectory_root_build]]
+==== Searching for settings files in 'master' directories
+
+Gradle will emit a deprecation warning when your build relies on finding the settings file in a directory named `master` in a sibling directory.
+
+If your build uses this feature, consider refactoring the build to have the root directory match the physical root of the project hierarchy.
+
+Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
+<<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
+
 [[changes_6.7]]
 == Upgrading from 6.6
 
