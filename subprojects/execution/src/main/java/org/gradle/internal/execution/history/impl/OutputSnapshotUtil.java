@@ -62,9 +62,6 @@ public class OutputSnapshotUtil {
         return ImmutableSortedMap.copyOfSorted(
             Maps.transformEntries(unfilteredBeforeExecutionSnapshots, (key, unfilteredBeforeExecution) -> {
                     FileSystemSnapshot previous = previousSnapshots.get(key);
-                    if (previous == null) {
-                        return FileSystemSnapshot.EMPTY;
-                    }
                     //noinspection ConstantConditions
                     return filterOutputWithOverlapBeforeExecution(previous, unfilteredBeforeExecution);
                 }
