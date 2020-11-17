@@ -28,7 +28,7 @@ In this context, `libs` is a catalog and `groovy` represents a dependency availa
 
 Adding a dependency using the `libs.someLib` notation works exactly like if you had hardcoded the group, artifact and version directly in the build script.
 
-WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>. That version is not necessarily the version that is selected during <<dependency_resolution#,conflict resolution>>. 
+WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>. That version is not necessarily the version that is selected during <<dependency_resolution#,conflict resolution>>.
 
 [[sub:version-catalog-declaration]]
 === Declaring a version catalog
@@ -148,9 +148,9 @@ The https://toml.io/[TOML] file consists of 4 major sections:
 For example:
 
 .The dependencies.toml file
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/gradle",files="dependencies.toml"]
-====
+----
+include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/dependencies.toml[]
+----
 
 Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<rich_versions.adoc#rich-version-constraints,rich versions>>:
 
@@ -170,9 +170,9 @@ Supported members of a version declaration are:
 Dependency declaration can either be declared as a simple string, in which case they are interpreted as `group:artifact:version` coordinates, or separating the version declaration from the group and name:
 
 .Different dependency notations
-====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/gradle",files="test-dependencies.toml"]
-====
+----
+include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/test-dependencies.toml[]
+----
 
 In case you want to reference a version declared in the `[versions]` section, you should use the `version.ref` property:
 
@@ -235,8 +235,8 @@ For example, the `buildSrc/settings.gradle(.kts)` file can include this file usi
 
 .Sharing the dependency catalog with buildSrc
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/buildSrc",files="settings.gradle[tags=consume_catalog]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin/buildSrc",files="settings.gradle.kts[tags=consume_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/buildSrc",files="settings.gradle[tags=import_main_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin/buildSrc",files="settings.gradle.kts[tags=import_main_catalog]"]
 ====
 
 This technique can therefore be used to declare multiple catalogs from different files:
@@ -429,10 +429,10 @@ A platform is a more heavyweight construct: it's a component of a dependency gra
 If you depend on a platform, that platform is itself a component in the graph.
 It means, in particular, that:
 
-- <<dependency_constraints.adoc#dependency-constraints,constraints>> defined in a platform can influence _transitive_ dependencies, not only the direct dependencies of your project
-- a platform is versioned, and a transitive dependency in the graph can depend on a different version of the platform, causing various dependency upgrades
-- a platform can tie components together, and in particular can be used as a construct for <<dependency_version_alignment.adoc#version_alignment, aligning versions>>
-- a dependency on a platform is "inherited" by the consumers of your dependency: it means that a dependency on a platform can influence what versions of libraries would be used by your consumers even if you don't directly, or transitively, depend on components the platform references
+- <<dependency_constraints.adoc#dependency-constraints,Constraints>> defined in a platform can influence _transitive_ dependencies, not only the direct dependencies of your project.
+- A platform is versioned, and a transitive dependency in the graph can depend on a different version of the platform, causing various dependency upgrades.
+- A platform can tie components together, and in particular can be used as a construct for <<dependency_version_alignment.adoc#version_alignment, aligning versions>>.
+- A dependency on a platform is "inherited" by the consumers of your dependency: it means that a dependency on a platform can influence what versions of libraries would be used by your consumers even if you don't directly, or transitively, depend on components the platform references.
 
 In summary, using a catalog is always a good engineering practice as it centralizes common definitions, allows sharing of dependency versions or plugin versions, but it is an "implementation detail" of the build: it will not be visible to consumers and unused elements of a catalog are just ignored.
 
@@ -440,14 +440,8 @@ A platform is meant to influence the dependency resolution graph, for example by
 
 In practice, your project can both use a catalog _and_ declare a platform which itself uses the catalog:
 
-```
-plugins {
-    id 'java-platform'
-}
-
-dependencies {
-    constraints {
-        api(libs.mylib) // a platform can reference a dependency declared in a catalog
-    }
-}
-```
+.Using a catalog within a platform definition
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformUsage/groovy",files="build.gradle[tags=platform_uses_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformUsage/kotlin",files="build.gradle.kts[tags=platform_uses_catalog]"]
+====
