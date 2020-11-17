@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
 
@@ -31,11 +33,28 @@ class JavaToolchainComparatorTest extends Specification {
         ]
 
         when:
-        println toolchains
         toolchains.sort(new JavaToolchainComparator())
 
         then:
         assertOrder(toolchains, "11.0.0", "8.0.0", "6.0.0", "5.1.0")
+    }
+
+    def "deterministically matches vendor over vendor-specific tool version"() {
+        given:
+        def toolchains = [
+            mockToolchain("8.2", true, JvmVendor.KnownJvmVendor.AMAZON),
+            mockToolchain("8.3", true, JvmVendor.KnownJvmVendor.AMAZON),
+            mockToolchain("8.1", true, JvmVendor.KnownJvmVendor.AMAZON),
+            mockToolchain("8.8", true, JvmVendor.KnownJvmVendor.BELLSOFT),
+            mockToolchain("8.7", true, JvmVendor.KnownJvmVendor.ORACLE),
+            mockToolchain("8.4", true, JvmVendor.KnownJvmVendor.UNKNOWN),
+        ]
+
+        when:
+        toolchains.sort(new JavaToolchainComparator())
+
+        then:
+        assertOrder(toolchains, "8.3.0", "8.2.0", "8.1.0", "8.8.0", "8.7.0", "8.4.0")
     }
 
     def "prefers higher minor versions"() {
@@ -76,10 +95,13 @@ class JavaToolchainComparatorTest extends Specification {
         assert list*.toolVersion.toString() == expectedOrder.toString()
     }
 
-    JavaToolchain mockToolchain(String implementationVersion, boolean isJdk = false) {
+    JavaToolchain mockToolchain(String implementationVersion, boolean isJdk = false, JvmVendor.KnownJvmVendor jvmVendor = JvmVendor.KnownJvmVendor.ADOPTOPENJDK) {
         Mock(JavaToolchain) {
             getToolVersion() >> VersionNumber.parse(implementationVersion)
             isJdk() >> isJdk
+            getMetadata() >> Mock(JvmInstallationMetadata) {
+                getVendor() >> JvmVendor.fromString(jvmVendor.name())
+            }
         }
     }
 }
