@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
@@ -74,14 +73,13 @@ public class OutputSnapshotUtil {
     }
 
     @VisibleForTesting
-    static FileSystemSnapshot filterOutputWithOverlapBeforeExecution(FileSystemSnapshot previous, FileSystemSnapshot beforeExecution) {
-        Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionIndex = index(previous);
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) ->
-            // TODO The first part of this condition is not needed, right?
-            (!isRoot || snapshot.getType() != FileType.Missing)
-                && beforeExecutionIndex.containsKey(snapshot.getAbsolutePath())
+    static FileSystemSnapshot filterOutputWithOverlapBeforeExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
+        Map<String, CompleteFileSystemLocationSnapshot> previousIndex = index(previous);
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((currentSnapshot, isRoot) ->
+            // Include only outputs that we already considered outputs after the previous execution
+            previousIndex.containsKey(currentSnapshot.getAbsolutePath())
         );
-        beforeExecution.accept(filteringVisitor);
+        current.accept(filteringVisitor);
         return CompositeFileSystemSnapshot.of(filteringVisitor.getNewRoots());
     }
 
@@ -136,16 +134,9 @@ public class OutputSnapshotUtil {
     }
 
     private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
+        // A root is always an output, even when it's missing or unchanged
         if (isRoot) {
-            switch (afterExecutionSnapshot.getType()) {
-                case Missing:
-                    return false;
-                case Directory:
-                    return true;
-                default:
-                    // continue
-                    break;
-            }
+            return true;
         }
         CompleteFileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
         // Was it created during execution?
