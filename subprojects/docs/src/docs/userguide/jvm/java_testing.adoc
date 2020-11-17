@@ -234,6 +234,77 @@ Lastly, we add a `testReport` task that aggregates the test results from the `te
 
 You should note that the `TestReport` type combines the results from multiple test tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual executions of that class and their output.
 
+[[communicating_test_results_to_CI_servers_and_other_tools_via_xml_files]]
+=== Communicating test results to CI servers and other tools via XML files
+
+The Test tasks creates XML files describing the test results, in the “JUnit XML” pseudo standard.
+It is common for CI servers and other tooling to observe test results via these XML files.
+
+By default, the files are written to `$buildDir/test-results/$testTaskName` with a file per test class.
+The location can be changed for all test tasks of a project, or individually per test task.
+
+.Changing JUnit XML results location for all test tasks
+====
+include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-convention]"]
+include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-convention]"]
+====
+
+With the above configuration, the XML files will be written to `$buildDir/junit-xml/$testTaskName`.
+
+.Changing JUnit XML results location for a particular test task
+====
+include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-task]"]
+include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-task]"]
+====
+
+With the above configuration, the XML files for the `test` task will be written to `$buildDir/test-results/test-junit-xml`.
+The location of the XML files for other test tasks will be unchanged.
+
+[[junit_xml_configuration]]
+==== Configuration options
+
+The content of the XML files can also be configured to convey the results differently, by configuring the
+link:{javadocPath}/org/gradle/api/tasks/testing/JUnitXmlReport.html[JUnitXmlReport] options.
+
+.Configuring how the results are conveyed
+====
+include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-content]"]
+include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-content]"]
+====
+
+===== outputPerTestCase
+
+The `outputPerTestCase` option, when enabled, associates any output logging generated during a test case to that test case in the results.
+When disabled (the default) output is associated with the test class as whole and not the individual test cases (e.g. test methods) that produced the logging output.
+Most modern tools that observe JUnit XML files support the “output per test case” format.
+
+If you are using the XML files to communicate test results, it is recommended to enable this option as it provides more useful reporting.
+
+===== mergeReruns
+
+When `mergeReruns` is enabled, if a test fails but is then retried and succeeds, its failures will be recorded as `<flakyFailure>` instead of `<failure>`, within one `<testcase>`.
+This is effectively the reporting produced by the link:https://maven.apache.org/components/surefire/maven-surefire-plugin/examples/rerun-failing-tests.html[surefire plugin of Apache Maven™] when enabling reruns.
+If your CI server understands this format, it will indicate that the test was flaky.
+If it does not, it will indicate that the test succeeded as it will ignore the `<flakyFailure>` information.
+If the test does not succeed (i.e. it fails for every retry), it will be indicated as having failed whether your tool understands this format or not.
+
+When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
+
+Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle's determination of whether the build failed or not,
+and you wish to not consider the build failed if all failed tests passed when retried.
+This is the case for the Jenkins CI server and its link:https://plugins.jenkins.io/junit/[JUnit plugin].
+With `mergeReruns` enabled, tests that pass-on-retry will no longer cause this Jenkins plugin to consider the build to have failed.
+However, failed test executions will be omitted from the Jenkins test result visualizations as it does not consider `<flakyFailure>` information.
+The separate link:https://plugins.jenkins.io/flaky-test-handler[Flaky Test Handler Jenkins plugin] can be used in addition to the JUnit Jenkins plugin to have such “flaky failures” also be visualized.
+
+Tests are grouped and merged based on their reported name.
+When using any kind of test parameterization that affects the reported test name,
+or any other kind of mechanism that produces a potentially dynamic test name,
+care should be taken to ensure that the test name is stable and does not unnecessarily change.
+
+Enabling the `mergeReruns` option does not add any retry/rerun functionality to test execution.
+Rerunning can be enabled by the test execution framework (e.g. JUnit's link:https://junit.org/junit5/docs/current/user-guide/#writing-tests-repeated-tests[@RepeatedTest]),
+or via the separate link:https://github.com/gradle/test-retry-gradle-plugin[Test Retry Gradle plugin].
 
 [[sec:test_detection]]
 == Test detection

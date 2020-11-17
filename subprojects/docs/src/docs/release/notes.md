@@ -248,37 +248,25 @@ same way it works for other Gradle API classes.
 
 ### Test re-run JUnit XML reporting enhancements
 
-The [`Test` task](dsl/org.gradle.api.tasks.testing.Test.html), used for [executing JVM tests](userguide/java_testing.html#test_reporting), reports test results as HTML and as a set of XML files in the “JUnit XML” pseudo standard.
+The `Test` task, used for executing JVM tests, reports test results as HTML and as a set of XML files in the “JUnit XML” pseudo standard.
 It is common for CI servers and other tooling to observe test results via the XML files.
-A new [`mergeReruns` option](javadoc/org/gradle/api/tasks/testing/JUnitXmlReport.html#getMergeReruns--) has been added that changes how tests that are executed more than once are reported in the XML files.
+A new `mergeReruns` option has been added that changes how tests that are executed more than once are reported in the XML files.
 
 ```
 test {
-    reporting.junitXml.mergeReruns = true
+    reports.junitXml.mergeReruns = true
 }
 ```
 
-This option is `false` by default, causing each test execution to be listed as a separate `<testcase>` in the XML.
-This means that a test that is executed multiple times, due to a retry-on-failure mechanism for example, is listed multiple times.
+When this new option is enabled, if a test fails but is then retried and succeeds, its failures will be recorded as `<flakyFailure>` instead of `<failure>`, within one `<testcase>`.
+This is the same as the reporting produced by the [surefire plugin of Apache Maven™](https://maven.apache.org/components/surefire/maven-surefire-plugin/examples/rerun-failing-tests.html), when enabling reruns.
+If your CI server understands this format, it will indicate that the test was flaky.
+
+This option is disabled by default, causing each test execution to be listed as a separate `<testcase>` in the XML.
+This means that when a test is executed multiple times, due to a retry-on-failure mechanism for example, it is listed multiple times.
 This is also the behavior for all previous Gradle versions.
 
-When this new option is enabled, if a test fails but is then retried and succeeds, its failures will be recorded as `<flakyFailure>` instead of `<failure>`, within one `<testcase>`.
-This is effectively the reporting produced by the [surefire plugin of Apache Maven™](https://maven.apache.org/components/surefire/maven-surefire-plugin/examples/rerun-failing-tests.html) when enabling reruns.
-If your CI server understands this format, it will indicate that the test was flaky.
-If it does not, it will indicate that the test succeeded as it will ignore the `<flakyFailure>` information.
-If the test does not succeed (i.e. it fails for every retry), it will be indicated as having failed whether your tool understands this format or not.
- 
-This new option is useful when using a CI tool that uses the XML test reports to determine build failure instead of relying on Gradle's determination of whether
-the build failed or not, and you wish to not consider the build failed if all failed tests passed when retried.
-This is the case for the Jenkins CI server and its [JUnit plugin](https://plugins.jenkins.io/junit/).
-With `mergeReruns` enabled, tests that pass-on-retry will no longer cause this Jenkins plugin to consider the build to have failed.
-However, failed test executions will be omitted from the Jenkins test result visualizations as it does not consider `<flakyFailure>` information.   
-The separate [Flaky Test Handler Jenkins plugin](https://plugins.jenkins.io/flaky-test-handler) can be used in addition to the JUnit Jenkins plugin to have
-such “flaky failures” also be visualized.
- 
-Note that enabling the new `mergeReruns` option does not add any retry/rerun functionality to test execution.
-Rerunning can be enabled by the test execution framework (e.g. JUnit's [`@RepeatedTest`](https://junit.org/junit5/docs/current/user-guide/#writing-tests-repeated-tests)), 
-or generically via the separate [Test Retry Gradle plugin](https://github.com/gradle/test-retry-gradle-plugin).
+Learn more about this new feature in the [Java testing documentation](userguide/java_testing.html#communicating_test_results_to_CI_servers_and_other_tools_via_xml_files).
 
 ## Security Improvements
 
