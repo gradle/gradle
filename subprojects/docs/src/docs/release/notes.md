@@ -250,7 +250,7 @@ same way it works for other Gradle API classes.
 
 The `Test` task, used for executing JVM tests, reports test results as HTML and as a set of XML files in the “JUnit XML” pseudo standard.
 It is common for CI servers and other tooling to observe test results via the XML files.
-A new `mergeReruns` has been added that changes how tests that are executed more than once are reported in the XML files.
+A new `mergeReruns` option has been added that changes how tests that are executed more than once are reported in the XML files.
 
 ```
 test {
