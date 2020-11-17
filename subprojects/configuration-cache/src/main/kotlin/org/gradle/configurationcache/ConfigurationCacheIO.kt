@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -24,8 +25,10 @@ import org.gradle.configurationcache.serialization.LoggingTracer
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
+import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
@@ -191,3 +194,24 @@ class ConfigurationCacheIO internal constructor(
     inline fun <reified T> factory() =
         host.factory(T::class.java)
 }
+
+
+internal
+fun writeConfigurationCacheFingerprintHeaderTo(outputStream: OutputStream, header: ConfigurationCacheFingerprint.Header) {
+    KryoBackedEncoder(outputStream).apply {
+        writeCollection(header.buildRootDirs) { buildDir ->
+            writeString(buildDir.path)
+        }
+        flush()
+    }
+}
+
+
+internal
+fun readConfigurationCacheFingerprintHeaderFrom(inputStream: InputStream) = ConfigurationCacheFingerprint.Header(
+    KryoBackedDecoder(inputStream, 1).run {
+        readCollectionInto(::LinkedHashSet) {
+            File(readString())
+        }
+    }
+)

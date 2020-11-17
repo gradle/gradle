@@ -27,14 +27,10 @@ import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.readCollectionInto
-import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
@@ -42,7 +38,6 @@ import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.GFileUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.OutputStream
 
 
@@ -73,7 +68,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun stop(): WritingState =
             illegalStateFor("stop")
 
-        open fun commit(fingerprintFile: File, header: ConfigurationCacheFingerprint.Header): WritingState =
+        open fun commit(outputStream: OutputStream): WritingState =
             illegalStateFor("commit")
 
         abstract fun dispose(): WritingState
@@ -122,12 +117,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
-        override fun commit(fingerprintFile: File, header: ConfigurationCacheFingerprint.Header): WritingState {
+        override fun commit(outputStream: OutputStream): WritingState {
             dispose()
-            fingerprintFile.outputStream().use {
-                writeConfigurationCacheFingerprintHeaderTo(it, header)
-                outputStream.writeTo(it)
-            }
+            this.outputStream.writeTo(outputStream)
             return Idle()
         }
 
@@ -149,8 +141,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.stop()
     }
 
-    fun commitFingerprintTo(fingerprintFile: File, header: ConfigurationCacheFingerprint.Header) {
-        writingState = writingState.commit(fingerprintFile, header)
+    fun commitFingerprintTo(outputStream: OutputStream) {
+        writingState = writingState.commit(outputStream)
     }
 
     override fun stop() {
@@ -210,24 +202,3 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = startParameter.rootDirectory
     }
 }
-
-
-private
-fun writeConfigurationCacheFingerprintHeaderTo(outputStream: OutputStream, header: ConfigurationCacheFingerprint.Header) {
-    KryoBackedEncoder(outputStream).apply {
-        writeCollection(header.buildRootDirs) { buildDir ->
-            writeString(buildDir.path)
-        }
-        flush()
-    }
-}
-
-
-internal
-fun readConfigurationCacheFingerprintHeaderFrom(inputStream: FileInputStream) = ConfigurationCacheFingerprint.Header(
-    KryoBackedDecoder(inputStream, 1).run {
-        readCollectionInto(::LinkedHashSet) {
-            File(readString())
-        }
-    }
-)

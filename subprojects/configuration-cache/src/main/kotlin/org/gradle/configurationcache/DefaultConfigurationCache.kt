@@ -23,7 +23,6 @@ import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerp
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.fingerprint.InvalidationReason
-import org.gradle.configurationcache.fingerprint.readConfigurationCacheFingerprintHeaderFrom
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
@@ -199,8 +198,12 @@ class DefaultConfigurationCache internal constructor(
         )
 
     private
-    fun writeConfigurationCacheFingerprint(fingerprintFile: File, header: ConfigurationCacheFingerprint.Header) =
-        cacheFingerprintController.commitFingerprintTo(fingerprintFile, header)
+    fun writeConfigurationCacheFingerprint(fingerprintFile: File, header: ConfigurationCacheFingerprint.Header) {
+        fingerprintFile.outputStream().use { outputStream ->
+            writeConfigurationCacheFingerprintHeaderTo(outputStream, header)
+            cacheFingerprintController.commitFingerprintTo(outputStream)
+        }
+    }
 
     private
     fun startCollectingCacheFingerprint() {
