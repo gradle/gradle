@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -55,5 +56,44 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
         then:
         noExceptionThrown()
         outputContains "micronaut-messaging-2.0.1.jar"
+    }
+
+    def "can use a provider to declare a dependency constraint"() {
+        def resolve = new ResolveTestFixture(buildFile, "conf")
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                constraints {
+                    conf providers.provider { "org:foo:1.1" }
+                }
+                conf "org:foo"
+            }
+        """
+        resolve.prepare()
+        def module = mavenHttpRepo.module("org", "foo", "1.1").publish()
+
+        when:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo", "org:foo:1.1") {
+                    byConstraint()
+                }
+                constraint("org:foo:1.1")
+            }
+        }
     }
 }

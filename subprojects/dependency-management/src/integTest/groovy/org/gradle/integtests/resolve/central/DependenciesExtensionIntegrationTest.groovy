@@ -122,6 +122,44 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         }
     }
 
+    def "can use the generated extension to declare a dependency constraint"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalog("libs") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
+                        require "1.0"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation "org.gradle.test:lib" // intentional!
+                constraints {
+                    implementation(libs.myLib)
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint('org.gradle.test:lib:1.0')
+                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
     def "can use the generated extension to declare a dependency and override the version"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -156,6 +194,48 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.gradle.test:lib:1.1')
+            }
+        }
+    }
+
+    def "can use the generated extension to declare a dependency constraint and override the version"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalog("libs") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
+                        require "1.0"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation "org.gradle.test:lib" // intentional!
+                constraints {
+                    implementation(libs.myLib) {
+                        version {
+                            require '1.1'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint('org.gradle.test:lib:1.1')
+                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.1')
             }
         }
     }

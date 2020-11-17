@@ -19,19 +19,25 @@ package org.gradle.api.internal.notations;
 import com.google.common.collect.Interner;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 public class DependencyConstraintNotationParser {
     public static NotationParser<Object, DependencyConstraint> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, Interner<String> stringInterner) {
         return NotationParserBuilder
             .toType(DependencyConstraint.class)
+            .fromType(MinimalExternalModuleDependency.class, new MinimalExternalDependencyNotationConverter(instantiator))
             .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, DefaultDependencyConstraint.class, stringInterner))
             .converter(new DependencyMapNotationConverter<>(instantiator, DefaultDependencyConstraint.class))
             .fromType(Project.class, new DependencyConstraintProjectNotationConverter(dependencyFactory))
@@ -49,6 +55,23 @@ public class DependencyConstraintNotationParser {
         @Override
         protected DependencyConstraint parseType(ProjectDependency notation) {
             return new DefaultProjectDependencyConstraint(notation);
+        }
+    }
+
+    private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, DefaultDependencyConstraint> {
+        private final Instantiator instantiator;
+
+        public MinimalExternalDependencyNotationConverter(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super DefaultDependencyConstraint> result) throws TypeConversionException {
+            result.converted(instantiator.newInstance(DefaultDependencyConstraint.class, notation.getModule(), notation.getVersionConstraint()));
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
         }
     }
 }
