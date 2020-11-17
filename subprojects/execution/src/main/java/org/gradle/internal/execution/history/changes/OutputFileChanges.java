@@ -18,13 +18,8 @@ package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotUtil;
-import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.SortedMap;
 
 public class OutputFileChanges implements ChangeContainer {
@@ -49,7 +44,7 @@ public class OutputFileChanges implements ChangeContainer {
     private static final TrivialChangeDetector.ItemComparator<CompleteFileSystemLocationSnapshot> SNAPSHOT_COMPARATOR = new TrivialChangeDetector.ItemComparator<CompleteFileSystemLocationSnapshot>() {
         @Override
         public boolean hasSamePath(CompleteFileSystemLocationSnapshot previous, CompleteFileSystemLocationSnapshot current) {
-            return true;
+            return previous.getAbsolutePath().equals(current.getAbsolutePath());
         }
 
         @Override
@@ -59,7 +54,7 @@ public class OutputFileChanges implements ChangeContainer {
     };
 
     private static final CompareStrategy<FileSystemSnapshot, CompleteFileSystemLocationSnapshot> COMPARE_STRATEGY = new CompareStrategy<>(
-        OutputFileChanges::index,
+        SnapshotUtil::index,
         SnapshotUtil::getRootHashes,
         new TrivialChangeDetector<>(
             SNAPSHOT_COMPARATOR,
@@ -97,20 +92,5 @@ public class OutputFileChanges implements ChangeContainer {
                 return COMPARE_STRATEGY.visitChangesSince(previous, current, property, visitor);
             }
         });
-    }
-
-    private static Map<String, CompleteFileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
-        HashMap<String, CompleteFileSystemLocationSnapshot> index = new HashMap<>();
-        snapshot.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
-            @Override
-            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
-                // Ignore missing roots
-                if (!(isRoot && snapshot instanceof MissingFileSnapshot)) {
-                    index.put(snapshot.getAbsolutePath(), snapshot);
-                }
-                return SnapshotVisitResult.CONTINUE;
-            }
-        });
-        return index;
     }
 }
