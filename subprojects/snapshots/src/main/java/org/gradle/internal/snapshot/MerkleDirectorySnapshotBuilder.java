@@ -60,7 +60,7 @@ public class MerkleDirectorySnapshotBuilder {
         collectEntry(snapshot);
     }
 
-    public void collectCompleteDirectory(CompleteDirectorySnapshot directorySnapshot) {
+    public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
         collectEntry(directorySnapshot);
     }
 

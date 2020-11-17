@@ -307,7 +307,7 @@ public class DirectorySnapshotter {
                                 );
                                 Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, subtreeVisitor);
                                 CompleteDirectorySnapshot result = (CompleteDirectorySnapshot) subtreeVisitor.getResult();
-                                builder.collectCompleteDirectory(new CompleteDirectorySnapshot(
+                                builder.visitDirectory(new CompleteDirectorySnapshot(
                                     intern(symbolicLinkMappings.remapAbsolutePath(file)),
                                     internedFileName,
                                     AccessType.VIA_SYMLINK,
