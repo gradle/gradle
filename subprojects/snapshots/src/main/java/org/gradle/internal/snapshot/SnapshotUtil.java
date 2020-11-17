@@ -95,6 +95,9 @@ public class SnapshotUtil {
     }
 
     public static ImmutableMultimap<String, HashCode> getRootHashes(FileSystemSnapshot roots) {
+        if (roots == FileSystemSnapshot.EMPTY) {
+            return ImmutableMultimap.of();
+        }
         ImmutableMultimap.Builder<String, HashCode> builder = ImmutableListMultimap.builder();
         roots.accept(snapshot -> {
             builder.put(snapshot.getAbsolutePath(), snapshot.getHash());

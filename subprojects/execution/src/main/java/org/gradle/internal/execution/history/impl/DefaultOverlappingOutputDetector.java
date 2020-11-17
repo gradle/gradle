@@ -32,6 +32,8 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import javax.annotation.Nullable;
 import java.util.Map;
 
+import static org.gradle.internal.snapshot.SnapshotUtil.getRootHashes;
+
 public class DefaultOverlappingOutputDetector implements OverlappingOutputDetector {
     @Override
     @Nullable
@@ -40,6 +42,10 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
             String propertyName = entry.getKey();
             FileSystemSnapshot beforeExecution = entry.getValue();
             FileSystemSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(previous, propertyName);
+            // If the root hashes are the same there are no overlapping outputs
+            if (getRootHashes(afterPreviousExecution).equals(getRootHashes(beforeExecution))) {
+                continue;
+            }
             OverlappingOutputs overlappingOutputs = detect(propertyName, afterPreviousExecution, beforeExecution);
             if (overlappingOutputs != null) {
                 return overlappingOutputs;
