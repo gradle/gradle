@@ -24,6 +24,7 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
+import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 
 import static java.lang.Math.abs
@@ -32,6 +33,7 @@ import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 import static org.gradle.internal.file.impl.DefaultFileMetadata.file
 import static org.gradle.internal.hash.HashCode.fromInt
 import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
+import static org.gradle.internal.snapshot.SnapshotUtil.index
 
 class FileSystemSnapshotSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
@@ -58,7 +60,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        out == snapshots
+        index(out) == index(snapshots)
     }
 
     def "reads and writes directory snapshots"() {
@@ -68,7 +70,17 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        out == snapshots
+        index(out) == index(snapshots)
+    }
+
+    def "reads and writes missing snapshots"() {
+        def snapshots = new MissingFileSnapshot("/home/lptr/dev/one.txt", "one.txt", DIRECT)
+
+        when:
+        def out = serialize(snapshots, serializer)
+
+        then:
+        index(out) == index(snapshots)
     }
 
     def "reads and writes directory snapshot hierarchies"() {
@@ -87,7 +99,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        out == snapshots
+        index(out) == index(snapshots)
     }
 
     def "reads and writes composite snapshots"() {
@@ -100,7 +112,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        out == snapshots
+        index(out) == index(snapshots)
     }
 
     private CompleteFileSystemLocationSnapshot directory(String absolutePath, AccessType accessType = DIRECT, List<CompleteFileSystemLocationSnapshot> children) {
