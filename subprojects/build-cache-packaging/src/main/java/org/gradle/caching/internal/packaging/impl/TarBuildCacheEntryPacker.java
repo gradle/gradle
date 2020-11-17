@@ -152,7 +152,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private long packTree(String name, TreeType type, FileSystemSnapshot snapshots, TarArchiveOutputStream tarOutput) {
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, filePermissionAccess);
         snapshots.accept(new RelativePathTracker(), packingVisitor);
-        return packingVisitor.finish();
+        return packingVisitor.getPackedEntryCount();
     }
 
     private static void createTarEntry(String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
@@ -336,7 +336,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         private final FilePermissionAccess filePermissionAccess;
         private final TreeType type;
 
-        private long entries;
+        private long packedEntryCount;
 
         public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type, FilePermissionAccess filePermissionAccess) {
             this.tarOutput = tarOutput;
@@ -375,16 +375,12 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                     storeMissingTree(targetPath, tarOutput);
                 }
             });
-            entries++;
+            packedEntryCount++;
             return SnapshotVisitResult.CONTINUE;
         }
 
-        public long finish() {
-            if (entries == 0) {
-                storeMissingTree(treePath, tarOutput);
-                entries++;
-            }
-            return entries;
+        public long getPackedEntryCount() {
+            return packedEntryCount;
         }
 
         private void assertCorrectType(boolean root, CompleteFileSystemLocationSnapshot snapshot) {
