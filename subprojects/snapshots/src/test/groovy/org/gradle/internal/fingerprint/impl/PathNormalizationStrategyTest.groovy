@@ -103,7 +103,7 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     def "sensitivity RELATIVE"() {
-        def fingerprints = collectFingerprints(new RelativePathFingerprintingStrategy(stringInterner, DirectorySensitivity.FINGERPRINT_DIRECTORIES))
+        def fingerprints = collectFingerprints(new RelativePathFingerprintingStrategy(stringInterner, DirectorySensitivity.DEFAULT))
         expect:
         fingerprints[jarFile1]                      == jarFile1.name
         fingerprints[jarFile2]                      == jarFile2.name

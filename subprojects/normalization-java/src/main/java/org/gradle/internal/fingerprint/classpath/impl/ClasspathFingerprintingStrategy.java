@@ -213,6 +213,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
 
     @Override
     public DirectorySensitivity getDirectorySensitivity() {
-        return DirectorySensitivity.NONE;
+        return DirectorySensitivity.DEFAULT;
     }
 }

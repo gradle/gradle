@@ -116,8 +116,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         // Should retain this on the metadata rather than calculate on each invocation
         Class<? extends FileNormalizer> inputArtifactNormalizer = null;
         Class<? extends FileNormalizer> dependenciesNormalizer = null;
-        DirectorySensitivity artifactDirectorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
-        DirectorySensitivity dependenciesDirectorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+        DirectorySensitivity artifactDirectorySensitivity = DirectorySensitivity.DEFAULT;
+        DirectorySensitivity dependenciesDirectorySensitivity = DirectorySensitivity.DEFAULT;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
             if (propertyType.equals(InputArtifact.class)) {
@@ -208,7 +208,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
 
     private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {
         private Class<? extends FileNormalizer> normalizer;
-        private DirectorySensitivity directorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+        private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
 
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {

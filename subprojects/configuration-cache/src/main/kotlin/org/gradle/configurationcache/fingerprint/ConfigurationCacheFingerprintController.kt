@@ -62,7 +62,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Stoppable {
     private
-    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFingerprinterSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.FINGERPRINT_DIRECTORIES))
+    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFingerprinterSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.DEFAULT))
 
     private
     abstract class WritingState {

@@ -85,6 +85,6 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
 
     @Override
     public DirectorySensitivity getDirectorySensitivity() {
-        return DirectorySensitivity.NONE;
+        return DirectorySensitivity.DEFAULT;
     }
 }

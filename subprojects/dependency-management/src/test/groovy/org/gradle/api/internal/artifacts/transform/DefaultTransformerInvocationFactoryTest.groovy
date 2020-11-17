@@ -87,7 +87,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
 
-    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.FINGERPRINT_DIRECTORIES, fileCollectionSnapshotter)
+    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter])
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
@@ -233,12 +233,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
         @Override
         DirectorySensitivity getInputArtifactDirectorySensitivity() {
-            return DirectorySensitivity.FINGERPRINT_DIRECTORIES
+            return DirectorySensitivity.DEFAULT
         }
 
         @Override
         DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
-            return DirectorySensitivity.FINGERPRINT_DIRECTORIES
+            return DirectorySensitivity.DEFAULT
         }
     }
 

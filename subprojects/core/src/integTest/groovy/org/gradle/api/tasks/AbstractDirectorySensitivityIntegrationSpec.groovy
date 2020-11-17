@@ -34,7 +34,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
 
     @Unroll
     def "task is sensitive to empty directories by default (#api, #pathSensitivity)"() {
-        createTaskWithSensitivity(DirectorySensitivity.FINGERPRINT_DIRECTORIES, api, pathSensitivity)
+        createTaskWithSensitivity(DirectorySensitivity.DEFAULT, api, pathSensitivity)
         buildFile << """
             taskWithInputs {
                 sources.from(project.files("foo", "bar"))
@@ -174,7 +174,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
 
     @ToBeFixedForConfigurationCache(because = "doesn't like FileCollection in transform parameters")
     def "artifact transforms are sensitive to empty directories by default"() {
-        createParameterizedTransformWithSensitivity(DirectorySensitivity.FINGERPRINT_DIRECTORIES)
+        createParameterizedTransformWithSensitivity(DirectorySensitivity.DEFAULT)
         file('augmented').mkdir()
         file('augmented/a').mkdir()
         file('augmented/b').mkdir()

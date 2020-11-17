@@ -30,7 +30,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
-    private DirectorySensitivity directorySensitivity = DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+    private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
     public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
@@ -105,7 +105,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     @Override
     public TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreDirectories) {
-        this.directorySensitivity = ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.FINGERPRINT_DIRECTORIES;
+        this.directorySensitivity = ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT;
         return this;
     }
 

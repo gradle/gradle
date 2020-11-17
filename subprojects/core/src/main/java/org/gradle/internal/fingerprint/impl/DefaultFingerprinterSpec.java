@@ -46,7 +46,7 @@ public class DefaultFingerprinterSpec implements FingerprinterSpec {
         if (DirectorySensitiveNormalizer.class.isAssignableFrom(normalizer)) {
             return new DefaultFingerprinterSpec(normalizer, directorySensitivity);
         } else {
-            return new DefaultFingerprinterSpec(normalizer, DirectorySensitivity.NONE);
+            return new DefaultFingerprinterSpec(normalizer, DirectorySensitivity.DEFAULT);
         }
     }
 
