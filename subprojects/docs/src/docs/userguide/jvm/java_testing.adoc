@@ -300,7 +300,7 @@ The separate link:https://plugins.jenkins.io/flaky-test-handler[Flaky Test Handl
 Tests are grouped and merged based on their reported name.
 When using any kind of test parameterization that affects the reported test name,
 or any other kind of mechanism the produces a potentially dynamic test name,
-care should be take to ensure that the test name is stable and does not unnecessarily change.
+care should be taken to ensure that the test name is stable and does not unnecessarily change.
 
 Enabling the `mergeReruns` option does not add any retry/rerun functionality to test execution.
 Rerunning can be enabled by the test execution framework (e.g. JUnit's link:https://junit.org/junit5/docs/current/user-guide/#writing-tests-repeated-tests[@RepeatedTest]),
