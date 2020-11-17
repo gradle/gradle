@@ -23,6 +23,9 @@ import org.gradle.api.Describable;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import static org.gradle.internal.execution.impl.OutputUtil.filterOutputsWithOverlapBeforeExecution;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
@@ -62,13 +65,15 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
             lastExecution.getOutputFilesProducedByWork().keySet(),
-            thisExecution.getOutputFilesProducedByWork().keySet(),
+            thisExecution.getOutputFileLocationSnapshots().keySet(),
             "Output",
             executable);
-        // TODO create filtered current outputs
+        ImmutableSortedMap<String, FileSystemSnapshot> remainingPreviouslyProducedOutputs = thisExecution.getDetectedOverlappingOutputs().isPresent()
+            ? filterOutputsWithOverlapBeforeExecution(lastExecution.getOutputFilesProducedByWork(), thisExecution.getOutputFileLocationSnapshots())
+            : thisExecution.getOutputFileLocationSnapshots();
         OutputFileChanges outputFileChanges = new OutputFileChanges(
             lastExecution.getOutputFilesProducedByWork(),
-            thisExecution.getOutputFilesProducedByWork()
+            remainingPreviouslyProducedOutputs
         );
 
         // Collect changes that would trigger a rebuild

@@ -39,6 +39,5 @@ public interface AfterPreviousExecutionState extends ExecutionState {
     @Override
     ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();
 
-    @Override
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork();
 }

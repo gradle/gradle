@@ -24,11 +24,9 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
-import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -184,32 +182,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
-            assert state.outputFilesProducedByWork == ImmutableSortedMap.of('outputDir', outputDirSnapshot)
-        }
-        0 * _
-
-        assertOperationForInputsBeforeExecution()
-    }
-
-    def "uses before output snapshot when there are no overlapping outputs"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
-        def afterPreviousOutputSnapshots = Mock(FileSystemSnapshot)
-        def outputFileSnapshot = Mock(CompleteFileSystemLocationSnapshot)
-
-        when:
-        step.execute(work, context)
-        then:
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of()
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> ImmutableSortedMap.of("outputDir", afterPreviousOutputSnapshots)
-
-        _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of("outputDir", outputFileSnapshot)
-
-        interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
-            def state = beforeExecution.beforeExecutionState.get()
-            assert !state.detectedOverlappingOutputs.present
-            assert state.outputFilesProducedByWork == ImmutableSortedMap.of('outputDir', outputFileSnapshot)
+            assert state.outputFileLocationSnapshots == ImmutableSortedMap.of('outputDir', outputDirSnapshot)
         }
         0 * _
 
@@ -238,40 +211,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
-            assert state.outputFilesProducedByWork == beforeExecutionOutputSnapshots
-        }
-        0 * _
-
-        assertOperationForInputsBeforeExecution()
-    }
-
-    def "filters before output snapshot when there are overlapping outputs"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
-        def afterPreviousOutputSnapshot = Mock(FileSystemSnapshot)
-        def afterPreviousOutputSnapshots = ImmutableSortedMap.of("outputDir", afterPreviousOutputSnapshot)
-        def beforeExecutionOutputSnapshot = Mock(FileSystemSnapshot)
-        def beforeExecutionOutputSnapshots = ImmutableSortedMap.of("outputDir", beforeExecutionOutputSnapshot)
-        def overlappingOutputs = new OverlappingOutputs("outputDir", "overlapping/path")
-
-        when:
-        step.execute(work, context)
-        then:
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> afterPreviousOutputSnapshots
-        _ * outputSnapshotter.snapshotOutputs(work, _) >> beforeExecutionOutputSnapshots
-
-        _ * work.overlappingOutputHandling >> DETECT_OVERLAPS
-        1 * overlappingOutputDetector.detect(afterPreviousOutputSnapshots, beforeExecutionOutputSnapshots) >> overlappingOutputs
-
-        1 * afterPreviousOutputSnapshot.accept(_)
-        1 * beforeExecutionOutputSnapshot.accept(_)
-
-        interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext beforeExecution ->
-            def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.get() == overlappingOutputs
-            assert state.outputFilesProducedByWork == ImmutableSortedMap.of('outputDir', FileSystemSnapshot.EMPTY)
+            assert state.outputFileLocationSnapshots == beforeExecutionOutputSnapshots
         }
         0 * _
 

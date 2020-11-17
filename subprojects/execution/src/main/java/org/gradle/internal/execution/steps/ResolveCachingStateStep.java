@@ -184,7 +184,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
         builder.withAdditionalImplementations(executionState.getAdditionalImplementations());
         builder.withInputValueFingerprints(executionState.getInputProperties());
         builder.withInputFilePropertyFingerprints(executionState.getInputFileProperties());
-        builder.withOutputPropertyNames(executionState.getOutputFilesProducedByWork().keySet());
+        builder.withOutputPropertyNames(executionState.getOutputFileLocationSnapshots().keySet());
 
         return builder.build();
     }

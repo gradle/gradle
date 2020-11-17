@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -29,20 +28,17 @@ public class AbstractExecutionState<C extends FileCollectionFingerprint> impleme
     protected final ImmutableList<ImplementationSnapshot> additionalImplementations;
     protected final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     protected final ImmutableSortedMap<String, C> inputFileProperties;
-    protected final ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties;
 
     public AbstractExecutionState(
             ImplementationSnapshot implementation,
             ImmutableList<ImplementationSnapshot> additionalImplementations,
             ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-            ImmutableSortedMap<String, C> inputFileProperties,
-            ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties
+            ImmutableSortedMap<String, C> inputFileProperties
     ) {
         this.implementation = implementation;
         this.additionalImplementations = additionalImplementations;
         this.inputProperties = inputProperties;
         this.inputFileProperties = inputFileProperties;
-        this.outputFileProperties = outputFileProperties;
     }
 
     @Override
@@ -63,10 +59,5 @@ public class AbstractExecutionState<C extends FileCollectionFingerprint> impleme
     @Override
     public ImmutableSortedMap<String, C> getInputFileProperties() {
         return inputFileProperties;
-    }
-
-    @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork() {
-        return outputFileProperties;
     }
 }

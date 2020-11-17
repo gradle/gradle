@@ -31,69 +31,29 @@ import java.util.Optional;
 public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentFileCollectionFingerprint> implements BeforeExecutionState {
     @Nullable
     private final OverlappingOutputs detectedOutputOverlaps;
-    private final ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputFileProperties;
+    private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;
 
-    public static BeforeExecutionState withoutOverlaps(
+    public DefaultBeforeExecutionState(
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties
-    ) {
-        return new DefaultBeforeExecutionState(
-            implementation,
-            additionalImplementations,
-            inputProperties,
-            inputFileProperties,
-            outputFileProperties,
-            outputFileProperties,
-            null
-        );
-    }
-
-    public static BeforeExecutionState withOverlaps(
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> filteredOutputFileProperties,
-        OverlappingOutputs detectedOutputOverlaps
-    ) {
-        return new DefaultBeforeExecutionState(
-            implementation,
-            additionalImplementations,
-            inputProperties,
-            inputFileProperties,
-            unfilteredOutputFileProperties,
-            filteredOutputFileProperties,
-            detectedOutputOverlaps
-        );
-    }
-
-    private DefaultBeforeExecutionState(
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> filteredOutputFileProperties,
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots,
         @Nullable OverlappingOutputs detectedOutputOverlaps
     ) {
         super(
             implementation,
             additionalImplementations,
             inputProperties,
-            inputFileProperties,
-            filteredOutputFileProperties
+            inputFileProperties
         );
-        this.unfilteredOutputFileProperties = unfilteredOutputFileProperties;
+        this.outputFileLocationSnapshots = outputFileLocationSnapshots;
         this.detectedOutputOverlaps = detectedOutputOverlaps;
     }
 
     @Override
     public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots() {
-        return unfilteredOutputFileProperties;
+        return outputFileLocationSnapshots;
     }
 
     @Override

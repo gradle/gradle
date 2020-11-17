@@ -48,7 +48,6 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.impl.InputUtil.fingerprintInputProperties;
-import static org.gradle.internal.execution.impl.OutputUtil.filterOutputsWithOverlapBeforeExecution;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
@@ -185,31 +184,15 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             alreadyKnownInputFileProperties,
             inputFileFingerprintsBuilder,
             (propertyName, type, identity) -> identity == NON_IDENTITY);
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesBuilder.build();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = inputFileFingerprintsBuilder.build();
 
-        if (overlappingOutputs != null) {
-            ImmutableSortedMap<String, FileSystemSnapshot> filteredOutputSnapshots = filterOutputsWithOverlapBeforeExecution(
-                outputSnapshotsAfterPreviousExecution,
-                unfilteredOutputSnapshots);
-            return DefaultBeforeExecutionState.withOverlaps(
-                implementation,
-                additionalImplementations,
-                inputProperties,
-                inputFileFingerprints,
-                unfilteredOutputSnapshots,
-                filteredOutputSnapshots,
-                overlappingOutputs
-            );
-        } else {
-            return DefaultBeforeExecutionState.withoutOverlaps(
-                implementation,
-                additionalImplementations,
-                inputProperties,
-                inputFileFingerprints,
-                unfilteredOutputSnapshots
-            );
-        }
+        return new DefaultBeforeExecutionState(
+            implementation,
+            additionalImplementations,
+            inputPropertiesBuilder.build(),
+            inputFileFingerprintsBuilder.build(),
+            unfilteredOutputSnapshots,
+            overlappingOutputs
+        );
     }
 
     private static class ImplementationsBuilder implements UnitOfWork.ImplementationVisitor {
