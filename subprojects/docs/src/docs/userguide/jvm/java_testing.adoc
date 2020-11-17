@@ -288,7 +288,7 @@ If your CI server understands this format, it will indicate that the test was fl
 If it does not, it will indicate that the test succeeded as it will ignore the `<flakyFailure>` information.
 If the test does not succeed (i.e. it fails for every retry), it will be indicated as having failed whether your tool understands this format or not.
 
-When `mergeReruns` is disabled (the default), each execution of a test be listed as an separate test case.
+When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
 
 Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle's determination of whether the build failed or not,
 and you wish to not consider the build failed if all failed tests passed when retried.
