@@ -745,6 +745,177 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
             "strictly '1.0'",
             "prefer '1.0'"
         ]
-
     }
+
+    def "can use the generated extension to select the test fixtures of a dependency"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalog("libs") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
+                        require "1.1"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1")
+            .withModuleMetadata()
+            .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {
+                capability('org.gradle.test', 'lib-test-fixtures', '1.1')
+                artifact("lib-1.1-test-fixtures.jar")
+            }
+            .variant("testFixturesRuntimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar']) {
+                capability('org.gradle.test', 'lib-test-fixtures', '1.1')
+                artifact("lib-1.1-test-fixtures.jar")
+            }
+            .publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(testFixtures(libs.myLib))
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.moduleMetadata.expectGet()
+        lib.getArtifact(classifier: 'test-fixtures').expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1') {
+                    variant('testFixturesRuntimeElements', [
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-runtime',
+                        'org.gradle.libraryelements': 'jar'])
+                    artifact(classifier: 'test-fixtures')
+                }
+            }
+        }
+    }
+
+    def "can use the generated extension to select the platform variant of a dependency"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalog("libs") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
+                        require "1.1"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1")
+            .publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(platform(libs.myLib))
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1') {
+                    variant('platform-runtime', [
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-runtime',
+                        'org.gradle.category': 'platform'])
+                    noArtifacts()
+                }
+            }
+        }
+    }
+
+    def "can use the generated extension to select a classified dependency"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalog("libs") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
+                        require "1.1"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1")
+            .publish()
+
+        lib.getArtifactFile(classifier: 'test-fixtures').bytes = []
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(variantOf(libs.myLib) { classifier('test-fixtures') })
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.getArtifact(classifier: 'test-fixtures').expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1') {
+                    artifact(classifier: 'test-fixtures')
+                }
+            }
+        }
+    }
+
+    def "can use the generated extension to select an artifact with different type"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalog("libs") {
+                    alias("myLib").to("org.gradle.test", "lib").version {
+                        require "1.1"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1")
+            .publish()
+
+        lib.getArtifactFile(type: 'txt').bytes = "test".bytes
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(variantOf(libs.myLib) { artifactType('txt') })
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.getArtifact(type: 'txt').expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1') {
+                    artifact(type: 'txt')
+                }
+            }
+        }
+    }
+
 }

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -581,4 +582,39 @@ public interface DependencyHandler extends ExtensionAware {
      */
     @Incubating
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
+
+    /**
+     * Allows fine tuning what variant to select for the target dependency. This can be used to
+     * specify a classifier, for example.
+     *
+     * @param dependencyProvider the dependency provider
+     * @param variantSpec the variant specification
+     * @return a new dependency provider targetting the configured variant
+     * @since 6.8
+     */
+    @Incubating
+    Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec);
+
+    /**
+     * Configures this dependency provider to select the platform variant of the target component
+     * @param dependencyProvider the dependency provider
+     * @return a new dependency provider targetting the platform variant of the component
+     * @since 6.8
+     */
+    @Incubating
+    default Provider<MinimalExternalModuleDependency> platform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+        return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::platform);
+    }
+
+    /**
+     * Configures this dependency provider to select the test fixtures of the target component
+     * @param dependencyProvider the dependency provider
+     * @return a new dependency provider targetting the test fixtures of the component
+     * @since 6.8
+     */
+    @Incubating
+    default Provider<MinimalExternalModuleDependency> testFixtures(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+        return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::testFixtures);
+    }
+
 }
