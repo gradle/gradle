@@ -96,7 +96,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.beforeExecute({
-            withToolchainDetectionEnabled()
+            withArgument("-Porg.gradle.java.installations.paths=" + jvm.getJavaHome().getAbsolutePath())
         })
         fails("build")
 
