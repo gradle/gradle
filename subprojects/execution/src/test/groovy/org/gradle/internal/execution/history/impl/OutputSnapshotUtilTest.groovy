@@ -87,11 +87,11 @@ class OutputSnapshotUtilTest extends Specification {
         collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
 
-    def "missing files are ignored"() {
+    def "missing files are included"() {
         def missingFile = temporaryFolder.file("missing")
         def beforeExecution = snapshotOutput(missingFile)
         expect:
-        filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution) == EMPTY
+        filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution) == beforeExecution
     }
 
     def "added empty dir is captured"() {
