@@ -190,8 +190,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         }
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
         1 * afterPreviousExecution.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
-        1 * outputChangeListener.beforeOutputChange(_ as Iterable) >> { Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] }
-        1 * outputChangeListener.beforeOutputChange(_ as Iterable) >> { Iterable<String> paths -> paths as List == [outputs.file.absolutePath] }
+        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] })
+        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.file.absolutePath] })
     }
 
     void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {
