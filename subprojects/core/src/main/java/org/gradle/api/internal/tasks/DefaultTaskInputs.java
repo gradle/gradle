@@ -206,7 +206,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             }
 
             @Override
-            public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            public void visitInputFileProperty(final String propertyName,
+                                               boolean optional,
+                                               boolean skipWhenEmpty,
+                                               DirectorySensitivity directorySensitivity,
+                                               boolean incremental,
+                                               @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                                               PropertyValue value,
+                                               InputFilePropertyType filePropertyType) {
                 FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 context.add(actualValue);
             }
@@ -239,7 +246,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
             TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
                 @Override
-                public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                public void visitInputFileProperty(final String propertyName,
+                                                   boolean optional,
+                                                   boolean skipWhenEmpty,
+                                                   DirectorySensitivity directorySensitivity,
+                                                   boolean incremental,
+                                                   @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                                                   PropertyValue value, InputFilePropertyType filePropertyType) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || skipWhenEmpty) {
                         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                         visitor.accept(new PropertyFileCollection(task.toString(), propertyName, "input", actualValue));
@@ -257,7 +270,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName,
+                                           boolean optional,
+                                           boolean skipWhenEmpty,
+                                           DirectorySensitivity directorySensitivity,
+                                           boolean incremental,
+                                           @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                                           PropertyValue value,
+                                           InputFilePropertyType filePropertyType) {
             hasInputs = true;
         }
 

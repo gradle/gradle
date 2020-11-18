@@ -345,7 +345,14 @@ class DefaultTaskInputsTest extends Specification {
         def inputFiles = [:]
         TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName,
+                                        boolean optional,
+                                        boolean skipWhenEmpty,
+                                        DirectorySensitivity emptyDirectorySensitivity,
+                                        boolean incremental,
+                                        @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                                        PropertyValue value,
+                                        InputFilePropertyType filePropertyType) {
                 inputFiles[propertyName] = value.call()
             }
         })
