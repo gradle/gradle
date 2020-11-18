@@ -17,6 +17,7 @@
 package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.services.BuildService;
@@ -33,6 +34,7 @@ import javax.annotation.Nullable;
 
 // TODO - complain when used at configuration time, except when opted in to this
 public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
+    private final BuildIdentifier buildIdentifier;
     private final String name;
     private final Class<T> implementationType;
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme;
@@ -42,7 +44,8 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final P parameters;
     private Try<T> instance;
 
-    public BuildServiceProvider(String name, Class<T> implementationType, @Nullable P parameters, IsolationScheme<BuildService, BuildServiceParameters> isolationScheme, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory, ServiceRegistry internalServices) {
+    public BuildServiceProvider(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, IsolationScheme<BuildService, BuildServiceParameters> isolationScheme, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory, ServiceRegistry internalServices) {
+        this.buildIdentifier = buildIdentifier;
         this.name = name;
         this.implementationType = implementationType;
         this.parameters = parameters;
@@ -50,6 +53,13 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         this.instantiationScheme = instantiationScheme;
         this.isolatableFactory = isolatableFactory;
         this.internalServices = internalServices;
+    }
+
+    /**
+     * Returns the identifier for the build that owns this service.
+     */
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
     }
 
     public String getName() {

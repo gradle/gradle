@@ -27,11 +27,13 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
     @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 )
 class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
+    def setup() {
+        runner.targetVersions = ["6.8-20201118000042+0000"]
+    }
 
     def "tasks"() {
         given:
         runner.tasksToRun = ['tasks']
-        runner.targetVersions = ["6.8-20201028230040+0000"]
 
         when:
         def result = runner.run()
@@ -43,7 +45,6 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "tasks --all"() {
         given:
         runner.tasksToRun = ['tasks', '--all']
-        runner.targetVersions = ["6.8-20201028230040+0000"]
 
         when:
         def result = runner.run()

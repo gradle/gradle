@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
@@ -58,6 +59,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     @Override
     public Provider<JavaInstallation> getInstallationForCurrentVirtualMachine() {
+        warnAboutDeprecation();
         return Providers.of(new DefaultJavaInstallation(metadataDetector.getMetadata(Jvm.current().getJavaHome()), fileCollectionFactory, fileFactory));
     }
 
@@ -66,6 +68,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         // TODO - should be a value source and so a build input if queried during configuration time
         // TODO - provider should advertise the type of value it produces
         // TODO - display name
+        warnAboutDeprecation();
         return providerFactory.provider(new Callable<JavaInstallation>() {
             private DefaultJavaInstallation value;
 
@@ -88,7 +91,17 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     @Override
     public Provider<JavaInstallation> installationForDirectory(Provider<Directory> installationDirectory) {
+        warnAboutDeprecation();
         return installationDirectory.flatMap(this::installationForDirectory);
+    }
+
+    private void warnAboutDeprecation() {
+        DeprecationLogger
+            .deprecate("Using JavaInstallationRegistry to detect Java installations")
+            .withAdvice("Consider using Java Toolchains instead.")
+            .willBeRemovedInGradle7()
+            .withUserManual("toolchains")
+            .nagUser();
     }
 
     @Contextual

@@ -29,8 +29,10 @@ import java.util.Optional;
  * <p>You can obtain an instance of this type using {@link JavaInstallationRegistry}.</p>
  *
  * @since 6.2
+ * @deprecated Use <a href="https://docs.gradle.org/current/userguide/toolchains.html">Java Toolchains</a> instead.
  */
 @Incubating
+@Deprecated
 public interface JavaInstallation {
     /**
      * Returns the Java version that this installation provides

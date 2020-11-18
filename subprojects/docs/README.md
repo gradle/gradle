@@ -188,7 +188,7 @@ To link to a method:
 
 To build these, run:
 
-    ./gradlew :docs:javadoc
+    ./gradlew :docs:javadocAll
 
 The output is available within `build/javadoc`.
 

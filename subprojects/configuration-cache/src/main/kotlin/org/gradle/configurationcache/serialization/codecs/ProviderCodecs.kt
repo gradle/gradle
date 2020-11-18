@@ -16,8 +16,10 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
@@ -37,6 +39,7 @@ import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
+import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -45,6 +48,8 @@ import org.gradle.configurationcache.serialization.decodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
+import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.internal.build.BuildStateRegistry
 
 
 /**
@@ -54,12 +59,12 @@ import org.gradle.configurationcache.serialization.readClassOf
 internal
 class FixedValueReplacingProviderCodec(
     valueSourceProviderFactory: ValueSourceProviderFactory,
-    buildServiceRegistry: BuildServiceRegistryInternal
+    buildStateRegistry: BuildStateRegistry
 ) {
     private
     val providerWithChangingValueCodec = BindingsBackedCodec {
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
-        bind(BuildServiceProviderCodec(buildServiceRegistry))
+        bind(BuildServiceProviderCodec(buildStateRegistry))
         bind(BeanCodec())
     }
 
@@ -138,25 +143,41 @@ class ProviderCodec(
 
 internal
 class BuildServiceProviderCodec(
-    private val serviceRegistry: BuildServiceRegistryInternal
+    private val buildStateRegistry: BuildStateRegistry
 ) : Codec<BuildServiceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
+            val buildIdentifier = value.buildIdentifier
+            write(buildIdentifier)
             writeString(value.name)
             writeClass(value.implementationType)
             write(value.parameters)
-            writeInt(serviceRegistry.forService(value).maxUsages)
+            writeInt(
+                buildServiceRegistryOf(buildIdentifier).forService(value).maxUsages
+            )
         }
     }
 
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
         decodePreservingSharedIdentity {
+            val buildIdentifier = readNonNull<BuildIdentifier>()
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
-            serviceRegistry.register(name, implementationType, parameters, maxUsages)
+            buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+        }
+
+    private
+    fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =
+        gradleOf(buildIdentifier).serviceOf<BuildServiceRegistryInternal>()
+
+    private
+    fun gradleOf(buildIdentifier: BuildIdentifier) =
+        when (buildIdentifier) {
+            DefaultBuildIdentifier.ROOT -> buildStateRegistry.rootBuild.build
+            else -> buildStateRegistry.getIncludedBuild(buildIdentifier).configuredBuild
         }
 }
 

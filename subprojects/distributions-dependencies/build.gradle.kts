@@ -38,7 +38,7 @@ val jacksonVersion = "2.10.2"
 val jettyVersion = "9.4.31.v20200723"
 val mavenVersion = "3.0.5"
 val mavenWagonVersion = "3.0.0"
-val nativePlatformVersion = "0.22-milestone-8"
+val nativePlatformVersion = "0.22-milestone-9"
 val pmavenVersion = "0.8-20100325"
 val slf4jVersion = "1.7.28"
 val sshdVersion = "2.0.0"
@@ -82,6 +82,7 @@ dependencies {
         api(libs.gson)                  { version { strictly("2.8.5") }}
         api(libs.guava)                 { version { strictly("27.1-android"); because("JRE variant introduces regression - https://github.com/google/guava/issues/3223") }}
         api(libs.hamcrest)              { version { strictly("1.3") }}
+        api(libs.hikariCP)              { version { strictly("3.4.5") }}
         api(libs.httpcore)              { version { strictly("4.4.12") }}
         api(libs.inject)                { version { strictly("1") }}
         api(libs.ivy)                   { version { strictly("2.3.0"); because("2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457") }}

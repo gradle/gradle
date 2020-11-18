@@ -18,8 +18,8 @@ package org.gradle.integtests.fixtures
 
 import groovy.util.slurpersupport.GPathResult
 import groovy.util.slurpersupport.NodeChild
-import org.hamcrest.Matcher
 import org.hamcrest.CoreMatchers
+import org.hamcrest.Matcher
 import org.junit.Assert
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
@@ -68,6 +68,10 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
 
     int getTestCount() {
         return testClassNode.@tests.toInteger()
+    }
+
+    int getTestCasesCount() {
+        return testClassNode.testcase.size()
     }
 
     TestClassExecutionResult withResult(Closure action) {
@@ -223,13 +227,10 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
                     Assert.assertThat(failure.@type.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
                     Assert.assertThat(failure.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
                 }
-                def matcher = CoreMatchers.equalTo(outputAssociation == TestResultOutputAssociation.WITH_TESTCASE ? 1 : 0)
-                Assert.assertThat(node.'system-err'.size(), matcher)
-                Assert.assertThat(node.'system-out'.size(), matcher)
-            }
-            if (outputAssociation == TestResultOutputAssociation.WITH_SUITE) {
-                Assert.assertThat(testClassNode.'system-out'.size(), CoreMatchers.equalTo(1))
-                Assert.assertThat(testClassNode.'system-err'.size(), CoreMatchers.equalTo(1))
+                if (outputAssociation == TestResultOutputAssociation.WITH_SUITE) {
+                    Assert.assertThat(node.'system-out'.size(), CoreMatchers.equalTo(0))
+                    Assert.assertThat(node.'system-err'.size(), CoreMatchers.equalTo(0))
+                }
             }
             checked = true
         }

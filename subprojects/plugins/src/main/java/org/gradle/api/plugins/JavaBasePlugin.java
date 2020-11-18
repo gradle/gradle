@@ -36,7 +36,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
@@ -368,12 +368,6 @@ public class JavaBasePlugin implements Plugin<Project> {
             buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
             buildTask.setGroup(BasePlugin.BUILD_GROUP);
             buildTask.dependsOn(BUILD_TASK_NAME);
-            boolean hasIncludedBuilds = !buildTask.getProject().getGradle().getIncludedBuilds().isEmpty();
-            buildTask.doFirst(task -> {
-                if (hasIncludedBuilds) {
-                    task.getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
-                }
-            });
         });
     }
 

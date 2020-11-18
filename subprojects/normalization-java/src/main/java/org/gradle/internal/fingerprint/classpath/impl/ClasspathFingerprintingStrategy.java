@@ -44,8 +44,8 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
@@ -118,12 +118,10 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     }
 
     @Override
-    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
-        for (FileSystemSnapshot root : roots) {
-            root.accept(new RelativePathTracker(), new ClasspathFingerprintingVisitor(processedEntries, builder));
-        }
+        roots.accept(new PathTracker(), new ClasspathFingerprintingVisitor(processedEntries, builder));
         return builder.build();
     }
 
@@ -174,7 +172,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                     if (relativePath.isRoot()) {
                         fingerprint = IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), normalizedContentHash);
                     } else {
-                        String internedRelativePath = stringInterner.intern(relativePath.toPathString());
+                        String internedRelativePath = stringInterner.intern(relativePath.toRelativePath());
                         fingerprint = new DefaultFileSystemLocationFingerprint(internedRelativePath, FileType.RegularFile, normalizedContentHash);
                     }
                     builder.put(absolutePath, fingerprint);

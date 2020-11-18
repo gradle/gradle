@@ -27,21 +27,13 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.Collections;
-
-import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
-import static com.google.common.collect.Maps.transformEntries;
-import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution;
-import static org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsWithOverlapAfterExecution;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
@@ -63,9 +55,9 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = operation(
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputSnapshots = captureOutputs(work, context);
+                ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return outputSnapshots;
             },
@@ -78,8 +70,8 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
 
         return new CurrentSnapshotResult() {
             @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                return finalOutputs;
+            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                return outputFilesProduceByWork;
             }
 
             @Override
@@ -99,38 +91,26 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
         };
     }
 
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(UnitOfWork work, BeforeExecutionContext context) {
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints = context.getAfterPreviousExecutionState()
-            .map(AfterPreviousExecutionState::getOutputFileProperties)
-            .orElse(ImmutableSortedMap.of());
-
-        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
-            .map(BeforeExecutionState::getOutputFileSnapshots)
-            .orElse(ImmutableSortedMap.of());
-
+    private ImmutableSortedMap<String, FileSystemSnapshot> captureOutputs(UnitOfWork work, BeforeExecutionContext context) {
         boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
             .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
             .isPresent();
 
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
-        return copyOfSorted(transformEntries(
-            afterExecutionOutputSnapshots,
-            (propertyName, afterExecutionOutputSnapshot) -> {
-                // This can never be null as it comes from an ImmutableMap's value
-                assert afterExecutionOutputSnapshot != null;
+        if (hasDetectedOverlappingOutputs) {
+            ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getAfterPreviousExecutionState()
+                .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+                .orElse(ImmutableSortedMap.of());
 
-                Iterable<FileSystemSnapshot> filteredSnapshots;
-                if (hasDetectedOverlappingOutputs) {
-                    FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);
-                    FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
-                    filteredSnapshots = filterOutputSnapshotAfterExecution(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot);
-                } else {
-                    filteredSnapshots = Collections.singleton(afterExecutionOutputSnapshot);
-                }
-                return DefaultCurrentFileCollectionFingerprint.from(filteredSnapshots, IGNORE_MISSING);
-            }
-        ));
+            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution = context.getBeforeExecutionState()
+                .map(BeforeExecutionState::getOutputFileLocationSnapshots)
+                .orElse(ImmutableSortedMap.of());
+
+            return filterOutputsWithOverlapAfterExecution(previousExecutionOutputSnapshots, unfilteredOutputSnapshotsBeforeExecution, unfilteredOutputSnapshotsAfterExecution);
+        } else {
+            return unfilteredOutputSnapshotsAfterExecution;
+        }
     }
 
     /*

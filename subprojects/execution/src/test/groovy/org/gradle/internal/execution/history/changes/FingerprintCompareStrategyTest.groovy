@@ -29,8 +29,6 @@ import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.execution.history.changes.AbstractFingerprintCompareStrategy.compareTrivialFingerprints
-
 @Unroll
 class FingerprintCompareStrategyTest extends Specification {
 
@@ -269,17 +267,6 @@ class FingerprintCompareStrategyTest extends Specification {
         ]
     }
 
-    def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
-        expect:
-        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test") == null
-        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test") == null
-
-        where:
-        current                                                | previous
-        ["one": fingerprint("one")]                            | ["one": fingerprint("one"), "two": fingerprint("two")]
-        ["one": fingerprint("one"), "two": fingerprint("two")] | ["one": fingerprint("one")]
-    }
-
     def "comparing regular snapshot to empty snapshot shows entries removed (strategy: #strategy)"() {
         def fingerprint = Mock(FileCollectionFingerprint) {
             getFingerprints() >> [
@@ -319,7 +306,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def changes(FingerprintCompareStrategy strategy, FileCollectionFingerprint currentFingerprint, FileCollectionFingerprint previousFingerprint) {
         def visitor = new CollectingChangeVisitor()
-        strategy.visitChangesSince(currentFingerprint, previousFingerprint, "test", visitor)
+        strategy.visitChangesSince(previousFingerprint, currentFingerprint, "test", visitor)
         visitor.getChanges().toList()
     }
 

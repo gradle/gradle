@@ -23,5 +23,5 @@ public interface RelativePathSupplier {
 
     Collection<String> getSegments();
 
-    String toPathString();
+    String toRelativePath();
 }

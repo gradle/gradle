@@ -32,8 +32,8 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     protected Result runClientAction(ClientAction action, BuildController buildController) {
@@ -67,7 +67,7 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         return Result.of(action.getResult());
     }
 
-    private void forceFullConfiguration(GradleInternal gradle, List<GradleInternal> alreadyConfigured) {
+    private void forceFullConfiguration(GradleInternal gradle, Set<GradleInternal> alreadyConfigured) {
         gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
             if (includedBuild instanceof IncludedBuildState) {
@@ -106,7 +106,7 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            forceFullConfiguration(this.gradle, new ArrayList<>());
+            forceFullConfiguration(this.gradle, new HashSet<>());
             runAction(clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
         }
 

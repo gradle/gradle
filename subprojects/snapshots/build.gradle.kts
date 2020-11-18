@@ -35,6 +35,7 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":persistent-cache"))
     testImplementation(libs.ant)
+    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":core-api")))
     testImplementation(testFixtures(project(":base-services")))

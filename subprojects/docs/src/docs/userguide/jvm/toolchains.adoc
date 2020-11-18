@@ -27,7 +27,7 @@ Compile tasks may use `javac` as their compiler, test and exec tasks may use the
 [[sec:consuming]]
 == Consuming Toolchains
 
-A build can globally define what toolchain it targets by stating the Java Language version it needs:
+A build can globally define what toolchain it targets by stating the Java Language version it needs and optionally the vendor:
 
 ====
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
@@ -47,6 +47,26 @@ Toolchain support is only available in the Java plugins and for the tasks they d
 Support for Groovy and Scala plugins will be released later.
 The support will cover the specific compilation and documentation tasks added by these plugins.
 However _running tests_ can leverage the toolchain support since the `Test` task does support toolchains.
+====
+
+=== Using toolchains by specific vendors
+
+In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
+link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html[`JvmVendorSpec`] has a list of well-known JVM vendors recognized by Gradle.
+The advantage is that Gradle can handle any inconsistencies across JDK versions in how exactly the JVM encodes the vendor information.
+
+====
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-known-vendor]"]
+include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-known-vendor]"]
+====
+
+If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
+
+Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string. Matching is done case-insensitive.
+
+====
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
+include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-vendor]"]
 ====
 
 == Specify custom toolchains for individual tasks
@@ -156,6 +176,10 @@ gradle -q javaToolchains
 .Output of **`gradle -q javaToolchains`**
 ----
 > gradle -q javaToolchains
+
+ + Options
+     | Auto-detection:     Enabled
+     | Auto-download:      Enabled
 
  + AdoptOpenJDK 1.8.0_242
      | Location:           /Users/username/myJavaInstalls/8.0.242.hs-adpt/jre

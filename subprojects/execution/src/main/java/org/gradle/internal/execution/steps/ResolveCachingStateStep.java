@@ -37,9 +37,9 @@ import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,8 +151,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
-                return result.getFinalOutputs();
+            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                return result.getOutputFilesProduceByWork();
             }
 
             @Override
@@ -184,7 +184,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
         builder.withAdditionalImplementations(executionState.getAdditionalImplementations());
         builder.withInputValueFingerprints(executionState.getInputProperties());
         builder.withInputFilePropertyFingerprints(executionState.getInputFileProperties());
-        builder.withOutputPropertyNames(executionState.getOutputFileProperties().keySet());
+        builder.withOutputPropertyNames(executionState.getOutputFileLocationSnapshots().keySet());
 
         return builder.build();
     }

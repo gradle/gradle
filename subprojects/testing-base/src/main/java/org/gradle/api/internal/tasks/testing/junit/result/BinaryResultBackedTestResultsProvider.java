@@ -31,23 +31,28 @@ public class BinaryResultBackedTestResultsProvider extends TestOutputStoreBacked
     }
 
     @Override
-    public boolean hasOutput(final long id, final TestOutputEvent.Destination destination) {
+    public boolean hasOutput(final long classId, final TestOutputEvent.Destination destination) {
         final boolean[] hasOutput = new boolean[1];
         withReader(new Action<TestOutputStore.Reader>() {
             @Override
             public void execute(TestOutputStore.Reader reader) {
-                hasOutput[0] = reader.hasOutput(id, destination);
+                hasOutput[0] = reader.hasOutput(classId, destination);
             }
         });
         return hasOutput[0];
     }
 
     @Override
-    public void writeAllOutput(final long id, final TestOutputEvent.Destination destination, final Writer writer) {
+    public boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
+        return false;
+    }
+
+    @Override
+    public void writeAllOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
         withReader(new Action<TestOutputStore.Reader>() {
             @Override
             public void execute(TestOutputStore.Reader reader) {
-                reader.writeAllOutput(id, destination, writer);
+                reader.writeAllOutput(classId, destination, writer);
             }
         });
     }
@@ -58,11 +63,11 @@ public class BinaryResultBackedTestResultsProvider extends TestOutputStoreBacked
     }
 
     @Override
-    public void writeNonTestOutput(final long id, final TestOutputEvent.Destination destination, final Writer writer) {
+    public void writeNonTestOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
         withReader(new Action<TestOutputStore.Reader>() {
             @Override
             public void execute(TestOutputStore.Reader reader) {
-                reader.writeNonTestOutput(id, destination, writer);
+                reader.writeNonTestOutput(classId, destination, writer);
             }
         });
     }

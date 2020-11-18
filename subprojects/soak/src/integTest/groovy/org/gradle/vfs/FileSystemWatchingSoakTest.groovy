@@ -22,8 +22,13 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
+import spock.lang.Issue
 
+@Issue("https://github.com/gradle/gradle-private/issues/3235")
+@Requires(TestPrecondition.NOT_MAC_OS_X)
 class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSystemWatchingFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50

@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
+    implementation(project(":file-watching"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":model-core"))

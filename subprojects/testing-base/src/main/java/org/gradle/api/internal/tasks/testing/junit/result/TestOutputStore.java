@@ -21,12 +21,20 @@ import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
-import java.io.*;
+import javax.annotation.Nullable;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -285,15 +293,19 @@ public class TestOutputStore {
         }
 
         public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
+            return hasOutput(classId, 0, destination);
+        }
+
+        public boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
             if (dataFile == null) {
                 return false;
             }
 
-            Index classIndex = index.children.get(classId);
-            if (classIndex == null) {
+            Index index = getIndex(classId, testId);
+            if (index == null) {
                 return false;
             } else {
-                Region region = destination == TestOutputEvent.Destination.StdOut ? classIndex.stdOut : classIndex.stdErr;
+                Region region = destination == TestOutputEvent.Destination.StdOut ? index.stdOut : index.stdErr;
                 return region.start >= 0;
             }
         }
@@ -315,11 +327,7 @@ public class TestOutputStore {
                 return;
             }
 
-            Index targetIndex = index.children.get(classId);
-            if (targetIndex != null && testId != 0) {
-                targetIndex = targetIndex.children.get(testId);
-            }
-
+            Index targetIndex = getIndex(classId, testId);
             if (targetIndex == null) {
                 return;
             }
@@ -380,6 +388,15 @@ public class TestOutputStore {
             } catch (IOException e1) {
                 throw new UncheckedIOException(e1);
             }
+        }
+
+        @Nullable
+        private Index getIndex(long classId, long testId) {
+            Index targetIndex = index.children.get(classId);
+            if (targetIndex != null && testId != 0) {
+                targetIndex = targetIndex.children.get(testId);
+            }
+            return targetIndex;
         }
     }
 

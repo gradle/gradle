@@ -49,6 +49,11 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
 
     @Override
     public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
+        return isContentUpToDate(other);
+    }
+
+    @Override
+    public boolean isContentUpToDate(CompleteFileSystemLocationSnapshot other) {
         return other instanceof MissingFileSnapshot;
     }
 
@@ -65,5 +70,10 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         diffListener.nodeRemoved(this);
         return Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s/%s", super.toString(), getName());
     }
 }

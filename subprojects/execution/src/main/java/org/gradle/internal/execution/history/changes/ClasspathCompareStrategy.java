@@ -32,12 +32,17 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
     public static final FingerprintCompareStrategy INSTANCE = new ClasspathCompareStrategy();
 
     private ClasspathCompareStrategy() {
+        super(ClasspathCompareStrategy::visitChangesSince);
     }
 
-    @Override
-    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle) {
+    private static boolean visitChangesSince(
+        Map<String, FileSystemLocationFingerprint> previousFingerprints,
+        Map<String, FileSystemLocationFingerprint> currentFingerprints,
+        String propertyTitle,
+        ChangeVisitor visitor
+    ) {
         TrackingVisitor trackingVisitor = new TrackingVisitor(visitor);
-        ChangeState changeState = new ChangeState(propertyTitle, trackingVisitor, currentSnapshots, previousSnapshots);
+        ChangeState changeState = new ChangeState(propertyTitle, trackingVisitor, currentFingerprints, previousFingerprints);
 
         while (trackingVisitor.isConsumeMore() && changeState.hasMoreToProcess()) {
             changeState.processChange();

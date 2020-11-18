@@ -28,7 +28,7 @@ public class TestMethodResult {
     private TestResult.ResultType resultType;
     private long duration;
     private long endTime;
-    private List<TestFailure> failures = new ArrayList<TestFailure>();
+    private final List<TestFailure> failures = new ArrayList<TestFailure>();
 
     public TestMethodResult(long id, String name) {
         this(id, name, name);

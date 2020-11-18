@@ -119,7 +119,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                             try {
                                 FileEvents.init(nativeBaseDir);
                             } catch (NativeIntegrationUnavailableException ex) {
-                                LOGGER.info("Native file system watching is not available for this operating system.", ex);
+                                LOGGER.debug("Native file system watching is not available for this operating system.", ex);
                                 useFileSystemWatching = false;
                             }
                         }

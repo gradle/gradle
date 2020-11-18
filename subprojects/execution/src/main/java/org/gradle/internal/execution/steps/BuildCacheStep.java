@@ -35,7 +35,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                     }
                     cleanLocalState(context.getWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
-                    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
+                    ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = cacheHit.getResultingSnapshots();
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
                         public Try<ExecutionResult> getExecutionResult() {
@@ -118,8 +118,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         }
 
                         @Override
-                        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                            return finalOutputs;
+                        public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                            return outputFilesProducedByWork;
                         }
                     };
                 })
@@ -159,7 +159,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
         try {
-            buildCache.store(commandFactory.createStore(cacheKey, work, result.getFinalOutputs(), result.getOriginMetadata().getExecutionTime()));
+            buildCache.store(commandFactory.createStore(cacheKey, work, result.getOutputFilesProduceByWork(), result.getOriginMetadata().getExecutionTime()));
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Stored cache entry for {} with cache key {}",
                     work.getDisplayName(), cacheKey.getHashCode());

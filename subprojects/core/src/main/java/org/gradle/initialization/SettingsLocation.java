@@ -20,12 +20,20 @@ import java.io.File;
 
 public class SettingsLocation {
     private final File settingsDir;
+
     @Nullable
     private final File settingsFile;
 
-    public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
+    private final boolean settingsLoadedFromMasterDirectory;
+
+    public SettingsLocation(File settingsDir, @Nullable File settingsFile, boolean settingsLoadedFromMasterDirectory) {
         this.settingsDir = settingsDir;
         this.settingsFile = settingsFile;
+        this.settingsLoadedFromMasterDirectory = settingsLoadedFromMasterDirectory;
+    }
+
+    public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
+        this(settingsDir, settingsFile, false);
     }
 
     /**
@@ -41,6 +49,10 @@ public class SettingsLocation {
     @Nullable
     public File getSettingsFile() {
         return settingsFile;
+    }
+
+    boolean isSettingsLoadedFromMasterDirectory() {
+        return settingsLoadedFromMasterDirectory;
     }
 }
 

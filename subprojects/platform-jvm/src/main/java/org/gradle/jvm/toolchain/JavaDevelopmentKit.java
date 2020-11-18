@@ -24,8 +24,10 @@ import org.gradle.api.file.RegularFile;
  * Information about a Java development kit.
  *
  * @since 6.2
+ * @deprecated Use <a href="https://docs.gradle.org/current/userguide/toolchains.html">Java Toolchains</a> instead.
  */
 @Incubating
+@Deprecated
 public interface JavaDevelopmentKit {
     /**
      * Returns the java compiler executable for this JDK.

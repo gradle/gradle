@@ -48,24 +48,22 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     }
 
     @Override
-    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
-        for (FileSystemSnapshot root : roots) {
-            root.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
-                @Override
-                public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
-                    String absolutePath = snapshot.getAbsolutePath();
-                    if (processedEntries.add(absolutePath)) {
-                        FileSystemLocationFingerprint fingerprint = isRoot && snapshot.getType() == FileType.Directory
-                            ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY
-                            : new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
-                        builder.put(absolutePath, fingerprint);
-                    }
-                    return SnapshotVisitResult.CONTINUE;
+        roots.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
+            @Override
+            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+                String absolutePath = snapshot.getAbsolutePath();
+                if (processedEntries.add(absolutePath)) {
+                    FileSystemLocationFingerprint fingerprint = isRoot && snapshot.getType() == FileType.Directory
+                        ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY
+                        : new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
+                    builder.put(absolutePath, fingerprint);
                 }
-            });
-        }
+                return SnapshotVisitResult.CONTINUE;
+            }
+        });
         return builder.build();
     }
 

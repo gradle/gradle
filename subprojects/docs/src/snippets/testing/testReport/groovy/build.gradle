@@ -1,12 +1,18 @@
-// tag::test-report[]
 plugins {
+    // because this snippet is used in TestReportIntegrationTest which rewrites build files for different JUnit flavors
     id 'java'
 }
 
-// A resolvable configuration to collect test report data
-jvm.createResolvableConfiguration('testReportData') {
-    requiresAttributes {
-        documentation('test-report-data')
+// tag::test-report[]
+// A resolvable configuration to collect test reports data
+configurations {
+    testReportData {
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'test-report-data'))
+        }
     }
 }
 
