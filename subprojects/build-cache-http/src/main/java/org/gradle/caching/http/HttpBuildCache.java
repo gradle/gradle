@@ -17,7 +17,6 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -145,7 +144,6 @@ public class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 6.0
      */
-    @Incubating
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
     }
@@ -156,7 +154,6 @@ public class HttpBuildCache extends AbstractBuildCache {
      * @see #isAllowInsecureProtocol()
      * @since 6.0
      */
-    @Incubating
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
     }
