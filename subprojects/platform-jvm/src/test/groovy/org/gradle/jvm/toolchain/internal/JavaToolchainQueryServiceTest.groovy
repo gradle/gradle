@@ -158,10 +158,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome) {
+            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainSpec spec) {
                 def vendor = vendors[Integer.valueOf(javaHome.name.substring(2))]
                 def metadata = newMetadata(new File("/path/8"), vendor)
-                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory()))
+                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), spec))
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
@@ -229,10 +229,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome) {
+            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainSpec spec) {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
-                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory())
+                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), spec)
                     return Optional.of(toolchain)
                 }
                 return Optional.empty()
