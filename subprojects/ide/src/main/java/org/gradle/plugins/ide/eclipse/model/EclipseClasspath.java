@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -152,7 +153,7 @@ public class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
-    private boolean containsTestFixtures;
+    private boolean containsTestFixtures = false;
 
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
@@ -362,11 +363,17 @@ public class EclipseClasspath {
      * Returns {@code true} if the classpath contains test fixture classes that should be visible
      * through incoming project dependencies.
      *
+     * @since 6.8
      */
+    @Incubating
     public boolean getContainsTestFixtures() {
         return containsTestFixtures;
     }
 
+    /**
+     * @since 6.8
+     */
+    @Incubating
     public void setContainsTestFixtures(boolean containsTestFixtures) {
         this.containsTestFixtures = containsTestFixtures;
     }
