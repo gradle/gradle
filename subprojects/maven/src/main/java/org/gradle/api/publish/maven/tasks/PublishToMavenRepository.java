@@ -26,8 +26,8 @@ import org.gradle.api.publish.maven.internal.publication.MavenPublicationInterna
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -57,12 +57,11 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
      * @return The repository to publish to
      */
     @Internal
-
     public MavenArtifactRepository getRepository() {
         return repository.get();
     }
 
-    @Input
+    @Nested
     @Optional
     Property<Credentials> getCredentials() {
         return credentials;

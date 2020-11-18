@@ -16,6 +16,8 @@
 
 package org.gradle.api.credentials;
 
+import org.gradle.api.tasks.Input;
+
 import javax.annotation.Nullable;
 
 /**
@@ -29,6 +31,7 @@ public interface PasswordCredentials extends Credentials {
      *
      * @return The user name. May be null.
      */
+    @Input
     @Nullable
     String getUsername();
 
@@ -44,6 +47,7 @@ public interface PasswordCredentials extends Credentials {
      *
      * @return The password. May be null.
      */
+    @Input
     @Nullable
     String getPassword();
 
