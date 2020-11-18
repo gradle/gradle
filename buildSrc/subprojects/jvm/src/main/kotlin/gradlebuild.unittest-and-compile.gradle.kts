@@ -59,6 +59,7 @@ fun configureCompile() {
         tasks.withType<GroovyCompile>().configureEach {
             groovyOptions.encoding = "utf-8"
             configureCompileTask(this, options, jdkForCompilation)
+            astTransformationClasspath.from(configurations["astTransformation"])
         }
     }
     addCompileAllTask()
@@ -133,6 +134,11 @@ fun addDependencies() {
         platformImplementation.withDependencies {
             // use 'withDependencies' to not attempt to find platform project during script compilation
             add(project.dependencies.create(platform(project(":distributions-dependencies"))))
+        }
+
+        val astTransformation by configurations.creating
+        dependencies {
+            astTransformation(libs.groovy)
         }
     }
 }
