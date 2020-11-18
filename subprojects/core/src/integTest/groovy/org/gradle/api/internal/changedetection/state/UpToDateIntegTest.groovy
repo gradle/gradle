@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Unroll
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
     def "empty output directories created automatically are part of up-to-date checking"() {
@@ -162,7 +163,6 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         result.output =~ /Skipping task '${customTask}' as it is up-to-date\./
     }
 
-    @Unroll
     def "registering an optional #type output property with a null value keeps task up-to-date"() {
         buildFile << """
             task customTask(type: CustomTask) {
