@@ -27,7 +27,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
     @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 )
 class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    def baselineVersion = "6.8-20201118000042+0000"
+    def baselineVersion = "6.8-20201117230037+0000"
 
     def "tasks"() {
         given:
