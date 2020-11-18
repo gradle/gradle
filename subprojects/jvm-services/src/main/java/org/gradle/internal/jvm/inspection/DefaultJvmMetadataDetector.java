@@ -16,8 +16,6 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.io.Files;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
@@ -36,7 +34,6 @@ import java.util.EnumMap;
 public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     private final ExecHandleFactory execHandleFactory;
-    private final Supplier<File> probeClass = Suppliers.memoize(this::writeProbeClass);
 
     public DefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
@@ -82,7 +79,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private EnumMap<ProbedSystemProperty, String> getMetadataFromInstallation(File jdkPath) {
-        File probe = probeClass.get();
+        File probe = writeProbeClass();
         ExecHandleBuilder exec = execHandleFactory.newExec();
         exec.setWorkingDir(probe.getParentFile());
         exec.executable(javaExecutable(jdkPath));
