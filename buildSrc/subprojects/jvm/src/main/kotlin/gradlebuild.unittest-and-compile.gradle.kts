@@ -120,8 +120,11 @@ fun addDependencies() {
     dependencies {
         testCompileOnly(libs.junit)
         testRuntimeOnly(libs.junit5Vintage)
-        testImplementation(libs.groovy)
-        testImplementation(libs.spock)
+        testImplementation(libs.spock) {
+            setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml").forEach {
+                exclude(group = "org.codehaus.groovy", module = it)
+            }
+        }
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -131,14 +134,15 @@ fun addDependencies() {
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)
         configurations["testRuntimeClasspath"].extendsFrom(platformImplementation)
+
+
+        val astTransformation by configurations.creating
+        configurations["astTransformation"].extendsFrom(platformImplementation)
+        astTransformation(libs.groovy)
+
         platformImplementation.withDependencies {
             // use 'withDependencies' to not attempt to find platform project during script compilation
             add(project.dependencies.create(platform(project(":distributions-dependencies"))))
-        }
-
-        val astTransformation by configurations.creating
-        dependencies {
-            astTransformation(libs.groovy)
         }
     }
 }
