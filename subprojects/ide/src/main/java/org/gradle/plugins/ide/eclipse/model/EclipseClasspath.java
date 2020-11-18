@@ -85,6 +85,9 @@ import java.util.Set;
  *     //default settings for downloading sources and Javadoc:
  *     downloadSources = true
  *     downloadJavadoc = false
+ *
+ *     //if you want to expose test classes to dependent projects
+ *     containsTestFixtures = true
  *   }
  * }
  * </pre>
