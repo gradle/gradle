@@ -40,28 +40,18 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
     public OverlappingOutputs detect(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
         for (Map.Entry<String, FileSystemSnapshot> entry : current.entrySet()) {
             String propertyName = entry.getKey();
-            FileSystemSnapshot beforeExecution = entry.getValue();
-            FileSystemSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(previous, propertyName);
+            FileSystemSnapshot currentSnapshot = entry.getValue();
+            FileSystemSnapshot previousSnapshot = previous.getOrDefault(propertyName, FileSystemSnapshot.EMPTY);
             // If the root hashes are the same there are no overlapping outputs
-            if (getRootHashes(afterPreviousExecution).equals(getRootHashes(beforeExecution))) {
+            if (getRootHashes(previousSnapshot).equals(getRootHashes(currentSnapshot))) {
                 continue;
             }
-            OverlappingOutputs overlappingOutputs = detect(propertyName, afterPreviousExecution, beforeExecution);
+            OverlappingOutputs overlappingOutputs = detect(propertyName, previousSnapshot, currentSnapshot);
             if (overlappingOutputs != null) {
                 return overlappingOutputs;
             }
         }
         return null;
-    }
-
-    private static FileSystemSnapshot getSnapshotAfterPreviousExecution(@Nullable ImmutableSortedMap<String, FileSystemSnapshot> previous, String propertyName) {
-        if (previous != null) {
-            FileSystemSnapshot afterPreviousExecution = previous.get(propertyName);
-            if (afterPreviousExecution != null) {
-                return afterPreviousExecution;
-            }
-        }
-        return FileSystemSnapshot.EMPTY;
     }
 
     @Nullable
