@@ -22,25 +22,29 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 public class JavaToolchainInput {
 
-    private final JavaToolchainSpec spec;
+    private final JavaLanguageVersion javaLanguageVersion;
+    private final String vendor;
+    private final String implementation;
 
     public JavaToolchainInput(JavaToolchainSpec spec) {
-        this.spec = spec;
+        this.javaLanguageVersion = spec.getLanguageVersion().get();
+        this.vendor = spec.getVendor().get().toString();
+        this.implementation = spec.getImplementation().get().toString();
     }
 
     @Input
     JavaLanguageVersion getLanguageVersion() {
-        return spec.getLanguageVersion().get();
+        return javaLanguageVersion;
     }
 
     @Input
     String getVendor() {
-        return spec.getVendor().get().toString();
+        return vendor;
     }
 
     @Input
     String getImplementation() {
-        return spec.getImplementation().get().toString();
+        return implementation;
     }
 
 }
