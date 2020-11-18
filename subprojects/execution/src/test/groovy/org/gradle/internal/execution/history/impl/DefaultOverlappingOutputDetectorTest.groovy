@@ -60,8 +60,8 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
 
     @Unroll
     def "detects overlap when there is a stale #type in an output directory"() {
-        def emptyDirectory = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(123), [])
-        def directoryWithStaleBrokenSymlink = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(123), [
+        def emptyDirectory = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x1234), [])
+        def directoryWithStaleBrokenSymlink = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x5678), [
             staleEntry
         ])
         def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
