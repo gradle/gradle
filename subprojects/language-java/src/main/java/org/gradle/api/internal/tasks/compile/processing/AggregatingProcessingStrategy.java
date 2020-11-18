@@ -153,4 +153,9 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
             result.getGeneratedAggregatingResources().add(new GeneratedResource(resourceLocation, pkg, relativeName));
         }
     }
+
+    @Override
+    public String toString() {
+        return "Aggregating strategy for " + result.getClassName();
+    }
 }

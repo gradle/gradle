@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedRes
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -43,23 +44,39 @@ public class RecompilationSpec {
             '}';
     }
 
+    public void addClassesToCompile(Collection<String> classes) {
+        classesToCompile.addAll(classes);
+    }
+
     public Collection<String> getClassesToCompile() {
-        return classesToCompile;
+        return Collections.unmodifiableCollection(classesToCompile);
+    }
+
+    public void addRelativeSourcePathsToCompile(String path) {
+        relativeSourcePathsToCompile.add(path);
     }
 
     /**
      * @return the relative paths of files we clearly know to recompile
      */
     public Set<String> getRelativeSourcePathsToCompile() {
-        return relativeSourcePathsToCompile;
+        return Collections.unmodifiableSet(relativeSourcePathsToCompile);
+    }
+
+    public void addClassesToProcess(Collection<String> classes) {
+        classesToProcess.addAll(classes);
     }
 
     public Collection<String> getClassesToProcess() {
-        return classesToProcess;
+        return Collections.unmodifiableCollection(classesToProcess);
+    }
+
+    public void addResourcesToGenerate(Collection<GeneratedResource> resources) {
+        resourcesToGenerate.addAll(resources);
     }
 
     public Collection<GeneratedResource> getResourcesToGenerate() {
-        return resourcesToGenerate;
+        return Collections.unmodifiableCollection(resourcesToGenerate);
     }
 
     public boolean isBuildNeeded() {
