@@ -25,11 +25,13 @@ import org.gradle.internal.fingerprint.FingerprinterSpec;
 import java.util.Collection;
 import java.util.Map;
 
+import static org.gradle.internal.fingerprint.impl.DefaultFingerprinterSpec.from;
+
 public class DefaultFileCollectionFingerprinterRegistry implements FileCollectionFingerprinterRegistry {
     private final Map<FingerprinterSpec, FileCollectionFingerprinter> fingerprinters;
 
     public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> fingerprinters) {
-        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> DefaultFingerprinterSpec.from(input.getRegisteredType(), input.getDirectorySensitivity())));
+        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> from(input.getRegisteredType(), input.getDirectorySensitivity())));
     }
 
     @Override
