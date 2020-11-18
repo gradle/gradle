@@ -76,4 +76,73 @@ class EclipseTestDependenciesIntegrationTest extends AbstractEclipseIntegrationS
         Node projectDependency = classpath('b').entries.find { it.attribute('path') == '/a'}
         !projectDependency.attributes.attribute.find { it.@name == EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY && it.@value == 'true' }
     }
+
+    @ToBeFixedForConfigurationCache
+    def "can configure test sources via eclipse classpath"() {
+        settingsFile << "include 'a', 'b'"
+        file('a/build.gradle') << """
+            plugins {
+                id 'eclipse'
+                id 'java-library'
+            }
+
+            eclipse {
+                classpath {
+                    containsTestFixtures = true
+                }
+            }
+        """
+        file('b/build.gradle') << """
+            plugins {
+                id 'eclipse'
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation project(':a')
+            }
+        """
+
+        when:
+        run "eclipse"
+
+        then:
+        Node projectDependency = classpath('b').entries.find { it.attribute('path') == '/a'}
+        projectDependency.attributes.attribute.find { it.@name == EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY && it.@value == 'false' }
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "classpath configuration has precendence for test dependencies"() {
+        settingsFile << "include 'a', 'b'"
+        file('a/build.gradle') << """
+            plugins {
+                id 'eclipse'
+                id 'java-test-fixtures'
+                id 'java-library'
+            }
+
+            eclipse {
+                classpath {
+                    containsTestFixtures = false
+                }
+            }
+        """
+        file('b/build.gradle') << """
+            plugins {
+                id 'eclipse'
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation project(':a')
+            }
+        """
+
+        when:
+        run "eclipse"
+
+        then:
+        Node projectDependency = classpath('b').entries.find { it.attribute('path') == '/a'}
+        projectDependency.attributes.attribute.find { it.@name == EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY && it.@value == 'true' }
+    }
 }

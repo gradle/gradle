@@ -371,6 +371,9 @@ public class EclipseClasspath {
     }
 
     /**
+     * Sets whether the current project contains test fixtures.
+     *
+     * @see #getContainsTestFixtures()
      * @since 6.8
      */
     @Incubating
