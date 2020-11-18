@@ -175,6 +175,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.isPresent()
         toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.BELLSOFT
+        toolchain.get().vendor == "BellSoft Liberica"
     }
 
     def "install toolchain if no matching toolchain found"() {

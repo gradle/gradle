@@ -93,6 +93,11 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return metadata;
     }
 
+    @Override
+    public String getVendor() {
+        return metadata.getVendor().getDisplayName();
+    }
+
     @Internal
     @Override
     public String getDisplayName() {
