@@ -34,6 +34,10 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+
 public class NotifyDaemonAboutChangedPathsClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotifyDaemonAboutChangedPathsClient.class);
 
@@ -50,14 +54,13 @@ public class NotifyDaemonAboutChangedPathsClient {
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
         for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
             DaemonStateControl.State state = daemonInfo.getState();
-            if (state != DaemonStateControl.State.Idle) {
-                continue;
+            if (state == Idle || state == Busy || state == Canceled) {
+                DaemonClientConnection connection = connector.maybeConnect(daemonInfo);
+                if (connection == null) {
+                    continue;
+                }
+                dispatch(connection, new InvalidateVirtualFileSystem(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
             }
-            DaemonClientConnection connection = connector.maybeConnect(daemonInfo);
-            if (connection == null) {
-                continue;
-            }
-            dispatch(connection, new InvalidateVirtualFileSystem(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
         }
     }
 
