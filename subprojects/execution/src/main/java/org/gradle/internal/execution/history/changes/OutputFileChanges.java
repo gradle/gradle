@@ -49,7 +49,7 @@ public class OutputFileChanges implements ChangeContainer {
     private static final TrivialChangeDetector.ItemComparator<CompleteFileSystemLocationSnapshot> SNAPSHOT_COMPARATOR = new TrivialChangeDetector.ItemComparator<CompleteFileSystemLocationSnapshot>() {
         @Override
         public boolean hasSamePath(CompleteFileSystemLocationSnapshot previous, CompleteFileSystemLocationSnapshot current) {
-            return true;
+            return previous.getAbsolutePath().equals(current.getAbsolutePath());
         }
 
         @Override
