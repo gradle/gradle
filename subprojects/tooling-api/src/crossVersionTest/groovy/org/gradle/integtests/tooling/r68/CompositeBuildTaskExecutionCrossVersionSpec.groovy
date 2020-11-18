@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
-@ToolingApiVersion(">=6.8")
+@ToolingApiVersion(">=3.0")
 @TargetGradleVersion('>=6.8')
 class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
 
