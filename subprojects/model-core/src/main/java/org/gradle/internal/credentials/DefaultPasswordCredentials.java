@@ -16,6 +16,7 @@
 package org.gradle.internal.credentials;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.tasks.Internal;
 
 public class DefaultPasswordCredentials implements PasswordCredentials {
     private String username;
@@ -29,6 +30,7 @@ public class DefaultPasswordCredentials implements PasswordCredentials {
         this.password = password;
     }
 
+    @Internal
     @Override
     public String getUsername() {
         return username;
@@ -39,6 +41,7 @@ public class DefaultPasswordCredentials implements PasswordCredentials {
         this.username = username;
     }
 
+    @Internal
     @Override
     public String getPassword() {
         return password;

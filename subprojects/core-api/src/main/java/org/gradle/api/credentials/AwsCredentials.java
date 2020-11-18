@@ -16,9 +16,6 @@
 
 package org.gradle.api.credentials;
 
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
-
 import javax.annotation.Nullable;
 
 /**
@@ -29,7 +26,6 @@ public interface AwsCredentials extends Credentials {
     /**
      * Returns the access key to use to authenticate with AWS.
      */
-    @Input
     @Nullable
     String getAccessKey();
 
@@ -41,7 +37,6 @@ public interface AwsCredentials extends Credentials {
     /**
      * Returns the secret key to use to authenticate with AWS.
      */
-    @Input
     @Nullable
     String getSecretKey();
 
@@ -55,8 +50,6 @@ public interface AwsCredentials extends Credentials {
      *
      * @since 3.3
      */
-    @Input
-    @Optional
     @Nullable
     String getSessionToken();
 

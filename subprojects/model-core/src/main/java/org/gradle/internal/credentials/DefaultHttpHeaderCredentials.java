@@ -16,12 +16,14 @@
 package org.gradle.internal.credentials;
 
 import org.gradle.api.credentials.HttpHeaderCredentials;
+import org.gradle.api.tasks.Internal;
 
 public class DefaultHttpHeaderCredentials implements HttpHeaderCredentials {
 
     private String name;
     private String value;
 
+    @Internal
     @Override
     public String getName() {
         return name;
@@ -32,6 +34,7 @@ public class DefaultHttpHeaderCredentials implements HttpHeaderCredentials {
         this.name = name;
     }
 
+    @Internal
     @Override
     public String getValue() {
         return value;

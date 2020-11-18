@@ -16,8 +16,6 @@
 
 package org.gradle.api.credentials;
 
-import org.gradle.api.tasks.Input;
-
 import javax.annotation.Nullable;
 
 /**
@@ -32,7 +30,6 @@ public interface HttpHeaderCredentials extends Credentials {
      *
      * @return The header name. May be null.
      */
-    @Input
     @Nullable
     String getName();
 
@@ -48,7 +45,6 @@ public interface HttpHeaderCredentials extends Credentials {
      *
      * @return The header value. May be null.
      */
-    @Input
     @Nullable
     String getValue();
 
