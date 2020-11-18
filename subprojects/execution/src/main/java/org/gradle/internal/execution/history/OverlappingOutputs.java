@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.overlap;
+package org.gradle.internal.execution.history;
 
 public class OverlappingOutputs {
     private final String propertyName;

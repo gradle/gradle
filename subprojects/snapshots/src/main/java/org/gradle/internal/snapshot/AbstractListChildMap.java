@@ -161,4 +161,9 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     public int hashCode() {
         return entries.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return entries.toString();
+    }
 }

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl;
+package org.gradle.internal.execution.history.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
+import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -35,76 +35,109 @@ import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisit
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
+import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
+import static com.google.common.collect.Maps.transformEntries;
 import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
 import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.SnapshotUtil.index;
 
-/**
- * Filters out fingerprints that are not considered outputs. Entries that are considered outputs are:
- * <ul>
- * <li>an entry that did not exist before the execution, but exists after the execution</li>
- * <li>an entry that did exist before the execution, and has been changed during the execution</li>
- * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
- * </ul>
- */
-public class OutputFilterUtil {
+public class OutputSnapshotUtil {
 
-    public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotBeforeExecution(FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot) {
-        Map<String, FileSystemLocationFingerprint> fingerprints = afterLastExecutionFingerprint.getFingerprints();
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) ->
-            (!isRoot || snapshot.getType() != FileType.Missing)
-                && fingerprints.containsKey(snapshot.getAbsolutePath())
+    /**
+     * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
+     * <ul>
+     * <li>an entry that did not exist before the execution, but exists after the execution</li>
+     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
+     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * </ul>
+     */
+    public static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputsWithOverlapBeforeExecution(
+        ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
+        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots
+    ) {
+        return ImmutableSortedMap.copyOfSorted(
+            Maps.transformEntries(unfilteredBeforeExecutionSnapshots, (key, unfilteredBeforeExecution) -> {
+                    FileSystemSnapshot previous = previousSnapshots.get(key);
+                    // If the property was null before (can only happen for tasks with optional outputs)
+                    if (previous == null) {
+                        return FileSystemSnapshot.EMPTY;
+                    }
+                    //noinspection ConstantConditions
+                    return filterOutputWithOverlapBeforeExecution(previous, unfilteredBeforeExecution);
+                }
+            )
         );
-        beforeExecutionOutputSnapshot.accept(filteringVisitor);
-        return filteringVisitor.getNewRoots();
     }
 
-    public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotAfterExecution(@Nullable FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot, FileSystemSnapshot afterExecutionOutputSnapshot) {
-        Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecutionOutputSnapshot);
-        if (beforeExecutionSnapshots.isEmpty()) {
-            return ImmutableList.of(afterExecutionOutputSnapshot);
-        }
-
-        Map<String, FileSystemLocationFingerprint> afterLastExecutionFingerprints = afterLastExecutionFingerprint != null
-            ? afterLastExecutionFingerprint.getFingerprints()
-            : ImmutableMap.of();
-
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
-            isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot)
+    @VisibleForTesting
+    static FileSystemSnapshot filterOutputWithOverlapBeforeExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
+        Map<String, CompleteFileSystemLocationSnapshot> previousIndex = index(previous);
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((currentSnapshot, isRoot) ->
+            // Include only outputs that we already considered outputs after the previous execution
+            previousIndex.containsKey(currentSnapshot.getAbsolutePath())
         );
-        afterExecutionOutputSnapshot.accept(filteringVisitor);
-
-        // Are all file snapshots after execution accounted for as new entries?
-        if (filteringVisitor.hasBeenFiltered()) {
-            return filteringVisitor.getNewRoots();
-        } else {
-            return ImmutableList.of(afterExecutionOutputSnapshot);
-        }
-    }
-
-    private static Map<String, CompleteFileSystemLocationSnapshot> getAllSnapshots(FileSystemSnapshot fingerprint) {
-        GetAllSnapshotsVisitor allSnapshotsVisitor = new GetAllSnapshotsVisitor();
-        fingerprint.accept(allSnapshotsVisitor);
-        return allSnapshotsVisitor.getSnapshots();
+        current.accept(filteringVisitor);
+        return CompositeFileSystemSnapshot.of(filteringVisitor.getNewRoots());
     }
 
     /**
-     * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
+     * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
+     * <ul>
+     * <li>an entry that did not exist before the execution, but exists after the execution</li>
+     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
+     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * </ul>
      */
-    private static boolean isOutputEntry(Map<String, FileSystemLocationFingerprint> afterPreviousExecutionFingerprints, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
-        if (isRoot) {
-            switch (afterExecutionSnapshot.getType()) {
-                case Missing:
-                    return false;
-                case Directory:
-                    return true;
-                default:
-                    // continue
-                    break;
+    public static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputsWithOverlapAfterExecution(
+        ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
+        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots,
+        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredAfterExecutionSnapshots
+    ) {
+        return copyOfSorted(transformEntries(
+            unfilteredAfterExecutionSnapshots,
+            (propertyName, unfilteredAfterExecution) -> {
+                // This can never be null as it comes from an ImmutableMap's value
+                assert unfilteredAfterExecution != null;
+
+                FileSystemSnapshot previous = previousSnapshots.get(propertyName);
+                FileSystemSnapshot unfilteredBeforeExecution = unfilteredBeforeExecutionSnapshots.get(propertyName);
+                return filterOutputWithOverlapAfterExecution(previous, unfilteredBeforeExecution, unfilteredAfterExecution);
             }
+        ));
+    }
+
+    @VisibleForTesting
+    static FileSystemSnapshot filterOutputWithOverlapAfterExecution(@Nullable FileSystemSnapshot previous, FileSystemSnapshot unfilteredBeforeExecution, FileSystemSnapshot unfilteredAfterExecution) {
+        Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionIndex = index(unfilteredBeforeExecution);
+        if (beforeExecutionIndex.isEmpty()) {
+            return unfilteredAfterExecution;
+        }
+
+        Map<String, CompleteFileSystemLocationSnapshot> previousIndex = previous != null
+            ? index(previous)
+            : ImmutableMap.of();
+
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
+            isOutputEntry(previousIndex.keySet(), beforeExecutionIndex, afterExecutionSnapshot, isRoot)
+        );
+        unfilteredAfterExecution.accept(filteringVisitor);
+
+        // Are all file snapshots after execution accounted for as new entries?
+        if (filteringVisitor.hasBeenFiltered()) {
+            return CompositeFileSystemSnapshot.of(filteringVisitor.getNewRoots());
+        } else {
+            return unfilteredAfterExecution;
+        }
+    }
+
+    private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
+        // A root is always an output, even when it's missing or unchanged
+        if (isRoot) {
+            return true;
         }
         CompleteFileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
         // Was it created during execution?
@@ -116,21 +149,7 @@ public class OutputFilterUtil {
             return true;
         }
         // Did we already consider it as an output after the previous execution?
-        return afterPreviousExecutionFingerprints.containsKey(afterExecutionSnapshot.getAbsolutePath());
-    }
-
-    private static class GetAllSnapshotsVisitor implements FileSystemSnapshotHierarchyVisitor {
-        private final Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<>();
-
-        @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
-            snapshots.put(snapshot.getAbsolutePath(), snapshot);
-            return SnapshotVisitResult.CONTINUE;
-        }
-
-        public Map<String, CompleteFileSystemLocationSnapshot> getSnapshots() {
-            return snapshots;
-        }
+        return afterPreviousExecutionLocations.contains(afterExecutionSnapshot.getAbsolutePath());
     }
 
     private static class SnapshotFilteringVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {

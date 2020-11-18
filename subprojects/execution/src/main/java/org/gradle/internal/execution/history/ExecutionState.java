@@ -42,9 +42,4 @@ public interface ExecutionState {
      * The file inputs.
      */
     ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFileProperties();
-
-    /**
-     * The file outputs.
-     */
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFileProperties();
 }

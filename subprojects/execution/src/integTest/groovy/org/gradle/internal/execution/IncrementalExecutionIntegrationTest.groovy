@@ -27,8 +27,10 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.OutputFilesRepository
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
@@ -52,13 +54,12 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
-import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -194,11 +195,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
-        result.finalOutputs["dir"].rootHashes.size() == 1
+        result.outputFilesProduceByWork.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
+        SnapshotVisitorUtil.getRelativePaths(result.outputFilesProduceByWork["dir"]) == ["some-file", "some-file-2"]
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
-        afterExecution.outputFileProperties.values()*.rootHashes == result.finalOutputs.values()*.rootHashes
+        afterExecution.outputFilesProducedByWork == result.outputFilesProduceByWork
     }
 
     def "work unit is up-to-date if nothing changes"() {
@@ -209,7 +210,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        def finalOutputs = result.finalOutputs
+        def outputFilesProduceByWork = result.outputFilesProduceByWork
 
         when:
         buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -219,7 +220,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.executionResult.get().outcome == UP_TO_DATE
-        result.finalOutputs.values()*.rootHashes == finalOutputs.values()*.rootHashes
+        result.outputFilesProduceByWork == outputFilesProduceByWork
     }
 
     def "out-of-date for an output file change"() {

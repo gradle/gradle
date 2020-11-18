@@ -17,8 +17,15 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public interface SnapshotResult extends Result {
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
+    /**
+     * Snapshots of the roots of output properties.
+     *
+     * In the presence of overlapping outputs this might be different from
+     * {@link BeforeExecutionState#getOutputFileLocationSnapshots()},
+     * as this does not include overlapping outputs <em>not</em> produced by the work.
+     */
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork();
 }

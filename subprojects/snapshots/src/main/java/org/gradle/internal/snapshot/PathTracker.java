@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.RelativePathSupplier;
 
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -26,7 +27,7 @@ import java.util.Iterator;
 /**
  * Tracks the relative path. Useful when visiting {@link CompleteFileSystemLocationSnapshot}s.
  */
-public class RelativePathTracker implements RelativePathSupplier {
+public class PathTracker implements RelativePathSupplier {
     private final Deque<String> segments = new ArrayDeque<>();
     private String rootName;
 
@@ -42,12 +43,13 @@ public class RelativePathTracker implements RelativePathSupplier {
         }
     }
 
-    public void leave() {
-        if (segments.isEmpty()) {
+    public String leave() {
+        String name = segments.pollLast();
+        if (name == null) {
+            name = rootName;
             rootName = null;
-        } else {
-            segments.removeLast();
         }
+        return name;
     }
 
     @Override
@@ -60,13 +62,37 @@ public class RelativePathTracker implements RelativePathSupplier {
         return segments;
     }
 
+    /**
+     * Returns the absolute path with system file separators.
+     */
+    public String toAbsolutePath() {
+        if (segments.isEmpty()) {
+            return rootName;
+        } else {
+            int length = rootName.length() + segments.size();
+            for (String segment : segments) {
+                length += segment.length();
+            }
+            StringBuilder buffer = new StringBuilder(length);
+            buffer.append(rootName);
+            for (String segment : segments) {
+                buffer.append(File.separatorChar);
+                buffer.append(segment);
+            }
+            return buffer.toString();
+        }
+    }
+
+    /**
+     * Returns the relative path using '{@literal /}' as the separator.
+     */
     @Override
-    public String toPathString() {
+    public String toRelativePath() {
         switch (segments.size()) {
             case 0:
                 return "";
             case 1:
-                return segments.peek();
+                return segments.getLast();
             default:
                 int length = segments.size() - 1;
                 for (String segment : segments) {

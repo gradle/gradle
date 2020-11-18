@@ -24,13 +24,13 @@ import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork.OutputVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements FingerprinterFixture {
+class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements SnasphotterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
@@ -49,7 +49,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
     def "deletes only the previous outputs"() {
         def outputs = new WorkOutputs()
         outputs.createContents()
-        outputs.fingerprint()
+        outputs.snapshot()
         outputs.dir.file("some/notOutput1.txt") << "notOutput1"
         outputs.dir.createDir("some/notOutput2")
 
@@ -74,7 +74,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         def outputs = new WorkOutputs()
         outputs.dir.createDir()
         outputs.file << "output"
-        outputs.fingerprint()
+        outputs.snapshot()
 
         when:
         step.execute(work, context)
@@ -94,7 +94,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         def outputs = new WorkOutputs()
         outputs.dir.parentFile.mkdirs()
         outputs.file.parentFile.mkdirs()
-        outputs.fingerprint()
+        outputs.snapshot()
 
         when:
         step.execute(work, context)
@@ -189,9 +189,9 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
-        1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("dir", outputs.dirFingerprint, "file", outputs.fileFingerprint)
-        1 * outputChangeListener.beforeOutputChange(outputs.dirFingerprint.rootPaths)
-        1 * outputChangeListener.beforeOutputChange(outputs.fileFingerprint.rootPaths)
+        1 * afterPreviousExecution.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
+        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] })
+        1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.file.absolutePath] })
     }
 
     void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {
@@ -208,12 +208,12 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
     class WorkOutputs {
         def dir = temporaryFolder.file("build/outputs/dir")
         def file = temporaryFolder.file("build/output-files/file.txt")
-        FileCollectionFingerprint dirFingerprint
-        FileCollectionFingerprint fileFingerprint
+        FileSystemSnapshot dirSnapshot
+        FileSystemSnapshot fileSnapshot
 
-        void fingerprint() {
-            dirFingerprint = outputFingerprinter.fingerprint(TestFiles.fixed(dir))
-            fileFingerprint = outputFingerprinter.fingerprint(TestFiles.fixed(file))
+        void snapshot() {
+            dirSnapshot = snapshot(dir)
+            fileSnapshot = snapshot(file)
         }
 
         void createContents() {

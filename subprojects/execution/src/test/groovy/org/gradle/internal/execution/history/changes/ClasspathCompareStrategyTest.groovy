@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.classpath.impl
+package org.gradle.internal.execution.history.changes
 
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
-import org.gradle.internal.execution.history.changes.ClasspathCompareStrategy
-import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
-import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
@@ -28,7 +25,7 @@ import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
-class ClasspathFingerprintCompareStrategyTest extends Specification {
+class ClasspathCompareStrategyTest extends Specification {
 
     private static final CLASSPATH = ClasspathCompareStrategy.INSTANCE
 
@@ -176,7 +173,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         def visitor = new CollectingChangeVisitor()
         def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)))
         def previousFingerprint = new SerializableFileCollectionFingerprint(previous,  ImmutableMultimap.of("some", HashCode.fromInt(4321)))
-        CLASSPATH.visitChangesSince(currentFingerprint, previousFingerprint, "test", visitor)
+        CLASSPATH.visitChangesSince(previousFingerprint, currentFingerprint, "test", visitor)
         visitor.getChanges().toList()
     }
 

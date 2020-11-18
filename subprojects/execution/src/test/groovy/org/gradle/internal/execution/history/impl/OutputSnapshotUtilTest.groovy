@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl
+package org.gradle.internal.execution.history.impl
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
+import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution
-import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
-import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputWithOverlapAfterExecution
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputWithOverlapBeforeExecution
+import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
 
-class OutputFilterUtilTest extends Specification {
-
-    private static final FileCollectionFingerprint EMPTY_OUTPUT_FINGERPRINT = AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint
+class OutputSnapshotUtilTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
@@ -50,7 +43,7 @@ class OutputFilterUtilTest extends Specification {
         outputDir.file()
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir]
 
@@ -58,7 +51,7 @@ class OutputFilterUtilTest extends Specification {
         def outputDirFile = outputDir.file("in-output-dir").createFile()
         virtualFileSystem.invalidateAll()
         def afterExecution = snapshotOutput(outputDir)
-        filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
+        filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
@@ -69,14 +62,14 @@ class OutputFilterUtilTest extends Specification {
         def beforeExecution = snapshotOutput(outputDir)
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir]
 
         when:
         def outputOfCurrent = outputDir.file("outputOfCurrent").createFile()
         def afterExecution = snapshotOutput(outputDir)
-        filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
+        filteredOutputs = filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputOfCurrent]
     }
@@ -84,30 +77,30 @@ class OutputFilterUtilTest extends Specification {
     def "previous outputs remain outputs"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
         def outputDirFile = outputDir.file("outputOfCurrent").createFile()
-        def previousExecution = fingerprintOutput(outputDir)
+        def previousExecution = snapshotOutput(outputDir)
         outputDir.file("outputOfOther").createFile()
         def beforeExecution = snapshotOutput(outputDir)
 
         when:
-        def filteredOutputs = filterOutputSnapshotAfterExecution(previousExecution, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputWithOverlapAfterExecution(previousExecution, beforeExecution, beforeExecution)
         then:
         collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
 
-    def "missing files are ignored"() {
+    def "missing files are included"() {
         def missingFile = temporaryFolder.file("missing")
         def beforeExecution = snapshotOutput(missingFile)
         expect:
-        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution).empty
+        filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, beforeExecution) == beforeExecution
     }
 
     def "added empty dir is captured"() {
         def emptyDir = temporaryFolder.file("emptyDir").createDir()
         def afterExecution = snapshotOutput(emptyDir)
-        def beforeExecution = FileSystemSnapshot.EMPTY
+        def beforeExecution = EMPTY
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [emptyDir]
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterExecution, afterExecution)) == [emptyDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [emptyDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, afterExecution, afterExecution)) == [emptyDir]
     }
 
     def "updated files in output directory are part of the output"() {
@@ -117,7 +110,7 @@ class OutputFilterUtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = snapshotOutput(outputDir)
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [outputDir, existingFile]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [outputDir, existingFile]
     }
 
     def "updated files are part of the output"() {
@@ -126,20 +119,20 @@ class OutputFilterUtilTest extends Specification {
         existingFile << "modified"
         def afterExecution = snapshotOutput(existingFile)
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [existingFile]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [existingFile]
     }
 
     def "removed files are not considered outputs"() {
         def outputDir = temporaryFolder.createDir("outputDir")
         def outputDirFile = outputDir.file("toBeDeleted").createFile()
-        def afterPreviousExecutionFingerprint = fingerprintOutput(outputDir)
-        def beforeExecutionSnapshot = snapshotOutput(outputDir)
+        def previousExecution = snapshotOutput(outputDir)
+        def beforeExecution = snapshotOutput(outputDir)
         outputDirFile.delete()
         def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(afterPreviousExecutionFingerprint, beforeExecutionSnapshot, afterExecution)) == [outputDir]
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterPreviousExecutionFingerprint, afterExecution)) == [outputDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(previousExecution, beforeExecution, afterExecution)) == [outputDir]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, previousExecution, afterExecution)) == [outputDir]
     }
 
     def "overlapping directories are not included"() {
@@ -150,18 +143,18 @@ class OutputFilterUtilTest extends Specification {
         def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
+        collectFiles(filterOutputWithOverlapAfterExecution(EMPTY, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
     }
 
     def "overlapping files are not part of the before execution snapshot"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
         def outputDirFile = outputDir.createFile("outputDirFile")
-        def afterLastExecution = fingerprintOutput(outputDir)
+        def previousExecution = snapshotOutput(outputDir)
         outputDir.createFile("not-in-output")
         def beforeExecution = snapshotOutput(outputDir)
 
         expect:
-        collectFiles(filterOutputSnapshotBeforeExecution(afterLastExecution, beforeExecution)) == [outputDir, outputDirFile]
+        collectFiles(filterOutputWithOverlapBeforeExecution(previousExecution, beforeExecution)) == [outputDir, outputDirFile]
     }
 
     private FileSystemSnapshot snapshotOutput(File output) {
@@ -171,18 +164,7 @@ class OutputFilterUtilTest extends Specification {
         return result.get()
     }
 
-    private CurrentFileCollectionFingerprint fingerprintOutput(File outputDir) {
-        DefaultCurrentFileCollectionFingerprint.from([snapshotOutput(outputDir)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
-    }
-
-    List<File> collectFiles(ImmutableList<FileSystemSnapshot> fileSystemSnapshots) {
-        def result = []
-        fileSystemSnapshots.each {
-            it.accept({ CompleteFileSystemLocationSnapshot snapshot ->
-                result.add(snapshot)
-                return CONTINUE
-            } as FileSystemSnapshotHierarchyVisitor)
-        }
-        result.collect { it.absolutePath as File }
+    private static List<File> collectFiles(FileSystemSnapshot fileSystemSnapshots) {
+        SnapshotVisitorUtil.getAbsolutePaths(fileSystemSnapshots, true).collect { new File(it) }
     }
 }

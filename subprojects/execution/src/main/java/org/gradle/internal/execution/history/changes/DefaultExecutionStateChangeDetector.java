@@ -23,6 +23,9 @@ import org.gradle.api.Describable;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsWithOverlapBeforeExecution;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
@@ -39,8 +42,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture non-file input changes
         ChangeContainer inputPropertyChanges = new PropertyChanges(
-            lastExecution.getInputProperties(),
-            thisExecution.getInputProperties(),
+            lastExecution.getInputProperties().keySet(),
+            thisExecution.getInputProperties().keySet(),
             "Input",
             executable);
         ChangeContainer inputPropertyValueChanges = new InputValueChanges(
@@ -50,8 +53,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture input files state
         ChangeContainer inputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getInputFileProperties(),
-            thisExecution.getInputFileProperties(),
+            lastExecution.getInputFileProperties().keySet(),
+            thisExecution.getInputFileProperties().keySet(),
             "Input file",
             executable);
         InputFileChanges nonIncrementalInputFileChanges = incrementalInputProperties.nonIncrementalChanges(
@@ -61,13 +64,16 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
-            lastExecution.getOutputFileProperties(),
-            thisExecution.getOutputFileProperties(),
+            lastExecution.getOutputFilesProducedByWork().keySet(),
+            thisExecution.getOutputFileLocationSnapshots().keySet(),
             "Output",
             executable);
+        ImmutableSortedMap<String, FileSystemSnapshot> remainingPreviouslyProducedOutputs = thisExecution.getDetectedOverlappingOutputs().isPresent()
+            ? filterOutputsWithOverlapBeforeExecution(lastExecution.getOutputFilesProducedByWork(), thisExecution.getOutputFileLocationSnapshots())
+            : thisExecution.getOutputFileLocationSnapshots();
         OutputFileChanges outputFileChanges = new OutputFileChanges(
-            lastExecution.getOutputFileProperties(),
-            thisExecution.getOutputFileProperties()
+            lastExecution.getOutputFilesProducedByWork(),
+            remainingPreviouslyProducedOutputs
         );
 
         // Collect changes that would trigger a rebuild

@@ -96,4 +96,41 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return missingSnapshotForAbsolutePath(relativePath.getAbsolutePath());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractCompleteFileSystemLocationSnapshot that = (AbstractCompleteFileSystemLocationSnapshot) o;
+
+        if (accessType != that.accessType) {
+            return false;
+        }
+        if (!name.equals(that.name)) {
+            return false;
+        }
+        if (!absolutePath.equals(that.absolutePath)) {
+            return false;
+        }
+        return getHash().equals(that.getHash());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = absolutePath.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + accessType.hashCode();
+        result = 31 * result + getHash().hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

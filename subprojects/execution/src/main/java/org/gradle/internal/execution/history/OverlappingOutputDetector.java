@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.internal.fingerprint.overlap;
+package org.gradle.internal.execution.history;
 
-import org.gradle.api.NonNullApi;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import javax.annotation.Nullable;
+
+public interface OverlappingOutputDetector {
+    @Nullable
+    OverlappingOutputs detect(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current);
+}

@@ -29,8 +29,8 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,7 +178,7 @@ public class DirectorySnapshotter {
     }
 
     private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
-        private final RelativePathTracker relativePathTracker = new RelativePathTracker();
+        private final PathTracker pathTracker = new PathTracker();
         private final MerkleDirectorySnapshotBuilder builder;
         private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
@@ -208,8 +208,8 @@ public class DirectorySnapshotter {
         @Override
         protected FileVisitResult doPreVisitDirectory(Path dir, BasicFileAttributes attrs) {
             String fileName = getInternedFileName(dir);
-            relativePathTracker.enter(fileName);
-            if (relativePathTracker.isRoot() || shouldVisit(dir, fileName, true, relativePathTracker.getSegments())) {
+            pathTracker.enter(fileName);
+            if (pathTracker.isRoot() || shouldVisit(dir, fileName, true, pathTracker.getSegments())) {
                 AccessType accessType = AccessType.viaSymlink(
                     !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
                 );
@@ -217,7 +217,7 @@ public class DirectorySnapshotter {
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
             } else {
-                relativePathTracker.leave();
+                pathTracker.leave();
                 return FileVisitResult.SKIP_SUBTREE;
             }
         }
@@ -225,7 +225,7 @@ public class DirectorySnapshotter {
         @Override
         protected FileVisitResult doVisitFile(Path file, BasicFileAttributes attrs) {
             String internedFileName = getInternedFileName(file);
-            relativePathTracker.enter(internedFileName);
+            pathTracker.enter(internedFileName);
             try {
                 if (attrs.isSymbolicLink()) {
                     BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
@@ -250,7 +250,7 @@ public class DirectorySnapshotter {
                 }
                 return FileVisitResult.CONTINUE;
             } finally {
-                relativePathTracker.leave();
+                pathTracker.leave();
             }
         }
 
@@ -270,7 +270,7 @@ public class DirectorySnapshotter {
 
         private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
             String internedName = intern(file.getFileName().toString());
-            if (shouldVisit(file, internedName, false, relativePathTracker.getSegments())) {
+            if (shouldVisit(file, internedName, false, pathTracker.getSegments())) {
                 builder.visitLeafElement(snapshotFile(file, internedName, targetAttributes, accessType));
             }
         }
@@ -305,14 +305,14 @@ public class DirectorySnapshotter {
         @Override
         protected FileVisitResult doVisitFileFailed(Path file, IOException exc) {
             String internedFileName = getInternedFileName(file);
-            relativePathTracker.enter(internedFileName);
+            pathTracker.enter(internedFileName);
             try {
                 // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                 // so we include all the other files apart from the loop.
                 // This way, we include each file only once.
                 if (isNotFileSystemLoopException(exc)) {
                     boolean isDirectory = Files.isDirectory(file);
-                    if (shouldVisit(file, internedFileName, isDirectory, relativePathTracker.getSegments())) {
+                    if (shouldVisit(file, internedFileName, isDirectory, pathTracker.getSegments())) {
                         LOGGER.info("Could not read file path '{}'.", file);
                         String internedAbsolutePath = intern(file.toString());
                         builder.visitLeafElement(new MissingFileSnapshot(internedAbsolutePath, internedFileName, AccessType.DIRECT));
@@ -320,13 +320,13 @@ public class DirectorySnapshotter {
                 }
                 return FileVisitResult.CONTINUE;
             } finally {
-                relativePathTracker.leave();
+                pathTracker.leave();
             }
         }
 
         @Override
         protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
-            relativePathTracker.leave();
+            pathTracker.leave();
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.

@@ -21,10 +21,12 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 public class DefaultAfterPreviousExecutionState extends AbstractExecutionState<FileCollectionFingerprint> implements AfterPreviousExecutionState {
+    private final ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork;
     private final OriginMetadata originMetadata;
     private final boolean successful;
 
@@ -34,12 +36,18 @@ public class DefaultAfterPreviousExecutionState extends AbstractExecutionState<F
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileCollectionFingerprint> outputFileProperties,
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
         boolean successful
     ) {
-        super(implementation, additionalImplementations, inputProperties, inputFileProperties, outputFileProperties);
+        super(implementation, additionalImplementations, inputProperties, inputFileProperties);
+        this.outputFilesProducedByWork = outputFilesProducedByWork;
         this.originMetadata = originMetadata;
         this.successful = successful;
+    }
+
+    @Override
+    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork() {
+        return outputFilesProducedByWork;
     }
 
     @Override

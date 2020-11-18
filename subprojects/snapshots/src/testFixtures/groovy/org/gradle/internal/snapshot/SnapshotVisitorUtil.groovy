@@ -35,9 +35,9 @@ class SnapshotVisitorUtil {
 
     static List<String> getRelativePaths(FileSystemSnapshot snapshot, boolean includeRoots = false) {
         def relativePaths = []
-        snapshot.accept(new RelativePathTracker()) { entrySnapshot, relativePath ->
+        snapshot.accept(new PathTracker()) { entrySnapshot, relativePath ->
             if (includeRoots || !relativePath.root) {
-                relativePaths << relativePath.toPathString()
+                relativePaths << relativePath.toRelativePath()
             }
             CONTINUE
         }
