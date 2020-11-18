@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.internal.jvm.inspection.JvmVendor;
+
 import java.util.Comparator;
 
 public class JavaToolchainComparator implements Comparator<JavaToolchain> {
@@ -23,10 +25,15 @@ public class JavaToolchainComparator implements Comparator<JavaToolchain> {
     @Override
     public int compare(JavaToolchain o1, JavaToolchain o2) {
         return Comparator
-            .comparing(JavaToolchain::getToolVersion)
-            .thenComparing(JavaToolchain::isJdk)
+            .comparing(JavaToolchain::isJdk)
+            .thenComparing(this::extractVendor, Comparator.reverseOrder())
+            .thenComparing(JavaToolchain::getToolVersion)
             .reversed()
             .compare(o1, o2);
+    }
+
+    private JvmVendor.KnownJvmVendor extractVendor(JavaToolchain toolchain) {
+        return toolchain.getMetadata().getVendor().getKnownVendor();
     }
 
 }

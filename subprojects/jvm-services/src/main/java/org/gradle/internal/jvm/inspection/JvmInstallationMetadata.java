@@ -24,13 +24,13 @@ import org.gradle.internal.os.OperatingSystem;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public interface JvmInstallationMetadata {
 
     enum JavaInstallationCapability {
-        JAVA_COMPILER
+        JAVA_COMPILER, J9_VIRTUAL_MACHINE
     }
 
     static DefaultJvmInstallationMetadata from(File javaHome, String implementationVersion, String vendor, String implementationName) {
@@ -127,11 +127,16 @@ public interface JvmInstallationMetadata {
         }
 
         private Set<JavaInstallationCapability> gatherCapabilities() {
+            final Set<JavaInstallationCapability> capabilities = new HashSet<>(2);
             final File javaCompiler = new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName("javac"));
             if (javaCompiler.exists()) {
-                return Collections.singleton(JavaInstallationCapability.JAVA_COMPILER);
+                capabilities.add(JavaInstallationCapability.JAVA_COMPILER);
             }
-            return Collections.emptySet();
+            boolean isJ9vm = implementationName.contains("J9");
+            if(isJ9vm) {
+                capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
+            }
+            return capabilities;
         }
 
         @Override

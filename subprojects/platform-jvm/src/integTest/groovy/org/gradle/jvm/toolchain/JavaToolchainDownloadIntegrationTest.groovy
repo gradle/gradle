@@ -47,7 +47,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any}")
+            .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any, implementation=vendor-specific}")
             .assertHasCause("Unable to download toolchain. This might indicate that the combination (version, architecture, release/early access, ...) for the requested JDK is not available.")
             .assertThatCause(CoreMatchers.startsWith("Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/99/ga/"))
     }
@@ -80,7 +80,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14, vendor=any} (auto-detect false, auto-download false)")
+            .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -112,7 +112,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause('Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any}')
+            .assertHasCause('Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any, implementation=vendor-specific}')
             .assertThatCause(CoreMatchers.startsWith('Attempting to download a JDK from an insecure URI http://example.com'))
     }
 

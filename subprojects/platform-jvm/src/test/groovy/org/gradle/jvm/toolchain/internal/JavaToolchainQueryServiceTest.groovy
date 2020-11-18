@@ -28,6 +28,7 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
@@ -35,6 +36,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
 
 class JavaToolchainQueryServiceTest extends Specification {
 
@@ -51,7 +53,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
         then:
-        toolchain.languageVersion.equals(versionToFind)
+        toolchain.languageVersion == versionToFind
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
@@ -73,7 +75,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
         then:
-        toolchain.languageVersion.equals(versionToFind)
+        toolchain.languageVersion == versionToFind
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
@@ -81,6 +83,23 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaLanguageVersion.of(7)   | "/path/7.9"
         JavaLanguageVersion.of(8)   | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
         JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
+    }
+
+    def "uses j9 toolchain if requested"() {
+        given:
+        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.1.j9"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        filter.implementation.set(JvmImplementation.J9)
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.j9")
     }
 
     def "ignores invalid toolchains when finding a matching one"() {
@@ -115,7 +134,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No compatible toolchains found for request filter: {languageVersion=12, vendor=any} (auto-detect true, auto-download true)"
+        e.message == "No compatible toolchains found for request filter: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)"
     }
 
     def "returns no toolchain if filter is not configured"() {
@@ -155,7 +174,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.isPresent()
-        toolchain.get().vendor.knownVendor == JvmVendor.KnownJvmVendor.BELLSOFT
+        toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.BELLSOFT
     }
 
     def "install toolchain if no matching toolchain found"() {
@@ -213,9 +232,9 @@ class JavaToolchainQueryServiceTest extends Specification {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
                     def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory())
-                    return Optional.of(toolchain);
+                    return Optional.of(toolchain)
                 }
-                return Optional.empty();
+                return Optional.empty()
             }
         }
         toolchainFactory
@@ -234,6 +253,12 @@ class JavaToolchainQueryServiceTest extends Specification {
             getImplementationVersion() >> javaHome.name.replace("zzz", "999")
             isValidInstallation() >> true
             getVendor() >> JvmVendor.fromString(vendor)
+            hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { capability ->
+                if(capability[0] == J9_VIRTUAL_MACHINE) {
+                    return javaHome.name.contains("j9")
+                }
+                return false
+            }
         }
     }
 

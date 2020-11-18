@@ -28,7 +28,6 @@ import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningServic
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class JavaToolchainQueryService {
@@ -44,8 +43,8 @@ public class JavaToolchainQueryService {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
-        detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).forUseAtConfigurationTime().map(Boolean::parseBoolean);
-        downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
     }
 
     <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
@@ -68,7 +67,7 @@ public class JavaToolchainQueryService {
             .map(this::asToolchain)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .filter(matchingToolchain(filter))
+            .filter(new ToolchainMatcher(filter))
             .sorted(new JavaToolchainComparator())
             .findFirst()
             .orElseGet(() -> downloadToolchain(filter));
@@ -88,17 +87,6 @@ public class JavaToolchainQueryService {
 
     private Supplier<GradleException> provisionedToolchainIsInvalid(Supplier<File> javaHome) {
         return () -> new GradleException("Provisioned toolchain '" + javaHome.get() + "' could not be probed.");
-    }
-
-    private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
-        final Predicate<JavaToolchain> languagePredicate = toolchain -> toolchain.getLanguageVersion().equals(spec.getLanguageVersion().get());
-        final Predicate<? super JavaToolchain> vendorSpec = getVendorPredicate(spec);
-        return languagePredicate.and(vendorSpec);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Predicate<? super JavaToolchain> getVendorPredicate(JavaToolchainSpec spec) {
-        return (Predicate<? super JavaToolchain>) spec.getVendor().get();
     }
 
     private Optional<JavaToolchain> asToolchain(File javaHome) {

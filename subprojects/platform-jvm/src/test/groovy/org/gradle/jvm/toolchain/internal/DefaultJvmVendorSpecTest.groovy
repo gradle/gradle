@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import spock.lang.Specification
@@ -27,7 +28,9 @@ class DefaultJvmVendorSpecTest extends Specification {
     def "unknown does not match known vendor"() {
         given:
         def toolchain = Mock(JavaToolchain) {
-            getVendor() >> JvmVendor.fromString("some unknown")
+            getMetadata() >> Mock(JvmInstallationMetadata) {
+                getVendor() >> JvmVendor.fromString("some unknown")
+            }
         }
 
         when:
@@ -40,7 +43,9 @@ class DefaultJvmVendorSpecTest extends Specification {
     def "matches known vendors"() {
         given:
         def toolchain = Mock(JavaToolchain) {
-            getVendor() >> JvmVendor.fromString("bellsoft")
+            getMetadata() >> Mock(JvmInstallationMetadata) {
+                getVendor() >> JvmVendor.fromString("bellsoft")
+            }
         }
 
         expect:
@@ -51,7 +56,9 @@ class DefaultJvmVendorSpecTest extends Specification {
     def "matches by raw string"() {
         given:
         def toolchain = Mock(JavaToolchain) {
-            getVendor() >> JvmVendor.fromString("someCustomJdk")
+            getMetadata() >> Mock(JvmInstallationMetadata) {
+                getVendor() >> JvmVendor.fromString("someCustomJdk")
+            }
         }
 
         expect:
