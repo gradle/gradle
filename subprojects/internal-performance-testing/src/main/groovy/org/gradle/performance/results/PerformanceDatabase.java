@@ -16,11 +16,8 @@
 
 package org.gradle.performance.results;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +26,7 @@ public class PerformanceDatabase {
     private static final String PERFORMANCE_DB_URL_PROPERTY_NAME = "org.gradle.performance.db.url";
     private final String databaseName;
     private final List<ConnectionAction<Void>> databaseInitializers;
-    private HikariDataSource dataSource;
+    private boolean initialized;
 
     @SafeVarargs
     public PerformanceDatabase(String databaseName, ConnectionAction<Void>... schemaInitializers) {
@@ -38,30 +35,23 @@ public class PerformanceDatabase {
     }
 
     private Connection getConnection() throws SQLException {
-        if (dataSource == null) {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(getUrl());
-            config.setUsername(getUserName());
-            config.setPassword(getPassword());
-            config.setMaximumPoolSize(1);
-            dataSource = new HikariDataSource(config);
-
-            executeInitializers(dataSource);
+        Connection connection = DriverManager.getConnection(getUrl(), getUserName(), getPassword());
+        if (!initialized) {
+            executeInitializers(connection);
+            initialized = true;
         }
-        return dataSource.getConnection();
+        return connection;
     }
 
-    private void executeInitializers(DataSource dataSource) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            for (ConnectionAction<Void> initializer : databaseInitializers) {
-                try {
-                    initializer.execute(connection);
-                } catch (SQLException e) {
-                    if (e.getErrorCode() == 90096) {
-                        System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
-                    } else {
-                        throw e;
-                    }
+    private void executeInitializers(Connection connection) throws SQLException {
+        for (ConnectionAction<Void> initializer : databaseInitializers) {
+            try {
+                initializer.execute(connection);
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 90096) {
+                    System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
+                } else {
+                    throw e;
                 }
             }
         }
@@ -69,16 +59,6 @@ public class PerformanceDatabase {
 
     public static boolean isAvailable() {
         return System.getProperty(PERFORMANCE_DB_URL_PROPERTY_NAME) != null;
-    }
-
-    public void close() {
-        if (dataSource != null) {
-            try {
-                dataSource.close();
-            } finally {
-                dataSource = null;
-            }
-        }
     }
 
     public <T> T withConnection(ConnectionAction<T> action) throws SQLException {

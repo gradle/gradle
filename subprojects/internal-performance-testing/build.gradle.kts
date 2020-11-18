@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.groovy)
-    implementation(libs.hikariCP)
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
