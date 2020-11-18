@@ -19,6 +19,7 @@ package org.gradle.test.fixtures.server.http;
 import com.google.common.base.Charsets;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.time.Clock;
@@ -126,20 +127,21 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
             int id = counter.incrementAndGet();
 
             RequestOutcome outcome = requestStarted(httpExchange);
-            System.out.println(String.format("[%d] handling %s", id, outcome.getDisplayName()));
+            System.out.printf("[%d] handling %s%n", id, outcome.getDisplayName());
 
             try {
                 ResponseProducer responseProducer = selectProducer(id, httpExchange);
-                System.out.println(String.format("[%d] sending response for %s", id, outcome.getDisplayName()));
+                System.out.printf("[%d] sending response for %s%n", id, outcome.getDisplayName());
                 if (!responseProducer.isFailure()) {
                     responseProducer.writeTo(id, httpExchange);
                 } else {
                     Throwable failure = responseProducer.getFailure();
                     requestFailed(outcome, failure);
+                    System.out.printf("[%d] handling failed with exception %s%n", id, ExceptionUtils.getStackTrace(failure));
                     sendFailure(httpExchange, 400, outcome);
                 }
             } catch (Throwable t) {
-                System.out.println(String.format("[%d] handling %s failed with exception", id, outcome.getDisplayName()));
+                System.out.printf("[%d] handling %s failed with exception%n", id, outcome.getDisplayName());
                 try {
                     sendFailure(httpExchange, 500, outcome);
                 } catch (IOException e) {
