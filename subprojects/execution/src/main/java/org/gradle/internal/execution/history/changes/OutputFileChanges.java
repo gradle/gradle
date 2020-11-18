@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -58,7 +59,8 @@ public class OutputFileChanges implements ChangeContainer {
         }
     };
 
-    private static final CompareStrategy<FileSystemSnapshot, CompleteFileSystemLocationSnapshot> COMPARE_STRATEGY = new CompareStrategy<>(
+    @VisibleForTesting
+    static final CompareStrategy<FileSystemSnapshot, CompleteFileSystemLocationSnapshot> COMPARE_STRATEGY = new CompareStrategy<>(
         OutputFileChanges::index,
         SnapshotUtil::getRootHashes,
         new TrivialChangeDetector<>(
