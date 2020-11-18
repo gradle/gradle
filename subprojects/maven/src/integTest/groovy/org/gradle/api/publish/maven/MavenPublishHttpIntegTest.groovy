@@ -355,6 +355,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasErrorOutput("- mavenPassword")
     }
 
+    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/14902")
     def "does not fail when publishing is set to always up to date"() {
         given:
