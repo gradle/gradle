@@ -24,6 +24,7 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 
@@ -60,7 +61,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        index(out) == index(snapshots)
+        assertEqualSnapshots(out, snapshots)
     }
 
     def "reads and writes directory snapshots"() {
@@ -70,7 +71,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        index(out) == index(snapshots)
+        assertEqualSnapshots(out, snapshots)
     }
 
     def "reads and writes missing snapshots"() {
@@ -80,7 +81,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        index(out) == index(snapshots)
+        assertEqualSnapshots(out, snapshots)
     }
 
     def "reads and writes directory snapshot hierarchies"() {
@@ -99,7 +100,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        index(out) == index(snapshots)
+        assertEqualSnapshots(out, snapshots)
     }
 
     def "reads and writes composite snapshots"() {
@@ -112,7 +113,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         def out = serialize(snapshots, serializer)
 
         then:
-        index(out) == index(snapshots)
+        assertEqualSnapshots(out, snapshots)
     }
 
     private CompleteFileSystemLocationSnapshot directory(String absolutePath, AccessType accessType = DIRECT, List<CompleteFileSystemLocationSnapshot> children) {
@@ -131,5 +132,10 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
             FilenameUtils.getName(absolutePath),
             fromInt(pseudoRandom.nextInt()),
             file(abs(pseudoRandom.nextLong()), abs(pseudoRandom.nextLong()), accessType))
+    }
+
+    private static void assertEqualSnapshots(FileSystemSnapshot snapshot, FileSystemSnapshot expected) {
+        assert snapshot == expected
+        assert index(snapshot) == index(expected)
     }
 }
