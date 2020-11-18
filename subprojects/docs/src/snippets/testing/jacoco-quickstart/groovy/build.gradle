@@ -33,6 +33,9 @@ test {
 // end::testtask-configuration[]
 
 // tag::testtask-dependency[]
+tasks.named("check").configure {
+    dependsOn jacocoTestReport // running check task generates the report
+}
 tasks.named("jacocoTestReport").configure {
     dependsOn test // tests are required to run before generating the report
 }
