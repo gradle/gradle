@@ -255,6 +255,27 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         thrown(IllegalStateException)
     }
 
+    def "releases lock for all projects while running blocking operation"() {
+        given:
+        def build = build("p1", "p2")
+        registry.registerProjects(build)
+
+        when:
+        async {
+            registry.withMutableStateOfAllProjects {
+                def state = registry.stateFor(project("p1"))
+                assert state.hasMutableState()
+                registry.blocking {
+                    assert !state.hasMutableState()
+                }
+                assert state.hasMutableState()
+            }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
     def "thread can be granted uncontrolled access to all projects"() {
         given:
         registry.registerProjects(build("p1", "p2"))

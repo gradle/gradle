@@ -31,10 +31,8 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.buildtree.BuildTreeState;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -53,6 +51,10 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildTreeScopeServices {
+        public void configure(ServiceRegistration serviceRegistration) {
+            serviceRegistration.add(DefaultIncludedBuildControllers.class);
+        }
+
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
                                                               Instantiator instantiator,
                                                               WorkerLeaseService workerLeaseService,
@@ -74,10 +76,6 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
 
         public LocalComponentProvider createLocalComponentProvider(ProjectStateRegistry projectRegistry) {
             return new LocalComponentInAnotherBuildProvider(projectRegistry, new IncludedBuildDependencyMetadataBuilder());
-        }
-
-        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService) {
-            return new DefaultIncludedBuildControllers(executorFactory, buildRegistry, coordinationService);
         }
 
         public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers) {
