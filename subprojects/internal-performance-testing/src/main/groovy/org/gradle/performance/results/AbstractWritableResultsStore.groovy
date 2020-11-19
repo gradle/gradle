@@ -98,6 +98,14 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         return db.withConnection(actionName, action)
     }
 
+    protected <RESULT> RESULT withConnectionClosingDb(String actionName, ConnectionAction<RESULT> action) {
+        try {
+            return db.withConnection(actionName, action)
+        } finally {
+            db.close()
+        }
+    }
+
 
     @Override
     void close() {

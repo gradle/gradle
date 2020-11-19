@@ -48,7 +48,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
 
     @Override
     public void report(final R results) {
-        withConnection("write results", (ConnectionAction<Void>) connection -> {
+        withConnectionClosingDb("write results", (ConnectionAction<Void>) connection -> {
             long executionId;
             try (PreparedStatement statement = connection.prepareStatement("insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, results.getTestClass());

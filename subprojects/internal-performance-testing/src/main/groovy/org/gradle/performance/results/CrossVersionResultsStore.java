@@ -92,7 +92,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     @Override
     public void report(final CrossVersionPerformanceResults results) {
-        withConnection("write results", (ConnectionAction<Void>) connection -> {
+        withConnectionClosingDb("write results", (ConnectionAction<Void>) connection -> {
             long testId = insertExecution(connection, results);
             batchInsertOperation(connection, results, testId);
             updatePreviousTestId(connection, results);
