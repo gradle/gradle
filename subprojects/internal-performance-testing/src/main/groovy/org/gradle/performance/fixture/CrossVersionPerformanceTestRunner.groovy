@@ -32,7 +32,6 @@ import org.gradle.internal.time.Time
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
-import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
 import org.gradle.profiler.BuildAction
@@ -61,7 +60,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
     private final IntegrationTestBuildContext buildContext
-    private final ResultsStore resultsStore
     private final DataReporter<CrossVersionPerformanceResults> reporter
     private final ReleasedVersionDistributions releases
     private final Clock clock = Time.clock()
@@ -91,8 +89,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private final List<String> measuredBuildOperations = []
     private BuildAction buildAction
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
-        this.resultsStore = resultsStore
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases

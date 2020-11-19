@@ -45,11 +45,10 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
 
     GradleProfilerReporter gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        temporaryFolder,
-        new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter),
-        RESULT_STORE,
-        RESULT_STORE.reportAlso(gradleProfilerReporter),
-        buildContext
+            temporaryFolder,
+            new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter),
+            RESULT_STORE.reportAlso(gradleProfilerReporter),
+            buildContext
     ) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
