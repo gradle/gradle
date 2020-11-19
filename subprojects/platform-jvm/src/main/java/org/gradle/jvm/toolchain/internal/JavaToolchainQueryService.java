@@ -90,6 +90,6 @@ public class JavaToolchainQueryService {
     }
 
     private Optional<JavaToolchain> asToolchain(File javaHome, JavaToolchainSpec spec) {
-        return toolchainFactory.newInstance(javaHome, spec);
+        return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec));
     }
 }

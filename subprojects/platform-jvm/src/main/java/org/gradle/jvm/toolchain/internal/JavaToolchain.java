@@ -28,7 +28,6 @@ import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.VersionNumber;
 
@@ -44,14 +43,14 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     private final JvmInstallationMetadata metadata;
     private final JavaToolchainInput input;
 
-    public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory, JavaToolchainSpec spec) {
+    public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory, JavaToolchainInput input) {
         this.javaHome = fileFactory.dir(computeEnclosingJavaHome(metadata.getJavaHome()).toFile());
         this.javaVersion = JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
         this.implementationVersion = VersionNumber.parse(metadata.getImplementationVersion());
         this.metadata = metadata;
-        this.input = new JavaToolchainInput(spec);
+        this.input = input;
     }
 
     @Nested

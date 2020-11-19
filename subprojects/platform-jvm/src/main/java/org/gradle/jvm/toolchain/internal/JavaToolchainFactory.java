@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,10 +39,10 @@ public class JavaToolchainFactory {
         this.fileFactory = fileFactory;
     }
 
-    public Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainSpec spec) {
+    public Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
         if(metadata.isValidInstallation()) {
-            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, spec);
+            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input);
             return Optional.of(toolchain);
         }
         return Optional.empty();
