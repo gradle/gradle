@@ -79,6 +79,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         long endOfDaemonLog = daemon.logLineCount
         50.times { iteration ->
             // when:
+            println("Running iteration ${iteration + 1}")
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
             waitForChangesToBePickedUp()
             succeeds("assemble")
