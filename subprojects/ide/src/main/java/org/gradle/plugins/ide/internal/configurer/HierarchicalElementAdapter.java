@@ -32,6 +32,16 @@ public interface HierarchicalElementAdapter<T> {
     String getName(T element);
 
     /**
+     * Returns the original identity name of the given element which
+     * may be used to uniquely identify the element if the name returned
+     * by getName() is not unique in the hierarchy.
+     *
+     * @param element the element, cannot be null
+     * @return the identity name of the element, never null
+     */
+    String getIdentityName(T element);
+
+    /**
      * Returns the parent in this element's hierarchy.
      *
      * @param element the child element, cannot be null

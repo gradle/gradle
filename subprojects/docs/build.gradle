@@ -92,6 +92,7 @@ tasks.named("stageDocs") {
 samples {
     templates {
         javaAndroidApplication
+        structuringSoftwareProjects
         springBootWebApplication {
             target = "app"
         }
@@ -397,6 +398,15 @@ samples {
             category = "Using Credentials"
         }
 
+        structuringSoftwareProjects {
+            sampleDirectory = samplesRoot.dir("build-organization/structuring-software-projects")
+            description = "Structuring a software product project with Gradle"
+            category = "Build organization"
+            common {
+                from(templates.structuringSoftwareProjects)
+            }
+        }
+
         compositeBuildsBasics {
             sampleDirectory = samplesRoot.dir("build-organization/composite-builds/basic")
             description = "Defining and using a composite build"
@@ -476,7 +486,11 @@ tasks.named("docsTest") { task ->
         // Build Android only with Java 8
         if (buildJvms.testJvm.get().javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-apps_*_buildTask.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
         }
+        // disable sanityCheck of 'structuring-software-projects' in any case due to deprecation warning in Android project
+        excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*_sanityCheck.sample"
+
         // Do not execute Java Module tests on JVM < 9
         if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"

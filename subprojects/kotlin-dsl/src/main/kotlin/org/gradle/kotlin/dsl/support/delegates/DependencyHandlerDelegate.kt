@@ -21,10 +21,12 @@ import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.ExternalModuleDependencyVariantSpec
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
@@ -138,4 +140,7 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun testFixtures(notation: Any, configureAction: Action<in Dependency>): Dependency =
         delegate.testFixtures(notation, configureAction)
+
+    override fun variantOf(dependencyProvider: Provider<MinimalExternalModuleDependency>, variantSpec: Action<in ExternalModuleDependencyVariantSpec>): Provider<MinimalExternalModuleDependency> =
+        delegate.variantOf(dependencyProvider, variantSpec)
 }
