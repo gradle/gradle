@@ -35,6 +35,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
     VerboseVfsLogAccessor vfsLogs
 
     def setup() {
+        buildTestFixture.withBuildInSubDir()
         def subprojects = (1..NUMBER_OF_SUBPROJECTS).collect { "project$it" }
         def rootProject = multiProjectBuild("javaProject", subprojects) {
             buildFile << """
@@ -60,6 +61,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             // running in parallel, so the soak test doesn't take this long.
             withArgument("--parallel")
             vfsLogs = enableVerboseVfsLogs()
+            inDirectory(rootProject)
         }
     }
 
