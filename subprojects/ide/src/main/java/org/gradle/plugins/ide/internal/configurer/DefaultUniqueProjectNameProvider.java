@@ -36,7 +36,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
         if (uniqueName != null) {
             return uniqueName;
         }
-        return getUniqueProjectName(projectState);
+        return project.getName();
     }
 
     private synchronized Map<ProjectState, String> getDeduplicatedNames() {
@@ -47,15 +47,16 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
         return deduplicated;
     }
 
-    private static String getUniqueProjectName(ProjectState projectState) {
-        String identityName = projectState.getIdentityPath().getName();
-        return identityName != null ? identityName : projectState.getName();
-    }
-
     private static class ProjectPathDeduplicationAdapter implements HierarchicalElementAdapter<ProjectState> {
         @Override
         public String getName(ProjectState element) {
-            return getUniqueProjectName(element);
+            return element.getName();
+        }
+
+        @Override
+        public String getIdentityName(ProjectState element) {
+            String identityName = element.getIdentityPath().getName();
+            return identityName != null ? identityName : element.getName();
         }
 
         @Override

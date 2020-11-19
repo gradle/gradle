@@ -74,12 +74,14 @@ public class HierarchicalElementDeduplicator<T> {
 
         private final List<T> elements;
         private final Multimap<String, T> elementsByName;
+        private final Map<T, String> originalNames;
         private final Map<T, String> newNames;
         private final Map<T, T> prefixes;
 
         private StatefulDeduplicator(Iterable<? extends T> elements) {
             this.elements = Lists.newArrayList(elements);
             this.elementsByName = LinkedHashMultimap.create();
+            this.originalNames = Maps.newHashMap();
             this.newNames = Maps.newHashMap();
             this.prefixes = Maps.newHashMap();
         }
@@ -119,9 +121,33 @@ public class HierarchicalElementDeduplicator<T> {
                     }
                 }
                 if (!deduplicationSuccessful) {
+                    // there was no more success in deduplication by path only
+                    for (T element : elementsToRename) {
+                        boolean elementRenamed = true;
+                        while (elementRenamed && reservedNames.contains(getCurrentlyAssignedName(element))) {
+                            elementRenamed = renameUsingIdentityName(element);
+                            deduplicationSuccessful |= elementRenamed;
+                        }
+                    }
+                }
+
+                if (!deduplicationSuccessful) {
                     throw new IllegalArgumentException("Duplicate root element " + duplicateName);
                 }
             }
+        }
+
+        private boolean renameUsingIdentityName(T element) {
+            String currentlyAssignedName = getCurrentlyAssignedName(element);
+            String originalName = getOriginalName(element);
+            String identityName = getIdentityName(element);
+            if (!originalName.equals(identityName) && (currentlyAssignedName.equals(originalName) || currentlyAssignedName.endsWith("-" + originalName))) {
+                String newName = currentlyAssignedName.substring(0, currentlyAssignedName.length() - originalName.length()) + identityName;
+                renameTo(element, newName);
+                originalNames.put(element, identityName);
+                return true;
+            }
+            return false;
         }
 
         private boolean renameUsingParentPrefix(T element) {
@@ -199,7 +225,14 @@ public class HierarchicalElementDeduplicator<T> {
         }
 
         private String getOriginalName(T element) {
+            if (originalNames.containsKey(element)) {
+                return originalNames.get(element);
+            }
             return adapter.getName(element);
+        }
+
+        private String getIdentityName(T element) {
+            return adapter.getIdentityName(element);
         }
 
         private String getCurrentlyAssignedName(T element) {
