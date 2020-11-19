@@ -28,6 +28,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
+    private static final int NUMBER_OF_FILES_IN_VFS = NUMBER_OF_SOURCES_PER_SUBPROJECT * NUMBER_OF_SUBPROJECTS * 2
     private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
 
@@ -67,6 +68,9 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
 
     def "file watching works with multiple builds on the same daemon"() {
         def numberOfChangesBetweenBuilds = maxFileChangesWithoutOverflow
+        int numberOfRuns = 50
+
+        int numberOfOverflows = 0
 
         when:
         succeeds("assemble")
@@ -79,7 +83,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
 
         expect:
         long endOfDaemonLog = daemon.logLineCount
-        50.times { iteration ->
+        numberOfRuns.times { iteration ->
             // when:
             println("Running iteration ${iteration + 1}")
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
@@ -90,8 +94,14 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            boolean overflowDetected = detectOverflow(daemon, endOfDaemonLog)
-            if (!overflowDetected) {
+            boolean overflowBetweenBuildsDetected = detectOverflow(daemon, endOfDaemonLog)
+            boolean overflowDuringLastBuild = retainedFilesInLastBuild < NUMBER_OF_FILES_IN_VFS
+            if (overflowDuringLastBuild) {
+                println "Overflow during last build detected"
+            }
+            if (overflowBetweenBuildsDetected || overflowDuringLastBuild) {
+                numberOfOverflows++
+            } else {
                 int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
                 int retainedFilesAtTheBeginningOfTheCurrentBuild = vfsLogs.retainedFilesSinceLastBuild
                 assert retainedFilesAtTheBeginningOfTheCurrentBuild <= expectedNumberOfRetainedFiles
@@ -101,6 +111,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             retainedFilesInLastBuild = vfsLogs.retainedFilesInCurrentBuild
             endOfDaemonLog = daemon.logLineCount
         }
+        numberOfOverflows <= numberOfRuns / 10
     }
 
     def "file watching works with many changes between two builds"() {
