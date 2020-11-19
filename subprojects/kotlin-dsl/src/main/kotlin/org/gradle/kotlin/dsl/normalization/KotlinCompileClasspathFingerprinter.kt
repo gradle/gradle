@@ -55,19 +55,11 @@ class KotlinCompileClasspathFingerprinter(
 private
 class CompileAvoidanceExceptionReporter : ZipHasher.HashingExceptionReporter {
     override fun report(zipFileSnapshot: RegularFileSnapshot, e: Exception) {
-        val jarName = zipFileSnapshot.name
-        if (e is CompileAvoidanceException && !isExternalDependency(jarName)) {
-            if (isExternalDependency(jarName)) {
-                logger.info("Cannot use Kotlin build script compile avoidance with {}: {}", jarName, e.message)
-            } else {
-                logger.warn("Cannot use Kotlin build script compile avoidance with {}: {}", jarName, e.message)
-            }
+        if (e is CompileAvoidanceException) {
+            val jarPath = zipFileSnapshot.absolutePath
+            logger.info("Cannot use Kotlin build script compile avoidance with {}: {}", jarPath, e.message)
         }
     }
-
-    private
-    fun isExternalDependency(jarFileName: String) =
-        jarFileName.matches(".*\\d\\.jar".toRegex())
 }
 
 
