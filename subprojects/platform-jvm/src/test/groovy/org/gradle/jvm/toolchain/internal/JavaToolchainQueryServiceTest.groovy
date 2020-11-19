@@ -158,10 +158,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome) {
+            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
                 def vendor = vendors[Integer.valueOf(javaHome.name.substring(2))]
                 def metadata = newMetadata(new File("/path/8"), vendor)
-                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory()))
+                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input))
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
@@ -175,6 +175,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.isPresent()
         toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.BELLSOFT
+        toolchain.get().vendor == "BellSoft Liberica"
     }
 
     def "install toolchain if no matching toolchain found"() {
@@ -228,10 +229,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome) {
+            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
-                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory())
+                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input)
                     return Optional.of(toolchain)
                 }
                 return Optional.empty()
