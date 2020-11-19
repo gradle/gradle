@@ -7,6 +7,7 @@ import Gradle_Check.model.FlameGraphGeneration
 import Gradle_Check.model.FunctionalTestBucketProvider
 import Gradle_Check.model.PerformanceTestBucketProvider
 import Gradle_Check.model.PerformanceTestCoverage
+import common.failedTestArtifactDestination
 import configurations.FunctionalTest
 import configurations.SanityCheck
 import configurations.buildReportTab
@@ -36,7 +37,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         features {
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
                 buildReportTab("API Compatibility Report", "report-architecture-test-binary-compatibility-report.html")
-                buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
+                buildReportTab("Incubating APIs Report", "$failedTestArtifactDestination/incubation-reports/all-incubating.html")
             }
             if (stage.performanceTests.isNotEmpty()) {
                 buildReportTab("Performance", "performance-test-results.zip!report/index.html")
