@@ -287,8 +287,8 @@ include::sample[dir="samples/build-organization/structuring-software-projects/gr
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="server-application/settings.gradle.kts"]
 ====
 
-We see that the `settings.kts(.gradle)` file only defines location for build logic components, other production code components and the inner structue of the component.
-Only the `build.gradle.kts` file in the `app` project then defines actual dependencies by applying a convention plugin and utilizing the _dependencies_ block.
+We see that the `settings.gradle(.kts)` file only defines location for build logic components, other production code components and the inner structue of the component.
+Only the `build.gradle(.kts)` file in the `app` project then defines actual dependencies by applying a convention plugin and utilizing the _dependencies_ block.
 
 .Configuring type and dependencies of the `app` project inside the `server-application` component
 ====

@@ -118,6 +118,29 @@ class GcsClientTest extends Specification {
         ex.message.startsWith("Could not write to resource 'https://somehost/file.txt'")
     }
 
+    def "should not fail on GcsClient.list() returning null"() {
+        def gcsStorageClient = Mock(Storage)
+        GcsClient gcsClient = new GcsClient(gcsStorageClient)
+        def uri = new URI("gcs://mybucket.com.au/maven/release/")
+        when:
+        gcsClient.list(uri)
+        then:
+        1 * gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
+            1 * list(uri.getHost()) >> {
+                return Mock(Storage.Objects.List) {
+                    def self = it
+                    execute() >> {
+                        return new Objects().setItems(null)
+                    }
+                    setPrefix(*_) >> { args ->
+                        assert args.get(0).startsWith(uri.getPath().replaceAll("^/+", ''))
+                        return self
+                    }
+                }
+            }
+        }
+    }
+
     def credentials() {
         def credentials = new MockGoogleCredential()
         credentials.setAccessToken("Access")
