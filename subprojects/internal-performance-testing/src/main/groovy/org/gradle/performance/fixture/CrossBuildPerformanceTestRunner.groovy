@@ -22,14 +22,13 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
 @CompileStatic
 class CrossBuildPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
-    CrossBuildPerformanceTestRunner(AbstractBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
-        super(experimentRunner, resultsStore, dataReporter, buildContext)
+    CrossBuildPerformanceTestRunner(AbstractBuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+        super(experimentRunner, dataReporter, buildContext)
     }
 
     @Override

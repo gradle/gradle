@@ -24,7 +24,6 @@ import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
@@ -50,11 +49,9 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     boolean measureGarbageCollection = true
 
     final DataReporter<R> reporter
-    final ResultsStore resultsStore
 
-    AbstractCrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
+    AbstractCrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         this.reporter = dataReporter
-        this.resultsStore = resultsStore
         this.experimentRunner = experimentRunner
         this.buildContext = buildContext
         this.gradleDistribution = new UnderDevelopmentGradleDistribution(buildContext)
