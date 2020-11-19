@@ -10,7 +10,7 @@ The build tool Gradle can then interpret this model to build the software.
 
 == An example
 
-How you architect your software and how you devide it into components depends on what you are building.
+How you architect your software and how you divide it into components depends on what you are building.
 There is no one-fits-all solution.
 Hence, Gradle does not enforce a particular structure on you, but rather offers the tools to model your individual setup.
 
@@ -41,7 +41,7 @@ Apart from the production code, there are also components that deal with buildin
 - The _build-logic_ component contains the configuration details about building the software.
 For example, defining a Java version to use or configuring a test framework.
 It may also contain additional build logic for Gradle (<<custom_plugins.adoc#,custom plugins>> with <<custom_tasks.adoc#,custom tasks>>) that is not covered by commonly available Gradle plugins.
-- The _platforms_ component is a central place to defines which versions of external components are to be used in all of our own components.
+- The _platforms_ component is a central place to define which versions of external components are to be used in all of our own components.
 By that, it defines the constraints for the environments – that is, _the platforms_ – to build, test and run the software product.
 - The _aggregation_ component contains the setup of the delivery pipeline that is required to push the product to production and
 doing automated end-to-end testing as part of that.
@@ -318,4 +318,3 @@ To summarize, if you follow the suggestions from this chapter, your setup should
    Having a platform component as in the example is optional.
    You could do things without, e.g. by declaring <<dependency_constraints.adoc#,dependency constraints>> directly in your convention plugins.
    However, <<platforms.adoc#,platforms>> are a good option to have all the boundaries for the environment in which your software operates defined in a central place.
-
