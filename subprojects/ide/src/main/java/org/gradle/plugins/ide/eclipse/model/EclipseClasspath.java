@@ -162,7 +162,7 @@ public class EclipseClasspath {
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
-        this.containsTestFixtures = project.getObjects().property(Boolean.class);
+        this.containsTestFixtures = project.getObjects().property(Boolean.class).convention(false);
     }
 
     /**

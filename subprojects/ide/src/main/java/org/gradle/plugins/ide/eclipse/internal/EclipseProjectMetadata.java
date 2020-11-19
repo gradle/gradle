@@ -58,6 +58,6 @@ public class EclipseProjectMetadata implements IdeProjectMetadata {
     }
 
     public boolean hasJavaTestFixtures() {
-        return eclipseModel.getClasspath().getContainsTestFixtures().getOrElse(false);
+        return eclipseModel.getClasspath().getContainsTestFixtures().get();
     }
 }
