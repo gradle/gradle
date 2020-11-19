@@ -38,6 +38,12 @@ public interface ProjectLeaseRegistry {
     void releaseCurrentProjectLocks();
 
     /**
+     * Returns {@code true} when this registry grants multiple threads access to projects (but no more than one thread per given project)
+     * and {@code false} when this registry grants only a single thread access to projects at any given time.
+     */
+    boolean getAllowsParallelExecution();
+
+    /**
      * Releases all project locks held by the current thread and executes the {@link Factory}.  Upon completion of the
      * {@link Factory}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
      * time the method was called, then no attempt will be made to reacquire a lock on completion.  While blocking to reacquire the project

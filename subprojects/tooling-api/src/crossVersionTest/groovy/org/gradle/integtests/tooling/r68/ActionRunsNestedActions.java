@@ -33,7 +33,7 @@ public class ActionRunsNestedActions implements BuildAction<Models> {
             projectActions.add(new GetProjectModel(project));
         }
         List<CustomModel> results = controller.run(projectActions);
-        return new Models(controller.isActionsMayRunInParallel(), results);
+        return new Models(controller.getCanQueryProjectModelInParallel(CustomModel.class), results);
     }
 
     static class GetProjectModel implements BuildAction<CustomModel> {

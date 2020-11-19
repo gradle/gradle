@@ -29,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
@@ -54,11 +55,13 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final GradleInternal gradle;
     private final BuildCancellationToken cancellationToken;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectLeaseRegistry projectLeaseRegistry;
 
-    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry) {
         this.gradle = gradle;
         this.cancellationToken = cancellationToken;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.projectLeaseRegistry = projectLeaseRegistry;
     }
 
     /**
@@ -104,8 +107,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     @Override
-    public boolean isActionsMayRunInParallel() {
-        return true;
+    public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
+        return projectLeaseRegistry.getAllowsParallelExecution();
     }
 
     @Override

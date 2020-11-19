@@ -100,7 +100,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
             action.run()
         }
 
-        models.mayRunInParallel
+        !models.mayRunInParallel
         models.projects.path == [':', ':a', ':b']
     }
 
