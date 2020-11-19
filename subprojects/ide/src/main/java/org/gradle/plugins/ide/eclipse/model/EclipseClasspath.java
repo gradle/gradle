@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.xml.XmlTransformer;
@@ -156,11 +157,12 @@ public class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
-    private boolean containsTestFixtures = false;
+    private final Property<Boolean> containsTestFixtures;
 
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
+        this.containsTestFixtures = project.getObjects().property(Boolean.class);
     }
 
     /**
@@ -367,20 +369,10 @@ public class EclipseClasspath {
      * through incoming project dependencies.
      *
      * @since 6.8
+     * @return
      */
     @Incubating
-    public boolean getContainsTestFixtures() {
+    public Property<Boolean> getContainsTestFixtures() {
         return containsTestFixtures;
-    }
-
-    /**
-     * Sets whether the current project contains test fixtures.
-     *
-     * @see #getContainsTestFixtures()
-     * @since 6.8
-     */
-    @Incubating
-    public void setContainsTestFixtures(boolean containsTestFixtures) {
-        this.containsTestFixtures = containsTestFixtures;
     }
 }

@@ -279,7 +279,7 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaTestFixturesPlugin.class, new Action<JavaTestFixturesPlugin>() {
             @Override
             public void execute(JavaTestFixturesPlugin javaTestFixturesPlugin) {
-                model.getClasspath().setContainsTestFixtures(true);
+                model.getClasspath().getContainsTestFixtures().convention(true);
             }
         });
     }
