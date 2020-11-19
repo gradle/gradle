@@ -16,11 +16,159 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.provider.Property
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFinishEvent
 
+import javax.inject.Inject
+import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "loads build services from the correct build and reuses ClassLoaders"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        createDir("build-logic") {
+            file("settings.gradle") << "rootProject.name = 'build-logic'"
+            file("build.gradle") << """
+                plugins {
+                    id 'java-gradle-plugin'
+                }
+                version = '1.0'
+                gradlePlugin {
+                    plugins {
+                        myConventionsPlugin {
+                            id  = 'my.conventions'
+                            implementationClass = 'my.ConventionsPlugin'
+                        }
+                    }
+                }
+            """
+            file("src/main/java/my/ConventionsPlugin.java") << """
+                package my;
+
+                import org.gradle.api.*;
+
+                /**
+                 * Holds a static variable so ClassLoader reuse can be probed.
+                 */
+                class Static {
+                    private static final $AtomicInteger.name value = new $AtomicInteger.name(0);
+                    public static void probe(String id) {
+                        // When ClassLoaders are reused
+                        // the 1st run should print `probe(id) => 1`
+                        // the 2nd run should print `probe(id) => 2`
+                        // and so on.
+                        System.out.println("probe(" + id + ") => " + value.incrementAndGet());
+                    }
+                }
+
+                interface MyBuildServiceParameters extends $BuildServiceParameters.name {
+                    $Property.name<String> getProjectName();
+                }
+
+                abstract class MyBuildService implements
+                    $BuildService.name<MyBuildServiceParameters>,
+                    $OperationCompletionListener.name {
+
+                    @$Inject.name
+                    public MyBuildService() {}
+
+                    @Override
+                    public void onFinish($FinishEvent.name event) {
+                        if (event instanceof $TaskFinishEvent.name) {
+                            System.out.println(
+                                "TaskFinishEvent " + (($TaskFinishEvent.name) event).getDescriptor().getTaskPath()
+                            );
+                            Static.probe(getParameters().getProjectName().get());
+                        }
+                    }
+                }
+
+                public abstract class ConventionsPlugin implements Plugin<Project> {
+
+                    @$Inject.name protected abstract $BuildEventsListenerRegistry.name getListenerRegistry();
+
+                    public void apply(Project project) {
+                        final String projectName = project.getName();
+                        final String uniqueServiceName = "listener of " + project.getName();
+                        getListenerRegistry().onTaskCompletion(
+                            project.getGradle().getSharedServices().registerIfAbsent(
+                                uniqueServiceName,
+                                MyBuildService.class,
+                                (spec) -> spec.getParameters().getProjectName().set(projectName)
+                            )
+                        );
+                        project.getTasks().register("run", DefaultTask.class, (task) -> {
+                            task.doLast((it) -> {
+                                Static.probe(projectName);
+                            });
+                        });
+                    }
+                }
+            """
+        }
+        createDir("included") {
+            file("settings.gradle") << """
+                include 'classloader1', 'boundary:classloader2'
+            """
+            file("classloader1/build.gradle") << """
+                plugins { id 'my.conventions' version '1.0' }
+            """
+            file("boundary/build.gradle.kts") << """
+                plugins { `kotlin-dsl` } // put a boundary between classloader1 and classloader2
+            """
+            file("boundary/classloader2/build.gradle") << """
+                plugins { id 'my.conventions' version '1.0' }
+            """
+        }
+        createDir("root") {
+            file("settings.gradle") << """
+                includeBuild '../build-logic'
+                includeBuild '../included'
+            """
+        }
+
+        when:
+        inDirectory 'root'
+        configurationCacheRun ':included:classloader1:run', ':included:boundary:classloader2:run'
+
+        then: 'on classloader classloader1'
+        outputContains 'probe(classloader1) => 1'
+        outputContains 'probe(classloader1) => 2'
+        outputContains 'probe(classloader1) => 3'
+
+        and: 'on classloader classloader2'
+        outputContains 'probe(classloader2) => 1'
+        outputContains 'probe(classloader2) => 2'
+        outputContains 'probe(classloader2) => 3'
+
+        and:
+        configurationCache.assertStateStored()
+
+        when:
+        inDirectory 'root'
+        configurationCacheRun ':included:classloader1:run', ':included:boundary:classloader2:run'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        and: 'classloader1 is reused'
+        outputContains 'probe(classloader1) => 4'
+        outputContains 'probe(classloader1) => 5'
+        outputContains 'probe(classloader1) => 6'
+
+        and: 'classloader2 is reused'
+        outputContains 'probe(classloader2) => 4'
+        outputContains 'probe(classloader2) => 5'
+        outputContains 'probe(classloader2) => 6'
+    }
 
     def "can use lib produced by included build"() {
         given:
