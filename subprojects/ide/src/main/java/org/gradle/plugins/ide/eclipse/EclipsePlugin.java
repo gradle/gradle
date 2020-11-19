@@ -186,6 +186,7 @@ public class EclipsePlugin extends IdePlugin {
             }
 
         });
+
         artifactRegistry.registerIdeProject(new EclipseProjectMetadata(model, project.getProjectDir(), task));
     }
 
