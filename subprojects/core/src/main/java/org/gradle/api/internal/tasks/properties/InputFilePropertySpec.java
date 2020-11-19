@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.fingerprint.FingerprinterSpec;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 
 import javax.annotation.Nullable;
 
-public interface InputFilePropertySpec extends FilePropertySpec, FingerprinterSpec {
+public interface InputFilePropertySpec extends FilePropertySpec {
     boolean isSkipWhenEmpty();
 
     boolean isIncremental();
+
+    DirectorySensitivity getDirectorySensitivity();
 
     @Nullable
     Object getValue();
