@@ -192,7 +192,13 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         return withConnection("load test history", connection -> {
             try (
                 Statement statement = connection.createStatement();
-                ResultSet testExecutions = statement.executeQuery("select distinct testClass, testId, testProject from testExecution order by testClass, testId, testProject")
+                ResultSet testExecutions = statement.executeQuery(
+                    "select distinct testClass, testId, testProject" +
+                        "   from testExecution" +
+                        "  where testclass is not null" +
+                        "    and starttime > NOW() - INTERVAL 7 DAY" +
+                        "  order by testClass, testId, testProject"
+                )
             ) {
                 List<PerformanceExperiment> testNames = new ArrayList<>();
                 while (testExecutions.next()) {

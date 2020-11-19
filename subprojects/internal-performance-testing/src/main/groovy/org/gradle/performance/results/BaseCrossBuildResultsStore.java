@@ -99,7 +99,14 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     public List<PerformanceExperiment> getPerformanceExperiments() {
         return withConnection("load test history", connection -> {
             Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
-            try (PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testClass, testId, testProject from testExecution where resultType = ? order by testClass, testId, testProject")) {
+            try (PreparedStatement testIdsStatement = connection.prepareStatement(
+                "select distinct testClass, testId, testProject" +
+                    "   from testExecution" +
+                    "  where resultType = ?" +
+                    "    and testClass is not null" +
+                    "    and starttime > NOW() - INTERVAL 7 DAY" +
+                    "  order by testClass, testId, testProject")
+            ) {
                 testIdsStatement.setString(1, resultType);
                 try (ResultSet testExecutions = testIdsStatement.executeQuery()) {
                     while (testExecutions.next()) {
