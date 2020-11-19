@@ -18,11 +18,17 @@ package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.BuildLoader;
+import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.service.ServiceRegistry;
+
+import java.io.File;
 
 public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     private final ProjectsPreparer delegate;
@@ -44,6 +50,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         ClassLoaderScope parentClassLoaderScope = settings.getClassLoaderScope();
         ClassLoaderScope baseProjectClassLoaderScope = parentClassLoaderScope.createChild(settings.getBuildSrcDir().getAbsolutePath());
         gradle.setBaseProjectClassLoaderScope(baseProjectClassLoaderScope);
+        generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, baseProjectClassLoaderScope);
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
         // Makes included build substitutions available
@@ -64,5 +71,17 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     private void buildBuildSrcAndLockClassloader(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
         ClassPath buildSrcClassPath = buildSourceBuilder.buildAndGetClassPath(gradle);
         baseProjectClassLoaderScope.export(buildSrcClassPath).lock();
+    }
+
+    private void generateDependenciesAccessorsAndAssignPluginVersions(ServiceRegistry services, SettingsInternal settings, ClassLoaderScope classLoaderScope) {
+        DependenciesAccessors accessors = services.get(DependenciesAccessors.class);
+        DependencyResolutionManagementInternal dm = services.get(DependencyResolutionManagementInternal.class);
+        dm.getDefaultLibrariesExtensionName().finalizeValue();
+        String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
+        File dependenciesFile = new File(settings.getSettingsDir(), "gradle/dependencies.toml");
+        if (dependenciesFile.exists()) {
+            dm.versionCatalog(defaultLibrary, builder -> builder.from(services.get(FileCollectionFactory.class).fixed(dependenciesFile)));
+        }
+        accessors.generateAccessors(dm.getDependenciesModelBuilders(), classLoaderScope, settings);
     }
 }
