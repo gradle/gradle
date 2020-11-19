@@ -109,6 +109,8 @@ data class CIBuildModel(
             performanceTests = listOf(
                 PerformanceTestCoverage(3, PerformanceTestType.historical, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestHistoricalLinux"),
                 PerformanceTestCoverage(4, PerformanceTestType.flakinessDetection, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestFlakinessDetectionLinux"),
+                PerformanceTestCoverage(15, PerformanceTestType.flakinessDetection, Os.WINDOWS, numberOfBuckets = 10),
+                PerformanceTestCoverage(16, PerformanceTestType.flakinessDetection, Os.MACOS, numberOfBuckets = 10),
                 PerformanceTestCoverage(5, PerformanceTestType.experiment, Os.LINUX, numberOfBuckets = 20, oldUuid = "PerformanceTestExperimentLinux"),
                 PerformanceTestCoverage(8, PerformanceTestType.experiment, Os.WINDOWS, numberOfBuckets = 5),
                 PerformanceTestCoverage(9, PerformanceTestType.experiment, Os.MACOS, numberOfBuckets = 5)
