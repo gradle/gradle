@@ -23,7 +23,6 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 
 import java.util.Collection;
-import java.util.Collections;
 
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
@@ -46,7 +45,9 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     @Override
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
         if (isRoot(targetBuild)) {
-            rootBuild().addTasks(Collections.singleton(taskPath));
+            if (findTaskInRootBuild(taskPath) == null) {
+                rootBuild().getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
+            }
         } else {
             buildControllerFor(targetBuild).queueForExecution(taskPath);
         }
@@ -80,7 +81,11 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     @Override
     public TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
         if (isRoot(targetBuild)) {
-            return findTaskInRootBuild(taskPath);
+            TaskInternal task = findTaskInRootBuild(taskPath);
+            if (task == null) {
+                throw new IllegalStateException("Root build task '" + taskPath + "' was never scheduled for execution.");
+            }
+            return task;
         } else {
             return buildControllerFor(targetBuild).getTask(taskPath);
         }
@@ -96,7 +101,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
                 return (TaskInternal) task;
             }
         }
-        throw new IllegalStateException("Root build task '" + taskPath + "' was never scheduled for execution.");
+        return null;
     }
 
 }

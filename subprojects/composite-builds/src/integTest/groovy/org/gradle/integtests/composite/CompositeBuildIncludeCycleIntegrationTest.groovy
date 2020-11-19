@@ -125,6 +125,34 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         result.assertTasksExecuted(':task3',':buildB:task2', ':task1')
     }
 
+    def "can indirectly depend on root build task"() {
+        given:
+        buildA.buildFile << """
+            tasks.register('task1') {
+                dependsOn gradle.includedBuild('buildB').task(':task2')
+            }
+            tasks.register('task4') { }
+        """
+        buildA.settingsFile << """
+            rootProject.name = 'theNameOfBuildA'
+        """
+        buildB.settingsFile << "includeBuild '../buildA'"
+        buildB.buildFile << """
+            tasks.register('task2') {
+                dependsOn('task3')
+            }
+            tasks.register('task3') {
+                dependsOn gradle.includedBuild('theNameOfBuildA').task(':task4')
+            }
+        """
+
+        when:
+        execute(buildA, 'task1')
+
+        then:
+        result.assertTasksExecuted(':task4',':buildB:task3' ,':buildB:task2', ':task1')
+    }
+
     def "can depend back on root build"() {
         given:
         def buildX = multiProjectBuild('buildX', ['x1', 'x2']) {
