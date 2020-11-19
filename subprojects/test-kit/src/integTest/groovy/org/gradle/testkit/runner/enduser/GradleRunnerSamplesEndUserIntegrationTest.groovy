@@ -34,7 +34,8 @@ import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
-@IgnoreIf({ GradleContextualExecuter.embedded }) // These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
+@IgnoreIf({ GradleContextualExecuter.embedded })
+// These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule
@@ -66,6 +67,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     @Unroll
     @UsesSample("testKit/manualClasspathInjection")
     @Requires(JDK8_OR_EARLIER)
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
     // Uses Gradle 2.8 which does not support Java 9
     def "manualClasspathInjection with #dsl dsl"() {
         expect:
