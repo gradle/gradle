@@ -64,7 +64,14 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     @Override
     public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
         if (isRoot(targetBuild)) {
-            return IncludedBuildTaskResource.State.SUCCESS;
+            TaskInternal task = getTask(targetBuild, taskPath);
+            if (task.getState().getFailure() != null) {
+                return IncludedBuildTaskResource.State.FAILED;
+            } else if (task.getState().getExecuted()) {
+                return IncludedBuildTaskResource.State.SUCCESS;
+            } else {
+                return IncludedBuildTaskResource.State.WAITING;
+            }
         } else {
             return buildControllerFor(targetBuild).getTaskState(taskPath);
         }
