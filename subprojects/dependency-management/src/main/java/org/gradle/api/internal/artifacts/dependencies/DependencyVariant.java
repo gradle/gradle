@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
+package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
+import org.gradle.api.attributes.AttributeContainer;
 
-/**
- * The minimal information Gradle needs to address an external module.
- *
- * @since 6.8
- */
-@Incubating
-@HasInternalProtocol
-public interface MinimalExternalModuleDependency {
-    ModuleIdentifier getModule();
-    VersionConstraint getVersionConstraint();
+import javax.annotation.Nullable;
+
+public interface DependencyVariant {
+    void mutateAttributes(AttributeContainer attributes);
+    void mutateCapabilities(ModuleDependencyCapabilitiesHandler capabilitiesHandler);
+
+    @Nullable
+    String getClassifier();
+
+    @Nullable
+    String getArtifactType();
 }
