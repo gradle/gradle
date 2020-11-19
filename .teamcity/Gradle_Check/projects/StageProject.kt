@@ -36,8 +36,8 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
     init {
         features {
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
-                buildReportTab("API Compatibility Report", "report-architecture-test-binary-compatibility-report.html")
-                buildReportTab("Incubating APIs Report", "$failedTestArtifactDestination/incubation-reports/all-incubating.html")
+                buildReportTab("API Compatibility Report", "$failedTestArtifactDestination/report-architecture-test-binary-compatibility-report.html")
+                buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
             }
             if (stage.performanceTests.isNotEmpty()) {
                 buildReportTab("Performance", "performance-test-results.zip!report/index.html")
