@@ -33,8 +33,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder
 
-    @Unroll("Can probe version of #jdk is #displayName")
-    def "probes java installation"() {
+    @Unroll
+    def "can detect metadata of #displayName"() {
         given:
         def execHandleFactory = createExecHandleFactory(systemProperties)
 
@@ -71,6 +71,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'openJdk9'       | openJdkJvm('9')        | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9'            | true   | true
         'AdoptOpenJDK11' | adoptOpenJDK('11.0.3') | JavaVersion.VERSION_11  | 'AdoptOpenJDK 11'          | true   | false
         'AdoptOpenJDK11' | adoptOpenJDK('11.0.3') | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true   | true
+        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | JavaVersion.VERSION_14  | 'AdoptOpenJDK 14'      | true   | false
         'oracleJdk4'     | oracleJvm('4')         | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'             | true   | false
         'oracleJre4'     | oracleJvm('4')         | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'             | true   | true
         'oracleJdk5'     | oracleJvm('5')         | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'             | true   | false
@@ -97,6 +98,34 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'bellsoftjdk11'  | bellsoftJvm('15')      | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15' | true   | false
         'bellsoftjre11'  | bellsoftJvm('15')      | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15' | true   | true
         'whitespaces'    | whitespaces('11.0.3')  | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true   | true
+    }
+
+    @Unroll
+    def "probes whether #jdk is a j9 virtual machine"() {
+        given:
+        def execHandleFactory = createExecHandleFactory(systemProperties)
+
+        when:
+        def detector = new DefaultJvmMetadataDetector(execHandleFactory)
+        def javaHome = temporaryFolder.newFolder(jdk)
+        def metadata = detector.getMetadata(javaHome)
+
+        then:
+        assert metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) == isJ9
+
+        where:
+        jdk              | systemProperties         | isJ9
+        'openJdk9'       | openJdkJvm('9')          | false
+        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | false
+        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | true
+        'oracleJdk4'     | oracleJvm('4')           | false
+        'ibmJdk4'        | ibmJvm('4')              | true
+        'ibmJre4'        | ibmJvm('4')              | true
+        'ibmJdk5'        | ibmJvm('5')              | true
+        'ibmJdk6'        | ibmJvm('6')              | true
+        'ibmJdk7'        | ibmJvm('7')              | true
+        'ibmJdk8'        | ibmJvm('8')              | true
+        'ibmJdk9'        | ibmJvm('9')              | true
     }
 
     @Unroll
@@ -169,6 +198,17 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "${version}+7",
+         'java.runtime.name': "OpenJDK Runtime Environment"
+        ]
+    }
+
+    private static Map<String, String> adoptOpenJDKJ9(String version) {
+        ['java.home': "java-home",
+         'java.version': version,
+         'java.vendor': "AdoptOpenJDK",
+         'os.arch': "x86_64",
+         'java.vm.name': "Eclipse OpenJ9 VM",
+         'java.vm.version': "openj9-0.21.0",
          'java.runtime.name': "OpenJDK Runtime Environment"
         ]
     }

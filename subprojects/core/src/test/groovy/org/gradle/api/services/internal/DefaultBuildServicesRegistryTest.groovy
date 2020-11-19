@@ -20,6 +20,7 @@ import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
@@ -33,7 +34,8 @@ class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scopes.Build)
     def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
-    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
+    def buildIdentifier = Mock(BuildIdentifier)
+    def registry = new DefaultBuildServicesRegistry(buildIdentifier, TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
 
     def setup() {
         ServiceImpl.reset()

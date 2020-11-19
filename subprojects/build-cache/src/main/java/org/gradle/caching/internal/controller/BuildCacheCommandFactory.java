@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.util.Map;
@@ -32,6 +31,6 @@ public interface BuildCacheCommandFactory {
 
     interface LoadMetadata {
         OriginMetadata getOriginMetadata();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots();
+        ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots();
     }
 }

@@ -26,7 +26,6 @@ import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
-import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
@@ -34,7 +33,6 @@ import org.slf4j.Logger
 import spock.lang.Unroll
 
 import javax.inject.Inject
-
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -560,7 +558,6 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         ArchiveOperations.name           | "project.services.get(${ArchiveOperations.name})"           | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
-        JavaInstallationRegistry.name    | "project.services.get(${JavaInstallationRegistry.name})"    | "installationForCurrentVirtualMachine"
     }
 
     @Unroll

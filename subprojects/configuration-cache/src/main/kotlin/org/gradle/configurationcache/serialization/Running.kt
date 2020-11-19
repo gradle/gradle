@@ -34,11 +34,10 @@ fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R
  * Runs the given [writeOperation] synchronously.
  */
 internal
-fun <T : WriteContext> T.runWriteOperation(writeOperation: suspend T.() -> Unit) {
+fun <T : WriteContext, U> T.runWriteOperation(writeOperation: suspend T.() -> U): U =
     runToCompletion {
         writeOperation()
     }
-}
 
 
 /**

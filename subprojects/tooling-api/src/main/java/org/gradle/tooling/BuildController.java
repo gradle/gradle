@@ -192,11 +192,24 @@ public interface BuildController {
      *
      * <p>This method works with all Gradle versions. For versions 6.7 and earlier, the actions are run sequentially rather than in parallel.</p>
      *
+     * <p>When one or more actions fail with an exception, the exceptions are rethrown by this method and no result is returned.</p>
+     *
      * @param actions The actions to run.
      * @param <T> the result type.
-     * @return The action results. These are returned in the same order as the actions
+     * @return The action results. These are returned in the same order as the actions that produce them.
      * @since 6.8
      */
     @Incubating
     <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions);
+
+    /**
+     * Returns {@code true} when {@link #run(Collection)} may run its actions in parallel. Returns {@code false} when the actions
+     * will never run in parallel either because the target Gradle version does not support parallel execution or because some build
+     * configuration disables the parallel execution.
+     *
+     * @return {@code true} when actions may run in parallel.
+     * @since 6.8
+     */
+    @Incubating
+    boolean isActionsMayRunInParallel();
 }

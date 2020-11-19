@@ -30,7 +30,7 @@ public interface FileSystemSnapshot {
         }
 
         @Override
-        public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+        public SnapshotVisitResult accept(PathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
             return SnapshotVisitResult.CONTINUE;
         }
     };
@@ -47,5 +47,5 @@ public interface FileSystemSnapshot {
      *
      * The walk is depth first.
      */
-    SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor);
+    SnapshotVisitResult accept(PathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor);
 }

@@ -21,12 +21,10 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-public class ActionRunsNestedActions implements BuildAction<ActionRunsNestedActions.Models> {
+public class ActionRunsNestedActions implements BuildAction<Models> {
     @Override
     public Models execute(BuildController controller) {
         GradleBuild buildModel = controller.getBuildModel();
@@ -35,10 +33,10 @@ public class ActionRunsNestedActions implements BuildAction<ActionRunsNestedActi
             projectActions.add(new GetProjectModel(project));
         }
         List<CustomModel> results = controller.run(projectActions);
-        return new Models(results);
+        return new Models(controller.isActionsMayRunInParallel(), results);
     }
 
-    private static class GetProjectModel implements BuildAction<CustomModel> {
+    static class GetProjectModel implements BuildAction<CustomModel> {
         private final BasicGradleProject project;
 
         public GetProjectModel(BasicGradleProject project) {
@@ -48,18 +46,6 @@ public class ActionRunsNestedActions implements BuildAction<ActionRunsNestedActi
         @Override
         public CustomModel execute(BuildController controller) {
             return controller.getModel(project, CustomModel.class);
-        }
-    }
-
-    public static class Models implements Serializable {
-        private final List<CustomModel> projects;
-
-        public Models(Collection<CustomModel> projects) {
-            this.projects = new ArrayList<CustomModel>(projects);
-        }
-
-        public List<CustomModel> getProjects() {
-            return projects;
         }
     }
 }

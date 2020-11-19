@@ -61,6 +61,11 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
     @Override
     public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
+        return isContentUpToDate(other);
+    }
+
+    @Override
+    public boolean isContentUpToDate(CompleteFileSystemLocationSnapshot other) {
         return other instanceof CompleteDirectorySnapshot;
     }
 
@@ -83,7 +88,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+    public SnapshotVisitResult accept(PathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
         pathTracker.enter(getName());
         try {
             SnapshotVisitResult result = visitor.visitEntry(this, pathTracker);
@@ -183,5 +188,10 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             }
         });
         return Optional.of(new PartialDirectoryNode(newChildren));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s@%s/%s(%s)", super.toString(), contentHash, getName(), children);
     }
 }

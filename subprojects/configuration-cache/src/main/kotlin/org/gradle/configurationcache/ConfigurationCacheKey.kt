@@ -42,6 +42,8 @@ class ConfigurationCacheKey(
 
     override fun hashCode(): Int = string.hashCode()
 
+    override fun equals(other: Any?): Boolean = (other as? ConfigurationCacheKey)?.string == string
+
     private
     fun Hasher.putCacheKeyComponents() {
         putString(GradleVersion.current().version)

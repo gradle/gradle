@@ -16,13 +16,15 @@
 
 package org.gradle.testing
 
-
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -359,6 +361,75 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         executedAndNotSkipped(":test")
+    }
+
+    def "can enable merge rerun in xml report"() {
+        when:
+        assumeTrue("This test uses JUnit4-specific API", isJUnit4())
+        buildScript """
+            $junitSetup
+            test.reports.junitXml.mergeReruns = true
+        """
+        rerunningTest("SomeTest")
+        fails "test"
+
+        then:
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("SomeTest")
+        clazz.testCount == 6
+        (clazz as JUnitTestClassExecutionResult).testCasesCount == 2
+        clazz.assertTestPassed("testFlaky[]")
+        clazz.assertTestFailed("testFailing[]", CoreMatchers.anything())
+    }
+
+    def "merge rerun defaults to false"() {
+        when:
+        assumeTrue("This test uses JUnit4-specific API", isJUnit4())
+        buildScript """
+            $junitSetup
+        """
+        rerunningTest("SomeTest")
+        fails "test"
+
+        then:
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("SomeTest")
+        clazz.testCount == 6
+        (clazz as JUnitTestClassExecutionResult).testCasesCount == 6
+    }
+
+    private TestFile rerunningTest(String className) {
+        file("src/test/java/${className}.java") << """
+            import org.junit.Assert;
+            import org.junit.Test;
+
+            @org.junit.runner.RunWith(org.junit.runners.Parameterized.class)
+            public class $className {
+
+                @org.junit.runners.Parameterized.Parameters(name = "")
+                public static Object[] data() {
+                    return new Object[] { 1, 2, 3 };
+                }
+
+                private final int i;
+
+                public SomeTest(int i) {
+                    this.i = i;
+                }
+
+                @Test
+                public void testFlaky() {
+                    System.out.println("execution " + i);
+                    Assert.assertTrue(i == 3);
+                }
+
+                @Test
+                public void testFailing() {
+                    System.out.println("execution " + i);
+                    Assert.assertTrue(false);
+                }
+            }
+        """
     }
 
     def "outputs over lifecycle"() {

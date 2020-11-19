@@ -34,7 +34,7 @@ public interface FileCollectionFingerprinter {
     /**
      * Creates a fingerprint of the contents of the given roots.
      */
-    CurrentFileCollectionFingerprint fingerprint(Iterable<? extends FileSystemSnapshot> roots);
+    CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot roots);
 
     /**
      * Returns an empty fingerprint.

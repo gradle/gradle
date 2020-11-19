@@ -17,15 +17,19 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Task;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 
 public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectoryReport implements JUnitXmlReport {
 
     private boolean outputPerTestCase;
+    private final Property<Boolean> mergeReruns;
 
-    public DefaultJUnitXmlReport(String name, Task task) {
+    public DefaultJUnitXmlReport(String name, Task task, ObjectFactory objectFactory) {
         super(name, task, null);
+        this.mergeReruns = objectFactory.property(Boolean.class).convention(false);
     }
 
     @Override
@@ -38,4 +42,8 @@ public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectory
         this.outputPerTestCase = outputPerTestCase;
     }
 
+    @Override
+    public Property<Boolean> getMergeReruns() {
+        return mergeReruns;
+    }
 }

@@ -80,10 +80,26 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "normalize installations to account for macOS folder layout"() {
         given:
-        def tmpWithMacOsLayout = createTempDir()
-        def expectedHome = new File(tmpWithMacOsLayout, "Contents/Home")
+        def expectedHome = new File(tempFolder, "Contents/Home")
         assert expectedHome.mkdirs()
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpWithMacOsLayout)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations*.location.contains(expectedHome)
+    }
+
+    def "normalize installations to account for standalone jre"() {
+        given:
+        def expectedHome = new File(tempFolder, "jre")
+        assert expectedHome.mkdirs()
+        def jreBinFolder = new File(expectedHome, "bin")
+        assert jreBinFolder.mkdir()
+        assert new File(jreBinFolder, OperatingSystem.current().getExecutableName( "java")).createNewFile()
+
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.current())
 
         when:
         def installations = registry.listInstallations()

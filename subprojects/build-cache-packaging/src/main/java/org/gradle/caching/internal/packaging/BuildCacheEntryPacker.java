@@ -48,9 +48,9 @@ public interface BuildCacheEntryPacker {
     class UnpackResult {
         private final OriginMetadata originMetadata;
         private final long entries;
-        private final Map<String, ? extends CompleteFileSystemLocationSnapshot> snapshots;
+        private final Map<String, CompleteFileSystemLocationSnapshot> snapshots;
 
-        public UnpackResult(OriginMetadata originMetadata, long entries, Map<String, ? extends CompleteFileSystemLocationSnapshot> snapshots) {
+        public UnpackResult(OriginMetadata originMetadata, long entries, Map<String, CompleteFileSystemLocationSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
             this.snapshots = snapshots;
@@ -64,7 +64,7 @@ public interface BuildCacheEntryPacker {
             return entries;
         }
 
-        public Map<String, ? extends CompleteFileSystemLocationSnapshot> getSnapshots() {
+        public Map<String, CompleteFileSystemLocationSnapshot> getSnapshots() {
             return snapshots;
         }
     }

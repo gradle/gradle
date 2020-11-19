@@ -21,15 +21,19 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
+import spock.lang.Unroll
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
 class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    private static final int MAX_WORKERS = 3
+
     @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         executer.withArgument('--parallel')
-        executer.withArgument('--max-workers=3') // needs to be set to the maximum number of expectConcurrentExecution() calls
+        executer.withArgument("--max-workers=$MAX_WORKERS") // needs to be set to the maximum number of expectConcurrentExecution() calls
         executer.withArgument('--info')
 
         executer.requireOwnGradleUserHomeDir()
@@ -44,7 +48,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
-                
+
                 repositories {
                     maven {
                         url '${mavenHttpRepo.uri}'
@@ -81,7 +85,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
-                
+
                 repositories {
                     ivy {
                         url '${ivyHttpRepo.uri}'
@@ -116,7 +120,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             settingsFile << "include '$it'\n"
             file("$it/build.gradle") << """
                 apply plugin: 'java-library'
-                
+
                 task resolveDependencies {
                     doLast {
                         configurations.compileClasspath.resolve()
@@ -198,4 +202,80 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
         succeeds("longRunning", "consumer")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/15120")
+    @Unroll
+    def "pre-resolve actions are executed under lock even if configuration isn't declared as an input (iteration=#iteration)"() {
+        blockingServer.start()
+        def pCount = MAX_WORKERS - 1 // 1 for the root project
+        def taskList = [':resolveConcurrently']
+        pCount.times {
+            settingsFile << """
+                include 'p$it'
+            """
+            taskList << ":p${it}:resolveConcurrently"
+        }
+        buildFile << """
+            def concurrent = new java.util.concurrent.atomic.AtomicInteger()
+            configurations {
+                contended {
+                    canBeConsumed = true
+                    canBeResolved = false
+                    defaultDependencies { deps ->
+                        println "Adding dependencies"
+                        1000.times {
+                            deps.add(project.dependencies.create("dummy:dummy\$it:1.1"))
+                        }
+                        assert concurrent.incrementAndGet() == 1 : "Unexpected concurrent call"
+                    }
+                    withDependencies { deps ->
+                        println "Seeing \${deps.size()} dependencies"
+                        deps.clear()
+                        1000.times {
+                            deps.add(project.dependencies.create("dummy:dummy\$it:1.1"))
+                        }
+                        assert concurrent.incrementAndGet() == 2 : "Unexpected concurrent call"
+                    }
+                }
+            }
+
+            // this problem seems to occur more frequently if the project
+            // declaring the consumable configuration itself participates in resolving
+            allprojects {
+                configurations {
+                    consumer {
+                        canBeResolved = true
+                        canBeConsumed = false
+                    }
+                }
+                dependencies {
+                    consumer project(path:":", configuration: "contended")
+                }
+
+                tasks.register("resolveConcurrently") {
+                    doLast {
+                        ${blockingServer.callFromTaskAction("resolve")}
+                        configurations.consumer.incoming.resolutionResult.allDependencies {
+                        }
+                    }
+                }
+            }
+        """
+
+        given:
+        def handle = executer.withTasks(taskList).start()
+        def expectation = blockingServer.expectConcurrentAndBlock((0..pCount).collect {"resolve" } as String[])
+        expectation.waitForAllPendingCalls()
+
+        when:
+        expectation.releaseAll()
+        def result = handle.waitForFinish()
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(taskList)
+
+        where:
+        // This is a race condition, using 10 iterations shows a sufficient
+        // failure rate for confidence
+        iteration << (0..10)
+    }
 }

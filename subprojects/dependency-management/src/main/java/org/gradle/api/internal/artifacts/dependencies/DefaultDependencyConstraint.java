@@ -58,6 +58,10 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
         return new DefaultDependencyConstraint(DefaultModuleIdentifier.newId(group, name), versionConstraint);
     }
 
+    public DefaultDependencyConstraint(ModuleIdentifier module, VersionConstraint versionConstraint) {
+        this(module, new DefaultMutableVersionConstraint(versionConstraint));
+    }
+
     private DefaultDependencyConstraint(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
         this.moduleIdentifier = module;
         this.versionConstraint = versionConstraint;

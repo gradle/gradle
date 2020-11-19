@@ -16,10 +16,34 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
+import org.gradle.internal.hash.HashCode;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class SnapshotUtil {
+
+    public static Map<String, CompleteFileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
+        HashMap<String, CompleteFileSystemLocationSnapshot> index = new HashMap<>();
+        snapshot.accept(entrySnapshot -> {
+            index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
+            return SnapshotVisitResult.CONTINUE;
+        });
+        return index;
+    }
+
+    public static Map<String, CompleteFileSystemLocationSnapshot> rootIndex(FileSystemSnapshot snapshot) {
+        HashMap<String, CompleteFileSystemLocationSnapshot> index = new HashMap<>();
+        snapshot.accept(entrySnapshot -> {
+            index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
+            return SnapshotVisitResult.SKIP_SUBTREE;
+        });
+        return index;
+    }
 
     public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
         return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, Optional<MetadataSnapshot>>() {
@@ -68,5 +92,17 @@ public class SnapshotUtil {
                 return ReadOnlyFileSystemNode.EMPTY;
             }
         });
+    }
+
+    public static ImmutableMultimap<String, HashCode> getRootHashes(FileSystemSnapshot roots) {
+        if (roots == FileSystemSnapshot.EMPTY) {
+            return ImmutableMultimap.of();
+        }
+        ImmutableMultimap.Builder<String, HashCode> builder = ImmutableListMultimap.builder();
+        roots.accept(snapshot -> {
+            builder.put(snapshot.getAbsolutePath(), snapshot.getHash());
+            return SnapshotVisitResult.SKIP_SUBTREE;
+        });
+        return builder.build();
     }
 }

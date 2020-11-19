@@ -128,6 +128,7 @@ class DirectorySnapshotterStatisticsTest extends Specification {
         1 * statisticsCollector.recordVisitHierarchy()
 
         then:
+        1 * statisticsCollector.recordVisitHierarchy()
         3 * statisticsCollector.recordVisitDirectory()
         3 * statisticsCollector.recordVisitFile()
         0 * _

@@ -153,6 +153,11 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     protected abstract BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
 
     @Override
+    public boolean isActionsMayRunInParallel() {
+        return false;
+    }
+
+    @Override
     public <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions) {
         List<T> results = new ArrayList<T>(actions.size());
         List<Throwable> failures = new ArrayList<Throwable>();

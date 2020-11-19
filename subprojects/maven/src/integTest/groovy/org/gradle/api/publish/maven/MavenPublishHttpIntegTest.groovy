@@ -355,6 +355,31 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasErrorOutput("- mavenPassword")
     }
 
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle/issues/14902")
+    def "does not fail when publishing is set to always up to date"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, """
+        credentials {
+            username 'foo'
+            password 'bar'
+        }
+        """)
+        server.authenticationScheme = AuthScheme.BASIC
+        PasswordCredentials credentials = new DefaultPasswordCredentials('foo', 'bar')
+        expectPublishModuleWithCredentials(module, credentials)
+
+        when:
+        buildFile << """
+        tasks.withType(PublishToMavenRepository).configureEach {
+            outputs.upToDateWhen { true }
+        }
+        """
+
+        then:
+        succeeds 'publish'
+    }
+
     private static String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {
         String credentialsBlock = credentials ? """
                         credentials {

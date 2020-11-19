@@ -29,6 +29,7 @@ plugins {
     id("gradlebuild.integration-tests")
     id("gradlebuild.cross-version-tests")
     id("gradlebuild.ci-lifecycle")
+    id("gradlebuild.spotless")
 }
 
 apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")

@@ -545,6 +545,17 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
+[TIP]
+====
+A good testing strategy for a Gradle plugin is to run its whole test suite with the configuration cache enabled.
+This requires testing the plugin with a supported Gradle version.
+
+If the plugin already supports a range of Gradle versions it might already have tests for multiple Gradle versions.
+In that case we recommend enabling the configuration cache starting with the Gradle version that supports it.
+
+If this can’t be done right away, using tests that runs all tasks contributed by the plugin several times, for e.g. asserting the `UP_TO_DATE` and `FROM_CACHE` behavior, is also a good strategy.
+====
+
 [[config_cache:requirements]]
 == Requirements
 

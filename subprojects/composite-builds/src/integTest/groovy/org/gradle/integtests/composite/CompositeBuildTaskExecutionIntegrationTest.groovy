@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -148,30 +147,6 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         succeeds(":other-plugin:taskFromIncludedPlugin")
         output.count(":other-plugin:jar") == 1
-    }
-
-    @NotYetImplemented
-    def "can exclude tasks coming from included builds"() {
-        setup:
-        settingsFile << "includeBuild('other-build')"
-        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
-        file('other-build/build.gradle') << """
-             def setupTask = tasks.register('setupTask') { task ->
-                doLast {
-                    println 'Setup task'
-                }
-            }
-            tasks.register('doSomething') { task ->
-                task.dependsOn setupTask
-                doLast {
-                    println 'do something'
-                }
-            }
-        """
-
-        expect:
-        succeeds(":other-build:doSomething", "-x", ":other-build:setupTask")
-        outputContains(":other-build:setupTask SKIPPED")
     }
 
     def "can pass options to task in included build"() {

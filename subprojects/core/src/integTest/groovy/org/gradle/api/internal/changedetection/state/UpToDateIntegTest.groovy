@@ -18,7 +18,9 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
+@Unroll
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
     def "empty output directories created automatically are part of up-to-date checking"() {
@@ -159,5 +161,35 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         then:
         skipped customTask
         result.output =~ /Skipping task '${customTask}' as it is up-to-date\./
+    }
+
+    def "registering an optional #type output property with a null value keeps task up-to-date"() {
+        buildFile << """
+            task customTask(type: CustomTask) {
+                outputFile = file("\$buildDir/outputFile")
+                if (project.hasProperty("addNullOutput")) {
+                    outputs.$type(null).optional()
+                }
+            }
+
+            class CustomTask extends DefaultTask {
+                @OutputFile
+                File outputFile
+
+                @TaskAction
+                public void doStuff() {
+                    outputFile.text = "output"
+                }
+            }
+        """
+
+        run "customTask"
+        when:
+        run "customTask", "-PaddNullOutput"
+        then:
+        skipped ":customTask"
+
+        where:
+        type << ["dir", "file"]
     }
 }

@@ -20,11 +20,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.File;
-import java.util.List;
 
 public class DefaultOutputSnapshotter implements OutputSnapshotter {
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
@@ -39,8 +37,7 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
-                builder.put(propertyName, CompositeFileSystemSnapshot.of(results));
+                builder.put(propertyName, fileCollectionSnapshotter.snapshot(contents));
             }
         });
         return builder.build();

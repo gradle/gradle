@@ -20,3 +20,14 @@ java {
     }
 }
 // end::toolchain-matching-vendor[]
+
+
+// tag::toolchain-matching-implementation[]
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+        vendor.set(JvmVendorSpec.ADOPTOPENJDK)
+        implementation.set(JvmImplementation.J9)
+    }
+}
+// end::toolchain-matching-implementation[]

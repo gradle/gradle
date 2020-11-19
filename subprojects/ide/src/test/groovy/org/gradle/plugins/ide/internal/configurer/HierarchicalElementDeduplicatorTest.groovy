@@ -250,10 +250,44 @@ class HierarchicalElementDeduplicatorTest extends Specification {
         elementName("root:root-myelement:myelement-foo") == "root-myelement-myelement-foo"
     }
 
+    def "dedups elements using identity names if available"() {
+        given:
+        element("root") {
+            idNameElement("app") {}
+            element("app") {}
+            idNameElement("services") {
+                idNameElement("bar") {
+                    element("app") {}
+                    idNameElement("app") {}
+                }
+            }
+            element("services")
+        }
+
+        when:
+        deduplicateNames()
+
+        then:
+        elementName("root") == "root"
+        elementName("root:app") == "root-app"
+        elementName("root:appId") == "root-appId"
+        elementName("root:servicesId") == "root-servicesId"
+        elementName("root:services") == "root-services"
+        elementName("root:servicesId:barId") == "bar"
+        elementName("root:servicesId:barId:app") == "root-services-bar-app"
+        elementName("root:servicesId:barId:appId") == "root-services-bar-appId"
+    }
+
     List<DummyElement> elements = Lists.newArrayList()
 
     private element(String name, Closure config = {}) {
         def root = new DummyElement(name)
+        elements += root
+        configure(root, config)
+    }
+
+    private idNameElement(String name, Closure config = {}) {
+        def root = new DummyElement(name, name + "Id")
         elements += root
         configure(root, config)
     }
@@ -276,36 +310,49 @@ class HierarchicalElementDeduplicatorTest extends Specification {
 
     private class DummyElement {
         String name
+        String identityName
         String newName
         DummyElement parent
 
-        DummyElement(String name) {
+        DummyElement(String name, String identityName = name) {
             this.name = name
+            this.identityName = identityName
             this.newName = name
         }
 
-        public element(String name, Closure config = {}) {
+        def element(String name, Closure config = {}) {
             def child = new DummyElement(name)
             child.parent = this
             configure(child, config)
             elements += child
         }
 
-        public getPath() {
+        def idNameElement(String name, Closure config = {}) {
+            def child = new DummyElement(name, name + "Id")
+            child.parent = this
+            configure(child, config)
+            elements += child
+        }
+
+        String getPath() {
             if (parent == null) {
-                return name
+                return identityName
             } else {
-                return parent.path + ':' + name
+                return parent.path + ':' + identityName
             }
         }
     }
 
     private class DummyAdapter implements HierarchicalElementAdapter<DummyElement> {
-        public String getName(DummyElement element) {
+        String getName(DummyElement element) {
             return element.name
         }
 
-        public DummyElement getParent(DummyElement element) {
+        String getIdentityName(DummyElement element) {
+            return element.identityName
+        }
+
+        DummyElement getParent(DummyElement element) {
             return element.parent
         }
 

@@ -22,21 +22,14 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
-import org.gradle.internal.MutableReference
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.FingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-
-import static org.gradle.internal.file.TreeType.DIRECTORY
-import static org.gradle.internal.file.TreeType.FILE
 
 @CleanupTestDirectory
 abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
@@ -57,10 +50,17 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     abstract protected Deleter createDeleter()
 
     def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, TreeDefinition... treeDefs) {
-        Map<String, CurrentFileCollectionFingerprint> fingerprints = treeDefs.collectEntries { treeDef ->
-            return [(treeDef.tree.name): treeDef.fingerprint()]
+        Map<String, FileSystemSnapshot> snapshots = treeDefs.collectEntries { treeDef ->
+            FileSystemSnapshot result = FileSystemSnapshot.EMPTY
+            if (treeDef.root != null) {
+                fileSystemAccess.read(treeDef.root.absolutePath) { snapshot ->
+                    //noinspection GrReassignedInClosureLocalVar
+                    result = snapshot
+                }
+            }
+            return [(treeDef.name): result]
         }
-        packer.pack(entity(treeDefs), fingerprints, output, writeOrigin)
+        packer.pack(entity(treeDefs), snapshots, output, writeOrigin)
     }
 
     def unpack(InputStream input, OriginReader readOrigin = this.readOrigin, TreeDefinition... treeDefs) {
@@ -71,61 +71,20 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
         Stub(CacheableEntity) {
             visitOutputTrees(_ as CacheableEntity.CacheableTreeVisitor) >> { CacheableEntity.CacheableTreeVisitor visitor ->
                 treeDefs.each {
-                    if (it.tree.root != null) {
-                        visitor.visitOutputTree(it.tree.name, it.tree.type, it.tree.root)
+                    if (it.root != null) {
+                        visitor.visitOutputTree(it.name, it.type, it.root)
                     }
                 }
             }
         }
     }
 
-    def prop(String name = "test", TreeType type, File output, FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING) {
-        switch (type) {
-            case FILE:
-                return new TreeDefinition(new TestCacheableTree(name, FILE, output)) {
-                    @Override
-                    CurrentFileCollectionFingerprint fingerprint() {
-                        if (output == null) {
-                            return fingerprintingStrategy.getEmptyFingerprint()
-                        }
-                        return fingerprint(output, fingerprintingStrategy)
-                    }
-                }
-            case DIRECTORY:
-                return new TreeDefinition(new TestCacheableTree(name, DIRECTORY, output)) {
-                    @Override
-                    CurrentFileCollectionFingerprint fingerprint() {
-                        if (output == null) {
-                            return fingerprintingStrategy.getEmptyFingerprint()
-                        }
-                        return fingerprint(output, fingerprintingStrategy)
-                    }
-                }
-            default:
-                throw new AssertionError()
-        }
-    }
-
-    protected abstract static class TreeDefinition {
-        final TestCacheableTree tree
-
-        TreeDefinition(TestCacheableTree tree) {
-            this.tree = tree
-        }
-
-        abstract CurrentFileCollectionFingerprint fingerprint()
-    }
-
-    protected CurrentFileCollectionFingerprint fingerprint(File file, FingerprintingStrategy strategy) {
-        MutableReference<CurrentFileCollectionFingerprint> fingerprint = MutableReference.empty()
-        fileSystemAccess.read(file.getAbsolutePath()) { snapshot ->
-            fingerprint.set(DefaultCurrentFileCollectionFingerprint.from([snapshot], strategy))
-        }
-        return fingerprint.get()
+    def prop(String name = "test", TreeType type, File output) {
+        return new TreeDefinition(name, type, output)
     }
 
     @Immutable(knownImmutableClasses = [File])
-    static class TestCacheableTree {
+    private static class TreeDefinition {
         String name
         TreeType type
         File root

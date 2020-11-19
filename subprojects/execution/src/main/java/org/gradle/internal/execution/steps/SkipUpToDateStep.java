@@ -28,7 +28,7 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +67,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     }
 
                     @Override
-                    public ImmutableSortedMap<String, FileCollectionFingerprint> getFinalOutputs() {
-                        return afterPreviousExecutionState.getOutputFileProperties();
+                    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                        return afterPreviousExecutionState.getOutputFilesProducedByWork();
                     }
 
                     @Override
@@ -107,8 +107,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
-                return result.getFinalOutputs();
+            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
+                return result.getOutputFilesProduceByWork();
             }
 
             @Override

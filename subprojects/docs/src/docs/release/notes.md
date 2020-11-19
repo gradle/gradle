@@ -27,6 +27,8 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
+NOTE: Gradle 6.7 has had **one** patch release, which fixed several issues from the original release. We recommend always using the latest patch release.
+
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
@@ -184,7 +186,7 @@ There are many options to configure this feature which are described in the [use
 [Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with.
 By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as toolchain.
 
-#### Selecting toolchain by vendor
+#### Selecting toolchain by vendor and implementation
 
 In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
 `JvmVendorSpec` has a list of well-known JVM vendors recognized by Gradle. The advantage is that Gradle can handle any inconsistencies across JDK versions
@@ -198,6 +200,19 @@ java {
 
         // alternativly, use custom matching
         // vendor = JvmVendorSpec.matching("customString")
+    }
+}
+```
+
+If the vendor is not enough to select the appropriate toolchain, you may as well filter by the implementation of the virtual machine.
+For example, to use an [Open J9](https://www.eclipse.org/openj9/) JVM, distributed via [AdoptOpenJDK](https://adoptopenjdk.net/), you can filter by the implementation as shown in the example below. 
+
+```
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTOPENJDK
+        implementation = JvmImplementation.J9
     }
 }
 ```
@@ -243,6 +258,30 @@ See the [toolchain documentation](userguide/toolchains.html) for more in-depth i
 
 When using [dependency injection](userguide/custom_gradle_types.html#service_injection) when developing plugins, tasks or project extensions, it is now possible to use the `@Inject` annotation without explicitly importing it into your build scripts the
 same way it works for other Gradle API classes.
+
+### Test re-run JUnit XML reporting enhancements
+
+The `Test` task, used for executing JVM tests, reports test results as HTML and as a set of XML files in the “JUnit XML” pseudo standard.
+It is common for CI servers and other tooling to observe test results via the XML files.
+A new `mergeReruns` option has been added that changes how tests that are executed more than once are reported in the XML files.
+
+```
+test {
+    reports.junitXml.mergeReruns = true
+}
+```
+
+When this new option is enabled, if a test fails but is then retried and succeeds, its failures will be recorded as `<flakyFailure>` instead of `<failure>`, within one `<testcase>`.
+This is the same as the reporting produced by the [surefire plugin of Apache Maven™](https://maven.apache.org/components/surefire/maven-surefire-plugin/examples/rerun-failing-tests.html), when enabling reruns.
+If your CI server understands this format, it will indicate that the test was flaky.
+
+This option is disabled by default, causing each test execution to be listed as a separate `<testcase>` in the XML.
+This means that when a test is executed multiple times, due to a retry-on-failure mechanism for example, it is listed multiple times.
+This is also the behavior for all previous Gradle versions.
+
+If you are using [build scans](https://scans.gradle.com) or [Gradle Enterprise](https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/), flaky tests will be detected regardless of this setting.
+
+Learn more about this new feature in the [Java testing documentation](userguide/java_testing.html#communicating_test_results_to_CI_servers_and_other_tools_via_xml_files).
 
 ## Security Improvements
 

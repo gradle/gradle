@@ -176,7 +176,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         target.createFile()
         run 'producesLink'
         then:
-        skipped ':producesLink'
+        executedAndNotSkipped ':producesLink'
     }
 
     @Issue('https://github.com/gradle/gradle/issues/1365')

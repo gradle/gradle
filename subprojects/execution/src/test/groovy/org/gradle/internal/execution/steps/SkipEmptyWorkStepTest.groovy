@@ -22,7 +22,7 @@ import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import spock.lang.Unroll
 
 class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
@@ -30,7 +30,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
 
     def delegateResult = Mock(CachingResult)
-    def outputFingerprints = ImmutableSortedMap.<String, FileCollectionFingerprint>of()
+    def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of()
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     @Override
@@ -50,8 +50,8 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         result == delegateResult
 
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.empty()
+        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputSnapshots
+        _ * work.skipIfInputsEmpty(outputSnapshots) >> Optional.empty()
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
@@ -67,8 +67,8 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         result.executionResult.get().outcome == outcome
 
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.of(outcome)
+        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputSnapshots
+        _ * work.skipIfInputsEmpty(outputSnapshots) >> Optional.of(outcome)
 
         then:
         1 * executionHistoryStore.remove(identity.uniqueId)

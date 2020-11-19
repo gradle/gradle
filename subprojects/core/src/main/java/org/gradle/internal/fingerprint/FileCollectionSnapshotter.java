@@ -19,8 +19,6 @@ package org.gradle.internal.fingerprint;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.List;
-
 /**
  * Service for snapshotting {@link FileCollection}s.
  */
@@ -28,5 +26,5 @@ public interface FileCollectionSnapshotter {
     /**
      * Returns snapshots of the roots of a file collection.
      */
-    List<FileSystemSnapshot> snapshot(FileCollection fileCollection);
+    FileSystemSnapshot snapshot(FileCollection fileCollection);
 }

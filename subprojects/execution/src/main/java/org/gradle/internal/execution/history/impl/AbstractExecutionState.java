@@ -28,20 +28,17 @@ public class AbstractExecutionState<C extends FileCollectionFingerprint> impleme
     protected final ImmutableList<ImplementationSnapshot> additionalImplementations;
     protected final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     protected final ImmutableSortedMap<String, C> inputFileProperties;
-    protected final ImmutableSortedMap<String, C> outputFileProperties;
 
     public AbstractExecutionState(
             ImplementationSnapshot implementation,
             ImmutableList<ImplementationSnapshot> additionalImplementations,
             ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-            ImmutableSortedMap<String, C> inputFileProperties,
-            ImmutableSortedMap<String, C> outputFileProperties
+            ImmutableSortedMap<String, C> inputFileProperties
     ) {
         this.implementation = implementation;
         this.additionalImplementations = additionalImplementations;
         this.inputProperties = inputProperties;
         this.inputFileProperties = inputFileProperties;
-        this.outputFileProperties = outputFileProperties;
     }
 
     @Override
@@ -62,10 +59,5 @@ public class AbstractExecutionState<C extends FileCollectionFingerprint> impleme
     @Override
     public ImmutableSortedMap<String, C> getInputFileProperties() {
         return inputFileProperties;
-    }
-
-    @Override
-    public ImmutableSortedMap<String, C> getOutputFileProperties() {
-        return outputFileProperties;
     }
 }

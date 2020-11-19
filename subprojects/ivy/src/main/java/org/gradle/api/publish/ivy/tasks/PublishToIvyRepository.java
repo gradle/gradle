@@ -28,8 +28,8 @@ import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -115,7 +115,7 @@ public class PublishToIvyRepository extends DefaultTask {
         return repository;
     }
 
-    @Input
+    @Nested
     @Optional
     Property<Credentials> getCredentials() {
         return credentials;

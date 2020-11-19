@@ -26,7 +26,8 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.SnapshotUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,11 +58,11 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
 
     @Override
     public Optional<ExecutionOutcome> skipIfEmptySources(
-        TaskInternal task,
-        boolean hasSourceFiles,
-        FileCollection inputFiles,
-        FileCollection sourceFiles,
-        Map<String, FileCollectionFingerprint> outputFileSnapshots
+            TaskInternal task,
+            boolean hasSourceFiles,
+            FileCollection inputFiles,
+            FileCollection sourceFiles,
+            Map<String, FileSystemSnapshot> outputFileSnapshots
     ) {
         if (hasSourceFiles && sourceFiles.isEmpty()) {
             ExecutionOutcome skipOutcome = skipOutcomeFor(task, outputFileSnapshots);
@@ -73,7 +74,7 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
         }
     }
 
-    private ExecutionOutcome skipOutcomeFor(TaskInternal task, Map<String, FileCollectionFingerprint> outputFileSnapshots) {
+    private ExecutionOutcome skipOutcomeFor(TaskInternal task, Map<String, FileSystemSnapshot> outputFileSnapshots) {
         if (outputFileSnapshots.isEmpty()) {
             LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             return ExecutionOutcome.SHORT_CIRCUITED;
@@ -88,16 +89,16 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
         return ExecutionOutcome.SHORT_CIRCUITED;
     }
 
-    private boolean cleanPreviousTaskOutputs(Map<String, FileCollectionFingerprint> outputFileSnapshots) {
+    private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
         OutputsCleaner outputsCleaner = new OutputsCleaner(
             deleter,
             buildOutputCleanupRegistry::isOutputOwnedByBuild,
             buildOutputCleanupRegistry::isOutputOwnedByBuild
         );
-        for (FileCollectionFingerprint outputFingerprints : outputFileSnapshots.values()) {
+        for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
             try {
-                outputChangeListener.beforeOutputChange(outputFingerprints.getRootPaths());
-                outputsCleaner.cleanupOutputs(outputFingerprints);
+                outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(outputFileSnapshot).keySet());
+                outputsCleaner.cleanupOutputs(outputFileSnapshot);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

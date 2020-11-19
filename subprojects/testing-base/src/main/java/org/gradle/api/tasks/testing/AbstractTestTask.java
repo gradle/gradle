@@ -34,8 +34,8 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
@@ -537,10 +537,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
             JUnitXmlReport junitXml = reports.getJunitXml();
             if (junitXml.isEnabled()) {
-                TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
-                    ? TestOutputAssociation.WITH_TESTCASE
-                    : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getHostnameLookup().getHostname());
+                JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
+                    junitXml.isOutputPerTestCase(),
+                    junitXml.getMergeReruns().get()
+                );
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 

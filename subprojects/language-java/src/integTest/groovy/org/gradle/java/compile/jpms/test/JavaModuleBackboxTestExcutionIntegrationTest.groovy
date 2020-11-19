@@ -130,6 +130,7 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
 
         then:
         fails "test"
-        failure.assertHasErrorOutput('Unrecognized option: --module')
+        // Oracle JDK or IBM JDK
+        failure.assertHasErrorOutput('Unrecognized option: --module') || failure.assertHasErrorOutput('Command-line option unrecognised: --module')
     }
 }

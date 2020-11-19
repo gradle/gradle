@@ -13,6 +13,9 @@ dependencies {
     }
     implementation("com.github.javaparser:javaparser-symbol-solver-core")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle") {
+        exclude(group = "org.codehaus.groovy", module = "groovy-xml")
+    }
     implementation(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
     }
