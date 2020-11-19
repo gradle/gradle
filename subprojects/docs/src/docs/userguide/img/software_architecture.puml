@@ -36,8 +36,8 @@ package "Domain Model Layer" {
 [admin-feature] -down-> [domain-model]
 [admin-feature] -down-> [state]
 
-[android-app] -down-> [SpringBoot]
-[server-application] -down-> [Android]
+[server-application] -down-> [SpringBoot]
+[android-app] -down-> [Android]
 
 folder {
    [build-logic]
