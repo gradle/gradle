@@ -21,12 +21,9 @@ import spock.lang.Timeout
 class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
 
     @Timeout(30)
-    def "disconnect during build stops daemon in a timely fashion"() {
+    def "tooling api can disconnect from hanging daemon"() {
         setup:
-        file("test-project/build.gradle") << ""
-        file("test-project/settings.gradle") << ""
-        file("test-project/gradle.properties") << "systemProp.org.gradle.internal.testing.daemon.hang=60000"
-
+        settingsFile << "rootProject.name = 'client-runner'"
         buildFile << """
             plugins {
                 id 'java'
@@ -47,7 +44,6 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
                 implementation 'org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}'
             }
         """
-        settingsFile << "rootProject.name = 'client-runner'"
         file("src/main/java/ToolingApiClient.java") << """
             import org.gradle.tooling.GradleConnector;
             import org.gradle.tooling.ProjectConnection;
@@ -63,7 +59,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 private static void runHelp(File projectLocation) throws Exception {
-                    GradleConnector connector = GradleConnector.newConnector().useGradleVersion("6.8-20201118175938+0000");
+                    GradleConnector connector = GradleConnector.newConnector().useGradleVersion("6.8-20201118175938+0000"); // can be changed to latest release after 6.8 is available
                     ProjectConnection connection = connector.forProjectDirectory(projectLocation).connect();
                     connection.newBuild().forTasks("help").run(new ResultHandler<Void>() {
                         public void onComplete(Void result) { }
@@ -73,6 +69,9 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        file("test-project/build.gradle") << ""
+        file("test-project/settings.gradle") << ""
+        file("test-project/gradle.properties") << "systemProp.org.gradle.internal.testing.daemon.hang=60000"
 
         when:
         succeeds("runGradleBuildWithUnstableDaemon")

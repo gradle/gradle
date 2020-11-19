@@ -15,10 +15,10 @@
  */
 package org.gradle.tooling.internal.consumer.connection;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
@@ -30,6 +30,10 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -41,7 +45,6 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private final Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
     private final LoggingProvider loggingProvider;
-    private final ManagedExecutor shutdownExecutor;
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
@@ -57,7 +60,6 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
         this.connectionParameters = connectionParameters;
-        this.shutdownExecutor = executorFactory.create("disconnect pool " + distribution.getDisplayName(), 1);
     }
 
     @Override
@@ -113,14 +115,17 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
             @Override
             public Void run(final ConsumerConnection c) {
-                shutdownExecutor.submit(new Runnable() {
+                ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+                ExecutorService executorService = MoreExecutors.getExitingExecutorService(executor, 3, TimeUnit.SECONDS);
+                executorService.submit(new Runnable() {
                     @Override
                     public void run() {
                         c.stopWhenIdle(getParameters());
                     }
                 });
+                executor.shutdown();
                 return null;
-        }
+            }
         });
     }
 
