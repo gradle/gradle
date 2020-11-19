@@ -279,6 +279,8 @@ This option is disabled by default, causing each test execution to be listed as 
 This means that when a test is executed multiple times, due to a retry-on-failure mechanism for example, it is listed multiple times.
 This is also the behavior for all previous Gradle versions.
 
+If you are using [build scans](https://scans.gradle.com) or [Gradle Enterprise](https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/), flaky tests will be detected regardless of this setting.
+
 Learn more about this new feature in the [Java testing documentation](userguide/java_testing.html#communicating_test_results_to_CI_servers_and_other_tools_via_xml_files).
 
 ## Security Improvements
