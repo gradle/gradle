@@ -28,23 +28,23 @@ import java.util.Collections;
 import java.util.Set;
 
 public class EclipseProjectMetadata implements IdeProjectMetadata {
-    private final EclipseModel eclipseProject;
+    private final EclipseModel eclipseModel;
     private final File projectDir;
     private final TaskProvider<? extends Task> generatorTask;
 
-    public EclipseProjectMetadata(EclipseModel eclipseProject, File projectDir, TaskProvider<? extends Task> generatorTask) {
-        this.eclipseProject = eclipseProject;
+    public EclipseProjectMetadata(EclipseModel eclipseModel, File projectDir, TaskProvider<? extends Task> generatorTask) {
+        this.eclipseModel = eclipseModel;
         this.projectDir = projectDir;
         this.generatorTask = generatorTask;
     }
 
     @Override
     public DisplayName getDisplayName() {
-        return Describables.withTypeAndName("Eclipse project", eclipseProject.getProject().getName());
+        return Describables.withTypeAndName("Eclipse project", eclipseModel.getProject().getName());
     }
 
     public String getName() {
-        return eclipseProject.getProject().getName();
+        return eclipseModel.getProject().getName();
     }
 
     @Override
@@ -58,6 +58,6 @@ public class EclipseProjectMetadata implements IdeProjectMetadata {
     }
 
     public boolean hasJavaTestFixtures() {
-        return eclipseProject.getClasspath().getContainsTestFixtures();
+        return eclipseModel.getClasspath().getContainsTestFixtures();
     }
 }
