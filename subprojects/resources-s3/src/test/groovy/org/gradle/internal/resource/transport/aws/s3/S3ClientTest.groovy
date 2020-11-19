@@ -86,6 +86,7 @@ class S3ClientTest extends Specification {
             InitiateMultipartUploadRequest initiateMultipartUploadRequest = args[0]
             assert initiateMultipartUploadRequest.bucketName == bucketName
             assert initiateMultipartUploadRequest.key == objectKey
+            assert initiateMultipartUploadRequest.cannedACL == CannedAccessControlList.BucketOwnerFullControl
             initResponse
         }
         2 * amazonS3Client.uploadPart(*_) >> { args ->

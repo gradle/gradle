@@ -154,7 +154,8 @@ public class S3Client {
             String s3BucketKey = s3RegionalResource.getKey();
             configureClient(s3RegionalResource);
             List<PartETag> partETags = new ArrayList<>();
-            InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName, s3BucketKey);
+            InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName, s3BucketKey)
+                .withCannedACL(CannedAccessControlList.BucketOwnerFullControl);
             InitiateMultipartUploadResult initResponse = amazonS3Client.initiateMultipartUpload(initRequest);
             try {
                 long filePosition = 0;
