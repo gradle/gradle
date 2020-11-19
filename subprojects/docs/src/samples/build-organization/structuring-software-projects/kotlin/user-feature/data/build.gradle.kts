@@ -1,6 +1,8 @@
+// tag::project-type[]
 plugins {
     id("com.example.java-library")
 }
+// end::project-type[]
 
 group = "${group}.user-feature"
 

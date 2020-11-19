@@ -183,14 +183,20 @@ You can add details like that directly in `release/build.gradle(.kts)` but than 
 
 Thus, the recommendation is to start using custom project types right away:
 
-.Assign a custom type to a component's project by applying a convention plugin
+.Assign the custom type `com.example.java-library` to a project in the `user-feature` component
+====
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="user-feature/data/build.gradle[tags=project-type]"]
+include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="user-feature/data/build.gradle.kts[tags=project-type]"]
+====
+.Assign the custom type `com.example.kotlin-library` to a project in the `domain-model` component
 ====
 include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="domain-model/release/build.gradle[tags=project-type]"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="domain-model/release/build.gradle.kts[tags=project-type]"]
 ====
 
 As stated above, a project type is represented by a plugin in Gradle.
-We thus define our custom project type `com.example.kotlin-library` as a plugin as described in the next section.
+We thus define custom project types, such as `com.example.java-library` and `com.example.kotlin-library`, as plugins.
+The next section explains how to define such plugins.
 
 == Defining custom project types as convention plugins
 
