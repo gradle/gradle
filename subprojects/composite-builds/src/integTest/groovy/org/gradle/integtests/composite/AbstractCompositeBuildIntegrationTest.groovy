@@ -161,21 +161,28 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
     def pluginProjectBuild(String name) {
-        def className = name.capitalize()
         singleProjectBuild(name) {
-            buildFile << """
+            pluginProjectBuild(delegate)
+        }
+    }
+
+    def pluginProjectBuild(BuildTestFile testFile) {
+        def baseName = testFile.name.capitalize()
+        def className = baseName + "Impl"
+        testFile.with {
+            it.buildFile << """
 apply plugin: 'java-gradle-plugin'
 
 gradlePlugin {
     plugins {
-        ${name} {
-            id = "org.test.plugin.$name"
-            implementationClass = "org.test.$className"
+        ${it.name} {
+            id = "org.test.plugin.${it.name}"
+            implementationClass = "org.test.${className}"
         }
     }
 }
 """
-            file("src/main/java/org/test/${className}.java") << """
+            it.file("src/main/java/org/test/${className}.java") << """
 package org.test;
 
 import org.gradle.api.Plugin;
@@ -184,13 +191,12 @@ import org.gradle.api.Task;
 
 public class ${className} implements Plugin<Project> {
     public void apply(Project project) {
-        Task task = project.task("taskFrom${className}");
+        Task task = project.task("taskFrom${baseName}");
         task.setGroup("Plugin");
     }
 }
 """
         }
-
     }
 
     void outputContains(String string) {

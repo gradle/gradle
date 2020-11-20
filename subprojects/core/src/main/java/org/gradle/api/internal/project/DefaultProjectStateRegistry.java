@@ -146,6 +146,21 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
+    public void blocking(Runnable runnable) {
+        Thread owner = ownerOfAllProjects.get();
+        if (owner == Thread.currentThread()) {
+            ownerOfAllProjects.set(null);
+            try {
+                runnable.run();
+            } finally {
+                ownerOfAllProjects.set(owner);
+            }
+        } else {
+            workerLeaseService.blocking(runnable);
+        }
+    }
+
+    @Override
     public void allowUncontrolledAccessToAnyProject(Runnable runnable) {
         allowUncontrolledAccessToAnyProject(Factories.toFactory(runnable));
     }

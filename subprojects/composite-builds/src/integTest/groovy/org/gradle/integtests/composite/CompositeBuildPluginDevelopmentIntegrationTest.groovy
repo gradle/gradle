@@ -503,6 +503,45 @@ plugins {
         executed ":pluginBuild:jar", ":foo:classes", ":foo:bar:classes"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/15068")
+    def "can develop plugin whose build requires dependency resolution using configure-on-demand"() {
+        given:
+        buildA = multiProjectBuild("cod", ["consumer"]) {
+            project("consumer").buildFile.text = """
+                plugins {
+                    id 'java-library'
+                    id 'org.test.plugin.plugin'
+                }
+            """
+        }
+        def pluginBuild = multiProjectBuild("build-logic", ["plugin"]) {
+            buildFile.text = """
+                plugins {
+                    id("java-library")
+                }
+                allprojects {
+                    group = "org.test.plugin"
+                }
+            """
+            def subproject = project("plugin")
+            pluginProjectBuild(subproject)
+            subproject.buildFile << """
+                dependencies {
+                    implementation project(":")
+                }
+            """
+        }
+
+        includeBuild pluginBuild
+
+        when:
+        args "--configure-on-demand"
+        execute(buildA, "classes")
+
+        then:
+        executed ":build-logic:jar", ":build-logic:plugin:jar", ":consumer:classes"
+    }
+
     def addLifecycleTasks(BuildTestFile build) {
         build.buildFile << """
             tasks.maybeCreate("assemble")
