@@ -19,11 +19,13 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.xml.XmlTransformer;
@@ -84,6 +86,9 @@ import java.util.Set;
  *     //default settings for downloading sources and Javadoc:
  *     downloadSources = true
  *     downloadJavadoc = false
+ *
+ *     //if you want to expose test classes to dependent projects
+ *     containsTestFixtures = true
  *   }
  * }
  * </pre>
@@ -152,9 +157,12 @@ public class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
+    private final Property<Boolean> containsTestFixtures;
+
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
+        this.containsTestFixtures = project.getObjects().property(Boolean.class).convention(false);
     }
 
     /**
@@ -354,5 +362,17 @@ public class EclipseClasspath {
             referenceFactory.addPathVariable(entry.getKey(), entry.getValue());
         }
         return referenceFactory;
+    }
+
+    /**
+     * Returns {@code true} if the classpath contains test fixture classes that should be visible
+     * through incoming project dependencies.
+     *
+     * @since 6.8
+     * @return
+     */
+    @Incubating
+    public Property<Boolean> getContainsTestFixtures() {
+        return containsTestFixtures;
     }
 }

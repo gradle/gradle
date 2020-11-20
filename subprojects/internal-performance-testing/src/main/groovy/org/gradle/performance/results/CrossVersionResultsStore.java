@@ -92,7 +92,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     @Override
     public void report(final CrossVersionPerformanceResults results) {
-        withConnection("write results", (ConnectionAction<Void>) connection -> {
+        withConnectionClosingDb("write results", (ConnectionAction<Void>) connection -> {
             long testId = insertExecution(connection, results);
             batchInsertOperation(connection, results, testId);
             updatePreviousTestId(connection, results);
@@ -192,7 +192,11 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         return withConnection("load test history", connection -> {
             try (
                 Statement statement = connection.createStatement();
-                ResultSet testExecutions = statement.executeQuery("select distinct testClass, testId, testProject from testExecution order by testClass, testId, testProject")
+                ResultSet testExecutions = statement.executeQuery(
+                    "select testClass, testId, testProject" +
+                        "   from testExecutionExperiment" +
+                        "  order by testClass, testId, testProject"
+                )
             ) {
                 List<PerformanceExperiment> testNames = new ArrayList<>();
                 while (testExecutions.next()) {

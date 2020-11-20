@@ -55,10 +55,9 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
         runner = new CrossBuildPerformanceTestRunner(
-            new GradleBuildExperimentRunner(gradleProfilerReporter),
-            RESULTS_STORE,
-            RESULTS_STORE.reportAlso(gradleProfilerReporter),
-            buildContext
+                new GradleBuildExperimentRunner(gradleProfilerReporter),
+                RESULTS_STORE.reportAlso(gradleProfilerReporter),
+                buildContext
         ) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {

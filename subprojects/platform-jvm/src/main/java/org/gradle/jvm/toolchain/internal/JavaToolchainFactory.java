@@ -39,10 +39,10 @@ public class JavaToolchainFactory {
         this.fileFactory = fileFactory;
     }
 
-    public Optional<JavaToolchain> newInstance(File javaHome) {
+    public Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
         if(metadata.isValidInstallation()) {
-            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory);
+            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input);
             return Optional.of(toolchain);
         }
         return Optional.empty();

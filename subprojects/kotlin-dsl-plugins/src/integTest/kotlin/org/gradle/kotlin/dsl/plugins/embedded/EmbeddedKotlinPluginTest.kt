@@ -35,7 +35,6 @@ import org.junit.Test
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `applies the kotlin plugin`() {
 
         withBuildScript(
@@ -92,7 +91,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
     fun `all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript(
@@ -124,7 +123,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `sources and javadoc of all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript(
@@ -184,7 +182,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
     fun `can add embedded dependencies to custom configuration`() {
 
         withBuildScript(
@@ -213,7 +211,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForConfigurationCache
     fun `can be used with embedded artifact-only repository`() {
 
         withDefaultSettings()

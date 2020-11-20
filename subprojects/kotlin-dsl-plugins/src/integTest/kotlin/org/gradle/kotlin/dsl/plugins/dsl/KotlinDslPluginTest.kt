@@ -17,7 +17,6 @@ import org.junit.Test
 class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `warns on unexpected kotlin-dsl plugin version`() {
 
         // The test applies the in-development version of the kotlin-dsl
@@ -41,7 +40,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `gradle kotlin dsl api dependency is added`() {
 
         withKotlinDslPlugin()
@@ -65,7 +63,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `gradle kotlin dsl api is available for test implementation`() {
 
         assumeNonEmbeddedGradleExecuter() // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
@@ -131,7 +128,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
         assumeNonEmbeddedGradleExecuter() // requires a full distribution to run tests with test kit
 
@@ -235,7 +231,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `sam-with-receiver kotlin compiler plugin is applied to production code`() {
 
         withKotlinDslPlugin()

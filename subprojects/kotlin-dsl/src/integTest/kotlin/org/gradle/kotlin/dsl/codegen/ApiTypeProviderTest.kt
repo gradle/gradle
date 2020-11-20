@@ -104,7 +104,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `maps generic question mark to *`() {
+    fun `maps generic question mark to star projection`() {
 
         val jars = listOf(withClassJar("some.jar", ContentFilterable::class.java))
 

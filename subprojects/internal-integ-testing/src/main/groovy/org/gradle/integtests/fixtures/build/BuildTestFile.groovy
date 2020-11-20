@@ -45,4 +45,8 @@ class BuildTestFile extends TestFile {
     void addChildDir(String name) {
         file(name).file("build.gradle") << "// Dummy child build"
     }
+
+    BuildTestFile project(String name) {
+        return new BuildTestFile(file(name), name)
+    }
 }

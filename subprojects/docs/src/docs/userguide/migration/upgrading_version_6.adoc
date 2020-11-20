@@ -48,7 +48,7 @@ The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is n
 
 ==== Updates to bundled Gradle dependencies
 
-- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/08/kotlin-1-4-released-with-a-focus-on-quality-and-performance/[Kotlin 1.4.10].
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/08/kotlin-1-4-released-with-a-focus-on-quality-and-performance/[Kotlin 1.4.20].
   Note that Gradle scripts are still using the Kotlin 1.3 language.
 
 ==== Projects imported into Eclipse now include custom source set classpaths

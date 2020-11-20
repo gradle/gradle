@@ -40,7 +40,12 @@ public class ProjectDependencyBuilder {
         if (asJavaModule) {
             dependency.getEntryAttributes().put(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY, EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE);
         }
-        dependency.getEntryAttributes().put(EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY, EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_VALUE);
+
+        if (containsTestFixtures(componentIdentifier)) {
+            dependency.getEntryAttributes().put(EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY, "false");
+        } else {
+            dependency.getEntryAttributes().put(EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY, "true");
+        }
         return dependency;
     }
 
@@ -51,6 +56,11 @@ public class ProjectDependencyBuilder {
     public String determineTargetProjectName(ProjectComponentIdentifier id) {
         EclipseProjectMetadata eclipseProject = ideArtifactRegistry.getIdeProject(EclipseProjectMetadata.class, id);
         return eclipseProject == null ? id.getProjectName() : eclipseProject.getName();
+    }
+
+    private boolean containsTestFixtures(ProjectComponentIdentifier id) {
+        EclipseProjectMetadata eclipseProject = ideArtifactRegistry.getIdeProject(EclipseProjectMetadata.class, id);
+        return eclipseProject != null ? eclipseProject.hasJavaTestFixtures() : false;
     }
 
     private ProjectDependency buildProjectDependency(String path) {

@@ -118,6 +118,11 @@ public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProject
         }
 
         @Override
+        public String getIdentityName(ProjectStateWrapper element) {
+            return element.name;
+        }
+
+        @Override
         public ProjectStateWrapper getParent(ProjectStateWrapper element) {
             return projectToInformationMap.get(element.parent);
         }

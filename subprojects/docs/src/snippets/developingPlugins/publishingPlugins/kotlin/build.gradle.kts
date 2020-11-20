@@ -29,3 +29,14 @@ pluginBundle {
     tags = listOf("tags", "for", "your", "plugins") // <3>
 }
 // end::plugin_bundle[]
+
+// tag::local_repository[]
+publishing {
+    repositories {
+        maven {
+            name = "localPluginRepository"
+            url = uri("../local-plugin-repository")
+        }
+    }
+}
+// end::local_repository[]
