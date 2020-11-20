@@ -175,7 +175,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        testCompileOnly.extendsFrom == [] as Set
+        testCompileOnly.extendsFrom == toSet(compileOnlyApi)
         !testCompileOnly.visible
         testCompileOnly.transitive
 
