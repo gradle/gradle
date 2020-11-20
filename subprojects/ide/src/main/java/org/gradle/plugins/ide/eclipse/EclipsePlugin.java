@@ -36,6 +36,7 @@ import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaTestFixturesPlugin;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSet;
@@ -186,7 +187,7 @@ public class EclipsePlugin extends IdePlugin {
 
         });
 
-        artifactRegistry.registerIdeProject(new EclipseProjectMetadata(projectModel, project.getProjectDir(), task));
+        artifactRegistry.registerIdeProject(new EclipseProjectMetadata(model, project.getProjectDir(), task));
     }
 
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
@@ -273,6 +274,13 @@ public class EclipsePlugin extends IdePlugin {
                         }
                     }
                 });
+            }
+        });
+
+        project.getPlugins().withType(JavaTestFixturesPlugin.class, new Action<JavaTestFixturesPlugin>() {
+            @Override
+            public void execute(JavaTestFixturesPlugin javaTestFixturesPlugin) {
+                model.getClasspath().getContainsTestFixtures().convention(true);
             }
         });
     }
