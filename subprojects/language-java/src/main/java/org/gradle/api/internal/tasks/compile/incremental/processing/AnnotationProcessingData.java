@@ -31,6 +31,7 @@ import java.util.Set;
 
 public class AnnotationProcessingData {
     private final Map<String, Set<String>> generatedTypesByOrigin;
+    private final Map<String, String> generatedTypesToOrigin;
     private final Set<String> aggregatedTypes;
     private final Set<String> generatedTypesDependingOnAllOthers;
     private final Map<String, Set<GeneratedResource>> generatedResourcesByOrigin;
@@ -45,11 +46,23 @@ public class AnnotationProcessingData {
         Set<GeneratedResource>> generatedResourcesByOrigin, Set<GeneratedResource> generatedResourcesDependingOnAllOthers, String fullRebuildCause) {
 
         this.generatedTypesByOrigin = ImmutableMap.copyOf(generatedTypesByOrigin);
+        this.generatedTypesToOrigin = buildGeneratedTypesToOrigin(generatedTypesByOrigin);
         this.aggregatedTypes = ImmutableSet.copyOf(aggregatedTypes);
         this.generatedTypesDependingOnAllOthers = ImmutableSet.copyOf(generatedTypesDependingOnAllOthers);
         this.generatedResourcesByOrigin = ImmutableMap.copyOf(generatedResourcesByOrigin);
         this.generatedResourcesDependingOnAllOthers = ImmutableSet.copyOf(generatedResourcesDependingOnAllOthers);
         this.fullRebuildCause = fullRebuildCause;
+    }
+
+    private Map<String, String> buildGeneratedTypesToOrigin(Map<String, Set<String>> generatedTypesByOrigin) {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        for (Map.Entry<String, Set<String>> entry : generatedTypesByOrigin.entrySet()) {
+            String origin = entry.getKey();
+            for (String generatedType : entry.getValue()) {
+                builder.put(generatedType, origin);
+            }
+        }
+        return builder.build();
     }
 
     public boolean participatesInClassGeneration(String clazzName) {
@@ -82,6 +95,12 @@ public class AnnotationProcessingData {
 
     public String getFullRebuildCause() {
         return fullRebuildCause;
+    }
+
+    public String getOriginOf(String type) {
+        String origin = generatedTypesToOrigin.get(type);
+        // if we can't find a source, then the type to reprocess is the type itself
+        return origin == null ? type : origin;
     }
 
     public static final class Serializer extends AbstractSerializer<AnnotationProcessingData> {

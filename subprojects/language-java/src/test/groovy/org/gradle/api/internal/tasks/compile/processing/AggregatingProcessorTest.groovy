@@ -80,23 +80,6 @@ class AggregatingProcessorTest extends Specification {
         result.getAggregatedTypes() == ["A", "B"] as Set
     }
 
-    def "ignores aggregated types which have no source"() {
-        given:
-        delegate.getSupportedAnnotationTypes() >> annotationTypes.collect { it.getQualifiedName().toString() }
-        roundEnvironment = Stub(RoundEnvironment) {
-            getRootElements() >> ([type("A"), type("B"), type("C")] as Set)
-            getElementsAnnotatedWith(_ as TypeElement) >> { TypeElement annotationType ->
-                [type("A"), type("B", false), type("C")] as Set
-            }
-        }
-
-        when:
-        processor.process(annotationTypes, roundEnvironment)
-
-        then:
-        result.getAggregatedTypes() == ["A", "C"] as Set
-    }
-
     def "doesn't aggregated types which have source when annotation isn't at top level"() {
         given:
         delegate.getSupportedAnnotationTypes() >> annotationTypes.collect { it.getQualifiedName().toString() }
