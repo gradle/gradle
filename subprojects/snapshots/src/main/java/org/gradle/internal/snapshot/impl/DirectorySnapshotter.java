@@ -26,9 +26,9 @@ import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.PathTracker;
@@ -92,7 +92,7 @@ public class DirectorySnapshotter {
         this.collector = collector;
     }
 
-    public CompleteFileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
         try {
             Path rootPath = Paths.get(absolutePath);
             PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_SYMBOLIC_LINK_MAPPING);
@@ -289,8 +289,8 @@ public class DirectorySnapshotter {
                                     symbolicLinkMapping.withNewMapping(file.toString(), targetDirString, pathTracker)
                                 );
                                 Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, subtreeVisitor);
-                                CompleteDirectorySnapshot result = (CompleteDirectorySnapshot) subtreeVisitor.getResult();
-                                builder.visitDirectory(new CompleteDirectorySnapshot(
+                                DirectorySnapshot result = (DirectorySnapshot) subtreeVisitor.getResult();
+                                builder.visitDirectory(new DirectorySnapshot(
                                     result.getAbsolutePath(),
                                     internedFileName,
                                     AccessType.VIA_SYMLINK,
@@ -424,7 +424,7 @@ public class DirectorySnapshotter {
             return fileName == null ? "" : intern(fileName.toString());
         }
 
-        public CompleteFileSystemLocationSnapshot getResult() {
+        public FileSystemLocationSnapshot getResult() {
             return builder.getResult();
         }
     }

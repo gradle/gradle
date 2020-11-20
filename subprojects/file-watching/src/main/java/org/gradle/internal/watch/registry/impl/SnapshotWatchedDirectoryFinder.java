@@ -17,7 +17,7 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,11 +29,11 @@ public class SnapshotWatchedDirectoryFinder {
      * Resolves the directories to watch for a snapshot.
      *
      * The directories to watch are
-     * - root for a complete directory snapshot
-     * - parent dir for complete snapshots
+     * - root for a directory snapshot
+     * - parent dir for regular file snapshots
      * - the first existing parent directory for a missing file snapshot
      */
-    public static ImmutableList<Path> getDirectoriesToWatch(CompleteFileSystemLocationSnapshot snapshot) {
+    public static ImmutableList<Path> getDirectoriesToWatch(FileSystemLocationSnapshot snapshot) {
         Path path = Paths.get(snapshot.getAbsolutePath());
 
         // For existing files and directories we watch the parent directory,

@@ -29,14 +29,14 @@ import java.util.Comparator;
  * The snapshot can be a snapshot of a regular file or of a whole directory tree.
  * The file at the location is not required to exist (see {@link MissingFileSnapshot}.
  */
-public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode, MetadataSnapshot {
+public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode, MetadataSnapshot {
 
     /**
      * The comparator of direct children of a file system location.
      *
      * The comparison is stable with respect to case sensitivity, so the order of the children is stable across operating systems.
      */
-    Comparator<CompleteFileSystemLocationSnapshot> BY_NAME = Comparator.comparing(CompleteFileSystemLocationSnapshot::getName, PathUtil::compareFileNames);
+    Comparator<FileSystemLocationSnapshot> BY_NAME = Comparator.comparing(FileSystemLocationSnapshot::getName, PathUtil::compareFileNames);
 
     /**
      * The file name.
@@ -66,12 +66,12 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
     /**
      * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.
      */
-    boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other);
+    boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other);
 
     /**
      * Whether the content of the current snapshot is the same as for the given one.
      */
-    boolean isContentUpToDate(CompleteFileSystemLocationSnapshot other);
+    boolean isContentUpToDate(FileSystemLocationSnapshot other);
 
     /**
      * Whether the file system location represented by this snapshot is a symlink or not.
@@ -82,13 +82,13 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
     <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer);
 
     interface FileSystemLocationSnapshotVisitor {
-        default void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {};
+        default void visitDirectory(DirectorySnapshot directorySnapshot) {};
         default void visitRegularFile(RegularFileSnapshot fileSnapshot) {};
         default void visitMissing(MissingFileSnapshot missingSnapshot) {};
     }
 
     interface FileSystemLocationSnapshotTransformer<T> {
-        T visitDirectory(CompleteDirectorySnapshot directorySnapshot);
+        T visitDirectory(DirectorySnapshot directorySnapshot);
         T visitRegularFile(RegularFileSnapshot fileSnapshot);
         T visitMissing(MissingFileSnapshot missingSnapshot);
     }

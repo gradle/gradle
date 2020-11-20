@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs;
 
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import java.util.Optional;
@@ -24,19 +24,19 @@ import java.util.Optional;
 public interface VirtualFileSystem {
 
     /**
-     * Returns the complete snapshot stored at the absolute path.
+     * Returns the snapshot stored at the absolute path.
      */
-    Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String absolutePath);
+    Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath);
 
     /**
-     * Returns the complete snapshot stored at the absolute path.
+     * Returns the metadata stored at the absolute path.
      */
     Optional<MetadataSnapshot> getMetadata(String absolutePath);
 
     /**
      * Adds the information of the snapshot at the absolute path to the VFS.
      */
-    void store(String absolutePath, CompleteFileSystemLocationSnapshot snapshot);
+    void store(String absolutePath, FileSystemLocationSnapshot snapshot);
 
     /**
      * Removes any information at the absolute paths from the VFS.

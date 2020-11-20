@@ -26,7 +26,7 @@ public interface FileSystemNode extends ReadOnlyFileSystemNode {
     /**
      * Stores information to the virtual file system that we have learned about.
      *
-     * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
+     * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
      */
     FileSystemNode store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener);
 

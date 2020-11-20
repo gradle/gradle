@@ -23,7 +23,7 @@ import java.util.stream.Collectors
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
+abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
     NODE initialRoot
     ChildMap<CHILD> children
     VfsRelativePath searchedPath

@@ -19,7 +19,7 @@ package org.gradle.internal.execution.impl;
 import com.google.common.collect.Ordering;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ public class OutputsCleaner {
 
     public void cleanupOutputs(FileSystemSnapshot snapshot) throws IOException {
         // TODO We could make this faster by visiting the snapshot
-        for (Map.Entry<String, CompleteFileSystemLocationSnapshot> entry : SnapshotUtil.index(snapshot).entrySet()) {
+        for (Map.Entry<String, FileSystemLocationSnapshot> entry : SnapshotUtil.index(snapshot).entrySet()) {
             cleanupOutput(new File(entry.getKey()), entry.getValue().getType());
         }
         cleanupDirectories();

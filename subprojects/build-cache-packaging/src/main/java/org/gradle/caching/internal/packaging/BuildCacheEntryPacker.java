@@ -20,7 +20,7 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.IOException;
@@ -48,9 +48,9 @@ public interface BuildCacheEntryPacker {
     class UnpackResult {
         private final OriginMetadata originMetadata;
         private final long entries;
-        private final Map<String, CompleteFileSystemLocationSnapshot> snapshots;
+        private final Map<String, FileSystemLocationSnapshot> snapshots;
 
-        public UnpackResult(OriginMetadata originMetadata, long entries, Map<String, CompleteFileSystemLocationSnapshot> snapshots) {
+        public UnpackResult(OriginMetadata originMetadata, long entries, Map<String, FileSystemLocationSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
             this.snapshots = snapshots;
@@ -64,7 +64,7 @@ public interface BuildCacheEntryPacker {
             return entries;
         }
 
-        public Map<String, CompleteFileSystemLocationSnapshot> getSnapshots() {
+        public Map<String, FileSystemLocationSnapshot> getSnapshots() {
             return snapshots;
         }
     }
