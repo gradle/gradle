@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.AbiExtractingClasspathResourceHasher
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -34,12 +33,11 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
-import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.normalization.KotlinApiClassExtractor
+import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
@@ -135,8 +133,7 @@ object BuildServices {
     ) =
         if (BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
             CompileClasspathHasher(
-                DefaultCompileClasspathFingerprinter(
-                    AbiExtractingClasspathResourceHasher(KotlinApiClassExtractor()),
+                KotlinCompileClasspathFingerprinter(
                     cacheService,
                     fileCollectionSnapshotter,
                     stringInterner

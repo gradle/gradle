@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.getContainsTestFixtures()",
+            "acceptation": "Temporary acceptance until we have a new baseline containing the change",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        }
+    ]
 }

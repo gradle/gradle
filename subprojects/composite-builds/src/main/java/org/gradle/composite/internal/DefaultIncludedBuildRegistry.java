@@ -26,6 +26,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
@@ -162,7 +163,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     @Override
     public void afterConfigureRootBuild() {
         if (!includedBuildsByRootDir.isEmpty()) {
-            dependencySubstitutionsBuilder.build(rootBuild);
+            dependencySubstitutionsBuilder.build((CompositeBuildParticipantBuildState) rootBuild);
         }
     }
 

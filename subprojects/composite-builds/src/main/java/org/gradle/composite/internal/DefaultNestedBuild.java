@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.concurrent.Stoppable;
@@ -32,7 +33,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 
-class DefaultNestedBuild extends AbstractCompositeParticipantBuildState implements StandAloneNestedBuild, Stoppable {
+class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
     private final Path identityPath;
     private final BuildState owner;
     private final BuildIdentifier buildIdentifier;

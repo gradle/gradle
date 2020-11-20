@@ -36,6 +36,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
+import org.gradle.execution.TaskSelection;
+import org.gradle.execution.TaskSelector;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
@@ -87,6 +89,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final DefaultExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
+    private final TaskSelector taskSelector;
     private GraphState graphState = GraphState.EMPTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
@@ -106,7 +109,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
         ProjectStateRegistry projectStateRegistry,
-        ServiceRegistry globalServices
+        ServiceRegistry globalServices,
+        TaskSelector taskSelector
     ) {
         this.planExecutor = planExecutor;
         this.nodeExecutors = nodeExecutors;
@@ -120,6 +124,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
         this.executionPlan = new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver);
+        this.taskSelector = taskSelector;
     }
 
     @Override
@@ -132,6 +137,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         Spec<? super Task> castFilter = filter != null ? filter : uncheckedNonnullCast(Specs.SATISFIES_ALL);
         executionPlan.useFilter(castFilter);
         graphState = GraphState.DIRTY;
+    }
+
+    public void addAdditionalEntryTask(String taskPath) {
+        TaskSelection taskSelection = taskSelector.getSelection(taskPath);
+        addEntryTasks(taskSelection.getTasks());
+        ensurePopulated();
     }
 
     @Override
