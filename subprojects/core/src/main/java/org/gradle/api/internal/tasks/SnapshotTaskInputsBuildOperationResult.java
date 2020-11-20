@@ -203,7 +203,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                     state.fingerprints = fingerprint.getFingerprints();
 
                     visitor.preProperty(state);
-                    fingerprint.accept(state);
+                    fingerprint.getSnapshot().accept(state);
                     visitor.postProperty();
                 }
             }
