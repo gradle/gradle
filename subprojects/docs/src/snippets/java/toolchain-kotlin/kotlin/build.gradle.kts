@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
 
 plugins {
-    kotlin("jvm") version "1.4.20-RC"
+    kotlin("jvm") version "1.4.20"
 }
 
 repositories {
