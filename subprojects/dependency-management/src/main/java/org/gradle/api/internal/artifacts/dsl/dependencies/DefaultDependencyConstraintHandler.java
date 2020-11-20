@@ -32,9 +32,12 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.std.DependencyBundleValueSource;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -190,6 +193,12 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     private DependencyConstraint doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Action<? super DependencyConstraint> configureAction) {
+        if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
+            Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
+            if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
+                return doAddListProvider(configuration, dependencyNotation, configureAction);
+            }
+        }
         Provider<DependencyConstraint> lazyConstraint = dependencyNotation.map(mapDependencyConstraintProvider(configureAction));
         configuration.getDependencyConstraints().addLater(lazyConstraint);
         // Return a fake dependency constraint object to satisfy Kotlin DSL backwards compatibility

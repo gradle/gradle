@@ -29,6 +29,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.initialization.DependenciesAccessors
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.TextFileResourceLoader
@@ -251,7 +252,8 @@ fun projectScriptModelBuilder(
     accessorsClassPath = { classPath ->
         val pluginAccessorClassPathGenerator = project.serviceOf<PluginAccessorClassPathGenerator>()
         val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project)
+        val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
     },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir

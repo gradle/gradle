@@ -96,6 +96,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private DependencyResolutionManagementInternal createDependencyResolutionManagement() {
         DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
+        drm.setPluginsSpec(getPluginManagement());
         return drm;
     }
 

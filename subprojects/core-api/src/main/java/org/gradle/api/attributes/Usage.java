@@ -16,6 +16,7 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -109,4 +110,12 @@ public interface Usage extends Named {
      */
     String SWIFT_API = "swift-api";
 
+    /**
+     * A version catalog, packaged as TOML files, for use as recommendations
+     * for dependency and plugin versions.
+     *
+     * @since 6.8
+     */
+    @Incubating
+    String VERSION_CATALOG = "version-catalog";
 }

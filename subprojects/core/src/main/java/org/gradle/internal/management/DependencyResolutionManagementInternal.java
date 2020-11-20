@@ -17,10 +17,15 @@ package org.gradle.internal.management;
 
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Property;
+import org.gradle.plugin.management.PluginManagementSpec;
+
+import java.util.List;
 
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement {
     RepositoryHandler getRepositoryHandler();
@@ -35,6 +40,12 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
 
     RulesModeInternal getConfiguredRulesMode();
 
+    Property<String> getDefaultProjectsExtensionName();
+
+    List<VersionCatalogBuilder> getDependenciesModelBuilders();
+
+    void setPluginsSpec(PluginManagementSpec pluginManagementSpec);
+
     enum RepositoriesModeInternal {
         PREFER_PROJECT(true),
         PREFER_SETTINGS(false),
@@ -45,7 +56,6 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
         RepositoriesModeInternal(boolean useProjectRepositories) {
             this.useProjectRepositories = useProjectRepositories;
         }
-
         public boolean useProjectRepositories() {
             return useProjectRepositories;
         }
@@ -65,7 +75,6 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
         RulesModeInternal(boolean useProjectRules) {
             this.useProjectRules = useProjectRules;
         }
-
         public boolean useProjectRules() {
             return useProjectRules;
         }
