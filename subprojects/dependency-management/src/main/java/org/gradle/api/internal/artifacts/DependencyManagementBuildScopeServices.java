@@ -129,10 +129,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.api.internal.std.DefaultDependenciesAccessors;
-import org.gradle.api.internal.std.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -141,7 +138,6 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
@@ -192,7 +188,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -257,16 +252,14 @@ class DependencyManagementBuildScopeServices {
                                                                                     FileResolver fileResolver,
                                                                                     FileCollectionFactory fileCollectionFactory,
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                                                    ObjectFactory objects,
-                                                                                    ProviderFactory providers) {
+                                                                                    ObjectFactory objects) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
             dependencyMetaDataProvider,
-            objects,
-            providers
+            objects
         );
     }
 
@@ -737,16 +730,6 @@ class DependencyManagementBuildScopeServices {
                 dependencyVerificationOverride.buildFinished(build);
             }
         });
-    }
-
-    DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry,
-                                                              DependenciesAccessorsWorkspaceProvider workspace,
-                                                              DefaultProjectDependencyFactory factory,
-                                                              ExecutionEngine executionEngine,
-                                                              FeaturePreviews featurePreviews,
-                                                              FileCollectionFactory fileCollectionFactory,
-                                                              ClasspathFingerprinter fingerprinter) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory, fingerprinter);
     }
 
 

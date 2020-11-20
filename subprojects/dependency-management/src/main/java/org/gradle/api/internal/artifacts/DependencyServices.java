@@ -46,7 +46,6 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.add(ArtifactSetToFileCollectionFactory.class);
-        registration.addProvider(new DependencyManagementBuildSessionScopeServices());
     }
 
     @Override
