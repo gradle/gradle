@@ -193,10 +193,8 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             try (
                 Statement statement = connection.createStatement();
                 ResultSet testExecutions = statement.executeQuery(
-                    "select distinct testClass, testId, testProject" +
-                        "   from testExecution" +
-                        "  where testclass is not null" +
-                        "    and starttime > NOW() - INTERVAL 7 DAY" +
+                    "select testClass, testId, testProject" +
+                        "   from testExecutionExperiment" +
                         "  order by testClass, testId, testProject"
                 )
             ) {
