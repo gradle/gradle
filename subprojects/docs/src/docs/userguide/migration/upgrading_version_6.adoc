@@ -45,6 +45,7 @@ The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is n
 ==== Updates to default tool integration versions
 
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
+- Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.37[Checkstyle 8.37].
 
 ==== Updates to bundled Gradle dependencies
 
