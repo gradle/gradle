@@ -37,9 +37,9 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -176,7 +176,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         TarArchiveEntry tarEntry;
         OriginMetadata originMetadata = null;
-        Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<>();
+        Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         tarEntry = tarInput.getNextTarEntry();
         AtomicLong entries = new AtomicLong();
@@ -232,7 +232,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Nullable
-    private TarArchiveEntry unpackTree(String treeName, TreeType treeType, File treeRoot, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, CompleteFileSystemLocationSnapshot> snapshots, AtomicLong entries) throws IOException {
+    private TarArchiveEntry unpackTree(String treeName, TreeType treeType, File treeRoot, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, FileSystemLocationSnapshot> snapshots, AtomicLong entries) throws IOException {
         boolean isDirEntry = rootEntry.isDirectory();
         boolean root = Strings.isNullOrEmpty(childPath);
         if (!root) {
@@ -273,7 +273,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Nullable
-    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, CompleteFileSystemLocationSnapshot> snapshots, AtomicLong entries, File treeRoot, String treeName) throws IOException {
+    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, FileSystemLocationSnapshot> snapshots, AtomicLong entries, File treeRoot, String treeName) throws IOException {
         RelativePathParser parser = new RelativePathParser(rootEntry.getName());
 
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
@@ -347,12 +347,12 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
+        public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
             boolean isRoot = relativePath.isRoot();
             String targetPath = getTargetPath(relativePath);
             snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                 @Override
-                public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void visitDirectory(DirectorySnapshot directorySnapshot) {
                     assertCorrectType(isRoot, snapshot);
                     File dir = new File(snapshot.getAbsolutePath());
                     int dirMode = isRoot ? UnixPermissions.DEFAULT_DIR_PERM : filePermissionAccess.getUnixMode(dir);
@@ -383,7 +383,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             return packedEntryCount;
         }
 
-        private void assertCorrectType(boolean root, CompleteFileSystemLocationSnapshot snapshot) {
+        private void assertCorrectType(boolean root, FileSystemLocationSnapshot snapshot) {
             if (root) {
                 switch (type) {
                     case DIRECTORY:

@@ -22,7 +22,7 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
@@ -146,11 +146,11 @@ class FileSystemSnapshotBuilderTest extends Specification {
         builder.addDir(subDir, ["subDir"] as String[])
         def result = builder.build()
         then:
-        result instanceof CompleteDirectorySnapshot
+        result instanceof DirectorySnapshot
         result.accessType == AccessType.VIA_SYMLINK
         result.absolutePath == rootDir.absolutePath
         result.children.size() == 1
-        CompleteDirectorySnapshot subDirSnapshot = result.children[0] as CompleteDirectorySnapshot
+        DirectorySnapshot subDirSnapshot = result.children[0] as DirectorySnapshot
         subDirSnapshot.accessType == AccessType.VIA_SYMLINK
         subDirSnapshot.absolutePath == subDir.absolutePath
     }

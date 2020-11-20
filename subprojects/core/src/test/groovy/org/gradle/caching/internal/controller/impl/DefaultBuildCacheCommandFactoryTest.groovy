@@ -29,8 +29,8 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
+import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.vfs.FileSystemAccess
@@ -71,7 +71,7 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
 
         def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), DefaultFileMetadata.file(15, 234, AccessType.DIRECT))
         def fileSnapshots = [
-            outputDir: new CompleteDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, AccessType.DIRECT, HashCode.fromInt(456), [
+            outputDir: new DirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, AccessType.DIRECT, HashCode.fromInt(456), [
                 new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), DefaultFileMetadata.file(46, 123, AccessType.DIRECT))
             ]),
             outputFile: outputFileSnapshot
@@ -88,11 +88,11 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
-        1 * fileSystemAccess.record(_ as CompleteDirectorySnapshot) >> { CompleteFileSystemLocationSnapshot snapshot  ->
+        1 * fileSystemAccess.record(_ as DirectorySnapshot) >> { FileSystemLocationSnapshot snapshot  ->
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * fileSystemAccess.record(_ as RegularFileSnapshot) >> { CompleteFileSystemLocationSnapshot snapshot ->
+        1 * fileSystemAccess.record(_ as RegularFileSnapshot) >> { FileSystemLocationSnapshot snapshot ->
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash

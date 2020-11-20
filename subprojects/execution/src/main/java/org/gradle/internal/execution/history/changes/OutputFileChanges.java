@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
@@ -30,44 +30,44 @@ import java.util.SortedMap;
 
 public class OutputFileChanges implements ChangeContainer {
 
-    private static final CompareStrategy.ChangeFactory<CompleteFileSystemLocationSnapshot> SNAPSHOT_CHANGE_FACTORY = new CompareStrategy.ChangeFactory<CompleteFileSystemLocationSnapshot>() {
+    private static final CompareStrategy.ChangeFactory<FileSystemLocationSnapshot> SNAPSHOT_CHANGE_FACTORY = new CompareStrategy.ChangeFactory<FileSystemLocationSnapshot>() {
         @Override
-        public Change added(String path, String propertyTitle, CompleteFileSystemLocationSnapshot current) {
+        public Change added(String path, String propertyTitle, FileSystemLocationSnapshot current) {
             return new DescriptiveChange("Output property '%s' file %s has been added.", propertyTitle, path);
         }
 
         @Override
-        public Change removed(String path, String propertyTitle, CompleteFileSystemLocationSnapshot previous) {
+        public Change removed(String path, String propertyTitle, FileSystemLocationSnapshot previous) {
             return new DescriptiveChange("Output property '%s' file %s has been removed.", propertyTitle, path);
         }
 
         @Override
-        public Change modified(String path, String propertyTitle, CompleteFileSystemLocationSnapshot previous, CompleteFileSystemLocationSnapshot current) {
+        public Change modified(String path, String propertyTitle, FileSystemLocationSnapshot previous, FileSystemLocationSnapshot current) {
             return new DescriptiveChange("Output property '%s' file %s has changed.", propertyTitle, path);
         }
     };
 
-    private static final TrivialChangeDetector.ItemComparator<CompleteFileSystemLocationSnapshot> SNAPSHOT_COMPARATOR = new TrivialChangeDetector.ItemComparator<CompleteFileSystemLocationSnapshot>() {
+    private static final TrivialChangeDetector.ItemComparator<FileSystemLocationSnapshot> SNAPSHOT_COMPARATOR = new TrivialChangeDetector.ItemComparator<FileSystemLocationSnapshot>() {
         @Override
-        public boolean hasSamePath(CompleteFileSystemLocationSnapshot previous, CompleteFileSystemLocationSnapshot current) {
+        public boolean hasSamePath(FileSystemLocationSnapshot previous, FileSystemLocationSnapshot current) {
             return previous.getAbsolutePath().equals(current.getAbsolutePath());
         }
 
         @Override
-        public boolean hasSameContent(CompleteFileSystemLocationSnapshot previous, CompleteFileSystemLocationSnapshot current) {
+        public boolean hasSameContent(FileSystemLocationSnapshot previous, FileSystemLocationSnapshot current) {
             return previous.isContentUpToDate(current);
         }
     };
 
     @VisibleForTesting
-    static final CompareStrategy<FileSystemSnapshot, CompleteFileSystemLocationSnapshot> COMPARE_STRATEGY = new CompareStrategy<>(
+    static final CompareStrategy<FileSystemSnapshot, FileSystemLocationSnapshot> COMPARE_STRATEGY = new CompareStrategy<>(
         OutputFileChanges::index,
         SnapshotUtil::getRootHashes,
         new TrivialChangeDetector<>(
             SNAPSHOT_COMPARATOR,
             SNAPSHOT_CHANGE_FACTORY,
             new AbsolutePathChangeDetector<>(
-                CompleteFileSystemLocationSnapshot::isContentUpToDate,
+                FileSystemLocationSnapshot::isContentUpToDate,
                 SNAPSHOT_CHANGE_FACTORY
             )
         )
@@ -101,11 +101,11 @@ public class OutputFileChanges implements ChangeContainer {
         });
     }
 
-    private static Map<String, CompleteFileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
-        HashMap<String, CompleteFileSystemLocationSnapshot> index = new HashMap<>();
+    private static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
+        HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
         snapshot.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
-            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 // Remove missing roots so they show up as added/removed instead of changed
                 if (!(isRoot && snapshot instanceof MissingFileSnapshot)) {
                     index.put(snapshot.getAbsolutePath(), snapshot);

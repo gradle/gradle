@@ -35,12 +35,12 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsWithOverlapAfterExecution;
 
-public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
+public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super C, ? extends Result> delegate;
 
-    public SnapshotOutputsStep(
+    public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,

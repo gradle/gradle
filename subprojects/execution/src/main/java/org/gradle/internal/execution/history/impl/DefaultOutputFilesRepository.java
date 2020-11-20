@@ -21,9 +21,9 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
@@ -69,7 +69,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
             outputFileSnapshot.accept(entrySnapshot -> {
                 entrySnapshot.accept(new FileSystemLocationSnapshotVisitor() {
                     @Override
-                    public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    public void visitDirectory(DirectorySnapshot directorySnapshot) {
                         recordOutputSnapshot(directorySnapshot);
                     }
 
@@ -78,7 +78,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                         recordOutputSnapshot(fileSnapshot);
                     }
 
-                    private void recordOutputSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
+                    private void recordOutputSnapshot(FileSystemLocationSnapshot snapshot) {
                         String outputPath = snapshot.getAbsolutePath();
                         File outputFile = new File(outputPath);
                         outputFiles.put(outputPath, Boolean.TRUE);

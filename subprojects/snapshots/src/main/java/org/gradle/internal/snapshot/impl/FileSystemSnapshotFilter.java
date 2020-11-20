@@ -18,10 +18,10 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.RelativePathSupplier;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -62,12 +62,12 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {
+        public void enterDirectory(DirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {
             builder.enterDirectory(directorySnapshot, INCLUDE_EMPTY_DIRS);
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
+        public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
             boolean root = relativePath.isRoot();
             Iterable<String> relativePathForFiltering = root
                 ? ImmutableList.of(snapshot.getName())
@@ -75,7 +75,7 @@ public class FileSystemSnapshotFilter {
             SnapshotVisitResult result;
             boolean forceInclude = snapshot.accept(new FileSystemLocationSnapshotTransformer<Boolean>() {
                 @Override
-                public Boolean visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public Boolean visitDirectory(DirectorySnapshot directorySnapshot) {
                     return root;
                 }
 
@@ -102,7 +102,7 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {
+        public void leaveDirectory(DirectorySnapshot directorySnapshot, RelativePathSupplier relativePath) {
             builder.leaveDirectory();
         }
     }

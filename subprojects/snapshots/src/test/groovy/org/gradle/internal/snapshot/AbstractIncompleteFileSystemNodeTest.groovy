@@ -22,7 +22,7 @@ import spock.lang.Unroll
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 @Unroll
-abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> extends AbstractSnapshotWithChildrenTest<T, FileSystemNode> {
+abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> extends AbstractFileSystemNodeWithChildrenTest<T, FileSystemNode> {
 
     abstract protected boolean isSameNodeType(FileSystemNode node)
 
@@ -146,9 +146,9 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         vfsSpec << IS_PREFIX_OF_CHILD
     }
 
-    def "storing a complete snapshot with same path #vfsSpec.searchedPath does replace child (#vfsSpec)"() {
+    def "storing a file system snapshot with same path #vfsSpec.searchedPath does replace child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def snapshot = Mock(CompleteFileSystemLocationSnapshot)
+        def snapshot = Mock(FileSystemLocationSnapshot)
         def newChild = mockChild()
 
         when:
@@ -181,7 +181,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         addedNodes.empty
         removedNodes.empty
 
-        1 * selectedChild.getSnapshot() >> Optional.of(Mock(CompleteFileSystemLocationSnapshot))
+        1 * selectedChild.getSnapshot() >> Optional.of(Mock(FileSystemLocationSnapshot))
         interaction {
             noMoreInteractions()
         }

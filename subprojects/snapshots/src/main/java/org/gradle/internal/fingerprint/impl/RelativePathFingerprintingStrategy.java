@@ -21,7 +21,7 @@ import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
@@ -45,7 +45,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     }
 
     @Override
-    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
         if (snapshot.getType() == FileType.Directory) {
             return "";
         } else {

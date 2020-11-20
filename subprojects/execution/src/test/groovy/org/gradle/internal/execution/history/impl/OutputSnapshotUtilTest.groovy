@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -159,7 +159,7 @@ class OutputSnapshotUtilTest extends Specification {
 
     private FileSystemSnapshot snapshotOutput(File output) {
         virtualFileSystem.invalidateAll()
-        MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
         fileSystemAccess.read(output.getAbsolutePath(), result.&set)
         return result.get()
     }

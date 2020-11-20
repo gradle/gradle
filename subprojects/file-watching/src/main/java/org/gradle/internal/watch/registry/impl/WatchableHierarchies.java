@@ -19,7 +19,7 @@ package org.gradle.internal.watch.registry.impl;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
@@ -109,7 +109,7 @@ public class WatchableHierarchies {
         });
     }
 
-    public boolean ignoredForWatching(CompleteFileSystemLocationSnapshot snapshot) {
+    public boolean ignoredForWatching(FileSystemLocationSnapshot snapshot) {
         return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK || !watchFilter.test(snapshot.getAbsolutePath());
     }
 
@@ -117,7 +117,7 @@ public class WatchableHierarchies {
         return watchableHierarchies.contains(path);
     }
 
-    public boolean shouldWatch(CompleteFileSystemLocationSnapshot snapshot) {
+    public boolean shouldWatch(FileSystemLocationSnapshot snapshot) {
         return !ignoredForWatching(snapshot) && isInWatchableHierarchy(snapshot.getAbsolutePath());
     }
 
@@ -131,7 +131,7 @@ public class WatchableHierarchies {
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
             if (shouldBeRemoved(snapshot)) {
                 invalidateUnwatchedFile(snapshot);
                 return SnapshotVisitResult.SKIP_SUBTREE;
@@ -140,12 +140,12 @@ public class WatchableHierarchies {
             }
         }
 
-        private boolean shouldBeRemoved(CompleteFileSystemLocationSnapshot snapshot) {
+        private boolean shouldBeRemoved(FileSystemLocationSnapshot snapshot) {
             return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
                 (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
         }
 
-        private void invalidateUnwatchedFile(CompleteFileSystemLocationSnapshot snapshot) {
+        private void invalidateUnwatchedFile(FileSystemLocationSnapshot snapshot) {
             root = invalidator.invalidate(snapshot.getAbsolutePath(), root);
         }
 

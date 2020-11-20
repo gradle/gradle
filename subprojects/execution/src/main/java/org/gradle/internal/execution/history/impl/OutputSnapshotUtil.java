@@ -21,11 +21,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy;
@@ -75,7 +75,7 @@ public class OutputSnapshotUtil {
 
     @VisibleForTesting
     static FileSystemSnapshot filterOutputWithOverlapBeforeExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
-        Map<String, CompleteFileSystemLocationSnapshot> previousIndex = index(previous);
+        Map<String, FileSystemLocationSnapshot> previousIndex = index(previous);
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((currentSnapshot, isRoot) ->
             // Include only outputs that we already considered outputs after the previous execution
             previousIndex.containsKey(currentSnapshot.getAbsolutePath())
@@ -112,12 +112,12 @@ public class OutputSnapshotUtil {
 
     @VisibleForTesting
     static FileSystemSnapshot filterOutputWithOverlapAfterExecution(@Nullable FileSystemSnapshot previous, FileSystemSnapshot unfilteredBeforeExecution, FileSystemSnapshot unfilteredAfterExecution) {
-        Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionIndex = index(unfilteredBeforeExecution);
+        Map<String, FileSystemLocationSnapshot> beforeExecutionIndex = index(unfilteredBeforeExecution);
         if (beforeExecutionIndex.isEmpty()) {
             return unfilteredAfterExecution;
         }
 
-        Map<String, CompleteFileSystemLocationSnapshot> previousIndex = previous != null
+        Map<String, FileSystemLocationSnapshot> previousIndex = previous != null
             ? index(previous)
             : ImmutableMap.of();
 
@@ -134,12 +134,12 @@ public class OutputSnapshotUtil {
         }
     }
 
-    private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
+    private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
         // A root is always an output, even when it's missing or unchanged
         if (isRoot) {
             return true;
         }
-        CompleteFileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
+        FileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
         // Was it created during execution?
         if (beforeSnapshot == null) {
             return true;
@@ -153,20 +153,20 @@ public class OutputSnapshotUtil {
     }
 
     private static class SnapshotFilteringVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
-        private final BiPredicate<CompleteFileSystemLocationSnapshot, Boolean> predicate;
+        private final BiPredicate<FileSystemLocationSnapshot, Boolean> predicate;
         private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 
         private boolean hasBeenFiltered;
         private MerkleDirectorySnapshotBuilder merkleBuilder;
         private boolean currentRootFiltered;
-        private CompleteDirectorySnapshot currentRoot;
+        private DirectorySnapshot currentRoot;
 
-        public SnapshotFilteringVisitor(BiPredicate<CompleteFileSystemLocationSnapshot, Boolean> predicate) {
+        public SnapshotFilteringVisitor(BiPredicate<FileSystemLocationSnapshot, Boolean> predicate) {
             this.predicate = predicate;
         }
 
         @Override
-        public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
+        public void enterDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
             boolean isOutputDir = predicate.test(directorySnapshot, isRoot);
             EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy = isOutputDir
                 ? INCLUDE_EMPTY_DIRS
@@ -175,10 +175,10 @@ public class OutputSnapshotUtil {
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+        public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
             snapshot.accept(new FileSystemLocationSnapshotVisitor() {
                 @Override
-                public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                public void visitDirectory(DirectorySnapshot directorySnapshot) {
                     if (merkleBuilder == null) {
                         merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
                         currentRoot = directorySnapshot;
@@ -199,7 +199,7 @@ public class OutputSnapshotUtil {
             return SnapshotVisitResult.CONTINUE;
         }
 
-        private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+        private void visitNonDirectoryEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
             if (!predicate.test(snapshot, isRoot)) {
                 hasBeenFiltered = true;
                 currentRootFiltered = true;
@@ -215,14 +215,14 @@ public class OutputSnapshotUtil {
         }
 
         @Override
-        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
+        public void leaveDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
             boolean includedDir = merkleBuilder.leaveDirectory();
             if (!includedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;
             }
             if (isRoot) {
-                CompleteFileSystemLocationSnapshot result = merkleBuilder.getResult();
+                FileSystemLocationSnapshot result = merkleBuilder.getResult();
                 if (result != null) {
                     newRootsBuilder.add(currentRootFiltered ? result : currentRoot);
                 }
