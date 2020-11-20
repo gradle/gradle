@@ -75,7 +75,7 @@ public class AnnotationProcessingData {
     }
 
     public boolean participatesInResourceGeneration(String clazzName) {
-        return aggregatedTypes.contains(clazzName) || generatedResourcesByOrigin.containsKey(clazzName);
+        return participatesInClassGeneration(clazzName) || generatedResourcesByOrigin.containsKey(clazzName);
     }
 
     public Map<String, Set<String>> getGeneratedTypesByOrigin() {
