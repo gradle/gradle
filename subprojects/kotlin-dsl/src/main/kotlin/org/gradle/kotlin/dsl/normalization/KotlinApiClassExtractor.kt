@@ -47,7 +47,7 @@ class KotlinApiClassExtractor : ApiClassExtractor(
             return super.extractApiClassFrom(originalClassReader)
         } catch (e: CompileAvoidanceException) {
             val className = originalClassReader.className
-            throw CompileAvoidanceException("Can not use compile avoidance with class: $className", e)
+            throw CompileAvoidanceException.withClass(className, e)
         }
     }
 }
@@ -77,7 +77,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                 is KotlinClassMetadata.SyntheticClass -> {
                 }
                 is KotlinClassMetadata.Unknown -> {
-                    throw GradleException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - don't know how to extract its API class")
+                    throw CompileAvoidanceException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
                 }
             }
         }
@@ -92,7 +92,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     override fun writeMethod(method: MethodMember) {
         when {
             method.isInternal() -> return
-            method.isInline() -> throw CompileAvoidanceException("Can not use compile avoidance with public inline function: $method")
+            method.isInline() -> throw CompileAvoidanceException.publicInlineFunction(method)
             else -> super.writeMethod(method)
         }
     }
@@ -164,8 +164,10 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
 }
 
 
-private
-class CompileAvoidanceException : GradleException {
-    constructor(message: String) : super(message)
-    constructor(message: String, cause: Throwable?) : super(message, cause)
+class CompileAvoidanceException(message: String) : GradleException(message) {
+
+    companion object Factory {
+        fun publicInlineFunction(inlineFunction: MethodMember) = CompileAvoidanceException("inline fun ${inlineFunction.name}(): compile avoidance is not supported with public inline functions")
+        fun withClass(className: String, e: CompileAvoidanceException) = CompileAvoidanceException("class $className: ${e.message}")
+    }
 }

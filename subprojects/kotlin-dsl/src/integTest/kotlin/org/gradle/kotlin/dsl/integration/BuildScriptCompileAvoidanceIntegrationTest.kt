@@ -4,8 +4,12 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
+import org.gradle.util.Matchers.isEmpty
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.endsWith
+import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.hasSize
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -70,6 +74,29 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withFile("buildSrc/src/main/resources/foo.txt", "bar")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
+    }
+
+    @Test
+    fun `avoids buildscript recompilation on non-code change in buildSrc`() {
+        val className = givenJavaClassInBuildSrcContains(
+            """
+            public void foo() {
+                System.out.println("foo");
+            }
+            """
+        )
+        withUniqueScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenJavaClassInBuildSrcContains(
+            """
+            public void foo() {
+                // a comment
+                System.out.println("foo");
+            }
+            """
+        )
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
     }
 
@@ -157,6 +184,32 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `avoids buildscript recompilation when jar that can not be used for compile avoidance initially on buildsript classpath is touched`() {
+        val (className, jarPath) = buildKotlinJarForBuildScriptClasspath(
+            """
+            inline fun foo() {
+                val sum: (Int, Int) -> Int = { x, y -> x + y }
+                println("foo = " + sum(2, 2))
+            }
+            """
+        )
+
+        withUniqueScript(
+            """
+            buildscript {
+                dependencies { classpath(files("$jarPath")) }
+            }
+            $className().foo()
+            """
+        )
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 4")
+
+        existing(jarPath).setLastModified(1)
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo = 4")
     }
 
     @ToBeFixedForConfigurationCache
@@ -290,7 +343,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withUniqueScript("$className().foo()")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
 
         givenKotlinClassInBuildSrcContains(
             """
@@ -299,7 +353,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
     }
 
     @ToBeFixedForConfigurationCache
@@ -314,7 +369,9 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withUniqueScript("$className().foo()")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 4")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 4")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
+            .assertNumberOfCompileAvoidanceWarnings(1)
 
         givenKotlinClassInBuildSrcContains(
             """
@@ -324,7 +381,29 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo = 0")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo = 0")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
+            .assertNumberOfCompileAvoidanceWarnings(1)
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `avoids buildscript recompilation when resource file metadata is changed`() {
+        val className = givenKotlinClassInBuildSrcContains(
+            """
+            inline fun foo() {
+                val sum: (Int, Int) -> Int = { x, y -> x + y }
+                println("foo = " + sum(2, 2))
+            }
+            """
+        )
+        withUniqueScript("$className().foo()")
+        val resourceFile = withFile("buildSrc/src/main/resources/foo.txt", "foo")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        resourceFile.setLastModified(1)
+        resourceFile.setReadOnly()
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
     }
 
     @ToBeFixedForConfigurationCache
@@ -364,7 +443,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withUniqueScript("$packageName.foo()")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
 
         givenKotlinScriptInBuildSrcContains(
             "Foo",
@@ -374,7 +454,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
     }
 
     @ToBeFixedForConfigurationCache
@@ -599,7 +680,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             "@kotlin.Metadata(k=42, mv={1, 4, 0})"
         )
         withUniqueScript("println(\"foo\")")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata with kind: 42 on class com/example/Foo - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
 
         givenJavaClassInBuildSrcContains(
             """
@@ -609,7 +691,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """,
             "@kotlin.Metadata(k=42, mv={1, 4, 0})"
         )
-        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("foo")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptBodyRecompiled().assertOutputContains("foo")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata with kind: 42 on class com/example/Foo - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
     }
 
     @Test
@@ -623,7 +706,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             "@kotlin.Metadata(k=42, mv={1, 4, 0})"
         )
         withUniqueScript("println(\"foo\")")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
+            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: Unknown Kotlin metadata with kind: 42 on class com/example/Foo - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
         configureProject().assertBuildScriptCompilationAvoided()
     }
 
@@ -673,6 +757,34 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         val className = javaSourceFile(baseDir, classBody)
+        build(existing(baseDir), "build")
+        val jarPath = "$baseDir/build/libs/buildscript.jar"
+        assertTrue(existing(jarPath).exists())
+        return Pair(className, jarPath)
+    }
+
+    private
+    fun buildKotlinJarForBuildScriptClasspath(classBody: String): Pair<String, String> {
+        val baseDir = "buildscript"
+        withSettingsIn(
+            baseDir,
+            """
+                rootProject.name = "buildscript"
+            """
+        )
+        withBuildScriptIn(
+            baseDir,
+            """
+                plugins {
+                    `kotlin-dsl`
+                    id("java-library")
+                }
+                repositories {
+                    mavenCentral()
+                }
+            """
+        )
+        val className = kotlinClassSourceFile(baseDir, classBody)
         build(existing(baseDir), "build")
         val jarPath = "$baseDir/build/libs/buildscript.jar"
         assertTrue(existing(jarPath).exists())
@@ -747,6 +859,13 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
+    fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
+        val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
+        val output = executer.withArgument("--info").withTasks(*tasks).run().normalizedOutput
+        return BuildOperationsAssertions(buildOperations, output, true)
+    }
+
+    private
     fun configureProjectAndExpectCompileFailure(expectedFailure: String) {
         val error = executer.runWithFailure().error
         assertThat(error, containsString(expectedFailure))
@@ -763,12 +882,21 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
 
 private
-class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, val output: String) {
+class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, val output: String, val expectWarnings: Boolean = false) {
     private
     val classpathCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(CLASSPATH\\)"))
 
     private
     val bodyCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(BODY\\)"))
+
+    private
+    val compileAvoidanceWarnings = output.lines().filter { it.startsWith("Cannot use Kotlin build script compile avoidance with") }
+
+    init {
+        if (!expectWarnings) {
+            assertThat(compileAvoidanceWarnings, isEmpty())
+        }
+    }
 
     fun assertBuildScriptCompiled(): BuildOperationsAssertions {
         if (classpathCompileOperations.isNotEmpty() || bodyCompileOperations.isNotEmpty()) {
@@ -799,6 +927,16 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
 
     fun assertOutputContains(expectedOutput: String): BuildOperationsAssertions {
         assertThat(output, containsString(expectedOutput))
+        return this
+    }
+
+    fun assertContainsCompileAvoidanceWarning(end: String): BuildOperationsAssertions {
+        assertThat(compileAvoidanceWarnings, hasItem(endsWith(end)))
+        return this
+    }
+
+    fun assertNumberOfCompileAvoidanceWarnings(n: Int): BuildOperationsAssertions {
+        assertThat(compileAvoidanceWarnings, hasSize(n))
         return this
     }
 }
