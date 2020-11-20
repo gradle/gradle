@@ -22,13 +22,18 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 /**
  * A file collection fingerprint taken during this build.
  */
-public interface CurrentFileCollectionFingerprint extends FileCollectionFingerprint, FileSystemSnapshot {
+public interface CurrentFileCollectionFingerprint extends FileCollectionFingerprint {
     /**
      * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
      */
     HashCode getHash();
 
     String getStrategyIdentifier();
+
+    /**
+     * Returns the snapshot used to capture these fingerprints.
+     */
+    FileSystemSnapshot getSnapshot();
 
     boolean isEmpty();
 }
