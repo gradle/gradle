@@ -50,7 +50,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.psi.psiUtil.toVisibility
+import org.jetbrains.kotlin.fir.analysis.checkers.toVisibilityOrNull
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.junit.Assert.assertTrue
 
@@ -507,7 +507,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                                 Declaration(
                                     packageName,
                                     declaration.name!!,
-                                    declaration.visibilityModifierType()?.toVisibility()
+                                    declaration.visibilityModifierType()?.toVisibilityOrNull()
                                 )
                             }
                         }
@@ -517,7 +517,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         assertThat(
             "Only the generated Gradle Plugin wrapper is not internal",
-            generatedAccessors.filterNot { it.visibility == Visibilities.INTERNAL },
+            generatedAccessors.filterNot { it.visibility == Visibilities.Internal },
             equalTo(
                 listOf(
                     Declaration(

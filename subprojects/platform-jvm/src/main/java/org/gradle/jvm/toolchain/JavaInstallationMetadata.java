@@ -41,6 +41,15 @@ public interface JavaInstallationMetadata {
     JavaLanguageVersion getLanguageVersion();
 
     /**
+     * Returns a human-readable string for the vendor of the JVM.
+     *
+     * @return the vendor
+     * @since 6.8
+     */
+    @Internal
+    String getVendor();
+
+    /**
      * The path to installation this tool belongs to.
      * <p>
      * This value matches what would be the content of {@code JAVA_HOME} for the given installation.
