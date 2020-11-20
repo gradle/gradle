@@ -159,6 +159,7 @@ import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Step;
@@ -760,24 +761,24 @@ class DependencyManagementBuildScopeServices {
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             Deleter deleter,
             ExecutionStateChangeDetector changeDetector,
+            InputFingerprinter inputFingerprinter,
             ListenerManager listenerManager,
             OutputSnapshotter outputSnapshotter,
             OverlappingOutputDetector overlappingOutputDetector,
             TimeoutHandler timeoutHandler,
-            ValidateStep.ValidationWarningReporter validationWarningReporter,
-            ValueSnapshotter valueSnapshotter
+            ValidateStep.ValidationWarningReporter validationWarningReporter
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(valueSnapshotter,
+            new IdentifyStep<>(inputFingerprinter,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(validationWarningReporter,
-            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
             new NoOpCachingStateStep(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

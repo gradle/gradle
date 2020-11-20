@@ -45,8 +45,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
     private final ValueVisitor<Isolatable<?>> isolatableValueVisitor;
 
     public DefaultValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-        valueSnapshotValueVisitor = new ValueSnapshotVisitor(classLoaderHasher);
-        isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher, managedFactoryRegistry);
+        this.valueSnapshotValueVisitor = new ValueSnapshotVisitor(classLoaderHasher);
+        this.isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher, managedFactoryRegistry);
     }
 
     @Override

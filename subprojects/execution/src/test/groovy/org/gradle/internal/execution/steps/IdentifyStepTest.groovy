@@ -20,6 +20,7 @@ import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.IdentityContext
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -32,7 +33,8 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
         snapshot(_ as Object) >> Mock(ValueSnapshot)
         snapshot(_ as Object, _ as ValueSnapshot) >> Mock(ValueSnapshot)
     }
-    def step = new IdentifyStep<>(valueSnapshotter, delegate)
+    def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
+    def step = new IdentifyStep<>(inputFingerprinter, delegate)
 
     @Override
     protected ExecutionRequestContext createContext() {
