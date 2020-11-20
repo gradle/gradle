@@ -86,7 +86,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=6.8")
-    def "nested actions that query a project model do not run in parallel when target Gradle version supports it and --no-parallel is used"() {
+    def "nested actions that query a project model do not run in parallel when target Gradle version supports it and #args is used"() {
         given:
         setupBuildWithDependencyResolution()
 
@@ -96,12 +96,18 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
             def action = action(new ActionRunsNestedActions())
             action.standardOutput = System.out
             action.standardError = System.err
-            action.addArguments("--no-parallel")
+            action.addArguments(args)
             action.run()
         }
 
         !models.mayRunInParallel
         models.projects.path == [':', ':a', ':b']
+
+        where:
+        args << [
+            ["--no-parallel"],
+            ["--parallel", "-Dorg.gradle.internal.tooling.parallel=false"]
+        ]
     }
 
     @TargetGradleVersion(">=3.4 <6.8")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,18 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
 
-class ExpectAllRequestsThenRelease extends ExpectMaxNConcurrentRequests {
-    ExpectAllRequestsThenRelease(Lock lock, int testId, Duration timeout, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectations) {
-        super(lock, testId, timeout, expectations.size(), previous, expectations);
+public class ExpectMaxNRequestsThenReleaseOne extends ExpectMaxNConcurrentRequestsThenRelease {
+    public ExpectMaxNRequestsThenReleaseOne(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
+        super(lock, testId, timeout, maxConcurrent, previous, expectedRequests);
     }
 
     @Override
-    protected boolean isAutoRelease() {
-        return true;
-    }
-
-    @Override
-    protected void onExpectedRequestsReceived(BlockingHttpServer.BlockingHandler handler, int yetToBeReceived) {
-        handler.releaseAll();
+    void doReleaseAction(BlockingHttpServer.BlockingHandler handler, int yetToBeReceived) {
+        if (yetToBeReceived > 0) {
+            handler.release(1);
+        } else {
+            // No more requests coming to auto release, so release all remaining requests
+            handler.releaseAll();
+        }
     }
 }
