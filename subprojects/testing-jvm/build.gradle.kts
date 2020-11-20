@@ -77,7 +77,7 @@ classycle {
     excludePatterns.set(listOf("org/gradle/api/internal/tasks/testing/**"))
 }
 
-tasks.named<Test>("test").configure {
+tasks.test {
     exclude("org/gradle/api/internal/tasks/testing/junit/AJunit*.*")
     exclude("org/gradle/api/internal/tasks/testing/junit/BJunit*.*")
     exclude("org/gradle/api/internal/tasks/testing/junit/ATestClass*.*")
