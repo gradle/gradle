@@ -23,6 +23,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.reflect.Instantiator;
@@ -60,7 +61,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
                     IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
                     children.add(includedBuild.getModel());
                 } else {
-                    children.add(new IncludedRootBuild(buildRegistry.getRootBuild()));
+                    children.add(new IncludedRootBuild((CompositeBuildParticipantBuildState) buildRegistry.getRootBuild()));
                 }
             }
 
