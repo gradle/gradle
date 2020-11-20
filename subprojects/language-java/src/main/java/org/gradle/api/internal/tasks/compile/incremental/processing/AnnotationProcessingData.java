@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.processing;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -56,10 +57,14 @@ public class AnnotationProcessingData {
 
     private Map<String, String> buildGeneratedTypesToOrigin(Map<String, Set<String>> generatedTypesByOrigin) {
         ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        Set<String> seen = Sets.newHashSet();
         for (Map.Entry<String, Set<String>> entry : generatedTypesByOrigin.entrySet()) {
             String origin = entry.getKey();
             for (String generatedType : entry.getValue()) {
-                builder.put(generatedType, origin);
+                // Guava's builder doesn't support duplicates but we handle them separately
+                if (seen.add(generatedType)) {
+                    builder.put(generatedType, origin);
+                }
             }
         }
         return builder.build();
@@ -98,9 +103,8 @@ public class AnnotationProcessingData {
     }
 
     public String getOriginOf(String type) {
-        String origin = generatedTypesToOrigin.get(type);
         // if we can't find a source, then the type to reprocess is the type itself
-        return origin == null ? type : origin;
+        return generatedTypesToOrigin.getOrDefault(type, type);
     }
 
     public static final class Serializer extends AbstractSerializer<AnnotationProcessingData> {
