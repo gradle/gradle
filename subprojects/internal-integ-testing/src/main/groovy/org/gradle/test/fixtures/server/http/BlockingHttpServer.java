@@ -202,7 +202,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     private void addNonBlockingHandler(final Collection<? extends ResourceExpectation> expectations) {
-        handler.addHandler(previous -> new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations));
+        handler.addHandler(previous -> new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations, EXECUTOR_SERVICE));
     }
 
     /**
@@ -214,7 +214,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         for (String request : expectedRequests) {
             expectations.add(doGet(request));
         }
-        handler.addHandler(previous -> new ExpectMaxNRequestsThenReleaseOne(lock, serverId, timeout, concurrent, previous, expectations));
+        handler.addHandler(previous -> new ExpectMaxNRequestsThenReleaseOne(lock, serverId, timeout, concurrent, previous, expectations, EXECUTOR_SERVICE));
     }
 
     /**
