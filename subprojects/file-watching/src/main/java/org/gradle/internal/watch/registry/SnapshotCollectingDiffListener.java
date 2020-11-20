@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch.registry;
 
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDiffListener {
-    private final List<CompleteFileSystemLocationSnapshot> removedSnapshots = new ArrayList<>();
-    private final List<CompleteFileSystemLocationSnapshot> addedSnapshots = new ArrayList<>();
+    private final List<FileSystemLocationSnapshot> removedSnapshots = new ArrayList<>();
+    private final List<FileSystemLocationSnapshot> addedSnapshots = new ArrayList<>();
 
     public void publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener) {
         if (!removedSnapshots.isEmpty() || !addedSnapshots.isEmpty()) {

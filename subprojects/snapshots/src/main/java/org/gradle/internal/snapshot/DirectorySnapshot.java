@@ -29,21 +29,21 @@ import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
 /**
- * A complete snapshot of an existing directory.
+ * A snapshot of an existing directory hierarchy.
  *
- * Includes complete snapshots of every child and the Merkle tree hash.
+ * Includes snapshots of any child element and the Merkle tree hash.
  */
-public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocationSnapshot {
-    private final ChildMap<CompleteFileSystemLocationSnapshot> children;
+public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
+    private final ChildMap<FileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, List<CompleteFileSystemLocationSnapshot> children) {
+    public DirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, List<FileSystemLocationSnapshot> children) {
         this(absolutePath, name, accessType, contentHash, childMapFromSorted(children.stream()
             .map(it -> new ChildMap.Entry<>(it.getName(), it))
             .collect(Collectors.toList())));
     }
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, ChildMap<CompleteFileSystemLocationSnapshot> children) {
+    public DirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, ChildMap<FileSystemLocationSnapshot> children) {
         super(absolutePath, name, accessType);
         this.contentHash = contentHash;
         this.children = children;
@@ -60,13 +60,13 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
+    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
         return isContentUpToDate(other);
     }
 
     @Override
-    public boolean isContentUpToDate(CompleteFileSystemLocationSnapshot other) {
-        return other instanceof CompleteDirectorySnapshot;
+    public boolean isContentUpToDate(FileSystemLocationSnapshot other) {
+        return other instanceof DirectorySnapshot;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @VisibleForTesting
-    public List<CompleteFileSystemLocationSnapshot> getChildren() {
+    public List<FileSystemLocationSnapshot> getChildren() {
         return children.values();
     }
 
@@ -143,10 +143,10 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
     @Override
     public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<CompleteFileSystemLocationSnapshot, FileSystemNode>() {
+        ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<FileSystemLocationSnapshot, FileSystemNode>() {
             @Override
-            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, CompleteFileSystemLocationSnapshot child) {
-                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
+            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, FileSystemLocationSnapshot child) {
+                diffListener.nodeRemoved(DirectorySnapshot.this);
                 Optional<FileSystemNode> invalidated = child.invalidate(pathInChild, caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
                     @Override
                     public void nodeRemoved(FileSystemNode node) {
@@ -167,13 +167,13 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             }
 
             @Override
-            public void handleAsAncestorOfChild(String childPath, CompleteFileSystemLocationSnapshot child) {
+            public void handleAsAncestorOfChild(String childPath, FileSystemLocationSnapshot child) {
                 throw new IllegalStateException("Can't have an ancestor of a single path element");
             }
 
             @Override
-            public void handleExactMatchWithChild(CompleteFileSystemLocationSnapshot child) {
-                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
+            public void handleExactMatchWithChild(FileSystemLocationSnapshot child) {
+                diffListener.nodeRemoved(DirectorySnapshot.this);
                 children.visitChildren((__, existingChild) -> {
                     if (existingChild != child) {
                         diffListener.nodeAdded(existingChild);
@@ -183,7 +183,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
             @Override
             public void handleUnrelatedToAnyChild() {
-                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
+                diffListener.nodeRemoved(DirectorySnapshot.this);
                 children.visitChildren((__, child) -> diffListener.nodeAdded(child));
             }
         });

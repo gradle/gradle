@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
@@ -49,7 +49,7 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
     private HashCode getFileContentHash(File key) {
         return fileSystemAccess.read(
             key.getAbsolutePath(),
-            CompleteFileSystemLocationSnapshot::getHash
+            FileSystemLocationSnapshot::getHash
         );
     }
 

@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFileSystemLocationSnapshot> extends Specification {
+abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapshot> extends Specification {
 
     abstract protected T createInitialRootNode(String absolutePath);
 
@@ -67,7 +67,7 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
         def childAbsolutePath = childAbsolutePath("some/child")
 
         when:
-        CompleteFileSystemLocationSnapshot childSnapshot = initialRoot.getSnapshot(childAbsolutePath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
+        FileSystemLocationSnapshot childSnapshot = initialRoot.getSnapshot(childAbsolutePath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         childSnapshot.type == FileType.Missing
         childSnapshot.absolutePath == childAbsolutePath.absolutePath
@@ -77,7 +77,7 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
         def childAbsolutePath = childAbsolutePath("some/child")
 
         when:
-        CompleteFileSystemLocationSnapshot childSnapshot = initialRoot.getNode(childAbsolutePath, CASE_SENSITIVE) as CompleteFileSystemLocationSnapshot
+        FileSystemLocationSnapshot childSnapshot = initialRoot.getNode(childAbsolutePath, CASE_SENSITIVE) as FileSystemLocationSnapshot
         then:
         childSnapshot.type == FileType.Missing
         childSnapshot.absolutePath == childAbsolutePath.absolutePath
@@ -85,9 +85,5 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
 
     private VfsRelativePath childAbsolutePath(String relativePath) {
         VfsRelativePath.of("${initialRoot.absolutePath}/${relativePath}", initialRoot.absolutePath.length() + 1)
-    }
-
-    private int getChildOffset() {
-        return initialRoot.absolutePath.length() + 1
     }
 }

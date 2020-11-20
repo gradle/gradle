@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -60,8 +60,8 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
 
     @Unroll
     def "detects overlap when there is a stale #type in an output directory"() {
-        def emptyDirectory = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x1234), [])
-        def directoryWithStaleBrokenSymlink = new CompleteDirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x5678), [
+        def emptyDirectory = new DirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x1234), [])
+        def directoryWithStaleBrokenSymlink = new DirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x5678), [
             staleEntry
         ])
         def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
@@ -81,7 +81,7 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
         where:
         type             | staleEntry
         "file"           | new RegularFileSnapshot("/absolute/path", "path", HashCode.fromInt(123), DefaultFileMetadata.file(0L, 0L, AccessType.DIRECT))
-        "directory"      | new CompleteDirectorySnapshot("/absolute/path", "path", AccessType.DIRECT, HashCode.fromInt(123), [])
+        "directory"      | new DirectorySnapshot("/absolute/path", "path", AccessType.DIRECT, HashCode.fromInt(123), [])
         "broken symlink" | new MissingFileSnapshot("/absolute/path", "path", AccessType.VIA_SYMLINK)
     }
 }

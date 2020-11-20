@@ -27,8 +27,8 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static Map<String, CompleteFileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
-        HashMap<String, CompleteFileSystemLocationSnapshot> index = new HashMap<>();
+    public static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
+        HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
         snapshot.accept(entrySnapshot -> {
             index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
             return SnapshotVisitResult.CONTINUE;
@@ -36,8 +36,8 @@ public class SnapshotUtil {
         return index;
     }
 
-    public static Map<String, CompleteFileSystemLocationSnapshot> rootIndex(FileSystemSnapshot snapshot) {
-        HashMap<String, CompleteFileSystemLocationSnapshot> index = new HashMap<>();
+    public static Map<String, FileSystemLocationSnapshot> rootIndex(FileSystemSnapshot snapshot) {
+        HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
         snapshot.accept(entrySnapshot -> {
             index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
             return SnapshotVisitResult.SKIP_SUBTREE;

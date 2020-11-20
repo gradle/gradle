@@ -19,8 +19,8 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -45,7 +45,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     }
 
     @Override
-    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
         return IGNORED_PATH;
     }
 
@@ -65,7 +65,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                     visitNonDirectoryEntry(snapshot);
                 }
 
-                private void visitNonDirectoryEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                private void visitNonDirectoryEntry(FileSystemLocationSnapshot snapshot) {
                     String absolutePath = snapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), snapshot.getHash()));

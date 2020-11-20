@@ -32,8 +32,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -138,7 +138,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public void enterDirectory(CompleteDirectorySnapshot physicalSnapshot) {
+        public void enterDirectory(DirectorySnapshot physicalSnapshot) {
             this.path = physicalSnapshot.getAbsolutePath();
             this.name = physicalSnapshot.getName();
             this.hash = null;
@@ -151,7 +151,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
             if (snapshot.getType() == FileType.Directory) {
                 return SnapshotVisitResult.CONTINUE;
             }
@@ -180,7 +180,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot) {
+        public void leaveDirectory(DirectorySnapshot directorySnapshot) {
             visitor.postDirectory();
             if (--depth == 0) {
                 visitor.postRoot();
