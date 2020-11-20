@@ -214,7 +214,7 @@ public abstract class AvailableJavaHomes {
             .map(InstallationLocation::getLocation)
             .map(metadataDetector::getMetadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
-            .sorted(Comparator.comparing(JvmInstallationMetadata::getLanguageVersion))
+            .sorted(Comparator.comparing(JvmInstallationMetadata::getDisplayName).thenComparing(JvmInstallationMetadata::getLanguageVersion))
             .collect(Collectors.toList());
 
         System.out.println("Found the following JVMs:");

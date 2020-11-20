@@ -17,13 +17,11 @@
 package org.gradle.util
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 
 class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "nullability with Kotlin jsr-305 strict"() {
 
         given:

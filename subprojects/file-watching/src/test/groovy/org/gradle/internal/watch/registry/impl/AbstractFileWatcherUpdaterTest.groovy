@@ -23,8 +23,8 @@ import org.gradle.api.internal.file.TestVirtualFileSystem
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.snapshot.CaseSensitivity
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
+import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
@@ -225,11 +225,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         temporaryFolder.testDirectory.file(path)
     }
 
-    CompleteDirectorySnapshot snapshotDirectory(File directory) {
-        directorySnapshotter.snapshot(directory.absolutePath, null, new AtomicBoolean(false)) as CompleteDirectorySnapshot
+    DirectorySnapshot snapshotDirectory(File directory) {
+        directorySnapshotter.snapshot(directory.absolutePath, null, new AtomicBoolean(false)) as DirectorySnapshot
     }
 
-    void addSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
+    void addSnapshot(FileSystemLocationSnapshot snapshot) {
         virtualFileSystem.store(snapshot.absolutePath, snapshot)
     }
 
@@ -237,7 +237,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         virtualFileSystem.invalidate([absolutePath])
     }
 
-    void invalidate(CompleteFileSystemLocationSnapshot snapshot) {
+    void invalidate(FileSystemLocationSnapshot snapshot) {
         invalidate(snapshot.absolutePath)
     }
 
@@ -288,7 +288,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         boolean empty = true
 
         @Override
-        void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot) {
+        void visitSnapshotRoot(FileSystemLocationSnapshot snapshot) {
             empty = false
         }
     }

@@ -31,6 +31,7 @@ import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
+import org.gradle.internal.execution.impl.InputUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -48,6 +49,7 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.impl.InputUtil.fingerprintInputProperties;
+import static org.gradle.internal.execution.impl.InputUtil.union;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
@@ -171,25 +173,21 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
                 throw new AssertionError();
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> alreadyKnownInputProperties = context.getInputProperties();
-        ImmutableSortedMap.Builder<String, ValueSnapshot> inputPropertiesBuilder = ImmutableSortedMap.naturalOrder();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownInputFileProperties = context.getInputFileProperties();
-        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        fingerprintInputProperties(
+        InputUtil.Result newInputs = fingerprintInputProperties(
             work,
             previousInputProperties,
             valueSnapshotter,
-            alreadyKnownInputProperties,
-            inputPropertiesBuilder,
-            alreadyKnownInputFileProperties,
-            inputFileFingerprintsBuilder,
+            context.getInputProperties(),
+            context.getInputFileProperties(),
             (propertyName, type, identity) -> identity == NON_IDENTITY);
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = union(context.getInputProperties(), newInputs.getValueSnapshots());
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = union(context.getInputFileProperties(), newInputs.getFileFingerprints());
 
         return new DefaultBeforeExecutionState(
             implementation,
             additionalImplementations,
-            inputPropertiesBuilder.build(),
-            inputFileFingerprintsBuilder.build(),
+            inputProperties,
+            inputFileFingerprints,
             unfilteredOutputSnapshots,
             overlappingOutputs
         );

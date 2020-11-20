@@ -43,6 +43,7 @@ import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.jvm.toolchain.internal.JavaToolchainInput
 import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.internal.worker.WorkerProcessBuilder
@@ -288,7 +289,7 @@ class TestTest extends AbstractConventionTaskTest {
         metadata.getLanguageVersion() >> Jvm.current().javaVersion
         metadata.getCapabilities() >> Collections.emptySet()
         metadata.getJavaHome() >> Jvm.current().javaHome.toPath()
-        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory())
+        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput))
         def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:

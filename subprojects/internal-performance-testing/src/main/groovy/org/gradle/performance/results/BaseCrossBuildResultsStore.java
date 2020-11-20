@@ -100,11 +100,9 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         return withConnection("load test history", connection -> {
             Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
             try (PreparedStatement testIdsStatement = connection.prepareStatement(
-                "select distinct testClass, testId, testProject" +
-                    "   from testExecution" +
+                "select testClass, testId, testProject" +
+                    "   from testExecutionExperiment" +
                     "  where resultType = ?" +
-                    "    and testClass is not null" +
-                    "    and starttime > NOW() - INTERVAL 7 DAY" +
                     "  order by testClass, testId, testProject")
             ) {
                 testIdsStatement.setString(1, resultType);

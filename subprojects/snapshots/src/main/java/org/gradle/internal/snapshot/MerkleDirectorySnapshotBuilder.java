@@ -34,7 +34,7 @@ public class MerkleDirectorySnapshotBuilder {
 
     private final Deque<Directory> directoryStack = new ArrayDeque<>();
     private final boolean sortingRequired;
-    private CompleteFileSystemLocationSnapshot result;
+    private FileSystemLocationSnapshot result;
 
     public static MerkleDirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
@@ -48,7 +48,7 @@ public class MerkleDirectorySnapshotBuilder {
         this.sortingRequired = sortingRequired;
     }
 
-    public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+    public void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         enterDirectory(directorySnapshot.getAccessType(), directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), emptyDirectoryHandlingStrategy);
     }
 
@@ -60,12 +60,12 @@ public class MerkleDirectorySnapshotBuilder {
         collectEntry(snapshot);
     }
 
-    public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+    public void visitDirectory(DirectorySnapshot directorySnapshot) {
         collectEntry(directorySnapshot);
     }
 
     public boolean leaveDirectory() {
-        CompleteFileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
+        FileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
         if (snapshot == null) {
             return false;
         }
@@ -73,7 +73,7 @@ public class MerkleDirectorySnapshotBuilder {
         return true;
     }
 
-    private void collectEntry(CompleteFileSystemLocationSnapshot snapshot) {
+    private void collectEntry(FileSystemLocationSnapshot snapshot) {
         Directory directory = directoryStack.peekLast();
         if (directory != null) {
             directory.collectEntry(snapshot);
@@ -84,7 +84,7 @@ public class MerkleDirectorySnapshotBuilder {
     }
 
     @Nullable
-    public CompleteFileSystemLocationSnapshot getResult() {
+    public FileSystemLocationSnapshot getResult() {
         return result;
     }
 
@@ -97,7 +97,7 @@ public class MerkleDirectorySnapshotBuilder {
         private final AccessType accessType;
         private final String absolutePath;
         private final String name;
-        private final List<CompleteFileSystemLocationSnapshot> children;
+        private final List<FileSystemLocationSnapshot> children;
         private final EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy;
 
         public Directory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
@@ -108,25 +108,25 @@ public class MerkleDirectorySnapshotBuilder {
             this.emptyDirectoryHandlingStrategy = emptyDirectoryHandlingStrategy;
         }
 
-        public void collectEntry(CompleteFileSystemLocationSnapshot snapshot) {
+        public void collectEntry(FileSystemLocationSnapshot snapshot) {
             children.add(snapshot);
         }
 
         @Nullable
-        public CompleteDirectorySnapshot fold() {
+        public DirectorySnapshot fold() {
             if (emptyDirectoryHandlingStrategy == EXCLUDE_EMPTY_DIRS && children.isEmpty()) {
                 return null;
             }
             if (sortingRequired) {
-                children.sort(CompleteFileSystemLocationSnapshot.BY_NAME);
+                children.sort(FileSystemLocationSnapshot.BY_NAME);
             }
             Hasher hasher = Hashing.newHasher();
             hasher.putHash(DIR_SIGNATURE);
-            for (CompleteFileSystemLocationSnapshot child : children) {
+            for (FileSystemLocationSnapshot child : children) {
                 hasher.putString(child.getName());
                 hasher.putHash(child.getHash());
             }
-            return new CompleteDirectorySnapshot(absolutePath, name, accessType, hasher.hash(), children);
+            return new DirectorySnapshot(absolutePath, name, accessType, hasher.hash(), children);
         }
     }
 }

@@ -25,13 +25,13 @@ import java.util.Deque;
 import java.util.Iterator;
 
 /**
- * Tracks the relative path. Useful when visiting {@link CompleteFileSystemLocationSnapshot}s.
+ * Tracks the relative path. Useful when visiting {@link FileSystemLocationSnapshot}s.
  */
 public class PathTracker implements RelativePathSupplier {
     private final Deque<String> segments = new ArrayDeque<>();
     private String rootName;
 
-    public void enter(CompleteFileSystemLocationSnapshot snapshot) {
+    public void enter(FileSystemLocationSnapshot snapshot) {
         enter(snapshot.getName());
     }
 

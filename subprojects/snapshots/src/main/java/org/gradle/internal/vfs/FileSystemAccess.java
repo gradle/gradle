@@ -17,7 +17,7 @@
 package org.gradle.internal.vfs;
 
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.Optional;
@@ -43,14 +43,14 @@ public interface FileSystemAccess {
     /**
      * Visits the hierarchy of files at the given location.
      */
-    <T> T read(String location, Function<CompleteFileSystemLocationSnapshot, T> visitor);
+    <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor);
 
     /**
      * Visits the hierarchy of files which match the filter at the given location.
      *
      * The consumer is only called if if something matches the filter.
      */
-    void read(String location, SnapshottingFilter filter, Consumer<CompleteFileSystemLocationSnapshot> visitor);
+    void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor);
 
     /**
      * Runs an action which potentially writes to the given locations.
@@ -60,7 +60,7 @@ public interface FileSystemAccess {
     /**
      * Updates the cached state at the location with the snapshot.
      */
-    void record(CompleteFileSystemLocationSnapshot snapshot);
+    void record(FileSystemLocationSnapshot snapshot);
 
     interface WriteListener {
         void locationsWritten(Iterable<String> locations);

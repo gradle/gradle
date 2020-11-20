@@ -19,7 +19,7 @@ package org.gradle.internal.watch.registry.impl;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import java.nio.file.Files;
@@ -104,7 +104,7 @@ public class WatchedHierarchies {
         }
 
         @Override
-        public void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot) {
+        public void visitSnapshotRoot(FileSystemLocationSnapshot snapshot) {
             if (!alreadyCoveredSnapshots.contains(snapshot.getAbsolutePath())) {
                 delegate.visitSnapshotRoot(snapshot);
             }

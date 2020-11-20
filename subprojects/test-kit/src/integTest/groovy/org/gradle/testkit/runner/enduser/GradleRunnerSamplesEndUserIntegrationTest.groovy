@@ -34,7 +34,8 @@ import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
-@IgnoreIf({ GradleContextualExecuter.embedded }) // These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
+@IgnoreIf({ GradleContextualExecuter.embedded })
+// These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule
@@ -46,7 +47,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     @Unroll
     @UsesSample("testKit/junitQuickstart")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
     def "junitQuickstart with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))

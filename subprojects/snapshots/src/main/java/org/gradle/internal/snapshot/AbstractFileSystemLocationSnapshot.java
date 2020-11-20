@@ -20,12 +20,12 @@ import org.gradle.internal.file.FileMetadata.AccessType;
 
 import java.util.Optional;
 
-public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
+public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
     private final AccessType accessType;
 
-    public AbstractCompleteFileSystemLocationSnapshot(String absolutePath, String name, AccessType accessType) {
+    public AbstractFileSystemLocationSnapshot(String absolutePath, String name, AccessType accessType) {
         this.absolutePath = absolutePath;
         this.name = name;
         this.accessType = accessType;
@@ -55,7 +55,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public CompleteFileSystemLocationSnapshot store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
+    public FileSystemLocationSnapshot store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return this;
     }
 
@@ -106,7 +106,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
             return false;
         }
 
-        AbstractCompleteFileSystemLocationSnapshot that = (AbstractCompleteFileSystemLocationSnapshot) o;
+        AbstractFileSystemLocationSnapshot that = (AbstractFileSystemLocationSnapshot) o;
 
         if (accessType != that.accessType) {
             return false;

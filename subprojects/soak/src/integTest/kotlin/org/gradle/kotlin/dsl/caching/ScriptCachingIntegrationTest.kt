@@ -34,11 +34,9 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.junit.Test
-import org.junit.Ignore
 import java.util.UUID
 
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3233")
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test

@@ -45,6 +45,6 @@ public interface SnapshottingFilter {
     }
 
     interface FileSystemSnapshotPredicate {
-        boolean test(CompleteFileSystemLocationSnapshot fileSystemLocation, Iterable<String> relativePath);
+        boolean test(FileSystemLocationSnapshot fileSystemLocation, Iterable<String> relativePath);
     }
 }
