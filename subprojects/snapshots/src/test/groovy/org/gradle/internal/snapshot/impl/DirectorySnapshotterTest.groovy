@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.SnapshottingFilter
+import org.gradle.internal.snapshot.UnreadableSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -332,7 +333,7 @@ class DirectorySnapshotterTest extends Specification {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "unreadable files and directories are snapshotted as missing"() {
+    def "unreadable files and directories are snapshotted as unreadable"() {
         given:
         def rootDir = tmpDir.createDir("root")
         rootDir.file('readableFile').createFile()
@@ -349,8 +350,8 @@ class DirectorySnapshotterTest extends Specification {
         snapshot.children.collectEntries { [it.name, it.class] } == [
             readableDirectory: CompleteDirectorySnapshot,
             readableFile: RegularFileSnapshot,
-            unreadableDirectory: MissingFileSnapshot,
-            unreadableFile: MissingFileSnapshot
+            unreadableDirectory: UnreadableSnapshot,
+            unreadableFile: UnreadableSnapshot
         ]
         snapshot.children.every { it.accessType == AccessType.DIRECT }
         0 * _
@@ -373,7 +374,7 @@ class DirectorySnapshotterTest extends Specification {
         ! actuallyFiltered.get()
         assert snapshot instanceof CompleteDirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
-            testPipe: MissingFileSnapshot
+            testPipe: UnreadableSnapshot
         ]
         snapshot.children.every { it.accessType == AccessType.DIRECT }
         0 * _

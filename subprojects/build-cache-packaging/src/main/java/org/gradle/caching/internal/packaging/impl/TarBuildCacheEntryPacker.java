@@ -47,6 +47,7 @@ import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
@@ -370,9 +371,14 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 @Override
                 public void visitMissing(MissingFileSnapshot missingSnapshot) {
                     if (!isRoot) {
-                        throw new RuntimeException(String.format("Couldn't read content of file '%s'", snapshot.getAbsolutePath()));
+                        throw new RuntimeException(String.format("Couldn't read contents of file '%s'", snapshot.getAbsolutePath()));
                     }
                     storeMissingTree(targetPath, tarOutput);
+                }
+
+                @Override
+                public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                    throw unreadableSnapshot.rethrowOnAttemptedRead();
                 }
             });
             packedEntryCount++;

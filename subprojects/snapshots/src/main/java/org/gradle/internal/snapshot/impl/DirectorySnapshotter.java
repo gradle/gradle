@@ -34,6 +34,7 @@ import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -344,13 +345,20 @@ public class DirectorySnapshotter {
                     HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
                     return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
                 } catch (UncheckedIOException e) {
-                    LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
+                    return createUnreadableSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType, e.getCause());
                 }
+            } else if (attrs.isSymbolicLink()) {
+                return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
+            } else if (attrs.isOther()) {
+                return createUnreadableSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType, new IOException("Non-regular file"));
+            } else {
+                throw new RuntimeException(String.format("Couldn't snapshot file: '%s'.", absoluteFilePath));
             }
-            return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
         }
 
-        /** unlistable directories (and maybe some locked files) will stop here */
+        /**
+         * Directories that fail to list (and maybe some locked files) will stop here
+         */
         @Override
         protected FileVisitResult doVisitFileFailed(Path file, IOException exc) {
             String internedFileName = getInternedFileName(file);
@@ -364,7 +372,7 @@ public class DirectorySnapshotter {
                     if (shouldVisit(file, internedFileName, isDirectory, pathTracker.getSegments())) {
                         LOGGER.info("Could not read file path '{}'.", file);
                         String internedAbsolutePath = intern(file.toString());
-                        builder.visitLeafElement(new MissingFileSnapshot(internedAbsolutePath, internedFileName, AccessType.DIRECT));
+                        builder.visitLeafElement(createUnreadableSnapshot(internedAbsolutePath, internedFileName, AccessType.DIRECT, exc));
                     }
                 }
                 return FileVisitResult.CONTINUE;
@@ -389,6 +397,11 @@ public class DirectorySnapshotter {
 
         private boolean isNotFileSystemLoopException(@Nullable IOException e) {
             return e != null && !(e instanceof FileSystemLoopException);
+        }
+
+        private static UnreadableSnapshot createUnreadableSnapshot(String absolutePath, String name, AccessType accessType, IOException exc) {
+            LOGGER.info("Could not read file path '{}'.", absolutePath);
+            return new UnreadableSnapshot(absolutePath, name, accessType, exc);
         }
 
         private String intern(String string) {

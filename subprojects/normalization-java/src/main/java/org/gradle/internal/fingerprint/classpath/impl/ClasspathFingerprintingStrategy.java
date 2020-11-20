@@ -48,6 +48,7 @@ import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -181,8 +182,13 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                 @Override
                 public void visitMissing(MissingFileSnapshot missingSnapshot) {
                     if (!relativePath.isRoot()) {
-                        throw new RuntimeException(String.format("Couldn't read file content: '%s'.", missingSnapshot.getAbsolutePath()));
+                        throw new RuntimeException(String.format("Couldn't read file contents: '%s'.", missingSnapshot.getAbsolutePath()));
                     }
+                }
+
+                @Override
+                public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                    throw unreadableSnapshot.rethrowOnAttemptedRead();
                 }
             });
             return SnapshotVisitResult.CONTINUE;

@@ -33,6 +33,7 @@ import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -193,6 +194,11 @@ public class OutputSnapshotUtil {
 
                 @Override
                 public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                    visitNonDirectoryEntry(snapshot, isRoot);
+                }
+
+                @Override
+                public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
                     visitNonDirectoryEntry(snapshot, isRoot);
                 }
             });

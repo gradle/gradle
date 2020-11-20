@@ -437,7 +437,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails 'brokenClasspathInput'
         then:
-        failure.assertHasCause("Couldn't read file content: '${brokenInputFile}'.")
+        failure.assertHasCause("Couldn't read file contents: '${brokenInputFile}'.")
 
         where:
         classpathType << [Classpath, CompileClasspath]

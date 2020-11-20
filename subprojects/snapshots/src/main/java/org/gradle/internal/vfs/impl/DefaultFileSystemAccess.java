@@ -30,6 +30,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
@@ -39,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -151,10 +153,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
                 virtualFileSystem.store(regularFileSnapshot.getAbsolutePath(), regularFileSnapshot);
                 return regularFileSnapshot;
-            case Missing:
-                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, fileMetadata.getAccessType());
-                virtualFileSystem.store(missingFileSnapshot.getAbsolutePath(), missingFileSnapshot);
-                return missingFileSnapshot;
             case Directory:
                 AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
                 CompleteFileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(), hasBeenFiltered);
@@ -162,6 +160,15 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                     virtualFileSystem.store(directorySnapshot.getAbsolutePath(), directorySnapshot);
                 }
                 return directorySnapshot;
+            case Missing:
+                CompleteFileSystemLocationSnapshot snapshot;
+                if (!file.exists()) {
+                    snapshot = new MissingFileSnapshot(location, file.getName(), fileMetadata.getAccessType());
+                } else {
+                    snapshot = new UnreadableSnapshot(location, file.getName(), fileMetadata.getAccessType(), new IOException("File not readable"));
+                }
+                virtualFileSystem.store(location, snapshot);
+                return snapshot;
             default:
                 throw new UnsupportedOperationException();
         }

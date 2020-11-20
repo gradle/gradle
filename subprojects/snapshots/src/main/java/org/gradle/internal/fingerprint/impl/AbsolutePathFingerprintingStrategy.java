@@ -20,10 +20,14 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -53,11 +57,34 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
             public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath)) {
-                    builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
+                    snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+                        @Override
+                        public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                            visitReadableEntry(directorySnapshot);
+                        }
+
+                        @Override
+                        public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                            visitReadableEntry(fileSnapshot);
+                        }
+
+                        @Override
+                        public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                            visitReadableEntry(missingSnapshot);
+                        }
+
+                        @Override
+                        public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                            throw unreadableSnapshot.rethrowOnAttemptedRead();
+                        }
+
+                        private void visitReadableEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                            builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
+                        }
+                    });
                 }
                 return SnapshotVisitResult.CONTINUE;
             }
-
         });
         return builder.build();
     }

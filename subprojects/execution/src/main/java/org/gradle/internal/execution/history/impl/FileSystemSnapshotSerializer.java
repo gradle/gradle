@@ -33,6 +33,7 @@ import org.gradle.internal.snapshot.PathUtil;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -46,6 +47,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
         DIR_OPEN,
         REGULAR_FILE,
         MISSING,
+        UNREADABLE,
         DIR_CLOSE,
         END
     }
@@ -94,6 +96,10 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                     break;
                 case MISSING:
                     stack.add(new MissingFileSnapshot(internedAbsolutePath, internedName, accessType));
+                    break;
+                case UNREADABLE:
+                    String errorMessage = decoder.readNullableString();
+                    stack.add(new UnreadableSnapshot(internedAbsolutePath, internedName, accessType, new IOException(errorMessage)));
                     break;
                 case DIR_CLOSE:
                     HashCode merkleHash = readHashCode(decoder);
@@ -144,6 +150,18 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                             writeEntryType(encoder, EntryType.MISSING);
                             writePath(encoder, isRoot, missingSnapshot);
                             writeAccessType(encoder, missingSnapshot.getAccessType());
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    }
+
+                    @Override
+                    public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                        try {
+                            writeEntryType(encoder, EntryType.UNREADABLE);
+                            writePath(encoder, isRoot, unreadableSnapshot);
+                            writeAccessType(encoder, unreadableSnapshot.getAccessType());
+                            encoder.writeNullableString(unreadableSnapshot.getError().getMessage());
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }

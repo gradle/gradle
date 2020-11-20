@@ -21,10 +21,15 @@ import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.PathTracker;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -60,17 +65,51 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         roots.accept(new PathTracker(), (snapshot, relativePath) -> {
             String absolutePath = snapshot.getAbsolutePath();
             if (processedEntries.add(absolutePath)) {
-                FileSystemLocationFingerprint fingerprint;
-                if (relativePath.isRoot()) {
-                    if (snapshot.getType() == FileType.Directory) {
-                        fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
-                    } else {
-                        fingerprint = new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
+                snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+                    @Override
+                    public void visitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                        if (relativePath.isRoot()) {
+                            recordFingerprint(IgnoredPathFileSystemLocationFingerprint.DIRECTORY);
+                        } else {
+                            visitNonRootEntry(directorySnapshot);
+                        }
                     }
-                } else {
-                    fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePath.toRelativePath()), snapshot);
-                }
-                builder.put(absolutePath, fingerprint);
+
+                    @Override
+                    public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                        if (relativePath.isRoot()) {
+                            visitRootEntry(fileSnapshot);
+                        } else {
+                            visitNonRootEntry(fileSnapshot);
+                        }
+                    }
+
+                    @Override
+                    public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                        if (relativePath.isRoot()) {
+                            visitRootEntry(missingSnapshot);
+                        } else {
+                            visitNonRootEntry(missingSnapshot);
+                        }
+                    }
+
+                    @Override
+                    public void visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
+                        throw unreadableSnapshot.rethrowOnAttemptedRead();
+                    }
+
+                    private void visitRootEntry(FileSystemLeafSnapshot snapshot) {
+                        recordFingerprint(new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot));
+                    }
+
+                    private void visitNonRootEntry(CompleteFileSystemLocationSnapshot snapshot) {
+                        recordFingerprint(new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePath.toRelativePath()), snapshot));
+                    }
+
+                    private void recordFingerprint(FileSystemLocationFingerprint fingerprint) {
+                        builder.put(absolutePath, fingerprint);
+                    }
+                });
             }
             return SnapshotVisitResult.CONTINUE;
         });

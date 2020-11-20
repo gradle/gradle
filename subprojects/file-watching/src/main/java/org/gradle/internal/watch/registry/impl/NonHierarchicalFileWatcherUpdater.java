@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.UnreadableSnapshot;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
@@ -199,6 +200,11 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
                 @Override
                 public SnapshotVisitResult visitMissing(MissingFileSnapshot missingSnapshot) {
+                    return SnapshotVisitResult.CONTINUE;
+                }
+
+                @Override
+                public SnapshotVisitResult visitUnreadable(UnreadableSnapshot unreadableSnapshot) {
                     return SnapshotVisitResult.CONTINUE;
                 }
             });
