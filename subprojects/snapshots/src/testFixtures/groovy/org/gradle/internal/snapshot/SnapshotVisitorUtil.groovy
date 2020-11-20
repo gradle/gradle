@@ -23,7 +23,7 @@ class SnapshotVisitorUtil {
         def absolutePaths = []
         snapshot.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
-            SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot entrySnapshot, boolean isRoot) {
+            SnapshotVisitResult visitEntry(FileSystemLocationSnapshot entrySnapshot, boolean isRoot) {
                 if (includeRoots || !isRoot) {
                     absolutePaths << entrySnapshot.absolutePath
                 }

@@ -25,11 +25,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
-import org.gradle.internal.snapshot.PathTracker;
-import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotUtil;
-import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.util.Map;
 
@@ -93,13 +89,8 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
-        return roots.accept(visitor);
-    }
-
-    @Override
-    public SnapshotVisitResult accept(PathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
-        return roots.accept(pathTracker, visitor);
+    public FileSystemSnapshot getSnapshot() {
+        return roots;
     }
 
     @Override

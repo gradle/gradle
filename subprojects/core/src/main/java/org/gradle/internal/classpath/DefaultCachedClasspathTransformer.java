@@ -28,7 +28,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
@@ -154,7 +154,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private CacheOperation cached(File original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
-        CompleteFileSystemLocationSnapshot snapshot = fileSystemAccess.read(original.getAbsolutePath(), s -> s);
+        FileSystemLocationSnapshot snapshot = fileSystemAccess.read(original.getAbsolutePath(), s -> s);
         HashCode contentHash = snapshot.getHash();
         if (snapshot.getType() == FileType.Missing) {
             return new EmptyOperation();
@@ -243,10 +243,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         private final SynchronousQueue<Object> queue;
         private final ClasspathFileTransformer transformer;
         private final File original;
-        private final CompleteFileSystemLocationSnapshot snapshot;
+        private final FileSystemLocationSnapshot snapshot;
         private final File cacheDir;
 
-        public TransformFile(ClasspathFileTransformer transformer, File original, CompleteFileSystemLocationSnapshot snapshot, File cacheDir) {
+        public TransformFile(ClasspathFileTransformer transformer, File original, FileSystemLocationSnapshot snapshot, File cacheDir) {
             this.transformer = transformer;
             this.original = original;
             this.snapshot = snapshot;

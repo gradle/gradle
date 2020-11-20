@@ -23,11 +23,11 @@ import org.gradle.internal.hash.HashCode;
 import java.util.Optional;
 
 /**
- * A complete snapshot of a regular file.
+ * A snapshot of a regular file.
  *
- * The snapshot includes the content hash of the file.
+ * The snapshot includes the content hash of the file and its metadata.
  */
-public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot implements FileSystemLeafSnapshot {
+public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot implements FileSystemLeafSnapshot {
     private final HashCode contentHash;
     private final FileMetadata metadata;
 
@@ -53,12 +53,12 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
+    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
         return isContentUpToDate(other) && metadata.equals(((RegularFileSnapshot) other).metadata);
     }
 
     @Override
-    public boolean isContentUpToDate(CompleteFileSystemLocationSnapshot other) {
+    public boolean isContentUpToDate(FileSystemLocationSnapshot other) {
         if (!(other instanceof RegularFileSnapshot)) {
             return false;
         }

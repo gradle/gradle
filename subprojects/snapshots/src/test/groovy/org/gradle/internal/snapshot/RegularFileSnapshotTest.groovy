@@ -20,9 +20,9 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
 
-class RegularFileSnapshotTest extends AbstractCompleteSnapshotWithoutChildrenTest {
+class RegularFileSnapshotTest extends AbstractFileSystemLeafSnapshotTest {
     @Override
-    protected CompleteFileSystemLocationSnapshot createInitialRootNode(String absolutePath) {
+    protected RegularFileSnapshot createInitialRootNode(String absolutePath) {
         return new RegularFileSnapshot(absolutePath, PathUtil.getFileName(absolutePath), HashCode.fromInt(1235), DefaultFileMetadata.file(1, 2, AccessType.DIRECT))
     }
 }

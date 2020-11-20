@@ -23,7 +23,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
@@ -162,12 +162,12 @@ class DirectorySnapshotterTest extends Specification {
         symlink.createLink(linkTarget)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered) as CompleteDirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == ["some", "some/sub", "some/sub/dir", "some/sub/dir/other", "some/sub/dir/other/text.txt"]
         SnapshotVisitorUtil.getAbsolutePaths(snapshot) == relativePaths.collect { new File(rootDir, it).absolutePath }
-        def symlinkedDir = snapshot.children[0].children[0].children[0] as CompleteDirectorySnapshot
+        def symlinkedDir = snapshot.children[0].children[0].children[0] as DirectorySnapshot
         symlinkedDir.accessType == AccessType.VIA_SYMLINK
         symlinkedDir.absolutePath == symlink.absolutePath
     }
@@ -180,7 +180,7 @@ class DirectorySnapshotterTest extends Specification {
         rootDir.createLink(linkTarget)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered) as CompleteDirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == ["sub", "sub/text.txt"]
@@ -212,7 +212,7 @@ class DirectorySnapshotterTest extends Specification {
         patterns.include("included*/*.txt")
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered) as CompleteDirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == ["included", "included/text.txt", "includedSymlink", "includedSymlink/included.txt", "includedSymlink/symlinkedFile.txt"]
@@ -235,7 +235,7 @@ class DirectorySnapshotterTest extends Specification {
         linkTarget3.file("another/fileLink").createLink(linkTarget4)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered) as CompleteDirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == [
@@ -250,11 +250,11 @@ class DirectorySnapshotterTest extends Specification {
         snapshot.accessType == AccessType.VIA_SYMLINK
         snapshot.absolutePath == rootDir.absolutePath
 
-        def link2 = snapshot.children[0].children[0] as CompleteDirectorySnapshot
+        def link2 = snapshot.children[0].children[0] as DirectorySnapshot
         link2.accessType == AccessType.VIA_SYMLINK
         link2.name == "linked"
 
-        def link3 = link2.children[1].children[0] as CompleteDirectorySnapshot
+        def link3 = link2.children[1].children[0] as DirectorySnapshot
         link3.accessType == AccessType.VIA_SYMLINK
         link3.name == "linked3"
 
@@ -305,7 +305,7 @@ class DirectorySnapshotterTest extends Specification {
         then:
         snapshot.children.size() == 1
         def dirSnapshot = snapshot.children[0]
-        dirSnapshot.class == CompleteDirectorySnapshot
+        dirSnapshot.class == DirectorySnapshot
         dirSnapshot.accessType == AccessType.DIRECT
         dirSnapshot.children == []
         0 * _
@@ -345,12 +345,12 @@ class DirectorySnapshotterTest extends Specification {
 
         then:
         ! actuallyFiltered.get()
-        assert snapshot instanceof CompleteDirectorySnapshot
+        assert snapshot instanceof DirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
-            readableDirectory: CompleteDirectorySnapshot,
-            readableFile: RegularFileSnapshot,
-            unreadableDirectory: MissingFileSnapshot,
-            unreadableFile: MissingFileSnapshot
+                readableDirectory: DirectorySnapshot,
+                readableFile: RegularFileSnapshot,
+                unreadableDirectory: MissingFileSnapshot,
+                unreadableFile: MissingFileSnapshot
         ]
         snapshot.children.every { it.accessType == AccessType.DIRECT }
         0 * _
@@ -371,7 +371,7 @@ class DirectorySnapshotterTest extends Specification {
 
         then:
         ! actuallyFiltered.get()
-        assert snapshot instanceof CompleteDirectorySnapshot
+        assert snapshot instanceof DirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
             testPipe: MissingFileSnapshot
         ]

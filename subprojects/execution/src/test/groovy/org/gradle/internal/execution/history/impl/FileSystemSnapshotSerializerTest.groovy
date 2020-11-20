@@ -21,9 +21,9 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.serialize.AbstractEncoder
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
+import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -65,7 +65,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
     }
 
     def "reads and writes directory snapshots"() {
-        def snapshots =  new CompleteDirectorySnapshot("/home/lptr/dev", "dev", DIRECT, fromInt(1111), [])
+        def snapshots =  new DirectorySnapshot("/home/lptr/dev", "dev", DIRECT, fromInt(1111), [])
 
         when:
         def out = serialize(snapshots, serializer)
@@ -116,8 +116,8 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         assertEqualSnapshots(out, snapshots)
     }
 
-    private CompleteFileSystemLocationSnapshot directory(String absolutePath, AccessType accessType = DIRECT, List<CompleteFileSystemLocationSnapshot> children) {
-        new CompleteDirectorySnapshot(
+    private FileSystemLocationSnapshot directory(String absolutePath, AccessType accessType = DIRECT, List<FileSystemLocationSnapshot> children) {
+        new DirectorySnapshot(
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),
             accessType,
@@ -126,7 +126,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
         )
     }
 
-    private CompleteFileSystemLocationSnapshot regularFile(String absolutePath, AccessType accessType = DIRECT) {
+    private FileSystemLocationSnapshot regularFile(String absolutePath, AccessType accessType = DIRECT) {
         new RegularFileSnapshot(
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),
