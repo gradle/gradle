@@ -16,6 +16,7 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.ExecException;
@@ -32,7 +33,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
 
     @Override
     public JavaVersion getJavaVersion(JavaInfo jvm) {
-        return detector.getMetadata(jvm.getJavaHome()).getLanguageVersion();
+        return getVersionFromJavaHome(jvm.getJavaHome());
     }
 
     @Override
@@ -41,7 +42,17 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
         if(!executable.exists()) {
             throw new ExecException("A problem occurred starting process 'command '" + javaCommand + "''");
         }
-        return detector.getMetadata(executable.getParentFile().getParentFile()).getLanguageVersion();
+        return getVersionFromJavaHome(executable.getParentFile().getParentFile());
     }
 
+    private JavaVersion getVersionFromJavaHome(File javaHome) {
+        return validate(detector.getMetadata(javaHome)).getLanguageVersion();
+    }
+
+    private JvmInstallationMetadata validate(JvmInstallationMetadata metadata) {
+        if(metadata.isValidInstallation()) {
+            return metadata;
+        }
+        throw new GradleException("Unable to determine version for JDK located at " + metadata.getJavaHome() + ". Reason: " + metadata.getErrorMessage(), metadata.getErrorCause());
+    }
 }
