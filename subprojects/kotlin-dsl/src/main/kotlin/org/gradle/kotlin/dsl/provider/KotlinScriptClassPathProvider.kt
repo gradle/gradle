@@ -44,6 +44,7 @@ import org.gradle.util.GFileUtils.moveFile
 import com.google.common.annotations.VisibleForTesting
 
 import java.io.File
+import java.io.File.createTempFile
 
 import java.net.URI
 import java.net.URISyntaxException
