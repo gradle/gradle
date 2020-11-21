@@ -16,10 +16,17 @@
 
 package org.gradle.plugin.management.internal;
 
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.plugin.management.PluginManagementSpec;
+
+import java.util.List;
 
 public interface PluginManagementSpecInternal extends PluginManagementSpec {
 
     @Override
     PluginResolutionStrategyInternal getResolutionStrategy();
+
+    void includeBuild(String projectPath);
+
+    List<IncludedBuildSpec> getIncludedBuilds();
 }

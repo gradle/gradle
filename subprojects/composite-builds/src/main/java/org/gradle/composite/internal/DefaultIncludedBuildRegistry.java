@@ -273,11 +273,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             throw new GradleException("Included build " + dir + " has build path " + requestedPath + " which is the same as included build " + existingForPath);
         }
 
-        SettingsInternal rootSettings = getRootBuild().getLoadedSettings();
-        if (rootSettings.findProject(":" + name) != null) {
-            throw new GradleException("Included build in " + dir + " has name '" + name + "' which is the same as a project of the main build.");
-        }
-
         return requestedPath;
     }
 

@@ -71,8 +71,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     private static class SettingsScopeServices {
 
         protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginDependencyResolutionServices dependencyResolutionServices,
-                                                                  PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
-            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy);
+                                                                  PluginResolutionStrategyInternal internalPluginResolutionStrategy, FileResolver fileResolver) {
+            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy, fileResolver);
         }
     }
 

@@ -19,10 +19,11 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
@@ -40,12 +41,19 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.composite.DefaultConfigurableIncludedBuild;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.management.internal.PluginManagementSpecInternal;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;
@@ -71,7 +79,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
 
-    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
+    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
@@ -309,6 +317,16 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildStateRegistry getBuildStateRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     @Inject
     public PluginManagerInternal getPluginManager() {
@@ -340,6 +358,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
         rule.execute(getPluginManagement());
+        List<IncludedBuildSpec> pluginManagementIncludedBuildSpecs = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
+
+        for (IncludedBuildSpec includedBuild : pluginManagementIncludedBuildSpecs) {
+            IncludedBuildState buildState = addIncludedBuild(includedBuild, gradle);
+            buildState.getConfiguredBuild();
+            includedBuildSpecs.add(includedBuild);
+        }
     }
 
     @Override
@@ -382,5 +407,28 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void preventFromFurtherMutation() {
         dependencyResolutionManagement.preventFromFurtherMutation();
+    }
+
+    @Inject
+    protected PublicBuildPath getPublicBuildPath() {
+        throw new UnsupportedOperationException();
+    }
+
+    private IncludedBuildState addIncludedBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
+        gradle.getOwner().assertCanAdd(includedBuildSpec);
+
+        DefaultConfigurableIncludedBuild configurable = getInstantiator().newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
+        includedBuildSpec.configurer.execute(configurable);
+
+        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+            gradle.getStartParameter(),
+            configurable.getName(),
+            includedBuildSpec.rootDir,
+            PluginRequests.EMPTY,
+            configurable.getDependencySubstitutionAction(),
+            getPublicBuildPath()
+        );
+
+        return getBuildStateRegistry().addIncludedBuild(buildDefinition);
     }
 }

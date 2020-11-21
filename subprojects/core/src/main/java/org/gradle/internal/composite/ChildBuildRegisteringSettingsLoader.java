@@ -16,6 +16,7 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
@@ -26,6 +27,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -56,9 +58,11 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
             Set<IncludedBuild> children = new LinkedHashSet<>(includedBuilds.size());
+            RootBuildState rootBuild = buildRegistry.getRootBuild();
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                if (!includedBuildSpec.rootDir.equals(buildRegistry.getRootBuild().getBuildRootDir())) {
+                if (!includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
                     IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
+                    assertNameDoesNotClashWithRootSubproject(rootBuild, includedBuild);
                     children.add(includedBuild.getModel());
                 } else {
                     children.add(new IncludedRootBuild((CompositeBuildParticipantBuildState) buildRegistry.getRootBuild()));
@@ -72,6 +76,12 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         }
 
         return settings;
+    }
+
+    private void assertNameDoesNotClashWithRootSubproject(RootBuildState rootBuild, IncludedBuildState includedBuild) {
+        if (rootBuild.getLoadedSettings().findProject(":" + includedBuild.getName()) != null) {
+            throw new GradleException("Included build in " + includedBuild.getBuildRootDir() + " has name '" + includedBuild.getName() + "' which is the same as a project of the main build.");
+        }
     }
 
     private IncludedBuildState addIncludedBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
