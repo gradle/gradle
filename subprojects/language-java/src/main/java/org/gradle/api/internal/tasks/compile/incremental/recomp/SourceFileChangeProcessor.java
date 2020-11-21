@@ -30,7 +30,7 @@ class SourceFileChangeProcessor {
     }
 
     public void processChange(File inputFile, Collection<String> classNames, RecompilationSpec spec) {
-        spec.getClassesToCompile().addAll(classNames);
+        spec.addClassesToCompile(classNames);
 
         for (String className : classNames) {
             DependentsSet actualDependents = previousCompilation.getDependents(className, IntSets.EMPTY_SET);
@@ -38,8 +38,8 @@ class SourceFileChangeProcessor {
                 spec.setFullRebuildCause(actualDependents.getDescription(), inputFile);
                 return;
             }
-            spec.getClassesToCompile().addAll(actualDependents.getAllDependentClasses());
-            spec.getResourcesToGenerate().addAll(actualDependents.getDependentResources());
+            spec.addClassesToCompile(actualDependents.getAllDependentClasses());
+            spec.addResourcesToGenerate(actualDependents.getDependentResources());
         }
     }
 }

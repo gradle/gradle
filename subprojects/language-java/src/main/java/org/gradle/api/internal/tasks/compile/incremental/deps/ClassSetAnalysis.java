@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ClassSetAnalysis {
 
@@ -122,7 +123,15 @@ public class ClassSetAnalysis {
     }
 
     public Set<String> getTypesToReprocess() {
-        return annotationProcessingData.getAggregatedTypes();
+        // Because of https://github.com/gradle/gradle/issues/13767 and
+        // https://github.com/gradle/gradle/issues/15009 it is possible
+        // that the types to reprocess are actually generated types
+        // so when we see a type to reprocess we need to track what
+        // actually generated this type, not use it directly!
+        return annotationProcessingData.getAggregatedTypes()
+            .stream()
+            .map(annotationProcessingData::getOriginOf)
+            .collect(Collectors.toSet());
     }
 
     public boolean isDependencyToAll(String className) {
