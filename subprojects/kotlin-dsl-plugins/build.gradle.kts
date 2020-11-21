@@ -112,7 +112,7 @@ pluginPublish {
 
 // TODO:kotlin-dsl investigate
 // See https://builds.gradle.org/viewLog.html?buildId=19024848&problemId=23230
-tasks.noDaemonIntegTest.configure {
+tasks.noDaemonIntegTest {
     enabled = false
 }
 
