@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.AnnotatedGeneratedClassProcessorFixture
@@ -134,6 +135,8 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
             }
         """
 
+        makeGeneratedClassFilesAccessible()
+
         java "@Bean class A {}"
         java "class Unrelated {}"
 
@@ -153,6 +156,19 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         true          | "generate class files"
     }
 
+    private void makeGeneratedClassFilesAccessible() {
+        // On Java 8 and earlier, generated classes are not automatically
+        // available to the compile classpath so we need to expose them
+        // manually
+        if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
+            buildFile << """
+                tasks.withType(JavaCompile).configureEach {
+                    classpath += files("\${buildDir}/classes/java/main")
+                }
+            """
+        }
+    }
+
 
     @Unroll
     def "generated files with annotations are reprocessed when a file is deleted (#label)"() {
@@ -167,6 +183,8 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
                 ${fixture.repositoriesBlock}
             }
         """
+
+        makeGeneratedClassFilesAccessible()
 
         def a = java "@Bean class A {}"
         java "@Bean class B {}"

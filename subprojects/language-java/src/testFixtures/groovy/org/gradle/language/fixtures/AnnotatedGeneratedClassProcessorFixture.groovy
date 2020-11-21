@@ -74,6 +74,8 @@ class AnnotatedGeneratedClassProcessorFixture extends AnnotationProcessorFixture
             classWriter.visitAnnotation("L$generatedAnnotation;", true);
             mv = classWriter.visitMethod(org.objectweb.asm.Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
             mv.visitCode();
+            mv.visitMethodInsn(org.objectweb.asm.Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+            mv.visitInsn(org.objectweb.asm.Opcodes.RETURN);
             mv.visitEnd();
             classWriter.visitEnd();
             try {
