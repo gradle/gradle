@@ -106,6 +106,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -411,8 +412,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultOutputSnapshotter(fileCollectionSnapshotter);
         }
 
-        AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-            return new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter);
+        Supplier<AbsolutePathFileCollectionFingerprinter> createDefaultAbsoluteFileCollectionFingerprinterSupplier(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            AbsolutePathFileCollectionFingerprinter defaultAbsolutePathFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter);
+            return () -> defaultAbsolutePathFileCollectionFingerprinter;
+        }
+
+        AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(Supplier<AbsolutePathFileCollectionFingerprinter> defaultAbsolutePathFileCollectionFingerprinterSupplier) {
+            return defaultAbsolutePathFileCollectionFingerprinterSupplier.get();
         }
 
         AbsolutePathFileCollectionFingerprinter createAbsolutePathIgnoreDirectoriesFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
