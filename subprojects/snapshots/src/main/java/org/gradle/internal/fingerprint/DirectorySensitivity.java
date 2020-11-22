@@ -20,9 +20,13 @@ package org.gradle.internal.fingerprint;
  * Specifies how a fingerprinter should handle directories that are found in a filecollection.
  */
 public enum DirectorySensitivity {
-    // Whatever the default behavior is for the given fingerprinter.  For some fingerprinters, the
-    // default behavior is to fingerprint directories, for others, they ignore directories by default.
+    /**
+     * Whatever the default behavior is for the given fingerprinter.  For some fingerprinters, the
+     * default behavior is to fingerprint directories, for others, they ignore directories by default.
+     */
     DEFAULT,
-    // Ignore empty directories
+    /**
+     * Ignore directories
+     */
     IGNORE_DIRECTORIES
 }
