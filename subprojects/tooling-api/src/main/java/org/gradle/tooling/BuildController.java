@@ -203,13 +203,13 @@ public interface BuildController {
     <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions);
 
     /**
-     * Returns {@code true} when {@link #run(Collection)} may run its actions in parallel. Returns {@code false} when the actions
-     * will never run in parallel either because the target Gradle version does not support parallel execution or because some build
-     * configuration disables the parallel execution.
+     * Returns {@code true} when actions run using {@link #run(Collection)} and that query project models of the given type will run in parallel.
+     * Returns {@code false} when the models will not be queried in parallel, for example because the target Gradle version does not support parallel execution,
+     * or because some build configuration disables the parallel execution, or because the queries are unsafe to perform in parallel.
      *
-     * @return {@code true} when actions may run in parallel.
+     * @return {@code true} when project models may be queried in parallel.
      * @since 6.8
      */
     @Incubating
-    boolean isActionsMayRunInParallel();
+    boolean getCanQueryProjectModelInParallel(Class<?> modelType);
 }

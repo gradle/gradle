@@ -27,6 +27,7 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
@@ -123,7 +124,10 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
             if (action == null || actionFailure != null) {
                 return;
             }
-            DefaultBuildController internalBuildController = new DefaultBuildController(gradle, gradle.getServices().get(BuildCancellationToken.class), gradle.getServices().get(BuildOperationExecutor.class));
+            DefaultBuildController internalBuildController = new DefaultBuildController(gradle,
+                gradle.getServices().get(BuildCancellationToken.class),
+                gradle.getServices().get(BuildOperationExecutor.class),
+                gradle.getServices().get(ProjectLeaseRegistry.class));
             try {
                 Object result;
                 if (action instanceof InternalBuildActionVersion2<?>) {
