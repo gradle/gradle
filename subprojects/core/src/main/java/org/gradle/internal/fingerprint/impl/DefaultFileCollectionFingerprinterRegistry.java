@@ -21,22 +21,22 @@ import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FingerprinterSpec;
+import org.gradle.internal.fingerprint.FileNormalizationSpec;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static org.gradle.internal.fingerprint.impl.DefaultFingerprinterSpec.from;
+import static org.gradle.internal.fingerprint.impl.DefaultFileNormalizationSpec.from;
 
 public class DefaultFileCollectionFingerprinterRegistry implements FileCollectionFingerprinterRegistry {
-    private final Map<FingerprinterSpec, FileCollectionFingerprinter> fingerprinters;
+    private final Map<FileNormalizationSpec, FileCollectionFingerprinter> fingerprinters;
 
     public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> fingerprinters) {
         this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> from(input.getRegisteredType(), input.getDirectorySensitivity())));
     }
 
     @Override
-    public FileCollectionFingerprinter getFingerprinter(FingerprinterSpec spec) {
+    public FileCollectionFingerprinter getFingerprinter(FileNormalizationSpec spec) {
         FileCollectionFingerprinter fingerprinter = fingerprinters.get(spec);
         if (fingerprinter == null) {
             throw new IllegalStateException(String.format("No fingerprinter registered with type '%s' and directory sensitivity '%s'", spec.getNormalizer().getName(), spec.getDirectorySensitivity().name()));

@@ -19,15 +19,15 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitiveNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.FingerprinterSpec;
+import org.gradle.internal.fingerprint.FileNormalizationSpec;
 
 import java.util.Objects;
 
-public class DefaultFingerprinterSpec implements FingerprinterSpec {
+public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
     private final Class<? extends FileNormalizer> normalizer;
     private final DirectorySensitivity directorySensitivity;
 
-    private DefaultFingerprinterSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
+    private DefaultFileNormalizationSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
         this.normalizer = normalizer;
         this.directorySensitivity = directorySensitivity;
     }
@@ -42,11 +42,11 @@ public class DefaultFingerprinterSpec implements FingerprinterSpec {
         return directorySensitivity;
     }
 
-    public static FingerprinterSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
+    public static FileNormalizationSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity) {
         if (DirectorySensitiveNormalizer.class.isAssignableFrom(normalizer)) {
-            return new DefaultFingerprinterSpec(normalizer, directorySensitivity);
+            return new DefaultFileNormalizationSpec(normalizer, directorySensitivity);
         } else {
-            return new DefaultFingerprinterSpec(normalizer, DirectorySensitivity.DEFAULT);
+            return new DefaultFileNormalizationSpec(normalizer, DirectorySensitivity.DEFAULT);
         }
     }
 
@@ -58,7 +58,7 @@ public class DefaultFingerprinterSpec implements FingerprinterSpec {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultFingerprinterSpec that = (DefaultFingerprinterSpec) o;
+        DefaultFileNormalizationSpec that = (DefaultFileNormalizationSpec) o;
         return normalizer.equals(that.normalizer) &&
             directorySensitivity == that.directorySensitivity;
     }
