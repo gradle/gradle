@@ -18,18 +18,15 @@ package org.gradle.internal.composite;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.SettingsLoader;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -40,14 +37,13 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
 
     private final SettingsLoader delegate;
     private final BuildStateRegistry buildRegistry;
-    private final PublicBuildPath publicBuildPath;
-    private final Instantiator instantiator;
 
-    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+    private final BuildIncluder buildIncluder;
+
+    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
         this.delegate = delegate;
         this.buildRegistry = buildRegistry;
-        this.publicBuildPath = publicBuildPath;
-        this.instantiator = instantiator;
+        this.buildIncluder = buildIncluder;
     }
 
     @Override
@@ -61,7 +57,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
             RootBuildState rootBuild = buildRegistry.getRootBuild();
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 if (!includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
-                    IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
+                    IncludedBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec, gradle);
                     assertNameDoesNotClashWithRootSubproject(rootBuild, includedBuild);
                     children.add(includedBuild.getModel());
                 } else {
@@ -82,23 +78,5 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         if (rootBuild.getLoadedSettings().findProject(":" + includedBuild.getName()) != null) {
             throw new GradleException("Included build in " + includedBuild.getBuildRootDir() + " has name '" + includedBuild.getName() + "' which is the same as a project of the main build.");
         }
-    }
-
-    private IncludedBuildState addIncludedBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
-        gradle.getOwner().assertCanAdd(includedBuildSpec);
-
-        DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
-        includedBuildSpec.configurer.execute(configurable);
-
-        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
-            gradle.getStartParameter(),
-            configurable.getName(),
-            includedBuildSpec.rootDir,
-            PluginRequests.EMPTY,
-            configurable.getDependencySubstitutionAction(),
-            publicBuildPath
-        );
-
-        return buildRegistry.addIncludedBuild(buildDefinition);
     }
 }

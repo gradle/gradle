@@ -18,38 +18,34 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
 import org.gradle.internal.composite.CommandLineIncludedBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
-import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final SettingsProcessor settingsProcessor;
     private final BuildStateRegistry buildRegistry;
     private final ProjectStateRegistry projectRegistry;
-    private final PublicBuildPath publicBuildPath;
-    private final Instantiator instantiator;
     private final BuildLayoutFactory buildLayoutFactory;
     private final GradlePropertiesController gradlePropertiesController;
+    private final BuildIncluder buildIncluder;
 
     public DefaultSettingsLoaderFactory(
         SettingsProcessor settingsProcessor,
         BuildStateRegistry buildRegistry,
         ProjectStateRegistry projectRegistry,
-        PublicBuildPath publicBuildPath,
-        Instantiator instantiator,
         BuildLayoutFactory buildLayoutFactory,
-        GradlePropertiesController gradlePropertiesController
+        GradlePropertiesController gradlePropertiesController,
+        BuildIncluder buildIncluder
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
-        this.publicBuildPath = publicBuildPath;
-        this.instantiator = instantiator;
         this.buildLayoutFactory = buildLayoutFactory;
         this.gradlePropertiesController = gradlePropertiesController;
+        this.buildIncluder = buildIncluder;
     }
 
     @Override
@@ -60,9 +56,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                     defaultSettingsLoader()
                 ),
                 buildRegistry,
-                publicBuildPath,
-                instantiator
-            ),
+                buildIncluder),
             buildRegistry);
     }
 
@@ -71,9 +65,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         return new ChildBuildRegisteringSettingsLoader(
             defaultSettingsLoader(),
             buildRegistry,
-            publicBuildPath,
-            instantiator
-        );
+            buildIncluder);
     }
 
     private SettingsLoader defaultSettingsLoader() {
