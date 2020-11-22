@@ -21,7 +21,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 
-import static org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy.FINGERPRINT_DIRECTORIES;
+import static org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy.DEFAULT;
 import static org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy.IGNORE_DIRECTORIES;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
@@ -31,7 +31,7 @@ public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionF
     }
 
     private static NameOnlyFingerprintingStrategy fingerPrintingStrategyFor(DirectorySensitivity directorySensitivity) {
-        return directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? IGNORE_DIRECTORIES : FINGERPRINT_DIRECTORIES;
+        return directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? IGNORE_DIRECTORIES : DEFAULT;
     }
 
     @Override

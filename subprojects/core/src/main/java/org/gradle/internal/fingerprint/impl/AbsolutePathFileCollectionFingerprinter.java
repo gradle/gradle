@@ -32,7 +32,7 @@ public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollect
     }
 
     static FingerprintingStrategy fingerprintingStrategyFor(DirectorySensitivity directorySensitivity) {
-        return directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? AbsolutePathFingerprintingStrategy.IGNORE_DIRECTORIES : AbsolutePathFingerprintingStrategy.FINGERPRINT_DIRECTORIES;
+        return directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? AbsolutePathFingerprintingStrategy.IGNORE_DIRECTORIES : AbsolutePathFingerprintingStrategy.DEFAULT;
     }
 
     @Override

@@ -93,7 +93,7 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     def "sensitivity NAME_ONLY"() {
-        def fingerprints = collectFingerprints(NameOnlyFingerprintingStrategy.FINGERPRINT_DIRECTORIES)
+        def fingerprints = collectFingerprints(NameOnlyFingerprintingStrategy.DEFAULT)
         expect:
         (allFilesToFingerprint - emptyDir - resources).each { file ->
             assert fingerprints[file] == file.name
@@ -118,7 +118,7 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     def "sensitivity ABSOLUTE"() {
-        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.FINGERPRINT_DIRECTORIES)
+        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.DEFAULT)
         expect:
         allFilesToFingerprint.each { file ->
             assert fingerprints[file] == file.absolutePath
