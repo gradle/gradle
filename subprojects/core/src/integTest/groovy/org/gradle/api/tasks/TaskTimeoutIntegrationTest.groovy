@@ -243,7 +243,9 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         fails "block"
 
         and:
-        outputContains("Requesting stop of task ':block' as it has exceeded its configured timeout of 500ms.")
+        with(result.groupedOutput.task(":block")) {
+            assertOutputContains("Requesting stop of task ':block' as it has exceeded its configured timeout of 500ms.")
+        }
 
         and:
         taskLogging(":block") == [
@@ -268,15 +270,20 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         fails "block"
 
         and:
-        def logging = taskLogging(":block")
+        def outputLines = result.groupedOutput.task(":block").output.readLines()
+        outputLines[0] == "Requesting stop of task ':block' as it has exceeded its configured timeout of 500ms."
+        outputLines[1] == "Timed out task ':block' has not yet stopped."
+        outputLines[outputLines.size() - 1] == "Timed out task ':block' has stopped."
 
+        and:
+        def logging = taskLogging(":block")
         logging[0] == "Requesting stop of task ':block' as it has exceeded its configured timeout of 500ms."
         logging[1] == "Timed out task ':block' has not yet stopped."
         logging[logging.size() - 1] == "Timed out task ':block' has stopped."
     }
 
     List<String> taskLogging(String taskPath) {
-        def taskExecutionOp = operations.only("Task :block")
+        def taskExecutionOp = operations.only("Task $taskPath")
         def logging = taskExecutionOp.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) }*.details
         def timeoutLogging = logging.findAll { it.category == DefaultTimeoutHandler.name }
         timeoutLogging.collect { it.message } as List<String>
