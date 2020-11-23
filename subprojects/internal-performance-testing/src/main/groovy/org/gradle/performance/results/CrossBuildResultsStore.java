@@ -21,13 +21,4 @@ public class CrossBuildResultsStore extends BaseCrossBuildResultsStore<CrossBuil
     public CrossBuildResultsStore() {
         super("cross_build_results");
     }
-
-    @Override
-    protected boolean ignore(CrossBuildPerformanceResults performanceResults) {
-        return performanceResults.getVcsCommits().get(0).equals("be4e537ebdaab43fd1dae5c4b1d52a56987f5be2")
-            || performanceResults.getVcsCommits().get(0).equals("508ccbeb7633413609bd3be205c40f30a8c5f2bb")
-            || performanceResults.getVcsCommits().get(0).equals("fdd431387993e1d7e4d6d3aec31a43ec4b533567")
-            || performanceResults.getTestId().contains("build receipt");
-    }
-
 }
