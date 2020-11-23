@@ -57,12 +57,10 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -241,10 +239,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
-            FileCollection previousFiles = context.getAfterPreviousExecutionState()
-                .map(afterPreviousExecutionState -> (FileCollection) new PreviousOutputFileCollection(task, afterPreviousExecutionState))
-                .orElseGet(fileCollectionFactory::empty);
+        public WorkOutput execute(File workspace, @Nullable InputChangesInternal inputChanges, @Nullable ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
+            FileCollection previousFiles = previousOutputs != null
+                ? new PreviousOutputFileCollection(task, previousOutputs)
+                : fileCollectionFactory.empty();
             TaskOutputsInternal outputs = task.getOutputs();
             outputs.setPreviousOutputFiles(previousFiles);
             try {
@@ -540,16 +538,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     private class PreviousOutputFileCollection extends LazilyInitializedFileCollection {
         private final TaskInternal task;
-        private final AfterPreviousExecutionState previousExecution;
+        private final ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs;
 
-        public PreviousOutputFileCollection(TaskInternal task, AfterPreviousExecutionState previousExecution) {
+        public PreviousOutputFileCollection(TaskInternal task, ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
             this.task = task;
-            this.previousExecution = previousExecution;
+            this.previousOutputs = previousOutputs;
         }
 
         @Override
         public FileCollectionInternal createDelegate() {
-            List<File> outputs = previousExecution.getOutputFilesProducedByWork().values().stream()
+            List<File> outputs = previousOutputs.values().stream()
                 .map(SnapshotUtil::index)
                 .map(Map::keySet)
                 .flatMap(Collection::stream)

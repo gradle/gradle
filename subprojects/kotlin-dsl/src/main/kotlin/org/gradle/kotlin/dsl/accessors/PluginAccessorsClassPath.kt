@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import com.google.common.collect.ImmutableSortedMap
 import kotlinx.metadata.Flag
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.flagsOf
@@ -27,7 +28,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.history.changes.InputChangesInternal
@@ -35,6 +35,7 @@ import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeader
@@ -125,20 +126,20 @@ class GeneratePluginAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkOutput {
+    override fun execute(workspace: File, inputChanges: InputChangesInternal?, previousOutputs: ImmutableSortedMap<String, FileSystemSnapshot>?): UnitOfWork.WorkOutput {
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
                 buildPluginAccessorsFor(
                     pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
-                    srcDir = getSourcesOutputDir(context.workspace),
-                    binDir = getClassesOutputDir(context.workspace)
+                    srcDir = getSourcesOutputDir(workspace),
+                    binDir = getClassesOutputDir(workspace)
                 )
             }
         }
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadRestoredOutput(context.workspace)
+            override fun getOutput() = loadRestoredOutput(workspace)
         }
     }
 

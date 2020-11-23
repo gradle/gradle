@@ -17,6 +17,7 @@
 package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
 import groovy.transform.Immutable
@@ -59,6 +60,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
@@ -803,7 +805,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                UnitOfWork.WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+                UnitOfWork.WorkOutput execute(File workspace, @Nullable InputChangesInternal inputChanges, @Nullable ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
                     def didWork = work.get()
                     executed = true
                     return new UnitOfWork.WorkOutput() {

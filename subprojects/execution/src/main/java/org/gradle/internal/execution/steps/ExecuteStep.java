@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.InputChangesContext;
@@ -23,13 +24,16 @@ import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Result.ExecutionResult;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 
 public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
 
@@ -61,9 +65,13 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
     @Nonnull
     private Result executeOperation(UnitOfWork work, C context) {
         try {
+            File workspace = context.getWorkspace();
+            ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = context.getAfterPreviousExecutionState()
+                .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+                .orElse(null);
             ExecutionResult executionResult = context.getInputChanges()
-                .map(inputChanges -> determineResult(work.execute(inputChanges, context), inputChanges.isIncremental()))
-                .orElseGet(() -> determineResult(work.execute(null, context), false));
+                .map(inputChanges -> determineResult(work.execute(workspace, inputChanges, outputFilesProducedByWork), inputChanges.isIncremental()))
+                .orElseGet(() -> determineResult(work.execute(workspace, null, outputFilesProducedByWork), false));
             return () -> Try.successful(executionResult);
         } catch (Throwable t) {
             return () -> Try.failure(t);

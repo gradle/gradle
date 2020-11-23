@@ -16,20 +16,33 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Unroll
 
 class ExecuteStepTest extends StepSpec<InputChangesContext> {
+    def workspace = Mock(File)
+    def previousOutputs = ImmutableSortedMap.of()
+    def afterPreviousExecutionState = Stub(AfterPreviousExecutionState) {
+        getOutputFilesProducedByWork() >> previousOutputs
+    }
+
     def step = new ExecuteStep<>(new TestBuildOperationExecutor())
     def inputChanges = Mock(InputChangesInternal)
 
     @Override
     protected InputChangesContext createContext() {
         Stub(InputChangesContext)
+    }
+
+    def setup() {
+        _ * context.getWorkspace() >> workspace
+        _ * context.getAfterPreviousExecutionState() >> Optional.of(afterPreviousExecutionState)
     }
 
     @Unroll
@@ -41,7 +54,7 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         result.executionResult.get().outcome == expectedOutcome
 
         _ * context.inputChanges >> Optional.empty()
-        _ * work.execute(null, context) >> Stub(UnitOfWork.WorkOutput) {
+        _ * work.execute(workspace, null, previousOutputs) >> Stub(UnitOfWork.WorkOutput) {
             getDidWork() >> workResult
         }
         0 * _
@@ -62,7 +75,7 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         result.executionResult.failure.get() == failure
 
         _ * context.inputChanges >> Optional.empty()
-        _ * work.execute(null, context) >> { throw failure }
+        _ * work.execute(workspace, null, previousOutputs) >> { throw failure }
         0 * _
 
         where:
@@ -79,7 +92,7 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
 
         _ * context.inputChanges >> Optional.of(inputChanges)
         1 * inputChanges.incremental >> incrementalExecution
-        _ * work.execute(inputChanges, context) >> Stub(UnitOfWork.WorkOutput) {
+        _ * work.execute(workspace, inputChanges, previousOutputs) >> Stub(UnitOfWork.WorkOutput) {
             getDidWork() >> workResult
         }
         0 * _
