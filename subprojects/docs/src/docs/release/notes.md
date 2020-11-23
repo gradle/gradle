@@ -103,7 +103,7 @@ For inputs annotated in this way, only changes to files (including the file path
 class MyTask extends DefaultTask {
     @InputFiles
     @PathSensitive(@PathSensitivity.RELATIVE)
-    @IgnoreDirectories
+    @IgnoreEmptyDirectories
     FileCollection inputFiles;
 }
 ```
@@ -116,9 +116,11 @@ tasks.register("myTask") {
     inputs.files(inputFiles)
           .withPropertyName('inputFiles')
           .withPathSensitivity(PathSensitivity.RELATIVE)
-          .ignoreDirectories()
+          .ignoreEmptyDirectories()
 }
 ```
+
+[SourceTask](javadoc/org/gradle/api/tasks/SourceTask.html), [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html), [GroovyCompile](javadoc/org/gradle/api/tasks/compile/GroovyCompile.html), and [AntlrTask](javadoc/org/gradle/api/plugins/antlr/AntlrTask.html) have all been updated to now ignore empty directories when doing up-to-date checks and build cache key calculations.
 
 See the [userguide](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
 

@@ -429,7 +429,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         def stableInputsFingerprintLog = result.getOutputLineThatContains(sourcesDebugLogging)
         stableInputsFingerprintLog.contains("RELATIVE_PATH{${testDirectory.absolutePath}")
-        stableInputsFingerprintLog.contains("java=IGNORED / DIR")
         stableInputsFingerprintLog.contains("Hello.java='Hello.java' / ")
     }
 
