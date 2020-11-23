@@ -24,7 +24,7 @@ import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
