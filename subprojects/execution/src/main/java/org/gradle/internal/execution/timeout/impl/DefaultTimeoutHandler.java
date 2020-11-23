@@ -37,25 +37,15 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTimeoutHandler.class);
 
     // Only intended to be used for integration testing
-    public static final String SLOW_STOP_CHECK_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".slowStopCheckFrequency";
+    public static final String WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".warnIfNotStoppedFrequency";
 
     private final ManagedScheduledExecutor executor;
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final Duration slowStopCheckFrequency;
 
     public DefaultTimeoutHandler(ManagedScheduledExecutor executor, CurrentBuildOperationRef currentBuildOperationRef) {
-        this(executor, currentBuildOperationRef, determineSlowStopCheckFrequency());
-    }
-
-    DefaultTimeoutHandler(ManagedScheduledExecutor executor, CurrentBuildOperationRef currentBuildOperationRef, Duration slowStopCheckFrequency) {
         this.executor = executor;
         this.currentBuildOperationRef = currentBuildOperationRef;
-        this.slowStopCheckFrequency = slowStopCheckFrequency;
-    }
-
-    private static Duration determineSlowStopCheckFrequency() {
-        return Duration.ofMillis(Integer.parseInt(System.getProperty(SLOW_STOP_CHECK_FREQUENCY_PROPERTY, "3000")));
     }
 
     @Override
@@ -66,6 +56,11 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     @Override
     public void stop() {
         executor.stop();
+    }
+
+    // Value is queried “dynamically” to support testing
+    private static long warnIfNotStoppedFrequency() {
+        return Integer.parseInt(System.getProperty(WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY, "3000"));
     }
 
     private final class DefaultTimeout implements Timeout {
@@ -99,7 +94,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
                     interrupted = true;
                     doAsPartOfBuildOperation(() -> LOGGER.warn("Requesting stop of " + workUnitDescription.getDisplayName() + " as it has exceeded its configured timeout of " + TimeFormatting.formatDurationTerse(timeout.toMillis()) + "."));
                     thread.interrupt();
-                    scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
+                    scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
         }
@@ -109,7 +104,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
                 if (!stopped) {
                     slowStop = true;
                     doAsPartOfBuildOperation(() -> LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has not yet stopped."));
-                    scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
+                    scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
         }

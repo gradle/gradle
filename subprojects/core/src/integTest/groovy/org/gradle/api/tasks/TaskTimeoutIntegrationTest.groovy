@@ -32,13 +32,13 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     private static final TIMEOUT = 500
 
-    long checkSlowStopEveryMs
+    long warnIfNotStoppedFrequencyMs
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         executer.beforeExecute {
-            def checkTime = checkSlowStopEveryMs ?: Duration.ofMinutes(3).toMillis() // use long timeout to avoid test flakiness
-            executer.withArgument("-D${DefaultTimeoutHandler.SLOW_STOP_CHECK_FREQUENCY_PROPERTY}=$checkTime")
+            def checkTime = warnIfNotStoppedFrequencyMs ?: Duration.ofMinutes(3).toMillis() // use long timeout to avoid test flakiness
+            executer.withArgument("-D${DefaultTimeoutHandler.WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY}=$checkTime")
         }
     }
 
@@ -253,7 +253,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     def "additional logging is emitted when task is slow to stop"() {
         given:
-        checkSlowStopEveryMs = 100
+        warnIfNotStoppedFrequencyMs = 100
         buildFile << """
             task block() {
                 doLast {
