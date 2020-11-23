@@ -48,14 +48,17 @@ import static org.gradle.internal.snapshot.SnapshotUtil.index;
 public class OutputSnapshotUtil {
 
     /**
-     * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
-     * <ul>
-     * <li>an entry that did not exist before the execution, but exists after the execution</li>
-     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
-     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
-     * </ul>
+     * Finds outputs that are still present since the last execution when overlapping outputs are present.
+     *
+     * Note: when there are no overlapping outputs, all outputs currently existing in the output locations
+     * are considered outputs of the work.
+     *
+     * If a property did not exist after the previous execution then all the outputs for it will be ignored.
+     *
+     * @param previousSnapshots snapshots of the outputs produced by the work after the previous execution, indexed by property name.
+     * @param unfilteredBeforeExecutionSnapshots snapshots of the outputs currently present in the work's output locations, indexed by property name.
      */
-    public static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputsWithOverlapBeforeExecution(
+    public static ImmutableSortedMap<String, FileSystemSnapshot> findOutputsStillPresentSincePreviousExecution(
         ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots
     ) {
@@ -67,14 +70,14 @@ public class OutputSnapshotUtil {
                         return FileSystemSnapshot.EMPTY;
                     }
                     //noinspection ConstantConditions
-                    return filterOutputWithOverlapBeforeExecution(previous, unfilteredBeforeExecution);
+                    return findOutputPropertyStillPresentSincePreviousExecution(previous, unfilteredBeforeExecution);
                 }
             )
         );
     }
 
     @VisibleForTesting
-    static FileSystemSnapshot filterOutputWithOverlapBeforeExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
+    static FileSystemSnapshot findOutputPropertyStillPresentSincePreviousExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
         Map<String, FileSystemLocationSnapshot> previousIndex = index(previous);
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((currentSnapshot, isRoot) ->
             // Include only outputs that we already considered outputs after the previous execution
@@ -85,14 +88,20 @@ public class OutputSnapshotUtil {
     }
 
     /**
-     * Filters out snapshots that are not considered outputs. Entries that are considered outputs are:
+     * Filters out snapshots that are not considered outputs when overlapping outputs are present.
+     *
+     * Note: when there are no overlapping outputs, all outputs currently existing in the output locations
+     * are considered outputs of the work.
+     *
+     * Entries that are considered outputs are:
+     *
      * <ul>
-     * <li>an entry that did not exist before the execution, but exists after the execution</li>
-     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
-     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * <li>an entry that did not exist before the execution, but exists after the execution,</li>
+     * <li>an entry that did exist before the execution, and has been changed during the execution,</li>
+     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution.</li>
      * </ul>
      */
-    public static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputsWithOverlapAfterExecution(
+    public static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputsAfterExecution(
         ImmutableSortedMap<String, FileSystemSnapshot> previousSnapshots,
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredBeforeExecutionSnapshots,
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredAfterExecutionSnapshots
@@ -105,13 +114,13 @@ public class OutputSnapshotUtil {
 
                 FileSystemSnapshot previous = previousSnapshots.get(propertyName);
                 FileSystemSnapshot unfilteredBeforeExecution = unfilteredBeforeExecutionSnapshots.get(propertyName);
-                return filterOutputWithOverlapAfterExecution(previous, unfilteredBeforeExecution, unfilteredAfterExecution);
+                return filterOutputAfterExecution(previous, unfilteredBeforeExecution, unfilteredAfterExecution);
             }
         ));
     }
 
     @VisibleForTesting
-    static FileSystemSnapshot filterOutputWithOverlapAfterExecution(@Nullable FileSystemSnapshot previous, FileSystemSnapshot unfilteredBeforeExecution, FileSystemSnapshot unfilteredAfterExecution) {
+    static FileSystemSnapshot filterOutputAfterExecution(@Nullable FileSystemSnapshot previous, FileSystemSnapshot unfilteredBeforeExecution, FileSystemSnapshot unfilteredAfterExecution) {
         Map<String, FileSystemLocationSnapshot> beforeExecutionIndex = index(unfilteredBeforeExecution);
         if (beforeExecutionIndex.isEmpty()) {
             return unfilteredAfterExecution;
