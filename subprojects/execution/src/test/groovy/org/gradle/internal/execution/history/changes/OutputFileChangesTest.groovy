@@ -27,6 +27,38 @@ import static org.gradle.internal.hash.HashCode.fromInt
 
 class OutputFileChangesTest extends Specification {
 
+    def "empties"() {
+        expect:
+        changes(
+            FileSystemSnapshot.EMPTY,
+            FileSystemSnapshot.EMPTY
+        ) == []
+    }
+
+    def "trivial equality"() {
+        expect:
+        changes(
+            fileSnapshot("one"),
+            fileSnapshot("one")
+        ) == []
+    }
+
+    def "trivial addition"() {
+        expect:
+        changes(
+            FileSystemSnapshot.EMPTY,
+            fileSnapshot("two")
+        ) == [added("two")]
+    }
+
+    def "trivial removal"() {
+        expect:
+        changes(
+            fileSnapshot("one"),
+            FileSystemSnapshot.EMPTY
+        ) == [removed("one")]
+    }
+
     def "trivial absolute path change"() {
         expect:
         changes(
