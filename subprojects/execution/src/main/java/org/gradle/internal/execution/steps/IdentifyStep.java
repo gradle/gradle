@@ -26,7 +26,6 @@ import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.execution.impl.InputUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -35,7 +34,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
-import static org.gradle.internal.execution.impl.InputUtil.fingerprintInputProperties;
+import static org.gradle.internal.execution.steps.InputUtil.fingerprintInputProperties;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;

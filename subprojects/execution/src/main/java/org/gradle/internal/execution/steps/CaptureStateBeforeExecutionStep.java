@@ -31,7 +31,6 @@ import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
-import org.gradle.internal.execution.impl.InputUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -48,8 +47,8 @@ import java.io.File;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
-import static org.gradle.internal.execution.impl.InputUtil.fingerprintInputProperties;
-import static org.gradle.internal.execution.impl.InputUtil.union;
+import static org.gradle.internal.execution.steps.InputUtil.fingerprintInputProperties;
+import static org.gradle.internal.execution.steps.InputUtil.union;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
