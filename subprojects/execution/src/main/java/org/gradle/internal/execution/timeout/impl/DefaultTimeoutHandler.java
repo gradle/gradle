@@ -102,7 +102,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
             synchronized (lock) {
                 if (!stopped) {
                     slowStop = true;
-                    doAsPartOfBuildOperation(() -> LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has not yet stopped."));
+                    doAsPartOfBuildOperation(() -> LOGGER.warn("Timed out {} has not yet stopped.", workUnitDescription.getDisplayName()));
                     scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
