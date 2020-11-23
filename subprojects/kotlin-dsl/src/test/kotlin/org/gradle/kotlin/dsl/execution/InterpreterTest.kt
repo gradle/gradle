@@ -112,6 +112,7 @@ class InterpreterTest : TestWithTempFiles() {
 
             on {
                 cachedDirFor(
+                    any(),
                     eq(stage1TemplateId),
                     eq(sourceHash),
                     same(testRuntimeClassPath),
@@ -119,12 +120,13 @@ class InterpreterTest : TestWithTempFiles() {
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(4).invoke(stage1CacheDir)
+                it.getArgument<(File) -> Unit>(5).invoke(stage1CacheDir)
                 stage1CacheDir
             }
 
             on {
                 cachedDirFor(
+                    any(),
                     eq(stage2TemplateId),
                     eq(sourceHash),
                     same(testRuntimeClassPath),
@@ -132,7 +134,7 @@ class InterpreterTest : TestWithTempFiles() {
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(4).invoke(stage2CacheDir)
+                it.getArgument<(File) -> Unit>(5).invoke(stage2CacheDir)
                 stage2CacheDir
             }
 
