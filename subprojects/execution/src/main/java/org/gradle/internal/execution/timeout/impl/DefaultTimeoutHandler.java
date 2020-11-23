@@ -16,27 +16,51 @@
 
 package org.gradle.internal.execution.timeout.impl;
 
+import org.gradle.api.Describable;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.execution.timeout.Timeout;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.time.TimeFormatting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTimeoutHandler.class);
+
+    // Only intended to be used for integration testing
+    public static final String SLOW_STOP_CHECK_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".slowStopCheckFrequency";
+
     private final ManagedScheduledExecutor executor;
 
-    public DefaultTimeoutHandler(ManagedScheduledExecutor executor) {
+    private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final Duration slowStopCheckFrequency;
+
+    public DefaultTimeoutHandler(ManagedScheduledExecutor executor, CurrentBuildOperationRef currentBuildOperationRef) {
+        this(executor, currentBuildOperationRef, determineSlowStopCheckFrequency());
+    }
+
+    DefaultTimeoutHandler(ManagedScheduledExecutor executor, CurrentBuildOperationRef currentBuildOperationRef, Duration slowStopCheckFrequency) {
         this.executor = executor;
+        this.currentBuildOperationRef = currentBuildOperationRef;
+        this.slowStopCheckFrequency = slowStopCheckFrequency;
+    }
+
+    private static Duration determineSlowStopCheckFrequency() {
+        return Duration.ofMillis(Integer.parseInt(System.getProperty(SLOW_STOP_CHECK_FREQUENCY_PROPERTY, "3000")));
     }
 
     @Override
-    public Timeout start(Thread taskExecutionThread, Duration timeout) {
-        InterruptOnTimeout interrupter = new InterruptOnTimeout(taskExecutionThread);
-        ScheduledFuture<?> timeoutTask = executor.schedule(interrupter, timeout.toMillis(), TimeUnit.MILLISECONDS);
-        return new DefaultTimeout(timeoutTask, interrupter);
+    public Timeout start(Thread taskExecutionThread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
+        return new DefaultTimeout(taskExecutionThread, timeout, workUnitDescription, buildOperationRef);
     }
 
     @Override
@@ -44,34 +68,65 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         executor.stop();
     }
 
-    private static final class DefaultTimeout implements Timeout {
-        private final ScheduledFuture<?> timeoutTask;
-        private final InterruptOnTimeout interrupter;
+    private final class DefaultTimeout implements Timeout {
 
-        private DefaultTimeout(ScheduledFuture<?> timeoutTask, InterruptOnTimeout interrupter) {
-            this.timeoutTask = timeoutTask;
-            this.interrupter = interrupter;
+        private final Thread thread;
+        private final Duration timeout;
+        private final Describable workUnitDescription;
+
+        @Nullable
+        private final BuildOperationRef buildOperationRef;
+
+        private volatile boolean slowStop;
+        private volatile boolean stopped;
+        private volatile boolean interrupted;
+
+        private volatile ScheduledFuture<?> scheduledFuture;
+
+        private DefaultTimeout(Thread thread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
+            this.thread = thread;
+            this.timeout = timeout;
+            this.workUnitDescription = workUnitDescription;
+            this.buildOperationRef = buildOperationRef;
+
+            scheduledFuture = executor.schedule(this::interrupt, timeout.toMillis(), TimeUnit.MILLISECONDS);
+        }
+
+        private void interrupt() {
+            if (!stopped) {
+                interrupted = true;
+                withSetCurrentBuildOperationRef(() -> LOGGER.warn("Requesting stop of " + workUnitDescription.getDisplayName() + " as it has exceeded its configured timeout of " + TimeFormatting.formatDurationTerse(timeout.toMillis()) + "."));
+                thread.interrupt();
+                scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
+            }
+        }
+
+        private void withSetCurrentBuildOperationRef(Runnable runnable) {
+            BuildOperationRef previousBuildOperationRef = currentBuildOperationRef.get();
+            try {
+                currentBuildOperationRef.set(this.buildOperationRef);
+                runnable.run();
+            } finally {
+                currentBuildOperationRef.set(previousBuildOperationRef);
+            }
+        }
+
+        private void warnIfNotStopped() {
+            if (!stopped) {
+                slowStop = true;
+                withSetCurrentBuildOperationRef(() -> LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has not yet stopped."));
+                scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
+            }
         }
 
         @Override
         public boolean stop() {
-            timeoutTask.cancel(true);
-            return interrupter.interrupted;
-        }
-    }
-
-    private static class InterruptOnTimeout implements Runnable {
-        private final Thread thread;
-        private volatile boolean interrupted;
-
-        private InterruptOnTimeout(Thread thread) {
-            this.thread = thread;
-        }
-
-        @Override
-        public void run() {
-            interrupted = true;
-            thread.interrupt();
+            stopped = true;
+            scheduledFuture.cancel(true);
+            if (slowStop) {
+                LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has stopped.");
+            }
+            return interrupted;
         }
     }
 }

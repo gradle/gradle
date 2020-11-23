@@ -17,16 +17,31 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
+import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.workers.IsolationMode
 import spock.lang.Unroll
 
+import java.time.Duration
+
+@IntegrationTestTimeout(60)
 class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     private static final TIMEOUT = 500
 
-    @IntegrationTestTimeout(60)
+    long checkSlowStopEveryMs
+    def operations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def setup() {
+        executer.beforeExecute {
+            def checkTime = checkSlowStopEveryMs ?: Duration.ofMinutes(3).toMillis() // use long timeout to avoid test flakiness
+            executer.withArgument("-D${DefaultTimeoutHandler.SLOW_STOP_CHECK_FREQUENCY_PROPERTY}=$checkTime")
+        }
+    }
+
     def "fails when negative timeout is specified"() {
         given:
         buildFile << """
@@ -47,7 +62,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @IntegrationTestTimeout(60)
     def "timeout stops long running method call"() {
         given:
         buildFile << """
@@ -67,7 +81,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @IntegrationTestTimeout(60)
     def "other tasks still run after a timeout if --continue is used"() {
         given:
         buildFile << """
@@ -91,7 +104,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @IntegrationTestTimeout(60)
     def "timeout stops long running exec()"() {
         given:
         file('src/main/java/Block.java') << """
@@ -121,7 +133,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @IntegrationTestTimeout(60)
     def "timeout stops long running tests"() {
         given:
         (1..100).each { i ->
@@ -157,8 +168,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @LeaksFileHandles // TODO https://github.com/gradle/gradle-private/issues/1532
-    @IntegrationTestTimeout(60)
+    @LeaksFileHandles
+    // TODO https://github.com/gradle/gradle-private/issues/1532
     @Unroll
     def "timeout stops long running work items with #isolationMode isolation"() {
         given:
@@ -215,5 +226,59 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         isolationMode << IsolationMode.values()
+    }
+
+    def "message is logged when stop is requested"() {
+        given:
+        buildFile << """
+            task block() {
+                doLast {
+                    Thread.sleep(60000)
+                }
+                timeout = Duration.ofMillis($TIMEOUT)
+            }
+            """
+
+        expect:
+        fails "block"
+
+        and:
+        outputContains("Requesting stop of task ':block' as it has exceeded its configured timeout of 500ms.")
+
+        and:
+        taskLogging(":block") == [
+            "Requesting stop of task ':block' as it has exceeded its configured timeout of 500ms."
+        ]
+    }
+
+    def "additional logging is emitted when task is slow to stop"() {
+        given:
+        checkSlowStopEveryMs = 100
+        buildFile << """
+            task block() {
+                doLast {
+                    def startAt = System.nanoTime()
+                    while (System.nanoTime() - startAt < 3_000_000_000) {}
+                }
+                timeout = Duration.ofMillis($TIMEOUT)
+            }
+            """
+
+        expect:
+        fails "block"
+
+        and:
+        def logging = taskLogging(":block")
+
+        logging[0] == "Requesting stop of task ':block' as it has exceeded its configured timeout of 500ms."
+        logging[1] == "Timed out task ':block' has not yet stopped."
+        logging[logging.size() - 1] == "Timed out task ':block' has stopped."
+    }
+
+    List<String> taskLogging(String taskPath) {
+        def taskExecutionOp = operations.only("Task :block")
+        def logging = taskExecutionOp.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) }*.details
+        def timeoutLogging = logging.findAll { it.category == DefaultTimeoutHandler.name }
+        timeoutLogging.collect { it.message } as List<String>
     }
 }
