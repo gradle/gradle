@@ -84,7 +84,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
             this.workUnitDescription = workUnitDescription;
             this.buildOperationRef = buildOperationRef;
 
-            scheduledFuture = executor.schedule(this::interrupt, timeout.toMillis(), TimeUnit.MILLISECONDS);
+            this.scheduledFuture = executor.schedule(this::interrupt, timeout.toMillis(), TimeUnit.MILLISECONDS);
         }
 
         private void interrupt() {
