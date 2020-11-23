@@ -37,29 +37,29 @@ public class AbsolutePathChangeDetector<S> implements ChangeDetector<S> {
 
     @Override
     public boolean visitChangesSince(Map<String, S> previous, Map<String, S> current, String propertyTitle, ChangeVisitor visitor) {
-        Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<>(previous.keySet());
+        Set<String> unaccountedForPreviousItems = new LinkedHashSet<>(previous.keySet());
 
         for (Map.Entry<String, S> currentEntry : current.entrySet()) {
             String currentAbsolutePath = currentEntry.getKey();
-            S currentFingerprint = currentEntry.getValue();
-            if (unaccountedForPreviousFingerprints.remove(currentAbsolutePath)) {
-                S previousFingerprint = previous.get(currentAbsolutePath);
-                if (!itemComparator.hasSameContent(previousFingerprint, currentFingerprint)) {
-                    Change modified = changeFactory.modified(currentAbsolutePath, propertyTitle, previousFingerprint, currentFingerprint);
+            S currentItem = currentEntry.getValue();
+            if (unaccountedForPreviousItems.remove(currentAbsolutePath)) {
+                S previousItem = previous.get(currentAbsolutePath);
+                if (!itemComparator.hasSameContent(previousItem, currentItem)) {
+                    Change modified = changeFactory.modified(currentAbsolutePath, propertyTitle, previousItem, currentItem);
                     if (!visitor.visitChange(modified)) {
                         return false;
                     }
                 }
                 // else, unchanged; check next file
             } else {
-                Change added = changeFactory.added(currentAbsolutePath, propertyTitle, currentFingerprint);
+                Change added = changeFactory.added(currentAbsolutePath, propertyTitle, currentItem);
                 if (!visitor.visitChange(added)) {
                     return false;
                 }
             }
         }
 
-        for (String previousAbsolutePath : unaccountedForPreviousFingerprints) {
+        for (String previousAbsolutePath : unaccountedForPreviousItems) {
             Change removed = changeFactory.removed(previousAbsolutePath, propertyTitle, previous.get(previousAbsolutePath));
             if (!visitor.visitChange(removed)) {
                 return false;
