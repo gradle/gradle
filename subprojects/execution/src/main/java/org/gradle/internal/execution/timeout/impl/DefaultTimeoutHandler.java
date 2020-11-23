@@ -91,7 +91,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
             synchronized (lock) {
                 if (!stopped) {
                     interrupted = true;
-                    doAsPartOfBuildOperation(() -> LOGGER.warn("Requesting stop of " + workUnitDescription.getDisplayName() + " as it has exceeded its configured timeout of " + TimeFormatting.formatDurationTerse(timeout.toMillis()) + "."));
+                    doAsPartOfBuildOperation(() -> LOGGER.warn("Requesting stop of {} as it has exceeded its configured timeout of {}.", workUnitDescription.getDisplayName(), TimeFormatting.formatDurationTerse(timeout.toMillis())));
                     thread.interrupt();
                     scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
                 }
