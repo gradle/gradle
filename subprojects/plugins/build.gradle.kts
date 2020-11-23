@@ -41,6 +41,9 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":snapshots"))
+    implementation(project(":execution")) {
+        because("We need it for BuildOutputCleanupRegistry")
+    }
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)

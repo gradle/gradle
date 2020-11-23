@@ -21,7 +21,7 @@ import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.snapshot.FileSystemSnapshot

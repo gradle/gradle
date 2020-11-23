@@ -22,7 +22,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.language.base.internal.plugins.CleanRule;
 
 /**
