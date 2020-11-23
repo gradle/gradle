@@ -77,11 +77,12 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         @Nullable
         private final BuildOperationRef buildOperationRef;
 
-        private volatile boolean slowStop;
-        private volatile boolean stopped;
-        private volatile boolean interrupted;
+        private final Object lock = new Object();
 
-        private volatile ScheduledFuture<?> scheduledFuture;
+        private boolean slowStop;
+        private boolean stopped;
+        private boolean interrupted;
+        private ScheduledFuture<?> scheduledFuture;
 
         private DefaultTimeout(Thread thread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
             this.thread = thread;
@@ -93,15 +94,27 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         }
 
         private void interrupt() {
-            if (!stopped) {
-                interrupted = true;
-                withSetCurrentBuildOperationRef(() -> LOGGER.warn("Requesting stop of " + workUnitDescription.getDisplayName() + " as it has exceeded its configured timeout of " + TimeFormatting.formatDurationTerse(timeout.toMillis()) + "."));
-                thread.interrupt();
-                scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
+            synchronized (lock) {
+                if (!stopped) {
+                    interrupted = true;
+                    doAsPartOfBuildOperation(() -> LOGGER.warn("Requesting stop of " + workUnitDescription.getDisplayName() + " as it has exceeded its configured timeout of " + TimeFormatting.formatDurationTerse(timeout.toMillis()) + "."));
+                    thread.interrupt();
+                    scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
+                }
             }
         }
 
-        private void withSetCurrentBuildOperationRef(Runnable runnable) {
+        private void warnIfNotStopped() {
+            synchronized (lock) {
+                if (!stopped) {
+                    slowStop = true;
+                    doAsPartOfBuildOperation(() -> LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has not yet stopped."));
+                    scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
+                }
+            }
+        }
+
+        private void doAsPartOfBuildOperation(Runnable runnable) {
             BuildOperationRef previousBuildOperationRef = currentBuildOperationRef.get();
             try {
                 currentBuildOperationRef.set(this.buildOperationRef);
@@ -111,22 +124,16 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
             }
         }
 
-        private void warnIfNotStopped() {
-            if (!stopped) {
-                slowStop = true;
-                withSetCurrentBuildOperationRef(() -> LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has not yet stopped."));
-                scheduledFuture = executor.schedule(this::warnIfNotStopped, slowStopCheckFrequency.toMillis(), TimeUnit.MILLISECONDS);
-            }
-        }
-
         @Override
         public boolean stop() {
-            stopped = true;
-            scheduledFuture.cancel(true);
-            if (slowStop) {
-                LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has stopped.");
+            synchronized (lock) {
+                scheduledFuture.cancel(true);
+                stopped = true;
+                if (slowStop) {
+                    LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has stopped.");
+                }
+                return interrupted;
             }
-            return interrupted;
         }
     }
 }
