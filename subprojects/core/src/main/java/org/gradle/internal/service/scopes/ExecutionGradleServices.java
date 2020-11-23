@@ -70,6 +70,7 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -149,7 +150,8 @@ public class ExecutionGradleServices {
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningReporter validationWarningReporter,
-        ValueSnapshotter valueSnapshotter
+        ValueSnapshotter valueSnapshotter,
+        CurrentBuildOperationRef currentBuildOperationRef
     ) {
         // @formatter:off
         return new DefaultExecutionEngine(
@@ -171,7 +173,7 @@ public class ExecutionGradleServices {
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(
-            new TimeoutStep<>(timeoutHandler,
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
