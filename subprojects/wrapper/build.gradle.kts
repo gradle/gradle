@@ -58,12 +58,12 @@ val executableJar by tasks.registering(Jar::class) {
     }.files)
 }
 
-tasks.jar.configure {
+tasks.jar {
     from(executableJar)
 }
 
 // === TODO remove and address the following when we have a good reason to change the wrapper jar
-executableJar.configure {
+executableJar {
     val cliClasspath = layout.buildDirectory.file("gradle-cli-classpath.properties") // This file was accidentally included into the gradle-wrapper.jar
     val cliParameterNames = layout.buildDirectory.file("gradle-cli-parameter-names.properties")  // This file was accidentally included into the gradle-wrapper.jar
     doFirst {

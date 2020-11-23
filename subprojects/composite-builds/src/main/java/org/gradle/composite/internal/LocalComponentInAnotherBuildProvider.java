@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
@@ -63,7 +63,7 @@ public class LocalComponentInAnotherBuildProvider implements LocalComponentProvi
     private LocalComponentMetadata getRegisteredProject(final ProjectComponentIdentifier projectId) {
         ProjectState projectState = projectRegistry.stateFor(projectId);
         // TODO - this should work for any build, rather than just an included build
-        BuildState buildState = projectState.getOwner();
+        CompositeBuildParticipantBuildState buildState = (CompositeBuildParticipantBuildState) projectState.getOwner();
         if (buildState instanceof IncludedBuildState) {
             // make sure the build is configured now (not do this for the root build, as we are already configuring it right now)
             ((IncludedBuildState) buildState).getConfiguredBuild();

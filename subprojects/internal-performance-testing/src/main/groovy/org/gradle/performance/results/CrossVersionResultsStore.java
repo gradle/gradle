@@ -32,6 +32,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -96,8 +97,20 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             long testId = insertExecution(connection, results);
             batchInsertOperation(connection, results, testId);
             updatePreviousTestId(connection, results);
+            insertExecutionExperiment(connection, results);
             return null;
         });
+    }
+
+    private void insertExecutionExperiment(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("insert into testExecutionExperiment(testId, testProject, testClass) values (?, ?, ?)")) {
+            statement.setString(1, results.getTestId());
+            statement.setString(2, results.getTestProject());
+            statement.setString(3, results.getTestClass());
+            statement.execute();
+        } catch (SQLIntegrityConstraintViolationException ignore) {
+            // This is expected, ignore.
+        }
     }
 
     private void updatePreviousTestId(Connection connection, CrossVersionPerformanceResults results) throws SQLException {

@@ -23,19 +23,19 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.util.Path;
 
 import java.io.File;
 
 public class IncludedRootBuild implements IncludedBuild {
-    private final RootBuildState rootBuild;
+    private final CompositeBuildParticipantBuildState rootBuild;
 
-    public IncludedRootBuild(RootBuildState rootBuild) {
+    public IncludedRootBuild(CompositeBuildParticipantBuildState rootBuild) {
         this.rootBuild = rootBuild;
     }
 
-    public RootBuildState getRootBuild() {
+    public CompositeBuildParticipantBuildState getRootBuild() {
         return rootBuild;
     }
 
@@ -57,9 +57,9 @@ public class IncludedRootBuild implements IncludedBuild {
 
     public class IncludedRootBuildTaskReference implements TaskReference, TaskDependencyContainer {
         private final String taskPath;
-        private final RootBuildState rootBuildState;
+        private final CompositeBuildParticipantBuildState rootBuildState;
 
-        public IncludedRootBuildTaskReference(RootBuildState rootBuildState, String taskPath) {
+        public IncludedRootBuildTaskReference(CompositeBuildParticipantBuildState rootBuildState, String taskPath) {
             this.rootBuildState = rootBuildState;
             this.taskPath = taskPath;
         }

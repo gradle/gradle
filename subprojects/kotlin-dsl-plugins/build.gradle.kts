@@ -24,7 +24,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.4.4"
+version = "1.4.5"
 
 base.archivesBaseName = "plugins"
 
@@ -112,7 +112,7 @@ pluginPublish {
 
 // TODO:kotlin-dsl investigate
 // See https://builds.gradle.org/viewLog.html?buildId=19024848&problemId=23230
-tasks.noDaemonIntegTest.configure {
+tasks.noDaemonIntegTest {
     enabled = false
 }
 

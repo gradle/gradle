@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import com.sun.tools.javac.code.Symbol;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
@@ -26,11 +25,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,9 +36,6 @@ import static org.gradle.api.internal.tasks.compile.incremental.processing.Incre
  * @see AggregatingProcessor
  */
 class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
-
-    private static final Map<Class<?>, Optional<Field>> FIELD_CACHE = new HashMap<>(5);
-    private static Boolean canAccessJDKTypes;
 
     AggregatingProcessingStrategy(AnnotationProcessorResult result) {
         super(result);
@@ -67,76 +59,23 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
 
     private void recordAggregatedTypes(Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (supportedAnnotationTypes.contains("*")) {
-            result.getAggregatedTypes().addAll(namesOfElementsWithSource(roundEnv.getRootElements()));
+            result.getAggregatedTypes().addAll(namesOfElements(roundEnv.getRootElements()));
         } else {
             for (TypeElement annotation : annotations) {
-                result.getAggregatedTypes().addAll(namesOfElementsWithSource(roundEnv.getElementsAnnotatedWith(annotation)));
+                result.getAggregatedTypes().addAll(namesOfElements(roundEnv.getElementsAnnotatedWith(annotation)));
             }
         }
     }
 
-    // We need to filter classes which actually _have_ sources
-    // see https://github.com/gradle/gradle/issues/13767
-    private static Set<String> namesOfElementsWithSource(Set<? extends Element> orig) {
+    private static Set<String> namesOfElements(Set<? extends Element> orig) {
         if (orig == null || orig.isEmpty()) {
             return Collections.emptySet();
         }
         return orig
             .stream()
             .map(ElementUtils::getTopLevelType)
-            .filter(AggregatingProcessingStrategy::filterElements)
             .map(ElementUtils::getElementName)
             .collect(Collectors.toSet());
-    }
-
-    private static boolean filterElements(Element element) {
-        if (canAccessJDKTypes()) {
-            return filterElementsDirect(element);
-        } else {
-            return filterElementsReflection(element);
-        }
-    }
-
-    private static boolean filterElementsReflection(Element element) {
-        try {
-            Optional<Field> field = FIELD_CACHE.computeIfAbsent(element.getClass(), AggregatingProcessingStrategy::getField);
-            if (field.isPresent()) {
-                return field.get().get(element) != null;
-            } else {
-                return false;
-            }
-        } catch (IllegalAccessException e) {
-            FIELD_CACHE.put(element.getClass(), Optional.empty());
-        }
-        return false;
-    }
-
-    private static Optional<Field> getField(Class<?> clazz) {
-        try {
-            Field sourceFile = clazz.getField("sourceFile");
-            return Optional.of(sourceFile);
-        } catch (NoSuchFieldException e) {
-            return Optional.empty();
-        }
-    }
-
-    private static boolean filterElementsDirect(Element element) {
-        if (element instanceof Symbol.ClassSymbol) {
-            return ((Symbol.ClassSymbol) element).sourcefile != null;
-        }
-        return false;
-    }
-
-    private static boolean canAccessJDKTypes() {
-        if (canAccessJDKTypes == null) {
-            try {
-                AggregatingProcessingStrategy.class.getClassLoader().loadClass("com.sun.tools.javac.code.Symbol");
-                canAccessJDKTypes = Boolean.TRUE;
-            } catch (Throwable t) {
-                canAccessJDKTypes = Boolean.FALSE;
-            }
-        }
-        return canAccessJDKTypes;
     }
 
     @Override
@@ -152,5 +91,10 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
         } else {
             result.getGeneratedAggregatingResources().add(new GeneratedResource(resourceLocation, pkg, relativeName));
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Aggregating strategy for " + result.getClassName();
     }
 }

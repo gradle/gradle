@@ -69,6 +69,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -223,8 +224,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory);
     }
 
-    TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory) {
-        return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1));
+    TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory, CurrentBuildOperationRef currentBuildOperationRef) {
+        return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1), currentBuildOperationRef);
     }
 
     InputFingerprinter createInputFingerprinter(ValueSnapshotter valueSnapshotter) {

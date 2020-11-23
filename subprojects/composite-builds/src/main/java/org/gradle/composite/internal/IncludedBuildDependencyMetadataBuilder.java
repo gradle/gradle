@@ -19,14 +19,14 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.io.File;
 
 public class IncludedBuildDependencyMetadataBuilder {
-    public LocalComponentMetadata build(BuildState build, ProjectComponentIdentifier projectIdentifier) {
+    public LocalComponentMetadata build(CompositeBuildParticipantBuildState build, ProjectComponentIdentifier projectIdentifier) {
         GradleInternal gradle = build.getBuild();
         LocalComponentRegistry localComponentRegistry = gradle.getServices().get(LocalComponentRegistry.class);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);

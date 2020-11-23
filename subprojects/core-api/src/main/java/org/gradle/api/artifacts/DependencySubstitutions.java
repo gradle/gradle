@@ -40,8 +40,8 @@ public interface DependencySubstitutions {
      * configurations.main.resolutionStrategy.dependencySubstitution {
      *   // Use a rule to change the dependency module while leaving group + version intact
      *   all { DependencySubstitution dependency -&gt;
-     *     if (dependency.requested instanceof ModuleComponentSelector &amp;&amp; dependency.requested.name == 'groovy-all') {
-     *       dependency.useTarget details.requested.group + ':groovy:' + details.requested.version
+     *     if (dependency.requested instanceof ModuleComponentSelector &amp;&amp; dependency.requested.module == 'groovy-all') {
+     *       dependency.useTarget dependency.requested.group + ':groovy:' + dependency.requested.version
      *     }
      *   }
      *   // Use a rule to replace all missing projects with module dependencies

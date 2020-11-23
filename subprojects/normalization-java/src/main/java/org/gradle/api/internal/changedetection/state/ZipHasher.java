@@ -19,10 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.internal.file.archive.impl.FileZipInput;
-import org.gradle.api.internal.file.archive.impl.StreamZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.api.internal.file.archive.impl.FileZipInput;
+import org.gradle.api.internal.file.archive.impl.StreamZipInput;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
@@ -51,9 +51,17 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     private final ResourceHasher resourceHasher;
+    private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
+        this(resourceHasher, (s, e) -> {
+            LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
+        });
+    }
+
+    public ZipHasher(ResourceHasher resourceHasher, HashingExceptionReporter hashingExceptionReporter) {
         this.resourceHasher = resourceHasher;
+        this.hashingExceptionReporter = hashingExceptionReporter;
     }
 
     @Nullable
@@ -79,17 +87,13 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             FingerprintHashingStrategy.SORT.appendToHasher(hasher, fingerprints);
             return hasher.hash();
         } catch (Exception e) {
-            return hashMalformedZip(zipFileSnapshot, e);
+            hashingExceptionReporter.report(zipFileSnapshot, e);
+            return zipFileSnapshot.getHash();
         }
     }
 
-    private HashCode hashMalformedZip(RegularFileSnapshot zipFileSnapshot, Exception e) {
-        LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", zipFileSnapshot.getName(), e);
-        return zipFileSnapshot.getHash();
-    }
-
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
-        try(ZipInput input = FileZipInput.create(new File(zipFile))) {
+        try (ZipInput input = FileZipInput.create(new File(zipFile))) {
             List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
             fingerprintZipEntries("", zipFile, fingerprints, input);
             return fingerprints;
@@ -121,5 +125,9 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
 
     private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
         return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, HashCode.fromInt(0));
+    }
+
+    public interface HashingExceptionReporter {
+        void report(RegularFileSnapshot zipFileSnapshot, Exception e);
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisit
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -102,7 +102,7 @@ public class OutputFileChanges implements ChangeContainer {
     }
 
     private static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
-        HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
+        Map<String, FileSystemLocationSnapshot> index = new LinkedHashMap<>();
         snapshot.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {

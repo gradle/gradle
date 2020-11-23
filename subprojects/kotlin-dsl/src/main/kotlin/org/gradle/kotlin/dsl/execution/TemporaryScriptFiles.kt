@@ -17,11 +17,12 @@
 package org.gradle.kotlin.dsl.execution
 
 import java.io.File
+import java.nio.file.Files.createTempDirectory
 
 
 internal
 inline fun <T> withTemporaryScriptFileFor(scriptPath: String, scriptText: String, action: (File) -> T): T =
-    createTempDir(prefix = "gradle-kotlin-dsl-").let { tempDir ->
+    createTempDirectory("gradle-kotlin-dsl-").toFile().let { tempDir ->
         try {
             val tempFile = canonicalScriptFileFor(tempDir, scriptPath, scriptText)
             try {

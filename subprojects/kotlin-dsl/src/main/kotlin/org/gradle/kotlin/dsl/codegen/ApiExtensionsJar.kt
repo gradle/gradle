@@ -23,6 +23,7 @@ import org.gradle.kotlin.dsl.support.zipTo
 import com.google.common.annotations.VisibleForTesting
 
 import java.io.File
+import java.nio.file.Files.createTempDirectory
 
 
 @VisibleForTesting
@@ -55,7 +56,7 @@ class ApiExtensionsJarGenerator(
 
     private
     fun tempDirFor(outputFile: File): File =
-        createTempDir(outputFile.nameWithoutExtension, outputFile.extension).apply {
+        createTempDirectory(outputFile.name).toFile().apply {
             deleteOnExit()
         }
 

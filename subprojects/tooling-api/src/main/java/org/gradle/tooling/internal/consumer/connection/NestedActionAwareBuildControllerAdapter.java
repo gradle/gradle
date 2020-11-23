@@ -37,8 +37,8 @@ public class NestedActionAwareBuildControllerAdapter extends ParameterAwareBuild
     }
 
     @Override
-    public boolean isActionsMayRunInParallel() {
-        return controller.isActionsMayRunInParallel();
+    public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
+        return controller.getCanQueryProjectModelInParallel(modelType);
     }
 
     @Override

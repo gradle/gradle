@@ -232,7 +232,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
         ProjectStateRegistry projectStateRegistry,
-        ServiceRegistry gradleScopedServices
+        ServiceRegistry gradleScopedServices,
+        TaskSelector taskSelector
     ) {
         return new DefaultTaskExecutionGraph(
             planExecutor,
@@ -247,7 +248,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
             projectStateRegistry,
-            gradleScopedServices
+            gradleScopedServices,
+            taskSelector
         );
     }
 

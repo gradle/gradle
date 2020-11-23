@@ -1434,5 +1434,108 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
+    def "fails when unexpected request happens while waiting for multiple concurrent requests to automatically release"() {
+        def failure1 = null
+        def failure2 = null
+        def failure3 = null
+
+        given:
+        server.start()
+        server.expectConcurrent(2, "a", "b", "c")
+
+        when:
+        async {
+            start {
+                try {
+                    server.uri("a").toURL().text
+                } catch (IOException e) {
+                    failure1 = e
+                }
+            }
+            server.waitForRequests(1)
+            start {
+                try {
+                    server.uri("d").toURL().text
+                } catch (IOException e) {
+                    failure2 = e
+                }
+            }
+            server.waitForRequests(2)
+            start {
+                try {
+                    server.uri("c").toURL().text
+                } catch (IOException e) {
+                    failure3 = e
+                }
+            }
+        }
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Failed to handle all HTTP requests."
+        e.causes.message == [
+            'Failed to handle GET /a due to unexpected request GET /d. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]',
+            'Unexpected request GET /d received. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]',
+            'Failed to handle GET /c due to unexpected request GET /d. Waiting for 0 further requests, received [GET /a, GET /c], released [], not yet received [GET /b]'
+        ]
+
+        and:
+        failure1 != null
+        failure2 != null
+        failure3 != null
+    }
+
+    def "fails when too many concurrent requests happen while waiting for multiple concurrent requests to automatically release"() {
+        def failure1 = null
+        def failure2 = null
+        def failure3 = null
+
+        given:
+        server.start()
+        server.expectConcurrent(2, "a", "b", "c")
+
+        when:
+        async {
+            start {
+                try {
+                    server.uri("c").toURL().text
+                } catch (IOException e) {
+                    failure1 = e
+                }
+            }
+            server.waitForRequests(1)
+            start {
+                try {
+                    server.uri("b").toURL().text
+                } catch (IOException e) {
+                    failure2 = e
+                }
+            }
+            server.waitForRequests(2)
+            start {
+                try {
+                    server.uri("a").toURL().text
+                } catch (IOException e) {
+                    failure3 = e
+                }
+            }
+        }
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Failed to handle all HTTP requests."
+        e.causes.message == [
+            'Failed to handle GET /c due to unexpected request GET /a. Waiting for 0 further requests, received [GET /c, GET /b], released [], not yet received [GET /a]',
+            'Failed to handle GET /b due to unexpected request GET /a. Waiting for 0 further requests, received [GET /c, GET /b], released [], not yet received [GET /a]',
+            'Unexpected request GET /a received. Waiting for 0 further requests, received [GET /c, GET /b], released [], not yet received [GET /a]'
+        ]
+
+        and:
+        failure1 != null
+        failure2 != null
+        failure3 != null
+    }
 }
 

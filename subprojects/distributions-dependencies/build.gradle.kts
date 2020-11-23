@@ -28,7 +28,7 @@ plugins {
 }
 
 val aetherVersion = "1.13.1"
-val antVersion = "1.10.8"
+val antVersion = "1.10.9"
 val archunitVersion = "0.11.0"
 val asmVersion = "7.3.1"
 val awsS3Version = "1.11.633"

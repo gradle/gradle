@@ -19,7 +19,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-tasks.forkingIntegTest.configure {
+tasks.forkingIntegTest {
     systemProperty("gradleBuildBranch", moduleIdentity.gradleBuildBranch.get())
     systemProperty("gradleBuildCommitId", moduleIdentity.gradleBuildCommitId.get())
 }
