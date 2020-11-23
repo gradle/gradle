@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;

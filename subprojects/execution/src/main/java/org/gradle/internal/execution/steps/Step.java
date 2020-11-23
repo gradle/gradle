@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 
 public interface Step<C extends Context, R extends Result> {

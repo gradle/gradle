@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 

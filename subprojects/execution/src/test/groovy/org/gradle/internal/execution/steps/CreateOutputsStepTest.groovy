@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 

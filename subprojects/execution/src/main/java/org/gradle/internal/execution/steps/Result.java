@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.ExecutionResult;
 
 public interface Result {
     Try<ExecutionResult> getExecutionResult();

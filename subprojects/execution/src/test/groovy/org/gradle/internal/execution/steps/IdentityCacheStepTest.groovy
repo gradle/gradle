@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.internal.Try
-import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.DeferredExecutionHandler
 import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.UnitOfWork
