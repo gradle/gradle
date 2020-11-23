@@ -16,8 +16,11 @@
 
 package org.gradle.internal.execution.timeout;
 
+import org.gradle.api.Describable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationRef;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 
 /**
@@ -30,7 +33,7 @@ public interface TimeoutHandler extends Stoppable {
      * the work that this timeout was supposed to limit, otherwise it may be interrupted doing
      * some other work later.
      */
-    Timeout start(Thread taskExecutionThread, Duration timeoutInMillis);
+    Timeout start(Thread taskExecutionThread, Duration timeoutInMillis, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef);
 
     /**
      * Stops all {@link Timeout}s created from this handler.

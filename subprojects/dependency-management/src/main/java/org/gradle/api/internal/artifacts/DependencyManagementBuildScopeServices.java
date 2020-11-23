@@ -204,6 +204,7 @@ import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -757,6 +758,7 @@ class DependencyManagementBuildScopeServices {
      */
     ExecutionEngine createExecutionEngine(
             BuildOperationExecutor buildOperationExecutor,
+            CurrentBuildOperationRef currentBuildOperationRef,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             Deleter deleter,
             ExecutionStateChangeDetector changeDetector,
@@ -785,7 +787,7 @@ class DependencyManagementBuildScopeServices {
             new StoreExecutionStateStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
             new CreateOutputsStep<>(
-            new TimeoutStep<>(timeoutHandler,
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
