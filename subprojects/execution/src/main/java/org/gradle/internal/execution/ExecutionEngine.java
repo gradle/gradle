@@ -73,7 +73,7 @@ public interface ExecutionEngine {
          * Snapshots of the roots of output properties.
          *
          * In the presence of overlapping outputs this might be different from
-         * {@link BeforeExecutionState#getOutputFileLocationSnapshots()},
+         * {@link org.gradle.internal.execution.history.BeforeExecutionState#getOutputFileLocationSnapshots()},
          * as this does not include overlapping outputs <em>not</em> produced by the work.
          */
         @VisibleForTesting
