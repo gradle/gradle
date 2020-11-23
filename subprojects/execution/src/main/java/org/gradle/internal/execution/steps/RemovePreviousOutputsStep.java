@@ -17,11 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.execution.BeforeExecutionContext;
-import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OutputsCleaner;

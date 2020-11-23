@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.history.AfterPreviousExecutionState

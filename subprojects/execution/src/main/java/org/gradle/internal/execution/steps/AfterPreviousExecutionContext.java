@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
-public interface BeforeExecutionContext extends AfterPreviousExecutionContext {
+public interface AfterPreviousExecutionContext extends WorkspaceContext {
     /**
-     * Returns the execution state before execution.
-     * Empty if execution state was not observed before execution.
+     * Returns the execution state after the previous execution if available.
+     * Empty when execution history is not available.
      */
-    Optional<BeforeExecutionState> getBeforeExecutionState();
+    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
 }

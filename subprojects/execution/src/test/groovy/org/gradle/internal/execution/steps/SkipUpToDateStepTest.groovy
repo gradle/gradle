@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.Try
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges

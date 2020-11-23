@@ -16,8 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.ExecutionRequestContext
-import org.gradle.internal.execution.IdentityContext
+
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint

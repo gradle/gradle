@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.execution.AfterPreviousExecutionContext
 import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
