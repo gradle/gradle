@@ -96,7 +96,7 @@ public class OutputSnapshotUtil {
      * <ul>
      * <li>an entry that did not exist before the execution, but exists after the execution,</li>
      * <li>an entry that did exist before the execution, and has been changed during the execution,</li>
-     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution.</li>
+     * <li>an entry that wasn't changed during the execution, but was already considered an output during the previous execution.</li>
      * </ul>
      */
     public static ImmutableSortedMap<String, FileSystemSnapshot> filterOutputsAfterExecution(
