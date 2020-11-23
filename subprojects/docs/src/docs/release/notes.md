@@ -196,7 +196,7 @@ Gradle's documentation now contains a [sample](samples/sample_structuring_softwa
 We've also reworked the chapter on developing [multi-project builds](userguide/multi_project_builds.html) and added a chapter on [structuring software projects](userguide/structuring_software_products.html) using composite builds.
 
 <a name="dm-features"></a>
-## Consistent dependency resolution features
+## Consistent dependency resolution
 
 ### Central declaration of repositories
 
