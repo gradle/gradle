@@ -18,6 +18,6 @@ package org.gradle.internal.execution;
 
 import org.gradle.internal.execution.caching.CachingState;
 
-public interface CachingResult extends UpToDateResult {
+public interface CachingResult extends UpToDateResult, ExecutionEngine.Result {
     CachingState getCachingState();
 }

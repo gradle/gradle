@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.CurrentSnapshotResult;
+import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;

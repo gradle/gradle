@@ -54,8 +54,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.Result;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationException;
@@ -176,7 +176,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
-        CachingResult result = context.getTaskExecutionMode().getRebuildReason()
+        Result result = context.getTaskExecutionMode().getRebuildReason()
             .map(rebuildReason -> executionEngine.rebuild(work, rebuildReason))
             .orElseGet(() -> executionEngine.execute(work));
         result.getExecutionResult().ifSuccessfulOrElse(
