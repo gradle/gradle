@@ -40,7 +40,6 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     public static final String WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".warnIfNotStoppedFrequency";
 
     private final ManagedScheduledExecutor executor;
-
     private final CurrentBuildOperationRef currentBuildOperationRef;
 
     public DefaultTimeoutHandler(ManagedScheduledExecutor executor, CurrentBuildOperationRef currentBuildOperationRef) {
