@@ -30,8 +30,6 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES;
-
 /**
  * Fingerprint file system snapshots normalizing the path to the relative path in a hierarchy.
  *
@@ -64,7 +62,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         HashSet<String> processedEntries = new HashSet<>();
         roots.accept(new PathTracker(), (snapshot, relativePath) -> {
             String absolutePath = snapshot.getAbsolutePath();
-            if (processedEntries.add(absolutePath) && shouldFingerprint(snapshot)) {
+            if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
@@ -80,10 +78,6 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
             return SnapshotVisitResult.CONTINUE;
         });
         return builder.build();
-    }
-
-    private boolean shouldFingerprint(CompleteFileSystemLocationSnapshot snapshot) {
-        return !(snapshot.getType() == FileType.Directory && directorySensitivity == IGNORE_DIRECTORIES);
     }
 
     @Override
