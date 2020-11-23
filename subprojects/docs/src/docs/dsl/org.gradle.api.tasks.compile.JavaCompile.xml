@@ -16,6 +16,10 @@
                 <td>source</td>
                 <td><literal><replaceable>sourceSet</replaceable>.java</literal></td>
             </tr>
+            <tr>
+                <td>javaCompiler</td>
+                <td><literal>java.toolchain</literal></td>
+            </tr>
         </table>
     </section>
     <section>
