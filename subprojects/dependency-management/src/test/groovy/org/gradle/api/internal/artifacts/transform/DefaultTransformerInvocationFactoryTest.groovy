@@ -46,7 +46,6 @@ import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.timeout.TimeoutHandler
-import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
