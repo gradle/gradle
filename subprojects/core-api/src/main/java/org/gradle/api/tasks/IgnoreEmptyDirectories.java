@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 
 /**
  * Attached to an input property to specify that directories should be ignored
- * when snapshotting inputs.  Files within directories and subdirectories will be
+ * when snapshotting inputs. Files within directories and subdirectories will be
  * snapshot, but the directories themselves will be ignored. Empty directories,
  * and directories that contain only empty directories will have no effect on the
  * resulting snapshot.

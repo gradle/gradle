@@ -94,9 +94,9 @@ See [the userguide](userguide/more_about_tasks.html#sec:property_file_normalizat
 
 For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two directory structures contain the same contents.  When a directory contains an empty directory, it is considered to have different contents than an identical directory where the empty directory does not exist.
 
-This may not always be desirable.  There are many cases where only the files in a directory structure may be significant, and an empty directory will have no impact on the outputs of a task.  In such cases, re-executing the task because an empty directory exists is unnecessary as it will only produce the same outputs.
+This may not always be desirable. There are many cases where only the files in a directory structure may be significant, and an empty directory will have no impact on the outputs of a task. In such cases, re-executing the task because an empty directory exists is unnecessary as it will only produce the same outputs.
 
-A new annotation has been introduced to address this scenario.  Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html) or [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) can additionally be annotated with [@IgnoreDirectories](javadoc/org/gradle/api/tasks/IgnoreDirectories.html) to specify that directories should not be considered during build cache and up-to-date checks.
+A new annotation has been introduced to address this scenario. Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html) or [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) can additionally be annotated with [@IgnoreDirectories](javadoc/org/gradle/api/tasks/IgnoreDirectories.html) to specify that directories should not be considered during build cache and up-to-date checks.
 For inputs annotated in this way, only changes to files (including the file path) will be treated as differences in the input values.
 
 ```
