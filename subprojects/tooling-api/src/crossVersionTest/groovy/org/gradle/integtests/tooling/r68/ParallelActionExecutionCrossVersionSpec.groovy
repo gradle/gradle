@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildActionFailureException
 import org.junit.Rule
 
-@ToolingApiVersion(">=6.8")
+@ToolingApiVersion(">=6.9")
 class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
