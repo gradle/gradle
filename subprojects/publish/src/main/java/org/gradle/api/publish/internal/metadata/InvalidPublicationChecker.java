@@ -20,12 +20,14 @@ import com.google.common.base.Objects;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 import java.util.Set;
@@ -36,13 +38,16 @@ class InvalidPublicationChecker {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
     private final String publicationName;
+    private final String taskPath;
     private final BiMap<String, VariantIdentity> variants = HashBiMap.create();
     private List<String> errors;
+    private Set<String> explanations;
     private boolean publicationHasVersion = false;
     private boolean publicationHasDependencyOrConstraint = false;
 
-    public InvalidPublicationChecker(String publicationName) {
+    public InvalidPublicationChecker(String publicationName, String taskPath) {
         this.publicationName = publicationName;
+        this.taskPath = taskPath;
     }
 
     public void registerVariant(String name, AttributeContainer attributes, Set<? extends Capability> capabilities) {
@@ -84,15 +89,30 @@ class InvalidPublicationChecker {
                 formatter.node(error);
             }
             formatter.endChildren();
+            if (explanations != null) {
+                for (String explanation : explanations) {
+                    formatter.node(explanation);
+                }
+            }
             throw new InvalidUserCodeException(formatter.toString());
         }
     }
 
     private void failWith(String message) {
+        failWith(message, null);
+    }
+
+    private void failWith(String message, @Nullable String explanation) {
         if (errors == null) {
             errors = Lists.newArrayList();
         }
         errors.add(message);
+        if (explanation != null) {
+            if (explanations == null) {
+                explanations = Sets.newLinkedHashSet();
+            }
+            explanations.add(explanation);
+        }
     }
 
     public void sawVersion() {
@@ -101,6 +121,17 @@ class InvalidPublicationChecker {
 
     public void sawDependencyOrConstraint() {
         publicationHasDependencyOrConstraint = true;
+    }
+
+    public void addDependencyValidationError(String variant, String errorMessage, String genericExplanation, String suppressor) {
+        failWith("Variant '" + variant + "' " + errorMessage,
+            genericExplanation + explainHowToSuppress(suppressor)
+        );
+    }
+
+    private String explainHowToSuppress(String suppressor) {
+        return " If you did this intentionally you can disable this check by adding '" + suppressor + "' to the suppressed validations of the " + taskPath + " task." +
+            DOCUMENTATION_REGISTRY.getDocumentationFor("publishing_setup", "sec:suppressing_validation_errors");
     }
 
     private static final class VariantIdentity {

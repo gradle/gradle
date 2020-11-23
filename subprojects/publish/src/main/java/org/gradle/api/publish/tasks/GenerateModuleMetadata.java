@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
@@ -33,11 +34,15 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.internal.metadata.DependencyAttributesValidator;
+import org.gradle.api.publish.internal.metadata.EnforcedPlatformPublicationValidator;
 import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.metadata.ModuleMetadataSpec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
@@ -61,6 +66,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -79,6 +85,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     private final RegularFileProperty outputFile;
     private final FileCollection variantFiles;
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
+    private final SetProperty<String> suppressedValidationErrors;
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -88,6 +95,8 @@ public class GenerateModuleMetadata extends DefaultTask {
         outputFile = objectFactory.fileProperty();
 
         variantFiles = getFileCollectionFactory().create(new VariantFiles());
+
+        suppressedValidationErrors = objectFactory.setProperty(String.class).convention(Collections.emptySet());
 
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -170,6 +179,17 @@ public class GenerateModuleMetadata extends DefaultTask {
         return outputFile;
     }
 
+    /**
+     * Returns the set of suppressed validation errors
+     *
+     * @since 6.9
+     */
+    @Incubating
+    @Input
+    public SetProperty<String> getSuppressedValidationErrors() {
+        return suppressedValidationErrors;
+    }
+
     @TaskAction
     void run() {
         InputState inputState = inputState();
@@ -197,8 +217,18 @@ public class GenerateModuleMetadata extends DefaultTask {
         return new GradleModuleMetadataWriter(
             getBuildInvocationScopeId(),
             getProjectDependencyPublicationResolver(),
-            getChecksumService()
-        );
+            getChecksumService(),
+            getPath(),
+            dependencyAttributeValidators());
+    }
+
+    private List<DependencyAttributesValidator> dependencyAttributeValidators() {
+        // Currently limited to a single validator
+        EnforcedPlatformPublicationValidator validator = new EnforcedPlatformPublicationValidator();
+        if (suppressedValidationErrors.get().contains(validator.getSuppressor())) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(validator);
     }
 
     private boolean hasAttachedComponent() {
