@@ -1,0 +1,4 @@
+- Faster Kotlin DSL script compilation
+- Vendor selection for Java toolchains
+- Convenient execution of tasks in composite builds
+- Consistent dependency resolution

@@ -1,11 +1,10 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release addresses some [performance problems with Kotlin DSL build scripts](#kotlin-dsl-performance), introduces new [dependency management APIs for consistent resolution](#dm-features), and adds some [improvements to Java toolchain selection](#java-toolchain-improvements). 
-The [experimental configuration cache](#configuration-cache) has added support for composite builds and more core plugins shipped with Gradle.
+This release significantly improves the [performance of Kotlin DSL build scripts compilation](#kotlin-dsl-performance), adds several [improvements to Java toolchain support](#java-toolchain-improvements) including vendor selection and makes it easy to [execute tasks from included builds directly from the command-line](#composite-builds). This release also introduces new [dependency management APIs for consistent resolution](#dm-features).
 
-This release also fixes some long-standing issues with composite builds. Gradle now [allows you to execute tasks from included builds directly from the command-line](#composite-builds). Several other smaller [usability issues](#other-usability) were added in this release.
+The [experimental configuration cache](#configuration-cache) has added support for composite builds and more core plugins shipped with Gradle. Several other [smaller improvements](#other-improvements) were added in this release.
 
-We don't expect many builds to be affected, but this release [disables outdated TLS v1.0 and v1.1 protocols](#security-tls) to improve the security of builds resolving dependencies from external repositories. 
+We don't expect many builds to be affected, but this release [disables outdated TLS v1.0 and v1.1 protocols](#security-tls) to improve the security of builds resolving dependencies from external repositories.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -83,13 +82,12 @@ normalization {
 
 This improves the likelihood of up-to-date and build cache hits when any properties file on the classpath is regenerated or only differs by unimportant values.
 
-See [the userguide](userguide/more_about_tasks.html#sec:property_file_normalization) for further information.
+See [the user manual](userguide/more_about_tasks.html#sec:property_file_normalization) for further information.
 
 ### Performance improvements for incremental development
 
 We set out to further improve performance for incremental development &mdash; the part of the software development process where you make frequent small changes.
 The effort resulted in performance improvements which are more pronounced for Android builds.
-
 
 For example, `assembleDebug` for a non-abi change on the Santa Tracker Android project improved by 15%:
 
@@ -100,107 +98,18 @@ For example, `assembleDebug` for a non-abi change on the Santa Tracker Android p
 File system watching and configuration caching is enabled for the comparison.
 You can find the performance project [here](https://github.com/gradle/santa-tracker-performance).
 
-<a name="configuration-cache"></a>
-### Configuration cache improvements
-
-[//]: # (TODO context and overview of improvements)
-
-#### Support for composite builds
-
-Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
-
-#### More supported core plugins
-
-In this release a number of core Gradle plugins got improved to support the configuration cache:
-
-* [`checkstyle`](userguide/checkstyle_plugin.html)
-* [`pmd`](userguide/pmd_plugin.html)
-* [`codenarc`](userguide/codenarc_plugin.html)
-* [`jacoco`](userguide/jacoco_plugin.html)
-
-See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
-
-<a name="dm-features"></a>
-## Consistent dependency resolution features
-
-### Central declaration of repositories
-
-Traditionally in a Gradle build, repositories used for dependency resolution are declared in every project.
-However, in most cases, the same repositories should be used in every project of a single build.
-This led to the common pattern of using an `allprojects { ... }` block to declare the repositories.
-In Gradle 6.8, this pattern can be replaced with a conventional block in `settings.gradle(.kts)`:
-
-```
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-    }
-}
-```
-
-There are several advantages in using this new construct instead of using `allprojects` or repeating the declaration in every build script.
-
-Learn more by reading how to [declare repositories for the whole build](userguide/declaring_repositories.html#sub:centralized-repository-declaration).
-
-### Central declaration of component metadata rules
-
-[Component metadata rules](userguide/component_metadata_rules.html) are a powerful tool to fix bad metadata published on remote repositories.
-However, similarly to repositories, rules traditionnally had to be applied on each project.
-Starting from this release, it is possible to declare component metadata rules at a central place in `settings.gradle(.kts)`:
-
-```
-dependencyResolutionManagement {
-    components {
-        withModule('com.google.guava:guava', GuavaRule)
-    }
-}
-```
-
-You can learn more about declaring rules globally in the [user manual](userguide/component_metadata_rules.html#sec:rules_in_settings).
-
-### Consistent dependency resolution
-
-It's a common problem that the dependencies resolved for the runtime have different versions than the dependencies resolved for compile time.
-This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
-
-To mitigate this problem, Gradle now introduces an API which lets you declare consistency between dependency configurations.
-For example, in the Java ecosystem, you can write:
-
-```
-java {
-    consistentResolution {
-        useCompileClasspathVersions()
-    }
-}
-```
-
-which tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
-
-There are many options to configure this feature which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
-
-<a name="composite-builds"></a>
-## Changes to composite builds
-
-### Tasks can be executed from the command-line
-
-Gradle now allows users to execute tasks from included builds directly from the command-line. For example, if your build includes `my-other-project` as an included build and it has a subproject `sub` with a task `foo`, then you can execute `foo` with the following command:
-
-    gradle :my-other-project:sub:foo
-
-Note, unlike a multi-project build, running `gradle build` will _not_ run the `build` task in all of the included builds.
-You could introduce [task dependencies](https://docs.gradle.org/current/userguide/composite_builds.html#included_build_task_dependencies) to tasks in included builds if you wanted to recreate this behavior for included builds.
-
 <a name="java-toolchain-improvements"></a>
-## Improved Java toolchain selection 
+## Java toolchain improvements 
 
-[Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with.
+[Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with. 
 By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as toolchain.
+
+With this release, toolchain support has been added to the Groovy compile task along with the following improvements.
 
 ### Selecting toolchain by vendor and implementation
 
 In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
-`JvmVendorSpec` has a list of well-known JVM vendors recognized by Gradle. The advantage is that Gradle can handle any inconsistencies across JDK versions
-in how exactly the JVM encodes the vendor information.
+`JvmVendorSpec` has a list of well-known JVM vendors recognized by Gradle. 
 
 ```
 java {
@@ -264,13 +173,104 @@ Output of `gradle -q javaToolchains`:
 This can help to debug which toolchains are available to the build and if the expected toolchain got detected or [requires manual setup](userguide/toolchains.html#sec:custom_loc).
 See the [toolchain documentation](userguide/toolchains.html) for more in-depth information on toolchain detection and usage.
 
-<a name="other-usability"></a>
-## Other usability improvements
+<a name="composite-builds"></a>
+## Composite builds improvements
 
-### Implicit imports
+[Composite builds](userguide/composite_builds.html) are a way of combining separate Gradle builds into a single build. Each build can have a separate purpose (build logic, backend code, frontend code) and could be worked on independently. 
 
-When using [dependency injection](userguide/custom_gradle_types.html#service_injection) when developing plugins, tasks or project extensions, it is now possible to use the `@Inject` annotation without explicitly importing it into your build scripts the
-same way it works for other Gradle API classes.
+### Tasks can be executed for included builds
+
+Gradle now allows users to execute tasks from included builds directly from the command-line. For example, if your build includes `my-other-project` as an included build and it has a subproject `sub` with a task `foo`, then you can execute `foo` with the following command:
+
+    gradle :my-other-project:sub:foo
+
+Note, unlike a multi-project build, running `gradle build` will _not_ run the `build` task in all of the included builds.
+You could introduce [task dependencies](userguide/composite_builds.html#included_build_task_dependencies) to tasks in included builds if you wanted to recreate this behavior for included builds.
+
+IDE support for executing tasks from included builds may or may not work depending on the IDE. We're working to get IntelliJ and Eclipse to support this fully.
+
+### New documentation for composite builds and structuring software projects
+
+Gradle's documentation now contains a [sample](samples/sample_structuring_software_projects.html) for structuring software projects with composite builds.
+
+We've also reworked the chapter on developing [multi-project builds](userguide/multi_project_builds.html) and added a chapter on [structuring software projects](userguide/structuring_software_products.html) using composite builds.
+
+<a name="dm-features"></a>
+## Consistent dependency resolution features
+
+### Central declaration of repositories
+
+Traditionally, repositories used for dependency resolution are declared in every project; however, the same repositories should be used in every project in most cases. This has led to the common pattern of using an `allprojects { ... }` block to declare repositories in your root project.
+
+In Gradle 6.8, this pattern can be replaced with a conventional block in `settings.gradle(.kts)`:
+
+```
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+There are several advantages in using this new construct over `allprojects` or repeating the declaration in every build script.
+
+Learn more by reading how to [declare repositories for the whole build](userguide/declaring_repositories.html#sub:centralized-repository-declaration).
+
+### Central declaration of component metadata rules
+
+[Component metadata rules](userguide/component_metadata_rules.html) are a powerful tool to fix bad metadata published on remote repositories.
+However, similarly to repositories, rules traditionnally had to be applied on each project.
+Starting from this release, it is possible to declare component metadata rules at a central place in `settings.gradle(.kts)`:
+
+```
+dependencyResolutionManagement {
+    components {
+        withModule('com.google.guava:guava', GuavaRule)
+    }
+}
+```
+
+You can learn more about declaring rules globally in the [user manual](userguide/component_metadata_rules.html#sec:rules_in_settings).
+
+### Consistent dependency resolution
+
+It's a known problem that the dependencies resolved for the runtime classpath can have different versions than the dependencies resolved for the compile classpath. This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
+
+To mitigate this problem, Gradle now introduces an API which lets you declare consistency between dependency configurations.
+For example, in the Java ecosystem, you can write:
+
+```
+java {
+    consistentResolution {
+        useCompileClasspathVersions()
+    }
+}
+```
+
+which tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
+
+There are many options to configure this feature, including outside of the Java ecosystem, which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
+
+<a name="configuration-cache"></a>
+### Configuration cache improvements
+
+#### Support for composite builds
+
+Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
+
+#### More supported core plugins
+
+In this release all core code analysis plugins received full for support the configuration cache:
+
+* [`checkstyle`](userguide/checkstyle_plugin.html)
+* [`pmd`](userguide/pmd_plugin.html)
+* [`codenarc`](userguide/codenarc_plugin.html)
+* [`jacoco`](userguide/jacoco_plugin.html)
+
+See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
+
+<a name="other-improvements"></a>
+## Other improvements
 
 ### Test re-run JUnit XML reporting enhancements
 
@@ -296,21 +296,30 @@ If you are using [build scans](https://scans.gradle.com) or [Gradle Enterprise](
 
 Learn more about this new feature in the [Java testing documentation](userguide/java_testing.html#communicating_test_results_to_CI_servers_and_other_tools_via_xml_files).
 
+### `@Inject` is an implicit import
+
+When using [dependency injection](userguide/custom_gradle_types.html#service_injection) when developing plugins, tasks or project extensions, it is now possible to use the `@Inject` annotation without explicitly importing it into your build scripts the
+same way it works for other Gradle API classes.
+
 ### Importing projects with custom source sets into Eclipse
 
 This version of Gradle fixes problems with projects that use custom source sets, like additional functional test source sets.
 
 Custom source sets are now imported into Eclipse automatically and no longer require manual configuration in the build.
 
+This does not require a separate upgrade to Eclipse Buildship.
+
 <a name="security-tls"></a>
-## Outdated TLS versions are no longer enabled by default
+## Security improvements
+
+### Outdated TLS versions are no longer enabled by default
 
 This version of Gradle removes TLS protocols v1.0 and v1.1 from the default list of allowed protocols. Gradle will no longer fallback to TLS v1.0 or v1.1 by default when resolving dependencies. Only TLS v1.2 or TLS v1.3 are allowed by default.
 
 These TLS versions can be re-enabled by manually specifying the system property `https.protocols` with
 a comma separated list of protocols required by your build.
 
-The vast majority of builds should not need to change in any way. [Maven Central](https://central.sonatype.org/articles/2018/May/04/discontinued-support-for-tlsv11-and-below/) and [JCenter/Bintray](https://jfrog.com/knowledge-base/why-am-i-failing-to-work-with-jfrog-cloud-services-with-tls-1-0-1-1/) dropped support for TLS v1.0 and TLS v1.1 two years ago. Java has had TLS v1.2+ available for several years. Disabling these protocols in Gradle protects builds from downgrade attacks.
+The vast majority of builds should not need to change in any way. [Maven Central](https://central.sonatype.org/articles/2018/May/04/discontinued-support-for-tlsv11-and-below/) and [JCenter/Bintray](https://jfrog.com/knowledge-base/why-am-i-failing-to-work-with-jfrog-cloud-services-with-tls-1-0-1-1/) dropped support for TLS v1.0 and TLS v1.1 in 2018. Java has had TLS v1.2 available since Java 7. Disabling these protocols in Gradle protects builds from downgrade attacks.
 
 Depending on the version of Java you use, Gradle will negotiate TLS v1.2 or TLS v1.3 when communicating with remote repositories.
 
@@ -318,15 +327,6 @@ Depending on the version of Java you use, Gradle will negotiate TLS v1.2 or TLS 
 which causes the exception `javax.net.ssl.SSLException: No PSK available. Unable to resume`. If you run into this issue,
 we recommend updating to the latest minor JDK version.
 
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 ## Fixed issues
 
 ## Known issues
