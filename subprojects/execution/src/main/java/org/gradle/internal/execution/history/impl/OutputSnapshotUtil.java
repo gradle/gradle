@@ -79,12 +79,10 @@ public class OutputSnapshotUtil {
     @VisibleForTesting
     static FileSystemSnapshot findOutputPropertyStillPresentSincePreviousExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
         Map<String, FileSystemLocationSnapshot> previousIndex = index(previous);
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((currentSnapshot, isRoot) ->
+        return filterSnapshot(current, (currentSnapshot, isRoot) ->
             // Include only outputs that we already considered outputs after the previous execution
             previousIndex.containsKey(currentSnapshot.getAbsolutePath())
         );
-        current.accept(filteringVisitor);
-        return CompositeFileSystemSnapshot.of(filteringVisitor.getNewRoots());
     }
 
     /**
@@ -130,17 +128,9 @@ public class OutputSnapshotUtil {
             ? index(previous)
             : ImmutableMap.of();
 
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
+        return filterSnapshot(unfilteredAfterExecution, (afterExecutionSnapshot, isRoot) ->
             isOutputEntry(previousIndex.keySet(), beforeExecutionIndex, afterExecutionSnapshot, isRoot)
         );
-        unfilteredAfterExecution.accept(filteringVisitor);
-
-        // Are all file snapshots after execution accounted for as new entries?
-        if (filteringVisitor.hasBeenFiltered()) {
-            return CompositeFileSystemSnapshot.of(filteringVisitor.getNewRoots());
-        } else {
-            return unfilteredAfterExecution;
-        }
     }
 
     private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
@@ -159,6 +149,18 @@ public class OutputSnapshotUtil {
         }
         // Did we already consider it as an output after the previous execution?
         return afterPreviousExecutionLocations.contains(afterExecutionSnapshot.getAbsolutePath());
+    }
+
+    private static FileSystemSnapshot filterSnapshot(FileSystemSnapshot root, BiPredicate<FileSystemLocationSnapshot, Boolean> predicate) {
+        SnapshotFilteringVisitor visitor = new SnapshotFilteringVisitor(predicate);
+        root.accept(visitor);
+
+        // Are all file snapshots after execution accounted for as new entries?
+        if (visitor.hasBeenFiltered()) {
+            return CompositeFileSystemSnapshot.of(visitor.getNewRoots());
+        } else {
+            return root;
+        }
     }
 
     private static class SnapshotFilteringVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
