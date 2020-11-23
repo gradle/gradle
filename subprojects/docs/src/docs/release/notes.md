@@ -9,6 +9,7 @@ We don't expect many builds to be affected, but this release [disables outdated 
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[Marcono1234](https://github.com/Marcono1234),
 [Björn Sundahl](https://github.com/Ranzdo),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Danny Thomas](https://github.com/DanielThomas),
