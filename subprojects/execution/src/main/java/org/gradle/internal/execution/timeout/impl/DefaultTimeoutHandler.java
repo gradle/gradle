@@ -124,7 +124,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
                 scheduledFuture.cancel(true);
                 stopped = true;
                 if (slowStop) {
-                    LOGGER.warn("Timed out " + workUnitDescription.getDisplayName() + " has stopped.");
+                    LOGGER.warn("Timed out {} has stopped.", workUnitDescription.getDisplayName());
                 }
                 return interrupted;
             }
