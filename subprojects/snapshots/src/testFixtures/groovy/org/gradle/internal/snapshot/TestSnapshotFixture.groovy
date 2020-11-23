@@ -20,6 +20,8 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.hash.HashCode
 
+import javax.annotation.Nullable
+
 import static java.lang.Math.abs
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 import static org.gradle.internal.file.impl.DefaultFileMetadata.file
@@ -38,7 +40,15 @@ trait TestSnapshotFixture {
         )
     }
 
-    FileSystemLocationSnapshot regularFile(String absolutePath, FileMetadata.AccessType accessType = DIRECT, Long hashCode = null) {
+    FileSystemLocationSnapshot regularFile(String absolutePath, FileMetadata.AccessType accessType = DIRECT) {
+        regularFile(absolutePath, accessType, null)
+    }
+
+    FileSystemLocationSnapshot regularFile(String absolutePath, @Nullable Long hashCode) {
+        regularFile(absolutePath, DIRECT, hashCode)
+    }
+
+    FileSystemLocationSnapshot regularFile(String absolutePath, FileMetadata.AccessType accessType, @Nullable Long hashCode) {
         new RegularFileSnapshot(
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),

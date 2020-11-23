@@ -16,12 +16,9 @@
 
 package org.gradle.internal.execution.history.changes
 
-
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import spock.lang.Specification
-
-import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 
 class OutputFileChangesTest extends Specification implements TestSnapshotFixture {
 
@@ -36,8 +33,8 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
     def "trivial equality"() {
         expect:
         changes(
-            regularFile("one", DIRECT, 1234),
-            regularFile("one", DIRECT, 1234)
+            regularFile("one", 0x1234),
+            regularFile("one", 0x1234)
         ) == []
     }
 
@@ -45,14 +42,14 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
         expect:
         changes(
             FileSystemSnapshot.EMPTY,
-            regularFile("two")
+            regularFile("two", 0x1234)
         ) == [added("two")]
     }
 
     def "trivial removal"() {
         expect:
         changes(
-            regularFile("one"),
+            regularFile("one", 0x1234),
             FileSystemSnapshot.EMPTY
         ) == [removed("one")]
     }
@@ -60,17 +57,71 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
     def "trivial absolute path change"() {
         expect:
         changes(
-            regularFile("one"),
-            regularFile("two")
+            regularFile("one", 0x1234),
+            regularFile("two", 0x1234)
         ) == [removed("one"), added("two")]
     }
 
     def "trivial content change"() {
         expect:
         changes(
-            regularFile("one", DIRECT, 1234),
-            regularFile("one", DIRECT, 2345)
+            regularFile("one", 0x1234),
+            regularFile("one", 0xffff)
         ) == [modified("one")]
+    }
+
+    def "deep equality"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ])
+        ) == []
+    }
+
+    def "deep addition"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ])
+        ) == [added("root/two")]
+    }
+
+    def "deep removal"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234)
+            ])
+        ) == [removed("root/two")]
+    }
+
+    def "deep content change"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0xffff)
+            ])
+        ) == [modified("root/two")]
     }
 
     def changes(FileSystemSnapshot previousSnapshot, FileSystemSnapshot currentSnapshot) {
