@@ -226,7 +226,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
 
     private static String toAbsolutePath(Collection<String> parents, String fileName) {
         int length = fileName.length() + parents.size()  + parents.stream()
-            .map(java.lang.String::length)
+            .map(String::length)
             .reduce(0, Integer::sum);
         StringBuilder buffer = new StringBuilder(length);
         for (String parent : parents) {
