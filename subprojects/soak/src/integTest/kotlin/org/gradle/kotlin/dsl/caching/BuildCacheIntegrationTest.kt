@@ -60,7 +60,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     @Test
-    @Ignore("https://github.com/gradle/gradle-private/issues/3233")
+    @Ignore("https://github.com/gradle/gradle-private/issues/3239")
     fun `build cache integration can be disabled via system property`() {
 
         val buildCacheDir = existing("build-cache")

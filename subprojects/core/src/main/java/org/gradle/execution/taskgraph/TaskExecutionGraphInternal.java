@@ -38,6 +38,11 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     void addEntryTasks(Iterable<? extends Task> tasks);
 
     /**
+     * Adds an additional entry task that may be discovered in a composition of task graphs.
+     */
+    void addAdditionalEntryTask(String taskPath);
+
+    /**
      * Adds the given nodes to this graph.
      */
     void addNodes(Collection<? extends Node> nodes);

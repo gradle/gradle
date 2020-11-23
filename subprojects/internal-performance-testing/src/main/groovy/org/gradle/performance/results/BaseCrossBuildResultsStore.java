@@ -48,7 +48,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
 
     @Override
     public void report(final R results) {
-        withConnection("write results", (ConnectionAction<Void>) connection -> {
+        withConnectionClosingDb("write results", (ConnectionAction<Void>) connection -> {
             long executionId;
             try (PreparedStatement statement = connection.prepareStatement("insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, results.getTestClass());
@@ -99,7 +99,12 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     public List<PerformanceExperiment> getPerformanceExperiments() {
         return withConnection("load test history", connection -> {
             Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
-            try (PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testClass, testId, testProject from testExecution where resultType = ? order by testClass, testId, testProject")) {
+            try (PreparedStatement testIdsStatement = connection.prepareStatement(
+                "select testClass, testId, testProject" +
+                    "   from testExecutionExperiment" +
+                    "  where resultType = ?" +
+                    "  order by testClass, testId, testProject")
+            ) {
                 testIdsStatement.setString(1, resultType);
                 try (ResultSet testExecutions = testIdsStatement.executeQuery()) {
                     while (testExecutions.next()) {

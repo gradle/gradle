@@ -28,7 +28,7 @@ plugins {
 }
 
 val aetherVersion = "1.13.1"
-val antVersion = "1.10.8"
+val antVersion = "1.10.9"
 val archunitVersion = "0.11.0"
 val asmVersion = "7.3.1"
 val awsS3Version = "1.11.633"
@@ -82,6 +82,7 @@ dependencies {
         api(libs.gson)                  { version { strictly("2.8.5") }}
         api(libs.guava)                 { version { strictly("27.1-android"); because("JRE variant introduces regression - https://github.com/google/guava/issues/3223") }}
         api(libs.hamcrest)              { version { strictly("1.3") }}
+        api(libs.hikariCP)              { version { strictly("3.4.5") }}
         api(libs.httpcore)              { version { strictly("4.4.12") }}
         api(libs.inject)                { version { strictly("1") }}
         api(libs.ivy)                   { version { strictly("2.3.0"); because("2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457") }}

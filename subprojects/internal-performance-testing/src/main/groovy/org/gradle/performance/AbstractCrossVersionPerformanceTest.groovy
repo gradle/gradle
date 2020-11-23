@@ -57,11 +57,10 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
         runner = new CrossVersionPerformanceTestRunner(
-            new GradleBuildExperimentRunner(gradleProfilerReporter),
-            RESULTS_STORE,
-            RESULTS_STORE.reportAlso(gradleProfilerReporter),
-            new ReleasedVersionDistributions(buildContext),
-            buildContext
+                new GradleBuildExperimentRunner(gradleProfilerReporter),
+                RESULTS_STORE.reportAlso(gradleProfilerReporter),
+                new ReleasedVersionDistributions(buildContext),
+                buildContext
         )
         runner.workingDir = temporaryFolder.testDirectory
         runner.current = new UnderDevelopmentGradleDistribution(buildContext)

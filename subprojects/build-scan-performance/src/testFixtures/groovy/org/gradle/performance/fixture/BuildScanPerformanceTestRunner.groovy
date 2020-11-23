@@ -22,7 +22,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
@@ -30,8 +29,8 @@ import org.gradle.util.GradleVersion
 class BuildScanPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
     private final String pluginCommitSha
 
-    BuildScanPerformanceTestRunner(GradleBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha, IntegrationTestBuildContext buildContext) {
-        super(experimentRunner, resultsStore, dataReporter, buildContext)
+    BuildScanPerformanceTestRunner(GradleBuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha, IntegrationTestBuildContext buildContext) {
+        super(experimentRunner, dataReporter, buildContext)
         this.pluginCommitSha = pluginCommitSha
         this.testGroup = "build scan plugin"
 

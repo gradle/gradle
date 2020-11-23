@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.util.ToBeImplemented
 
 class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -48,7 +47,6 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         result.assertTaskExecuted(":compileJava")
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/6229")
     def "included build can depend on including build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -67,11 +65,13 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         dependency(buildB, "org.test:buildA")
 
         when:
-        fails(buildA, "buildBJar")
+        execute(buildA, "buildBJar")
 
         then:
-        failure.assertHasDescription("Could not find build ':'")
-        // result.assertTaskExecuted(":buildB:compileJava")
-        // result.assertTaskExecuted(":compileJava")
+        result.assertTaskExecuted(":compileJava")
+        result.assertTaskExecuted(":jar")
+        result.assertTaskExecuted(":buildB:compileJava")
+        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildBJar")
     }
 }

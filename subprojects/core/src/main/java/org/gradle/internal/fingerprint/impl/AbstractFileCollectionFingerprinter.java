@@ -24,7 +24,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
@@ -53,7 +53,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     }
 
     @Override
-    public String normalizePath(CompleteFileSystemLocationSnapshot root) {
+    public String normalizePath(FileSystemLocationSnapshot root) {
         return fingerprintingStrategy.normalizePath(root);
     }
 

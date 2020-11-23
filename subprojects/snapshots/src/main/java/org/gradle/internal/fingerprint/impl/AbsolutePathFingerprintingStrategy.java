@@ -23,7 +23,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
@@ -47,7 +47,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     }
 
     @Override
-    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
         return snapshot.getAbsolutePath();
     }
 
@@ -57,7 +57,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
         HashSet<String> processedEntries = new HashSet<>();
         roots.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
-            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
+            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath) && shouldFingerprint(snapshot)) {
                     builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));

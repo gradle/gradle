@@ -153,7 +153,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     protected abstract BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
 
     @Override
-    public boolean isActionsMayRunInParallel() {
+    public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
         return false;
     }
 

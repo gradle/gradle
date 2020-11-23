@@ -527,6 +527,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExtensionContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ExtensionContainerExtensionsKt.getValue(org.gradle.api.plugins.ExtensionContainer,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Kotlin compiler 1.4.20 changes property delegate generated method parameter nullability ",
+            "changes": [
+                "Parameter 1 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.getValue(org.gradle.api.NamedDomainObjectProvider,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Kotlin compiler 1.4.20 changes property delegate generated method parameter nullability ",
+            "changes": [
+                "Parameter 1 from null accepting to non-null accepting breaking change"
+            ]
         }
     ]
 }

@@ -65,7 +65,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     @Unroll
     def "uses most recent version of multiple matches for version #versionToFind"() {
         given:
-        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.j9"])
+        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.foo"])
         def toolchainFactory = newToolchainFactory()
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
 
@@ -81,7 +81,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         where:
         versionToFind               | expectedPath
         JavaLanguageVersion.of(7)   | "/path/7.9"
-        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
+        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.foo" // zzz resolves to a real toolversion 999
         JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
     }
 
@@ -100,6 +100,22 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.languageVersion == JavaLanguageVersion.of(8)
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.j9")
+    }
+
+    def "prefer vendor-specific over other implementation if not requested"() {
+        given:
+        def registry = createInstallationRegistry(["8.0.2.j9", "8.0.1.hs"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.hs")
     }
 
     def "ignores invalid toolchains when finding a matching one"() {
@@ -158,10 +174,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome) {
+            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
                 def vendor = vendors[Integer.valueOf(javaHome.name.substring(2))]
                 def metadata = newMetadata(new File("/path/8"), vendor)
-                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory()))
+                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input))
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
@@ -175,6 +191,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.isPresent()
         toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.BELLSOFT
+        toolchain.get().vendor == "BellSoft Liberica"
     }
 
     def "install toolchain if no matching toolchain found"() {
@@ -228,10 +245,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
-            Optional<JavaToolchain> newInstance(File javaHome) {
+            Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
-                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory())
+                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input)
                     return Optional.of(toolchain)
                 }
                 return Optional.empty()

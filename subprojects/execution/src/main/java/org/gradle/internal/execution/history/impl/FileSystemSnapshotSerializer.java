@@ -23,9 +23,9 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.PathTracker;
@@ -97,8 +97,8 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
                     break;
                 case DIR_CLOSE:
                     HashCode merkleHash = readHashCode(decoder);
-                    List<CompleteFileSystemLocationSnapshot> children = stack.pop();
-                    stack.add(new CompleteDirectorySnapshot(internedAbsolutePath, internedName, accessType, merkleHash, children));
+                    List<FileSystemLocationSnapshot> children = stack.pop();
+                    stack.add(new DirectorySnapshot(internedAbsolutePath, internedName, accessType, merkleHash, children));
                     break;
                 default:
                     throw new AssertionError();
@@ -111,7 +111,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
     public void write(Encoder encoder, FileSystemSnapshot value) throws Exception {
         value.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
-            public void enterDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
+            public void enterDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
                 try {
                     writeEntryType(encoder, EntryType.DIR_OPEN);
                     writePath(encoder, isRoot, directorySnapshot);
@@ -121,8 +121,8 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
             }
 
             @Override
-            public SnapshotVisitResult visitEntry(CompleteFileSystemLocationSnapshot snapshot, boolean isRoot) {
-                snapshot.accept(new CompleteFileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
+                snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
                     @Override
                     public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
                         try {
@@ -153,7 +153,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
             }
 
             @Override
-            public void leaveDirectory(CompleteDirectorySnapshot directorySnapshot, boolean isRoot) {
+            public void leaveDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
                 try {
                     writeEntryType(encoder, EntryType.DIR_CLOSE);
                     writeAccessType(encoder, directorySnapshot.getAccessType());
@@ -166,7 +166,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
         encoder.writeByte((byte) EntryType.END.ordinal());
     }
 
-    private static void writePath(Encoder encoder, boolean isRoot, CompleteFileSystemLocationSnapshot snapshot) throws IOException {
+    private static void writePath(Encoder encoder, boolean isRoot, FileSystemLocationSnapshot snapshot) throws IOException {
         encoder.writeString(isRoot ? snapshot.getAbsolutePath() : snapshot.getName());
     }
 
@@ -195,22 +195,22 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
     }
 
     private static class SnapshotStack {
-        private final Deque<List<CompleteFileSystemLocationSnapshot>> stack = new ArrayDeque<>();
+        private final Deque<List<FileSystemLocationSnapshot>> stack = new ArrayDeque<>();
 
         public void push() {
             stack.addLast(new ArrayList<>());
         }
 
-        public void add(CompleteFileSystemLocationSnapshot entry) {
-            List<CompleteFileSystemLocationSnapshot> current = stack.peekLast();
+        public void add(FileSystemLocationSnapshot entry) {
+            List<FileSystemLocationSnapshot> current = stack.peekLast();
             if (current == null) {
                 throw new IllegalStateException("Stack empty");
             }
             current.add(entry);
         }
 
-        public List<CompleteFileSystemLocationSnapshot> pop() {
-            List<CompleteFileSystemLocationSnapshot> popped = stack.pollLast();
+        public List<FileSystemLocationSnapshot> pop() {
+            List<FileSystemLocationSnapshot> popped = stack.pollLast();
             if (popped == null) {
                 throw new IllegalStateException("Stack empty");
             }

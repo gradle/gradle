@@ -74,8 +74,8 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
 
         processClasspathChanges(current, previous, spec);
         processOtherChanges(current, previous, spec);
-
-        spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
+        Set<String> typesToReprocess = previous.getTypesToReprocess();
+        spec.addClassesToProcess(typesToReprocess);
         return spec;
     }
 
@@ -143,7 +143,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 String relativeFilePath = fileChange.getNormalizedPath();
 
                 Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
-                spec.getRelativeSourcePathsToCompile().add(relativeFilePath);
+                spec.addRelativeSourcePathsToCompile(relativeFilePath);
                 sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
             } else {
                 if (emptyAnnotationProcessorPath) {
@@ -160,7 +160,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
             }
 
             Optional<String> relativeSourceFile = sourceFileClassNameConverter.getRelativeSourcePath(className);
-            relativeSourceFile.ifPresent(s -> spec.getRelativeSourcePathsToCompile().add(s));
+            relativeSourceFile.ifPresent(spec::addRelativeSourcePathsToCompile);
         }
     }
 

@@ -49,12 +49,12 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
 
         val testedVersions = previousVersions.filter { it.gradleVersion() >= lowestTestedVersion }
         // Only use latest patch release of each Gradle version
-        mainTestedVersions = testedVersions.map { VersionNumber.parse(it.gradleVersion().version) }
+        allTestedVersions = testedVersions.map { VersionNumber.parse(it.gradleVersion().version) }
             .groupBy { "${it.major}.${it.minor}" }
             .map { (_, v) -> v.max()!!.format() }
 
         // Limit to first and last release of each major version
-        allTestedVersions = testedVersions.map { VersionNumber.parse(it.gradleVersion().version) }
+        mainTestedVersions = testedVersions.map { VersionNumber.parse(it.gradleVersion().version) }
             .groupBy { it.major }
             .map { (_, v) -> listOf(v.min()!!.format(), v.max()!!.format()) }.flatten()
     }

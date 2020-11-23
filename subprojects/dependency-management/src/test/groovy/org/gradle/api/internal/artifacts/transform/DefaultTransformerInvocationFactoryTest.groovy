@@ -45,7 +45,7 @@ import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
-import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
+import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
@@ -56,6 +56,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.service.ServiceRegistry
@@ -135,14 +136,15 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         outputFilesRepository,
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),
-        new DefaultTimeoutHandler(null),
+        Mock(TimeoutHandler),
         { String behavior ->
             DeprecationLogger.deprecateBehaviour(behavior)
                 .willBeRemovedInGradle7()
                 .undocumented()
                 .nagUser()
         },
-        valueSnapshotter
+        valueSnapshotter,
+        new CurrentBuildOperationRef()
     )
 
     def invoker = new DefaultTransformerInvocationFactory(

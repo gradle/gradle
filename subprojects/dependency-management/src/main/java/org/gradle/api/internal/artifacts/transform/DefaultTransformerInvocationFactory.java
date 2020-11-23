@@ -49,7 +49,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -121,7 +121,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         // This could be injected directly to DefaultTransformerInvocationFactory, too
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(transformer.getInputArtifactDependenciesNormalizer(), transformer.getInputArtifactDependenciesDirectorySensitivity()));
 
-        CompleteFileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
+        FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
 
@@ -161,13 +161,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         });
     }
 
-    private static UnitOfWork.Identity getTransformationIdentity(@Nullable ProjectInternal project, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static UnitOfWork.Identity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return project == null
             ? getImmutableTransformationIdentity(inputArtifactPath, inputArtifactSnapshot, transformer, dependenciesFingerprint)
             : getMutableTransformationIdentity(inputArtifactSnapshot, transformer, dependenciesFingerprint);
     }
 
-    private static UnitOfWork.Identity getImmutableTransformationIdentity(String inputArtifactPath, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static UnitOfWork.Identity getImmutableTransformationIdentity(String inputArtifactPath, FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new ImmutableTransformationWorkspaceIdentity(
             inputArtifactPath,
             inputArtifactSnapshot.getHash(),
@@ -176,7 +176,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         );
     }
 
-    private static UnitOfWork.Identity getMutableTransformationIdentity(CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static UnitOfWork.Identity getMutableTransformationIdentity(FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new MutableTransformationWorkspaceIdentity(
             inputArtifactSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash(),
@@ -213,7 +213,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final Transformer transformer;
         private final File inputArtifact;
         private final UnitOfWork.Identity identity;
-        private final CompleteFileSystemLocationSnapshot inputArtifactSnapshot;
+        private final FileSystemLocationSnapshot inputArtifactSnapshot;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
@@ -229,7 +229,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             Transformer transformer,
             UnitOfWork.Identity identity,
             File inputArtifact,
-            CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
+            FileSystemLocationSnapshot inputArtifactSnapshot,
             ArtifactTransformDependencies dependencies,
             CurrentFileCollectionFingerprint dependenciesFingerprint,
 

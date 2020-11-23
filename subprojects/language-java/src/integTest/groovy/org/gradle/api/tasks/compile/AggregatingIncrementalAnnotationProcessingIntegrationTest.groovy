@@ -16,11 +16,15 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
+import org.gradle.language.fixtures.AnnotatedGeneratedClassProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.ResourceGeneratingProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
+import spock.lang.Issue
+import spock.lang.Unroll
 
 import javax.tools.StandardLocation
 
@@ -114,6 +118,94 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.recompiledFiles("ServiceRegistry", "ServiceRegistryResource.txt")
         serviceRegistryReferences("B")
         !serviceRegistryReferences("A")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13767")
+    @Unroll
+    def "generated files with annotations are not reprocessed when a file is added (#label)"() {
+        def fixture = new AnnotatedGeneratedClassProcessorFixture()
+        if (generateClass) {
+            fixture.generateClassFile = true
+        }
+        withProcessor(fixture)
+
+        buildFile << """
+            repositories {
+                ${fixture.repositoriesBlock}
+            }
+        """
+
+        makeGeneratedClassFilesAccessible()
+
+        java "@Bean class A {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        java "@Bean class B {}"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("AHelper", "B", "BHelper", "ServiceRegistry", "ServiceRegistryResource.txt")
+        serviceRegistryReferences("AHelper", "BHelper")
+
+        where:
+        generateClass | label
+        false         | "generate source files"
+        true          | "generate class files"
+    }
+
+    private void makeGeneratedClassFilesAccessible() {
+        // On Java 8 and earlier, generated classes are not automatically
+        // available to the compile classpath so we need to expose them
+        // manually
+        if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
+            buildFile << """
+                tasks.withType(JavaCompile).configureEach {
+                    classpath += files("\${buildDir}/classes/java/main")
+                }
+            """
+        }
+    }
+
+
+    @Unroll
+    def "generated files with annotations are reprocessed when a file is deleted (#label)"() {
+        def fixture = new AnnotatedGeneratedClassProcessorFixture()
+        if (generateClass) {
+            fixture.generateClassFile = true
+        }
+        withProcessor(fixture)
+
+        buildFile << """
+            repositories {
+                ${fixture.repositoriesBlock}
+            }
+        """
+
+        makeGeneratedClassFilesAccessible()
+
+        def a = java "@Bean class A {}"
+        java "@Bean class B {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.delete()
+        run "compileJava"
+
+        then:
+        outputs.deletedClasses("A", "AHelper")
+        outputs.recompiledFiles("ServiceRegistry", "ServiceRegistryResource.txt", "BHelper")
+        serviceRegistryReferences("BHelper")
+        !serviceRegistryReferences("AHelper")
+
+        where:
+        generateClass | label
+        false         | "generate source files"
+        true          | "generate class files"
     }
 
     def "classes depending on generated file are recompiled when source file changes"() {

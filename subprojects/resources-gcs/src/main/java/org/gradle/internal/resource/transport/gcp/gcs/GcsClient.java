@@ -140,7 +140,10 @@ public class GcsClient {
             do {
                 objects = listRequest.execute();
                 // Add the items in this page of results to the list we'll return.
-                results.addAll(objects.getItems());
+                // GCS API will return null on an empty list.
+                if(objects.getItems() != null) {
+                    results.addAll(objects.getItems());
+                }
 
                 // Get the next page, in the next iteration of this loop.
                 listRequest.setPageToken(objects.getNextPageToken());

@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -54,6 +55,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildController.class);
     private final IncludedBuildState includedBuild;
     private final ResourceLockCoordinationService coordinationService;
+    private final ProjectStateRegistry projectStateRegistry;
 
     private enum State {
         CollectingTasks, RunningTasks
@@ -68,9 +70,10 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private State state = State.CollectingTasks;
     private boolean stopRequested;
 
-    public DefaultIncludedBuildController(IncludedBuildState includedBuild, ResourceLockCoordinationService coordinationService) {
+    public DefaultIncludedBuildController(IncludedBuildState includedBuild, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
         this.includedBuild = includedBuild;
         this.coordinationService = coordinationService;
+        this.projectStateRegistry = projectStateRegistry;
     }
 
     @Override
@@ -131,16 +134,19 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     @Override
     public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
-        lock.lock();
-        try {
-            while (state == State.RunningTasks) {
-                awaitStateChange();
+        // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
+        projectStateRegistry.blocking(() -> {
+            lock.lock();
+            try {
+                while (state == State.RunningTasks) {
+                    awaitStateChange();
+                }
+                taskFailures.addAll(this.taskFailures);
+                this.taskFailures.clear();
+            } finally {
+                lock.unlock();
             }
-            taskFailures.addAll(this.taskFailures);
-            this.taskFailures.clear();
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     @Override

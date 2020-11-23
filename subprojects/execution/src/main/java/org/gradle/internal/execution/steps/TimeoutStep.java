@@ -24,19 +24,24 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.timeout.Timeout;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import java.time.Duration;
 import java.util.Optional;
 
 public class TimeoutStep<C extends Context> implements Step<C, Result> {
+
     private final TimeoutHandler timeoutHandler;
+    private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Step<? super C, ? extends Result> delegate;
 
     public TimeoutStep(
         TimeoutHandler timeoutHandler,
+        CurrentBuildOperationRef currentBuildOperationRef,
         Step<? super C, ? extends Result> delegate
     ) {
         this.timeoutHandler = timeoutHandler;
+        this.currentBuildOperationRef = currentBuildOperationRef;
         this.delegate = delegate;
     }
 
@@ -55,7 +60,7 @@ public class TimeoutStep<C extends Context> implements Step<C, Result> {
     }
 
     private Result executeWithTimeout(UnitOfWork work, C context, Duration timeout) {
-        Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout);
+        Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout, work, currentBuildOperationRef.get());
         try {
             return executeWithoutTimeout(work, context);
         } finally {

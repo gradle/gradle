@@ -129,10 +129,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.api.internal.std.DefaultDependenciesAccessors;
-import org.gradle.api.internal.std.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -141,7 +138,6 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
@@ -173,6 +169,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
+import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
@@ -183,7 +180,6 @@ import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -192,7 +188,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -204,6 +199,7 @@ import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -257,16 +253,14 @@ class DependencyManagementBuildScopeServices {
                                                                                     FileResolver fileResolver,
                                                                                     FileCollectionFactory fileCollectionFactory,
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                                                    ObjectFactory objects,
-                                                                                    ProviderFactory providers) {
+                                                                                    ObjectFactory objects) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
             dependencyMetaDataProvider,
-            objects,
-            providers
+            objects
         );
     }
 
@@ -313,8 +307,8 @@ class DependencyManagementBuildScopeServices {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner),
+            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner, attributesFactory, capabilityNotationParser),
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             capabilityNotationParser, projectDependencyFactory,
             attributesFactory);
@@ -739,16 +733,6 @@ class DependencyManagementBuildScopeServices {
         });
     }
 
-    DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry,
-                                                              DependenciesAccessorsWorkspaceProvider workspace,
-                                                              DefaultProjectDependencyFactory factory,
-                                                              ExecutionEngine executionEngine,
-                                                              FeaturePreviews featurePreviews,
-                                                              FileCollectionFactory fileCollectionFactory,
-                                                              ClasspathFingerprinter fingerprinter) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory, fingerprinter);
-    }
-
 
     /**
      * Execution engine for usage above Gradle scope
@@ -757,6 +741,7 @@ class DependencyManagementBuildScopeServices {
      */
     ExecutionEngine createExecutionEngine(
             BuildOperationExecutor buildOperationExecutor,
+            CurrentBuildOperationRef currentBuildOperationRef,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             Deleter deleter,
             ExecutionStateChangeDetector changeDetector,
@@ -783,9 +768,9 @@ class DependencyManagementBuildScopeServices {
             new SkipUpToDateStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreExecutionStateStep<>(
-            new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
             new CreateOutputsStep<>(
-            new TimeoutStep<>(timeoutHandler,
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor

@@ -84,7 +84,7 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
 
             @Override
             public FileSystemNode mergeWithExisting(FileSystemNode child) {
-                if (snapshot instanceof CompleteFileSystemLocationSnapshot || !child.getSnapshot().map(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot).orElse(false)) {
+                if (snapshot instanceof FileSystemLocationSnapshot || !child.getSnapshot().map(oldSnapshot -> oldSnapshot instanceof FileSystemLocationSnapshot).orElse(false)) {
                     FileSystemNode newChild = snapshot.asFileSystemNode();
                     diffListener.nodeRemoved(child);
                     diffListener.nodeAdded(newChild);

@@ -1,0 +1,52 @@
+@startuml
+
+skinparam monochrome true
+skinparam component {
+    BackgroundColor white
+    BorderColor Black
+	ArrowColor Black
+}
+
+database "External Repository" {
+  [Spring Boot\nFramework] as SpringBoot
+  [Android\nFramework] as Android
+}
+
+package "Application Layer" {
+  [server-application]
+  [android-app]
+}
+
+package "Business Logic Layer" {
+  [user-feature]
+  [admin-feature]
+}
+
+package "Domain Model Layer" {
+  [domain-model] <-right- [state]
+}
+
+[server-application] -down-> [user-feature]
+[server-application] -down-> [admin-feature]
+[android-app] -down-> [user-feature]
+
+[user-feature] -down-> [domain-model]
+[user-feature] -down-> [state]
+
+[admin-feature] -down-> [domain-model]
+[admin-feature] -down-> [state]
+
+[server-application] -down-> [SpringBoot]
+[android-app] -down-> [Android]
+
+folder {
+   [build-logic]
+}
+folder {
+   [platforms]
+}
+folder {
+    [aggregation]
+}
+
+@enduml

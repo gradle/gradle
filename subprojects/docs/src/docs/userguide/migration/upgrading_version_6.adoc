@@ -45,11 +45,14 @@ The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is n
 ==== Updates to default tool integration versions
 
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
+- Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.37[Checkstyle 8.37].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v2.0.0/CHANGELOG.md[CodeNarc 2.0.0].
 
 ==== Updates to bundled Gradle dependencies
 
-- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/08/kotlin-1-4-released-with-a-focus-on-quality-and-performance/[Kotlin 1.4.10].
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/08/kotlin-1-4-released-with-a-focus-on-quality-and-performance/[Kotlin 1.4.20].
   Note that Gradle scripts are still using the Kotlin 1.3 language.
+- Apache Ant has been updated to 1.10.9 to fix https://github.com/gradle/gradle/security/advisories/GHSA-j45w-qrgf-25vm[CVE-2020-11979]
 
 ==== Projects imported into Eclipse now include custom source set classpaths
 

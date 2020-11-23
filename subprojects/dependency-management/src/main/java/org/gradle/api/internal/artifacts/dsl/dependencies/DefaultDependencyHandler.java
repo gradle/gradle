@@ -26,27 +26,28 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.ExternalModuleDependencyVariantSpec;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
-import org.gradle.api.internal.std.DependencyBundleValueSource;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
@@ -57,6 +58,7 @@ import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -176,12 +178,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
-            Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
-            if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
-                return doAddListProvider(configuration, dependencyNotation, configureClosure);
-            }
-        }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
@@ -388,6 +384,15 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return testFixturesDependency;
     }
 
+    @Override
+    public Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
+        return dependencyProvider.map(dep -> {
+            DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
+            variantSpec.execute(spec);
+            return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
+        });
+    }
+
     private Category toCategory(String category) {
         return objects.named(Category.class, category);
     }
@@ -398,6 +403,42 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         @SuppressWarnings("rawtypes")
         public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {
             return doAdd(configuration, dependencyNotation, configureAction);
+        }
+    }
+
+    public static class DefaultExternalModuleDependencyVariantSpec implements ExternalModuleDependencyVariantSpec {
+
+        private final ObjectFactory objects;
+        private final MinimalExternalModuleDependency dep;
+        private Action<? super AttributeContainer> attributesAction = null;
+        private Action<ModuleDependencyCapabilitiesHandler> capabilitiesMutator = null;
+        private String classifier;
+        private String artifactType;
+
+        @Inject
+        public DefaultExternalModuleDependencyVariantSpec(ObjectFactory objects, MinimalExternalModuleDependency dep) {
+            this.objects = objects;
+            this.dep = dep;
+        }
+
+        @Override
+        public void platform() {
+            this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
+        }
+
+        @Override
+        public void testFixtures() {
+            this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new ImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+        }
+
+        @Override
+        public void classifier(String classifier) {
+            this.classifier = classifier;
+        }
+
+        @Override
+        public void artifactType(String artifactType) {
+            this.artifactType = artifactType;
         }
     }
 }

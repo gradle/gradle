@@ -47,6 +47,7 @@ import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
+import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
@@ -60,7 +61,6 @@ import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipEmptyWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -70,6 +70,7 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -149,7 +150,8 @@ public class ExecutionGradleServices {
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningReporter validationWarningReporter,
-        ValueSnapshotter valueSnapshotter
+        ValueSnapshotter valueSnapshotter,
+        CurrentBuildOperationRef currentBuildOperationRef
     ) {
         // @formatter:off
         return new DefaultExecutionEngine(
@@ -169,9 +171,9 @@ public class ExecutionGradleServices {
             new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(
-            new TimeoutStep<>(timeoutHandler,
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

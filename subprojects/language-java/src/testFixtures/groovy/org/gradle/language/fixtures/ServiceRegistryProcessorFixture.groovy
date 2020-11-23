@@ -57,7 +57,7 @@ try {
         writer.close();
     }
 } catch (IOException e) {
-    messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate source file " + className);
+    messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate source file " + className + ". " + e.getMessage());
 }
 """
         def resourceCode = writeResources ? """
@@ -75,7 +75,7 @@ try {
             writer.close();
         }
     } catch (Exception e) {
-        messager.printMessage(Diagnostic.Kind.ERROR, "Failed to write resource file .txt");
+        messager.printMessage(Diagnostic.Kind.ERROR, "Failed to write resource file .txt : " + e.getMessage());
     }
 """ : ""
 

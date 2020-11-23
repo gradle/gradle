@@ -30,7 +30,7 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -111,11 +111,11 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
             };
         }
 
-        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotUnpackedData(Map<String, ? extends CompleteFileSystemLocationSnapshot> treeSnapshots) {
+        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotUnpackedData(Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
             entity.visitOutputTrees((treeName, type, root) -> {
-                CompleteFileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
-                CompleteFileSystemLocationSnapshot resultingSnapshot;
+                FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
+                FileSystemLocationSnapshot resultingSnapshot;
                 if (treeSnapshot == null) {
                     String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
                     resultingSnapshot = new MissingFileSnapshot(internedAbsolutePath, AccessType.DIRECT);

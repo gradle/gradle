@@ -309,8 +309,6 @@ include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/k
 
 The plugin version in this case is defined in the dependency declaration.
 
-This limitation will be removed in future versions of Gradle.
-
 [[sec:writing_tests_for_your_plugin]]
 == Writing tests for your plugin
 

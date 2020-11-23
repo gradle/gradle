@@ -16,8 +16,6 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.io.Files;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
@@ -36,7 +34,6 @@ import java.util.EnumMap;
 public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     private final ExecHandleFactory execHandleFactory;
-    private final Supplier<File> probeClass = Suppliers.memoize(this::writeProbeClass);
 
     public DefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
@@ -45,44 +42,42 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     @Override
     public JvmInstallationMetadata getMetadata(File javaHome) {
         if (!javaHome.exists()) {
-            return JvmInstallationMetadata.failure(javaHome, "No such directory: " + javaHome);
+            return failure(javaHome, "No such directory: " + javaHome);
         }
         EnumMap<ProbedSystemProperty, String> metadata;
         if (Jvm.current().getJavaHome().equals(javaHome)) {
-            metadata = getMetadataFromCurrentJvm();
-        } else {
-            metadata = getMetadataFromInstallation(javaHome);
+            return getMetadataFromCurrentJvm(javaHome);
         }
-        return asMetadata(javaHome, metadata);
+        return getMetadataFromInstallation(javaHome);
     }
 
-    private EnumMap<ProbedSystemProperty, String> getMetadataFromCurrentJvm() {
+    private JvmInstallationMetadata getMetadataFromCurrentJvm(File javaHome) {
         EnumMap<ProbedSystemProperty, String> result = new EnumMap<>(ProbedSystemProperty.class);
         for (ProbedSystemProperty type : ProbedSystemProperty.values()) {
             if (type != ProbedSystemProperty.Z_ERROR) {
                 result.put(type, System.getProperty(type.getSystemPropertyKey()));
             }
         }
-        return result;
+        return asMetadata(javaHome, result);
     }
 
     private JvmInstallationMetadata asMetadata(File javaHome, EnumMap<ProbedSystemProperty, String> metadata) {
         String implementationVersion = metadata.get(ProbedSystemProperty.VERSION);
         if (implementationVersion == null) {
-            return JvmInstallationMetadata.failure(javaHome, metadata.get(ProbedSystemProperty.Z_ERROR));
+            return failure(javaHome, metadata.get(ProbedSystemProperty.Z_ERROR));
         }
         try {
             JavaVersion.toVersion(implementationVersion);
         } catch(IllegalArgumentException e) {
-            return JvmInstallationMetadata.failure(javaHome, "Cannot parse version number: " + implementationVersion);
+            return failure(javaHome, "Cannot parse version number: " + implementationVersion);
         }
         String vendor = metadata.get(ProbedSystemProperty.VENDOR);
         String implementationName = metadata.get(ProbedSystemProperty.VM);
         return JvmInstallationMetadata.from(javaHome, implementationVersion, vendor, implementationName);
     }
 
-    private EnumMap<ProbedSystemProperty, String> getMetadataFromInstallation(File jdkPath) {
-        File probe = probeClass.get();
+    private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
+        File probe = writeProbeClass();
         ExecHandleBuilder exec = execHandleFactory.newExec();
         exec.setWorkingDir(probe.getParentFile());
         exec.executable(javaExecutable(jdkPath));
@@ -97,11 +92,11 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             ExecResult result = exec.build().start().waitForFinish();
             int exitValue = result.getExitValue();
             if (exitValue == 0) {
-                return parseExecOutput(out.toString());
+                return parseExecOutput(jdkPath, out.toString());
             }
-            return error("Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput);
+            return failure(jdkPath, "Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput);
         } catch (ExecException ex) {
-            return error(ex.getMessage());
+            return failure(jdkPath, ex);
         }
     }
 
@@ -110,10 +105,11 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         return new File(new File(jdkPath, "bin"), OperatingSystem.current().getExecutableName("java"));
     }
 
-    private static EnumMap<ProbedSystemProperty, String> parseExecOutput(String probeResult) {
+    private JvmInstallationMetadata parseExecOutput(File jdkPath, String probeResult) {
         String[] split = probeResult.split(System.getProperty("line.separator"));
         if (split.length != ProbedSystemProperty.values().length - 1) { // -1 because of Z_ERROR
-            return error("Unexpected command output: \n" + probeResult);
+            final String errorMessage = "Unexpected command output: \n" + probeResult;
+            return failure(jdkPath, errorMessage);
         }
         EnumMap<ProbedSystemProperty, String> result = new EnumMap<>(ProbedSystemProperty.class);
         for (ProbedSystemProperty type : ProbedSystemProperty.values()) {
@@ -121,13 +117,15 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, split[type.ordinal()].trim());
             }
         }
-        return result;
+        return asMetadata(jdkPath, result);
     }
 
-    private static EnumMap<ProbedSystemProperty, String> error(String message) {
-        EnumMap<ProbedSystemProperty, String> result = new EnumMap<>(ProbedSystemProperty.class);
-        result.put(ProbedSystemProperty.Z_ERROR, message);
-        return result;
+    private JvmInstallationMetadata failure(File jdkPath, String errorMessage) {
+        return JvmInstallationMetadata.failure(jdkPath, errorMessage);
+    }
+
+    private JvmInstallationMetadata failure(File jdkPath, Exception cause) {
+        return JvmInstallationMetadata.failure(jdkPath, cause.getMessage());
     }
 
     private File writeProbeClass() {

@@ -43,10 +43,10 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         allProjects.allIdeaProjects.collect { it.name } == ['module-main', 'module-b']
 
         allProjects.rootIdeaProject.name == 'module-main'
-        allProjects.rootIdeaProject.modules.collect { it.name } == ['module-main', 'module-b']
+        allProjects.rootIdeaProject.modules.collect { it.name } == ['module-main', 'module-main-module-b']
 
-        allProjects.getIdeaProject('module-main').modules.collect { it.name } == ['module-main', 'module-b']
-        allProjects.getIdeaProject('module-b').modules.collect { it.name } == ['included-module-b']
+        allProjects.getIdeaProject('module-main').modules.collect { it.name } == ['module-main', 'module-main-module-b']
+        allProjects.getIdeaProject('module-b').modules.collect { it.name } == ['module-main-included-module-b']
         allProjects.getIdeaProject('module-b').modules.first().contentRoots.first().rootDirectory.parentFile.name == 'subfolder'
     }
 
@@ -64,7 +64,7 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         def eclipseProjects = withConnection { action(new FetchEclipseProjects()).run() }
 
         then:
-        eclipseProjects.collect { it.name } == ['module-main', 'module-b', 'included-module-b']
+        eclipseProjects.collect { it.name } == ['module-main', 'module-main-module-b', 'module-main-included-module-b']
     }
 
     def "name conflict between two included builds does not break IDEA import"() {
@@ -88,8 +88,8 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         allProjects.rootIdeaProject.modules.collect { it.name } == ['module-main']
 
         allProjects.getIdeaProject('module-main').modules.collect { it.name } == ['module-main']
-        includedBuildProjects[0].modules.collect { it.name } == ['module-b-1']
-        includedBuildProjects[1].modules.collect { it.name } == ['module-b-2']
+        includedBuildProjects[0].modules.collect { it.name } == ['module-main-module-b-1']
+        includedBuildProjects[1].modules.collect { it.name } == ['module-main-module-b-2']
         includedBuildProjects[0].modules.first().contentRoots.first().rootDirectory.parentFile.name == 'subfolder1'
         includedBuildProjects[1].modules.first().contentRoots.first().rootDirectory.parentFile.name == 'subfolder2'
     }
@@ -108,6 +108,51 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         def eclipseProjects = withConnection { action(new FetchEclipseProjects()).run() }
 
         then:
-        eclipseProjects.collect { it.name } == ['module-main', 'module-b-1', 'module-b-2']
+        eclipseProjects.collect { it.name } == ['module-main', 'module-main-module-b-1', 'module-main-module-b-2']
+    }
+
+    def "uses name given to included build as IDEA module name if there is no name conflict"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'module-main'
+            includeBuild('module-b-folder')
+        """
+        file('module-b-folder').mkdir()
+        file('module-b-folder/settings.gradle') << """
+            rootProject.name = 'module-b-name'
+        """
+
+        when:
+        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+
+        then:
+        allProjects.allIdeaProjects.collect { it.name } == ['module-main', 'module-b-name']
+
+        allProjects.getIdeaProject('module-main').modules.collect { it.name } == ['module-main']
+        allProjects.getIdeaProject('module-b-folder') == null
+        allProjects.getIdeaProject('module-b-name').modules.collect { it.name } == ['module-b-name']
+    }
+
+    def "can resolve name conflict between subproject and included build by using the identity name of the included build"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'module-main'
+            includeBuild('module-b-folder')
+            include('module-b-name')
+        """
+        file('module-b-folder').mkdir()
+        file('module-b-folder/settings.gradle') << """
+            rootProject.name = 'module-b-name'
+        """
+
+        when:
+        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+
+        then:
+        allProjects.allIdeaProjects.collect { it.name } == ['module-main', 'module-b-name']
+
+        allProjects.getIdeaProject('module-main').modules.collect { it.name } == ['module-main', 'module-main-module-b-name']
+        allProjects.getIdeaProject('module-b-folder') == null
+        allProjects.getIdeaProject('module-b-name').modules.collect { it.name } == ['module-main-module-b-folder']
     }
 }

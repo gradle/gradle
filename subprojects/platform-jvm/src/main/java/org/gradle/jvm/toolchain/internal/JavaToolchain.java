@@ -20,8 +20,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileFactory;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
@@ -31,7 +31,6 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.VersionNumber;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
@@ -42,15 +41,21 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     private final VersionNumber implementationVersion;
     private final JavaLanguageVersion javaVersion;
     private final JvmInstallationMetadata metadata;
+    private final JavaToolchainInput input;
 
-    @Inject
-    public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
+    public JavaToolchain(JvmInstallationMetadata metadata, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory, JavaToolchainInput input) {
         this.javaHome = fileFactory.dir(computeEnclosingJavaHome(metadata.getJavaHome()).toFile());
         this.javaVersion = JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
         this.implementationVersion = VersionNumber.parse(metadata.getImplementationVersion());
         this.metadata = metadata;
+        this.input = input;
+    }
+
+    @Nested
+    protected JavaToolchainInput getTaskInputs() {
+        return input;
     }
 
     @Internal
@@ -68,7 +73,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return toolFactory.create(JavadocTool.class, this);
     }
 
-    @Input
+    @Internal
     public JavaLanguageVersion getLanguageVersion() {
         return javaVersion;
     }
@@ -91,6 +96,11 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Internal
     public JvmInstallationMetadata getMetadata() {
         return metadata;
+    }
+
+    @Override
+    public String getVendor() {
+        return metadata.getVendor().getDisplayName();
     }
 
     @Internal
