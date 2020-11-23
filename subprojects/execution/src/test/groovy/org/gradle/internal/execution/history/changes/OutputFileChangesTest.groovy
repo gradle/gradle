@@ -16,16 +16,14 @@
 
 package org.gradle.internal.execution.history.changes
 
-import org.apache.commons.io.FilenameUtils
-import org.gradle.internal.file.FileMetadata
+
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.TestSnapshotFixture
 import spock.lang.Specification
 
-import static org.gradle.internal.file.impl.DefaultFileMetadata.file
-import static org.gradle.internal.hash.HashCode.fromInt
+import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 
-class OutputFileChangesTest extends Specification {
+class OutputFileChangesTest extends Specification implements TestSnapshotFixture {
 
     def "empties"() {
         expect:
@@ -38,8 +36,8 @@ class OutputFileChangesTest extends Specification {
     def "trivial equality"() {
         expect:
         changes(
-            fileSnapshot("one"),
-            fileSnapshot("one")
+            regularFile("one", DIRECT, 1234),
+            regularFile("one", DIRECT, 1234)
         ) == []
     }
 
@@ -47,14 +45,14 @@ class OutputFileChangesTest extends Specification {
         expect:
         changes(
             FileSystemSnapshot.EMPTY,
-            fileSnapshot("two")
+            regularFile("two")
         ) == [added("two")]
     }
 
     def "trivial removal"() {
         expect:
         changes(
-            fileSnapshot("one"),
+            regularFile("one"),
             FileSystemSnapshot.EMPTY
         ) == [removed("one")]
     }
@@ -62,16 +60,16 @@ class OutputFileChangesTest extends Specification {
     def "trivial absolute path change"() {
         expect:
         changes(
-            fileSnapshot("one"),
-            fileSnapshot("two")
+            regularFile("one"),
+            regularFile("two")
         ) == [removed("one"), added("two")]
     }
 
     def "trivial content change"() {
         expect:
         changes(
-            fileSnapshot("one", 1234),
-            fileSnapshot("one", 2345)
+            regularFile("one", DIRECT, 1234),
+            regularFile("one", DIRECT, 2345)
         ) == [modified("one")]
     }
 
@@ -79,15 +77,6 @@ class OutputFileChangesTest extends Specification {
         def visitor = new CollectingChangeVisitor()
         OutputFileChanges.COMPARE_STRATEGY.visitChangesSince(previousSnapshot, currentSnapshot, "test", visitor)
         visitor.getChanges().toList()
-    }
-
-    def fileSnapshot(String absolutePath, hash = 1234) {
-        new RegularFileSnapshot(
-            FilenameUtils.separatorsToSystem(absolutePath),
-            FilenameUtils.getName(absolutePath),
-            fromInt(hash),
-            file(5, 5, FileMetadata.AccessType.DIRECT)
-        )
     }
 
     def added(String path) {
