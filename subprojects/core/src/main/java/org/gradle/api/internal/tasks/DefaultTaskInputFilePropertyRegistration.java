@@ -104,6 +104,12 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
+    public TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreDirectories) {
+        this.directorySensitivity = ignoreDirectories ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT;
+        return this;
+    }
+
+    @Override
     public String toString() {
         return getPropertyName() + " (" + getNormalizer().getSimpleName().replace("Normalizer", "") + ")";
     }

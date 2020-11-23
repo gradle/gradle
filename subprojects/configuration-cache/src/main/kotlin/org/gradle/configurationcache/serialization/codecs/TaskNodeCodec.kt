@@ -403,9 +403,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         optional(optional)
                         skipWhenEmpty(skipWhenEmpty)
                         withNormalizer(normalizer.uncheckedCast())
-                        if (directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES) {
-                            ignoreEmptyDirectories()
-                        }
+                        ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
                     }
                 }
                 else -> {
