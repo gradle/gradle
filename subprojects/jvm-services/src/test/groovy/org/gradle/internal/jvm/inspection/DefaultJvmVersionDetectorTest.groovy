@@ -16,12 +16,14 @@
 
 package org.gradle.internal.jvm.inspection
 
+import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
 class DefaultJvmVersionDetectorTest extends Specification {
+
     def detector = new DefaultJvmVersionDetector(new DefaultJvmMetadataDetector(TestFiles.execHandleFactory()))
 
     def "can determine version of current jvm"() {
@@ -32,6 +34,26 @@ class DefaultJvmVersionDetectorTest extends Specification {
     def "can determine version of java command for current jvm"() {
         expect:
         detector.getJavaVersion(Jvm.current().getJavaExecutable().path) == JavaVersion.current()
+    }
+
+    def "fails for invalid jvm"() {
+        given:
+        def cause = new NullPointerException("cause");
+        def metadataDetector = Mock(JvmMetadataDetector) {
+            getMetadata(_ as File) >> {
+                return JvmInstallationMetadata.failure(new File("invalid"), cause)
+            }
+        }
+        def detector = new DefaultJvmVersionDetector(metadataDetector)
+
+        when:
+        detector.getJavaVersion(Jvm.current())
+
+        then:
+        def e = thrown(GradleException)
+        e.message.contains("Unable to determine version for JDK located")
+        e.message.contains("invalid")
+        e.cause == cause
     }
 
 }

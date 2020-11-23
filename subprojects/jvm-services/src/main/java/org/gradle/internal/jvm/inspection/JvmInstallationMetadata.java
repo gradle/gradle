@@ -21,6 +21,7 @@ import com.google.common.base.Suppliers;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.os.OperatingSystem;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -38,7 +39,11 @@ public interface JvmInstallationMetadata {
     }
 
     static JvmInstallationMetadata failure(File javaHome, String errorMessage) {
-        return new FailureInstallationMetadata(javaHome, errorMessage);
+        return new FailureInstallationMetadata(javaHome, errorMessage, null);
+    }
+
+    static JvmInstallationMetadata failure(File javaHome, Exception cause) {
+        return new FailureInstallationMetadata(javaHome, cause.getMessage(), cause);
     }
 
     JavaVersion getLanguageVersion();
@@ -54,6 +59,8 @@ public interface JvmInstallationMetadata {
     boolean hasCapability(JavaInstallationCapability capability);
 
     String getErrorMessage();
+
+    Throwable getErrorCause();
 
     boolean isValidInstallation();
 
@@ -145,6 +152,11 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
+        public Throwable getErrorCause() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public boolean isValidInstallation() {
             return true;
         }
@@ -154,10 +166,13 @@ public interface JvmInstallationMetadata {
 
         private final File javaHome;
         private final String errorMessage;
+        @Nullable
+        private final Exception cause;
 
-        private FailureInstallationMetadata(File javaHome, String errorMessage) {
+        private FailureInstallationMetadata(File javaHome, String errorMessage, @Nullable Exception cause) {
             this.javaHome = javaHome;
             this.errorMessage = errorMessage;
+            this.cause = cause;
         }
 
         @Override
@@ -197,6 +212,11 @@ public interface JvmInstallationMetadata {
         @Override
         public String getErrorMessage() {
             return errorMessage;
+        }
+
+        @Override
+        public Throwable getErrorCause() {
+            return cause;
         }
 
         @Override
