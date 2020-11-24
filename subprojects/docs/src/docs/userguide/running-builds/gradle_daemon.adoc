@@ -49,20 +49,14 @@ Currently, a given Gradle version can only connect to daemons of the same versio
 [[sec:disabling_the_daemon]]
 == Disabling the Daemon
 
-The Gradle Daemon is enabled by default, and we recommend always enabling it. There are several ways to disable the Daemon, but the most common one is to add the line
+The Gradle Daemon is enabled by default, and we recommend always enabling it. You can disable the long-lived Gradle daemon via the `--no-daemon` command-line option, or by adding `org.gradle.daemon=false` to your `gradle.properties` file. You can find details of other ways to disable (and enable) the Daemon in <<#daemon_faq,Daemon FAQ>> further down.
 
-[source]
-----
-org.gradle.daemon=false
-----
+[NOTE]
+====
 
-to the file `«USER_HOME»/.gradle/gradle.properties`, where `«USER_HOME»` is your home directory. That’s typically one of the following, depending on your platform:
+In order to honour the required JVM options for your build, Gradle will normally spawn a separate process for build invocation, even when the Daemon is disabled. You can prevent this "single-use Daemon" by ensuring that the JVM settings for the client VM match those required for the build VM. See <<build_environment.adoc#sec:configuring_jvm_memory,Configuring JVM Memory>> for more details.
 
-* `C:\Users\<username>` (Windows Vista & 7+)
-* `/Users/<username>` (macOS)
-* `/home/<username>` (Linux)
-
-If that file doesn’t exist, just create it using a text editor. You can find details of other ways to disable (and enable) the Daemon in <<#daemon_faq,Daemon FAQ>> further down. That section also contains more detailed information on how the Daemon works.
+====
 
 Note that having the Daemon enabled, all your builds will take advantage of the speed boost, regardless of the version of Gradle a particular build uses.
 
