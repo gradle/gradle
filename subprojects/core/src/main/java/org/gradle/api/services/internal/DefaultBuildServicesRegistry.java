@@ -73,7 +73,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public SharedResource forService(Provider<? extends BuildService<?>> service) {
-        if (!(service instanceof BuildServiceProvider)) {
+        if (!(service instanceof DefaultBuildServiceProvider)) {
             throw new IllegalArgumentException("The given provider is not a build service provider.");
         }
         BuildServiceProvider<?, ?> provider = (BuildServiceProvider<?, ?>) service;
@@ -134,7 +134,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         P parameters,
         @Nullable Integer maxParallelUsages
     ) {
-        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(
+        DefaultBuildServiceProvider<T, P> provider = new DefaultBuildServiceProvider<>(
             buildIdentifier,
             name,
             implementationType,
@@ -180,10 +180,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     public static abstract class DefaultServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> implements BuildServiceRegistration<T, P> {
         private final String name;
         private final P parameters;
-        private final BuildServiceProvider<T, P> provider;
+        private final DefaultBuildServiceProvider<T, P> provider;
         private SharedResource resourceWrapper;
 
-        public DefaultServiceRegistration(String name, P parameters, BuildServiceProvider<T, P> provider) {
+        public DefaultServiceRegistration(String name, P parameters, DefaultBuildServiceProvider<T, P> provider) {
             this.name = name;
             this.parameters = parameters;
             this.provider = provider;
@@ -232,9 +232,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private static class ServiceCleanupListener extends BuildAdapter {
-        private final BuildServiceProvider<?, ?> provider;
+        private final DefaultBuildServiceProvider<?, ?> provider;
 
-        ServiceCleanupListener(BuildServiceProvider<?, ?> provider) {
+        ServiceCleanupListener(DefaultBuildServiceProvider<?, ?> provider) {
             this.provider = provider;
         }
 
