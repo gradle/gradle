@@ -19,8 +19,8 @@ package org.gradle.configurationcache.serialization
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
-import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.configurationcache.ClassLoaderScopeSpec
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
@@ -29,10 +29,12 @@ import org.gradle.configurationcache.serialization.beans.BeanPropertyReader
 import org.gradle.configurationcache.serialization.beans.BeanPropertyWriter
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
+import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import kotlin.reflect.KClass
 
 
 internal
@@ -372,6 +374,36 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
         currentIsolate = previousValues.first
         currentCodec = previousValues.second
     }
+
+    private
+    var properties: ContextualProperty? = null
+
+    private
+    class ContextualProperty(val key: KClass<*>, val value: Any, val next: ContextualProperty?)
+
+    fun <T : Any> pushProperty(key: KClass<T>, value: T) {
+        properties = ContextualProperty(key, value, properties)
+    }
+
+    fun <T : Any> contextual(key: KClass<T>): T? {
+        var iterator = properties
+        while (iterator != null) {
+            if (iterator.key == key) {
+                return iterator.value.uncheckedCast()
+            }
+            iterator = iterator.next
+        }
+        return null
+    }
+
+    fun popProperty() {
+        properties = properties.run {
+            require(this != null) {
+                "There are no properties left to pop."
+            }
+            next
+        }
+    }
 }
 
 
@@ -386,4 +418,15 @@ internal
 class DefaultReadIsolate(override val owner: IsolateOwner) : ReadIsolate {
 
     override val identities: ReadIdentities = ReadIdentities()
+}
+
+
+internal
+inline fun <reified T : Any, U> AbstractIsolateContext<*>.withContextual(property: T, block: () -> U): U {
+    pushProperty(T::class, property)
+    try {
+        return block()
+    } finally {
+        popProperty()
+    }
 }

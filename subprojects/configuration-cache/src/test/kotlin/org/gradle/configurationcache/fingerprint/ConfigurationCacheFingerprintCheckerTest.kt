@@ -49,6 +49,7 @@ import org.junit.Test
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.reflect.KClass
 
 
 class ConfigurationCacheFingerprintCheckerTest {
@@ -279,6 +280,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override val isolate: WriteIsolate
             get() = undefined()
 
+        override fun <T : Any> contextual(key: KClass<T>): T =
+            undefined()
+
         override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
             undefined()
 
@@ -390,6 +394,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             set(_) {}
 
         override fun onProblem(problem: PropertyProblem): Unit =
+            undefined()
+
+        override fun <T : Any> contextual(key: KClass<T>): T? =
             undefined()
 
         override fun push(codec: Codec<Any?>): Unit =

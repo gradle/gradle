@@ -29,6 +29,7 @@ import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import kotlin.reflect.KClass
 
 
 /**
@@ -97,6 +98,8 @@ interface IsolateContext {
     var trace: PropertyTrace
 
     fun onProblem(problem: PropertyProblem)
+
+    fun <T : Any> contextual(key: KClass<T>): T?
 }
 
 
