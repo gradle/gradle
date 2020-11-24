@@ -16,17 +16,18 @@
 
 package org.gradle.internal.snapshot
 
-
+import org.apache.commons.io.FilenameUtils
 import spock.lang.Specification
 
-class RelativePathTrackerTest extends Specification {
-    def tracker = new RelativePathTracker()
+class PathTrackerTest extends Specification {
+    def tracker = new PathTracker()
 
     def "can handle empty"() {
         expect:
         tracker.root
         tracker.segments.empty
         tracker.toRelativePath() == ""
+        tracker.toAbsolutePath() == null
     }
 
     def "can enter and leave root level"() {
@@ -36,6 +37,7 @@ class RelativePathTrackerTest extends Specification {
         tracker.root
         tracker.segments.empty
         tracker.toRelativePath() == ""
+        tracker.toAbsolutePath() == "root"
 
         when:
         def name = tracker.leave()
@@ -55,6 +57,7 @@ class RelativePathTrackerTest extends Specification {
         !tracker.root
         tracker.segments as List == ["first"]
         tracker.toRelativePath() == "first"
+        tracker.toAbsolutePath() == FilenameUtils.separatorsToSystem("root/first")
 
         when:
         def name = tracker.leave()
@@ -63,6 +66,7 @@ class RelativePathTrackerTest extends Specification {
         tracker.root
         tracker.segments.empty
         tracker.toRelativePath() == ""
+        tracker.toAbsolutePath() == "root"
     }
 
     def "can enter and leave second level"() {
@@ -75,6 +79,7 @@ class RelativePathTrackerTest extends Specification {
         !tracker.root
         tracker.segments as List == ["first", "second"]
         tracker.toRelativePath() == "first/second"
+        tracker.toAbsolutePath() == FilenameUtils.separatorsToSystem("root/first/second")
 
         when:
         def name = tracker.leave()
@@ -83,5 +88,6 @@ class RelativePathTrackerTest extends Specification {
         !tracker.root
         tracker.segments as List == ["first"]
         tracker.toRelativePath() == "first"
+        tracker.toAbsolutePath() == FilenameUtils.separatorsToSystem("root/first")
     }
 }

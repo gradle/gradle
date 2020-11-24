@@ -33,7 +33,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
+import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsWithOverlapAfterExecution;
 
 public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
@@ -107,7 +107,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 .map(BeforeExecutionState::getOutputFileLocationSnapshots)
                 .orElse(ImmutableSortedMap.of());
 
-            return filterOutputsAfterExecution(previousExecutionOutputSnapshots, unfilteredOutputSnapshotsBeforeExecution, unfilteredOutputSnapshotsAfterExecution);
+            return filterOutputsWithOverlapAfterExecution(previousExecutionOutputSnapshots, unfilteredOutputSnapshotsBeforeExecution, unfilteredOutputSnapshotsAfterExecution);
         } else {
             return unfilteredOutputSnapshotsAfterExecution;
         }

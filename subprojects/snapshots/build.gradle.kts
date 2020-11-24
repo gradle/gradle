@@ -45,7 +45,6 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":file-collections"))
-    testFixturesImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
