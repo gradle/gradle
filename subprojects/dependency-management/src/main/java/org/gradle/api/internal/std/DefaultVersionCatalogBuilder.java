@@ -317,6 +317,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return dependencies.containsKey(name);
     }
 
+    @Override
+    public String getName() {
+        return name;
+    }
+
     private class VersionReferencingDependencyModel implements Supplier<DependencyModel> {
         private final String group;
         private final String name;

@@ -25,6 +25,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
@@ -260,7 +261,8 @@ class DependencyManagementBuildScopeServices {
                                                                                     FileCollectionFactory fileCollectionFactory,
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                                     ObjectFactory objects,
-                                                                                    ProviderFactory providers) {
+                                                                                    ProviderFactory providers,
+                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
@@ -268,7 +270,8 @@ class DependencyManagementBuildScopeServices {
             fileCollectionFactory,
             dependencyMetaDataProvider,
             objects,
-            providers
+            providers,
+            collectionCallbackActionDecorator
         );
     }
 
