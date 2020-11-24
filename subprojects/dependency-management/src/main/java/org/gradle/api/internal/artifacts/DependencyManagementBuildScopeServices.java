@@ -849,6 +849,11 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
+                public Optional<ValidationResult> getValidationProblems() {
+                    return context.getValidationProblems();
+                }
+
+                @Override
                 public Optional<BeforeExecutionState> getBeforeExecutionState() {
                     return context.getBeforeExecutionState();
                 }

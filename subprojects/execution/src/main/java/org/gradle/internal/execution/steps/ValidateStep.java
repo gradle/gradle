@@ -19,30 +19,37 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationException;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext.Severity;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
 
+import java.io.File;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ValidateStep<C extends Context, R extends Result> implements Step<C, R> {
+public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
     private final ValidateStep.ValidationWarningReporter warningReporter;
-    private final Step<? super C, ? extends R> delegate;
+    private final Step<? super ValidationContext, ? extends R> delegate;
 
     public ValidateStep(
         ValidationWarningReporter warningReporter,
-        Step<? super C, ? extends R> delegate
+        Step<? super ValidationContext, ? extends R> delegate
     ) {
         this.warningReporter = warningReporter;
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public R execute(UnitOfWork work, AfterPreviousExecutionContext context) {
         DefaultWorkValidationContext validationContext = new DefaultWorkValidationContext();
         work.validate(validationContext);
 
@@ -68,7 +75,49 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
                     .collect(Collectors.toList())
             );
         }
-        return delegate.execute(work, context);
+        return delegate.execute(work, new ValidationContext() {
+            @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return warnings.isEmpty()
+                    ? Optional.empty()
+                    : Optional.of(() -> warnings);
+            }
+
+            @Override
+            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
+            }
+
+            @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getHistory();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
+            }
+
+            @Override
+            public UnitOfWork.Identity getIdentity() {
+                return context.getIdentity();
+            }
+
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getRebuildReason();
+            }
+        });
     }
 
     private static String describeTypesChecked(ImmutableList<Class<?>> types) {

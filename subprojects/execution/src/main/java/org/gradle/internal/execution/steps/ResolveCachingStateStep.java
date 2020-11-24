@@ -131,6 +131,11 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return context.getValidationProblems();
+            }
+
+            @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return context.getBeforeExecutionState();
             }

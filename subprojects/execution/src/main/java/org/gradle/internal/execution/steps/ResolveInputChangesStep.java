@@ -93,6 +93,11 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             }
 
             @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return context.getValidationProblems();
+            }
+
+            @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return context.getBeforeExecutionState();
             }

@@ -123,6 +123,11 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             }
 
             @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return context.getValidationProblems();
+            }
+
+            @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return beforeExecutionState;
             }
