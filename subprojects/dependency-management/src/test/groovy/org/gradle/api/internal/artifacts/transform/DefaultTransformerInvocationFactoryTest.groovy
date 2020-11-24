@@ -53,6 +53,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -88,7 +89,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
-    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
+
+    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter])
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
@@ -231,6 +233,16 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
         @Override
         void visitDependencies(TaskDependencyResolveContext context) {
+        }
+
+        @Override
+        DirectorySensitivity getInputArtifactDirectorySensitivity() {
+            return DirectorySensitivity.DEFAULT
+        }
+
+        @Override
+        DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
+            return DirectorySensitivity.DEFAULT
         }
     }
 

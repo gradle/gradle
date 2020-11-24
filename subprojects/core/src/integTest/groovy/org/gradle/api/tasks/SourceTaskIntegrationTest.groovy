@@ -61,4 +61,65 @@ class SourceTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains("visit a/two.txt")
         outputContains("visit a/three.txt")
     }
+
+    def "can disable empty directory normalization for classes that extend SourceTask"() {
+        given:
+        file("src/one.txt").createFile()
+        file("src/a/two.txt").createFile()
+
+        buildFile << """
+            class TestTask extends SourceTask {
+                @OutputFile
+                File outputFile
+
+                @TaskAction
+                def list() {
+                    source.visit { fte -> println("visit " + fte.relativePath) }
+                    outputFile.text = 'executed'
+                }
+
+                @InputFiles
+                @SkipWhenEmpty
+                @PathSensitive(PathSensitivity.ABSOLUTE)
+                public FileTree getSourcesWithEmptyDirectories() {
+                    return super.getSource()
+                }
+            }
+
+            task source(type: TestTask) {
+                source file('src')
+                outputFile = file("\${buildDir}/output")
+            }
+        """
+
+        when:
+        run "source"
+
+        then:
+        output.count("visit ") == 3
+        outputContains("visit one.txt")
+        outputContains("visit a")
+        outputContains("visit a/two.txt")
+
+        when:
+        run "source"
+
+        then:
+        skipped(":source")
+
+        and:
+        output.count("visit ") == 0
+
+        when:
+        file("src/a/emptyDir").mkdirs()
+        run "source"
+
+        then:
+        executedAndNotSkipped(":source")
+        output.count("visit ") == 4
+        outputContains("visit one.txt")
+        outputContains("visit a")
+        outputContains("visit a/two.txt")
+        outputContains("visit a/emptyDir")
+    }
 }

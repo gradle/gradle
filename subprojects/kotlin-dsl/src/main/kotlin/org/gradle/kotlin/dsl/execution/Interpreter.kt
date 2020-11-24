@@ -77,6 +77,7 @@ class Interpreter(val host: Host) {
         )
 
         fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             compilationClassPath: ClassPath,
@@ -249,6 +250,7 @@ class Interpreter(val host: Host) {
 
         val scriptPath = scriptHost.fileName
         val classesDir = compile(
+            scriptHost,
             templateId,
             scriptPath,
             scriptSource,
@@ -271,6 +273,7 @@ class Interpreter(val host: Host) {
 
     private
     fun compile(
+        scriptHost: KotlinScriptHost<*>,
         templateId: String,
         scriptPath: String,
         scriptSource: ScriptSource,
@@ -280,6 +283,7 @@ class Interpreter(val host: Host) {
         compilationClassPath: ClassPath,
         pluginAccessorsClassPath: ClassPath
     ): File = host.cachedDirFor(
+        scriptHost,
         templateId,
         sourceHash,
         compilationClassPath,
@@ -450,6 +454,7 @@ class Interpreter(val host: Host) {
 
             val cacheDir =
                 host.cachedDirFor(
+                    scriptHost,
                     scriptTemplateId,
                     sourceHash,
                     compilationClassPath,

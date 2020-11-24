@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.api.tasks
 
-import org.gradle.api.tasks.FileNormalizer;
 
-/**
- * {@link FileNormalizer} that uses the file name as normalized path.
- */
-public interface NameOnlyInputNormalizer extends FileNormalizer, DirectorySensitiveNormalizer {
+class UpToDateDirectorySensitivityIntegrationSpec extends AbstractDirectorySensitivityIntegrationSpec {
+    @Override
+    void execute(String... tasks) {
+        succeeds(tasks)
+    }
+
+    @Override
+    void cleanWorkspace() {
+        // do nothing
+    }
+
+    @Override
+    String getStatusForReusedOutput() {
+        return "UP-TO-DATE"
+    }
 }

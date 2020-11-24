@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -35,11 +36,14 @@ import java.util.Map;
  */
 public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
-    public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
+    public static final NameOnlyFingerprintingStrategy DEFAULT = new NameOnlyFingerprintingStrategy(DirectorySensitivity.DEFAULT);
+    public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "NAME_ONLY";
+    private final DirectorySensitivity directorySensitivity;
 
-    private NameOnlyFingerprintingStrategy() {
+    private NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
         super(IDENTIFIER);
+        this.directorySensitivity = directorySensitivity;
     }
 
     @Override
@@ -55,7 +59,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             @Override
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
-                if (processedEntries.add(absolutePath)) {
+                if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
                     FileSystemLocationFingerprint fingerprint = isRoot && snapshot.getType() == FileType.Directory
                         ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY
                         : new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
@@ -70,5 +74,10 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return directorySensitivity;
     }
 }

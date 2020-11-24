@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ package org.gradle.internal.fingerprint;
 import org.gradle.api.tasks.FileNormalizer;
 
 /**
- * {@link FileNormalizer} that uses the file name as normalized path.
+ * Specifies criteria for selecting a {@link FileCollectionFingerprinter}
  */
-public interface NameOnlyInputNormalizer extends FileNormalizer, DirectorySensitiveNormalizer {
+public interface FileNormalizationSpec {
+    Class<? extends FileNormalizer> getNormalizer();
+
+    DirectorySensitivity getDirectorySensitivity();
 }

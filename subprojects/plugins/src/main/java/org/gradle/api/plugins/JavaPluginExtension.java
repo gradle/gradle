@@ -129,7 +129,10 @@ public interface JavaPluginExtension {
     ModularitySpec getModularity();
 
     /**
-     * Configure the toolchain requirements for tasks that require a tool from the toolchain (e.g. {@link org.gradle.api.tasks.compile.JavaCompile}.
+     * Gets the project wide toolchain requirements that will be used for tasks requiring a tool from the toolchain (e.g. {@link org.gradle.api.tasks.compile.JavaCompile}).
+     * <p>
+     * Configuring a toolchain cannot be used together with {@code sourceCompatibility} or {@code targetCompatibility} on this extension.
+     * Both values will be sourced from the toolchain.
      *
      * @since 6.7
      */
@@ -137,9 +140,10 @@ public interface JavaPluginExtension {
     JavaToolchainSpec getToolchain();
 
     /**
-     * Configure the toolchain requirements for tasks that require a tool from the toolchain (e.g. {@link org.gradle.api.tasks.compile.JavaCompile}.
+     * Configures the project wide toolchain requirements for tasks that require a tool from the toolchain (e.g. {@link org.gradle.api.tasks.compile.JavaCompile}).
      * <p>
-     * Configuring a toolchain makes it illegal to set the {@code sourceCompatibility} or {@code targetCompatibility}.
+     * Configuring a toolchain cannot be used together with {@code sourceCompatibility} or {@code targetCompatibility} on this extension.
+     * Both values will be sourced from the toolchain.
      *
      * @since 6.7
      */

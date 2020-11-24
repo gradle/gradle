@@ -49,6 +49,7 @@ import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
@@ -466,6 +467,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      */
     @Incubating
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     protected FileCollection getStableSources() {

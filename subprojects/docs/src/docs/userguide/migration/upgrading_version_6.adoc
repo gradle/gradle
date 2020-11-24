@@ -60,6 +60,23 @@ Previously, projects imported by Eclipse only included dependencies for the main
 
 Since Gradle 6.8, projects imported into Eclipse include the compile and runtime classpath for every source set defined by the build.
 
+==== SourceTask is no longer sensitive to empty directories
+
+Previously, empty directories would be taken into account during up-to-date checks and build cache key calculations for the sources declared in `SourceTask`.
+This meant that a source tree that contained an empty directory and an otherwise identical source tree that did not contain the empty directory would be considered different sources, even if the task would produce the same outputs.
+In Gradle 6.8, `SourceTask` now ignores empty directories during doing up-to-date checks and build cache key calculations.
+In the vast majority of cases, this is the desired behavior, but it is possible that a task may extend `SourceTask` but also produce different outputs when empty directories are present in the sources.
+For tasks where this is a concern, you can expose a separate property without the `@IgnoreEmptyDirectories` annotation in order to capture those changes:
+
+```
+@InputFiles
+@SkipWhenEmpty
+@PathSensitive(PathSensitivity.ABSOLUTE)
+public FileTree getSourcesWithEmptyDirectories() {
+    return super.getSource()
+}
+```
+
 === Deprecations
 
 [[referencing_tasks_from_included_builds]]
