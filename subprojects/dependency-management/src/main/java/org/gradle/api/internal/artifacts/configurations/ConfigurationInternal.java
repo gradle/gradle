@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -29,7 +30,9 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider {
     enum InternalState {
@@ -89,6 +92,8 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
+
+    Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints();
 
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration

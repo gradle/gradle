@@ -17,6 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -29,6 +30,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public interface BuildableLocalComponentMetadata {
     /**
@@ -48,11 +50,11 @@ public interface BuildableLocalComponentMetadata {
 
     /**
      * Adds a configuration to this component.
-     *
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration.
+     * @param consistentResolutionConstraints the consistent resolution constraints
      */
-    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, List<String> consumptionAlternatives, boolean canBeResolved, ImmutableCapabilities capabilities);
+    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, List<String> consumptionAlternatives, boolean canBeResolved, ImmutableCapabilities capabilities, Supplier<List<DependencyConstraint>> consistentResolutionConstraints);
 
     /**
      * Provides a backing configuration instance from which dependencies and excludes will be sourced.

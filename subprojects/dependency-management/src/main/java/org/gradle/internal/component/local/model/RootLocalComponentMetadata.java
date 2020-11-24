@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -37,6 +38,7 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     private final DependencyLockingProvider dependencyLockingProvider;
@@ -47,14 +49,15 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, List<String> consumptionAlternatives, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, List<String> consumptionAlternatives, boolean canBeResolved, ImmutableCapabilities capabilities, Supplier<List<DependencyConstraint>> consistentResolutionConstraints) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities);
+        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities, consistentResolutionConstraints);
         addToConfigurations(name, conf);
         return conf;
     }
 
     class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
+        private final Supplier<List<DependencyConstraint>> consistentResolutionConstraints;
         private boolean configurationLocked;
         private DependencyLockingState dependencyLockingState;
 
@@ -68,8 +71,10 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                                        boolean canBeConsumed,
                                        List<String> consumptionAlternatives,
                                        boolean canBeResolved,
-                                       ImmutableCapabilities capabilities) {
+                                       ImmutableCapabilities capabilities,
+                                       Supplier<List<DependencyConstraint>> consistentResolutionConstraints) {
             super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities);
+            this.consistentResolutionConstraints = consistentResolutionConstraints;
         }
 
         @Override
@@ -91,6 +96,12 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                     result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
                             Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, getLockReason(strict, lockedVersion)));
                 }
+            }
+            List<DependencyConstraint> dependencyConstraints = consistentResolutionConstraints.get();
+            for (DependencyConstraint dc : dependencyConstraints) {
+                ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dc.getGroup(), dc.getName()), dc.getVersionConstraint());
+                result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
+                    Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, dc.getReason()));
             }
         }
 

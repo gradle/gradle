@@ -224,7 +224,6 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "dependency resolution errors are not supported by the CC")
     def "detects cycles in consistency"() {
         repository {
             'org:foo:1.0'()

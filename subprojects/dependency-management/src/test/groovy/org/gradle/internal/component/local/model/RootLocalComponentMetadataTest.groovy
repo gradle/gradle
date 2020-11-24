@@ -89,7 +89,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = [], ImmutableAttributes attributes = ImmutableAttributes.EMPTY) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
     }
 
 }
