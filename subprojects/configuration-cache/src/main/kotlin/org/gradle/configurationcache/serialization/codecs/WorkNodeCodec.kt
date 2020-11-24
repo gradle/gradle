@@ -16,36 +16,17 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.internal.GradleInternal
-import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.execution.plan.TaskNode
 
 
 internal
-class WorkNodeCodec(
-    private val owner: GradleInternal,
-    private val internalTypesCodec: Codec<Any?>
-) {
+class WorkNodeCodec {
 
-    suspend fun WriteContext.writeWork(nodes: List<Node>) {
-        // Share bean instances across all nodes (except tasks, which have their own isolate)
-        withGradleIsolate(owner, internalTypesCodec) {
-            writeNodes(nodes)
-        }
-    }
-
-    suspend fun ReadContext.readWork(): List<Node> =
-        withGradleIsolate(owner, internalTypesCodec) {
-            readNodes()
-        }
-
-    private
     suspend fun WriteContext.writeNodes(nodes: List<Node>) {
         val nodeCount = nodes.size
         writeSmallInt(nodeCount)
@@ -56,7 +37,6 @@ class WorkNodeCodec(
         }
     }
 
-    private
     suspend fun ReadContext.readNodes(): List<Node> {
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)

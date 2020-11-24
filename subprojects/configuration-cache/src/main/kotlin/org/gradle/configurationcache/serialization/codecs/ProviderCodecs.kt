@@ -16,13 +16,14 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import com.google.common.collect.ImmutableSetMultimap
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
+import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
@@ -39,7 +40,6 @@ import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -49,7 +49,6 @@ import org.gradle.configurationcache.serialization.encodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.internal.build.BuildStateRegistry
 
 
 /**
@@ -59,12 +58,12 @@ import org.gradle.internal.build.BuildStateRegistry
 internal
 class FixedValueReplacingProviderCodec(
     valueSourceProviderFactory: ValueSourceProviderFactory,
-    buildStateRegistry: BuildStateRegistry
+    buildServiceRegistry: BuildServiceRegistryInternal
 ) {
     private
     val providerWithChangingValueCodec = BindingsBackedCodec {
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
-        bind(BuildServiceProviderCodec(buildStateRegistry))
+        bind(BuildServiceProviderCodec(buildServiceRegistry))
         bind(BeanCodec())
     }
 
@@ -143,41 +142,125 @@ class ProviderCodec(
 
 internal
 class BuildServiceProviderCodec(
-    private val buildStateRegistry: BuildStateRegistry
+    private val buildServiceRegistry: BuildServiceRegistryInternal
 ) : Codec<BuildServiceProvider<*, *>> {
 
+    /**
+     * A contextual property that causes [BuildServiceProviderCodec] to only [mark] the encoded
+     * build service providers and write build service references instead of their full value.
+     */
+    class MarkPhase {
+
+        private
+        val builder = ImmutableSetMultimap.builder<BuildIdentifier, BuildServiceProvider<*, *>>()
+
+        fun mark(value: BuildServiceProvider<*, *>) {
+            builder.put(value.buildIdentifier, value)
+        }
+
+        fun flush(): ImmutableSetMultimap<BuildIdentifier, BuildServiceProvider<*, *>> =
+            builder.build()
+    }
+
+    class DeferPhase {
+
+        val deferredBuildServiceReferences = mutableListOf<BuildServiceReference<*, *>>()
+
+        fun defer(buildIdentifier: BuildIdentifier, serviceName: String): BuildServiceProvider<*, *> =
+            deferredBuildServiceReferences.find {
+                it.owningBuildId == buildIdentifier && it.serviceName == serviceName
+            } ?: insert(buildIdentifier, serviceName)
+
+        private
+        fun insert(buildIdentifier: BuildIdentifier, serviceName: String): BuildServiceProvider<*, *> =
+            BuildServiceReference<BuildService<BuildServiceParameters.None>, BuildServiceParameters.None>(
+                buildIdentifier,
+                serviceName
+            ).also {
+                deferredBuildServiceReferences.add(it)
+            }
+    }
+
+    class BuildServiceReference<T : BuildService<P>, P : BuildServiceParameters>(
+        val owningBuildId: BuildIdentifier,
+        val serviceName: String
+    ) : AbstractMinimalProvider<T>(), BuildServiceProvider<T, P> {
+
+        private
+        var buildServiceProvider: BuildServiceProvider<T, P>? = null
+
+        val referencedBuildService: BuildServiceProvider<T, P>
+            get() = buildServiceProvider
+                ?: throw IllegalStateException("Build service \"$serviceName\" from $owningBuildId hasn't been loaded yet.")
+
+        override fun getBuildIdentifier(): BuildIdentifier =
+            owningBuildId
+
+        override fun getName(): String =
+            serviceName
+
+        fun resolveTo(serviceProvider: BuildServiceProvider<*, *>) {
+            require(buildServiceProvider == null)
+            buildServiceProvider = serviceProvider.uncheckedCast()
+        }
+
+        override fun getType(): Class<T>? =
+            referencedBuildService.implementationType
+
+        override fun calculateOwnValue(consumer: ValueSupplier.ValueConsumer): ValueSupplier.Value<out T> =
+            ValueSupplier.Value.of(referencedBuildService.get())
+
+        override fun getImplementationType(): Class<T> =
+            referencedBuildService.implementationType
+
+        override fun getParameters(): P? =
+            referencedBuildService.parameters
+    }
+
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        encodePreservingSharedIdentityOf(value) {
-            val buildIdentifier = value.buildIdentifier
-            write(buildIdentifier)
-            writeString(value.name)
-            writeClass(value.implementationType)
-            write(value.parameters)
-            writeInt(
-                buildServiceRegistryOf(buildIdentifier).forService(value).maxUsages
-            )
+        when (val markPhase = contextual(MarkPhase::class)) {
+            null -> encodeValue(value)
+            else -> {
+                write(value.buildIdentifier)
+                writeString(value.name)
+                markPhase.mark(value)
+            }
         }
     }
 
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
+        when (val deferPhase = contextual(DeferPhase::class)) {
+            null -> decodeValue()
+            else -> {
+                val buildIdentifier = readNonNull<BuildIdentifier>()
+                val serviceName = readString()
+                deferPhase.defer(buildIdentifier, serviceName)
+            }
+        }
+
+    private
+    suspend fun WriteContext.encodeValue(value: BuildServiceProvider<*, *>) =
+        encodePreservingSharedIdentityOf(value) {
+// TODO: consider having a sanity check here
+//          require(buildIdentifier == value.buildIdentifier) {
+//              "Attempt to store a reference to foreign build service $value declared in build ${value.buildIdentifier} into build $buildIdentifier."
+//          }
+            writeString(value.name)
+            writeClass(value.implementationType)
+            write(value.parameters)
+            writeInt(
+                buildServiceRegistry.forService(value).maxUsages
+            )
+        }
+
+    private
+    suspend fun ReadContext.decodeValue() =
         decodePreservingSharedIdentity {
-            val buildIdentifier = readNonNull<BuildIdentifier>()
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
-            buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
-        }
-
-    private
-    fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =
-        gradleOf(buildIdentifier).serviceOf<BuildServiceRegistryInternal>()
-
-    private
-    fun gradleOf(buildIdentifier: BuildIdentifier) =
-        when (buildIdentifier) {
-            DefaultBuildIdentifier.ROOT -> buildStateRegistry.rootBuild.build
-            else -> buildStateRegistry.getIncludedBuild(buildIdentifier).configuredBuild
+            buildServiceRegistry.register(name, implementationType, parameters, maxUsages)
         }
 }
 

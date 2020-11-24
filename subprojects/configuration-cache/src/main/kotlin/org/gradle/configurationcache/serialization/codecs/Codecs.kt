@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
@@ -53,7 +54,6 @@ import org.gradle.configurationcache.serialization.reentrant
 import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
-import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -106,7 +106,7 @@ class Codecs(
     fileOperations: FileOperations,
     fileFactory: FileFactory,
     includedTaskGraph: IncludedBuildTaskGraph,
-    buildStateRegistry: BuildStateRegistry
+    buildServiceRegistry: BuildServiceRegistryInternal
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
@@ -122,13 +122,20 @@ class Codecs(
             propertyFactory,
             filePropertyFactory,
             valueSourceProviderFactory,
-            buildStateRegistry
+            buildServiceRegistry
         )
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
+        fileCollectionTypes(
+            directoryFileTreeFactory,
+            fileCollectionFactory,
+            artifactSetConverter,
+            fileOperations,
+            fileFactory,
+            patternSetFactory
+        )
 
         bind(ApiTextResourceAdapterCodec)
 
@@ -194,7 +201,7 @@ class Codecs(
     val internalTypesCodec = BindingsBackedCodec {
         baseTypes()
 
-        providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildStateRegistry)
+        providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildServiceRegistry)
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
         bind(BuildIdentifierSerializer())
@@ -215,9 +222,9 @@ class Codecs(
         propertyFactory: PropertyFactory,
         filePropertyFactory: FilePropertyFactory,
         valueSourceProviderFactory: ValueSourceProviderFactory,
-        buildStateRegistry: BuildStateRegistry
+        buildServiceRegistry: BuildServiceRegistryInternal
     ) {
-        val nestedCodec = FixedValueReplacingProviderCodec(valueSourceProviderFactory, buildStateRegistry)
+        val nestedCodec = FixedValueReplacingProviderCodec(valueSourceProviderFactory, buildServiceRegistry)
         bind(ListPropertyCodec(propertyFactory, nestedCodec))
         bind(SetPropertyCodec(propertyFactory, nestedCodec))
         bind(MapPropertyCodec(propertyFactory, nestedCodec))
