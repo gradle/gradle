@@ -83,6 +83,10 @@ public class CompositeAwareTaskSelector extends TaskSelector {
                 if (build != null) {
                     return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
                 }
+                build = findIncludedBuild(root);
+                if (build != null) {
+                    return getSelector(build).getSelection(projectPath, root, path);
+                }
             }
         }
 
@@ -103,6 +107,21 @@ public class CompositeAwareTaskSelector extends TaskSelector {
 
         return null;
     }
+
+    private BuildState findIncludedBuild(File root) {
+        if (root == null || buildStateRegistry.getIncludedBuilds().isEmpty()) {
+            return null;
+        }
+
+        for (IncludedBuildState build : buildStateRegistry.getIncludedBuilds()) {
+            if (build.getRootDirectory().equals(root)) {
+                return build;
+            }
+        }
+
+        return null;
+    }
+
 
     private TaskSelector getSelector(BuildState buildState) {
         return new DefaultTaskSelector(buildState.getBuild(), taskNameResolver, projectConfigurer);
