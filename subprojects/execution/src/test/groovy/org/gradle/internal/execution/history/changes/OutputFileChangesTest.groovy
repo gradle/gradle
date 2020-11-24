@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes
 
+import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import spock.lang.Specification
@@ -131,14 +132,14 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
     }
 
     def added(String path) {
-        new DescriptiveChange("Output property 'test' file $path has been added.")
+        new DescriptiveChange("Output property 'test' file ${FilenameUtils.separatorsToSystem(path)} has been added.")
     }
 
     def removed(String path) {
-        new DescriptiveChange("Output property 'test' file $path has been removed.")
+        new DescriptiveChange("Output property 'test' file ${FilenameUtils.separatorsToSystem(path)} has been removed.")
     }
 
     def modified(String path) {
-        new DescriptiveChange("Output property 'test' file $path has changed.")
+        new DescriptiveChange("Output property 'test' file ${FilenameUtils.separatorsToSystem(path)} has changed.")
     }
 }
