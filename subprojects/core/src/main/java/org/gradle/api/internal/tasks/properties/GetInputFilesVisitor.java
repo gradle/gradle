@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -40,7 +41,14 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+    public void visitInputFileProperty(final String propertyName,
+                                       boolean optional,
+                                       boolean skipWhenEmpty,
+                                       DirectorySensitivity directorySensitivity,
+                                       boolean incremental,
+                                       @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                                       PropertyValue value,
+                                       InputFilePropertyType filePropertyType) {
         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
@@ -48,7 +56,8 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
             new PropertyFileCollection(ownerDisplayName, propertyName, "input", actualValue),
             value,
             skipWhenEmpty,
-            incremental
+            incremental,
+            directorySensitivity
         ));
         if (skipWhenEmpty) {
             hasSourceFiles = true;

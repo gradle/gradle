@@ -28,7 +28,10 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readClassOf
+import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.service.ServiceRegistry
 
@@ -46,6 +49,8 @@ class DefaultTransformerCodec(
             writeClass(value.inputArtifactNormalizer)
             writeClass(value.inputArtifactDependenciesNormalizer)
             writeBoolean(value.isCacheable)
+            writeEnum(value.inputArtifactDirectorySensitivity)
+            writeEnum(value.inputArtifactDependenciesDirectorySensitivity)
             write(value.isolatedParameters)
             // TODO - isolate now and discard node, if isolation is scheduled but has no dependencies
         }
@@ -58,6 +63,8 @@ class DefaultTransformerCodec(
             val inputArtifactNormalizer = readClassOf<FileNormalizer>()
             val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
             val isCacheable = readBoolean()
+            val directorySensitivity = readEnum<DirectorySensitivity>()
+            val dependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
             val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransformer.IsolatedParameters, DefaultTransformer.IsolateTransformerParameters>>()
             DefaultTransformer(
                 implementationClass,
@@ -68,7 +75,9 @@ class DefaultTransformerCodec(
                 isCacheable,
                 fileLookup,
                 actionScheme.instantiationScheme,
-                isolate.owner.service(ServiceRegistry::class.java)
+                isolate.owner.service(ServiceRegistry::class.java),
+                directorySensitivity,
+                dependenciesDirectorySensitivity
             )
         }
     }

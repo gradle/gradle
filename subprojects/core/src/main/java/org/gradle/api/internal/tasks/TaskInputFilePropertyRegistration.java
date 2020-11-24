@@ -18,9 +18,11 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 
 public interface TaskInputFilePropertyRegistration extends TaskPropertyRegistration, TaskInputFilePropertyBuilderInternal {
     Class<? extends FileNormalizer> getNormalizer();
     InputFilePropertyType getFilePropertyType();
     boolean isSkipWhenEmpty();
+    DirectorySensitivity getDirectorySensitivity();
 }

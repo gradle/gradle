@@ -18,15 +18,21 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public AbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(AbsolutePathFingerprintingStrategy.INSTANCE, fileCollectionSnapshotter);
+    public AbsolutePathFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        super(fingerprintingStrategyFor(directorySensitivity), fileCollectionSnapshotter);
+    }
+
+    static FingerprintingStrategy fingerprintingStrategyFor(DirectorySensitivity directorySensitivity) {
+        return directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? AbsolutePathFingerprintingStrategy.IGNORE_DIRECTORIES : AbsolutePathFingerprintingStrategy.DEFAULT;
     }
 
     @Override

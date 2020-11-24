@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -117,6 +118,16 @@ public class LegacyTransformer extends AbstractTransformer<org.gradle.api.artifa
     @Override
     public Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
         return AbsolutePathInputNormalizer.class;
+    }
+
+    @Override
+    public DirectorySensitivity getInputArtifactDirectorySensitivity() {
+        return DirectorySensitivity.DEFAULT;
+    }
+
+    @Override
+    public DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
+        return DirectorySensitivity.DEFAULT;
     }
 
     @Override

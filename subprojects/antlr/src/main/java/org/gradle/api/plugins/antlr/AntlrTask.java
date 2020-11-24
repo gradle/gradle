@@ -30,6 +30,7 @@ import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -303,6 +304,7 @@ public class AntlrTask extends SourceTask {
      */
     @Incubating
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     protected FileCollection getStableSources() {
