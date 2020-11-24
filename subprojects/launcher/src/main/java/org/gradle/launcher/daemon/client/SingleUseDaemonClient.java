@@ -35,7 +35,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 public class SingleUseDaemonClient extends DaemonClient {
-    public static final String MESSAGE = "To honour the JVM settings for this build a new JVM will be forked.";
+    public static final String MESSAGE = "To honour the JVM settings for this build a single-use Daemon process will be forked.";
     private static final Logger LOGGER = Logging.getLogger(SingleUseDaemonClient.class);
     private final DocumentationRegistry documentationRegistry;
 
@@ -46,7 +46,7 @@ public class SingleUseDaemonClient extends DaemonClient {
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, BuildRequestContext buildRequestContext) {
-        LOGGER.lifecycle("{} Please consider using the daemon: {}.", MESSAGE, documentationRegistry.getDocumentationFor("gradle_daemon"));
+        LOGGER.lifecycle(MESSAGE + " See {}.", documentationRegistry.getDocumentationFor("gradle_daemon", "sec:disabling_the_daemon"));
 
         DaemonClientConnection daemonConnection = getConnector().startSingleUseDaemon();
         Build build = new Build(getIdGenerator().generateId(), daemonConnection.getDaemon().getToken(), action, buildRequestContext.getClient(), buildRequestContext.getStartTime(), buildRequestContext.isInteractive(), parameters);
