@@ -73,7 +73,7 @@ class GradleModuleMetadataWriterTest extends Specification {
 
     private writeTo(Writer writer, PublicationInternal publication, List<PublicationInternal> publications) {
         new GradleModuleMetadataWriter(
-            new BuildInvocationScopeId(buildId), projectDependencyResolver, TestUtil.checksumService
+            new BuildInvocationScopeId(buildId), projectDependencyResolver, TestUtil.checksumService, ':task', []
         ).writeTo(
             writer, publication, publications
         )

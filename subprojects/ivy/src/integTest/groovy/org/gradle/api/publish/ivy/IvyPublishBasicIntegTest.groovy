@@ -18,6 +18,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Issue
 
 class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
@@ -239,4 +240,82 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         outputContains("Publication ignores 'transitive = false' at configuration level.")
     }
 
+    @ToBeFixedForConfigurationCache(because = "configuration cache doesn't support task failures")
+    @Issue("https://github.com/gradle/gradle/issues/15009")
+    def "fails publishing if a variant contains a dependency on an enforced platform"() {
+        settingsFile << """
+            rootProject.name = 'publish'
+        """
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'ivy-publish'
+            }
+
+            dependencies {
+                implementation enforcedPlatform('org:platform:1.0')
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':publish'
+
+        then:
+        failure.assertHasCause """Invalid publication 'ivy':
+  - Variant 'runtimeElements' contains a dependency on enforced platform 'org:platform'
+In general publishing dependencies to enforced platforms is a mistake: enforced platforms shouldn't be used for published components because they behave like forced dependencies and leak to consumers. This can result in hard to diagnose dependency resolution errors. If you did this intentionally you can disable this check by adding 'enforced-platform' to the suppressed validations of the :generateMetadataFileForIvyPublication task."""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15009")
+    @ToBeFixedForConfigurationCache(because = "configuration cache doesn't support task failures")
+    def "can disable validation of publication of dependencies on enforced platforms"() {
+        settingsFile << """
+            rootProject.name = 'publish'
+        """
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'ivy-publish'
+            }
+
+            group = 'com.acme'
+            version = '0.999'
+
+            dependencies {
+                implementation enforcedPlatform('org:platform:1.0')
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            tasks.named('generateMetadataFileForIvyPublication') {
+                suppressedValidationErrors.add('enforced-platform')
+            }
+        """
+
+        when:
+        succeeds ':publish'
+
+        then:
+        executedAndNotSkipped ':generateMetadataFileForIvyPublication', ':publishIvyPublicationToIvyRepository'
+    }
 }

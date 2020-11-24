@@ -52,3 +52,11 @@ publishing {
     }
 }
 // end::disable-build-id[]
+
+// tag::disable_validation[]
+tasks.withType(GenerateModuleMetadata).configureEach {
+    // The value 'enforced_platform' is provided in the validation
+    // error message you got
+    suppressedValidationErrors.add('enforced_platform')
+}
+// end::disable_validation[]
