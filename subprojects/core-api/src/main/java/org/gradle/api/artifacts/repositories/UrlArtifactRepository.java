@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.Incubating;
-
 import java.net.URI;
 
 /**
@@ -25,7 +23,6 @@ import java.net.URI;
  *
  * @since 6.0
  */
-@Incubating
 public interface UrlArtifactRepository {
 
     /**
