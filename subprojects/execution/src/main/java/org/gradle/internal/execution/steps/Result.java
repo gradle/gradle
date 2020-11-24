@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.ExecutionResult;
 
-import java.util.Optional;
-
-public interface BeforeExecutionContext extends AfterPreviousExecutionContext {
-    /**
-     * Returns the execution state before execution.
-     * Empty if execution state was not observed before execution.
-     */
-    Optional<BeforeExecutionState> getBeforeExecutionState();
+public interface Result {
+    Try<ExecutionResult> getExecutionResult();
 }

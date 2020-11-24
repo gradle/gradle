@@ -31,7 +31,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
@@ -258,11 +257,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
-            File workspace = context.getWorkspace();
+        public WorkOutput execute(ExecutionRequest executionRequest) {
             ImmutableList<File> result = buildOperationExecutor.call(new CallableBuildOperation<ImmutableList<File>>() {
                 @Override
                 public ImmutableList<File> call(BuildOperationContext context) {
+                    File workspace = executionRequest.getWorkspace();
+                    InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
                     writeResultsFile(workspace, result);
                     return result;

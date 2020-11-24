@@ -54,15 +54,13 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.Result;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -178,7 +176,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
-        CachingResult result = context.getTaskExecutionMode().getRebuildReason()
+        Result result = context.getTaskExecutionMode().getRebuildReason()
             .map(rebuildReason -> executionEngine.rebuild(work, rebuildReason))
             .orElseGet(() -> executionEngine.execute(work));
         result.getExecutionResult().ifSuccessfulOrElse(
@@ -241,14 +239,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
-            FileCollection previousFiles = context.getAfterPreviousExecutionState()
-                .map(afterPreviousExecutionState -> (FileCollection) new PreviousOutputFileCollection(task, afterPreviousExecutionState))
+        public WorkOutput execute(ExecutionRequest executionRequest) {
+            FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
+                .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, previousOutputs))
                 .orElseGet(fileCollectionFactory::empty);
             TaskOutputsInternal outputs = task.getOutputs();
             outputs.setPreviousOutputFiles(previousFiles);
             try {
-                WorkResult didWork = executeWithPreviousOutputFiles(inputChanges);
+                WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
                 return new WorkOutput() {
                     @Override
                     public WorkResult getDidWork() {
@@ -287,7 +285,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         ? executionHistoryStore
                         : null);
                 }
-
             };
         }
 
@@ -540,16 +537,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     private class PreviousOutputFileCollection extends LazilyInitializedFileCollection {
         private final TaskInternal task;
-        private final AfterPreviousExecutionState previousExecution;
+        private final ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs;
 
-        public PreviousOutputFileCollection(TaskInternal task, AfterPreviousExecutionState previousExecution) {
+        public PreviousOutputFileCollection(TaskInternal task, ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
             this.task = task;
-            this.previousExecution = previousExecution;
+            this.previousOutputs = previousOutputs;
         }
 
         @Override
         public FileCollectionInternal createDelegate() {
-            List<File> outputs = previousExecution.getOutputFilesProducedByWork().values().stream()
+            List<File> outputs = previousOutputs.values().stream()
                 .map(SnapshotUtil::index)
                 .map(Map::keySet)
                 .flatMap(Collection::stream)

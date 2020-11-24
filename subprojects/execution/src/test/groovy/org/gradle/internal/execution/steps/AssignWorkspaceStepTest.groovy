@@ -16,10 +16,8 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.IdentityContext
-import org.gradle.internal.execution.Result
+
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.WorkspaceContext
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 
 class AssignWorkspaceStepTest extends StepSpec<IdentityContext> {

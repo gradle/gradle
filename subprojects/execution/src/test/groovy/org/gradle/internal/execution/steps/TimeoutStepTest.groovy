@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.timeout.Timeout
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.operations.CurrentBuildOperationRef

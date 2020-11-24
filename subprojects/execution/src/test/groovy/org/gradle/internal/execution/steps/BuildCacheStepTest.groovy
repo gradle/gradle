@@ -24,11 +24,9 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -109,7 +107,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
+        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
         then:
         interaction { outputStored {} }
@@ -183,7 +181,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
+        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
         then:
         interaction { outputStored {} }
@@ -208,7 +206,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
+        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
         then:
         interaction { outputStored { throw failure } }

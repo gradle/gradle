@@ -16,10 +16,17 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
+import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface ExecutionEngine {
@@ -27,7 +34,7 @@ public interface ExecutionEngine {
      * Execute the given unit of work using available optimizations like
      * up-to-date checks, build cache and incremental execution.
      */
-    CachingResult execute(UnitOfWork work);
+    Result execute(UnitOfWork work);
 
     /**
      * Force the re-execution of the given unit of work disabling optimizations
@@ -35,7 +42,7 @@ public interface ExecutionEngine {
      *
      * @param reason the reason to report for rebuilding the given unit of work.
      */
-    CachingResult rebuild(UnitOfWork work, String reason);
+    Result rebuild(UnitOfWork work, String reason);
 
     /**
      * Load the given unit from the given cache, or defer its execution.
@@ -45,4 +52,29 @@ public interface ExecutionEngine {
      * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
      */
     <T, O> T getFromIdentityCacheOrDeferExecution(UnitOfWork work, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler);
+
+    interface Result {
+        Try<ExecutionResult> getExecutionResult();
+
+        CachingState getCachingState();
+
+        /**
+         * A list of messages describing the first few reasons encountered that caused the work to be executed.
+         * An empty list means the work was up-to-date and hasn't been executed.
+         */
+        ImmutableList<String> getExecutionReasons();
+
+        /**
+         * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
+         */
+        Optional<OriginMetadata> getReusedOutputOriginMetadata();
+
+        /**
+         * Snapshots of the roots of output properties.
+         *
+         * Does not include any overlapping outputs <em>not</em> produced by the work.
+         */
+        @VisibleForTesting
+        ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork();
+    }
 }

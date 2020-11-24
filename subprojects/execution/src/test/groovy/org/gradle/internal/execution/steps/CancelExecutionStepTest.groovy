@@ -18,8 +18,6 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.internal.execution.Context
-import org.gradle.internal.execution.Result
 
 class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
     def cancellationToken = new DefaultBuildCancellationToken()

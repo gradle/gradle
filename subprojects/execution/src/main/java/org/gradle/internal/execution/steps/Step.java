@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.UnitOfWork;
 
-public interface CachingContext extends BeforeExecutionContext {
-    /**
-     * The resolved state of caching for the work.
-     */
-    CachingState getCachingState();
+public interface Step<C extends Context, R extends Result> {
+    R execute(UnitOfWork work, C context);
 }

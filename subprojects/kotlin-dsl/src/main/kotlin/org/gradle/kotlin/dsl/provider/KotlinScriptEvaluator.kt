@@ -31,13 +31,11 @@ import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransfor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
-import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -55,22 +53,17 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
-
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
-
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.serviceOf
-
 import org.gradle.plugin.management.internal.PluginRequests
-
 import org.gradle.plugin.use.internal.PluginRequestApplicator
-
 import java.io.File
 import java.util.Optional
 
@@ -382,19 +375,17 @@ class CompileKotlinScript(
         return UnitOfWork.Identity { identityHash }
     }
 
-    override fun execute(
-        inputChanges: InputChangesInternal?,
-        context: InputChangesContext
-    ): UnitOfWork.WorkOutput {
-        compileTo(classesDir(context.workspace))
-        return workOutputFor(context)
+    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+        val workspace = executionRequest.workspace
+        compileTo(classesDir(workspace))
+        return workOutputFor(workspace)
     }
 
     private
-    fun workOutputFor(context: InputChangesContext): UnitOfWork.WorkOutput =
+    fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
         object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput() = loadRestoredOutput(context.workspace)
+            override fun getOutput() = loadRestoredOutput(workspace)
         }
 
     override fun getDisplayName(): String =

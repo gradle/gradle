@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
+
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
-public interface ExecutionRequestContext extends Context {
+public interface AfterPreviousExecutionContext extends WorkspaceContext {
     /**
-     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
+     * Returns the execution state after the previous execution if available.
+     * Empty when execution history is not available.
      */
-    Optional<String> getRebuildReason();
+    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
 }

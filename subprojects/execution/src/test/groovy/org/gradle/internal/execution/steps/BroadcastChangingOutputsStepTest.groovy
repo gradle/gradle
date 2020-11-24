@@ -18,9 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.WorkspaceContext
 import org.gradle.internal.file.TreeType
 
 class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
