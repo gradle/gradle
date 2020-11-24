@@ -128,6 +128,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
 
         override fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             compilationClassPath: ClassPath,

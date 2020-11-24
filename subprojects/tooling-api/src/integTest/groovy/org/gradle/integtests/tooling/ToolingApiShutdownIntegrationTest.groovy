@@ -16,10 +16,12 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Retry
 import spock.lang.Timeout
 
 class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
 
+    @Retry(count = 3)
     @Timeout(30)
     def "tooling api can disconnect from hanging daemon"() {
         setup:

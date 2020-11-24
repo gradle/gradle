@@ -238,13 +238,14 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             compilationClassPath: ClassPath,
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngine.execute(
+            executionEngineFor(scriptHost).execute(
                 CompileKotlinScript(
                     templateId,
                     sourceHash,
@@ -277,6 +278,14 @@ class StandardKotlinScriptEvaluator(
 
         override val implicitImports: List<String>
             get() = this@StandardKotlinScriptEvaluator.implicitImports.list
+    }
+
+    private
+    fun executionEngineFor(scriptHost: KotlinScriptHost<*>): ExecutionEngine {
+        // get the ExecutionEngine from the closest available service scope
+        // for the global one has no support for the build cache
+        return (scriptHost.target as? Project)?.serviceOf()
+            ?: executionEngine
     }
 
     private

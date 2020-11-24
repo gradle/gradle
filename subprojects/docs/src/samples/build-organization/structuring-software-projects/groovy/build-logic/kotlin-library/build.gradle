@@ -6,5 +6,5 @@ dependencies {
     implementation(platform('com.example.platform:plugins-platform'))
 
     implementation(project(':commons'))
-    implementation('org.jetbrains.kotlin.android:org.jetbrains.kotlin.android.gradle.plugin')
+    implementation('org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin')
 }
