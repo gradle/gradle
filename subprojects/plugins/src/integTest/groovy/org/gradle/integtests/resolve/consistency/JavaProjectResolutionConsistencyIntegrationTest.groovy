@@ -210,6 +210,50 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         resolve
     }
 
+    def "can declare a configuration which extends from a resolvable configuration which uses consistency"() {
+        withRuntimeClasspathAsReference()
+        def foo = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+        def bar = mavenHttpRepo.module('org', 'bar', '1.0').publish()
+        buildFile << """
+            dependencies {
+                implementation 'org:foo:1.0'
+                runtimeOnly 'org:bar:1.0'
+            }
+
+            configurations {
+                myCompileClasspath.extendsFrom(compileClasspath)
+            }
+
+        """
+        def resolve = resolveClasspath 'compile'
+
+        buildFile << """
+            tasks.named('checkDeps') {
+                doFirst {
+                    // in order to trigger the bug, we need to resolve the configuration
+                    // which extends from a resolvable configuration first
+                    configurations.myCompileClasspath.resolve()
+                }
+            }
+        """
+
+        when:
+        foo.pom.expectGet()
+        foo.artifact.expectGet()
+        bar.pom.expectGet()
+
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0')
+                constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
+            }
+        }
+    }
+
+
     private void configureConsistentResolution(String whatFirst) {
         buildFile << """
             java {
