@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -68,4 +69,24 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      * @since 4.3
      */
     TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
+
+    /**
+     * Ignore directories during up-to-date checks.  When this is set, only the contents of directories
+     * will be considered, but not the directories themselves.  Changes to empty directories, and directories that
+     * contain only empty directories, will be ignored.
+     *
+     * @since 6.8
+     */
+    @Incubating
+    TaskInputFilePropertyBuilder ignoreEmptyDirectories();
+
+    /**
+     * Sets whether directories should be considered during up-to-date checks.  Defaults to false.
+     *
+     * See {@link #ignoreEmptyDirectories()}.
+     *
+     * @since 6.8
+     */
+    @Incubating
+    TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreEmptyDirectories);
 }

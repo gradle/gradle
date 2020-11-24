@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -34,7 +35,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,31 +42,30 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
+import static org.gradle.internal.execution.InputFingerprinter.union;
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
-import static org.gradle.internal.execution.steps.InputUtil.fingerprintInputProperties;
-import static org.gradle.internal.execution.steps.InputUtil.union;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    private final InputFingerprinter inputFingerprinter;
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
-    private final ValueSnapshotter valueSnapshotter;
     private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
 
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        InputFingerprinter inputFingerprinter,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        ValueSnapshotter valueSnapshotter,
         Step<? super BeforeExecutionContext, ? extends CachingResult> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.inputFingerprinter = inputFingerprinter;
         this.outputSnapshotter = outputSnapshotter;
-        this.valueSnapshotter = valueSnapshotter;
         this.overlappingOutputDetector = overlappingOutputDetector;
         this.delegate = delegate;
     }
@@ -168,10 +167,9 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
                 throw new AssertionError();
         }
 
-        InputUtil.Result newInputs = fingerprintInputProperties(
+        InputFingerprinter.Result newInputs = inputFingerprinter.fingerprintInputProperties(
             work,
             previousInputProperties,
-            valueSnapshotter,
             context.getInputProperties(),
             context.getInputFileProperties(),
             (propertyName, type, identity) -> identity == NON_IDENTITY);

@@ -17,6 +17,8 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
@@ -32,11 +34,15 @@ import java.util.Map;
  * Fingerprint files without path or content normalization.
  */
 public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-    public static final FingerprintingStrategy INSTANCE = new AbsolutePathFingerprintingStrategy();
+    public static final FingerprintingStrategy DEFAULT = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.DEFAULT);
+    public static final FingerprintingStrategy IGNORE_DIRECTORIES = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
-    private AbsolutePathFingerprintingStrategy() {
+    private final DirectorySensitivity directorySensitivity;
+
+    private AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
         super(IDENTIFIER);
+        this.directorySensitivity = directorySensitivity;
     }
 
     @Override
@@ -52,12 +58,11 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
             @Override
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
-                if (processedEntries.add(absolutePath)) {
+                if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
                     builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
                 }
                 return SnapshotVisitResult.CONTINUE;
             }
-
         });
         return builder.build();
     }
@@ -65,5 +70,10 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return directorySensitivity;
     }
 }

@@ -134,6 +134,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
+    public boolean getAllowsParallelExecution() {
+        return projectLockRegistry.getAllowsParallelExecution();
+    }
+
+    @Override
     public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
         return projectLockRegistry.getResourceLock(buildIdentityPath, projectIdentityPath);
     }
@@ -308,6 +313,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
             super(coordinationService);
             this.parallelEnabled = parallelEnabled;
+        }
+
+        public boolean getAllowsParallelExecution() {
+            return parallelEnabled;
         }
 
         ResourceLock getResourceLock(Path buildIdentityPath, Path projectIdentityPath) {

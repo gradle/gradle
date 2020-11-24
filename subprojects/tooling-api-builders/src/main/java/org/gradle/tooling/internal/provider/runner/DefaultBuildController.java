@@ -29,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
@@ -54,11 +55,14 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final GradleInternal gradle;
     private final BuildCancellationToken cancellationToken;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectLeaseRegistry projectLeaseRegistry;
+    private final boolean parallelActions = !"false".equalsIgnoreCase(System.getProperty("org.gradle.internal.tooling.parallel"));
 
-    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry) {
         this.gradle = gradle;
         this.cancellationToken = cancellationToken;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.projectLeaseRegistry = projectLeaseRegistry;
     }
 
     /**
@@ -104,8 +108,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     @Override
-    public boolean isActionsMayRunInParallel() {
-        return true;
+    public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
+        return projectLeaseRegistry.getAllowsParallelExecution() && parallelActions;
     }
 
     @Override
@@ -115,11 +119,17 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         for (Supplier<T> action : actions) {
             wrappers.add(new NestedAction<>(action));
         }
-        buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
+        if (parallelActions) {
+            buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
+                for (NestedAction<T> wrapper : wrappers) {
+                    buildOperationQueue.add(wrapper);
+                }
+            });
+        } else {
             for (NestedAction<T> wrapper : wrappers) {
-                buildOperationQueue.add(wrapper);
+                wrapper.run(null);
             }
-        });
+        }
 
         List<T> results = new ArrayList<>(actions.size());
         List<Throwable> failures = new ArrayList<>();

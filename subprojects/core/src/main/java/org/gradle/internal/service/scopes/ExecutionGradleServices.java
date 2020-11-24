@@ -33,6 +33,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
@@ -70,10 +71,10 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
@@ -141,26 +142,27 @@ public class ExecutionGradleServices {
         BuildOperationExecutor buildOperationExecutor,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
+        InputFingerprinter inputFingerprinter,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
-        ValidateStep.ValidationWarningReporter validationWarningReporter,
-        ValueSnapshotter valueSnapshotter
+        ValidateStep.ValidationWarningReporter validationWarningReporter
     ) {
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(valueSnapshotter,
+            new IdentifyStep<>(inputFingerprinter,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
             new ValidateStep<>(validationWarningReporter,
-            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
@@ -171,7 +173,7 @@ public class ExecutionGradleServices {
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(
-            new TimeoutStep<>(timeoutHandler,
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

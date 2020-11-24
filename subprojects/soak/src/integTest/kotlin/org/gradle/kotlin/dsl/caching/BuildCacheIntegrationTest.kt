@@ -24,7 +24,6 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 
 import org.junit.Test
 
@@ -60,7 +59,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     @Test
-    @Ignore("https://github.com/gradle/gradle-private/issues/3239")
     fun `build cache integration can be disabled via system property`() {
 
         val buildCacheDir = existing("build-cache")

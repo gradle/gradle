@@ -59,6 +59,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      */
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.ABSOLUTE)
     public FileTree getSource() {
         return sourceFiles.getAsFileTree().matching(patternSet);

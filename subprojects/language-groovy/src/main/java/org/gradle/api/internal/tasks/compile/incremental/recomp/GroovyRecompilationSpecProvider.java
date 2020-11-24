@@ -66,7 +66,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         processClasspathChanges(current, previous, spec);
         processOtherChanges(previous, spec);
 
-        spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
+        spec.addClassesToProcess(previous.getTypesToReprocess());
         return spec;
     }
 
@@ -124,7 +124,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             String relativeFilePath = fileChange.getNormalizedPath();
 
             Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
-            spec.getRelativeSourcePathsToCompile().add(relativeFilePath);
+            spec.addRelativeSourcePathsToCompile(relativeFilePath);
             sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
         }
 
@@ -135,7 +135,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
 
             Optional<String> relativeSourceFile = sourceFileClassNameConverter.getRelativeSourcePath(className);
             if (relativeSourceFile.isPresent()) {
-                spec.getRelativeSourcePathsToCompile().add(relativeSourceFile.get());
+                spec.addRelativeSourcePathsToCompile(relativeSourceFile.get());
             } else {
                 spec.setFullRebuildCause("unable to find source file of class " + className, null);
             }

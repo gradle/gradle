@@ -4,7 +4,7 @@
 = Understanding Gradle Module Metadata
 
 Gradle Module Metadata is a format used to serialize the Gradle component model.
-It is similar to https://maven.apache.org/pom.html[Apache Maven™'s POM file] or http://ant.apache.org/ivy/[Apache Ivy™ ivy.xml] files.
+It is similar to https://maven.apache.org/pom.html[Apache Maven™'s POM file] or https://ant.apache.org/ivy/[Apache Ivy™ ivy.xml] files.
 The goal of metadata files is to provide _to consumers_ a reasonable model of what is published on a repository.
 
 Gradle Module Metadata is a unique format aimed at improving dependency resolution by making it multi-platform and variant-aware.
@@ -20,13 +20,13 @@ Publication of Gradle Module Metadata will enable better dependency management f
 
 - early discovery of problems by detecting <<component_capabilities.adoc#declaring-component-capabilities,incompatible modules>>
 - consistent selection of <<cross_project_publications.adoc#targeting-different-platforms,platform-specific dependencies>>
-- native <<dependency_version_alignment.adoc#version_alignment, dependency version alignement>>
+- native <<dependency_version_alignment.adoc#version_alignment, dependency version alignment>>
 - automatically getting dependencies for specific <<feature_variants.adoc#,features of your library>>
 
 Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#,Maven Publish plugin>> or the <<publishing_ivy.adoc#,Ivy Publish plugin>>.
 It is _not_ supported on the legacy `maven` and `ivy` plugins.
 
-The specification for Gradle Module Metadata specification can be found {metadata-file-spec}[here].
+The specification for Gradle Module Metadata can be found {metadata-file-spec}[here].
 
 [[sub:mapping-with-other-formats]]
 == Mapping with other formats
@@ -59,7 +59,7 @@ The table below summarizes how some Gradle specific features are mapped to Maven
 |Component capabilities are unique to Gradle
 
 |<<feature_variants.adoc#,Feature variants>>
-|Variant artifacts are uploaded, dependencies are published as _optional dependencies
+|Variant artifacts are uploaded, dependencies are published as _optional_ dependencies
 |Variant artifacts are uploaded, dependencies are not published
 |Feature variants are a good replacement for optional dependencies
 
@@ -87,7 +87,7 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapa
 [[sub:interactions-other-build-tools]]
 == Interactions with other build tools
 
-Because Gradle Module Metadata is not widely spread and that it aims at <<#sub:mapping-with-other-formats,maximizing compatibility with other tools>>, Gradle does a couple of things:
+Because Gradle Module Metadata is not widely spread and because it aims at <<#sub:mapping-with-other-formats,maximizing compatibility with other tools>>, Gradle does a couple of things:
 
 - Gradle Module Metadata is systematically published alongside the normal descriptor for a given repository (Maven or Ivy)
 - the `pom.xml` or `ivy.xml` file will contain a _marker comment_ which tells Gradle that Gradle Module Metadata exists for this module
@@ -101,7 +101,7 @@ It doesn't mean that consumption from Maven or Ivy would be broken either, only 
 This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Module Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2nd request if the module was actually published with Gradle Module Metadata.
 ====
 
-If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls configuring the metadata sources for a repository:
+If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls by configuring the metadata sources for a repository:
 
 .Resolving Gradle Module Metadata only
 ====
@@ -131,7 +131,7 @@ This means that the file will always be different.
 
 Users can choose to disable this unique identifier in their `publication`:
 
-.Configure the build identifier of a publication
+.Configuring the build identifier of a publication
 ====
 include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=disable-build-id]"]
 include::sample[dir="snippets/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=disable-build-id]"]

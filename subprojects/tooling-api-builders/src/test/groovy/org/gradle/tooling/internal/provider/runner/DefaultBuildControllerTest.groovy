@@ -23,6 +23,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
@@ -51,8 +52,9 @@ class DefaultBuildControllerTest extends Specification {
         getName() >> 'some.model'
     }
     def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
+    def projectLeaseRegistry = Stub(ProjectLeaseRegistry)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor)
+    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor, projectLeaseRegistry)
 
     def setup() {
         GradleThread.setManaged()

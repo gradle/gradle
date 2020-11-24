@@ -16,13 +16,19 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import org.gradle.internal.UncheckedException;
+
 import java.time.Duration;
 import java.util.Collection;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 
-public class ExpectMaxNRequestsThenRelease extends ExpectMaxNConcurrentRequests {
-    public ExpectMaxNRequestsThenRelease(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
+public abstract class ExpectMaxNConcurrentRequestsThenRelease extends ExpectMaxNConcurrentRequests {
+    private final Executor executor;
+
+    public ExpectMaxNConcurrentRequestsThenRelease(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests, Executor executor) {
         super(lock, testId, timeout, maxConcurrent, previous, expectedRequests);
+        this.executor = executor;
     }
 
     @Override
@@ -32,10 +38,16 @@ public class ExpectMaxNRequestsThenRelease extends ExpectMaxNConcurrentRequests 
 
     @Override
     protected void onExpectedRequestsReceived(BlockingHttpServer.BlockingHandler handler, int yetToBeReceived) {
-        if (yetToBeReceived > 0) {
-            handler.release(1);
-        } else {
-            handler.releaseAll();
-        }
+        executor.execute(() -> {
+            // Wait for a short while to check for unexpected requests
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            doReleaseAction(handler, yetToBeReceived);
+        });
     }
+
+    abstract void doReleaseAction(BlockingHttpServer.BlockingHandler handler, int yetToBeReceived);
 }

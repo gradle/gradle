@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cleanup;
+package org.gradle.internal.execution;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.service.scopes.Scopes;

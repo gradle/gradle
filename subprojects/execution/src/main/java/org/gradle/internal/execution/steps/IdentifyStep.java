@@ -20,27 +20,26 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionHandler;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
-import static org.gradle.internal.execution.steps.InputUtil.fingerprintInputProperties;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
-    private final ValueSnapshotter valueSnapshotter;
+    private final InputFingerprinter inputFingerprinter;
 
     public IdentifyStep(
-        ValueSnapshotter valueSnapshotter,
+        InputFingerprinter inputFingerprinter,
         DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
-        this.valueSnapshotter = valueSnapshotter;
+        this.inputFingerprinter = inputFingerprinter;
         this.delegate = delegate;
     }
 
@@ -56,10 +55,9 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Nonnull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
-        InputUtil.Result inputs = fingerprintInputProperties(
+        InputFingerprinter.Result inputs = inputFingerprinter.fingerprintInputProperties(
             work,
             ImmutableSortedMap.of(),
-            valueSnapshotter,
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             (propertyName, type, identity) -> identity == IDENTITY);

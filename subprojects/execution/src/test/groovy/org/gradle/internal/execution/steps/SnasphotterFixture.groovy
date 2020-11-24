@@ -28,7 +28,6 @@ trait SnasphotterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
 
     final FileCollectionSnapshotter snapshotter = TestFiles.fileCollectionSnapshotter()
-
     ImmutableSortedMap<String, FileSystemSnapshot> snapshotsOf(Map<String, Object> properties) {
         def builder = ImmutableSortedMap.<String, FileSystemSnapshot>naturalOrder()
         properties.each { propertyName, value ->

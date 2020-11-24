@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.Deleter;
