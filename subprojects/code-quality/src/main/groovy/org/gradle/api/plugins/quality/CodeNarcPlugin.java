@@ -37,7 +37,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = "1.6.1";
+    public static final String DEFAULT_CODENARC_VERSION = "2.0.0";
     private CodeNarcExtension extension;
 
     @Override

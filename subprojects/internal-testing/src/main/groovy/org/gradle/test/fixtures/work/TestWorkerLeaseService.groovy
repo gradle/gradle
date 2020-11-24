@@ -36,7 +36,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     void releaseCurrentProjectLocks() {
+    }
 
+    @Override
+    boolean getAllowsParallelExecution() {
+        return false
     }
 
     @Override

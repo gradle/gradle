@@ -65,7 +65,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     @Unroll
     def "uses most recent version of multiple matches for version #versionToFind"() {
         given:
-        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.j9"])
+        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.foo"])
         def toolchainFactory = newToolchainFactory()
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
 
@@ -81,7 +81,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         where:
         versionToFind               | expectedPath
         JavaLanguageVersion.of(7)   | "/path/7.9"
-        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
+        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.foo" // zzz resolves to a real toolversion 999
         JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
     }
 
@@ -100,6 +100,22 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.languageVersion == JavaLanguageVersion.of(8)
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.j9")
+    }
+
+    def "prefer vendor-specific over other implementation if not requested"() {
+        given:
+        def registry = createInstallationRegistry(["8.0.2.j9", "8.0.1.hs"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.hs")
     }
 
     def "ignores invalid toolchains when finding a matching one"() {

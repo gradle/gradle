@@ -24,9 +24,11 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.joda.time.LocalDate;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Comparator;
@@ -49,36 +51,56 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     @Override
     public void report(final R results) {
         withConnectionClosingDb("write results", (ConnectionAction<Void>) connection -> {
-            long executionId;
-            try (PreparedStatement statement = connection.prepareStatement("insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, results.getTestClass());
-                statement.setString(2, results.getTestId());
-                statement.setString(3, results.getTestProject());
-                statement.setTimestamp(4, new Timestamp(results.getStartTime()));
-                statement.setTimestamp(5, new Timestamp(results.getEndTime()));
-                statement.setString(6, results.getVersionUnderTest());
-                statement.setString(7, results.getOperatingSystem());
-                statement.setString(8, results.getJvm());
-                statement.setString(9, results.getVcsBranch());
-                statement.setString(10, Joiner.on(",").join(results.getVcsCommits()));
-                statement.setString(11, results.getTestGroup());
-                statement.setString(12, resultType);
-                statement.setString(13, results.getChannel());
-                statement.setString(14, results.getHost());
-                statement.setString(15, results.getTeamCityBuildId());
-                statement.execute();
-                ResultSet keys = statement.getGeneratedKeys();
-                keys.next();
-                executionId = keys.getLong(1);
-            }
-            try (PreparedStatement statement = connection.prepareStatement("insert into testOperation(testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?)")) {
-                for (BuildDisplayInfo displayInfo : results.getBuilds()) {
-                    addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
-                }
-                statement.executeBatch();
-            }
+            long executionId = insertExecution(connection, results);
+            batchInsertOperation(connection, results, executionId);
+            insertExecutionExperiment(connection, results);
             return null;
         });
+    }
+
+    private void batchInsertOperation(Connection connection, R results, long executionId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("insert into testOperation(testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?)")) {
+            for (BuildDisplayInfo displayInfo : results.getBuilds()) {
+                addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private long insertExecution(Connection connection, R results) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, results.getTestClass());
+            statement.setString(2, results.getTestId());
+            statement.setString(3, results.getTestProject());
+            statement.setTimestamp(4, new Timestamp(results.getStartTime()));
+            statement.setTimestamp(5, new Timestamp(results.getEndTime()));
+            statement.setString(6, results.getVersionUnderTest());
+            statement.setString(7, results.getOperatingSystem());
+            statement.setString(8, results.getJvm());
+            statement.setString(9, results.getVcsBranch());
+            statement.setString(10, Joiner.on(",").join(results.getVcsCommits()));
+            statement.setString(11, results.getTestGroup());
+            statement.setString(12, resultType);
+            statement.setString(13, results.getChannel());
+            statement.setString(14, results.getHost());
+            statement.setString(15, results.getTeamCityBuildId());
+            statement.execute();
+            ResultSet keys = statement.getGeneratedKeys();
+            keys.next();
+            return keys.getLong(1);
+        }
+    }
+
+    private void insertExecutionExperiment(Connection connection, R results) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("insert into testExecutionExperiment(testId, testProject, testClass, resultType) values (?, ?, ?, ?)")) {
+            statement.setString(1, results.getTestId());
+            statement.setString(2, results.getTestProject());
+            statement.setString(3, results.getTestClass());
+            statement.setString(4, resultType);
+            statement.execute();
+        } catch (SQLIntegrityConstraintViolationException ignore) {
+            // This is expected, ignore.
+        }
     }
 
     private void addOperations(PreparedStatement statement, long executionId, BuildDisplayInfo displayInfo, MeasuredOperationList operations) throws SQLException {

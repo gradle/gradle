@@ -134,6 +134,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     @Override
     public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+        // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
         projectStateRegistry.blocking(() -> {
             lock.lock();
             try {

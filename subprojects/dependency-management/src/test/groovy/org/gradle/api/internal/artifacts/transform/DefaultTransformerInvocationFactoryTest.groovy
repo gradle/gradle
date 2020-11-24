@@ -45,16 +45,19 @@ import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
-import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.service.ServiceRegistry
@@ -76,6 +79,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         getClassLoaderHash(_ as ClassLoader) >> HashCode.fromInt(1234)
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHasher, null)
+    def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
 
     def executionHistoryStore = new TestExecutionHistoryStore()
     def fileSystemAccess = TestFiles.fileSystemAccess()
@@ -85,7 +89,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
-    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
+
+    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter])
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
@@ -127,20 +132,21 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         buildOperationExecutor,
         new GradleEnterprisePluginManager(),
         classloaderHasher,
+        new CurrentBuildOperationRef(),
         deleter,
         new DefaultExecutionStateChangeDetector(),
+        inputFingerprinter,
         outputChangeListener,
         outputFilesRepository,
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),
-        new DefaultTimeoutHandler(null),
+        Mock(TimeoutHandler),
         { String behavior ->
             DeprecationLogger.deprecateBehaviour(behavior)
                 .willBeRemovedInGradle7()
                 .undocumented()
                 .nagUser()
-        },
-        valueSnapshotter
+        }
     )
 
     def invoker = new DefaultTransformerInvocationFactory(
@@ -227,6 +233,16 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
         @Override
         void visitDependencies(TaskDependencyResolveContext context) {
+        }
+
+        @Override
+        DirectorySensitivity getInputArtifactDirectorySensitivity() {
+            return DirectorySensitivity.DEFAULT
+        }
+
+        @Override
+        DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
+            return DirectorySensitivity.DEFAULT
         }
     }
 

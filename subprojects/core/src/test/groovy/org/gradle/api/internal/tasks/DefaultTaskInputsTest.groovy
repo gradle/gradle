@@ -33,6 +33,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -315,7 +316,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })
@@ -344,7 +345,14 @@ class DefaultTaskInputsTest extends Specification {
         def inputFiles = [:]
         TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName,
+                                        boolean optional,
+                                        boolean skipWhenEmpty,
+                                        DirectorySensitivity emptyDirectorySensitivity,
+                                        boolean incremental,
+                                        @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                                        PropertyValue value,
+                                        InputFilePropertyType filePropertyType) {
                 inputFiles[propertyName] = value.call()
             }
         })

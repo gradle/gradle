@@ -16,23 +16,20 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.IdentityContext
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.ValueSnapshot
-import org.gradle.internal.snapshot.ValueSnapshotter
-
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY
 
 class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def delegateResult = Mock(Result)
-    def valueSnapshotter = Stub(ValueSnapshotter) {
-        snapshot(_ as Object) >> Mock(ValueSnapshot)
-        snapshot(_ as Object, _ as ValueSnapshot) >> Mock(ValueSnapshot)
-    }
-    def step = new IdentifyStep<>(valueSnapshotter, delegate)
+    def inputFingerprinter = Mock(InputFingerprinter)
+    def step = new IdentifyStep<>(inputFingerprinter, delegate)
 
     @Override
     protected ExecutionRequestContext createContext() {
@@ -40,32 +37,29 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     }
 
     def "delegates with assigned workspace"() {
+        def inputSnapshot = Mock(ValueSnapshot)
+        def inputFilesFingerprint = Mock(CurrentFileCollectionFingerprint)
+
         when:
         def result = step.execute(work, context)
 
         then:
         result == delegateResult
 
-        _ * work.visitInputs(_) >> { UnitOfWork.InputVisitor visitor ->
-            visitor.visitInputProperty("non-identity", NON_IDENTITY) { Mock(Object) }
-            visitor.visitInputProperty("identity", UnitOfWork.IdentityKind.IDENTITY) { 123 }
-            visitor.visitInputFileProperty(
-                "non-identity-file",
-                UnitOfWork.InputPropertyType.NON_INCREMENTAL,
-                NON_IDENTITY,
-                Mock(Object),
-                { -> throw new RuntimeException("Shouldn't fingerprint this") })
-            visitor.visitInputFileProperty(
-                "identity-file",
-                UnitOfWork.InputPropertyType.NON_INCREMENTAL,
-                UnitOfWork.IdentityKind.IDENTITY,
-                Mock(Object),
-                { -> Mock(CurrentFileCollectionFingerprint) })
-        }
+        1 * inputFingerprinter.fingerprintInputProperties(
+            work,
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of("input", inputSnapshot),
+            ImmutableSortedMap.of("input-files", inputFilesFingerprint)
+        )
 
         1 * delegate.execute(work, _ as IdentityContext) >> { UnitOfWork work, IdentityContext delegateContext ->
-            assert delegateContext.inputProperties.keySet() == ["identity"] as Set
-            assert delegateContext.inputFileProperties.keySet() == ["identity-file"] as Set
+            assert delegateContext.inputProperties as Map == ["input": inputSnapshot]
+            assert delegateContext.inputFileProperties as Map == ["input-files": inputFilesFingerprint]
             delegateResult
         }
     }

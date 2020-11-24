@@ -202,7 +202,10 @@ The Groovy plugin also modifies some source set properties:
 [[sec:groovyCompile]]
 == GroovyCompile
 
-The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile] task for each source set in the project. The task type extends the `JavaCompile` task (see <<building_java_projects.adoc#sec:compile, the relevant Java Plugin section>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
+The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile] task for each source set in the project.
+The task type shares much with the `JavaCompile` task by extending `AbstractCompile` (see <<building_java_projects.adoc#sec:compile, the relevant Java Plugin section>>).
+The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
+The task can also leverage the <<toolchains.adoc#,Java toolchain support>>.
 
 .Groovy plugin - GroovyCompile properties
 [%header%autowidth,compact]
@@ -214,7 +217,8 @@ The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.Groov
 | `__sourceSet__.compileClasspath`
 
 |  `source`
-| link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree]. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
+| link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree].
+Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 | `__sourceSet__.groovy`
 
 |  `destinationDir`
@@ -224,6 +228,10 @@ The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.Groov
 |  `groovyClasspath`
 | link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]
 | `groovy` configuration if non-empty; Groovy library found on `classpath` otherwise
+
+|  `javaLauncher`
+| `Property<JavaLauncher>`, see the <<toolchains.adoc#,toolchain documentation>>.
+| None but will be configured if a toolchain is defined on the `java` extension.
 |===
 
 [[sec:groovy_compilation_avoidance]]
@@ -305,15 +313,10 @@ Also see <<java_plugin.adoc#sec:incremental_compilation_known_issues,Known issue
 [[sec:groovy_cross_compilation]]
 == Compiling and testing for Java 6 or Java 7
 
-The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+With <<toolchains.adoc#,toolchain support>> added to `GroovyCompile`, it is possible to compile Groovy code using a different Java version than the one running Gradle.
+If you also have Java source files, this will also configure `JavaCompile` to use the right Java compiler is used, as can be seen in the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> documentation.
 
-=== Example: Configure Java 6 build for Groovy
-
-[source]
-.gradle.properties
-----
-include::{snippetsPath}/groovy/crossCompilation/groovy/gradle.properties[]
-----
+=== Example: Configure Java 7 build for Groovy
 
 ====
 include::sample[dir="snippets/groovy/crossCompilation/groovy",files="build.gradle[tags=groovy-cross-compilation]"]

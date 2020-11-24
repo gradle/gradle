@@ -22,7 +22,6 @@ import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import org.gradle.util.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -634,8 +633,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         executedAndNotSkipped ':compileJava'
     }
 
-    @ToBeImplemented
-    @Issue(["https://github.com/gradle/gradle/issues/2463", "https://github.com/gradle/gradle/issues/3444"])
+    @Issue("https://github.com/gradle/gradle/issues/2463")
     def "non-incremental java compilation ignores empty packages"() {
         given:
         buildFile << """
@@ -656,10 +654,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         when:
         file('src/main/java/org/gradle/different').createDir()
-        run('compileJava', '--info')
+        run('compileJava')
         then:
-        // FIXME: should be skipped
-        executedAndNotSkipped(':compileJava')
+        skipped(':compileJava')
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)

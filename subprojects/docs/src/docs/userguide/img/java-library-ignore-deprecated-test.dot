@@ -6,6 +6,8 @@ digraph configurations {
 
    "api" [shape="box", label=<<B>api</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
 
+   "compileOnlyApi" [shape="box", label=<<B>compileOnlyApi</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+
    "implementation" [shape="box", label=<<B>implementation</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
    "implementation" -> "api"
 
@@ -14,6 +16,7 @@ digraph configurations {
    "testCompileClasspath" [shape="box", label=<<B>testCompileClasspath</B>(R)>, color="lightblue", bgcolor="lightblue", style="filled"]
    "testCompileClasspath" -> "testCompileOnly"
    "testCompileOnly" [shape="box", label=<<B>testCompileOnly</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+   "testCompileOnly" -> "compileOnlyApi"
    "testCompileClasspath" -> "testImplementation"
    "testImplementation" [shape="box", label=<<B>testImplementation</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
    "testImplementation" -> "implementation"

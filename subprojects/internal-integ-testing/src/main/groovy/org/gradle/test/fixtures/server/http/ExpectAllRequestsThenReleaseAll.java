@@ -18,20 +18,16 @@ package org.gradle.test.fixtures.server.http;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 
-class ExpectAllRequestsThenRelease extends ExpectMaxNConcurrentRequests {
-    ExpectAllRequestsThenRelease(Lock lock, int testId, Duration timeout, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectations) {
-        super(lock, testId, timeout, expectations.size(), previous, expectations);
+class ExpectAllRequestsThenReleaseAll extends ExpectMaxNConcurrentRequestsThenRelease {
+    ExpectAllRequestsThenReleaseAll(Lock lock, int testId, Duration timeout, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectations, Executor executor) {
+        super(lock, testId, timeout, expectations.size(), previous, expectations, executor);
     }
 
     @Override
-    protected boolean isAutoRelease() {
-        return true;
-    }
-
-    @Override
-    protected void onExpectedRequestsReceived(BlockingHttpServer.BlockingHandler handler, int yetToBeReceived) {
+    void doReleaseAction(BlockingHttpServer.BlockingHandler handler, int yetToBeReceived) {
         handler.releaseAll();
     }
 }

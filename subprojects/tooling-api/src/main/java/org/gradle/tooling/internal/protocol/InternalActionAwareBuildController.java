@@ -29,9 +29,9 @@ import java.util.function.Supplier;
  */
 public interface InternalActionAwareBuildController {
     /**
-     * Will actions run in parallel for this build?
+     * Can the given project model be queried in parallel for this build?
      */
-    boolean isActionsMayRunInParallel();
+    boolean getCanQueryProjectModelInParallel(Class<?> modelType);
 
     /**
      * Runs the given actions in parallel and returns the results. The results should be returned in the same order as the actions that produce them.

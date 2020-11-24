@@ -16,8 +16,10 @@
 
 package org.gradle.internal.execution.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -28,12 +30,18 @@ import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 
-public class InputUtil {
+public class DefaultInputFingerprinter implements InputFingerprinter {
 
-    public static Result fingerprintInputProperties(
+    private final ValueSnapshotter valueSnapshotter;
+
+    public DefaultInputFingerprinter(ValueSnapshotter valueSnapshotter) {
+        this.valueSnapshotter = valueSnapshotter;
+    }
+
+    @Override
+    public Result fingerprintInputProperties(
         UnitOfWork work,
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
-        ValueSnapshotter valueSnapshotter,
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
         InputPropertyPredicate filter
@@ -41,31 +49,6 @@ public class InputUtil {
         InputCollectingVisitor visitor = new InputCollectingVisitor(work, previousValueSnapshots, valueSnapshotter, knownValueSnapshots, knownFingerprints, filter);
         work.visitInputs(visitor);
         return visitor.complete();
-    }
-
-    public interface InputPropertyPredicate {
-        boolean include(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity);
-    }
-
-    public interface Result {
-        ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints();
-    }
-
-    public static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(
-        ImmutableSortedMap<K, V> a,
-        ImmutableSortedMap<K, V> b
-    ) {
-        if (a.isEmpty()) {
-            return b;
-        } else if (b.isEmpty()) {
-            return a;
-        } else {
-            return ImmutableSortedMap.<K, V>naturalOrder()
-                .putAll(a)
-                .putAll(b)
-                .build();
-        }
     }
 
     private static class InputCollectingVisitor implements UnitOfWork.InputVisitor {
@@ -129,17 +112,26 @@ public class InputUtil {
         }
 
         public Result complete() {
-            return new Result() {
-                @Override
-                public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
-                    return valueSnapshotsBuilder.build();
-                }
+            return new InputFingerprints(valueSnapshotsBuilder.build(), fingerprintsBuilder.build());
+        }
+    }
 
-                @Override
-                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints() {
-                    return fingerprintsBuilder.build();
-                }
-            };
+    @VisibleForTesting
+    public static class InputFingerprints implements InputFingerprinter.Result {
+        private final ImmutableSortedMap<String, ValueSnapshot> valueSnapshots;
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints;
+
+        public InputFingerprints(ImmutableSortedMap<String, ValueSnapshot> valueSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints) {
+            this.valueSnapshots = valueSnapshots;
+            this.fileFingerprints = fileFingerprints;
+        }
+
+        public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
+            return valueSnapshots;
+        }
+
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints() {
+            return fileFingerprints;
         }
     }
 }

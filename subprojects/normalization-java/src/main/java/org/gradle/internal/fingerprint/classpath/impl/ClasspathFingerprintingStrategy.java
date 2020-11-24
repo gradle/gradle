@@ -32,6 +32,7 @@ import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHas
 import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
@@ -221,5 +222,10 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.KEEP_ORDER;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return DirectorySensitivity.DEFAULT;
     }
 }

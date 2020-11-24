@@ -26,10 +26,12 @@ import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.work.Incremental;
@@ -70,6 +72,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class) ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT,
             propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,

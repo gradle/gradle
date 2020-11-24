@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -59,5 +60,10 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     @Override
     public CurrentFileCollectionFingerprint empty() {
         return fingerprintingStrategy.getEmptyFingerprint();
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return fingerprintingStrategy.getDirectorySensitivity();
     }
 }

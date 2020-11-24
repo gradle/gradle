@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -36,12 +37,14 @@ import java.util.Map;
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final String IDENTIFIER = "RELATIVE_PATH";
+    private final DirectorySensitivity directorySensitivity;
 
     private final Interner<String> stringInterner;
 
-    public RelativePathFingerprintingStrategy(Interner<String> stringInterner) {
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity) {
         super(IDENTIFIER);
         this.stringInterner = stringInterner;
+        this.directorySensitivity = directorySensitivity;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         HashSet<String> processedEntries = new HashSet<>();
         roots.accept(new PathTracker(), (snapshot, relativePath) -> {
             String absolutePath = snapshot.getAbsolutePath();
-            if (processedEntries.add(absolutePath)) {
+            if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
@@ -80,5 +83,10 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return directorySensitivity;
     }
 }

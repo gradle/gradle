@@ -52,7 +52,7 @@ public class ActionRunsMultipleLevelsOfNestedActions implements BuildAction<List
                 new ActionRunsNestedActions.GetProjectModel(project),
                 new ActionRunsNestedActions.GetProjectModel(project)
             ));
-            return new Models(controller.isActionsMayRunInParallel(), models);
+            return new Models(controller.getCanQueryProjectModelInParallel(CustomModel.class), models);
         }
     }
 }

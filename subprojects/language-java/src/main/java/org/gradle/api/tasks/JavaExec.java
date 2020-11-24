@@ -747,7 +747,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
 
     /**
-     * Configures the java exectuable to be used to run the tests.
+     * Configures the java executable to be used to run the tests.
      *
      * @since 6.7
      */
