@@ -32,13 +32,13 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     private static final TIMEOUT = 500
 
-    long warnIfNotStoppedFrequencyMs
+    long postTimeoutCheckFrequencyMs
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         executer.beforeExecute {
-            def checkTime = warnIfNotStoppedFrequencyMs ?: Duration.ofMinutes(3).toMillis() // use long timeout to avoid test flakiness
-            executer.withArgument("-D${DefaultTimeoutHandler.WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY}=$checkTime")
+            def checkTime = postTimeoutCheckFrequencyMs ?: Duration.ofMinutes(3).toMillis() // use long timeout to avoid test flakiness
+            executer.withArgument("-D${DefaultTimeoutHandler.POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY}=$checkTime")
         }
     }
 
@@ -255,7 +255,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     def "additional logging is emitted when task is slow to stop"() {
         given:
-        warnIfNotStoppedFrequencyMs = 100
+        postTimeoutCheckFrequencyMs = 100
         buildFile << """
             task block() {
                 doLast {
@@ -287,5 +287,34 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         def logging = taskExecutionOp.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) }*.details
         def timeoutLogging = logging.findAll { it.category == DefaultTimeoutHandler.name }
         timeoutLogging.collect { it.message } as List<String>
+    }
+
+    def "task is re-interrupted until it stops"() {
+        given:
+        postTimeoutCheckFrequencyMs = 100
+        buildFile << """
+            task block() {
+                doLast {
+                    def interruptedCount = 0
+                    while (true) {
+                        if (Thread.interrupted()) {
+                            println "received interrupt"
+                            if (++interruptedCount == 3) {
+                                return
+                            }
+                        }
+                    }
+                }
+                timeout = Duration.ofMillis($TIMEOUT)
+            }
+            """
+
+        expect:
+        fails "block"
+
+        and:
+        with(result.groupedOutput.task(":block")) {
+            output.count("received interrupt") == 3
+        }
     }
 }

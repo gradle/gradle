@@ -37,7 +37,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTimeoutHandler.class);
 
     // Only intended to be used for integration testing
-    public static final String WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".warnIfNotStoppedFrequency";
+    public static final String POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".postTimeoutCheckFrequency";
 
     private final ManagedScheduledExecutor executor;
     private final CurrentBuildOperationRef currentBuildOperationRef;
@@ -58,8 +58,8 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     }
 
     // Value is queried “dynamically” to support testing
-    private static long warnIfNotStoppedFrequency() {
-        return Integer.parseInt(System.getProperty(WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY, "3000"));
+    private static long postTimeoutCheckFrequency() {
+        return Integer.parseInt(System.getProperty(POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY, "3000"));
     }
 
     private final class DefaultTimeout implements Timeout {
@@ -83,27 +83,30 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
             this.timeout = timeout;
             this.workUnitDescription = workUnitDescription;
             this.buildOperationRef = buildOperationRef;
-
-            this.scheduledFuture = executor.schedule(this::interrupt, timeout.toMillis(), TimeUnit.MILLISECONDS);
+            this.scheduledFuture = executor.schedule(this::onTimeout, timeout.toMillis(), TimeUnit.MILLISECONDS);
         }
 
-        private void interrupt() {
+        private void onTimeout() {
             synchronized (lock) {
                 if (!stopped) {
                     interrupted = true;
                     doAsPartOfBuildOperation(() -> LOGGER.warn("Requesting stop of {} as it has exceeded its configured timeout of {}.", workUnitDescription.getDisplayName(), TimeFormatting.formatDurationTerse(timeout.toMillis())));
                     thread.interrupt();
-                    scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
+                    scheduledFuture = executor.schedule(this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
         }
 
-        private void warnIfNotStopped() {
+        private void onAfterTimeoutCheck() {
             synchronized (lock) {
                 if (!stopped) {
                     slowStop = true;
                     doAsPartOfBuildOperation(() -> LOGGER.warn("Timed out {} has not yet stopped.", workUnitDescription.getDisplayName()));
-                    scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
+
+                    // Interrupt again in case the work unit cleared the interrupt.
+                    thread.interrupt();
+
+                    scheduledFuture = executor.schedule(this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
         }
