@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.std;
 
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -41,7 +40,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -51,7 +49,6 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.IncubationLogger;
 
@@ -268,7 +265,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         protected abstract List<ClassSource> getClassSources();
 
         @Override
-        public WorkOutput execute(File workspace, @Nullable InputChangesInternal inputChanges, @Nullable ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
+        public WorkOutput execute(ExecutionRequest executionRequest) {
+            File workspace = executionRequest.getWorkspace();
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             List<ClassSource> sources = getClassSources();

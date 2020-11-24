@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import com.google.common.collect.ImmutableSortedMap
 import kotlinx.metadata.Flag
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.flagsOf
@@ -30,12 +29,10 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
-import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeader
@@ -126,7 +123,8 @@ class GeneratePluginAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(workspace: File, inputChanges: InputChangesInternal?, previousOutputs: ImmutableSortedMap<String, FileSystemSnapshot>?): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+        val workspace = executionRequest.workspace
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
                 buildPluginAccessorsFor(

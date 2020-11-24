@@ -17,7 +17,6 @@
 package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
 import groovy.transform.Immutable
@@ -30,7 +29,6 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
-import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
@@ -60,7 +58,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
@@ -805,7 +802,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                UnitOfWork.WorkOutput execute(File workspace, @Nullable InputChangesInternal inputChanges, @Nullable ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
+                UnitOfWork.WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
                     def didWork = work.get()
                     executed = true
                     return new UnitOfWork.WorkOutput() {

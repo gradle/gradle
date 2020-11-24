@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.provider
 
-import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -37,7 +36,6 @@ import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
-import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -51,7 +49,6 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -369,11 +366,8 @@ class CompileKotlinScript(
         return UnitOfWork.Identity { identityHash }
     }
 
-    override fun execute(
-        workspace: File,
-        inputChanges: InputChangesInternal?,
-        previousOutputs: ImmutableSortedMap<String, FileSystemSnapshot>?
-    ): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+        val workspace = executionRequest.workspace
         compileTo(classesDir(workspace))
         return workOutputFor(workspace)
     }

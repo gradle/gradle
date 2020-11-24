@@ -239,14 +239,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public WorkOutput execute(File workspace, @Nullable InputChangesInternal inputChanges, @Nullable ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
-            FileCollection previousFiles = previousOutputs != null
-                ? new PreviousOutputFileCollection(task, previousOutputs)
-                : fileCollectionFactory.empty();
+        public WorkOutput execute(ExecutionRequest executionRequest) {
+            FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
+                .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, previousOutputs))
+                .orElseGet(fileCollectionFactory::empty);
             TaskOutputsInternal outputs = task.getOutputs();
             outputs.setPreviousOutputFiles(previousFiles);
             try {
-                WorkResult didWork = executeWithPreviousOutputFiles(inputChanges);
+                WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
                 return new WorkOutput() {
                     @Override
                     public WorkResult getDidWork() {
@@ -285,7 +285,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         ? executionHistoryStore
                         : null);
                 }
-
             };
         }
 

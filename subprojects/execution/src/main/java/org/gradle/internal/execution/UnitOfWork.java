@@ -56,7 +56,15 @@ public interface UnitOfWork extends Describable {
     /**
      * Executes the work synchronously.
      */
-    WorkOutput execute(File workspace, @Nullable InputChangesInternal inputChanges, @Nullable ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs);
+    WorkOutput execute(ExecutionRequest executionRequest);
+
+    interface ExecutionRequest {
+        File getWorkspace();
+
+        Optional<InputChangesInternal> getInputChanges();
+
+        Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs();
+    }
 
     interface WorkOutput {
         WorkResult getDidWork();

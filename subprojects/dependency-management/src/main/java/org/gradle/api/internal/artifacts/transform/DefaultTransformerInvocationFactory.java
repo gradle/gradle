@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
@@ -49,7 +48,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -258,10 +256,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public WorkOutput execute(File workspace, @Nullable InputChangesInternal inputChanges, @Nullable ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
+        public WorkOutput execute(ExecutionRequest executionRequest) {
             ImmutableList<File> result = buildOperationExecutor.call(new CallableBuildOperation<ImmutableList<File>>() {
                 @Override
                 public ImmutableList<File> call(BuildOperationContext context) {
+                    File workspace = executionRequest.getWorkspace();
+                    InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
                     writeResultsFile(workspace, result);
                     return result;

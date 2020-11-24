@@ -22,15 +22,17 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.work.InputChanges;
 
-import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Optional;
 
 public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
 
@@ -45,7 +47,7 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {
-                Result result = executeOperation(work, context);
+                Result result = executeInternal(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return result;
             }
@@ -59,29 +61,54 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
         });
     }
 
-    @Nonnull
-    private Result executeOperation(UnitOfWork work, C context) {
+    private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
         try {
-            File workspace = context.getWorkspace();
-            ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = context.getAfterPreviousExecutionState()
-                .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
-                .orElse(null);
-            ExecutionResult executionResult = context.getInputChanges()
-                .map(inputChanges -> determineResult(work.execute(workspace, inputChanges, outputFilesProducedByWork), inputChanges.isIncremental()))
-                .orElseGet(() -> determineResult(work.execute(workspace, null, outputFilesProducedByWork), false));
+            UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
+                @Override
+                public File getWorkspace() {
+                    return context.getWorkspace();
+                }
+
+                @Override
+                public Optional<InputChangesInternal> getInputChanges() {
+                    return context.getInputChanges();
+                }
+
+                @Override
+                public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
+                    return context.getAfterPreviousExecutionState()
+                        .map(AfterPreviousExecutionState::getOutputFilesProducedByWork);
+                }
+            };
+            UnitOfWork.WorkOutput workOutput = work.execute(executionRequest);
+            ExecutionOutcome outcome = determineOutcome(context, workOutput);
+            ExecutionResult executionResult = new ExecutionResult() {
+                @Override
+                public ExecutionOutcome getOutcome() {
+                    return outcome;
+                }
+
+                @Override
+                public Object getOutput() {
+                    return workOutput.getOutput();
+                }
+            };
             return () -> Try.successful(executionResult);
         } catch (Throwable t) {
             return () -> Try.failure(t);
         }
     }
 
-    private static ExecutionResult determineResult(UnitOfWork.WorkOutput workOutput, boolean incremental) {
+    private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
         ExecutionOutcome outcome;
         switch (workOutput.getDidWork()) {
             case DID_NO_WORK:
                 outcome = ExecutionOutcome.UP_TO_DATE;
                 break;
             case DID_WORK:
+                boolean incremental = context.getInputChanges()
+                    .map(InputChanges::isIncremental)
+                    .orElse(false);
                 outcome = incremental
                     ? ExecutionOutcome.EXECUTED_INCREMENTALLY
                     : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
@@ -89,17 +116,7 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
             default:
                 throw new AssertionError();
         }
-        return new ExecutionResult() {
-            @Override
-            public ExecutionOutcome getOutcome() {
-                return outcome;
-            }
-
-            @Override
-            public Object getOutput() {
-                return workOutput.getOutput();
-            }
-        };
+        return outcome;
     }
 
     /*

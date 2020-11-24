@@ -53,7 +53,9 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         result.executionResult.get().outcome == expectedOutcome
 
         _ * context.inputChanges >> Optional.empty()
-        _ * work.execute(workspace, null, previousOutputs) >> Stub(UnitOfWork.WorkOutput) {
+        _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
+            executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
+        }) >> Stub(UnitOfWork.WorkOutput) {
             getDidWork() >> workResult
         }
         0 * _
@@ -74,7 +76,9 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         result.executionResult.failure.get() == failure
 
         _ * context.inputChanges >> Optional.empty()
-        _ * work.execute(workspace, null, previousOutputs) >> { throw failure }
+        _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
+            executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
+        }) >> { throw failure }
         0 * _
 
         where:
@@ -82,7 +86,7 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
     }
 
     @Unroll
-    def "incremental work with result #workResult yields outcome #outcome (executed incrementally: #incrementalExecution)"() {
+    def "incremental work with result #workResult yields outcome #expectedOutcome (executed incrementally: #incrementalExecution)"() {
         when:
         def result = step.execute(work, context)
 
@@ -90,8 +94,10 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         result.executionResult.get().outcome == expectedOutcome
 
         _ * context.inputChanges >> Optional.of(inputChanges)
-        1 * inputChanges.incremental >> incrementalExecution
-        _ * work.execute(workspace, inputChanges, previousOutputs) >> Stub(UnitOfWork.WorkOutput) {
+        _ * inputChanges.incremental >> incrementalExecution
+        _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
+            executionRequest.workspace == workspace && executionRequest.inputChanges.get() == inputChanges && executionRequest.previouslyProducedOutputs.get() == previousOutputs
+        }) >> Stub(UnitOfWork.WorkOutput) {
             getDidWork() >> workResult
         }
         0 * _
