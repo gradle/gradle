@@ -18,12 +18,14 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,17 +47,19 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        return buildHierarchy(project.getRootProject());
+        Path buildIdentityPath = ((GradleInternal)project.getRootProject().getGradle()).getIdentityPath();
+        return buildHierarchy(project.getRootProject(), buildIdentityPath);
     }
 
     public DefaultGradleProject buildAll(Project project) {
-        return buildHierarchy(project.getRootProject());
+        Path buildIdentityPath = ((GradleInternal)project.getRootProject().getGradle()).getIdentityPath();
+        return buildHierarchy(project.getRootProject(), buildIdentityPath);
     }
 
-    private DefaultGradleProject buildHierarchy(Project project) {
+    private DefaultGradleProject buildHierarchy(Project project, Path buildIdentityPath) {
         List<DefaultGradleProject> children = new ArrayList<DefaultGradleProject>();
         for (Project child : project.getChildProjects().values()) {
-            children.add(buildHierarchy(child));
+            children.add(buildHierarchy(child, buildIdentityPath));
         }
 
         DefaultGradleProject gradleProject = new DefaultGradleProject()
@@ -77,7 +81,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
               - "unmodified" (or any other value): The model builder will run unchanged.
          */
         String projectOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "unmodified");
-        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), projectOptions);
+        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), projectOptions, buildIdentityPath);
 
         if (!"skip_task_serialization".equals(projectOptions)) {
             gradleProject.setTasks(tasks);
@@ -90,7 +94,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions) {
+    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions, Path buildIdentityPath) {
         if ("omit_all_tasks".equals(projectOptions)) {
             return Collections.emptyList();
         } else if ("skip_task_graph_realization".equals(projectOptions)) {
@@ -103,7 +107,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         for (String taskName : taskNames) {
             Task t = tasks.findByName(taskName);
             if (t != null) {
-                out.add(buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), t).setProject(owner));
+                out.add(buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), t, buildIdentityPath).setProject(owner));
             }
         }
 

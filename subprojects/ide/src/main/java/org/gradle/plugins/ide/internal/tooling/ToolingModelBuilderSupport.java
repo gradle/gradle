@@ -19,16 +19,18 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.util.Path;
 
 public abstract class ToolingModelBuilderSupport {
-    public static <T extends LaunchableGradleTask> T buildFromTask(T target, DefaultProjectIdentifier projectIdentifier, Task task) {
-        target.setPath(task.getPath())
-                .setName(task.getName())
-                .setGroup(task.getGroup())
-                .setDisplayName(task.toString())
-                .setDescription(task.getDescription())
-                .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task))
-                .setProjectIdentifier(projectIdentifier);
+    public static <T extends LaunchableGradleTask> T buildFromTask(T target, DefaultProjectIdentifier projectIdentifier, Task task, Path buildIdentityPath) {
+        Path taskPath = buildIdentityPath.append(Path.path(task.getPath()));
+        target.setPath(taskPath.toString())
+            .setName(task.getName())
+            .setGroup(task.getGroup())
+            .setDisplayName(task.toString())
+            .setDescription(task.getDescription())
+            .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task))
+            .setProjectIdentifier(projectIdentifier);
         return target;
     }
 }

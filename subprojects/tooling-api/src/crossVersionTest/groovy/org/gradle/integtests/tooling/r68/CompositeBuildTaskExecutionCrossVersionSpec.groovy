@@ -19,6 +19,11 @@ package org.gradle.integtests.tooling.r68
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.GradleTask
+import org.gradle.tooling.model.Launchable
+import org.gradle.tooling.model.Task
+import org.gradle.tooling.model.gradle.BuildInvocationsT
 
 @ToolingApiVersion(">=3.0")
 @TargetGradleVersion('>=6.8')
@@ -44,6 +49,46 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("do something")
     }
 
+    def "can run included root project task via retrieved launchable from GradleProject model"() {
+        given:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        when:
+        executeTaskViaLaunchable("doSomething")
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
+    }
+
+    def "can run included root project task via retrieved launchable from BuildInvocations model"() {
+        given:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        when:
+        executeTaskViaBuildInvocationsLaunchable("doSomething")
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
+    }
+
     def "can run included subproject task"() {
         given:
         settingsFile << "includeBuild('other-build')"
@@ -61,6 +106,29 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
         when:
         executeTaskViaTAPI(":other-build:sub:doSomething")
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
+    }
+
+    def "can run included subproject task via retrieved launchable"() {
+        given:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        when:
+        executeTaskViaLaunchable("doSomething")
 
         then:
         assertHasBuildSuccessfulLogging()
@@ -309,6 +377,37 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
             collectOutputs(build)
             build.forTasks(task).run()
         }
+    }
+
+    private void executeTaskViaLaunchable(String taskPath) {
+        withConnection { connection ->
+            Collection<GradleProject> gradleProjects = connection.action(new LoadCompositeModel(GradleProject)).run() // TODO use GradleBuild instead
+            Launchable launchable = findLaunchable(gradleProjects, taskPath)
+            def build = connection.newBuild()
+            collectOutputs(build)
+            build.forLaunchables(launchable).run()
+        }
+    }
+
+    private void executeTaskViaBuildInvocationsLaunchable(String taskPath) {
+        withConnection { connection ->
+            Collection<BuildInvocations> buildInvocations = connection.action(new LoadCompositeModel(BuildInvocations)).run()
+            Task task = buildInvocations.collect { it.tasks }.flatten().find {println it.path; it.path.contains(taskPath)  } // TODO convert to equals
+
+            def build = connection.newBuild()
+            collectOutputs(build)
+            build.forLaunchables(task).run()
+        }
+    }
+
+    private Launchable findLaunchable(Collection<GradleProject> gradleProjects, String taskPath) {
+        collectGradleProjects(gradleProjects, []).collect {it.tasks }.flatten().find { GradleTask task -> println task.path; task.path.contains(taskPath) } // TODO convert to equals
+    }
+
+    private def collectGradleProjects(Collection<GradleProject> projects, Collection<GradleProject> acc) {
+        acc.addAll(projects)
+        projects.each { collectGradleProjects(it.children, acc) }
+        return acc
     }
 
     private boolean outputContains(String expectedOutput) {
