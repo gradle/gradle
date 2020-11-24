@@ -177,3 +177,11 @@ tasks.compileTestGroovy {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+afterEvaluate {
+    // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
+    // For the current project, we exclude all internal packages, since there are no tasks in there.
+    tasks.withType<ValidatePlugins>().configureEach {
+        classes.setFrom(sourceSets.main.get().output.classesDirs.asFileTree.matching { exclude("**/internal/**") })
+    }
+}
