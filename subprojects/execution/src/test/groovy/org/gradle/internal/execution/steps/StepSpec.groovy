@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps
 
-
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.TestBuildOperationExecutor
