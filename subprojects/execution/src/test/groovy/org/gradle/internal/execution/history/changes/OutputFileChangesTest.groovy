@@ -17,30 +17,112 @@
 package org.gradle.internal.execution.history.changes
 
 import org.apache.commons.io.FilenameUtils
-import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.TestSnapshotFixture
 import spock.lang.Specification
 
-import static org.gradle.internal.file.impl.DefaultFileMetadata.file
-import static org.gradle.internal.hash.HashCode.fromInt
+class OutputFileChangesTest extends Specification implements TestSnapshotFixture {
 
-class OutputFileChangesTest extends Specification {
+    def "empties"() {
+        expect:
+        changes(
+            FileSystemSnapshot.EMPTY,
+            FileSystemSnapshot.EMPTY
+        ) == []
+    }
+
+    def "trivial equality"() {
+        expect:
+        changes(
+            regularFile("one", 0x1234),
+            regularFile("one", 0x1234)
+        ) == []
+    }
+
+    def "trivial addition"() {
+        expect:
+        changes(
+            FileSystemSnapshot.EMPTY,
+            regularFile("two", 0x1234)
+        ) == [added("two")]
+    }
+
+    def "trivial removal"() {
+        expect:
+        changes(
+            regularFile("one", 0x1234),
+            FileSystemSnapshot.EMPTY
+        ) == [removed("one")]
+    }
 
     def "trivial absolute path change"() {
         expect:
         changes(
-            fileSnapshot("one"),
-            fileSnapshot("two")
+            regularFile("one", 0x1234),
+            regularFile("two", 0x1234)
         ) == [removed("one"), added("two")]
     }
 
     def "trivial content change"() {
         expect:
         changes(
-            fileSnapshot("one", 1234),
-            fileSnapshot("one", 2345)
+            regularFile("one", 0x1234),
+            regularFile("one", 0xffff)
         ) == [modified("one")]
+    }
+
+    def "deep equality"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ])
+        ) == []
+    }
+
+    def "deep addition"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ])
+        ) == [added("root/two")]
+    }
+
+    def "deep removal"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234)
+            ])
+        ) == [removed("root/two")]
+    }
+
+    def "deep content change"() {
+        expect:
+        changes(
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0x2345)
+            ]),
+            directory("root", [
+                regularFile("root/one", 0x1234),
+                regularFile("root/two", 0xffff)
+            ])
+        ) == [modified("root/two")]
     }
 
     def changes(FileSystemSnapshot previousSnapshot, FileSystemSnapshot currentSnapshot) {
@@ -49,24 +131,15 @@ class OutputFileChangesTest extends Specification {
         visitor.getChanges().toList()
     }
 
-    def fileSnapshot(String absolutePath, hash = 1234) {
-        new RegularFileSnapshot(
-            FilenameUtils.separatorsToSystem(absolutePath),
-            FilenameUtils.getName(absolutePath),
-            fromInt(hash),
-            file(5, 5, FileMetadata.AccessType.DIRECT)
-        )
-    }
-
     def added(String path) {
-        new DescriptiveChange("Output property 'test' file $path has been added.")
+        new DescriptiveChange("Output property 'test' file ${FilenameUtils.separatorsToSystem(path)} has been added.")
     }
 
     def removed(String path) {
-        new DescriptiveChange("Output property 'test' file $path has been removed.")
+        new DescriptiveChange("Output property 'test' file ${FilenameUtils.separatorsToSystem(path)} has been removed.")
     }
 
     def modified(String path) {
-        new DescriptiveChange("Output property 'test' file $path has changed.")
+        new DescriptiveChange("Output property 'test' file ${FilenameUtils.separatorsToSystem(path)} has changed.")
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.RelativePathSupplier;
 
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -27,7 +26,7 @@ import java.util.Iterator;
 /**
  * Tracks the relative path. Useful when visiting {@link FileSystemLocationSnapshot}s.
  */
-public class PathTracker implements RelativePathSupplier {
+public class RelativePathTracker implements RelativePathSupplier {
     private final Deque<String> segments = new ArrayDeque<>();
     private String rootName;
 
@@ -60,27 +59,6 @@ public class PathTracker implements RelativePathSupplier {
     @Override
     public Collection<String> getSegments() {
         return segments;
-    }
-
-    /**
-     * Returns the absolute path with system file separators.
-     */
-    public String toAbsolutePath() {
-        if (segments.isEmpty()) {
-            return rootName;
-        } else {
-            int length = rootName.length() + segments.size();
-            for (String segment : segments) {
-                length += segment.length();
-            }
-            StringBuilder buffer = new StringBuilder(length);
-            buffer.append(rootName);
-            for (String segment : segments) {
-                buffer.append(File.separatorChar);
-                buffer.append(segment);
-            }
-            return buffer.toString();
-        }
     }
 
     /**

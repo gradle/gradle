@@ -16,19 +16,16 @@
 
 package org.gradle.internal.execution.history.impl
 
-import org.apache.commons.io.FilenameUtils
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.serialize.AbstractEncoder
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.TestSnapshotFixture
 
-import static java.lang.Math.abs
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 import static org.gradle.internal.file.impl.DefaultFileMetadata.file
@@ -36,10 +33,9 @@ import static org.gradle.internal.hash.HashCode.fromInt
 import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
 import static org.gradle.internal.snapshot.SnapshotUtil.index
 
-class FileSystemSnapshotSerializerTest extends SerializerSpec {
+class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSnapshotFixture {
     def stringInterner = new StringInterner()
     def serializer = new FileSystemSnapshotSerializer(stringInterner)
-    def pseudoRandom = new Random(1234L)
 
     @Override
     Class<? extends AbstractEncoder> getEncoder() {
@@ -114,24 +110,6 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec {
 
         then:
         assertEqualSnapshots(out, snapshots)
-    }
-
-    private FileSystemLocationSnapshot directory(String absolutePath, AccessType accessType = DIRECT, List<FileSystemLocationSnapshot> children) {
-        new DirectorySnapshot(
-            FilenameUtils.separatorsToSystem(absolutePath),
-            FilenameUtils.getName(absolutePath),
-            accessType,
-            fromInt(pseudoRandom.nextInt()),
-            children as List
-        )
-    }
-
-    private FileSystemLocationSnapshot regularFile(String absolutePath, AccessType accessType = DIRECT) {
-        new RegularFileSnapshot(
-            FilenameUtils.separatorsToSystem(absolutePath),
-            FilenameUtils.getName(absolutePath),
-            fromInt(pseudoRandom.nextInt()),
-            file(abs(pseudoRandom.nextLong()), abs(pseudoRandom.nextLong()), accessType))
     }
 
     private static void assertEqualSnapshots(FileSystemSnapshot snapshot, FileSystemSnapshot expected) {

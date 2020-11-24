@@ -17,6 +17,7 @@
 package org.gradle.internal.hash;
 
 import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,6 +54,11 @@ public class HashCode implements Serializable, Comparable<HashCode> {
 
     public static HashCode fromInt(int value) {
         byte[] bytes = Ints.toByteArray(value); // Big-endian
+        return fromBytesNoCopy(bytes);
+    }
+
+    public static HashCode fromLong(long value) {
+        byte[] bytes = Longs.toByteArray(value); // Big-endian
         return fromBytesNoCopy(bytes);
     }
 

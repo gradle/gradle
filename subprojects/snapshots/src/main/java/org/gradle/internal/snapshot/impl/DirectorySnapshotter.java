@@ -31,8 +31,8 @@ import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ public class DirectorySnapshotter {
         }
 
         @Override
-        public SymbolicLinkMapping withNewMapping(String source, String target, PathTracker currentPathTracker) {
+        public SymbolicLinkMapping withNewMapping(String source, String target, RelativePathTracker currentPathTracker) {
             return new DefaultSymbolicLinkMapping(source, target, currentPathTracker.getSegments());
         }
 
@@ -106,7 +106,7 @@ public class DirectorySnapshotter {
     private interface SymbolicLinkMapping {
         String remapAbsolutePath(Path path);
         @CheckReturnValue
-        SymbolicLinkMapping withNewMapping(String source, String target, PathTracker currentPathTracker);
+        SymbolicLinkMapping withNewMapping(String source, String target, RelativePathTracker currentPathTracker);
         Iterable<String> getRemappedSegments(Iterable<String> segments);
     }
 
@@ -137,7 +137,7 @@ public class DirectorySnapshotter {
         }
 
         @Override
-        public SymbolicLinkMapping withNewMapping(String source, String target, PathTracker currentPathTracker) {
+        public SymbolicLinkMapping withNewMapping(String source, String target, RelativePathTracker currentPathTracker) {
             return new DefaultSymbolicLinkMapping(remapAbsolutePath(source), target, getRemappedSegments(currentPathTracker.getSegments()));
         }
 
@@ -221,7 +221,7 @@ public class DirectorySnapshotter {
     }
 
     private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
-        private final PathTracker pathTracker = new PathTracker();
+        private final RelativePathTracker pathTracker = new RelativePathTracker();
         private final MerkleDirectorySnapshotBuilder builder;
         private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
