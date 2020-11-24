@@ -62,7 +62,7 @@ Since Gradle 6.8, projects imported into Eclipse include the compile and runtime
 
 ==== SourceTask is no longer sensitive to empty directories
 
-Previously, empty directories would be taken into account during up-to-date checks and build cache key calculations for the sources declared in [SourceTask](javadoc/org/gradle/api/tasks/SourceTask.html).
+Previously, empty directories would be taken into account during up-to-date checks and build cache key calculations for the sources declared in `SourceTask`.
 This meant that a source tree that contained an empty directory and an otherwise identical source tree that did not contain the empty directory would be considered different sources, even if the task would produce the same outputs.
 In Gradle 6.8, `SourceTask` now ignores empty directories during doing up-to-date checks and build cache key calculations.
 In the vast majority of cases, this is the desired behavior, but it is possible that a task may extend `SourceTask` but also produce different outputs when empty directories are present in the sources.

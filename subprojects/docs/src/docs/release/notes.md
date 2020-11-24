@@ -96,7 +96,7 @@ For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) a
 
 This may not always be desirable. There are many cases where only the files in a directory structure may be significant, and an empty directory will have no impact on the outputs of a task. In such cases, re-executing the task because an empty directory exists is unnecessary as it will only produce the same outputs.
 
-A new annotation has been introduced to address this scenario. Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html) or [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) can additionally be annotated with [@IgnoreDirectories](javadoc/org/gradle/api/tasks/IgnoreDirectories.html) to specify that directories should not be considered during build cache and up-to-date checks.
+A new annotation has been introduced to address this scenario. Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html) or [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) can additionally be annotated with [@IgnoreEmptyDirectories](javadoc/org/gradle/api/tasks/IgnoreEmptyDirectories.html) to specify that directories should not be considered during build cache and up-to-date checks.
 For inputs annotated in this way, only changes to files (including the file path) will be treated as differences in the input values.
 
 ```
