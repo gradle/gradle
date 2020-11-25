@@ -140,6 +140,20 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "configuration-cache",
+    "name": "configuration-cache",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "configuration-cache-report",
+    "name": "configuration-cache-report",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "core",
     "name": "core",
     "unitTests": true,
@@ -311,20 +325,6 @@
     "dirName": "installation-beacon",
     "name": "installation-beacon",
     "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "configuration-cache",
-    "name": "configuration-cache",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": true
-  },
-  {
-    "dirName": "configuration-cache-report",
-    "name": "configuration-cache-report",
-    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
