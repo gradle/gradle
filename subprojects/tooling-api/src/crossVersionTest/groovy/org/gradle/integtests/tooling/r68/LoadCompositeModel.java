@@ -40,9 +40,7 @@ public class LoadCompositeModel<T> implements BuildAction<Collection<T>>, Serial
     }
 
     private void collectRootModels(BuildController controller, GradleBuild build, Collection<T> models) {
-
         models.add(controller.getModel(build.getRootProject(), modelClass));
-
         for (GradleBuild includedBuild : build.getIncludedBuilds()) {
             collectRootModels(controller, includedBuild, models);
         }
