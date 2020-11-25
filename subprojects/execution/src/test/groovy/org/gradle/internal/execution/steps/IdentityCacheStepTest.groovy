@@ -19,10 +19,8 @@ package org.gradle.internal.execution.steps
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.internal.Try
-import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.DeferredExecutionHandler
-import org.gradle.internal.execution.IdentityContext
-import org.gradle.internal.execution.Result
+import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.UnitOfWork
 
 import java.util.function.Supplier
@@ -42,7 +40,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
         def processed = Mock(Object)
         def delegateOutput = Mock(Object)
         def delegateResult = Stub(CachingResult) {
-            getExecutionResult() >> Try.successful(Stub(Result.ExecutionResult) {
+            getExecutionResult() >> Try.successful(Stub(ExecutionResult) {
                 getOutput() >> delegateOutput
             })
         }

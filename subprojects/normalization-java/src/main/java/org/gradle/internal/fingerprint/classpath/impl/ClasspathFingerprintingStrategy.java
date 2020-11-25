@@ -45,8 +45,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
@@ -134,7 +134,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<>();
-        roots.accept(new PathTracker(), new ClasspathFingerprintingVisitor(processedEntries, builder));
+        roots.accept(new RelativePathTracker(), new ClasspathFingerprintingVisitor(processedEntries, builder));
         return builder.build();
     }
 

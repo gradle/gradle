@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps
+package org.gradle.internal.execution.steps;
 
-class ContextInsensitiveStepSpec extends StepSpec<Context> {
-    @Override
-    protected Context createContext() {
-        Stub(Context)
-    }
+import java.util.Optional;
+
+public interface ExecutionRequestContext extends Context {
+    /**
+     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
+     */
+    Optional<String> getRebuildReason();
 }

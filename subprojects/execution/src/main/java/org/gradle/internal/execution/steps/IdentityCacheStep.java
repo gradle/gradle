@@ -19,11 +19,8 @@ package org.gradle.internal.execution.steps;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredExecutionHandler;
-import org.gradle.internal.execution.IdentityContext;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
@@ -50,7 +47,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
             return handler.processDeferredOutput(() -> cache.get(
                 identity,
                 () -> execute(work, context).getExecutionResult()
-                    .map(Result.ExecutionResult::getOutput)
+                    .map(ExecutionResult::getOutput)
                     .map(Cast::<O>uncheckedNonnullCast)));
         }
     }

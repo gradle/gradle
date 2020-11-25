@@ -190,8 +190,8 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo'
-   Constraint path ':test:unspecified' --> 'org:platform-a:1.0' --> 'org:foo:{strictly 1.0}'
-   Constraint path ':test:unspecified' --> 'org:platform-b:1.0' --> 'org:foo:{strictly 2.0}'"""
+   Constraint path ':test:unspecified' --> 'org:platform-a:1.0' (runtime) --> 'org:foo:{strictly 1.0}'
+   Constraint path ':test:unspecified' --> 'org:platform-b:1.0' (runtime) --> 'org:foo:{strictly 2.0}'"""
     }
 
     @ToBeFixedForConfigurationCache

@@ -28,16 +28,17 @@ import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.PathTracker;
 import org.gradle.internal.snapshot.PathUtil;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 
@@ -60,7 +61,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
     public FileSystemSnapshot read(Decoder decoder) throws Exception {
         SnapshotStack stack = new SnapshotStack();
         stack.push();
-        PathTracker pathTracker = new PathTracker();
+        Deque<String> pathTracker = new ArrayDeque<>();
         while (true) {
             EntryType type = readEntryType(decoder);
             if (type == EntryType.END) {
@@ -69,7 +70,7 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
             if (type != EntryType.DIR_CLOSE) {
                 String path = decoder.readString();
                 String internedPath = stringInterner.intern(path);
-                pathTracker.enter(internedPath);
+                pathTracker.addLast(internedPath);
                 if (type == EntryType.DIR_OPEN) {
                     stack.push();
                     continue;
@@ -77,12 +78,13 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
             }
             String internedAbsolutePath;
             String internedName;
-            if (pathTracker.isRoot()) {
-                internedAbsolutePath = pathTracker.leave();
+            String path = pathTracker.removeLast();
+            if (pathTracker.isEmpty()) {
+                internedAbsolutePath = path;
                 internedName = stringInterner.intern(PathUtil.getFileName(internedAbsolutePath));
             } else {
-                internedAbsolutePath = stringInterner.intern(pathTracker.toAbsolutePath());
-                internedName = pathTracker.leave();
+                internedAbsolutePath = stringInterner.intern(toAbsolutePath(pathTracker, path));
+                internedName = path;
             }
             FileMetadata.AccessType accessType = readAccessType(decoder);
             switch (type) {
@@ -220,5 +222,18 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
         public boolean isEmpty() {
             return stack.isEmpty();
         }
+    }
+
+    private static String toAbsolutePath(Collection<String> parents, String fileName) {
+        int length = fileName.length() + parents.size()  + parents.stream()
+            .mapToInt(String::length)
+            .sum();
+        StringBuilder buffer = new StringBuilder(length);
+        for (String parent : parents) {
+            buffer.append(parent);
+            buffer.append(File.separatorChar);
+        }
+        buffer.append(fileName);
+        return buffer.toString();
     }
 }

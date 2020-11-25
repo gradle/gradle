@@ -106,3 +106,16 @@ There are differences between the two types of repository, particularly around t
 ====
 
 That's everything for the basic use case. However, many projects need more control over what gets published, so we look at several common scenarios in the following sections.
+
+[[sec:suppressing_validation_errors]]
+== Suppressing validation errors
+
+Gradle performs validation of generated module metadata.
+In some cases, validation can fail, indicating that you most likely have an error to fix, but you may have done something intentionally.
+If this is the case, Gradle will indicate the name of the validation error you can disable on the `GenerateModuleMetadata` tasks:
+
+.Disabling some validation errors
+====
+include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=disable_validation]"]
+include::sample[dir="snippets/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=disable_validation]"]
+====

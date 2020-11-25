@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.publish.internal.metadata;
 
-package org.gradle.internal.execution;
+import org.gradle.api.attributes.AttributeContainer;
 
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-
-import java.io.File;
 import java.util.Optional;
 
-public interface WorkspaceContext extends IdentityContext {
-    File getWorkspace();
+public interface DependencyAttributesValidator {
+    String getSuppressor();
+    String getExplanation();
 
-    Optional<ExecutionHistoryStore> getHistory();
+    Optional<String> validationErrorFor(String group, String name, AttributeContainer attributes);
 }

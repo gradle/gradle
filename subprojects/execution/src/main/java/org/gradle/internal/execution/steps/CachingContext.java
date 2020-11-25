@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.caching.CachingState;
 
-import java.util.Optional;
-
-public interface InputChangesContext extends BeforeExecutionContext {
-    Optional<InputChangesInternal> getInputChanges();
-    boolean isIncrementalExecution();
+public interface CachingContext extends BeforeExecutionContext {
+    /**
+     * The resolved state of caching for the work.
+     */
+    CachingState getCachingState();
 }

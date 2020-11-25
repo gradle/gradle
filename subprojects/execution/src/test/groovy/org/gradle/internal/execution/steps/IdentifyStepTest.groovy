@@ -17,10 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.execution.ExecutionRequestContext
-import org.gradle.internal.execution.IdentityContext
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint

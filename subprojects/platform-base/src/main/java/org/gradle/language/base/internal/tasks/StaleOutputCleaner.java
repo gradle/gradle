@@ -17,7 +17,7 @@ package org.gradle.language.base.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 

@@ -16,9 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.Step;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;

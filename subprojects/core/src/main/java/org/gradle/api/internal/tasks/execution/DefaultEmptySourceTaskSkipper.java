@@ -24,7 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
 
-import java.util.Optional;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.ExecutionResult;
 
-public interface ExecutionRequestContext extends Context {
-    /**
-     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
-     */
-    Optional<String> getRebuildReason();
+public interface Result {
+    Try<ExecutionResult> getExecutionResult();
 }

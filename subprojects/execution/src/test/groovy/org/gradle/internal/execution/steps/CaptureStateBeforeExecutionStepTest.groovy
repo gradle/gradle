@@ -17,8 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.execution.AfterPreviousExecutionContext
-import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
@@ -35,7 +33,6 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
-import static org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.Operation.Result
 
 class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
@@ -195,7 +192,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
     private void assertOperationForInputsBeforeExecution() {
         withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
             assert it.descriptor.displayName == "Snapshot inputs and outputs before executing job ':test'"
-            assert it.result == Result.INSTANCE
+            assert it.result == CaptureStateBeforeExecutionStep.Operation.Result.INSTANCE
         }
     }
 }

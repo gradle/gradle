@@ -20,9 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.BeforeExecutionContext
-import org.gradle.internal.execution.CurrentSnapshotResult
-import org.gradle.internal.execution.Result
+import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -71,7 +69,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         then:
         1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
+        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
         then:
         interaction { expectStore(true, outputFilesProduceByWork) }

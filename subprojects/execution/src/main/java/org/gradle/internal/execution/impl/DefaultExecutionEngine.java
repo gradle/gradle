@@ -18,13 +18,13 @@ package org.gradle.internal.execution.impl;
 
 import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
+import org.gradle.internal.execution.steps.CachingResult;
+import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
+import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

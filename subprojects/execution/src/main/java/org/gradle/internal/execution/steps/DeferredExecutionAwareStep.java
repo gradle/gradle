@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps
+package org.gradle.internal.execution.steps;
 
-class ContextInsensitiveStepSpec extends StepSpec<Context> {
-    @Override
-    protected Context createContext() {
-        Stub(Context)
-    }
+import org.gradle.cache.Cache;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.DeferredExecutionHandler;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.Identity;
+
+public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
+    <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler);
 }

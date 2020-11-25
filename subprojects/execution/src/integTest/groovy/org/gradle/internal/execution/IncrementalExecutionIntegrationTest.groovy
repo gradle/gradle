@@ -29,7 +29,6 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
-import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
@@ -632,11 +631,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
         }
     }
 
-    UpToDateResult outOfDate(UnitOfWork unitOfWork, String... expectedReasons) {
+    ExecutionEngine.Result outOfDate(UnitOfWork unitOfWork, String... expectedReasons) {
         return outOfDate(unitOfWork, ImmutableList.<String>copyOf(expectedReasons))
     }
 
-    UpToDateResult outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
+    ExecutionEngine.Result outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
         def result = execute(unitOfWork)
         assert result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
@@ -644,13 +643,13 @@ class IncrementalExecutionIntegrationTest extends Specification {
         return result
     }
 
-    UpToDateResult upToDate(UnitOfWork unitOfWork) {
+    ExecutionEngine.Result upToDate(UnitOfWork unitOfWork) {
         def result = execute(unitOfWork)
         assert result.executionResult.get().outcome == UP_TO_DATE
         return result
     }
 
-    UpToDateResult execute(UnitOfWork unitOfWork) {
+    ExecutionEngine.Result execute(UnitOfWork unitOfWork) {
         virtualFileSystem.invalidateAll()
         executor.execute(unitOfWork)
     }
@@ -806,7 +805,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                UnitOfWork.WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+                UnitOfWork.WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
                     def didWork = work.get()
                     executed = true
                     return new UnitOfWork.WorkOutput() {
