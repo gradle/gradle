@@ -23,7 +23,7 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion(">=3.0")
+@ToolingApiVersion(">=3.3")
 @TargetGradleVersion('>=6.8')
 class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
 
