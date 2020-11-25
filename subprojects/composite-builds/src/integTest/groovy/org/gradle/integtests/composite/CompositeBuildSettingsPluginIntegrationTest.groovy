@@ -29,14 +29,14 @@ class CompositeBuildSettingsPluginIntegrationTest extends AbstractCompositeBuild
         """
     }
 
-    def "included build logic build can contribute settings plugins"() {
+    def "early included build logic build can contribute settings plugins"() {
         given:
         file('included-build/src/main/groovy/my.settings-plugin.settings.gradle') << """
             println('settings plugin applied')
         """
         settingsFile << """
             pluginManagement {
-                includeBuild('included-build')
+                includeBuildEarly('included-build')
             }
             plugins {
                 id("my.settings-plugin")
@@ -50,7 +50,30 @@ class CompositeBuildSettingsPluginIntegrationTest extends AbstractCompositeBuild
         outputContains("settings plugin applied")
     }
 
-    def "included build logic build can contribute both settings and project plugins"() {
+    def "early included build logic build can contribute project plugins"() {
+        given:
+        file('included-build/src/main/groovy/my.project-plugin.gradle') << """
+            println('project plugin applied')
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuildEarly('included-build')
+            }
+        """
+        buildFile << """
+            plugins {
+                id("my.project-plugin")
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        outputContains("project plugin applied")
+    }
+
+    def "early included build logic build can contribute both settings and project plugins"() {
         given:
         file('included-build/src/main/groovy/my.project-plugin.gradle') << """
             println('project plugin applied')
@@ -60,7 +83,7 @@ class CompositeBuildSettingsPluginIntegrationTest extends AbstractCompositeBuild
         """
         settingsFile << """
             pluginManagement {
-                includeBuild('included-build')
+                includeBuildEarly('included-build')
             }
             plugins {
                 id("my.settings-plugin")
@@ -77,6 +100,50 @@ class CompositeBuildSettingsPluginIntegrationTest extends AbstractCompositeBuild
 
         then:
         outputContains("settings plugin applied")
+        outputContains("project plugin applied")
+    }
+
+    def "included build logic builds can not contribute settings plugins"() {
+        given:
+        file('included-build/src/main/groovy/my.settings-plugin.settings.gradle') << """
+            println('settings plugin applied')
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild('included-build')
+            }
+            plugins {
+                id("my.settings-plugin")
+            }
+        """
+
+        when:
+        fails('help')
+
+        then:
+        failureDescriptionContains("Plugin [id: 'my.settings-plugin'] was not found in any of the following sources:")
+    }
+
+    def "included build logic builds can contribute project plugins"() {
+        given:
+        file('included-build/src/main/groovy/my.project-plugin.gradle') << """
+            println('project plugin applied')
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild('included-build')
+            }
+        """
+        buildFile << """
+            plugins {
+                id("my.project-plugin")
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
         outputContains("project plugin applied")
     }
 
@@ -99,4 +166,73 @@ class CompositeBuildSettingsPluginIntegrationTest extends AbstractCompositeBuild
         failureDescriptionContains("Plugin [id: 'my.settings-plugin'] was not found in any of the following sources:")
     }
 
+    def "regular included builds contributing project plugins is deprecated"() {
+        given:
+        file('included-build/src/main/groovy/my.project-plugin.gradle') << """
+            println('project plugin applied')
+        """
+        settingsFile << """
+            includeBuild('included-build')
+        """
+        buildFile << """
+            plugins {
+                id("my.project-plugin")
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Including builds that contribute Gradle plugins outside of pluginManagement {} block in settings file has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#included_builds_contributing_plugins")
+        succeeds('help')
+
+        then:
+        outputContains("project plugin applied")
+    }
+
+    def "does not print deprecation warning when plugin is included using pluginManagement and same build is included regularly in addition"() {
+        given:
+        file('included-build/src/main/groovy/my.project-plugin.gradle') << """
+            println('project plugin applied')
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild('included-build')
+            }
+            includeBuild('included-build')
+        """
+        buildFile << """
+            plugins {
+                id("my.project-plugin")
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        outputContains("project plugin applied")
+    }
+
+    def "does not print deprecation warning when plugin is included early using pluginManagement and same build is included regularly in addition"() {
+        given:
+        file('included-build/src/main/groovy/my.project-plugin.gradle') << """
+            println('project plugin applied')
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuildEarly('included-build')
+            }
+            includeBuild('included-build')
+        """
+        buildFile << """
+            plugins {
+                id("my.project-plugin")
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        outputContains("project plugin applied")
+    }
 }

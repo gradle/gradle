@@ -104,6 +104,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
+    public boolean canContributePlugins() {
+        return buildDefinition.canContributePlugins();
+    }
+
+    @Override
     public File getProjectDir() {
         return buildDefinition.getBuildRootDir();
     }

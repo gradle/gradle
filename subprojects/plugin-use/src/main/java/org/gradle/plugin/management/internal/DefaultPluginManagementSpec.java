@@ -40,6 +40,7 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
     private final FileResolver fileResolver;
 
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
+    private final List<IncludedBuildSpec> earlyIncludedBuildSpecs = new ArrayList<>();
 
     public DefaultPluginManagementSpec(PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider, PluginResolutionStrategyInternal pluginResolutionStrategy, FileResolver fileResolver) {
         this.pluginRepositoryHandlerProvider = pluginRepositoryHandlerProvider;
@@ -85,8 +86,19 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
     }
 
     @Override
+    public void includeBuildEarly(String projectPath) {
+        File projectDir = fileResolver.resolve(projectPath);
+        earlyIncludedBuildSpecs.add(new IncludedBuildSpec(projectDir, Actions.doNothing()));
+    }
+
+    @Override
     public List<IncludedBuildSpec> getIncludedBuilds() {
         return includedBuildSpecs;
+    }
+
+    @Override
+    public List<IncludedBuildSpec> getEarlyIncludedBuilds() {
+        return earlyIncludedBuildSpecs;
     }
 
     private class PluginDependenciesSpecImpl implements PluginDependenciesSpec {

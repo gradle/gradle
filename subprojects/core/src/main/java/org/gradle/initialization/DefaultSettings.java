@@ -343,12 +343,18 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
         rule.execute(getPluginManagement());
-        List<IncludedBuildSpec> pluginManagementIncludedBuildSpecs = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
 
-        for (IncludedBuildSpec includedBuild : pluginManagementIncludedBuildSpecs) {
-            IncludedBuildState buildState = getBuildIncluder().includeBuild(includedBuild, gradle);
+        List<IncludedBuildSpec> earlyIncludedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getEarlyIncludedBuilds();
+        for (IncludedBuildSpec buildSpec : earlyIncludedBuilds) {
+            IncludedBuildState buildState = getBuildIncluder().includeBuildWithPlugins(buildSpec, gradle);
             buildState.getConfiguredBuild();
-            includedBuildSpecs.add(includedBuild);
+            includedBuildSpecs.add(buildSpec);
+        }
+
+        List<IncludedBuildSpec> includedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
+        for (IncludedBuildSpec buildSpec : includedBuilds) {
+            getBuildIncluder().includeBuildWithPlugins(buildSpec, gradle);
+            includedBuildSpecs.add(buildSpec);
         }
     }
 

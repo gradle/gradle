@@ -35,6 +35,7 @@ public class BuildDefinition {
     private final PluginRequests injectedSettingsPlugins;
     private final Action<? super DependencySubstitutions> dependencySubstitutions;
     private final PublicBuildPath fromBuild;
+    private final boolean canContributePlugins;
 
     private BuildDefinition(
         @Nullable String name,
@@ -42,14 +43,15 @@ public class BuildDefinition {
         StartParameter startParameter,
         PluginRequests injectedSettingsPlugins,
         Action<? super DependencySubstitutions> dependencySubstitutions,
-        PublicBuildPath fromBuild
-    ) {
+        PublicBuildPath fromBuild,
+        boolean canContributePlugins) {
         this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
         this.injectedSettingsPlugins = injectedSettingsPlugins;
         this.dependencySubstitutions = dependencySubstitutions;
         this.fromBuild = fromBuild;
+        this.canContributePlugins = canContributePlugins;
     }
 
     /**
@@ -92,6 +94,10 @@ public class BuildDefinition {
         return dependencySubstitutions;
     }
 
+    public boolean canContributePlugins() {
+        return canContributePlugins;
+    }
+
     public static BuildDefinition fromStartParameterForBuild(
         StartParameter startParameter,
         String name,
@@ -106,12 +112,30 @@ public class BuildDefinition {
             startParameterForIncludedBuildFrom(startParameter, buildRootDir),
             pluginRequests,
             dependencySubstitutions,
-            fromBuild
-        );
+            fromBuild,
+            false);
+    }
+
+    public static BuildDefinition fromStartParameterForBuildWithPlugins(
+        StartParameter startParameter,
+        String name,
+        File buildRootDir,
+        PluginRequests pluginRequests,
+        Action<? super DependencySubstitutions> dependencySubstitutions,
+        PublicBuildPath fromBuild
+    ) {
+        return new BuildDefinition(
+            name,
+            buildRootDir,
+            startParameterForIncludedBuildFrom(startParameter, buildRootDir),
+            pluginRequests,
+            dependencySubstitutions,
+            fromBuild,
+            true);
     }
 
     public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
-        return new BuildDefinition(null, null, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild);
+        return new BuildDefinition(null, null, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
     }
 
     private static StartParameter startParameterForIncludedBuildFrom(StartParameter startParameter, File buildRootDir) {
@@ -128,6 +152,6 @@ public class BuildDefinition {
      * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
      */
     public BuildDefinition newInstance() {
-        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, dependencySubstitutions, fromBuild);
+        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, dependencySubstitutions, fromBuild, canContributePlugins);
     }
 }

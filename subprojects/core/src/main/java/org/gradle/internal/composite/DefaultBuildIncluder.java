@@ -26,6 +26,8 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.management.internal.PluginRequests;
 
+import java.util.function.Function;
+
 public class DefaultBuildIncluder implements BuildIncluder {
 
     private final BuildStateRegistry buildRegistry;
@@ -40,20 +42,34 @@ public class DefaultBuildIncluder implements BuildIncluder {
 
     @Override
     public IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
+        return includeBuild(includedBuildSpec, gradle, build -> BuildDefinition.fromStartParameterForBuild(
+            gradle.getStartParameter(),
+            build.getName(),
+            includedBuildSpec.rootDir,
+            PluginRequests.EMPTY,
+            build.getDependencySubstitutionAction(),
+            publicBuildPath
+        ));
+    }
+
+    @Override
+    public IncludedBuildState includeBuildWithPlugins(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
+        return includeBuild(includedBuildSpec, gradle, build -> BuildDefinition.fromStartParameterForBuildWithPlugins(
+            gradle.getStartParameter(),
+            build.getName(),
+            includedBuildSpec.rootDir,
+            PluginRequests.EMPTY,
+            build.getDependencySubstitutionAction(),
+            publicBuildPath
+        ));
+    }
+
+    private IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle, Function<DefaultConfigurableIncludedBuild, BuildDefinition> builder) {
         gradle.getOwner().assertCanAdd(includedBuildSpec);
 
         DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
         includedBuildSpec.configurer.execute(configurable);
 
-        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
-            gradle.getStartParameter(),
-            configurable.getName(),
-            includedBuildSpec.rootDir,
-            PluginRequests.EMPTY,
-            configurable.getDependencySubstitutionAction(),
-            publicBuildPath
-        );
-
-        return buildRegistry.addIncludedBuild(buildDefinition);
+        return buildRegistry.addIncludedBuild(builder.apply(configurable));
     }
 }
