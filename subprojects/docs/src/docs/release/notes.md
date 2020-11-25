@@ -1,12 +1,12 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release significantly improves the [performance of Kotlin DSL build scripts compilation](#kotlin-dsl-performance), adds several [improvements to Java toolchain support](#java-toolchain-improvements) including vendor selection and makes it easy to [execute tasks from included builds directly from the command-line](#composite-builds). This release also introduces new [dependency management APIs for consistent resolution](#dm-features).
+This release significantly improves the [performance of Kotlin DSL build scripts compilation](#kotlin-dsl-performance), adds several [improvements to Java toolchain support](#java-toolchain-improvements), including vendor selection, and makes it easy to [execute tasks from included builds directly from the command-line](#composite-builds). This release also introduces new [dependency management APIs for consistent resolution](#dm-features).
 
 The [experimental configuration cache](#configuration-cache) has added support for composite builds and more core plugins shipped with Gradle. Several other [smaller improvements](#other-improvements) were added in this release.
 
 We don't expect many builds to be affected, but this release [disables outdated TLS v1.0 and v1.1 protocols](#security-tls) to improve the security of builds resolving dependencies from external repositories.
 
-We would like to thank the following community contributors to this release of Gradle:
+We would like to thank the following community contributors for their contributions to this release of Gradle:
 
 [Marcono1234](https://github.com/Marcono1234),
 [Björn Sundahl](https://github.com/Ranzdo),
@@ -57,7 +57,8 @@ Changes to private implementation details of build logic, such as private method
 bodies of non-private methods or classes, as well as internal changes to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins),
 will no longer trigger recompilation of the project's build scripts.
 
-Compilation avoidance also applies to changes to any JAR on the build script's classpath added by a plugin, such as from an included build or added directly via `buildscript {}` block.
+Compilation avoidance also applies to changes in any JAR on the build script's classpath.
+That includes JARs added by plugins define in included builds and JARs added directly via the `buildscript {}` block.
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic.
 
@@ -77,7 +78,7 @@ For example, `assembleDebug` for a non-abi change on the Santa Tracker Android p
 
 File system watching and configuration caching is enabled for the comparison.
 
-You can find the performance project [here](https://github.com/gradle/santa-tracker-performance).
+You can find the performance test project [here](https://github.com/gradle/santa-tracker-performance).
 
 ### More cache hits for tasks with runtime classpaths
 
@@ -94,7 +95,7 @@ normalization {
 }
 ```
 
-This improves the likelihood of up-to-date and build cache hits when any properties file on the classpath is regenerated or only differs by unimportant values.
+This improves the likelihood of up-to-date and build cache hits when a properties file on the classpath is regenerated or only differs by unimportant values.
 
 See [the user manual](userguide/more_about_tasks.html#sec:property_file_normalization) for further information.
 
@@ -219,24 +220,33 @@ Gradle now allows users to execute tasks from included builds directly from the 
     gradle :my-other-project:sub:foo
 
 Note, unlike a multi-project build, running `gradle build` will _not_ run the `build` task in all of the included builds.
-You could introduce [task dependencies](userguide/composite_builds.html#included_build_task_dependencies) to tasks in included builds if you wanted to recreate this behavior for included builds.
+You could introduce [task dependencies](userguide/composite_builds.html#included_build_task_dependencies) to [lifecycle tasks](userguide/more_about_tasks.html#sec:lifecycle_tasks) in included builds if you wanted to recreate this behavior for included builds.
 
-IDE support for executing tasks from included builds may or may not work depending on the IDE. Changes need to be made to IntelliJ IDEA and Eclipse Buildship to support this fully. 
+IDE support for executing tasks from included builds may not yet fully work depending on the IDE.
+Updates for IntelliJ IDEA and Eclipse Buildship are planned to support this fully. 
+Today, in IntelliJ IDEA, you can create a [Gradle run configuration](https://www.jetbrains.com/help/idea/create-run-debug-configuration-gradle-tasks.html) to execute a task directly (like you would on the command-line).
 
-From IntelliJ IDEA, you can create a [Gradle run configuration](https://www.jetbrains.com/help/idea/create-run-debug-configuration-gradle-tasks.html) to execute a task directly (like you would on the command-line).
+### Desired cycles between builds are now fully supported
+
+There are cases, where a cycle between included builds are desired.
+For example, if two builds contain end-2-end tests that require the production code of both builds.
+Such setups are possible with subprojects of a single build, but were not fully supported between projects of different builds.
+With this release, this is possible and Gradle will only fail if there is a cycle between _tasks_.
+Issues with importing such builds in IDEs are also fixed. 
 
 ### New documentation for composite builds and structuring software projects
 
-Gradle's documentation now contains a [sample](samples/sample_structuring_software_projects.html) for structuring software projects with composite buildsand a new a chapter on [structuring software projects](userguide/structuring_software_products.html) using composite builds.
+Gradle's documentation now contains a [sample](samples/sample_structuring_software_projects.html) for structuring software projects with composite builds and a new a chapter on [structuring software projects](userguide/structuring_software_products.html) using composite builds.
 
 <a name="dm-features"></a>
 ## Dependency management improvements
 
 ### Central declaration of repositories
 
-Traditionally, repositories used for dependency resolution are declared in every project; however, the same repositories should be used in every project in most cases. This has led to the common pattern of using an `allprojects { ... }` block to declare repositories in your root project.
+In previous Gradle versions, repositories used for dependency resolution had to be declared for every (sub)project individually.
+However, in most cases, the same repositories should be used in every project.
 
-In Gradle 6.8, this pattern can be replaced with a conventional block in `settings.gradle(.kts)`:
+In Gradle 6.8, repositories can now conveniently be defined for the whole build in `settings.gradle(.kts)`:
 
 ```
 dependencyResolutionManagement {
@@ -246,8 +256,7 @@ dependencyResolutionManagement {
 }
 ```
 
-There are several advantages in using this new construct over `allprojects` or repeating the declaration in every build script.
-
+This allows Gradle to ensure that you use the same repositories for resolving dependencies in all projects of the build.
 Learn more by reading how to [declare repositories for the whole build](userguide/declaring_repositories.html#sub:centralized-repository-declaration).
 
 ### Central declaration of component metadata rules
@@ -268,9 +277,10 @@ You can learn more about declaring rules globally in the [user manual](userguide
 
 ### Consistent dependency resolution
 
-Sometimes the dependencies resolved for the runtime classpath may have different versions than the dependencies resolved for the compile classpath. This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
+Sometimes, the dependencies resolved for the runtime classpath may have different versions than the dependencies resolved for the compile classpath.
+This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
 
-To mitigate this problem, Gradle now introduces an API which lets you declare consistency between dependency configurations.
+To mitigate this problem, Gradle now lets you declare consistency between dependency configurations.
 For example, in the Java ecosystem, you can write:
 
 ```
@@ -281,9 +291,9 @@ java {
 }
 ```
 
-which tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
+This tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
 
-There are many options to configure this feature, including outside of the Java ecosystem, which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
+There are many options to configure this feature, including using it outside of the Java ecosystem, which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
 
 <a name="configuration-cache"></a>
 ### Configuration cache improvements
