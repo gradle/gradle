@@ -96,8 +96,31 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         0 * _
     }
 
+    def "doesn't provide input file changes when work fails validation"() {
+        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+            def changes = delegateContext.changes.get()
+            assert !changes.createInputChanges().incremental
+            assert changes.allChangeMessages == ImmutableList.of("Job ':test' is invalid.")
+            return delegateResult
+        }
+        _ * context.rebuildReason >> Optional.empty()
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationContext.ValidationResult)
+        1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
+        _ * context.afterPreviousExecutionState >> Optional.empty()
+        0 * _
+    }
+
     def "provides input file changes when history is available"() {
-        def beforeExecutionState = Mock(BeforeExecutionState)
         def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
         def changes = Mock(ExecutionStateChanges)
 

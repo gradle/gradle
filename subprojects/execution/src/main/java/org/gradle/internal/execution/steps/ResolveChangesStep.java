@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSortedMap;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
@@ -65,11 +66,14 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             .orElseGet(() ->
                 beforeExecutionState
                     .map(beforeExecution -> context.getAfterPreviousExecutionState()
-                        .map(afterPreviousExecution -> changeDetector.detectChanges(
-                            afterPreviousExecution,
-                            beforeExecution,
-                            work,
-                            createIncrementalInputProperties(work))
+                        .map(afterPreviousExecution -> context.getValidationProblems()
+                            .map(__ -> rebuildChanges(work, beforeExecution, String.format("%s is invalid.", StringUtils.capitalize(work.getDisplayName()))))
+                            .orElseGet(() ->
+                                changeDetector.detectChanges(
+                                    afterPreviousExecution,
+                                    beforeExecution,
+                                    work,
+                                    createIncrementalInputProperties(work)))
                         )
                         .orElseGet(() -> rebuildChanges(work, beforeExecution, NO_HISTORY))
                     )
@@ -134,7 +138,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
         });
     }
 
-    private static RebuildExecutionStateChanges rebuildChanges(UnitOfWork work, BeforeExecutionState beforeExecution, String rebuildReason) {
+    private static ExecutionStateChanges rebuildChanges(UnitOfWork work, BeforeExecutionState beforeExecution, String rebuildReason) {
         return new RebuildExecutionStateChanges(rebuildReason, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work));
     }
 
