@@ -28,7 +28,6 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Pair;
@@ -74,6 +73,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final List<Node> executionQueue = new LinkedList<>();
     private final Set<ResourceLock> projectLocks = new HashSet<>();
     private final FailureCollector failureCollector = new FailureCollector();
+    private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private Spec<? super Task> filter = Specs.satisfyAll();
@@ -86,19 +86,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final List<Node> dependenciesWhichRequireMonitoring = new ArrayList<>();
     private boolean maybeNodesReady;
-    private final GradleInternal gradle;
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
-        this.gradle = gradle;
+    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
+        this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
     }
 
     @Override
     public String getDisplayName() {
-        return gradle.getIdentityPath().toString();
+        return displayName;
     }
 
     @Override

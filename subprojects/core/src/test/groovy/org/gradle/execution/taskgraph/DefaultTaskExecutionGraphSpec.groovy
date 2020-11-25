@@ -60,6 +60,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.util.Path
 
 class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def cancellationToken = Mock(BuildCancellationToken)
@@ -77,7 +78,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
-    def executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver)
+    def executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver)
     def taskGraph = new DefaultTaskExecutionGraph(
         new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService),
         [nodeExecutor],

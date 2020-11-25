@@ -226,7 +226,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver
     ) {
-        return new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver);
+        return new DefaultExecutionPlan(gradleInternal.getIdentityPath().toString(), taskNodeFactory, dependencyResolver);
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(
