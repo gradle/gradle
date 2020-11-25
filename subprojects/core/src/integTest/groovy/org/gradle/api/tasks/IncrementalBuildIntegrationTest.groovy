@@ -995,6 +995,7 @@ task generate(type: TransformerTask) {
 """
 
         when:
+        executer.expectDeprecationWarning(":transform1 consumes the output of :src2, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         run "src1", "transform1", "src2", "transform2"
 
         then:

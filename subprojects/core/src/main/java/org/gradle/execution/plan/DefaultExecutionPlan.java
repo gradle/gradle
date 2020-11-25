@@ -642,9 +642,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 consumedDirectories.getNodesRelatedTo(outputPath).stream()
                     .filter(consumerNode -> missesDependency(node, consumerNode))
                     .findFirst()
-                    .ifPresent(consumerWithoutDependency -> {
-                        throw new GradleException(String.format("%s consumes the output of %s, but does not declare a dependency", consumerWithoutDependency, node));
-                    });
+                    .ifPresent(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
             }
         }
         return mutations;
@@ -816,7 +814,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                             producedDirectories.getNodesRelatedTo(entry.getValue()).stream()
                                 .filter(producerNode -> missesDependency(producerNode, node))
                                 .findFirst()
-                                .ifPresent(producerWithoutDependency -> DeprecationLogger.deprecateBehaviour(String.format("%s consumes the output of %s in input property %s, but does not declare a dependency", node, producerWithoutDependency, propertyName)).willBeRemovedInGradle7().undocumented().nagUser());
+                                .ifPresent(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
                             consumedDirectories.recordRelatedToNode(node, Collections.singleton(entry.getValue()));
                         }
                     });
@@ -828,6 +826,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             unlockProjectFor(node);
             unlockSharedResourcesFor(node);
         }
+    }
+
+    private void emitMissingDependencyDeprecationWarning(Node producer, Node consumer) {
+        DeprecationLogger.deprecateBehaviour(String.format("%s consumes the output of %s, but does not declare a dependency.", consumer, producer)).willBeRemovedInGradle7().undocumented().nagUser();
     }
 
     private boolean missesDependency(Node producer, Node consumer) {

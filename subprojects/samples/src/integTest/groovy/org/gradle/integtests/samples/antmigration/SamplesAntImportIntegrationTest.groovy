@@ -77,6 +77,8 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         executer.inDirectory(dslDir)
 
         when:
+        // FIXME: Infer dependencies for zipTree(Provider<>)
+        executer.expectDeprecationWarning(":unpackJavadocs consumes the output of :javadocJarArchive, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         def result = succeeds('javadocJar', 'unpackJavadocs')
 
         then: "The HTML Javadoc files are unpacked to the 'dist' directory"
