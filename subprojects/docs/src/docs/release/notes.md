@@ -133,6 +133,28 @@ tasks.register("myTask") {
 
 See [the user manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
 
+<a name="configuration-cache"></a>
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
+
+Read about [this feature and its impact](https://blog.gradle.org/introducing-configuration-caching) on the Gradle blog. You can also track progress of configuration cache support in [core plugins](https://github.com/gradle/gradle/issues/13454) and [community plugins](https://github.com/gradle/gradle/issues/13490).
+
+#### Support for composite builds
+
+Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
+
+#### More supported core plugins
+
+In this release all core code analysis plugins received full for support the configuration cache:
+
+* [`checkstyle`](userguide/checkstyle_plugin.html)
+* [`pmd`](userguide/pmd_plugin.html)
+* [`codenarc`](userguide/codenarc_plugin.html)
+* [`jacoco`](userguide/jacoco_plugin.html)
+
+See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
+
 <a name="java-toolchain-improvements"></a>
 ## Java toolchain improvements 
 
@@ -241,6 +263,26 @@ Gradle's documentation now contains a [sample](samples/sample_structuring_softwa
 <a name="dm-features"></a>
 ## Dependency management improvements
 
+### Consistent dependency resolution
+
+Sometimes, the dependencies resolved for the runtime classpath may have different versions than the dependencies resolved for the compile classpath.
+This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
+
+To mitigate this problem, Gradle now lets you declare consistency between dependency configurations.
+For example, in the Java ecosystem, you can write:
+
+```
+java {
+    consistentResolution {
+        useCompileClasspathVersions()
+    }
+}
+```
+
+This tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
+
+There are many options to configure this feature, including using it outside of the Java ecosystem, which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
+
 ### Central declaration of repositories
 
 In previous Gradle versions, repositories used for dependency resolution had to be declared for every (sub)project individually.
@@ -274,48 +316,6 @@ dependencyResolutionManagement {
 ```
 
 You can learn more about declaring rules globally in the [user manual](userguide/component_metadata_rules.html#sec:rules_in_settings).
-
-### Consistent dependency resolution
-
-Sometimes, the dependencies resolved for the runtime classpath may have different versions than the dependencies resolved for the compile classpath.
-This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
-
-To mitigate this problem, Gradle now lets you declare consistency between dependency configurations.
-For example, in the Java ecosystem, you can write:
-
-```
-java {
-    consistentResolution {
-        useCompileClasspathVersions()
-    }
-}
-```
-
-This tells Gradle that the common dependencies between the runtime classpath and the compile classpath should be aligned to the versions used at compile time.
-
-There are many options to configure this feature, including using it outside of the Java ecosystem, which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
-
-<a name="configuration-cache"></a>
-## Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
-
-Read about [this feature and its impact](https://blog.gradle.org/introducing-configuration-caching) on the Gradle blog. You can also track progress of configuration cache support in [core plugins](https://github.com/gradle/gradle/issues/13454) and [community plugins](https://github.com/gradle/gradle/issues/13490).
-
-### Support for composite builds
-
-Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
-
-### More supported core plugins
-
-In this release all core code analysis plugins received full for support the configuration cache:
-
-* [`checkstyle`](userguide/checkstyle_plugin.html)
-* [`pmd`](userguide/pmd_plugin.html)
-* [`codenarc`](userguide/codenarc_plugin.html)
-* [`jacoco`](userguide/jacoco_plugin.html)
-
-See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
 
 <a name="other-improvements"></a>
 ## Other improvements
