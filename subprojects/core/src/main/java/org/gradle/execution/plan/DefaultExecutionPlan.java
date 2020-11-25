@@ -31,6 +31,7 @@ import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Pair;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -77,6 +78,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private Spec<? super Task> filter = Specs.satisfyAll();
+    private final RelatedLocations producedDirectories = new RelatedLocations();
+    private final RelatedLocations consumedDirectories = new RelatedLocations();
 
     private boolean continueOnFailure;
 
@@ -632,6 +635,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         MutationInfo mutations = node.getMutationInfo();
         if (!mutations.resolved) {
             node.resolveMutations();
+            producedDirectories.recordRelatedToNode(node, mutations.outputPaths);
+            for (String outputPath : mutations.outputPaths) {
+                consumedDirectories.getNodesRelatedTo(outputPath).stream()
+                    .filter(consumerNode -> !consumerNode.getDependencySuccessors().contains(node))
+                    .findFirst()
+                    .ifPresent(consumerWithoutDependency -> {
+                        throw new GradleException(String.format("%s consumes the output of %s, but does not declare a dependency", consumerWithoutDependency, node));
+                    });
+            }
         }
         return mutations;
     }
@@ -795,6 +807,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 runningNodes.remove(node);
                 node.finishExecution(this::recordNodeCompleted);
+                if (node instanceof LocalTaskNode) {
+                    ((LocalTaskNode) node).getInputFileLocations().ifPresent(consumedLocations -> {
+                        for (Map.Entry<String, String> entry : consumedLocations.entries()) {
+                            String propertyName = entry.getKey();
+                            producedDirectories.getNodesRelatedTo(entry.getValue()).stream()
+                                .filter(producerNode -> !node.getDependencySuccessors().contains(producerNode))
+                                .findFirst()
+                                .ifPresent(producerWithoutDependency -> DeprecationLogger.deprecateBehaviour(String.format("%s consumes the output of %s in input property %s, but does not declare a dependency", node, producerWithoutDependency, propertyName)).willBeRemovedInGradle7().undocumented().nagUser());
+                            consumedDirectories.recordRelatedToNode(node, Collections.singleton(entry.getValue()));
+                        }
+                    });
+                }
             } else {
                 LOGGER.debug("Already completed node {} reported as finished executing", node);
             }

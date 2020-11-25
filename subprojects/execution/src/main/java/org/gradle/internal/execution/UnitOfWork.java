@@ -94,6 +94,8 @@ public interface UnitOfWork extends Describable {
         return InputChangeTrackingStrategy.NONE;
     }
 
+    default void inputFilesFingerprinted(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {}
+
     /**
      * Capture the classloader of the work's implementation type.
      * There can be more than one type reported by the work; additional types are considered in visitation order.

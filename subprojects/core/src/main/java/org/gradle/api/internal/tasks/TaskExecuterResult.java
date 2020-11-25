@@ -17,8 +17,10 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +46,8 @@ public interface TaskExecuterResult {
      */
     CachingState getCachingState();
 
+    Optional<ImmutableSortedMap<String, CurrentFileCollectionFingerprint>> getInputFileFingerprints();
+
     TaskExecuterResult WITHOUT_OUTPUTS = new TaskExecuterResult() {
         @Override
         public List<String> getExecutionReasons() {
@@ -63,6 +67,11 @@ public interface TaskExecuterResult {
         @Override
         public CachingState getCachingState() {
             return CachingState.NOT_DETERMINED;
+        }
+
+        @Override
+        public Optional<ImmutableSortedMap<String, CurrentFileCollectionFingerprint>> getInputFileFingerprints() {
+            return Optional.empty();
         }
     };
 }
