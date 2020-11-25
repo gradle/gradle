@@ -63,13 +63,13 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
 
         and:
         def supportedTasks = [
-            // todo broken by kotlin upgrade
-            // ":distributions-full:binDistributionZip",
+            ":distributions-full:binDistributionZip",
             ":tooling-api:publishLocalPublicationToLocalRepository",
-            // ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
+            ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
         ]
 
         when:
+        run(*supportedTasks)
         configurationCacheRun(*supportedTasks)
 
         then:
@@ -80,9 +80,9 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
 
         then:
         result.output.count("Reusing configuration cache") == 1
-        // result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
-        // result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
 
         when:
         run("clean")
@@ -93,12 +93,10 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         then:
         result.output.count("Reusing configuration cache") == 1
 
-        /*
         and:
         file("subprojects/distributions-full/build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
         assertTestClassExecutedIn("subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheIntegrationTest")
-        */
     }
 
     private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
@@ -120,7 +118,8 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
     }
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
-        "-PbuildTimestamp=" + newTimestamp()
+        "-PbuildTimestamp=" + newTimestamp(),
+        "--no-build-cache"
     ]
 
     private static String newTimestamp() {
