@@ -491,6 +491,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         reachableCache.clear();
         dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
+        consumedDirectories.clear();
+        producedDirectories.clear();
     }
 
     @Override

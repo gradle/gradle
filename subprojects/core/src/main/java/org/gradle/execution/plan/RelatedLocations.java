@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 public class RelatedLocations {
     private RelatedLocation root = new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableSet.of());
 
-    Collection<Node> getNodesRelatedTo(String location) {
+    public Collection<Node> getNodesRelatedTo(String location) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
         if (relativePath.length() == 0) {
@@ -41,11 +41,15 @@ public class RelatedLocations {
         return builder.build();
     }
 
-    void recordRelatedToNode(Node node, Iterable<String> locations) {
+    public void recordRelatedToNode(Node node, Iterable<String> locations) {
         for (String location : locations) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
             root = root.recordRelatedToNode(relativePath, node);
         }
+    }
+
+    void clear() {
+        root = new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableSet.of());
     }
 
     private interface RelatedLocation {
