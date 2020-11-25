@@ -109,7 +109,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     }
 
     private BuildState findIncludedBuild(File root) {
-        if (root == null || buildStateRegistry.getIncludedBuilds().isEmpty()) {
+        if (root == null) {
             return null;
         }
 
