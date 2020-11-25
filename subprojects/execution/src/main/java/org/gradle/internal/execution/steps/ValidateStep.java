@@ -30,20 +30,28 @@ import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext.Severity;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ValidateStep<R extends Result> implements Step<AfterPreviousExecutionContext, R> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
+
+    private final VirtualFileSystem virtualFileSystem;
     private final ValidateStep.ValidationWarningReporter warningReporter;
     private final Step<? super ValidationContext, ? extends R> delegate;
 
     public ValidateStep(
+        VirtualFileSystem virtualFileSystem,
         ValidationWarningReporter warningReporter,
         Step<? super ValidationContext, ? extends R> delegate
     ) {
+        this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
         this.delegate = delegate;
     }
@@ -75,6 +83,12 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
                     .collect(Collectors.toList())
             );
         }
+
+        if (!warnings.isEmpty()) {
+            LOGGER.info("Invalidating VFS because of invalid work {}", work.getDisplayName());
+            virtualFileSystem.invalidateAll();
+        }
+
         return delegate.execute(work, new ValidationContext() {
             @Override
             public Optional<ValidationResult> getValidationProblems() {
