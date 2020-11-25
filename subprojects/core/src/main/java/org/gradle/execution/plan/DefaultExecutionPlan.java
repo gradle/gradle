@@ -638,7 +638,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             producedDirectories.recordRelatedToNode(node, mutations.outputPaths);
             for (String outputPath : mutations.outputPaths) {
                 consumedDirectories.getNodesRelatedTo(outputPath).stream()
-                    .filter(consumerNode -> !consumerNode.getDependencySuccessors().contains(node))
+                    .filter(consumerNode -> missesDependency(node, consumerNode))
                     .findFirst()
                     .ifPresent(consumerWithoutDependency -> {
                         throw new GradleException(String.format("%s consumes the output of %s, but does not declare a dependency", consumerWithoutDependency, node));
@@ -812,7 +812,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         for (Map.Entry<String, String> entry : consumedLocations.entries()) {
                             String propertyName = entry.getKey();
                             producedDirectories.getNodesRelatedTo(entry.getValue()).stream()
-                                .filter(producerNode -> !node.getDependencySuccessors().contains(producerNode))
+                                .filter(producerNode -> missesDependency(producerNode, node))
                                 .findFirst()
                                 .ifPresent(producerWithoutDependency -> DeprecationLogger.deprecateBehaviour(String.format("%s consumes the output of %s in input property %s, but does not declare a dependency", node, producerWithoutDependency, propertyName)).willBeRemovedInGradle7().undocumented().nagUser());
                             consumedDirectories.recordRelatedToNode(node, Collections.singleton(entry.getValue()));
@@ -826,6 +826,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             unlockProjectFor(node);
             unlockSharedResourcesFor(node);
         }
+    }
+
+    private boolean missesDependency(Node producer, Node consumer) {
+        if (consumer == producer) {
+            return false;
+        }
+        for (Node dependency : consumer.getAllSuccessors()) {
+                if (!missesDependency(producer, dependency)) {
+                    return false;
+                }
+        }
+        return true;
     }
 
     private static void enforceFinalizers(Node node) {
