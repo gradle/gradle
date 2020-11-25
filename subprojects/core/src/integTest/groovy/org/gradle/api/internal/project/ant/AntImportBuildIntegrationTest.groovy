@@ -18,16 +18,36 @@ package org.gradle.api.internal.project.ant
 
 import groovy.xml.MarkupBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import spock.lang.Issue
 
 class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer"
+    private static final String EXECUTER_CONFIG_CACHE = "configCache"
+    private static final String EXECUTER_FORKING = "forking"
+
+    private static String initialExecuterType
+
     File antBuildFile
 
-    GradleExecuter createExecuter() {
-        new NoDaemonGradleExecuter(distribution, temporaryFolder)
+    /**
+     * Ensure that {@link org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter}
+     * will not be created, because of serialization issues with {@link org.gradle.api.tasks.ant.AntTarget}.
+     */
+    def setupSpec() {
+        initialExecuterType = System.getProperty(EXECUTER_SYS_PROP)
+        if (initialExecuterType == EXECUTER_CONFIG_CACHE) {
+            System.setProperty(EXECUTER_SYS_PROP, EXECUTER_FORKING)
+        }
+    }
+
+    /**
+     * Restore initial property value.
+     */
+    def cleanupSpec() {
+        if (initialExecuterType != null) {
+            System.setProperty(EXECUTER_SYS_PROP, initialExecuterType)
+        }
     }
 
     def setup() {
@@ -42,7 +62,7 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private void "test basedir" (String buildFileContents, File expectedBasedir, String taskName) {
+    private void "test basedir"(String buildFileContents, File expectedBasedir, String taskName) {
         // given
         buildFile << buildFileContents
         // when
@@ -51,7 +71,7 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("[ant:echo] Basedir is: " + expectedBasedir.getAbsolutePath())
     }
 
-    def "by default basedir is same as Ant file location" () {
+    def "by default basedir is same as Ant file location"() {
         expect:
         "test basedir"("""
             ant.importBuild 'build.xml'
@@ -59,14 +79,14 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1698")
-    def "user can set different basedir for imported Ant file" () {
+    def "user can set different basedir for imported Ant file"() {
         expect:
         "test basedir"("""
             ant.importBuild('build.xml', '..')
         """, testDirectory.getParentFile(), "test-build")
     }
 
-    def "user can specify transformer without specifying basedir" () {
+    def "user can specify transformer without specifying basedir"() {
         expect:
         "test basedir"("""
             ant.importBuild('build.xml') { antTaskName ->
@@ -76,7 +96,7 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1698")
-    def "user can specify both basedir and transformer" () {
+    def "user can specify both basedir and transformer"() {
         expect:
         "test basedir"("""
             ant.importBuild('build.xml', '..') { antTaskName ->
