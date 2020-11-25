@@ -47,7 +47,6 @@ import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -62,6 +61,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataHandlerInternal {
     private static final String ADAPTER_NAME = ComponentMetadataHandler.class.getSimpleName();
@@ -254,7 +254,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         // we need to defer the creation of the actual factory until configuration is completed
         // Typically the state of whether to prefer project rules or not is not known when this
         // method is called.
-        Lazy<ComponentMetadataHandlerInternal> actualHandler = Lazy.unsafe().of(() -> {
+        Supplier<ComponentMetadataHandlerInternal> actualHandler = () -> {
             // determine whether to use the project local handler or the settings handler
             boolean useRules = dependencyResolutionManagement.getConfiguredRulesMode().useProjectRules();
             if (metadataRuleContainer.isEmpty() || !useRules) {
@@ -268,7 +268,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
                 return delegate;
             }
             return this;
-        });
+        };
         return resolutionContext -> actualHandler.get().createComponentMetadataProcessor(resolutionContext);
     }
 
