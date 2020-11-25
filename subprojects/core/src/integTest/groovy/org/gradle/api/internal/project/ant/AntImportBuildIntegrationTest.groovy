@@ -18,11 +18,17 @@ package org.gradle.api.internal.project.ant
 
 import groovy.xml.MarkupBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import spock.lang.Issue
 
 class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
 
     File antBuildFile
+
+    GradleExecuter createExecuter() {
+        new NoDaemonGradleExecuter(distribution, temporaryFolder)
+    }
 
     def setup() {
         antBuildFile = new File(testDirectory, 'build.xml')
