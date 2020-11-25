@@ -21,7 +21,7 @@ plugins {
 
 // tag::simple_dependency_use[]
 dependencies {
-    implementation(libs.groovy)
+    implementation(libs.groovy.core)
 }
 // end::simple_dependency_use[]
 
@@ -34,9 +34,9 @@ checkstyle {
 
 // tag::use_catalog[]
 dependencies {
-    implementation(libs.groovy)
-    implementation(libs.groovyJson)
-    implementation(libs.groovyNio)
+    implementation(libs.groovy.core)
+    implementation(libs.groovy.json)
+    implementation(libs.groovy.nio)
 }
 // end::use_catalog[]
 

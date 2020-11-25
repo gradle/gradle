@@ -17,6 +17,9 @@ package org.gradle.api.internal.std;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.TextUtil;
@@ -25,7 +28,10 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DependenciesSourceGenerator extends AbstractSourceGenerator {
@@ -70,6 +76,11 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         for (String descLine : Splitter.on('\n').split(description)) {
             writeLn(" * " + descLine);
         }
+        List<String> dependencies = config.getDependencyAliases();
+        List<String> bundles = config.getBundleAliases();
+        List<String> versions = config.getVersionAliases();
+        performValidation(dependencies, bundles, versions);
+        ClassNode classNode = toClassNode(dependencies);
         String versionsClassName = className + "Versions";
         String bundlesClassName = className + "Bundles";
         writeLn("*/");
@@ -78,20 +89,25 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
         writeLn("    private final " + versionsClassName + " versions = new " + versionsClassName + "();");
         writeLn("    private final " + bundlesClassName + " bundles = new " + bundlesClassName + "();");
+        writeSubAccessorFields(classNode);
         writeLn();
         writeLn("    @Inject");
         writeLn("    public " + className + "(DefaultVersionCatalog config, ProviderFactory providers) {");
         writeLn("        super(config, providers);");
         writeLn("    }");
         writeLn();
-        List<String> dependencies = config.getDependencyAliases();
-        List<String> bundles = config.getBundleAliases();
-        List<String> versions = config.getVersionAliases();
-        performValidation(dependencies, bundles, versions);
-        writeDependencyAccessors(dependencies);
+        writeDependencyAccessors(classNode);
         writeBundleAccessors(bundlesClassName, bundles);
         writeVersionAccessors(versionsClassName, versions);
+        writeSubClasses(classNode);
         writeLn("}");
+    }
+
+    private void writeSubClasses(ClassNode classNode) throws IOException {
+        for (ClassNode child : classNode.getChildren()) {
+            writeAccessorClass(child);
+            writeSubClasses(child);
+        }
     }
 
     private void writeBundleAccessors(String bundlesClassName, List<String> bundles) throws IOException {
@@ -113,12 +129,42 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private void writeDependencyAccessors(List<String> dependencies) throws IOException {
+    private void writeDependencyAccessors(ClassNode classNode) throws IOException {
+        classNode.validate();
+        Set<String> dependencies = classNode.aliases;
         for (String alias : dependencies) {
             DependencyModel model = config.getDependencyData(alias);
             String coordinates = coordinatesDescriptorFor(model);
             writeAccessor(alias, coordinates, model.getContext());
         }
+        for (ClassNode child : classNode.getChildren()) {
+            writeSubAccessor(child);
+        }
+    }
+
+    private void writeSubAccessorFields(ClassNode classNode) throws IOException {
+        if (classNode.parent != null) {
+            String className = classNode.getClassName();
+            writeLn("    private final " + className + " accessorFor" + className + " = new " + className + "();");
+        }
+        for (ClassNode child : classNode.getChildren()) {
+            writeSubAccessorFields(child);
+        }
+    }
+
+    private void writeAccessorClass(ClassNode classNode) throws IOException {
+        classNode.validate();
+        writeLn("    public class " + classNode.getClassName() + " extends SubDependencyFactory {");
+        writeLn();
+        for (String alias : classNode.aliases) {
+            DependencyModel model = config.getDependencyData(alias);
+            String coordinates = coordinatesDescriptorFor(model);
+            writeAccessor(alias, coordinates, model.getContext());
+        }
+        for (ClassNode child : classNode.getChildren()) {
+            writeSubAccessor(child);
+        }
+        writeLn("    }");
     }
 
     private void writeVersionAccessors(String versionsClassName, List<String> versions) throws IOException {
@@ -197,13 +243,25 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void writeAccessor(String alias, String coordinates, @Nullable String context) throws IOException {
+        List<String> splitted = nameSplitter().splitToList(alias);
+        String name = splitted.get(splitted.size() - 1);
         writeLn("    /**");
-        writeLn("     * Creates a dependency provider for " + alias + " (" + coordinates + ")");
+        writeLn("    * Creates a dependency provider for " + name + " (" + coordinates + ")");
         if (context != null) {
-            writeLn("     * This dependency was declared in " + context);
+            writeLn("    * This dependency was declared in " + context);
         }
+        writeLn("    */");
+        writeLn("    public Provider<MinimalExternalModuleDependency> get" + toJavaName(name) + "() { return create(\"" + alias + "\"); }");
+        writeLn();
+    }
+
+    private void writeSubAccessor(ClassNode classNode) throws IOException {
+        String className = classNode.getClassName();
+        String getter = classNode.name;
+        writeLn("    /**");
+        writeLn("     * Returns the group of dependencies at " + classNode.getPath());
         writeLn("     */");
-        writeLn("    public Provider<MinimalExternalModuleDependency> get" + toJavaName(alias) + "() { return create(\"" + alias + "\"); }");
+        writeLn("    public " + className + " get" + toJavaName(getter) + "() { return accessorFor" + className + "; }");
         writeLn();
     }
 
@@ -221,6 +279,95 @@ public class DependenciesSourceGenerator extends AbstractSourceGenerator {
         writeLn("         */");
         writeLn("        public Provider<ExternalModuleDependencyBundle> get" + toJavaName(alias) + "() { return createBundle(\"" + alias + "\"); }");
         writeLn();
+    }
+
+    private static ClassNode toClassNode(List<String> aliases) {
+        ClassNode root = new ClassNode(null, null);
+        for (String alias : aliases) {
+            ClassNode current = root;
+            // foo -> foo is the alias
+            // foo.bar.baz --> baz is the alias
+            List<String> dotted = nameSplitter().splitToList(alias);
+            int last = dotted.size() - 1;
+            for (int i = 0; i < last; i++) {
+                current = current.child(dotted.get(i));
+            }
+            current.addAlias(alias);
+        }
+        return root;
+    }
+
+    private static class ClassNode {
+        private final ClassNode parent;
+        private final String name;
+        private final Map<String, ClassNode> children = Maps.newLinkedHashMap();
+        private final Set<String> aliases = Sets.newLinkedHashSet();
+
+        private ClassNode(@Nullable ClassNode parent, @Nullable String name) {
+            this.parent = parent;
+            this.name = name;
+        }
+
+        private String getSimpleName() {
+            if (parent == null) {
+                return "";
+            }
+            return parent.getSimpleName() + StringUtils.capitalize(name);
+        }
+
+        private String getClassName() {
+            return getSimpleName() + "Accessors";
+        }
+
+        ClassNode child(String name) {
+            return children.computeIfAbsent(name, n -> new ClassNode(this, n));
+        }
+
+        void addAlias(String alias) {
+            aliases.add(alias);
+        }
+
+        public Collection<ClassNode> getChildren() {
+            return children.values();
+        }
+
+        public Set<String> getAliases() {
+            return aliases;
+        }
+
+        String getPath() {
+            if (parent == null) {
+                return "";
+            }
+            String parentPath = parent.getPath();
+            return parentPath.isEmpty() ? name : parentPath + "." + name;
+        }
+
+        private static String shortAlias(String fullAlias) {
+            List<String> dotted = nameSplitter().splitToList(fullAlias);
+            return dotted.get(dotted.size() - 1);
+        }
+
+        void validate() {
+            Set<String> intersection = Sets.intersection(aliases.stream().map(ClassNode::shortAlias).collect(Collectors.toSet()), children.keySet());
+            if (!intersection.isEmpty()) {
+                String path = getPath();
+                if (path.isEmpty()) {
+                    path = "top level accessors";
+                } else {
+                    path = "accessors for " + path;
+                }
+                throw new InvalidUserDataException("Cannot generate " + path + " because it contains both aliases and groups of the same name: " + intersection);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "ClassNode{" +
+                "name='" + name + '\'' +
+                ", aliases=" + aliases +
+                '}';
+        }
     }
 
 }

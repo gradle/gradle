@@ -27,6 +27,12 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     private final DefaultVersionCatalog config;
     private final ProviderFactory providers;
 
+    protected abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
+        protected Provider<MinimalExternalModuleDependency> create(String alias) {
+            return AbstractExternalDependencyFactory.this.create(alias);
+        }
+    }
+
     @Inject
     protected AbstractExternalDependencyFactory(DefaultVersionCatalog config,
                                                 ProviderFactory providers) {

@@ -98,7 +98,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libs.myLib
+                implementation libs.my.lib
             }
         """
 
@@ -126,7 +126,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(libs.myLib) {
+                implementation(libs.my.lib) {
                     version {
                         require '1.1'
                     }
@@ -332,7 +332,7 @@ build-src-lib="org.gradle.test:buildsrc-lib:1.0"
             }
 
             dependencies {
-                implementation libs.buildSrcLib
+                implementation libs.build.src.lib
             }
         """
         buildFile << """
@@ -372,7 +372,7 @@ build-src-lib="org.gradle.test:buildsrc-lib:1.0"
             version = 'zloubi'
 
             dependencies {
-                implementation libs.fromIncluded
+                implementation libs.from.included
             }
         """
         file("included/gradle/dependencies.toml") << """[dependencies]
@@ -428,7 +428,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libs.myLib
+                implementation libs.my.lib
                 implementation libs.other
             }
         """
@@ -469,7 +469,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libs.myLib
+                implementation libs.my.lib
             }
         """
         settingsFile << """
@@ -534,7 +534,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             }
 
             dependencies {
-                implementation libs.myLib
+                implementation libs.my.lib
             }
 
             tasks.register("checkDeps", CheckDeps) {
@@ -596,7 +596,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.myLib
+                implementation libraries.my.lib
             }
         """
 
@@ -630,8 +630,8 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libs.myLib
-                implementation libs.myOtherLib
+                implementation libs.my.lib
+                implementation libs.my.other.lib
             }
         """
 
