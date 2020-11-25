@@ -39,6 +39,7 @@ import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.plan.DefaultExecutionPlan;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -86,7 +87,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
     private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
-    private final DefaultExecutionPlan executionPlan;
+    private final ExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private final TaskSelector taskSelector;

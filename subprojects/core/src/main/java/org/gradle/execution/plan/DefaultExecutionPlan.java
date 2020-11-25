@@ -106,6 +106,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return nodeMapping.get(task);
     }
 
+    @Override
     public void addNodes(Collection<? extends Node> nodes) {
         Deque<Node> queue = new ArrayDeque<>(nodes);
         for (Node node : nodes) {
@@ -118,6 +119,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         doAddNodes(queue);
     }
 
+    @Override
     public void addEntryTasks(Collection<? extends Task> tasks) {
         final Deque<Node> queue = new ArrayDeque<>();
 
@@ -240,6 +242,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
+    @Override
     public void determineExecutionPlan() {
         LinkedList<NodeInVisitingSegment> nodeQueue = newLinkedList(
             Iterables.transform(entryNodes, new Function<Node, NodeInVisitingSegment>() {
@@ -473,6 +476,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
     }
 
+    @Override
     public void clear() {
         taskNodeFactory.clear();
         dependencyResolver.clear();
@@ -492,10 +496,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return nodeMapping.getTasks();
     }
 
+    @Override
     public List<Node> getScheduledNodes() {
         return ImmutableList.copyOf(nodeMapping.nodes);
     }
 
+    @Override
     public List<Node> getScheduledNodesPlusDependencies() {
         Set<Node> nodes = nodeMapping.nodes;
         ImmutableList.Builder<Node> builder = ImmutableList.<Node>builder();
@@ -518,10 +524,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return builder.build();
     }
 
+    @Override
     public void useFilter(Spec<? super Task> filter) {
         this.filter = filter;
     }
 
+    @Override
     public void setContinueOnFailure(boolean continueOnFailure) {
         this.continueOnFailure = continueOnFailure;
     }

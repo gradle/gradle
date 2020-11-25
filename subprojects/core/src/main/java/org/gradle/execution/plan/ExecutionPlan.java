@@ -18,17 +18,23 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Represents a graph of dependent work items, returned in execution order.
  */
 public interface ExecutionPlan extends Describable {
+    void useFilter(Spec<? super Task> filter);
+
+    void setContinueOnFailure(boolean continueOnFailure);
+
     /**
      * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
      */
@@ -48,10 +54,22 @@ public interface ExecutionPlan extends Describable {
      */
     TaskNode getNode(Task task);
 
+    void addNodes(Collection<? extends Node> nodes);
+
+    void addEntryTasks(Collection<? extends Task> tasks);
+
+    void determineExecutionPlan();
+
+    void clear();
+
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
     Set<Task> getTasks();
+
+    List<Node> getScheduledNodes();
+
+    List<Node> getScheduledNodesPlusDependencies();
 
     /**
      * @return The set of all filtered tasks that don't get executed.
