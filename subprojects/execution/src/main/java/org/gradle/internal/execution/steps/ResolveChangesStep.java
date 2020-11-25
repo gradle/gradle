@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSortedMap;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
@@ -40,6 +39,7 @@ import java.util.function.Supplier;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
+    private static final String VALIDATION_FAILED = "Validation failed.";
 
     private final ExecutionStateChangeDetector changeDetector;
 
@@ -67,7 +67,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 beforeExecutionState
                     .map(beforeExecution -> context.getAfterPreviousExecutionState()
                         .map(afterPreviousExecution -> context.getValidationProblems()
-                            .map(__ -> rebuildChanges(work, beforeExecution, String.format("%s is invalid.", StringUtils.capitalize(work.getDisplayName()))))
+                            .map(__ -> rebuildChanges(work, beforeExecution, VALIDATION_FAILED))
                             .orElseGet(() ->
                                 changeDetector.detectChanges(
                                     afterPreviousExecution,

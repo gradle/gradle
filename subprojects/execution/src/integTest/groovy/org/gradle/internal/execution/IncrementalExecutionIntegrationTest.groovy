@@ -288,7 +288,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
-        result.executionReasons == ["Test unit of work is invalid."]
+        result.executionReasons == ["Validation failed."]
     }
 
     def "out of date when output file removed"() {

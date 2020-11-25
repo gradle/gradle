@@ -108,7 +108,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
-            assert changes.allChangeMessages == ImmutableList.of("Job ':test' is invalid.")
+            assert changes.allChangeMessages == ImmutableList.of("Validation failed.")
             return delegateResult
         }
         _ * context.rebuildReason >> Optional.empty()
