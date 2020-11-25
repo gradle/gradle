@@ -17,13 +17,18 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.configurationcache.extensions.serviceOf
+import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -43,6 +48,7 @@ import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.internal.Actions
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
@@ -52,7 +58,6 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.plugin.management.internal.PluginRequests
-import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
 import java.io.InputStream
@@ -352,15 +357,42 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions(gradle: GradleInternal) {
         val eventListenerRegistry = gradle.serviceOf<BuildEventListenerRegistryInternal>()
-        writeCollection(eventListenerRegistry.subscriptions)
+        writeCollection(eventListenerRegistry.subscriptions) {
+            when (it) {
+                is BuildServiceProvider<*, *> -> {
+                    writeBoolean(true)
+                    write(it.buildIdentifier)
+                    writeString(it.name)
+                }
+                else -> {
+                    writeBoolean(false)
+                    write(it)
+                }
+            }
+        }
     }
 
     private
     suspend fun DefaultReadContext.readBuildEventListenerSubscriptions(gradle: GradleInternal) {
-        val eventListenerRegistry = gradle.serviceOf<BuildEventListenerRegistryInternal>()
+        val eventListenerRegistry by unsafeLazy {
+            gradle.serviceOf<BuildEventListenerRegistryInternal>()
+        }
+        val buildStateRegistry by unsafeLazy {
+            gradle.serviceOf<BuildStateRegistry>()
+        }
         readCollection {
-            val provider = readNonNull<Provider<OperationCompletionListener>>()
-            eventListenerRegistry.subscribe(provider)
+            when (readBoolean()) {
+                true -> {
+                    val buildIdentifier = readNonNull<BuildIdentifier>()
+                    val serviceName = readString()
+                    val provider = buildStateRegistry.buildServiceRegistrationOf(buildIdentifier).getByName(serviceName)
+                    eventListenerRegistry.subscribe(provider.service)
+                }
+                else -> {
+                    val provider = readNonNull<Provider<*>>()
+                    eventListenerRegistry.subscribe(provider)
+                }
+            }
         }
     }
 
@@ -430,6 +462,17 @@ class ConfigurationCacheState(
     private
     val userTypesCodec
         get() = codecs.userTypesCodec
+
+    private
+    fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =
+        gradleOf(buildId).serviceOf<BuildServiceRegistryInternal>().registrations
+
+    private
+    fun BuildStateRegistry.gradleOf(buildIdentifier: BuildIdentifier) =
+        when (buildIdentifier) {
+            DefaultBuildIdentifier.ROOT -> rootBuild.build
+            else -> getIncludedBuild(buildIdentifier).configuredBuild
+        }
 }
 
 
