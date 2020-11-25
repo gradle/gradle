@@ -15,7 +15,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm")
     implementation(kotlin("compiler-embeddable"))
 
-    testImplementation("org.jsoup:jsoup")
+    implementation("org.jsoup:jsoup")
 }
 
 tasks.compileGroovy.configure {
