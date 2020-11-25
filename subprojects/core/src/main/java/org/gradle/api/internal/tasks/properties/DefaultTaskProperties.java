@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;
@@ -187,8 +188,12 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public void validate(TaskValidationContext validationContext) {
+    public void validateType(TypeValidationContext validationContext) {
         validationProblems.replay(null, validationContext);
+    }
+
+    @Override
+    public void validate(TaskValidationContext validationContext) {
         for (ValidatingProperty validatingProperty : validatingProperties) {
             validatingProperty.validate(validationContext);
         }
