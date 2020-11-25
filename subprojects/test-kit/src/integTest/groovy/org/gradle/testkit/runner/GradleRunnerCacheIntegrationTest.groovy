@@ -43,6 +43,7 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
                 File outputFile
 
                 @InputFile
+                @PathSensitive(PathSensitivity.NONE)
                 File inputFile
 
                 @TaskAction
