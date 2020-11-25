@@ -24,6 +24,7 @@ import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=3.0")
 @TargetGradleVersion('>=6.8')
@@ -82,7 +83,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         """
 
         when:
-        executeTaskViaBuildInvocationsLaunchable("doSomething")
+        executeTaskViaBuildInvocationsLaunchable(":doSomething")
 
         then:
         assertHasBuildSuccessfulLogging()
@@ -381,7 +382,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
     private void executeTaskViaLaunchable(String taskPath) {
         withConnection { connection ->
-            Collection<GradleProject> gradleProjects = connection.action(new LoadCompositeModel(GradleProject)).run() // TODO use GradleBuild instead
+            Collection<GradleProject> gradleProjects = connection.action(new LoadCompositeModel(GradleProject)).run()
             Launchable launchable = findLaunchable(gradleProjects, taskPath)
             def build = connection.newBuild()
             collectOutputs(build)
@@ -389,22 +390,21 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         }
     }
 
-    private void executeTaskViaBuildInvocationsLaunchable(String taskPath) {
+    private Launchable findLaunchable(Collection<GradleProject> gradleProjects, String taskName) {
+        collectGradleProjects(gradleProjects).collect {it.tasks }.flatten().find { GradleTask task -> task.path.contains(taskName) }
+    }
+
+    private void executeTaskViaBuildInvocationsLaunchable(String taskName) {
         withConnection { connection ->
             Collection<BuildInvocations> buildInvocations = connection.action(new LoadCompositeModel(BuildInvocations)).run()
-            Task task = buildInvocations.collect { it.tasks }.flatten().find {println it.path; it.path.contains(taskPath)  } // TODO convert to equals
-
+            Task task = buildInvocations.collect { it.tasks }.flatten().find { it.path.contains(taskName) }
             def build = connection.newBuild()
             collectOutputs(build)
             build.forLaunchables(task).run()
         }
     }
 
-    private Launchable findLaunchable(Collection<GradleProject> gradleProjects, String taskPath) {
-        collectGradleProjects(gradleProjects, []).collect {it.tasks }.flatten().find { GradleTask task -> println task.path; task.path.contains(taskPath) } // TODO convert to equals
-    }
-
-    private def collectGradleProjects(Collection<GradleProject> projects, Collection<GradleProject> acc) {
+    private def collectGradleProjects(Collection<GradleProject> projects, Collection<GradleProject> acc = []) {
         acc.addAll(projects)
         projects.each { collectGradleProjects(it.children, acc) }
         return acc
