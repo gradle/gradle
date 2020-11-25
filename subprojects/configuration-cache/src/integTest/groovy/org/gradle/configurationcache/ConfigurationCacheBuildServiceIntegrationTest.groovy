@@ -23,15 +23,18 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
+import spock.lang.IgnoreIf
 
 import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
     def "build service from included build is loaded in reused classloader"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
