@@ -221,7 +221,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             TaskExecutionContext context,
             ExecutionHistoryStore executionHistoryStore,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
-            ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher
+        ) {
             this.task = task;
             this.context = context;
             this.executionHistoryStore = executionHistoryStore;
@@ -231,12 +232,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new Identity() {
-                @Override
-                public String getUniqueId() {
-                    return task.getPath();
-                }
-            };
+            return task::getPath;
         }
 
         @Override
@@ -433,6 +429,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 reservedFileSystemLocationRegistry,
                 typeValidationContext
             ));
+            context.getValidationAction().run();
         }
 
         @Override

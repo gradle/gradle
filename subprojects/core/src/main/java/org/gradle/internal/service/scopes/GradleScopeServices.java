@@ -65,6 +65,7 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.plan.ConsumedAndProducedLocations;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -151,7 +152,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
-        List<BuildConfigurationAction> taskSelectionActions = new LinkedList<BuildConfigurationAction>();
+        List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
         return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
@@ -178,7 +179,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
-        return new DefaultProjectFinder(() -> gradle.getRootProject());
+        return new DefaultProjectFinder(gradle::getRootProject);
     }
 
     TaskNodeFactory createTaskNodeFactory(GradleInternal gradle, IncludedBuildTaskGraph includedBuildTaskGraph) {
@@ -197,8 +198,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskDependencyResolver(dependencyResolvers);
     }
 
-    LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
-        return new LocalTaskNodeExecutor();
+    LocalTaskNodeExecutor createLocalTaskNodeExecutor(ConsumedAndProducedLocations consumedAndProducedLocations) {
+        return new LocalTaskNodeExecutor(consumedAndProducedLocations);
     }
 
     WorkNodeExecutor createWorkNodeExecutor() {
@@ -221,12 +222,17 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
+    ConsumedAndProducedLocations createConsumedAndProducedLocations() {
+        return new ConsumedAndProducedLocations();
+    }
+
     ExecutionPlan createExecutionPlan(
         GradleInternal gradleInternal,
         TaskNodeFactory taskNodeFactory,
-        TaskDependencyResolver dependencyResolver
+        TaskDependencyResolver dependencyResolver,
+        ConsumedAndProducedLocations consumedAndProducedLocations
     ) {
-        return new DefaultExecutionPlan(gradleInternal.getIdentityPath().toString(), taskNodeFactory, dependencyResolver);
+        return new DefaultExecutionPlan(gradleInternal.getIdentityPath().toString(), taskNodeFactory, dependencyResolver, consumedAndProducedLocations);
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(
@@ -281,7 +287,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        PluginTarget target = new ImperativeOnlyPluginTarget<GradleInternal>(gradleInternal);
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(gradleInternal);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 

@@ -29,15 +29,17 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
     private final TaskProperties properties;
+    private final Runnable validationAction;
     private TaskExecutionMode taskExecutionMode;
     private Long executionTime;
     private BuildOperationContext snapshotTaskInputsBuildOperationContext;
 
     private final Timer executionTimer;
 
-    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties) {
+    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, Runnable validationAction) {
         this.localTaskNode = localTaskNode;
         this.properties = taskProperties;
+        this.validationAction = validationAction;
         this.executionTimer = Time.startTimer();
     }
 
@@ -49,6 +51,11 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public TaskExecutionMode getTaskExecutionMode() {
         return taskExecutionMode;
+    }
+
+    @Override
+    public Runnable getValidationAction() {
+        return validationAction;
     }
 
     @Override

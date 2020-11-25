@@ -77,7 +77,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private Spec<? super Task> filter = Specs.satisfyAll();
-
+    private final ConsumedAndProducedLocations consumedAndProducedLocations;
     private boolean continueOnFailure;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
@@ -89,10 +89,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
+    public DefaultExecutionPlan(
+        String displayName,
+        TaskNodeFactory taskNodeFactory,
+        TaskDependencyResolver dependencyResolver,
+        ConsumedAndProducedLocations consumedAndProducedLocations
+    ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
+        this.consumedAndProducedLocations = consumedAndProducedLocations;
     }
 
     @Override
@@ -488,6 +494,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         reachableCache.clear();
         dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
+        consumedAndProducedLocations.clear();
     }
 
     @Override
@@ -503,7 +510,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     public List<Node> getScheduledNodesPlusDependencies() {
         Set<Node> nodes = nodeMapping.nodes;
-        ImmutableList.Builder<Node> builder = ImmutableList.<Node>builder();
+        ImmutableList.Builder<Node> builder = ImmutableList.builder();
         for (Node node : dependenciesWhichRequireMonitoring) {
             if (!nodes.contains(node)) {
                 builder.add(node);
@@ -631,6 +638,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         MutationInfo mutations = node.getMutationInfo();
         if (!mutations.resolved) {
             node.resolveMutations();
+            consumedAndProducedLocations.getProducedDirectories().recordRelatedToNode(node, mutations.outputPaths);
         }
         return mutations;
     }
