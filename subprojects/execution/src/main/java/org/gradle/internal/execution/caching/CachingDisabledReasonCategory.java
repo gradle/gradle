@@ -58,6 +58,11 @@ public enum CachingDisabledReasonCategory {
     OVERLAPPING_OUTPUTS,
 
     /**
+     * The work has failed validation.
+     */
+    VALIDATION_FAILURE,
+
+    /**
      * The work's implementation is not cacheable.
      *
      * Reasons for non-cacheable implementations:
