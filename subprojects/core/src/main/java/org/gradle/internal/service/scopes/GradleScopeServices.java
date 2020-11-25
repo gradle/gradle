@@ -65,7 +65,9 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.DependencyResolver;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -219,6 +221,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
+    ExecutionPlan createExecutionPlan(
+        GradleInternal gradleInternal,
+        TaskNodeFactory taskNodeFactory,
+        TaskDependencyResolver dependencyResolver
+    ) {
+        return new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver);
+    }
+
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         List<NodeExecutor> nodeExecutors,
@@ -226,8 +236,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
-        TaskNodeFactory taskNodeFactory,
-        TaskDependencyResolver dependencyResolver,
+        ExecutionPlan executionPlan,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
@@ -242,8 +251,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             listenerBuildOperationDecorator,
             coordinationService,
             gradleInternal,
-            taskNodeFactory,
-            dependencyResolver,
+            executionPlan,
             graphListeners,
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
