@@ -71,7 +71,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                             work,
                             createIncrementalInputProperties(work))
                         )
-                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work)))
+                        .orElseGet(() -> rebuildChanges(work, beforeExecution, NO_HISTORY))
                     )
                     .orElse(null)
             );
@@ -132,6 +132,10 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return beforeExecutionState;
             }
         });
+    }
+
+    private static RebuildExecutionStateChanges rebuildChanges(UnitOfWork work, BeforeExecutionState beforeExecution, String rebuildReason) {
+        return new RebuildExecutionStateChanges(rebuildReason, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work));
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
