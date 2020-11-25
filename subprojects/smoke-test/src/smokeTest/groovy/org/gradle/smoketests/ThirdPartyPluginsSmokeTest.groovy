@@ -241,7 +241,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
-    @ToBeFixedForConfigurationCache(because = "plugin uses task conventions")
     def 'spring boot plugin'() {
         given:
         buildFile << """
