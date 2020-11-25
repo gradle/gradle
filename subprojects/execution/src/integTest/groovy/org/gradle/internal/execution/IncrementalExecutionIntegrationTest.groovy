@@ -79,6 +79,7 @@ import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class IncrementalExecutionIntegrationTest extends Specification {
 
@@ -269,6 +270,25 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["No history is available."]
+    }
+
+    def "out of date when work fails validation"() {
+        given:
+        execute(unitOfWork)
+
+        def invalidWork = builder
+            .withValidator {context -> context
+                .createContextFor(UnitOfWork, false)
+                .visitPropertyProblem(WARNING, "Validation problem")
+            }
+            .build()
+        when:
+        def result = execute(invalidWork)
+
+        then:
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
+        !result.reusedOutputOriginMetadata.present
+        result.executionReasons == ["Test unit of work is invalid."]
     }
 
     def "out of date when output file removed"() {
