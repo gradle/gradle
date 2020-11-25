@@ -296,17 +296,17 @@ This tells Gradle that the common dependencies between the runtime classpath and
 There are many options to configure this feature, including using it outside of the Java ecosystem, which are described in the [user manual](userguide/resolution_strategy_tuning.html#resolution_consistency).
 
 <a name="configuration-cache"></a>
-### Configuration cache improvements
+## Configuration cache improvements
 
 The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
 
 Read about [this feature and its impact](https://blog.gradle.org/introducing-configuration-caching) on the Gradle blog. You can also track progress of configuration cache support in [core plugins](https://github.com/gradle/gradle/issues/13454) and [community plugins](https://github.com/gradle/gradle/issues/13490).
 
-#### Support for composite builds
+### Support for composite builds
 
 Starting with this release, [composite builds](userguide/composite_builds.html) are fully supported with the configuration cache.
 
-#### More supported core plugins
+### More supported core plugins
 
 In this release all core code analysis plugins received full for support the configuration cache:
 
