@@ -159,7 +159,7 @@ gradle.taskGraph.afterTask {
         File report = new File(binaryCompatibilityReportDir, binaryCompatibilityReport)
         Document doc = Jsoup.parse(report.text)
         doc.select(".jumbotron").get(0).append("""
-<p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.tfvlgk4slzc9">documentation</a> for more details.</p>
+<p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">documentation</a> for more details.</p>
 <p>
 We check the binary compatibility by comparing the current code’s binary interfaces
 against THE LATEST VERSION WHICH IS RELEASED FROM RELEASE BRANCH AND LOWER THAN CURRENT BASE VERSION.
