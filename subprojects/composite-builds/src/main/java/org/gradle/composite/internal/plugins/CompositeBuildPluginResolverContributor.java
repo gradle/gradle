@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
@@ -79,12 +78,13 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
                 }
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
-                    if (!build.canContributePlugins()) {
+                    // TODO: deprecate in subsequent change
+                    /*if (!build.canContributePlugins()) {
                         DeprecationLogger.deprecateAction("Including builds that contribute Gradle plugins outside of pluginManagement {} block in settings file")
                             .willBeRemovedInGradle8()
                             .withUpgradeGuideSection(6, "included_builds_contributing_plugins")
                             .nagUser();
-                    }
+                    }*/
                     return pluginResolution.get();
                 }
             }
