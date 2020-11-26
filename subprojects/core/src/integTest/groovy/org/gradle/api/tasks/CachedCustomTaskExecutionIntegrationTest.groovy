@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -945,10 +944,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "invalid", "--info"
         then:
-        TextUtil.convertLineSeparatorsToUnix(output).contains("""
-            Caching disabled for task ':invalid' because:
-              Validation failed
-        """.stripIndent().trim())
+        outputContains("""
+            |Caching disabled for task ':invalid' because:
+            |  Validation failed
+        """.stripMargin())
         executedAndNotSkipped(":invalid")
         listCacheFiles().isEmpty()
     }
