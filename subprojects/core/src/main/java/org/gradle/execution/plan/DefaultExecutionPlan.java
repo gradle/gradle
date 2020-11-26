@@ -87,6 +87,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
+    private final Map<Pair<Node, Node>, Boolean> reachableCache2 = new HashMap<>();
     private final List<Node> dependenciesWhichRequireMonitoring = new ArrayList<>();
     private boolean maybeNodesReady;
 
@@ -493,6 +494,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         runningNodes.clear();
         consumedDirectories.clear();
         producedDirectories.clear();
+        reachableCache2.clear();
     }
 
     @Override
@@ -836,12 +838,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (consumer == producer) {
             return false;
         }
-        for (Node dependency : consumer.getAllSuccessors()) {
-                if (!missesDependency(producer, dependency)) {
-                    return false;
-                }
+        Pair<Node, Node> key = Pair.of(consumer, producer);
+        Boolean reachable = reachableCache2.get(key);
+        if (reachable != null) {
+            return !reachable;
         }
-        return true;
+        reachable = false;
+        for (Node dependency : consumer.getAllSuccessors()) {
+            if (!missesDependency(producer, dependency)) {
+                reachable = true;
+                break;
+            }
+        }
+        reachableCache2.put(key, reachable);
+        return !reachable;
     }
 
     private static void enforceFinalizers(Node node) {
