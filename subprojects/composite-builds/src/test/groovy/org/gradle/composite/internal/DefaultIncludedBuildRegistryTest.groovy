@@ -59,7 +59,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
     def "is empty by default"() {
         expect:
-        !registry.hasIncludedBuilds()
         registry.includedBuilds.empty
     }
 
@@ -101,7 +100,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         result.is includedBuild
 
-        registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild]
 
         registry.getBuild(buildIdentifier).is(includedBuild)
@@ -125,7 +123,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         registry.addIncludedBuild(buildDefinition1)
         registry.addIncludedBuild(buildDefinition2)
 
-        registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild1, includedBuild2]
     }
 
@@ -160,7 +157,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         registry.addIncludedBuild(buildDefinition2)
         registry.addIncludedBuild(buildDefinition3)
 
-        registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild1, includedBuild2, includedBuild3]
 
         registry.getBuild(id1).is(includedBuild1)
@@ -196,7 +192,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         result.is(includedBuild)
 
-        registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild]
     }
 
