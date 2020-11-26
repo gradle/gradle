@@ -78,7 +78,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
                 }
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
-                    // TODO: deprecate in subsequent change
+                    // TODO: once we are ready to publicize build logic build inclusion via pluginManagement {}
                     /*if (!build.canContributePlugins()) {
                         DeprecationLogger.deprecateAction("Including builds that contribute Gradle plugins outside of pluginManagement {} block in settings file")
                             .willBeRemovedInGradle8()
