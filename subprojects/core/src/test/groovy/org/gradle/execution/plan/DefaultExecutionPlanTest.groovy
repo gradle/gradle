@@ -26,6 +26,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.util.Path
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -40,7 +41,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver)
         _ * workerLease.tryLock() >> true
     }
 
