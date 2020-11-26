@@ -1,0 +1,32 @@
+ [user]
+     name = Donat Csikos
+     email = csdonat@gmail.com
+     signingkey = 4A3C3AA3C0E91930
+ [alias]
+     s = status
+     update = pull --rebase origin master
+     aa = add --all
+     d = diff --color-words
+     amend = commit --amend
+     undo = reset --soft HEAD~1
+     l = log --oneline --graph
+     checkout-green = "!f() { git checkout -b \"$1\" origin/green-master; }; f"
+     pr = "!f() { git fetch && git switch --no-track --create \"${1}\" origin/green-${2:-master}; }; f"
+     logs = log --show-signature
+     co = checkout
+     cp = cherry-pick
+ [core]
+     editor = vim
+     excludesfile = /Users/donat/.gitignore
+ [gpg]
+     program = gpg
+ [commit]
+     gpgsign = true
+ [filesystem "Oracle Corporation|10.0.2|/dev/disk1s1"]
+     timestampResolution = 12000 nanoseconds
+     minRacyThreshold = 0 nanoseconds
+ [filesystem "Oracle Corporation|1.8.0_181|/dev/disk1s1"]
+     timestampResolution = 1001 milliseconds
+     minRacyThreshold = 0 nanoseconds
+ [color]
+     ui = auto
