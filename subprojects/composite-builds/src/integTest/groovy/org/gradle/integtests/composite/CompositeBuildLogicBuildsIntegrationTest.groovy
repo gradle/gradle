@@ -254,7 +254,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         failureDescriptionContains("Cannot resolve external dependency com.example:included-build")
     }
 
-    def "a build can be included both as a build logic build and as regular build and can contribute both plugins and components"() {
+    def "a build can be included both as a build logic build and as regular build and can contribute both plugins and library components"() {
         given:
         buildLogicAndProductionLogicBuild('included-build')
         settingsFile << """
@@ -285,7 +285,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         outputContains('included-build project plugin applied')
     }
 
-    def "a build can be included both as an early build logic build and as regular build and can contribute both settings plugins and components"() {
+    def "a build can be included both as an early build logic build and as regular build and can contribute both settings plugins and library components"() {
         given:
         buildLogicAndProductionLogicBuild('included-build')
         settingsFile << """
