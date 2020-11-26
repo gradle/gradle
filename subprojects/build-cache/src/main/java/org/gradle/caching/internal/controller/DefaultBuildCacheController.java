@@ -126,9 +126,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         BuildCacheLoadCommand.Result<T> result = unpack.result;
-        return result == null
-            ? Optional.empty()
-            : Optional.of(result.getMetadata());
+        return Optional.ofNullable(result).map(BuildCacheLoadCommand.Result::getMetadata);
     }
 
     private class Unpack<T> implements Action<File> {
