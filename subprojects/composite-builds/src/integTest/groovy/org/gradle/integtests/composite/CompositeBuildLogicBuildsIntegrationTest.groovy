@@ -163,50 +163,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         outputContains("build-logic project plugin applied")
     }
 
-    def "does not print deprecation warning when plugin is included using pluginManagement and same build is included regularly in addition"() {
-        given:
-        buildLogicBuild('build-logic')
-        settingsFile << """
-            pluginManagement {
-                includeBuild('build-logic')
-            }
-            includeBuild('build-logic')
-        """
-        buildFile << """
-            plugins {
-                id("build-logic.project-plugin")
-            }
-        """
-
-        when:
-        succeeds()
-
-        then:
-        outputContains("build-logic project plugin applied")
-    }
-
-    def "does not print deprecation warning when plugin is included early using pluginManagement and same build is included regularly in addition"() {
-        given:
-        buildLogicBuild('build-logic')
-        settingsFile << """
-            pluginManagement {
-                includeBuildEarly('build-logic')
-            }
-            includeBuild('build-logic')
-        """
-        buildFile << """
-            plugins {
-                id("build-logic.project-plugin")
-            }
-        """
-
-        when:
-        succeeds()
-
-        then:
-        outputContains("build-logic project plugin applied")
-    }
-
     def "can nest included build logic builds"() {
         when:
         buildLogicBuild('logic-1')
@@ -353,7 +309,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
             }
         """
         file("src/main/java/Foo.java") << """
-            public class Foo {}
+            class Foo { Bar newBar() { return new Bar(); }}
         """
 
         then:
