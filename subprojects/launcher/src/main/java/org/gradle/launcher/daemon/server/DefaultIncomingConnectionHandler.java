@@ -156,7 +156,8 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
             LOGGER.debug("{}{} with connection: {}.", DaemonMessages.STARTED_EXECUTING_COMMAND, command, connection);
             try {
                 if (!Arrays.equals(command.getToken(), token)) {
-                    throw new BadlyFormedRequestException(String.format("Unexpected authentication token in command %s received from %s", command, connection));
+                    throw new BadlyFormedRequestException(String.format("Unexpected authentication token in command %s received from %s, expected: %s, incoming: %s.",
+                        command, connection, Arrays.toString(token), Arrays.toString(token)));
                 }
                 commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
