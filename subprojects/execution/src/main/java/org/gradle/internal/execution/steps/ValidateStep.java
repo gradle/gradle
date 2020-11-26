@@ -85,7 +85,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         }
 
         if (!warnings.isEmpty()) {
-            LOGGER.info("Invalidating VFS because of invalid work {}", work.getDisplayName());
+            LOGGER.info("Invalidating VFS because {} failed validation", work.getDisplayName());
             virtualFileSystem.invalidateAll();
         }
 
