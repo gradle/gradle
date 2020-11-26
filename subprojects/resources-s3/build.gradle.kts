@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.awsS3Core)
     implementation(libs.awsS3S3)
     implementation(libs.awsS3Kms)
+    implementation(libs.awsS3Sts)
     implementation(libs.jaxb)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonAnnotations)

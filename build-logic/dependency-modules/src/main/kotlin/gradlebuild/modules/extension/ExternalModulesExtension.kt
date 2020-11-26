@@ -41,6 +41,7 @@ abstract class ExternalModulesExtension {
     val awsS3Core = "com.amazonaws:aws-java-sdk-core"
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
+    val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
     val bsh = "org.apache-extras.beanshell:bsh"
@@ -179,6 +180,7 @@ abstract class ExternalModulesExtension {
         awsS3Core to License.Apache2,
         awsS3Kms to License.Apache2,
         awsS3S3 to License.Apache2,
+        awsS3Sts to License.Apache2,
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
