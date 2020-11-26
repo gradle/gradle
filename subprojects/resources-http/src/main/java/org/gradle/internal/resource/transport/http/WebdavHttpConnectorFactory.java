@@ -30,7 +30,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import java.util.Set;
 
 public class WebdavHttpConnectorFactory implements ResourceConnectorFactory {
-    private final static Set<String> SUPPORTED_PROTOCOLS = ImmutableSet.of("dav+http", "dav+https");
+    private final static Set<String> SUPPORTED_PROTOCOLS = ImmutableSet.of("dav+https");
     private final static Set<Class<? extends Authentication>> SUPPORTED_AUTHENTICATION = ImmutableSet.of(
         BasicAuthentication.class,
         DigestAuthentication.class,
