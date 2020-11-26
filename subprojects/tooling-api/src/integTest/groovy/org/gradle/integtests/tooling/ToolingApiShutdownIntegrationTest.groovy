@@ -16,9 +16,11 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Retry
 import spock.lang.Timeout
 
+@Ignore
 class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
 
     @Retry(count = 3)
