@@ -38,7 +38,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         def m2 = mavenRepo.module("test", "two", "1.2").publish()
 
         buildFile << """
-            repositories { 
+            repositories {
                 maven { url '${server.uri}' }
             }
             configurations { compile }
@@ -84,7 +84,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         ConcurrentTestUtil.poll {
             outputContainsProgress(build,
                 "> :resolve > Resolve dependencies of :compile",
-                "> one-1.2.pom > 1 KB/2 KB downloaded", "> two-1.2.pom > 1 KB/2 KB downloaded"
+                "> one-1.2.pom > 1 KiB/2 KiB downloaded", "> two-1.2.pom > 1 KiB/2 KiB downloaded"
             )
         }
 
@@ -110,7 +110,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         ConcurrentTestUtil.poll {
             outputContainsProgress(build,
                 "> :resolve > Resolve files of :compile",
-                "> one-1.2.jar > 1 KB/2 KB downloaded", "> two-1.2.jar > 1 KB/2 KB downloaded"
+                "> one-1.2.jar > 1 KiB/2 KiB downloaded", "> two-1.2.jar > 1 KiB/2 KiB downloaded"
             )
         }
 

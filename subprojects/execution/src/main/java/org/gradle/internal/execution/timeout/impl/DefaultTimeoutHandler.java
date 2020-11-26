@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.timeout.impl;
 
+import com.google.common.io.CharStreams;
 import org.gradle.api.Describable;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.concurrent.Stoppable;
@@ -23,12 +24,16 @@ import org.gradle.internal.execution.timeout.Timeout;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.PrintWriter;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -37,7 +42,8 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTimeoutHandler.class);
 
     // Only intended to be used for integration testing
-    public static final String WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".warnIfNotStoppedFrequency";
+    public static final String POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".postTimeoutCheckFrequency";
+    public static final String SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".slowStopLogStacktraceFrequency";
 
     private final ManagedScheduledExecutor executor;
     private final CurrentBuildOperationRef currentBuildOperationRef;
@@ -58,8 +64,13 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     }
 
     // Value is queried “dynamically” to support testing
-    private static long warnIfNotStoppedFrequency() {
-        return Integer.parseInt(System.getProperty(WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY, "3000"));
+    private static long postTimeoutCheckFrequency() {
+        return Integer.parseInt(System.getProperty(POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY, "3000"));
+    }
+
+    // Value is queried “dynamically” to support testing
+    private static long slowStopLogStacktraceFrequency() {
+        return Integer.parseInt(System.getProperty(SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY, "10000"));
     }
 
     private final class DefaultTimeout implements Timeout {
@@ -76,6 +87,10 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         private boolean slowStop;
         private boolean stopped;
         private boolean interrupted;
+
+        private StackTraceElement[] lastStacktrace;
+        private CountdownTimer logStacktraceTimer;
+
         private ScheduledFuture<?> scheduledFuture;
 
         private DefaultTimeout(Thread thread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
@@ -83,28 +98,58 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
             this.timeout = timeout;
             this.workUnitDescription = workUnitDescription;
             this.buildOperationRef = buildOperationRef;
-
-            this.scheduledFuture = executor.schedule(this::interrupt, timeout.toMillis(), TimeUnit.MILLISECONDS);
+            this.scheduledFuture = executor.schedule(this::onTimeout, timeout.toMillis(), TimeUnit.MILLISECONDS);
         }
 
-        private void interrupt() {
+        private void onTimeout() {
             synchronized (lock) {
                 if (!stopped) {
                     interrupted = true;
                     doAsPartOfBuildOperation(() -> LOGGER.warn("Requesting stop of {} as it has exceeded its configured timeout of {}.", workUnitDescription.getDisplayName(), TimeFormatting.formatDurationTerse(timeout.toMillis())));
                     thread.interrupt();
-                    scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
+                    logStacktraceTimer = Time.startCountdownTimer(slowStopLogStacktraceFrequency());
+                    scheduledFuture = executor.schedule(this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
                 }
             }
         }
 
-        private void warnIfNotStopped() {
+        private void onAfterTimeoutCheck() {
             synchronized (lock) {
                 if (!stopped) {
                     slowStop = true;
-                    doAsPartOfBuildOperation(() -> LOGGER.warn("Timed out {} has not yet stopped.", workUnitDescription.getDisplayName()));
-                    scheduledFuture = executor.schedule(this::warnIfNotStopped, warnIfNotStoppedFrequency(), TimeUnit.MILLISECONDS);
+                    doAsPartOfBuildOperation(() -> {
+                        LOGGER.warn("Timed out {} has not yet stopped.", workUnitDescription.getDisplayName());
+
+                        if (logStacktraceTimer.hasExpired()) {
+                            StackTraceElement[] currentStackTrace = thread.getStackTrace();
+                            if (currentStackTrace.length > 0 && !Arrays.equals(lastStacktrace, currentStackTrace)) {
+                                lastStacktrace = currentStackTrace;
+                                logStacktrace(currentStackTrace);
+                            }
+                            logStacktraceTimer.reset();
+                        }
+                    });
+
+                    thread.interrupt(); // interrupt again in case the work unit cleared the interrupt.
+
+                    scheduledFuture = executor.schedule(this::onAfterTimeoutCheck, postTimeoutCheckFrequency(), TimeUnit.MILLISECONDS);
                 }
+            }
+        }
+
+        private void logStacktrace(StackTraceElement[] currentStackTrace) {
+            if (LOGGER.isWarnEnabled()) {
+                // Assemble string this way so it is logged atomically, and with platform line endings
+                StringBuilder logMessageBuilder = new StringBuilder();
+                try (PrintWriter logMessageWriter = new PrintWriter(CharStreams.asWriter(logMessageBuilder))) {
+                    logMessageWriter.print("Current stacktrace of timed out but not yet stopped ");
+                    logMessageWriter.print(workUnitDescription.getDisplayName());
+                    logMessageWriter.println(":");
+                    for (StackTraceElement traceElement : currentStackTrace) {
+                        logMessageWriter.println("  at " + traceElement);
+                    }
+                }
+                LOGGER.warn(logMessageBuilder.toString());
             }
         }
 

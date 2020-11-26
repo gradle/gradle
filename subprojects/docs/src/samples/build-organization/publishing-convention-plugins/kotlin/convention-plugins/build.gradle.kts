@@ -15,12 +15,12 @@ publishing {
     repositories {
         maven {
             // change to point to your repo, e.g. http://my.org/repo
-            url = uri("$buildDir/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 }
 
-tasks.named("publish") {
+tasks.publish {
     dependsOn("check")
 }
 // end::publish[]

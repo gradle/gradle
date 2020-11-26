@@ -109,6 +109,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -131,6 +132,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -217,6 +219,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+    private final Lazy<List<DependencyConstraint>> consistentResolutionConstraints = Lazy.unsafe().of(this::consistentResolutionConstraints);
 
     private final AtomicInteger copyCount = new AtomicInteger(0);
 
@@ -630,7 +633,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                maybeConfigureConsistentResolution();
                 DefaultResolverResults results = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, results);
                 dependenciesModified = false;
@@ -695,11 +697,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return consistentResolutionSource;
     }
 
-    private void maybeConfigureConsistentResolution() {
-        if (consistentResolutionSource != null) {
-            assertThatConsistentResolutionIsPropertyConfigured();
-            consistentResolutionSource.getIncoming().getResolutionResult().allComponents(this::registerConsistentResolutionConstraint);
+    private List<DependencyConstraint> consistentResolutionConstraints() {
+        if (consistentResolutionSource == null) {
+            return Collections.emptyList();
         }
+        assertThatConsistentResolutionIsPropertyConfigured();
+        return consistentResolutionSource.getIncoming()
+            .getResolutionResult()
+            .getAllComponents()
+            .stream()
+            .map(this::registerConsistentResolutionConstraint)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
     }
 
     private void assertThatConsistentResolutionIsPropertyConfigured() {
@@ -707,6 +717,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             throw new InvalidUserCodeException("You can't use " + consistentResolutionSource + " as a consistent resolution source for " + this + " because it isn't a resolvable configuration.");
         }
         assertNoDependencyResolutionConsistencyCycle();
+    }
+
+    @Override
+    public Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints() {
+        return consistentResolutionConstraints;
     }
 
     private void assertNoDependencyResolutionConsistencyCycle() {
@@ -721,7 +736,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void registerConsistentResolutionConstraint(ResolvedComponentResult result) {
+    private Optional<DependencyConstraint> registerConsistentResolutionConstraint(ResolvedComponentResult result) {
         if (result.getId() instanceof ModuleComponentIdentifier) {
             ModuleVersionIdentifier moduleVersion = result.getModuleVersion();
             DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictly(
@@ -729,8 +744,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 moduleVersion.getName(),
                 moduleVersion.getVersion());
             constraint.because(consistentResolutionReason);
-            this.dependencyConstraints.addInternalDependencyConstraint(constraint);
+            return Optional.of(constraint);
         }
+        return Optional.empty();
     }
 
     private void performPreResolveActions(ResolvableDependencies incoming) {

@@ -16,16 +16,16 @@
 
 package org.gradle.internal.resource.transfer
 
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     ExternalResourceAccessor accessor = Mock()
-    ProgressLoggerFactory progressLoggerFactory = Mock();
+    ProgressLoggerFactory progressLoggerFactory = Mock()
     ProgressLoggingExternalResourceAccessor progressLoggerAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory)
     ProgressLogger progressLogger = Mock()
     ExternalResourceReadResponse externalResource = Mock()
@@ -99,9 +99,9 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * progressLogger.progress('1 KB/4 KB downloaded')
-        1 * progressLogger.progress('3 KB/4 KB downloaded')
-        1 * progressLogger.progress('4 KB/4 KB downloaded')
+        1 * progressLogger.progress('1.5 KiB/4 KiB downloaded')
+        1 * progressLogger.progress('3 KiB/4 KiB downloaded')
+        1 * progressLogger.progress('4 KiB/4 KiB downloaded')
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
     }
@@ -121,7 +121,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * progressLogger.progress('1 KB/4 KB downloaded')
+        1 * progressLogger.progress('1.5 KiB/4 KiB downloaded')
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
     }
