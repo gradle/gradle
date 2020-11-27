@@ -32,4 +32,9 @@ public class CachingDisabledReason {
     public String getMessage() {
         return message;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s (%s)", message, category);
+    }
 }

@@ -75,6 +75,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -425,10 +426,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             Class<?> taskType = GeneratedSubclasses.unpackType(task);
             // TODO This should probably use the task class info store
             boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
+            TypeValidationContext typeValidationContext = validationContext.createContextFor(taskType, cacheable);
+            context.getTaskProperties().validateType(typeValidationContext);
             context.getTaskProperties().validate(new DefaultTaskValidationContext(
                 fileOperations,
                 reservedFileSystemLocationRegistry,
-                validationContext.createContextFor(taskType, cacheable)
+                typeValidationContext
             ));
         }
 

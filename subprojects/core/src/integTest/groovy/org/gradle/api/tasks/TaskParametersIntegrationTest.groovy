@@ -373,6 +373,30 @@ task someTask {
         "123"                | "123 as short"
     }
 
+    def "invalid task causes VFS to drop"() {
+        buildFile << """
+            class InvalidTask extends DefaultTask {
+                @Optional @Input File inputFile
+
+                @TaskAction void execute() {
+                    println "Executed"
+                }
+            }
+
+            task invalid(type: InvalidTask)
+        """
+
+        executer.expectDocumentedDeprecationWarning("Property 'inputFile' has @Input annotation used on property of type 'File'. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+
+        when:
+        run "invalid", "--info"
+        then:
+        executedAndNotSkipped(":invalid")
+        outputContains("Invalidating VFS because task ':invalid' failed validation")
+    }
+
     @Unroll
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
@@ -404,8 +428,8 @@ task someTask(type: SomeTask) {
     d = file("build/out")
 }
 """
-        if (expectDeprecation) {
-            executer.beforeExecute { executer.expectDeprecationWarning() }
+        if (expectedValidationProblem) {
+            executer.beforeExecute { executer.expectDocumentedDeprecationWarning(expectedValidationProblem) }
         }
 
         given:
@@ -415,51 +439,63 @@ task someTask(type: SomeTask) {
         run "someTask"
 
         then:
-        skipped(":someTask")
+        if (expectedValidationProblem) {
+            executedAndNotSkipped(":someTask")
+        } else {
+            skipped(":someTask")
+        }
 
         when:
         buildFile.replace("v = $initialValue", "v = $newValue")
-        executer.withArgument("-i")
+        executer.withArgument("--info")
         run "someTask"
 
         then:
         executedAndNotSkipped(":someTask")
-        outputContains("Value of input property 'v' has changed for task ':someTask'")
+        if (expectedValidationProblem) {
+            outputContains("Validation failed.")
+        } else {
+            outputContains("Value of input property 'v' has changed for task ':someTask'")
+        }
 
         when:
         run "someTask"
 
         then:
-        skipped(":someTask")
+        if (expectedValidationProblem) {
+            executedAndNotSkipped(":someTask")
+        } else {
+            skipped(":someTask")
+        }
 
         where:
-        type                                  | initialValue                                          | newValue                                                     | expectDeprecation
-        "String"                              | "'value 1'"                                           | "'value 2'"                                                  | false
-        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | true
-        "boolean"                             | "true"                                                | "false"                                                      | false
-        "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"                                              | false
-        "int"                                 | "123"                                                 | "-45"                                                        | false
-        "Integer"                             | "123"                                                 | "-45"                                                        | false
-        "long"                                | "123"                                                 | "-45"                                                        | false
-        "Long"                                | "123"                                                 | "-45"                                                        | false
-        "short"                               | "123"                                                 | "-45"                                                        | false
-        "Short"                               | "123"                                                 | "-45"                                                        | false
-        "java.math.BigDecimal"                | "12.3"                                                | "-45.432"                                                    | false
-        "java.math.BigInteger"                | "12"                                                  | "-45"                                                        | false
-        "java.util.List<String>"              | "['value1', 'value2']"                                | "['value1']"                                                 | false
-        "java.util.List<String>"              | "[]"                                                  | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]" | false
-        "String[]"                            | "new String[0]"                                       | "['abc'] as String[]"                                        | false
-        "Object[]"                            | "[123, 'abc'] as Object[]"                            | "['abc'] as String[]"                                        | false
-        "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"                                    | false
-        "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"                                          | false
-        "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"                                                 | false
-        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | true
-        "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"                                         | false
-        "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"                                 | false
-        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | true
-        "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"               | false
-        "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"                | false
-        "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | false
+        type                                  | initialValue                                          | newValue                                                     | expectedValidationProblem
+        "String"                              | "'value 1'"                                           | "'value 2'"                                                  | null
+        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | "Property 'v' has @Input annotation used on property of type 'File'. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        "boolean"                             | "true"                                                | "false"                                                      | null
+        "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"                                              | null
+        "int"                                 | "123"                                                 | "-45"                                                        | null
+        "Integer"                             | "123"                                                 | "-45"                                                        | null
+        "long"                                | "123"                                                 | "-45"                                                        | null
+        "Long"                                | "123"                                                 | "-45"                                                        | null
+        "short"                               | "123"                                                 | "-45"                                                        | null
+        "Short"                               | "123"                                                 | "-45"                                                        | null
+        "java.math.BigDecimal"                | "12.3"                                                | "-45.432"                                                    | null
+        "java.math.BigInteger"                | "12"                                                  | "-45"                                                        | null
+        "java.util.List<String>"              | "['value1', 'value2']"                                | "['value1']"                                                 | null
+        "java.util.List<String>"              | "[]"                                                  | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]" | null
+        "String[]"                            | "new String[0]"                                       | "['abc'] as String[]"                                        | null
+        "Object[]"                            | "[123, 'abc'] as Object[]"                            | "['abc'] as String[]"                                        | null
+        "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"                                    | null
+        "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"                                          | null
+        "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"                                                 | null
+        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | "Property 'v' has @Input annotation used on property of type 'FileCollection'. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"                                         | null
+        "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"                                 | null
+        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | "Property 'v' of mutable type 'org.gradle.api.provider.Property' is writable. Properties of this type should be read-only and mutated via the value itself. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"               | null
+        "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"                | null
+        "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | null
     }
 
     def "null input properties registered via TaskInputs.property are not allowed"() {
@@ -608,7 +644,7 @@ task someTask(type: SomeTask) {
         failure.assertHasCause(message.replace("<PATH>", file(path).absolutePath))
 
         where:
-        method  | path             | message
+        method  | path              | message
         "file"  | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
         "files" | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
         "dir"   | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."

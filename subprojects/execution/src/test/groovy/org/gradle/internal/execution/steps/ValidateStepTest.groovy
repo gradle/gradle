@@ -18,14 +18,21 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.UnitOfWork.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
+import org.gradle.internal.vfs.VirtualFileSystem
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
-class ValidateStepTest extends ContextInsensitiveStepSpec {
+class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
     def warningReporter = Mock(ValidateStep.ValidationWarningReporter)
-    def step = new ValidateStep<>(warningReporter, delegate)
+    def virtualFileSystem = Mock(VirtualFileSystem)
+    def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
     def delegateResult = Mock(Result)
+
+    @Override
+    protected AfterPreviousExecutionContext createContext() {
+        return Stub(AfterPreviousExecutionContext)
+    }
 
     def "executes work when there are no violations"() {
         boolean validated = false
@@ -35,7 +42,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work, { ValidationContext context -> !context.validationProblems.present }) >> delegateResult
         _ * work.validate(_ as  WorkValidationContext) >> { validated = true }
 
         then:
@@ -77,7 +84,8 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         0 * _
     }
 
-    def "reports deprecation warning for validation warning"() {
+    def "reports deprecation warning and invalidates VFS for validation warning"() {
+        String expectedWarning = "Type '$Object.simpleName': Validation warning."
         when:
         step.execute(work, context)
 
@@ -87,10 +95,11 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         }
 
         then:
-        1 * warningReporter.reportValidationWarning("Type '$Object.simpleName': Validation warning.")
+        1 * warningReporter.reportValidationWarning(expectedWarning)
+        1 * virtualFileSystem.invalidateAll()
 
         then:
-        1 * delegate.execute(work, context)
+        1 * delegate.execute(work, { ValidationContext context -> context.validationProblems.get().warnings == [expectedWarning] })
         0 * _
     }
 

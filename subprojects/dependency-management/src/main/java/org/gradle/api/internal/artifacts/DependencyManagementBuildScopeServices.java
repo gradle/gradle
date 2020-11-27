@@ -232,6 +232,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
@@ -769,7 +770,8 @@ class DependencyManagementBuildScopeServices {
             OutputSnapshotter outputSnapshotter,
             OverlappingOutputDetector overlappingOutputDetector,
             TimeoutHandler timeoutHandler,
-            ValidateStep.ValidationWarningReporter validationWarningReporter
+            ValidateStep.ValidationWarningReporter validationWarningReporter,
+            VirtualFileSystem virtualFileSystem
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
@@ -780,7 +782,7 @@ class DependencyManagementBuildScopeServices {
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
-            new ValidateStep<>(validationWarningReporter,
+            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
             new NoOpCachingStateStep(
             new ResolveChangesStep<>(changeDetector,
@@ -846,6 +848,11 @@ class DependencyManagementBuildScopeServices {
                 @Override
                 public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                     return context.getAfterPreviousExecutionState();
+                }
+
+                @Override
+                public Optional<ValidationResult> getValidationProblems() {
+                    return context.getValidationProblems();
                 }
 
                 @Override

@@ -75,6 +75,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
@@ -151,7 +152,8 @@ public class ExecutionGradleServices {
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
-        ValidateStep.ValidationWarningReporter validationWarningReporter
+        ValidateStep.ValidationWarningReporter validationWarningReporter,
+        VirtualFileSystem virtualFileSystem
     ) {
         // @formatter:off
         return new DefaultExecutionEngine(
@@ -161,7 +163,7 @@ public class ExecutionGradleServices {
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
-            new ValidateStep<>(validationWarningReporter,
+            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
