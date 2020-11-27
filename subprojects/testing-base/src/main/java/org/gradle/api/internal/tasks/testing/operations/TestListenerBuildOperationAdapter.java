@@ -80,7 +80,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         Details details = new Details(testDescriptor, testStartEvent.getStartTime());
         InProgressExecuteTestBuildOperation parentOperation = runningTests.get(testDescriptor.getParent());
         OperationIdentifier parentId = parentOperation == null ? CurrentBuildOperationRef.instance().getId() : parentOperation.descriptor.getId();
-        return BuildOperationDescriptor.displayName(testDescriptor.getName())
+        return BuildOperationDescriptor.displayName(testDescriptor.getDisplayName())
             .details(details)
             .build(newOperationIdentifier(), parentId);
     }
