@@ -846,6 +846,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 return false;
             }
         }
+        // Do a deep search
+        ArrayDeque<Node> queue = new ArrayDeque<>();
+        consumer.getAllSuccessors().forEach(queue::add);
+        while (!queue.isEmpty()) {
+            Node dependency = queue.removeFirst();
+            if (dependency == producer) {
+                return false;
+            }
+            dependency.getAllSuccessors().forEach(queue::add);
+        }
         return true;
     }
 
