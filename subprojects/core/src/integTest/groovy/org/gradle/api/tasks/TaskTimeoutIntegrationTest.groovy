@@ -32,13 +32,19 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     private static final TIMEOUT = 500
 
-    long warnIfNotStoppedFrequencyMs
+    long postTimeoutCheckFrequencyMs = Duration.ofMinutes(3).toMillis()
+    long slowStopLogStacktraceFrequencyMs = Duration.ofMinutes(3).toMillis()
+
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         executer.beforeExecute {
-            def checkTime = warnIfNotStoppedFrequencyMs ?: Duration.ofMinutes(3).toMillis() // use long timeout to avoid test flakiness
-            executer.withArgument("-D${DefaultTimeoutHandler.WARN_IF_NOT_STOPPED_FREQUENCY_PROPERTY}=$checkTime")
+            [
+                (DefaultTimeoutHandler.POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY): postTimeoutCheckFrequencyMs,
+                (DefaultTimeoutHandler.SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY): slowStopLogStacktraceFrequencyMs
+            ].each { k, v ->
+                executer.withArgument("-D$k=$v".toString())
+            }
         }
     }
 
@@ -255,7 +261,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     def "additional logging is emitted when task is slow to stop"() {
         given:
-        warnIfNotStoppedFrequencyMs = 100
+        postTimeoutCheckFrequencyMs = 100
         buildFile << """
             task block() {
                 doLast {
@@ -287,5 +293,87 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         def logging = taskExecutionOp.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) }*.details
         def timeoutLogging = logging.findAll { it.category == DefaultTimeoutHandler.name }
         timeoutLogging.collect { it.message } as List<String>
+    }
+
+    def "task is re-interrupted until it stops"() {
+        given:
+        postTimeoutCheckFrequencyMs = 100
+        buildFile << """
+            task block() {
+                doLast {
+                    def interruptedCount = 0
+                    while (true) {
+                        if (Thread.interrupted()) {
+                            println "received interrupt"
+                            if (++interruptedCount == 3) {
+                                return
+                            }
+                        }
+                    }
+                }
+                timeout = Duration.ofMillis($TIMEOUT)
+            }
+            """
+
+        expect:
+        fails "block"
+
+        and:
+        with(result.groupedOutput.task(":block")) {
+            output.count("received interrupt") == 3
+        }
+    }
+
+    def "stack trace of task is printed if it is slow to stop"() {
+        given:
+        executer.withStackTraceChecksDisabled()
+        postTimeoutCheckFrequencyMs = 100
+        slowStopLogStacktraceFrequencyMs = 100
+
+        buildFile << """
+            @groovy.transform.CompileStatic
+            def checkpoint1() {
+                def startAt = System.nanoTime()
+                while (System.nanoTime() - startAt < 1_000_000_000) {}
+            }
+            @groovy.transform.CompileStatic
+            def checkpoint2() {
+                def startAt = System.nanoTime()
+                while (System.nanoTime() - startAt < 1_000_000_000) {}
+            }
+            @groovy.transform.CompileStatic
+            def checkpoint3() {
+                def startAt = System.nanoTime()
+                while (System.nanoTime() - startAt < 1_000_000_000) {}
+            }
+
+            task block() {
+                doLast {
+                    checkpoint1()
+                    checkpoint2()
+                    checkpoint3()
+                }
+                timeout = Duration.ofMillis($TIMEOUT)
+            }
+            """
+
+        expect:
+        fails "block"
+
+        and:
+        with(result.groupedOutput.task(":block")) {
+            def slowStopWarningsCount = output.count("Timed out task ':block' has not yet stopped.")
+
+            def stackTraces = output.findAll(~/(?ms)(?=Timed out task ':block' has not yet stopped).+?(?=^\n)/)
+            stackTraces.size() > 1
+
+            // We should not have logged the stacktrace each time we checked if it was still running
+            stackTraces.size() < slowStopWarningsCount
+
+            // We should have only logged when it changed
+            (1..<stackTraces.size()).each {
+                stackTraces[it - 1] != stackTraces[it]
+            }
+        }
     }
 }

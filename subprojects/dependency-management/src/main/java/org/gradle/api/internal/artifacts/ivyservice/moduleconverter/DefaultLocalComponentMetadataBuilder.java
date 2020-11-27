@@ -88,7 +88,8 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.isCanBeConsumed(),
             configuration.getConsumptionAlternatives(),
             configuration.isCanBeResolved(),
-            capabilities);
+            capabilities,
+            configuration.getConsistentResolutionConstraints());
     }
 
     private static ImmutableCapabilities asImmutable(Collection<? extends Capability> descriptors) {

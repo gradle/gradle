@@ -51,7 +51,7 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
     }
 
     @Override
-    public SnapshotVisitResult accept(PathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+    public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
         for (FileSystemSnapshot snapshot : snapshots) {
             SnapshotVisitResult result = snapshot.accept(pathTracker, visitor);
             if (result == SnapshotVisitResult.TERMINATE) {

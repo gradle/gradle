@@ -642,4 +642,61 @@ task res {
         then:
         succeeds 'resolve'
     }
+
+    // In theory we shouldn't allow this because it can lead to inconsistent dependency
+    // resolution: it means that two strictly equivalent configurations, with the same
+    // dependencies, could resolve differently in the same project, after some rules
+    // have been added. However, the Nebula Resolution Rules plugin depends on this
+    // behavior, because it downloads rules in a JSON format and applies them to the
+    // current project.
+    @Issue("https://github.com/gradle/gradle/issues/15312")
+    def "rules can be added after a first resolution happened in the project"() {
+        repository {
+            'org.test:projectA:1.0'()
+        }
+        buildFile << """
+
+class LoggingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            println "I am executed on \${context.details.id}"
+    }
+}
+
+configurations {
+    ruleDownloader.incoming.afterResolve {
+        println "Adding rules"
+        dependencies {
+            components {
+                all(LoggingRule)
+            }
+        }
+    }
+}
+
+dependencies {
+    ruleDownloader files('rules.json')
+    conf 'org.test:projectA:1.0'
+}
+
+resolve {
+    doFirst {
+        configurations.ruleDownloader.resolve() // trigger resolution before rules are added
+    }
+}
+
+"""
+
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+
+        and:
+        outputContains "I am executed on org.test:projectA:1.0"
+    }
 }

@@ -77,6 +77,13 @@ public FileTree getSourcesWithEmptyDirectories() {
 }
 ```
 
+==== Changes to publications
+
+Publishing a component which has a dependency on an enforced platform now triggers a validation error, preventing accidental publishing of bad metadata:
+enforced platforms use cases should be limited to applications, not things which can be consumed from another library or an application.
+
+If, for some reason, you still want to publish components with dependencies on enforced platforms, you can disable the validation following the <<publishing_setup.adoc#sec:suppressing_validation_errors, documentation>>.
+
 === Deprecations
 
 [[referencing_tasks_from_included_builds]]

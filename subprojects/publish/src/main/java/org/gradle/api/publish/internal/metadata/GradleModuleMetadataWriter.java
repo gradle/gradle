@@ -26,6 +26,7 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>The Gradle module metadata file generator is responsible for generating a JSON file
@@ -45,11 +46,19 @@ public class GradleModuleMetadataWriter {
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ChecksumService checksumService;
+    private final String taskPath;
+    private final List<DependencyAttributesValidator> dependencyAttributeValidators;
 
-    public GradleModuleMetadataWriter(BuildInvocationScopeId buildInvocationScopeId, ProjectDependencyPublicationResolver projectDependencyResolver, ChecksumService checksumService) {
+    public GradleModuleMetadataWriter(BuildInvocationScopeId buildInvocationScopeId,
+                                      ProjectDependencyPublicationResolver projectDependencyResolver,
+                                      ChecksumService checksumService,
+                                      String taskPath,
+                                      List<DependencyAttributesValidator> dependencyAttributeValidators) {
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.projectDependencyResolver = projectDependencyResolver;
         this.checksumService = checksumService;
+        this.taskPath = taskPath;
+        this.dependencyAttributeValidators = dependencyAttributeValidators;
     }
 
     public void writeTo(Writer writer, PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) throws IOException {
@@ -75,13 +84,13 @@ public class GradleModuleMetadataWriter {
     }
 
     public ModuleMetadataSpec moduleMetadataSpecFor(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) {
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), taskPath);
         ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
             publication,
             publications,
             checker,
-            projectDependencyResolver
-        ).build();
+            projectDependencyResolver,
+            dependencyAttributeValidators).build();
         checker.validate();
         return spec;
     }

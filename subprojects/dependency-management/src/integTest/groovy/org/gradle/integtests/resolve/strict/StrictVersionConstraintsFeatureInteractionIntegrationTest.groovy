@@ -236,7 +236,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:bar' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'test:foo:unspecified' --> 'org:bar:2.0'
+   Dependency path ':test:unspecified' --> 'test:foo:unspecified' (conf) --> 'org:bar:2.0'
    Constraint path ':test:unspecified' --> 'org:bar:{strictly 1.0}'"""
     }
 

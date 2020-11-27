@@ -19,7 +19,6 @@ package org.gradle.configurationcache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
-
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "can use lib produced by included build"() {

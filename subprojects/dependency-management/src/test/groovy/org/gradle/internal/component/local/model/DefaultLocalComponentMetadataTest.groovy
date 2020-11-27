@@ -45,8 +45,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "can lookup configuration after it has been added"() {
         when:
-        metadata.addConfiguration("super", "description", [] as Set<String>, ImmutableSet.of("super"), false, false, null, true, null, true, ImmutableCapabilities.EMPTY)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ImmutableSet.of("super", "conf"), true, true, null, true, null, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration("super", "description", [] as Set<String>, ImmutableSet.of("super"), false, false, null, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ImmutableSet.of("super", "conf"), true, true, null, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
 
         then:
         metadata.configurationNames == ['conf', 'super'] as Set
@@ -66,8 +66,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "configuration has no dependencies or artifacts when none have been added"() {
         when:
-        metadata.addConfiguration("super", "description", [] as Set<String>, ImmutableSet.of("super"), false, false, ImmutableAttributes.EMPTY, true, null, true, ImmutableCapabilities.EMPTY)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ImmutableSet.of("super", "conf"), true, true, ImmutableAttributes.EMPTY, true, null, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration("super", "description", [] as Set<String>, ImmutableSet.of("super"), false, false, ImmutableAttributes.EMPTY, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ImmutableSet.of("super", "conf"), true, true, ImmutableAttributes.EMPTY, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
 
         then:
         def conf = metadata.getConfiguration('conf')
@@ -125,7 +125,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = [], AttributeContainerInternal attributes = ImmutableAttributes.EMPTY) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes as ImmutableAttributes, true, null, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes as ImmutableAttributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
     }
 
     def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
@@ -299,8 +299,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "builds and caches exclude rules for a configuration"() {
         given:
-        def compile = metadata.addConfiguration("compile", null, [] as Set<String>, ImmutableSet.of("compile"), true, true, null, true, null, true, ImmutableCapabilities.EMPTY)
-        def runtime = metadata.addConfiguration("runtime", null, ["compile"] as Set, ImmutableSet.of("compile", "runtime"), true, true, null, true, null, true, ImmutableCapabilities.EMPTY)
+        def compile = metadata.addConfiguration("compile", null, [] as Set<String>, ImmutableSet.of("compile"), true, true, null, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
+        def runtime = metadata.addConfiguration("runtime", null, ["compile"] as Set, ImmutableSet.of("compile", "runtime"), true, true, null, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
 
         def rule1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"))
         def rule2 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"))

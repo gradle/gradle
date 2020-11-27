@@ -13,9 +13,6 @@
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
   "durations" : [ {
-    "testProject" : "k9AndroidBuild",
-    "linux" : 184000
-  }, {
     "testProject" : "largeAndroidBuild",
     "linux" : 702000
   }, {
@@ -31,7 +28,7 @@
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run help",
   "durations" : [ {
-    "testProject" : "k9AndroidBuild",
+    "testProject" : "santaTrackerAndroidBuild",
     "linux" : 133000
   }, {
     "testProject" : "largeAndroidBuild",
@@ -55,7 +52,7 @@
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",
   "durations" : [ {
-    "testProject" : "k9AndroidBuild",
+    "testProject" : "santaTrackerAndroidBuild",
     "linux" : 222000
   }, {
     "testProject" : "largeAndroidBuild",

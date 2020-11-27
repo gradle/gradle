@@ -19,8 +19,11 @@ package org.gradle.integtests.tooling.r68
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.GradleTask
+import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion(">=3.0")
+@ToolingApiVersion(">=3.3")
 @TargetGradleVersion('>=6.8')
 class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
 
@@ -44,6 +47,46 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("do something")
     }
 
+    def "can run included root project task via launchable from GradleProject model"() {
+        given:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        when:
+        executeTaskViaGardleProjectLaunchable("doSomething")
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
+    }
+
+    def "can run included root project task via launchable from BuildInvocations model"() {
+        given:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
+        file('other-build/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        when:
+        executeTaskViaBuildInvocationsLaunchable(":doSomething")
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
+    }
+
     def "can run included subproject task"() {
         given:
         settingsFile << "includeBuild('other-build')"
@@ -61,6 +104,29 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
         when:
         executeTaskViaTAPI(":other-build:sub:doSomething")
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
+    }
+
+    def "can run included subproject task via launchable from GradleProject model"() {
+        given:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            tasks.register('doSomething') {
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        when:
+        executeTaskViaGardleProjectLaunchable("doSomething")
 
         then:
         assertHasBuildSuccessfulLogging()
@@ -308,6 +374,38 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
             def build = connection.newBuild()
             collectOutputs(build)
             build.forTasks(task).run()
+        }
+    }
+
+    private void executeTaskViaGardleProjectLaunchable(String taskName) {
+        withConnection { connection ->
+            def gradleProjects = connection.action(new LoadCompositeModel(GradleProject)).run()
+            def launchables = findLaunchables(gradleProjects, taskName)
+            assert launchables.size == 1
+            def build = connection.newBuild()
+            collectOutputs(build)
+            build.forLaunchables(launchables[0]).run()
+        }
+    }
+
+    private def findLaunchables(Collection<GradleProject> gradleProjects, String taskName) {
+        collectGradleProjects(gradleProjects).collect {it.tasks }.flatten().findAll { GradleTask task -> task.path.contains(taskName) }
+    }
+
+    private def collectGradleProjects(Collection<GradleProject> projects, Collection<GradleProject> acc = []) {
+        acc.addAll(projects)
+        projects.each { collectGradleProjects(it.children, acc) }
+        acc
+    }
+
+    private void executeTaskViaBuildInvocationsLaunchable(String taskName) {
+        withConnection { connection ->
+            Collection<BuildInvocations> buildInvocations = connection.action(new LoadCompositeModel(BuildInvocations)).run()
+            def tasks = buildInvocations.collect { it.tasks }.flatten().findAll { it.path.contains(taskName) }
+            assert tasks.size == 1
+            def build = connection.newBuild()
+            collectOutputs(build)
+            build.forLaunchables(tasks[0]).run()
         }
     }
 
