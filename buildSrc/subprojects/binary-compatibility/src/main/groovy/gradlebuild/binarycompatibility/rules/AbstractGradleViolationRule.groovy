@@ -142,17 +142,29 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
             change.changes
         )
 
-        def id = "accept" + (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
+        def changeId = (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
         Violation violation = Violation.error(
             member,
             rejection.getHumanExplanation() + """. If you did this intentionally, please accept the change and provide an explanation:
-                <a class="btn btn-info" role="button" data-toggle="collapse" href="#${id}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
-                <div class="collapse" id="${id}">
+                <a class="btn btn-info" role="button" data-toggle="collapse" href="#accept-${changeId}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
+                <div class="collapse" id="accept-${changeId}">
                   <div class="well">
                       In order to accept this change add the following to <code>subprojects/architecture-test/src/changes/accepted-public-api-changes.json</code>:
                     <pre>${prettyPrintJson(acceptanceJson)}</pre>
                   </div>
-                </div>""".stripIndent()
+                </div>
+                <p>
+                Or update baseline version:
+                </p>
+                <a class="btn btn-info" role="button" data-toggle="collapse" href="#update-baseline-${changeId}" aria-expanded="false" aria-controls="collapseExample">Update baseline</a>
+                <div class="collapse" id="update-baseline-${changeId}">
+                  <div class="well">
+                      Sometimes, the change was made on the `release` branch but hasn't yet been published to the baseline version.
+                      In that case, you can publish a new snapshot from the release branch. This will update `released-versions.json` on `master`.
+                      See <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">the documentation</a> for more details.
+                  </div>
+                </div>
+                """.stripIndent()
         )
         return violation
     }
