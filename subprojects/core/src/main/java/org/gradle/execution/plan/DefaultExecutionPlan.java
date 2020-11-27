@@ -640,12 +640,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (!mutations.resolved) {
             node.resolveMutations();
             producedDirectories.recordRelatedToNode(node, mutations.outputPaths);
-            for (String outputPath : mutations.outputPaths) {
-                consumedDirectories.getNodesRelatedTo(outputPath).stream()
-                    .filter(consumerNode -> missesDependency(node, consumerNode))
-                    .findFirst()
-                    .ifPresent(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
-            }
         }
         return mutations;
     }
@@ -811,8 +805,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 node.finishExecution(this::recordNodeCompleted);
                 if (node instanceof LocalTaskNode) {
                     ((LocalTaskNode) node).getInputFileLocations().ifPresent(consumedLocations -> {
+                        for (String outputPath : node.getMutationInfo().outputPaths) {
+                            consumedDirectories.getNodesRelatedTo(outputPath).stream()
+                                .filter(consumerNode -> missesDependency(node, consumerNode))
+                                .findFirst()
+                                .ifPresent(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
+                        }
                         for (Map.Entry<String, String> entry : consumedLocations.entries()) {
-                            String propertyName = entry.getKey();
                             producedDirectories.getNodesRelatedTo(entry.getValue()).stream()
                                 .filter(producerNode -> missesDependency(producerNode, node))
                                 .findFirst()
