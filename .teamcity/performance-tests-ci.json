@@ -179,11 +179,6 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
     "groups" : [ {
-      "testProject" : "k9AndroidBuild",
-      "coverage" : {
-        "test" : [ "linux" ]
-      }
-    }, {
       "testProject" : "largeAndroidBuild",
       "coverage" : {
         "test" : [ "linux" ]
@@ -205,12 +200,12 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run help",
     "groups" : [ {
-      "testProject" : "k9AndroidBuild",
+      "testProject" : "largeAndroidBuild",
       "coverage" : {
         "test" : [ "linux" ]
       }
     }, {
-      "testProject" : "largeAndroidBuild",
+      "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "test" : [ "linux" ]
       }
@@ -239,12 +234,12 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",
     "groups" : [ {
-      "testProject" : "k9AndroidBuild",
+      "testProject" : "largeAndroidBuild",
       "coverage" : {
         "test" : [ "linux" ]
       }
     }, {
-      "testProject" : "largeAndroidBuild",
+      "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "test" : [ "linux" ]
       }

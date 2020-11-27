@@ -27,7 +27,7 @@ import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "k9AndroidBuild"])
+    @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"])
 )
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -35,9 +35,8 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
         given:
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
-        int iterations = (testProject == AndroidTestProject.K9_ANDROID) ? 200 : 40
-        runner.warmUpRuns = iterations
-        runner.runs = iterations
+        runner.warmUpRuns = 40
+        runner.runs = 40
         runner.minimumBaseVersion = "5.4.1"
         runner.targetVersions = ["6.8-20201108230029+0000"]
 

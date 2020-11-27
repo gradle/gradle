@@ -25,13 +25,8 @@ class AndroidTestProject implements TestProject {
         templateName: 'largeAndroidBuild'
     )
 
-    public static final K9_ANDROID = new AndroidTestProject(
-        templateName: 'k9AndroidBuild'
-    )
-
     public static final List<AndroidTestProject> ANDROID_TEST_PROJECTS = [
         LARGE_ANDROID_BUILD,
-        K9_ANDROID,
         IncrementalAndroidTestProject.SANTA_TRACKER_JAVA,
         IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
     ]
