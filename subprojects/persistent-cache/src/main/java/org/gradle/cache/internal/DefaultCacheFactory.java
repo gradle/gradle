@@ -82,7 +82,15 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private PersistentCache doOpen(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CleanupAction cleanup) {
+    private PersistentCache doOpen(
+        File cacheDir,
+        String displayName,
+        Map<String, ?> properties,
+        CacheBuilder.LockTarget lockTarget,
+        LockOptions lockOptions,
+        @Nullable Action<? super PersistentCache> initializer,
+        @Nullable CleanupAction cleanup
+    ) {
         File canonicalDir = FileUtils.canonicalize(cacheDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
