@@ -838,13 +838,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (consumer == producer) {
             return false;
         }
+        if (consumer.getDependencySuccessors().contains(producer)) {
+            return false;
+        }
         Pair<Node, Node> key = Pair.of(consumer, producer);
         Boolean reachable = reachableCache2.get(key);
         if (reachable != null) {
             return !reachable;
         }
         reachable = false;
-        for (Node dependency : consumer.getAllSuccessors()) {
+        for (Node dependency : consumer.getDependencySuccessors()) {
             if (!missesDependency(producer, dependency)) {
                 reachable = true;
                 break;
