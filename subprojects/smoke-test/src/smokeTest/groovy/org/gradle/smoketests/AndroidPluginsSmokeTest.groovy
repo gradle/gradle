@@ -92,7 +92,10 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
         result.task(':library:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
-        result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
+        // In AGP 3.4 and 3.5 some of the dependencies of `:app:assembleDebug` are invalid and are thus forced to re-execute every time
+        result.task(':app:assembleDebug').outcome == (VersionNumber.parse(agpVersion) < VersionNumber.parse("3.6.0")
+            ? TaskOutcome.SUCCESS
+            : TaskOutcome.UP_TO_DATE)
 
         and:
         assertConfigurationCacheStateLoaded()
