@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -65,7 +66,9 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         ImmutableCollection<String> warnings = problems.get(Severity.WARNING);
         ImmutableCollection<String> errors = problems.get(Severity.ERROR);
 
-        warnings.forEach(warningReporter::reportValidationWarning);
+        if (!warnings.isEmpty()) {
+            warningReporter.reportValidationWarnings(work, warnings);
+        }
 
         if (!errors.isEmpty()) {
             throw new WorkValidationException(
@@ -145,7 +148,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
     }
 
     public interface ValidationWarningReporter {
-        void reportValidationWarning(String warning);
+        void reportValidationWarnings(UnitOfWork work, Collection<String> warnings);
     }
 
     private static class DefaultWorkValidationContext implements UnitOfWork.WorkValidationContext {
