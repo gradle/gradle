@@ -346,16 +346,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
         List<IncludedBuildSpec> earlyIncludedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getEarlyIncludedBuilds();
         for (IncludedBuildSpec buildSpec : earlyIncludedBuilds) {
-            IncludedBuildState buildState = getBuildIncluder().includeBuildWithPlugins(buildSpec, gradle);
+            IncludedBuildState buildState = getBuildIncluder().includeBuild(buildSpec, gradle);
             buildState.getConfiguredBuild();
             includedBuildSpecs.add(buildSpec);
         }
 
         List<IncludedBuildSpec> includedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
-        for (IncludedBuildSpec buildSpec : includedBuilds) {
-            getBuildIncluder().includeBuildWithPlugins(buildSpec, gradle);
-            includedBuildSpecs.add(buildSpec);
-        }
+        includedBuildSpecs.addAll(includedBuilds);
     }
 
     @Override

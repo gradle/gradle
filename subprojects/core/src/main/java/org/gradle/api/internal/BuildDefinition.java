@@ -104,7 +104,8 @@ public class BuildDefinition {
         File buildRootDir,
         PluginRequests pluginRequests,
         Action<? super DependencySubstitutions> dependencySubstitutions,
-        PublicBuildPath fromBuild
+        PublicBuildPath fromBuild,
+        boolean canContributePlugins
     ) {
         return new BuildDefinition(
             name,
@@ -113,25 +114,7 @@ public class BuildDefinition {
             pluginRequests,
             dependencySubstitutions,
             fromBuild,
-            false);
-    }
-
-    public static BuildDefinition fromStartParameterForBuildWithPlugins(
-        StartParameter startParameter,
-        String name,
-        File buildRootDir,
-        PluginRequests pluginRequests,
-        Action<? super DependencySubstitutions> dependencySubstitutions,
-        PublicBuildPath fromBuild
-    ) {
-        return new BuildDefinition(
-            name,
-            buildRootDir,
-            startParameterForIncludedBuildFrom(startParameter, buildRootDir),
-            pluginRequests,
-            dependencySubstitutions,
-            fromBuild,
-            true);
+            canContributePlugins);
     }
 
     public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {

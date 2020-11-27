@@ -82,13 +82,13 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
     @Override
     public void includeBuild(String projectPath) {
         File projectDir = fileResolver.resolve(projectPath);
-        includedBuildSpecs.add(new IncludedBuildSpec(projectDir, Actions.doNothing()));
+        includedBuildSpecs.add(new IncludedBuildSpec(projectDir, Actions.doNothing(), true));
     }
 
     @Override
     public void includeBuildEarly(String projectPath) {
         File projectDir = fileResolver.resolve(projectPath);
-        earlyIncludedBuildSpecs.add(new IncludedBuildSpec(projectDir, Actions.doNothing()));
+        earlyIncludedBuildSpecs.add(new IncludedBuildSpec(projectDir, Actions.doNothing(), true));
     }
 
     @Override
