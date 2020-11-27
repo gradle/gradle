@@ -23,7 +23,6 @@ import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
-import static org.gradle.performance.fixture.AndroidTestProject.K9_ANDROID
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
@@ -33,19 +32,16 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
 
     @Unroll
     @RunFor([
-        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["k9AndroidBuild", "largeAndroidBuild"], iterationMatcher = "run help"),
-        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["k9AndroidBuild", "largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild", "largeAndroidBuild"], iterationMatcher = "run help"),
+        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
         @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild"], iterationMatcher = ".*phthalic.*")
     ])
     def "run #tasks"() {
         given:
         AndroidTestProject testProject = androidTestProject
-        boolean parallel = testProject != K9_ANDROID
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        if (parallel) {
-            runner.args.add('-Dorg.gradle.parallel=true')
-        }
+        runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         applyEnterprisePlugin()
