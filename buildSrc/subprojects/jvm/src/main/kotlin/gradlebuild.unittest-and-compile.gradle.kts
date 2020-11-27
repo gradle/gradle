@@ -60,6 +60,7 @@ fun configureCompile() {
             groovyOptions.encoding = "utf-8"
             configureCompileTask(this, options, jdkForCompilation)
             astTransformationClasspath.from(configurations["astTransformation"])
+            getConventionMapping().map("groovyClasspath", Callable { astTransformationClasspath })
         }
     }
     addCompileAllTask()
@@ -121,9 +122,7 @@ fun addDependencies() {
         testCompileOnly(libs.junit)
         testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.spock) {
-            setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml").forEach {
-                exclude(group = "org.codehaus.groovy", module = it)
-            }
+            exclude(group = "org.codehaus.groovy")
         }
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
@@ -138,7 +137,9 @@ fun addDependencies() {
 
         val astTransformation by configurations.creating
         configurations["astTransformation"].extendsFrom(platformImplementation)
-        astTransformation(libs.groovy)
+        astTransformation(libs.groovy) {
+            exclude(group = "org.codehaus.groovy")
+        }
 
         platformImplementation.withDependencies {
             // use 'withDependencies' to not attempt to find platform project during script compilation

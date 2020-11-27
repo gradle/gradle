@@ -30,6 +30,7 @@ dependencies {
     integTestImplementation(project(":core"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
+    integTestImplementation(libs.groovy)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
