@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -198,6 +199,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
     }
 
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     @NotYetImplemented
     def "included build logic build is not visible as library component"() {
         given:
@@ -226,6 +228,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         failureDescriptionContains("Cannot resolve external dependency com.example:included-build")
     }
 
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     @NotYetImplemented
     def "early included build logic build is not visible as library component"() {
         given:
