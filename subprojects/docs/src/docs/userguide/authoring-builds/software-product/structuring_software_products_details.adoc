@@ -123,5 +123,5 @@ The script file name has to end with `.settings.gradle(.kts)`.
 [WARNING]
 As of Gradle 6.8, settings plugins cannot be directly used from included builds.
 This will be resolved in future Gradle versions.
-For now, you have to <<publishing_gradle_plugins.adoc#custom-plugin-repositories,publish the settings convention plugins to a repository of your choice>>.
+For now, you have to  link:../samples/sample_publishing_convention_plugins.html#publishing_convention_plugins[publish the settings convention plugins to a repository of your choice].
 You may publish to a local folder if you do not use a remote repository.

@@ -16,12 +16,26 @@
 
 package org.gradle.internal.util;
 
-import static java.lang.String.format;
+import javax.annotation.Nullable;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.util.List;
+
+import static java.math.RoundingMode.FLOOR;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Utility methods for working with numbers
  */
 public class NumberUtil {
+    public static final int BASE_LOG2 = 10;
+    public static final int KIB_BASE = 1 << BASE_LOG2;
+    private static final int FRACTIONAL_DIGIT_COUNT = 1;
+    private static final MathContext MC = new MathContext(String.valueOf(KIB_BASE).length() + FRACTIONAL_DIGIT_COUNT, FLOOR);
+    private static final List<String> UNITS = unmodifiableList(asList(" B", " KiB", " MiB", " GiB", " TiB", " PiB", " EiB"));
+    private static final List<String> ORDINAL_SUFFIXES = unmodifiableList(asList("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"));
+
 
     /**
      * Percentage (0-...) of given input.
@@ -31,8 +45,7 @@ public class NumberUtil {
      */
     public static int percentOf(long fraction, long total) {
         if (total < 0 || fraction < 0) {
-            throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total
-                    + ". All inputs must be >= 0");
+            throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total + ". All inputs must be >= 0");
         }
         if (total == 0) {
             return 0;
@@ -42,33 +55,32 @@ public class NumberUtil {
     }
 
     /**
-     * Formats bytes, e.g. 1000 -> 1kB, -2500 -> -2.5 kB
+     * Formats bytes, e.g. 1010 -> 1010 B, -1025 -> -1 KiB, 1127 -> 1.1 KiB
      */
-    public static String formatBytes(long bytes) {
-        if (bytes < 0) {
-            return "-".concat(formatBytes(-bytes));
+    public static String formatBytes(@Nullable Long bytes) {
+        if (bytes == null) {
+            return "unknown size";
+        } else if (bytes < 0) {
+            return "-" + formatBytes(-bytes);
+        } else {
+            int baseExponent = (Long.SIZE - 1 - Long.numberOfLeadingZeros(bytes)) / BASE_LOG2;
+            BigDecimal roundedBase = BigDecimal.valueOf(1L << (baseExponent * BASE_LOG2));
+            BigDecimal result = BigDecimal.valueOf(bytes).divide(roundedBase, MC).setScale(FRACTIONAL_DIGIT_COUNT, FLOOR).stripTrailingZeros();
+            return result.toPlainString() + UNITS.get(baseExponent);
         }
-        int unit = 1000;
-        if (bytes < unit) {
-            return bytes + " B";
-        }
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        char pre = "kMGTPE".charAt(exp - 1);
-        return format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
     /**
      * gets ordinal String representation of given value (e.g. 1 -> 1st, 12 -> 12th, 22 -> 22nd, etc.)
      */
     public static String ordinal(int value) {
-        String[] sufixes = new String[]{"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
         switch (value % 100) {
             case 11:
             case 12:
             case 13:
-                return value + "th";
+                return value + ORDINAL_SUFFIXES.get(0);
             default:
-                return value + sufixes[value % 10];
+                return value + ORDINAL_SUFFIXES.get(value % 10);
         }
     }
 }

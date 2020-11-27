@@ -369,7 +369,6 @@ public class EclipseClasspath {
      * through incoming project dependencies.
      *
      * @since 6.8
-     * @return
      */
     @Incubating
     public Property<Boolean> getContainsTestFixtures() {

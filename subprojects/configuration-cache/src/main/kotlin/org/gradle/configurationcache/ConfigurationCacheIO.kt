@@ -72,10 +72,10 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, storedBuilds: StoredBuilds) {
+    fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
-                writeBuildState(host.currentBuild, storedBuilds)
+                writeBuildState(host.currentBuild, buildTreeState)
             }
         }
     }

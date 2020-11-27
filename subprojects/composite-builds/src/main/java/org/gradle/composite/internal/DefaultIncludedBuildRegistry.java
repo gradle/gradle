@@ -128,10 +128,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         return includedBuild;
     }
 
-    public boolean hasIncludedBuilds() {
-        return !includedBuildsByRootDir.isEmpty();
-    }
-
     @Override
     public Collection<IncludedBuildState> getIncludedBuilds() {
         return includedBuildsByRootDir.values();
