@@ -811,12 +811,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                             .ifPresent(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
                     }
                     ((LocalTaskNode) node).getInputFileLocations().ifPresent(consumedLocations -> {
-                        for (Map.Entry<String, String> entry : consumedLocations.entries()) {
-                            producedDirectories.getNodesRelatedTo(entry.getValue()).stream()
+                        for (String consumedLocation : consumedLocations) {
+                            producedDirectories.getNodesRelatedTo(consumedLocation).stream()
                                 .filter(producerNode -> missesDependency(producerNode, node))
                                 .findFirst()
                                 .ifPresent(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
-                            consumedDirectories.recordRelatedToNode(node, Collections.singleton(entry.getValue()));
+                            consumedDirectories.recordRelatedToNode(node, Collections.singleton(consumedLocation));
                         }
                     });
                 }
