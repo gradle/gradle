@@ -28,6 +28,7 @@ import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.execution.TaskSelection;
+import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.TaskSelector;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.process.JavaDebugOptions;
@@ -62,7 +63,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForTestTasks(gradleInternal, testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForTestTasks(testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addEntryTasks(allTestTasksToRun);
     }
@@ -115,38 +116,53 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private List<Test> configureBuildForTestTasks(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest) {
+    private List<Test> configureBuildForTestTasks(TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
 
         final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalTestDescriptor>() {
             @Override
             public String transform(InternalTestDescriptor testDescriptor) {
-                return ((DefaultTestDescriptor) testDescriptor).getTaskPath();
+                DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
+                String buildId = defaultTestDescriptor.getBuildIdentityPath();
+                if (buildId != null) {
+                    return buildId + defaultTestDescriptor.getTaskPath();
+                }
+                return defaultTestDescriptor.getTaskPath();
             }
         });
 
-        List<Test> testTasksToRun = new ArrayList<Test>();
+        List<Test> testTasksToRun = new ArrayList<>();
         for (final String testTaskPath : testTaskPaths) {
-            final Task task = gradle.getRootProject().getTasks().findByPath(testTaskPath);
-            if (task == null) {
+            Set<Task> tasks;
+            try {
+                TaskSelection taskSelection = taskSelector.getSelection(testTaskPath);
+                tasks = taskSelection.getTasks();
+            } catch (TaskSelectionException e) {
                 throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
-            } else if (!(task instanceof Test)) {
-                throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
-            } else {
-                Test testTask = (Test) task;
-                for (InternalTestDescriptor testDescriptor : testDescriptors) {
-                    DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
-                    if (defaultTestDescriptor.getTaskPath().equals(testTaskPath)) {
-                        String className = defaultTestDescriptor.getClassName();
-                        String methodName = defaultTestDescriptor.getMethodName();
-                        if (className == null && methodName == null) {
-                            testTask.getFilter().includeTestsMatching("*");
-                        } else {
-                            testTask.getFilter().includeTest(className, methodName);
+            }
+
+            if (tasks.isEmpty()) {
+                throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
+            }
+            for (Task task : tasks) {
+                if (!(task instanceof Test)) {
+                    throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
+                } else {
+                    Test testTask = (Test) task;
+                    for (InternalTestDescriptor testDescriptor : testDescriptors) {
+                        DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
+                        if (defaultTestDescriptor.getTaskPath().equals(testTaskPath)) {
+                            String className = defaultTestDescriptor.getClassName();
+                            String methodName = defaultTestDescriptor.getMethodName();
+                            if (className == null && methodName == null) {
+                                testTask.getFilter().includeTestsMatching("*");
+                            } else {
+                                testTask.getFilter().includeTest(className, methodName);
+                            }
                         }
                     }
+                    testTasksToRun.add(testTask);
                 }
-                testTasksToRun.add(testTask);
             }
         }
         return testTasksToRun;
@@ -158,7 +174,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             return Collections.emptyList();
         }
 
-        List<Test> tasksToExecute = new ArrayList<Test>();
+        List<Test> tasksToExecute = new ArrayList<>();
 
         final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
         for (Project project : allprojects) {

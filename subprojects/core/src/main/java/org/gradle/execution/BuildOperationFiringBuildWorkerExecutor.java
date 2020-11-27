@@ -18,6 +18,7 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.RunWorkBuildOperationType;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -72,7 +73,12 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
                 builder.metadata(BuildOperationCategory.RUN_WORK);
             }
             builder.totalProgress(gradle.getTaskGraph().size());
-            return builder;
+            return builder.details(new RunWorkBuildOperationType.Details() {
+                @Override
+                public String getBuildPath() {
+                    return gradle.getIdentityPath().toString();
+                }
+            });
         }
     }
 }

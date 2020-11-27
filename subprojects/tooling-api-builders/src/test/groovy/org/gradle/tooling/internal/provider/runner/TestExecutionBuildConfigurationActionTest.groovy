@@ -143,7 +143,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     }
 
     private DefaultTestDescriptor testDescriptor() {
-        new DefaultTestDescriptor(1, "test1", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, 0, TEST_TASK_NAME)
+        new DefaultTestDescriptor(1, "test1", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, 0, TEST_TASK_NAME, null)
     }
 
 }

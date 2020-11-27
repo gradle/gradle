@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.initialization.RunWorkBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
@@ -32,6 +33,7 @@ import org.gradle.internal.build.event.types.DefaultTestSkippedResult;
 import org.gradle.internal.build.event.types.DefaultTestStartedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTestSuccessResult;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -55,6 +57,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildEventSubscriptions clientSubscriptions;
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
+    private final Map<Object, String> includedBuildIds = Maps.newConcurrentMap();
 
     ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildOperationAncestryTracker ancestryTracker, BuildEventSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
@@ -64,6 +67,13 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        if (buildOperation.getMetadata().equals(BuildOperationCategory.RUN_WORK)) {
+            Object details = buildOperation.getDetails();
+            if (details instanceof RunWorkBuildOperationType.Details) {
+                includedBuildIds.put(buildOperation.getId(), ((RunWorkBuildOperationType.Details)details).getBuildPath());
+            }
+        }
+
         Object details = buildOperation.getDetails();
         if (details instanceof ExecuteTaskBuildOperationDetails) {
             Task task = ((ExecuteTaskBuildOperationDetails) details).getTask();
@@ -106,7 +116,8 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         String methodName = null;
         Object parentId = getParentId(buildOperationId, suite);
         String testTaskPath = getTaskPath(buildOperationId);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suite.getName(), className, methodName, parentId, testTaskPath);
+        String buildId = getBuildId(buildOperationId);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suite.getName(), className, methodName, parentId, testTaskPath, buildId);
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, TestDescriptorInternal test) {
@@ -118,13 +129,17 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         String methodName = test.getName();
         Object parentId = getParentId(buildOperationId, test);
         String taskPath = getTaskPath(buildOperationId);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, null, className, methodName, parentId, taskPath);
+        String buildId = getBuildId(buildOperationId);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, null, className, methodName, parentId, taskPath, buildId);
     }
 
     @Nullable
     private String getTaskPath(OperationIdentifier buildOperationId) {
-        return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get)
-            .orElse(null);
+        return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get).orElse(null);
+    }
+
+    private String getBuildId(OperationIdentifier buildOperationId) {
+        return ancestryTracker.findClosestExistingAncestor(buildOperationId, includedBuildIds::get).orElse(null);
     }
 
     private Object getParentId(OperationIdentifier buildOperationId, TestDescriptorInternal descriptor) {
@@ -134,8 +149,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         }
         // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
         if (clientSubscriptions.isRequested(OperationType.TASK)) {
-            return ancestryTracker.findClosestMatchingAncestor(buildOperationId, runningTasks::containsKey)
-                .orElse(null);
+            return ancestryTracker.findClosestMatchingAncestor(buildOperationId, runningTasks::containsKey).orElse(null);
         }
         return null;
     }
