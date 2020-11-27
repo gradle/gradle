@@ -67,11 +67,16 @@ class ConcurrentTestUtil extends ExternalResource {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    static void poll(double timeout = 10, double initialDelay = 0, double pollInterval = 0.1, Closure assertion) {
+    static void poll(
+        double timeoutInSeconds = 10,
+        double initialDelayInSeconds = 0,
+        double pollIntervalInSeconds = 0.1,
+        Closure assertion
+    ) {
         def start = monotonicClockMillis()
-        Thread.sleep(toMillis(initialDelay))
-        def expiry = start + toMillis(timeout) // convert to ms
-        long sleepTime = toMillis(pollInterval)
+        Thread.sleep(toMillis(initialDelayInSeconds))
+        def expiry = start + toMillis(timeoutInSeconds) // convert to ms
+        long sleepTime = toMillis(pollIntervalInSeconds)
         while(true) {
             try {
                 assertion()
@@ -81,7 +86,7 @@ class ConcurrentTestUtil extends ExternalResource {
                     throw t
                 }
                 sleepTime = Math.min(250, (long) (sleepTime * 1.2))
-                Thread.sleep(sleepTime);
+                Thread.sleep(sleepTime)
             }
         }
     }
@@ -91,7 +96,7 @@ class ConcurrentTestUtil extends ExternalResource {
     }
 
     static long toMillis(double seconds) {
-        return (long) (seconds * 1000);
+        return (long) (seconds * 1000)
     }
 
     void setShortTimeout(int millis) {
