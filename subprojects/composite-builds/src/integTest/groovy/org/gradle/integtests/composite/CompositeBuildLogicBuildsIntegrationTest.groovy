@@ -200,7 +200,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
     }
 
     @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
-    @NotYetImplemented
     def "included build logic build is not visible as library component"() {
         given:
         buildLogicAndProductionLogicBuild('included-build')
@@ -225,11 +224,11 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         fails("build")
-        failureDescriptionContains("Cannot resolve external dependency com.example:included-build")
+        failureDescriptionContains("Could not determine the dependencies of task ':compileJava'.")
+        failureCauseContains("Cannot resolve external dependency com.example:included-build")
     }
 
     @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
-    @NotYetImplemented
     def "early included build logic build is not visible as library component"() {
         given:
         buildLogicAndProductionLogicBuild('included-build')
@@ -254,7 +253,8 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         fails("build")
-        failureDescriptionContains("Cannot resolve external dependency com.example:included-build")
+        failureDescriptionContains("Could not determine the dependencies of task ':compileJava'.")
+        failureCauseContains("Cannot resolve external dependency com.example:included-build")
     }
 
     def "a build can be included both as a build logic build and as regular build and can contribute both plugins and library components"() {

@@ -64,6 +64,9 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
 
+    private final Map<Path, IncludedBuildState> buildLogicIncludedBuilds = new LinkedHashMap<>();
+    private final Map<Path, IncludedBuildState> componentIncludedBuilds = new LinkedHashMap<>();
+
     public DefaultIncludedBuildRegistry(BuildTreeState owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
         this.owner = owner;
         this.includedBuildFactory = includedBuildFactory;
@@ -134,7 +137,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState getIncludedBuild(final BuildIdentifier buildIdentifier) {
+    public IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier) {
         BuildState includedBuildState = buildsByIdentifier.get(buildIdentifier);
         if (!(includedBuildState instanceof IncludedBuildState)) {
             throw new IllegalArgumentException("Could not find " + buildIdentifier);
@@ -153,7 +156,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void beforeConfigureRootBuild() {
-        registerSubstitutions(includedBuildsByRootDir.values());
+        registerPluginPublications();
+        registerSubstitutions();
     }
 
     @Override
@@ -171,8 +175,15 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
     }
 
-    private void registerSubstitutions(Iterable<IncludedBuildState> includedBuilds) {
-        for (IncludedBuildState includedBuild : includedBuilds) {
+    private void registerPluginPublications() {
+        for (IncludedBuildState includedBuild : buildLogicIncludedBuilds.values()) {
+            // Configure build so that it registers its plugin publications
+            includedBuild.getConfiguredBuild();
+        }
+    }
+
+    private void registerSubstitutions() {
+        for (IncludedBuildState includedBuild : componentIncludedBuilds.values()) {
             dependencySubstitutionsBuilder.build(includedBuild);
         }
     }
@@ -221,7 +232,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         boolean isImplicit
     ) {
         // TODO: synchronization
-        final File buildDir = buildDefinition.getBuildRootDir();
+        File buildDir = buildDefinition.getBuildRootDir();
         if (buildDir == null) {
             throw new IllegalArgumentException("Included build must have a root directory defined");
         }
@@ -246,6 +257,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             if (includedBuild.isImplicitBuild() != isImplicit) {
                 throw new IllegalStateException("Unexpected state for build.");
             }
+        }
+        if (buildDefinition.canContributePlugins()) {
+            buildLogicIncludedBuilds.put(includedBuild.getIdentityPath(), includedBuild);
+        } else {
+            componentIncludedBuilds.put(includedBuild.getIdentityPath(), includedBuild);
         }
         // TODO: else, verify that the build definition is the same
         return includedBuild;
