@@ -841,20 +841,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (consumer.getDependencySuccessors().contains(producer)) {
             return false;
         }
-        Pair<Node, Node> key = Pair.of(consumer, producer);
-        Boolean reachable = reachableCache2.get(key);
-        if (reachable != null) {
-            return !reachable;
-        }
-        reachable = false;
-        for (Node dependency : consumer.getDependencySuccessors()) {
-            if (!missesDependency(producer, dependency)) {
-                reachable = true;
-                break;
+        for (Node dependency : consumer.getAllSuccessors()) {
+            if (dependency == producer || dependency.getDependencySuccessors().contains(producer)) {
+                return false;
             }
         }
-        reachableCache2.put(key, reachable);
-        return !reachable;
+        return true;
     }
 
     private static void enforceFinalizers(Node node) {
