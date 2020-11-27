@@ -205,4 +205,22 @@ public class ${className} implements Plugin<Project> {
         def output = result.output
         assert output.contains(string.trim())
     }
+
+    void buildLogicBuild(String buildName) {
+        file("$buildName/settings.gradle") << """
+            rootProject.name = "$buildName"
+        """
+        file("$buildName/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """
+        file("$buildName/src/main/groovy/${buildName}.project-plugin.gradle") << """
+            println('$buildName project plugin applied')
+        """
+        file("$buildName/src/main/groovy/${buildName}.settings-plugin.settings.gradle") << """
+            println('$buildName settings plugin applied')
+        """
+    }
+
 }

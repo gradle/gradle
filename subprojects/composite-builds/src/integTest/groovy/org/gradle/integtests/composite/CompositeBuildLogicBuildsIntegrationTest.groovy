@@ -142,6 +142,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         failureDescriptionContains("Plugin [id: 'build-logic.settings-plugin'] was not found in any of the following sources:")
     }
 
+    // Emit the deprecation warning in CompositeBuildPluginResolverContributor once we settle on and publicize the new API for build logic builds
     @NotYetImplemented
     def "regular included builds contributing project plugins is deprecated"() {
         given:
@@ -161,41 +162,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         outputContains("build-logic project plugin applied")
-    }
-
-    def "can nest included build logic builds"() {
-        when:
-        buildLogicBuild('logic-1')
-        buildLogicBuild('logic-2')
-        settingsFile << """
-            pluginManagement {
-                includeBuild('logic-1')
-            }
-        """
-        file('logic-1/settings.gradle') << """
-            includeBuild('../logic-2')
-        """
-
-        then:
-        succeeds()
-    }
-
-    @NotYetImplemented
-    def "can nest early included build logic builds"() {
-        when:
-        buildLogicBuild('logic-1')
-        buildLogicBuild('logic-2')
-        settingsFile << """
-            pluginManagement {
-                includeBuildEarly('logic-1')
-            }
-        """
-        file('logic-1/settings.gradle') << """
-            includeBuild('../logic-2')
-        """
-
-        then:
-        succeeds()
     }
 
     def "included build logic build is not visible as library component"() {
@@ -318,149 +284,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         assertTaskExecuted(':', ':compileJava')
         outputContains('included-build settings plugin applied')
         outputContains('included-build project plugin applied')
-    }
-
-    @NotYetImplemented
-    def "build logic builds included in one build can not see each other's plugins"() {
-        given:
-        buildLogicBuild('logic-1')
-        buildLogicBuild('logic-2')
-        settingsFile << """
-            pluginManagement {
-                includeBuild('logic-1')
-                includeBuild('logic-2')
-            }
-        """
-
-        when:
-        buildFile << """
-            plugins {
-                id("logic-1.project-plugin")
-                id("logic-2.project-plugin")
-            }
-        """
-
-        then:
-        succeeds()
-        outputContains("logic-1 project plugin applied")
-        outputContains("logic-2 project plugin applied")
-
-        when:
-        file("logic-1/build.gradle").setText("""
-            plugins {
-                id("groovy-gradle-plugin")
-                id("logic-2.project-plugin")
-            }
-        """)
-        file("logic-2/build.gradle").setText("""
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-        """)
-
-        then:
-        fails()
-        failureDescriptionContains("Plugin [id: 'logic-2.project-plugin'] was not found in any of the following sources:")
-
-        when:
-        file("logic-1/build.gradle").setText("""
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-        """)
-        file("logic-2/build.gradle").setText("""
-            plugins {
-                id("groovy-gradle-plugin")
-                id("logic-1.project-plugin")
-            }
-        """)
-
-        then:
-        fails()
-        failureDescriptionContains("Plugin [id: 'logic-1.project-plugin'] was not found in any of the following sources:")
-    }
-
-    @NotYetImplemented
-    def "nested included build logic build can contribute build logic to including included build"() {
-        given:
-        buildLogicBuild("logic-1")
-        buildLogicBuild("logic-2")
-        settingsFile << """
-            pluginManagement {
-                includeBuild("logic-2")
-            }
-        """
-        file("logic-2/settings.gradle").setText("""
-            pluginManagement {
-                includeBuild("../logic-1")
-            }
-            rootProject.name = "logic-2"
-        """)
-
-        when:
-        buildFile << """
-            plugins {
-                id("logic-2.project-plugin")
-            }
-        """
-        file("logic-2/build.gradle").setText("""
-            plugins {
-                id("groovy-gradle-plugin")
-                id("logic-1.project-plugin")
-            }
-        """)
-
-        then:
-        succeeds()
-        outputContains("logic-1 project plugin applied")
-        outputContains("logic-2 project plugin applied")
-    }
-
-    @NotYetImplemented
-    def "included build logic builds are not visible transitively"() {
-        given:
-        buildLogicBuild("logic-1")
-        buildLogicBuild("logic-2")
-        settingsFile << """
-            pluginManagement {
-                includeBuild("logic-2")
-            }
-        """
-        file("logic-2/settings.gradle").setText("""
-            pluginManagement {
-                includeBuild("../logic-1")
-            }
-            rootProject.name = "logic-2"
-        """)
-
-        when:
-        buildFile << """
-            plugins {
-                id("logic-1.project-plugin")
-                id("logic-2.project-plugin")
-            }
-        """
-
-        then:
-        fails()
-        failureDescriptionContains("Plugin [id: 'logic-1.project-plugin'] was not found in any of the following sources:")
-    }
-
-    private void buildLogicBuild(String buildName) {
-        file("$buildName/settings.gradle") << """
-            rootProject.name = "$buildName"
-        """
-        file("$buildName/build.gradle") << """
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-        """
-        file("$buildName/src/main/groovy/${buildName}.project-plugin.gradle") << """
-            println('$buildName project plugin applied')
-        """
-        file("$buildName/src/main/groovy/${buildName}.settings-plugin.settings.gradle") << """
-            println('$buildName settings plugin applied')
-        """
     }
 
     private void buildLogicAndProductionLogicBuild(String buildName) {
