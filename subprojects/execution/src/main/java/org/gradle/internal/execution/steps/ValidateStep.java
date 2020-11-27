@@ -67,6 +67,11 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         ImmutableCollection<String> errors = problems.get(Severity.ERROR);
 
         if (!warnings.isEmpty()) {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Validation failed for {}:{}",
+                    work.getDisplayName(),
+                    warnings.stream().map(warning -> "\n  - " + warning));
+            }
             warningReporter.reportValidationWarnings(work, warnings);
         }
 
