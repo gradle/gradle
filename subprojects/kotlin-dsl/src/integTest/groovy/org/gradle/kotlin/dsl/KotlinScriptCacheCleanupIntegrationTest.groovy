@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -25,6 +26,7 @@ class KotlinScriptCacheCleanupIntegrationTest
     extends AbstractIntegrationSpec
     implements FileAccessTimeJournalFixture {
 
+    @UnsupportedWithConfigurationCache(because = "tests script compilation")
     def "cleanup deletes old script cache entries"() {
         given:
         requireOwnGradleUserHomeDir()
