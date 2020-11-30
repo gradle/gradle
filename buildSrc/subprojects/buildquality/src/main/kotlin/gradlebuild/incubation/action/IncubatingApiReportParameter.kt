@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("gradlebuild.incubation-report-aggregation")
-}
 
-dependencies {
-    reports(platform(project(":distributions-full")))
+package gradlebuild.incubation.action
+
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.workers.WorkParameters
+
+
+interface IncubatingApiReportParameter : WorkParameters {
+    val srcDirs: ConfigurableFileCollection
+    val htmlReportFile: RegularFileProperty
+    val textReportFile: RegularFileProperty
+    val title: Property<String>
+    val releasedVersionsFile: RegularFileProperty
 }
