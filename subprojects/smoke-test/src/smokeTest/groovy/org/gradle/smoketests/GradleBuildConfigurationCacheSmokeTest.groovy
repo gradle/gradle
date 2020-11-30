@@ -45,14 +45,6 @@ import java.text.SimpleDateFormat
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
-    private BuildResult result
-
-    BuildResult getResult() {
-        if (result == null) {
-            throw new IllegalStateException("Need to run a build before result is availble.")
-        }
-        return result
-    }
 
     def "can build gradle with configuration cache enabled"() {
 
@@ -121,6 +113,13 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         )
     }
 
+    BuildResult getResult() {
+        if (result == null) {
+            throw new IllegalStateException("Need to run a build before result is available.")
+        }
+        return result
+    }
+
     private void run(List<String> tasks, List<String> jvmArgs = []) {
         result = null
         result = ((DefaultGradleRunner) runner(*(tasks + GRADLE_BUILD_TEST_ARGS)))
@@ -128,6 +127,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
             .build()
     }
 
+    private BuildResult result
 
     private static final List<String> GRADLE_BUILD_TEST_ARGS = [
         "-PbuildTimestamp=" + newTimestamp()
