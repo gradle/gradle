@@ -384,19 +384,10 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 }
 
 // === Android ===
-performanceTest.registerTestProject("k9AndroidBuild", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
-    // From android-31 branch
-    ref = "d9776762e7da63cd9b2925efa2b7d8bcdc373600"
-    doLast {
-        setMaxWorkers(outputDirectory, 8)
-    }
-}
-
 performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    // From android-35 branch
-    ref = "ea980c1d903491aae18ecdea2abb9c60cc520239"
+    // From android-41 branch
+    ref = "b3964ffea18ef5d280b5b493c5c7b8d8b986056c"
 }
 
 performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {

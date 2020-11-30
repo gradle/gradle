@@ -39,6 +39,7 @@ import java.util.function.Supplier;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
+    private static final String VALIDATION_FAILED = "Validation failed.";
 
     private final ExecutionStateChangeDetector changeDetector;
 
@@ -65,13 +66,16 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             .orElseGet(() ->
                 beforeExecutionState
                     .map(beforeExecution -> context.getAfterPreviousExecutionState()
-                        .map(afterPreviousExecution -> changeDetector.detectChanges(
-                            afterPreviousExecution,
-                            beforeExecution,
-                            work,
-                            createIncrementalInputProperties(work))
+                        .map(afterPreviousExecution -> context.getValidationProblems()
+                            .map(__ -> rebuildChanges(work, beforeExecution, VALIDATION_FAILED))
+                            .orElseGet(() ->
+                                changeDetector.detectChanges(
+                                    afterPreviousExecution,
+                                    beforeExecution,
+                                    work,
+                                    createIncrementalInputProperties(work)))
                         )
-                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work)))
+                        .orElseGet(() -> rebuildChanges(work, beforeExecution, NO_HISTORY))
                     )
                     .orElse(null)
             );
@@ -123,10 +127,19 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             }
 
             @Override
+            public Optional<ValidationResult> getValidationProblems() {
+                return context.getValidationProblems();
+            }
+
+            @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return beforeExecutionState;
             }
         });
+    }
+
+    private static ExecutionStateChanges rebuildChanges(UnitOfWork work, BeforeExecutionState beforeExecution, String rebuildReason) {
+        return new RebuildExecutionStateChanges(rebuildReason, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work));
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {

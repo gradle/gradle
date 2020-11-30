@@ -915,6 +915,43 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         noExceptionThrown()
     }
 
+    def "invalid tasks are not cached"() {
+        buildFile << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            abstract class InvalidTask extends DefaultTask {
+                @Input File input
+                @OutputFile outputFile
+                @TaskAction action() {
+                    outputFile.text = "created"
+                }
+            }
+
+            task invalid(type: InvalidTask) {
+                input = file("input.txt")
+                outputFile = file("build/output.txt")
+            }
+        """
+
+        executer.beforeExecute {
+            executer.expectDocumentedDeprecationWarning("Property 'input' has @Input annotation used on property of type 'File'. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        }
+
+        when:
+        withBuildCache().run "invalid", "--info"
+        then:
+        outputContains("""
+            |Caching disabled for task ':invalid' because:
+            |  Validation failed
+        """.stripMargin())
+        executedAndNotSkipped(":invalid")
+        listCacheFiles().isEmpty()
+    }
+
     private static String defineProducerTask() {
         """
             import org.gradle.api.*

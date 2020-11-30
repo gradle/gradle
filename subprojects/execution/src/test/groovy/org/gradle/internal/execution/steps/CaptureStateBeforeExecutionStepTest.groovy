@@ -34,7 +34,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 
-class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutionContext> {
+class CaptureStateBeforeExecutionStepTest extends StepSpec<ValidationContext> {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def outputSnapshotter = Mock(OutputSnapshotter)
@@ -46,8 +46,8 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector, delegate)
 
     @Override
-    protected AfterPreviousExecutionContext createContext() {
-        Stub(AfterPreviousExecutionContext) {
+    protected ValidationContext createContext() {
+        Stub(ValidationContext) {
             getInputProperties() >> ImmutableSortedMap.of()
             getInputFileProperties() >> ImmutableSortedMap.of()
         }
