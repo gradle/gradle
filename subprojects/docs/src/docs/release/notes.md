@@ -253,7 +253,7 @@ Today, in IntelliJ IDEA, you can create a [Gradle run configuration](https://www
 ### Desired cycles between builds are now fully supported
 
 There are cases, where a cycle between included builds are desired.
-For example, if two builds contain end-2-end tests that require the production code of both builds.
+For example, if two builds contain end-to-end tests that require the production code of both builds.
 Such setups are possible with subprojects of a single build, but were not fully supported between projects of different builds.
 With this release, this is possible and Gradle will only fail if there is a cycle between _tasks_.
 Issues with importing such builds in IDEs are also fixed. 
