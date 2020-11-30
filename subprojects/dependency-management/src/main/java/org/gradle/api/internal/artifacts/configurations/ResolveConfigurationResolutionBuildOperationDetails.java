@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.util.CollectionUtils;
 
@@ -31,6 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details, CustomOperationTraceSerialization {
 
@@ -41,7 +43,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     private final String projectPath;
     private final boolean isConfigurationVisible;
     private final boolean isConfigurationTransitive;
-    private final List<Repository> repositories;
+    private final Supplier<List<Repository>> repositories;
 
     ResolveConfigurationResolutionBuildOperationDetails(
         String configurationName,
@@ -51,7 +53,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         @Nullable String projectPath,
         boolean isConfigurationVisible,
         boolean isConfigurationTransitive,
-        List<ResolutionAwareRepository> repositories
+        Supplier<List<ResolutionAwareRepository>> repositoriesSupplier
     ) {
         this.configurationName = configurationName;
         this.isScriptConfiguration = isScriptConfiguration;
@@ -60,7 +62,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         this.projectPath = projectPath;
         this.isConfigurationVisible = isConfigurationVisible;
         this.isConfigurationTransitive = isConfigurationTransitive;
-        this.repositories = RepositoryImpl.transform(repositories);
+        this.repositories = Lazy.unsafe().of(() -> RepositoryImpl.transform(repositoriesSupplier.get()));
     }
 
     @Override
@@ -101,7 +103,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
     @Override
     public List<Repository> getRepositories() {
-        return repositories;
+        return repositories.get();
     }
 
     @Override
@@ -115,7 +117,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         model.put("configurationVisible", isConfigurationVisible);
         model.put("configurationTransitive", isConfigurationTransitive);
         ImmutableList.Builder<Object> repoBuilder = new ImmutableList.Builder<>();
-        for (Repository repository : repositories) {
+        for (Repository repository : repositories.get()) {
             ImmutableMap.Builder<String, Object> repoMapBuilder = new ImmutableMap.Builder<>();
             repoMapBuilder.put("id", repository.getId());
             repoMapBuilder.put("name", repository.getName());
