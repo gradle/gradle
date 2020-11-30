@@ -44,6 +44,7 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private boolean isolated;
+    private boolean finalized;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
@@ -182,22 +183,37 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void resolveMutations() {
-        final LocalTaskNode taskNode = this;
-        final TaskInternal task = getTask();
-        final MutationInfo mutations = getMutationInfo();
-        ProjectInternal project = (ProjectInternal) task.getProject();
-        ServiceRegistry serviceRegistry = project.getServices();
-        final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
-        PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
-        try {
+    public void ensurePropertiesFinalized() {
+        if (!finalized) {
+            ProjectInternal project = (ProjectInternal) task.getProject();
+            ServiceRegistry serviceRegistry = project.getServices();
+            final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
+            PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
             taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
 
             // Finalize the task properties
             for (LifecycleAwareValue value : taskProperties.getLifecycleAwareValues()) {
                 value.prepareValue();
             }
+            finalized = true;
+        }
+    }
 
+    @Override
+    public void cleanupLifecycleProperties() {
+        if (taskProperties != null) {
+            for (LifecycleAwareValue value : taskProperties.getLifecycleAwareValues()) {
+                value.cleanupValue();
+            }
+        }
+    }
+
+    @Override
+    public void resolveMutations() {
+        final LocalTaskNode taskNode = this;
+        final TaskInternal task = getTask();
+        final MutationInfo mutations = getMutationInfo();
+        try {
             taskProperties.getOutputFileProperties()
                 .forEach(spec -> withDeadlockHandling(
                     taskNode,

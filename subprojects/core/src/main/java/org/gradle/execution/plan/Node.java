@@ -37,6 +37,22 @@ import java.util.function.Consumer;
 public abstract class Node implements Comparable<Node> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Node.class);
 
+    /**
+     * Notifies the work properties of the start of execution, so they may finalize and cache whatever state is required to efficiently fingerprint inputs and outputs, apply validation or whatever.
+     *
+     * Currently, this is applied prior to validation, so that all properties are finalized before their value is validated, however we should finalize and validate any property whose value is used to finalize the value of another property.
+     */
+    public void ensurePropertiesFinalized() {
+        // Most node types don't need to do finalization, since their properties are already isolated.
+    }
+
+    /**
+     * Notifies the work properties of the completion of execution, so they may get rid of some state which is no longer needed.
+     */
+    public void cleanupLifecycleProperties() {
+        // Most node types don't cleanup for their properties.
+    }
+
     @VisibleForTesting
     enum ExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED

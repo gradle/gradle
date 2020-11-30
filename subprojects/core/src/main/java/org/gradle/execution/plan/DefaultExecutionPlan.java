@@ -558,6 +558,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             Node node = iterator.next();
             if (node.isReady() && node.allDependenciesComplete()) {
                 foundReadyNode = true;
+                node.ensurePropertiesFinalized();
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
                 if (!tryAcquireLocksForNode(node, workerLease, mutations)) {
@@ -775,6 +776,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
 
         updateAllDependenciesCompleteForPredecessors(node);
+
+        node.cleanupLifecycleProperties();
     }
 
     @Override
