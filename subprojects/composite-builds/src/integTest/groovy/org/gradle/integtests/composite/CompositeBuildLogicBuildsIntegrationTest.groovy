@@ -377,16 +377,34 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
     }
 
     private void publishSettingsPlugin(String pluginId, String repoDeclaration) {
-        file("plugin/src/main/groovy/${pluginId}.settings.gradle") << "println('${pluginId} from repository applied')"
+        file("plugin/src/main/java/PublishedSettingsPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+
+            public class PublishedSettingsPlugin implements Plugin<Settings> {
+                @Override
+                public void apply(Settings settings) {
+                    System.out.println("${pluginId} from repository applied");
+                }
+            }
+        """
         file("plugin/build.gradle") << """
             plugins {
-                id("groovy-gradle-plugin")
+                id("java-gradle-plugin")
                 id("maven-publish")
             }
             group = "com.example"
             version = "1.0"
             publishing {
                 $repoDeclaration
+            }
+            gradlePlugin {
+                plugins {
+                    publishedPlugin {
+                        id = '${pluginId}'
+                        implementationClass = 'PublishedSettingsPlugin'
+                    }
+                }
             }
         """
         executer.inDirectory(file("plugin")).withTasks("publish").run()
