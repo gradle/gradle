@@ -28,9 +28,5 @@ public interface PluginManagementSpecInternal extends PluginManagementSpec {
 
     void includeBuild(String projectPath);
 
-    void includeBuildEarly(String projectPath);
-
     List<IncludedBuildSpec> getIncludedBuilds();
-
-    List<IncludedBuildSpec> getEarlyIncludedBuilds();
 }

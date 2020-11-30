@@ -64,7 +64,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
 
-    private final Map<Path, IncludedBuildState> buildLogicIncludedBuilds = new LinkedHashMap<>();
     private final Map<Path, IncludedBuildState> componentIncludedBuilds = new LinkedHashMap<>();
 
     public DefaultIncludedBuildRegistry(BuildTreeState owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
@@ -156,7 +155,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void beforeConfigureRootBuild() {
-        registerPluginPublications();
         registerSubstitutions();
     }
 
@@ -172,13 +170,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.removeFirst();
             build.loadSettings();
-        }
-    }
-
-    private void registerPluginPublications() {
-        for (IncludedBuildState includedBuild : buildLogicIncludedBuilds.values()) {
-            // Configure build so that it registers its plugin publications
-            includedBuild.getConfiguredBuild();
         }
     }
 
@@ -258,9 +249,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
                 throw new IllegalStateException("Unexpected state for build.");
             }
         }
-        if (buildDefinition.canContributePlugins()) {
-            buildLogicIncludedBuilds.put(includedBuild.getIdentityPath(), includedBuild);
-        } else {
+        if (!buildDefinition.canContributePlugins()) {
             componentIncludedBuilds.put(includedBuild.getIdentityPath(), includedBuild);
         }
         // TODO: else, verify that the build definition is the same

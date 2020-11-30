@@ -20,72 +20,7 @@ import groovy.transform.NotYetImplemented
 
 class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    def "early included build logic build can contribute settings plugins"() {
-        given:
-        buildLogicBuild('build-logic')
-        settingsFile << """
-            pluginManagement {
-                includeBuildEarly('build-logic')
-            }
-            plugins {
-                id("build-logic.settings-plugin")
-            }
-        """
-
-        when:
-        succeeds()
-
-        then:
-        outputContains("build-logic settings plugin applied")
-    }
-
-    def "early included build logic build can contribute project plugins"() {
-        given:
-        buildLogicBuild('build-logic')
-        settingsFile << """
-            pluginManagement {
-                includeBuildEarly('build-logic')
-            }
-        """
-        buildFile << """
-            plugins {
-                id("build-logic.project-plugin")
-            }
-        """
-
-        when:
-        succeeds()
-
-        then:
-        outputContains("build-logic project plugin applied")
-    }
-
-    def "early included build logic build can contribute both settings and project plugins"() {
-        given:
-        buildLogicBuild('build-logic')
-        settingsFile << """
-            pluginManagement {
-                includeBuildEarly('build-logic')
-            }
-            plugins {
-                id("build-logic.settings-plugin")
-            }
-        """
-        buildFile << """
-            plugins {
-                id("build-logic.project-plugin")
-            }
-        """
-
-        when:
-        succeeds()
-
-        then:
-        outputContains("build-logic settings plugin applied")
-        outputContains("build-logic project plugin applied")
-    }
-
-    def "included build logic builds can not contribute settings plugins"() {
+    def "included build logic builds can contribute settings plugins"() {
         given:
         buildLogicBuild('build-logic')
         settingsFile << """
@@ -98,10 +33,11 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         """
 
         when:
-        fails()
+        succeeds()
 
         then:
-        failureDescriptionContains("Plugin [id: 'build-logic.settings-plugin'] was not found in any of the following sources:")
+        outputContains("configuring build-logic")
+        outputContains("build-logic settings plugin applied")
     }
 
     def "included build logic builds can contribute project plugins"() {
@@ -122,7 +58,170 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
+        outputContains("configuring build-logic")
         outputContains("build-logic project plugin applied")
+    }
+
+    def "included build logic build can contribute both settings and project plugins"() {
+        given:
+        buildLogicBuild('build-logic')
+        settingsFile << """
+            pluginManagement {
+                includeBuild('build-logic')
+            }
+            plugins {
+                id("build-logic.settings-plugin")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("build-logic.project-plugin")
+            }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        outputContains("configuring build-logic")
+        outputContains("build-logic settings plugin applied")
+        outputContains("build-logic project plugin applied")
+    }
+
+    def "build logic build is not configured if plugins from it are not used"() {
+        given:
+        buildLogicBuild('build-logic')
+        settingsFile << """
+            pluginManagement {
+                includeBuild('build-logic')
+            }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        outputDoesNotContain("configuring build-logic")
+    }
+
+    def "build logic build is not configured when published settings plugin is found in repository"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginId = "published.settings-plugin"
+        publishSettingsPlugin(pluginId, repoDeclaration)
+        buildLogicBuild('build-logic')
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild('build-logic')
+            }
+            plugins {
+                id("$pluginId") version "1.0"
+            }
+        """
+
+        then:
+        succeeds()
+        outputContains("$pluginId from repository applied")
+        outputDoesNotContain("configuring build-logic")
+    }
+
+    def "build logic build is configured when published settings plugin is not found in repository"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginId = "published.settings-plugin"
+        publishSettingsPlugin(pluginId, repoDeclaration)
+        buildLogicBuild('build-logic')
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild('build-logic')
+            }
+            plugins {
+                id("some-plugin") version "1.0"
+            }
+        """
+
+        then:
+        fails()
+        outputContains("configuring build-logic")
+        failureDescriptionContains("Plugin [id: 'some-plugin', version: '1.0'] was not found in any of the following sources:")
+    }
+
+    def "settings plugin from included build is used over published plugin when no version is specified"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginId = "build-logic.settings-plugin"
+        publishSettingsPlugin(pluginId, repoDeclaration)
+        buildLogicBuild('build-logic')
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild('build-logic')
+            }
+            plugins {
+                id("$pluginId")
+            }
+        """
+
+        then:
+        succeeds()
+        outputContains("configuring build-logic")
+        outputContains("build-logic settings plugin applied")
+    }
+
+    def "published settings plugin is used over included build plugin when version is specified"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginId = "build-logic.settings-plugin"
+        publishSettingsPlugin(pluginId, repoDeclaration)
+        buildLogicBuild('build-logic')
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild('build-logic')
+            }
+            plugins {
+                id("$pluginId") version "1.0"
+            }
+        """
+
+        then:
+        succeeds()
+        outputDoesNotContain("configuring build-logic")
+        outputContains("$pluginId from repository applied")
     }
 
     def "regular included build can not contribute settings plugins"() {
@@ -139,6 +238,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         fails()
 
         then:
+        outputDoesNotContain("configuring build-logic")
         failureDescriptionContains("Plugin [id: 'build-logic.settings-plugin'] was not found in any of the following sources:")
     }
 
@@ -188,34 +288,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         fails("build")
-        failureDescriptionContains("Could not determine the dependencies of task ':compileJava'.")
-        failureCauseContains("Cannot resolve external dependency com.example:included-build")
-    }
-
-    def "early included build logic build is not visible as library component"() {
-        given:
-        buildLogicAndProductionLogicBuild('included-build')
-        settingsFile << """
-            pluginManagement {
-                includeBuildEarly('included-build')
-            }
-        """
-
-        when:
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-            dependencies {
-                implementation("com.example:included-build")
-            }
-        """
-        file("src/main/java/Foo.java") << """
-            class Foo { Bar newBar() { return new Bar(); }}
-        """
-
-        then:
-        fails("build")
+        outputDoesNotContain("configuring included-build")
         failureDescriptionContains("Could not determine the dependencies of task ':compileJava'.")
         failureCauseContains("Cannot resolve external dependency com.example:included-build")
     }
@@ -251,12 +324,12 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         outputContains('included-build project plugin applied')
     }
 
-    def "a build can be included both as an early build logic build and as regular build and can contribute both settings plugins and library components"() {
+    def "a build can be included both as a build logic build and as regular build and can contribute both settings plugins and library components"() {
         given:
         buildLogicAndProductionLogicBuild('included-build')
         settingsFile << """
             pluginManagement {
-                includeBuildEarly('included-build')
+                includeBuild('included-build')
             }
             plugins {
                 id("included-build.settings-plugin")
@@ -301,5 +374,23 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         file("$buildName/src/main/java/Bar.java") << """
             public class Bar {}
         """
+    }
+
+    private void publishSettingsPlugin(String pluginId, String repoDeclaration) {
+        file("plugin/src/main/groovy/${pluginId}.settings.gradle") << "println('${pluginId} from repository applied')"
+        file("plugin/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+                id("maven-publish")
+            }
+            group = "com.example"
+            version = "1.0"
+            publishing {
+                $repoDeclaration
+            }
+        """
+        executer.inDirectory(file("plugin")).withTasks("publish").run()
+        file("plugin").forceDeleteDir()
+        mavenRepo.module("com.example", "plugin", "1.0").assertPublished()
     }
 }

@@ -93,8 +93,15 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         injectedClasspathPluginResolver.collectResolversInto(resolvers);
 
         for (PluginResolverContributor contributor : pluginResolverContributors) {
-            contributor.collectResolversInto(resolvers);
+            if (!contributor.isFallback()) {
+                contributor.collectResolversInto(resolvers);
+            }
         }
         resolvers.add(ArtifactRepositoriesPluginResolver.createWithDefaults(dependencyResolutionServices, versionSelectorScheme));
+        for (PluginResolverContributor contributor : pluginResolverContributors) {
+            if (contributor.isFallback()) {
+                contributor.collectResolversInto(resolvers);
+            }
+        }
     }
 }

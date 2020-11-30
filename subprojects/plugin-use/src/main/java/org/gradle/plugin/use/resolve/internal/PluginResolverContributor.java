@@ -20,4 +20,7 @@ import java.util.Collection;
 
 public interface PluginResolverContributor {
     void collectResolversInto(Collection<PluginResolver> resolvers);
+    default boolean isFallback() {
+        return false;
+    }
 }

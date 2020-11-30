@@ -214,6 +214,7 @@ public class ${className} implements Plugin<Project> {
             plugins {
                 id("groovy-gradle-plugin")
             }
+            println("configuring $buildName")
         """
         file("$buildName/src/main/groovy/${buildName}.project-plugin.gradle") << """
             println('$buildName project plugin applied')

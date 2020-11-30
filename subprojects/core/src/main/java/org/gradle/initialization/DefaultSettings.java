@@ -41,7 +41,6 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildIncluder;
-import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
@@ -344,15 +343,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
         rule.execute(getPluginManagement());
 
-        List<IncludedBuildSpec> earlyIncludedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getEarlyIncludedBuilds();
-        for (IncludedBuildSpec buildSpec : earlyIncludedBuilds) {
-            IncludedBuildState buildState = getBuildIncluder().includeBuild(buildSpec, gradle);
-            buildState.getConfiguredBuild();
+        List<IncludedBuildSpec> includedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
+        for (IncludedBuildSpec buildSpec : includedBuilds) {
+            getBuildIncluder().includeBuild(buildSpec, gradle);
             includedBuildSpecs.add(buildSpec);
         }
-
-        List<IncludedBuildSpec> includedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
-        includedBuildSpecs.addAll(includedBuilds);
     }
 
     @Override

@@ -46,7 +46,10 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         when:
         settingsFile << """
             pluginManagement {
-                includeBuildEarly('logic-1')
+                includeBuild('logic-1')
+            }
+            plugins {
+                id("logic-1.settings-plugin")
             }
         """
         file('logic-1/settings.gradle') << """
