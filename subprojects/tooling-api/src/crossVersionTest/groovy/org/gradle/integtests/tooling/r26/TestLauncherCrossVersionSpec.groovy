@@ -511,7 +511,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         """
     }
 
-    def simpleJavaProject() {
+    String simpleJavaProject() {
         """
         allprojects{
             apply plugin: 'java'
