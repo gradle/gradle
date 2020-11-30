@@ -81,9 +81,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
-        if (testIdentifier.isTest() || hasClassSource(testIdentifier)) {
-            reportStartedUnlessAlreadyStarted(testIdentifier);
-        }
+        reportStartedUnlessAlreadyStarted(testIdentifier);
     }
 
     @Override
@@ -163,7 +161,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (node.getType() == CONTAINER || isTestClassIdentifier(node)) {
                 TestIdentifier classIdentifier = findTestClassIdentifier(node);
                 String className = className(classIdentifier);
-                String classDisplayName = classDisplayName(classIdentifier);
+                String classDisplayName = node.getDisplayName();
                 return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName);
             }
             return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());

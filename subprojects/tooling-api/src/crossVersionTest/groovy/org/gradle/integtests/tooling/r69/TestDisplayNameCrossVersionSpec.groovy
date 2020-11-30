@@ -64,7 +64,7 @@ public class SimpleTests {
 """
         when:
         launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':test',['org.example.SimpleTests'])
+            launcher.withTaskAndTestClasses(':test', ['org.example.SimpleTests'])
         }
 
         then:
@@ -166,7 +166,7 @@ class TestingAStackDemo {
 
         when:
         launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':test',['org.example.TestingAStackDemo*'])
+            launcher.withTaskAndTestClasses(':test', ['org.example.TestingAStackDemo*'])
         }
 
         then:
@@ -182,5 +182,105 @@ class TestingAStackDemo {
         assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew\$AfterPushing", methodName: "isNotEmpty()", displayName: "it is no longer empty")
         assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew\$AfterPushing", methodName: "returnElementWhenPopped()", displayName: "returns the element when popped and is empty")
         assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew\$AfterPushing", methodName: "returnElementWhenPeeked()", displayName: "returns the element when peeked but remains not empty")
+    }
+
+    def "reports display names of parameterized tests"() {
+        file("src/test/java/org/example/ParameterizedTests.java") << """package org.example;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@DisplayName("Parameterized test")
+public class ParameterizedTests {
+
+    @ParameterizedTest
+    @DisplayName("1st test")
+    @ValueSource(strings = {"foo", "bar"})
+    void test1(String param) {
+        assertEquals(3, param.length());
+    }
+
+    @ParameterizedTest
+    @DisplayName("2nd test")
+    @ValueSource(strings = {"foo", "bar"})
+    void test2(String param) {
+        assertEquals(3, param.length());
+    }
+}
+"""
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTaskAndTestClasses(':test', ['org.example.ParameterizedTest*'])
+        }
+
+        then:
+        assertTaskExecuted(":test")
+        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: null, displayName: "Parameterized test")
+        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: null, displayName: "1st test")
+        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test1(String)[1]", displayName: "[1] foo")
+        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test1(String)[2]", displayName: "[2] bar")
+        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: null, displayName: "2nd test")
+        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test2(String)[1]", displayName: "[1] foo")
+        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test2(String)[2]", displayName: "[2] bar")
+    }
+
+    def "reports display names for dynamic tests"() {
+        file("src/test/java/org/example/DynamicTests.java") << """package org.example;
+
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.TestFactory;
+
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+
+import org.junit.jupiter.api.DisplayName;
+
+public class DynamicTests {
+
+    @TestFactory
+    Stream<DynamicNode> testFactory() {
+        return Stream.of(dynamicContainer("some container", Stream.of(
+                dynamicContainer("some nested container", Stream.of(
+                        dynamicTest("foo", () -> {
+                            assertTrue(true);
+                        }),
+                        dynamicTest("bar", () -> {
+                            assertTrue(true);
+                        })
+                ))
+        )));
+    }
+
+    @TestFactory
+    @DisplayName("another test factory")
+    Stream<DynamicNode> anotherTestFactory() {
+        return Stream.of(dynamicTest("foo", () -> {
+            assertTrue(true);
+        }));
+    }
+}
+"""
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTaskAndTestClasses(':test', ['org.example.DynamicTests*'])
+        }
+
+        then:
+        assertTaskExecuted(":test")
+        assertTestExecuted(className: "org.example.DynamicTests", methodName: null)
+        assertTestExecuted(className: "org.example.DynamicTests", methodName: null, displayName: "testFactory()")
+        assertTestExecuted(className: "org.example.DynamicTests", methodName: null, displayName: "some nested container")
+        assertTestExecuted(className: "org.example.DynamicTests", methodName: "testFactory()[1][1][1]", displayName: "foo")
+        assertTestExecuted(className: "org.example.DynamicTests", methodName: "testFactory()[1][1][2]", displayName: "bar")
+        assertTestExecuted(className: "org.example.DynamicTests", methodName: null, displayName: "another test factory")
+        assertTestExecuted(className: "org.example.DynamicTests", methodName: "anotherTestFactory()[1]", displayName: "foo")
     }
 }

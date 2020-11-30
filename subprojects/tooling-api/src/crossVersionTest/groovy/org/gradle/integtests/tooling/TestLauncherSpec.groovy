@@ -113,7 +113,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         true
     }
 
-    private static boolean optionalMatch(String actual, String requested) {
+    private static boolean matchIfPresent(String actual, String requested) {
         if (requested == null) {
             return true
         }
@@ -129,7 +129,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         def descriptorByClassAndMethod = descriptors.findAll {
             it.className == className &&
                 it.methodName == methodName &&
-                optionalMatch(it.displayName, displayName)
+                matchIfPresent(it.displayName, displayName)
         }
         if (taskpath == null) {
             return descriptorByClassAndMethod
