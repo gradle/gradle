@@ -2,7 +2,7 @@ import javax.inject.Inject;
 
 open class CustomTaskUsingToolchains : DefaultTask {
 
-    @get:Input
+    @get:Nested
     val launcher: Property<JavaLauncher> = project.objects.property()
 
     @Inject
