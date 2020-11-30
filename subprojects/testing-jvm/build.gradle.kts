@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     id("gradlebuild.distribution.api-java")
@@ -87,4 +86,4 @@ tasks.test {
     exclude("org/gradle/api/internal/tasks/testing/testng/ATestNGFactoryClass*.*")
 }
 
-integrationTestUsesSampleDir("subprojects/testing-jvm/src/main")
+integTest.usesSamples.set(true)

@@ -26,6 +26,8 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
 
     testFixturesImplementation(project(":base-services"))
+
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
 classycle {
@@ -40,3 +42,5 @@ strictCompile {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integTest.usesSamples.set(true)

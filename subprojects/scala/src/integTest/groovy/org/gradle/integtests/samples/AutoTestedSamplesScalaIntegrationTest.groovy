@@ -23,6 +23,6 @@ class AutoTestedSamplesScalaIntegrationTest extends AbstractAutoTestedSamplesTes
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/scala/src/main")
+        runSamplesFrom("src/main")
     }
 }

@@ -25,7 +25,7 @@ class AutoTestedSamplesLanguageNativeIntegrationTest extends AbstractAutoTestedS
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/language-native/src/main")
+        runSamplesFrom("src/main")
     }
 
 }

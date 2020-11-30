@@ -1,6 +1,3 @@
-import gradlebuild.cleanup.WhenNotEmpty
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -16,6 +13,8 @@ import gradlebuild.integrationtests.integrationTestUsesSampleDir
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.cleanup.WhenNotEmpty
+
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -99,4 +98,4 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-integrationTestUsesSampleDir("subprojects/plugins/src/main")
+integTest.usesSamples.set(true)

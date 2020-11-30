@@ -20,6 +20,6 @@ import gradlebuild.cleanup.WhenNotEmpty
 import org.gradle.api.provider.Property
 
 
-abstract class TestFileCleanUpExtension() {
+abstract class TestFileCleanUpExtension {
     abstract val policy: Property<WhenNotEmpty>
 }

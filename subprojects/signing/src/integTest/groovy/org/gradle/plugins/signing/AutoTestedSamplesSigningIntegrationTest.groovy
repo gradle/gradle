@@ -22,6 +22,6 @@ import org.junit.Test
 class AutoTestedSamplesSigningIntegrationTest extends AbstractAutoTestedSamplesTest {
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/signing/src/main")
+        runSamplesFrom("src/main")
     }
 }

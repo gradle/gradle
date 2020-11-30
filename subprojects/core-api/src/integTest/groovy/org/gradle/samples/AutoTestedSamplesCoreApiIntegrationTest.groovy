@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.samples
+package org.gradle.samples
 
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
@@ -31,6 +31,6 @@ class AutoTestedSamplesCoreApiIntegrationTest extends AbstractAutoTestedSamplesT
             include 'api', 'util'
         """
 
-        runSamplesFrom("subprojects/core-api/src/main/java")
+        runSamplesFrom("src/main")
     }
 }

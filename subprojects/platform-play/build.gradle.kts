@@ -1,5 +1,4 @@
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
 import gradlebuild.integrationtests.tasks.IntegrationTest
 
 plugins {
@@ -114,4 +113,4 @@ tasks.withType<IntegrationTest>().configureEach {
     }
 }
 
-integrationTestUsesSampleDir("subprojects/platform-play/src/main")
+integTest.usesSamples.set(true)

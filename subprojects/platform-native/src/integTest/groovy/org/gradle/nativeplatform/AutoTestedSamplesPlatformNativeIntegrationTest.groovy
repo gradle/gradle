@@ -23,7 +23,7 @@ class AutoTestedSamplesPlatformNativeIntegrationTest extends AbstractAutoTestedS
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/platform-native/src/main")
+        runSamplesFrom("src/main")
     }
 
 }
