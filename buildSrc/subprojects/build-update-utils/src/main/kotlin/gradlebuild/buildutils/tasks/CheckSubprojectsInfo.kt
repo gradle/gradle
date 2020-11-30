@@ -16,18 +16,18 @@
 
 package gradlebuild.buildutils.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
 
-abstract class GenerateSubprojectsInfo : SubprojectsInfo() {
+abstract class CheckSubprojectsInfo : SubprojectsInfo() {
 
     @TaskAction
-    fun generateSubprojectsInfo() {
-        subprojectsJson.asFile.writeText(generateSubprojectsJson())
-    }
-
-    companion object {
-        internal
-        const val TASK_NAME = "generateSubprojectsInfo"
+    fun checkSubprojectsInfo() {
+        if (subprojectsJson.asFile.readText() != generateSubprojectsJson()) {
+            throw GradleException(
+                "New project(s) added without updating subproject JSON. Please run `:${GenerateSubprojectsInfo.TASK_NAME}` task."
+            )
+        }
     }
 }

@@ -103,10 +103,14 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
-            ":docs:checkstyleApi", ":internal-build-reports:allIncubationReportsZip",
-            ":architecture-test:checkBinaryCompatibility", ":docs:javadocAll",
-            ":architecture-test:test", ":tooling-api:toolingApiShadedJar",
-            ":performance:verifyPerformanceScenarioDefinitions"
+            ":docs:checkstyleApi",
+            ":internal-build-reports:allIncubationReportsZip",
+            ":architecture-test:checkBinaryCompatibility",
+            ":docs:javadocAll",
+            ":architecture-test:test",
+            ":tooling-api:toolingApiShadedJar",
+            ":performance:verifyPerformanceScenarioDefinitions",
+            ":checkSubprojectsInfo"
         )
     }
 }
