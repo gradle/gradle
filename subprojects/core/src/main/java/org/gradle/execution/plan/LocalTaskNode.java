@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
+import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -191,6 +192,12 @@ public class LocalTaskNode extends TaskNode {
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
             taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
+
+            // Finalize the task properties
+            for (LifecycleAwareValue value : taskProperties.getLifecycleAwareValues()) {
+                value.prepareValue();
+            }
+
             taskProperties.getOutputFileProperties()
                 .forEach(spec -> withDeadlockHandling(
                     taskNode,

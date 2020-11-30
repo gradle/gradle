@@ -39,9 +39,6 @@ public class FinalizePropertiesTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskProperties properties = context.getTaskProperties();
-        for (LifecycleAwareValue value : properties.getLifecycleAwareValues()) {
-            value.prepareValue();
-        }
         try {
             return taskExecuter.execute(task, state, context);
         } finally {
