@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release significantly improves the [performance of Kotlin DSL build scripts compilation](#kotlin-dsl-performance), adds several [improvements to Java toolchain support](#java-toolchain-improvements), including vendor selection, and makes it easy to [execute tasks from included builds directly from the command-line](#composite-builds). This release also introduces new [dependency management APIs for consistent resolution](#dm-features).
+This release significantly improves the [performance of Kotlin DSL build scripts compilation](#kotlin-dsl-performance), adds several [improvements to Java toolchain support](#java-toolchain-improvements), including vendor selection, and makes it easy to [execute tasks from included builds directly from the command line](#composite-builds). This release also introduces new [dependency management APIs for consistent resolution](#dm-features).
 
 The [experimental configuration cache](#configuration-cache) has added support for composite builds and more core plugins shipped with Gradle.
 
@@ -239,7 +239,7 @@ See the [toolchain documentation](userguide/toolchains.html) for more in-depth i
 
 ### Tasks can be executed for included builds
 
-Gradle now allows users to execute tasks from included builds directly from the command-line. For example, if your build includes `my-other-project` as an included build and it has a subproject `sub` with a task `foo`, then you can execute `foo` with the following command:
+Gradle now allows users to execute tasks from included builds directly from the command line. For example, if your build includes `my-other-project` as an included build and it has a subproject `sub` with a task `foo`, then you can execute `foo` with the following command:
 
     gradle :my-other-project:sub:foo
 
@@ -248,7 +248,7 @@ You could introduce [task dependencies](userguide/composite_builds.html#included
 
 IDE support for executing tasks from included builds may not yet fully work depending on the IDE.
 Updates for IntelliJ IDEA and Eclipse Buildship are planned to support this fully. 
-Today, in IntelliJ IDEA, you can create a [Gradle run configuration](https://www.jetbrains.com/help/idea/create-run-debug-configuration-gradle-tasks.html) to execute a task directly (like you would on the command-line).
+Today, in IntelliJ IDEA, you can create a [Gradle run configuration](https://www.jetbrains.com/help/idea/create-run-debug-configuration-gradle-tasks.html) to execute a task directly (like you would on the command line).
 
 ### Desired cycles between builds are now fully supported
 
