@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.Test;
@@ -30,6 +29,8 @@ import org.gradle.execution.BuildExecutionContext;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.TaskSelector;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
@@ -41,6 +42,7 @@ import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,21 +51,19 @@ import java.util.Set;
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
     private final GradleInternal gradle;
     private final TestExecutionRequestAction testExecutionRequest;
-    private final TaskSelector taskSelector;
 
     public TestExecutionBuildConfigurationAction(TestExecutionRequestAction testExecutionRequest, GradleInternal gradle) {
         this.testExecutionRequest = testExecutionRequest;
         this.gradle = gradle;
-        this.taskSelector = gradle.getServices().get(TaskSelector.class);
     }
 
     @Override
     public void configure(BuildExecutionContext context) {
         final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
         final GradleInternal gradleInternal = context.getGradle();
-        allTestTasksToRun.addAll(configureBuildForTestDescriptors(testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal.getServices().get(TaskSelector.class), testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForTestTasks(testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForTestTasks(gradleInternal, testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addEntryTasks(allTestTasksToRun);
     }
@@ -89,7 +89,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         }
     }
 
-    private List<Test> configureBuildForTestDescriptors(TestExecutionRequestAction testExecutionRequest) {
+    private List<Test> configureBuildForTestDescriptors(TaskSelector taskSelector, TestExecutionRequestAction testExecutionRequest) {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
 
         List<Test> testTasksToRun = new ArrayList<Test>();
@@ -116,29 +116,38 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private List<Test> configureBuildForTestTasks(TestExecutionRequestAction testExecutionRequest) {
+    private List<Test> configureBuildForTestTasks(GradleInternal rootBuild, TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
+        BuildStateRegistry buildStateRegistry = rootBuild.getServices().get(BuildStateRegistry.class);
+        Map<String, GradleInternal> includedBuilds = new LinkedHashMap<>();
+        for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
+            includedBuilds.put(includedBuild.getIdentityPath().getPath(), includedBuild.getBuild());
+        }
 
-        final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalTestDescriptor>() {
-            @Override
-            public String transform(InternalTestDescriptor testDescriptor) {
-                DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
-                String buildId = defaultTestDescriptor.getBuildIdentityPath();
-                if (buildId != null) {
-                    return buildId + defaultTestDescriptor.getTaskPath();
+        Map<String, GradleInternal> testTaskPaths = new LinkedHashMap<>();
+        for (InternalTestDescriptor testDescriptor : testExecutionRequest.getTestExecutionDescriptors()) {
+            DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
+            String buildId = defaultTestDescriptor.getBuildIdentityPath();
+            if (buildId != null) {
+                GradleInternal includedBuild = includedBuilds.get(buildId);
+                if (includedBuild == null) {
+                    throw new IllegalStateException("Build operation references nonexisting included build: " + buildId);
                 }
-                return defaultTestDescriptor.getTaskPath();
+                testTaskPaths.put(defaultTestDescriptor.getTaskPath(), includedBuild);
+            } else {
+                testTaskPaths.put(defaultTestDescriptor.getTaskPath(), rootBuild);
             }
-        });
+        }
 
         List<Test> testTasksToRun = new ArrayList<>();
-        for (final String testTaskPath : testTaskPaths) {
+        for (final Map.Entry<String, GradleInternal> testTaskPath : testTaskPaths.entrySet()) {
             Set<Task> tasks;
             try {
-                TaskSelection taskSelection = taskSelector.getSelection(testTaskPath);
+                TaskSelector taskSelector = testTaskPath.getValue().getServices().get(TaskSelector.class);
+                TaskSelection taskSelection = taskSelector.getSelection(testTaskPath.getKey());
                 tasks = taskSelection.getTasks();
             } catch (TaskSelectionException e) {
-                throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
+                throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath.getKey()));
             }
 
             if (tasks.isEmpty()) {
@@ -151,7 +160,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
                     Test testTask = (Test) task;
                     for (InternalTestDescriptor testDescriptor : testDescriptors) {
                         DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
-                        if (defaultTestDescriptor.getTaskPath().equals(testTaskPath)) {
+                        if (defaultTestDescriptor.getTaskPath().equals(testTaskPath.getKey())) {
                             String className = defaultTestDescriptor.getClassName();
                             String methodName = defaultTestDescriptor.getMethodName();
                             if (className == null && methodName == null) {
