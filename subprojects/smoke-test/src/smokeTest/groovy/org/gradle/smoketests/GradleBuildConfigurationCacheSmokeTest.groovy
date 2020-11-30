@@ -28,11 +28,13 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 
 import java.text.SimpleDateFormat
+
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
  *
@@ -70,13 +72,13 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         ]
 
         when:
-        configurationCacheRun(*supportedTasks)
+        configurationCacheRun(supportedTasks, 0)
 
         then:
         result.output.count("Calculating task graph as no configuration cache is available") == 1
 
-        when:
-        configurationCacheRun(*supportedTasks)
+        when: "reusing the configuration cache in the same daemon"
+        configurationCacheRun(supportedTasks, 0)
 
         then:
         result.output.count("Reusing configuration cache") == 1
@@ -85,10 +87,10 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         // result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
 
         when:
-        run("clean")
+        run(["clean"])
 
-        and:
-        configurationCacheRun(*supportedTasks)
+        and: "reusing the configuration cache in a different daemon"
+        configurationCacheRun(supportedTasks, 1)
 
         then:
         result.output.count("Reusing configuration cache") == 1
@@ -106,20 +108,28 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
             .assertTestClassesExecuted(testClass)
     }
 
-    private void configurationCacheRun(String... tasks) {
-        result = run(
-            "--${ConfigurationCacheOption.LONG_OPTION}",
-            "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn", // TODO remove
-            *tasks
+    private void configurationCacheRun(List<String> tasks, int daemonId) {
+        run(
+            tasks + [
+                "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
+                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO remove
+            ],
+            // use a unique JVM argument to force a different daemon
+            [
+                "-Xms${1024 + daemonId}m".toString()
+            ]
         )
     }
 
-    BuildResult run(String... tasks) {
+    private void run(List<String> tasks, List<String> jvmArgs = []) {
         result = null
-        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS)).build()
+        result = ((DefaultGradleRunner) runner(*(tasks + GRADLE_BUILD_TEST_ARGS)))
+            .withJvmArguments(jvmArgs)
+            .build()
     }
 
-    private static final String[] GRADLE_BUILD_TEST_ARGS = [
+
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [
         "-PbuildTimestamp=" + newTimestamp()
     ]
 
