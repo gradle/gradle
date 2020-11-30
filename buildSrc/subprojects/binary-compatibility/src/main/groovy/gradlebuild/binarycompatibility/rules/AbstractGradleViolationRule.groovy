@@ -145,7 +145,11 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def changeId = (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
         Violation violation = Violation.error(
             member,
-            rejection.getHumanExplanation() + """. If you did this intentionally, please accept the change and provide an explanation:
+            rejection.getHumanExplanation() + """.
+                <br>
+                <p>
+                If you did this intentionally, please accept the change and provide an explanation:
+                </p>
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#accept-${changeId}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="accept-${changeId}">
                   <div class="well">
@@ -154,7 +158,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                   </div>
                 </div>
                 <p>
-                Or update baseline version:
+                If change was made on the `release` branch but hasn't yet been published to the baseline version, update the baseline version:
                 </p>
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#update-baseline-${changeId}" aria-expanded="false" aria-controls="collapseExample">Update baseline</a>
                 <div class="collapse" id="update-baseline-${changeId}">
@@ -162,6 +166,16 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                       Sometimes, the change was made on the `release` branch but hasn't yet been published to the baseline version.
                       In that case, you can publish a new snapshot from the release branch. This will update `released-versions.json` on `master`.
                       See <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">the documentation</a> for more details.
+                  </div>
+                </div>
+                <p>
+                If change was made on the `release` branch but hasn't yet been merged to `master`, merge `release` to `master`:
+                </p>
+                <a class="btn btn-info" role="button" data-toggle="collapse" href="#merge-release-${changeId}" aria-expanded="false" aria-controls="collapseExample">Merge release to master</a>
+                <div class="collapse" id="merge-release-${changeId}">
+                  <div class="well">
+                      Merging `release` back to `master` is a regular operation you’re free to do, at any time. Usually, you will see conflicts in `notes.md` or `accepted-public-api-changes.json`.
+                      On `master` branch, these two files are usually reset (cleaned up), unless you have special reasons not to do so.
                   </div>
                 </div>
                 """.stripIndent()

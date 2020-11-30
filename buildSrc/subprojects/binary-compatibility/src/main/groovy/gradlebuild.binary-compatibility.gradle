@@ -24,9 +24,6 @@ import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
 import gradlebuild.binarycompatibility.transforms.ExplodeZipAndFindJars
 import gradlebuild.binarycompatibility.transforms.FindGradleClasspath
 import gradlebuild.binarycompatibility.transforms.FindGradleJars
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-
 
 plugins {
     id("gradlebuild.module-identity")
@@ -108,9 +105,6 @@ dependencies {
     }
 }
 
-def binaryCompatibilityReportDir = file("$buildDir/reports/binary-compatibility")
-def binaryCompatibilityReport = "report.html"
-
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
@@ -149,28 +143,19 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
         title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = binaryCompatibilityReportDir
         reportName = binaryCompatibilityReport
+        description = """
+            <p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">documentation</a> for more details.</p>
+            <p>
+            We check the binary compatibility by comparing the current code’s binary interfaces
+            against THE LATEST VERSION WHICH IS RELEASED FROM RELEASE BRANCH (from `released-version.json` on this branch)
+            AND LOWER THAN CURRENT BASE VERSION (from `version.txt` on this branch).
+            The difference must identically match `accepted-public-api-changes.json`, no more, no less - otherwise the task will fail.
+            </p>
+""".stripIndent()
     }
 
     BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get())
 }
-
-gradle.taskGraph.afterTask {
-    if (it.state.failure != null && it instanceof JapicmpTask) {
-        File report = new File(binaryCompatibilityReportDir, binaryCompatibilityReport)
-        Document doc = Jsoup.parse(report.text)
-        doc.select(".jumbotron").get(0).append("""
-<p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">documentation</a> for more details.</p>
-<p>
-We check the binary compatibility by comparing the current code’s binary interfaces
-against THE LATEST VERSION WHICH IS RELEASED FROM RELEASE BRANCH (from `released-version.json` on this branch)
-AND LOWER THAN CURRENT BASE VERSION (from `version.txt` on this branch).
-The difference must identically match `accepted-public-api-changes.json`, no more, no less - otherwise the task will fail.
-</p>
-""")
-        report.text = doc.outerHtml()
-    }
-}
-
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
 tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
