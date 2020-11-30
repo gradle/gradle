@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
+import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.execution.ProjectExecutionServices
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -62,7 +63,12 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     }
 
     void execute(Task task) {
-        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext(null, DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal)))
+        def taskProperties = DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal)
+        // Finalize the task properties
+        for (LifecycleAwareValue value : taskProperties.getLifecycleAwareValues()) {
+            value.prepareValue();
+        }
+        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext(null, taskProperties))
         task.state.rethrowFailure()
     }
 }
