@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -91,14 +92,11 @@ public interface TaskInternal extends Task, Configurable<Task> {
     TaskIdentity<?> getTaskIdentity();
 
     /**
-     * Replace this task's logger.
+     * Decorates this task's logger.
      *
-     * Callers of {@link #getLogger()} will get the replacement logger after this method invocation.
-     *
-     * @param logger the replacement logger
+     * @param factory creates the decorated logger from the provided current logger implementation
      */
-    @Deprecated
-    void replaceLogger(Logger logger);
+    void decorateLogger(Transformer<Logger, Logger> factory);
 
     @Internal
     Set<Provider<? extends BuildService<?>>> getRequiredServices();

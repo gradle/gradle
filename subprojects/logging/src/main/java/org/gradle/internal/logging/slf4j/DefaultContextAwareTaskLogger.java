@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.slf4j;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -33,6 +34,10 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
     public DefaultContextAwareTaskLogger(Logger delegate) {
         this.delegate = Cast.cast(BuildOperationAwareLogger.class, delegate);
+    }
+
+    public void decorateDelegate(Transformer<Logger, Logger> factory) {
+        delegate = Cast.cast(BuildOperationAwareLogger.class, factory.transform(delegate));
     }
 
     @Override
@@ -529,5 +534,4 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
             log(LogLevel.ERROR, t, msg);
         }
     }
-
 }

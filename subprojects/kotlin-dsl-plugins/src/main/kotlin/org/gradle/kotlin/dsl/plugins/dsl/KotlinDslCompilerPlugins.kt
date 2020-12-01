@@ -19,12 +19,13 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Transformer
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
+import org.gradle.internal.logging.slf4j.WarningRewriterBuildOperationAwareLogger
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -34,8 +35,6 @@ import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugi
 import org.gradle.kotlin.dsl.*
 
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import kotlin.LazyThreadSafetyMode.NONE
 
 
 /**
@@ -49,16 +48,6 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         plugins.apply(SamWithReceiverGradleSubplugin::class.java)
         extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
             samWithReceiver.annotation(HasImplicitReceiver::class.qualifiedName!!)
-        }
-
-        kotlinDslPluginOptions {
-            tasks.withType<KotlinCompile>().configureEach {
-                it.applyExperimentalWarning(
-                    experimentalWarning,
-                    project.toString(),
-                    project.experimentalWarningLink
-                )
-            }
         }
 
         afterEvaluate {
@@ -76,18 +65,11 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                             KotlinCompilerArguments.referencesToSyntheticJavaProperties
                         )
                     }
+                    it.applyExperimentalWarning(experimentalWarning, project.toString(), project.experimentalWarningLink)
                 }
             }
         }
     }
-}
-
-
-private
-fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Provider<Boolean>, target: String, link: String) {
-    replaceLoggerWith(
-        KotlinCompilerWarningAwareLogger(logger as ContextAwareTaskLogger, experimentalWarning, target, link)
-    )
 }
 
 
@@ -101,33 +83,26 @@ object KotlinCompilerArguments {
 
 
 private
-fun KotlinCompile.replaceLoggerWith(logger: Logger) {
-    @Suppress("deprecation")
-    (this as TaskInternal).replaceLogger(logger)
+fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Provider<Boolean>, target: String, link: String) {
+    decorateLoggerWith { original ->
+        WarningRewriterBuildOperationAwareLogger(original, newRewriter(experimentalWarning, target, link))
+    }
 }
 
 
 private
-class KotlinCompilerWarningAwareLogger(
-    private val delegate: ContextAwareTaskLogger,
-    private val experimentalWarning: Provider<Boolean>,
-    private val target: String,
-    private val link: String
-) : ContextAwareTaskLogger by delegate {
+fun KotlinCompile.decorateLoggerWith(factory: Transformer<Logger, Logger>) {
+    (this as TaskInternal).decorateLogger(factory)
+}
 
-    private
-    val isExperimentalWarningEnabled by lazy(NONE) {
-        experimentalWarning.get()
-    }
 
-    override fun warn(message: String) {
-        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
-            if (isExperimentalWarningEnabled) {
-                delegate.warn(kotlinDslPluginExperimentalWarning(target, link))
-            }
-        } else {
-            delegate.warn(message)
-        }
+private
+fun newRewriter(experimentalWarning: Provider<Boolean>, target: String, link: String) = { message: String ->
+    if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
+        if (experimentalWarning.get()) kotlinDslPluginExperimentalWarning(target, link)
+        else null
+    } else {
+        message
     }
 }
 

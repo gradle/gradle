@@ -29,6 +29,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -136,7 +137,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
-    private Logger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
+    private DefaultContextAwareTaskLogger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
 
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
@@ -472,8 +473,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void replaceLogger(Logger logger) {
-        this.logger = logger;
+    public void decorateLogger(Transformer<Logger, Logger> factory) {
+        logger.decorateDelegate(factory);
     }
 
     @Override
