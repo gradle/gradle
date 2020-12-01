@@ -53,7 +53,7 @@ public abstract class AutoDetectingInstallationSupplier implements InstallationS
 
     protected abstract Set<InstallationLocation> findCandidates();
 
-    private boolean isAutoDetectionEnabled() {
+    protected boolean isAutoDetectionEnabled() {
         return detectionEnabled.getOrElse(true);
     }
 
