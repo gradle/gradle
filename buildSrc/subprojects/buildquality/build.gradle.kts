@@ -13,6 +13,7 @@ dependencies {
     }
     implementation("com.github.javaparser:javaparser-symbol-solver-core")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
+    implementation(kotlin("gradle-plugin"))
     implementation("com.diffplug.spotless:spotless-plugin-gradle") {
         exclude(group = "org.codehaus.groovy", module = "groovy-xml")
     }

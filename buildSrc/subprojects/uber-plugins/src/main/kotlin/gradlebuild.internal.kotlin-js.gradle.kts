@@ -42,7 +42,11 @@ kotlin {
 
 tasks {
     withType<KotlinJsCompile>().configureEach {
-        kotlinOptions.allWarningsAsErrors = true
+        kotlinOptions {
+            allWarningsAsErrors = true
+            metaInfo = false
+            moduleKind = "plain"
+        }
     }
 
     val ktlintCheckTasks = withType<KtlintCheckTask>()
