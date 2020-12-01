@@ -141,8 +141,8 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
         excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
 
         title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
-        destinationDir = binaryCompatibilityReportDir
-        reportName = binaryCompatibilityReport
+        destinationDir = file("$buildDir/reports/binary-compatibility")
+        reportName = "report.html"
         description = """
             <p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">documentation</a> for more details.</p>
             <p>
