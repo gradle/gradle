@@ -116,15 +116,36 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private List<Test> configureBuildForTestTasks(GradleInternal rootBuild, TestExecutionRequestAction testExecutionRequest) {
-        final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
-        BuildStateRegistry buildStateRegistry = rootBuild.getServices().get(BuildStateRegistry.class);
-        Map<String, GradleInternal> includedBuilds = new LinkedHashMap<>();
-        for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
-            includedBuilds.put(includedBuild.getIdentityPath().getPath(), includedBuild.getBuild());
-        }
+    private static List<Test> configureBuildForTestTasks(GradleInternal rootBuild, TestExecutionRequestAction testExecutionRequest) {
+        List<ContainerAwareTaskPath> testTaskPaths = collectTaskPaths(rootBuild, testExecutionRequest);
 
-        Map<String, GradleInternal> testTaskPaths = new LinkedHashMap<>();
+        List<Test> testTasksToRun = new ArrayList<>();
+        for (ContainerAwareTaskPath testTaskPath : testTaskPaths) {
+            Set<Test> tasks = lookupTestTasks(testTaskPath);
+            for (Test testTask : tasks) {
+                final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
+                for (InternalTestDescriptor testDescriptor : testDescriptors) {
+                    DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
+                    if (defaultTestDescriptor.getTaskPath().equals(testTaskPath.getPath())) {
+                        String className = defaultTestDescriptor.getClassName();
+                        String methodName = defaultTestDescriptor.getMethodName();
+                        if (className == null && methodName == null) {
+                            testTask.getFilter().includeTestsMatching("*");
+                        } else {
+                            testTask.getFilter().includeTest(className, methodName);
+                        }
+                    }
+                }
+                testTasksToRun.add(testTask);
+            }
+        }
+        return testTasksToRun;
+    }
+
+    private static List<ContainerAwareTaskPath> collectTaskPaths(GradleInternal rootBuild, TestExecutionRequestAction testExecutionRequest) {
+        Map<String, GradleInternal> includedBuilds = getIncludedBuilds(rootBuild);
+
+        List<ContainerAwareTaskPath> testTaskPaths = new ArrayList<>();
         for (InternalTestDescriptor testDescriptor : testExecutionRequest.getTestExecutionDescriptors()) {
             DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
             String buildIdentityPath = defaultTestDescriptor.getBuildIdentityPath();
@@ -133,48 +154,44 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
                 if (includedBuild == null) {
                     throw new IllegalStateException("Build operation references nonexisting included build: " + buildIdentityPath);
                 }
-                testTaskPaths.put(defaultTestDescriptor.getTaskPath(), includedBuild);
+                testTaskPaths.add(new ContainerAwareTaskPath(defaultTestDescriptor.getTaskPath(), includedBuild));
             } else {
-                testTaskPaths.put(defaultTestDescriptor.getTaskPath(), rootBuild);
+                testTaskPaths.add(new ContainerAwareTaskPath(defaultTestDescriptor.getTaskPath(), rootBuild));
             }
         }
+        return testTaskPaths;
+    }
 
-        List<Test> testTasksToRun = new ArrayList<>();
-        for (final Map.Entry<String, GradleInternal> testTaskPath : testTaskPaths.entrySet()) {
-            Set<Task> tasks;
-            try {
-                TaskSelector taskSelector = testTaskPath.getValue().getServices().get(TaskSelector.class);
-                TaskSelection taskSelection = taskSelector.getSelection(testTaskPath.getKey());
-                tasks = taskSelection.getTasks();
-            } catch (TaskSelectionException e) {
-                throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath.getKey()));
-            }
-
-            if (tasks.isEmpty()) {
-                throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
-            }
-            for (Task task : tasks) {
-                if (!(task instanceof Test)) {
-                    throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
-                } else {
-                    Test testTask = (Test) task;
-                    for (InternalTestDescriptor testDescriptor : testDescriptors) {
-                        DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
-                        if (defaultTestDescriptor.getTaskPath().equals(testTaskPath.getKey())) {
-                            String className = defaultTestDescriptor.getClassName();
-                            String methodName = defaultTestDescriptor.getMethodName();
-                            if (className == null && methodName == null) {
-                                testTask.getFilter().includeTestsMatching("*");
-                            } else {
-                                testTask.getFilter().includeTest(className, methodName);
-                            }
-                        }
-                    }
-                    testTasksToRun.add(testTask);
-                }
-            }
+    private static Set<Test> lookupTestTasks(ContainerAwareTaskPath testTaskPath) {
+        Set<Task> tasks;
+        String path = testTaskPath.getPath();
+        try {
+            TaskSelector taskSelector = testTaskPath.getGradle().getServices().get(TaskSelector.class);
+            TaskSelection taskSelection = taskSelector.getSelection(path);
+            tasks = taskSelection.getTasks();
+        } catch (TaskSelectionException e) {
+            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", path));
         }
-        return testTasksToRun;
+        if (tasks.isEmpty()) {
+            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", path));
+        }
+        Set<Test> testTasks = new LinkedHashSet<>();
+        for (Task task : tasks) {
+            if (!(task instanceof Test)) {
+                throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
+            }
+            testTasks.add((Test) task);
+        }
+        return testTasks;
+    }
+
+    private static Map<String, GradleInternal> getIncludedBuilds(GradleInternal rootBuild) {
+        BuildStateRegistry buildStateRegistry = rootBuild.getServices().get(BuildStateRegistry.class);
+        Map<String, GradleInternal> includedBuilds = new LinkedHashMap<>();
+        for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
+            includedBuilds.put(includedBuild.getIdentityPath().getPath(), includedBuild.getBuild());
+        }
+        return includedBuilds;
     }
 
     private List<Test> configureBuildForInternalJvmTestRequest(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest) {
@@ -197,5 +214,24 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             tasksToExecute.addAll(testTasks);
         }
         return tasksToExecute;
+    }
+
+    private static class ContainerAwareTaskPath {
+        private final String path;
+        private final GradleInternal gradle;
+
+        public ContainerAwareTaskPath(String path, GradleInternal gradle) {
+
+            this.path = path;
+            this.gradle = gradle;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public GradleInternal getGradle() {
+            return gradle;
+        }
     }
 }
