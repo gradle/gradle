@@ -28,15 +28,9 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Pair;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -83,9 +77,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private Spec<? super Task> filter = Specs.satisfyAll();
-    private final RelatedLocations producedDirectories = new RelatedLocations();
-    private final RelatedLocations consumedDirectories = new RelatedLocations();
-
+    private final ConsumedAndProducedLocations consumedAndProducedLocations;
     private boolean continueOnFailure;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
@@ -97,10 +89,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
+    public DefaultExecutionPlan(
+        String displayName,
+        TaskNodeFactory taskNodeFactory,
+        TaskDependencyResolver dependencyResolver,
+        ConsumedAndProducedLocations consumedAndProducedLocations
+    ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
+        this.consumedAndProducedLocations = consumedAndProducedLocations;
     }
 
     @Override
@@ -496,8 +494,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         reachableCache.clear();
         dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
-        consumedDirectories.clear();
-        producedDirectories.clear();
+        consumedAndProducedLocations.clear();
     }
 
     @Override
@@ -578,9 +575,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.allDependenciesSuccessful()) {
                     node.startExecution(this::recordNodeExecutionStarted);
-                    if (node instanceof LocalTaskNode) {
-                        ((LocalTaskNode) node).setValidationAction(() -> detectMissingDependencies((LocalTaskNode) node));
-                    }
                 } else {
                     node.skipExecution(this::recordNodeCompleted);
                 }
@@ -645,7 +639,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         MutationInfo mutations = node.getMutationInfo();
         if (!mutations.resolved) {
             node.resolveMutations();
-            producedDirectories.recordRelatedToNode(node, mutations.outputPaths);
+            consumedAndProducedLocations.getProducedDirectories().recordRelatedToNode(node, mutations.outputPaths);
         }
         return mutations;
     }
@@ -816,72 +810,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             unlockProjectFor(node);
             unlockSharedResourcesFor(node);
         }
-    }
-
-    private void detectMissingDependencies(LocalTaskNode node) {
-        for (String outputPath : node.getMutationInfo().outputPaths) {
-            consumedDirectories.getNodesRelatedTo(outputPath).stream()
-                .filter(consumerNode -> missesDependency(node, consumerNode))
-                .forEach(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
-        }
-        Set<String> consumedLocations = new LinkedHashSet<>();
-        node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-                @Override
-                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    contents.forEach(location -> consumedLocations.add(location.getAbsolutePath()));
-                }
-
-                @Override
-                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    fileTree.forEach(location -> consumedLocations.add(location.getAbsolutePath()));
-                }
-
-                @Override
-                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                    consumedLocations.add(root.getAbsolutePath());
-                }
-
-                @Override
-                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    consumedLocations.add(file.getAbsolutePath());
-                }
-            }));
-        consumedDirectories.recordRelatedToNode(node, consumedLocations);
-        for (String consumedLocation : consumedLocations) {
-            producedDirectories.getNodesRelatedTo(consumedLocation).stream()
-                .filter(producerNode -> missesDependency(producerNode, node))
-                .forEach(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
-        }
-    }
-
-    private void emitMissingDependencyDeprecationWarning(Node producer, Node consumer) {
-        DeprecationLogger.deprecateBehaviour(String.format("%s consumes the output of %s, but does not declare a dependency.", consumer, producer)).willBeRemovedInGradle7().undocumented().nagUser();
-    }
-
-    private boolean missesDependency(Node producer, Node consumer) {
-        if (consumer == producer) {
-            return false;
-        }
-        if (consumer.getDependencySuccessors().contains(producer)) {
-            return false;
-        }
-        for (Node dependency : consumer.getAllSuccessors()) {
-            if (dependency == producer || dependency.getDependencySuccessors().contains(producer)) {
-                return false;
-            }
-        }
-        // Do a deep search
-        ArrayDeque<Node> queue = new ArrayDeque<>();
-        consumer.getAllSuccessors().forEach(queue::add);
-        while (!queue.isEmpty()) {
-            Node dependency = queue.removeFirst();
-            if (dependency == producer) {
-                return false;
-            }
-            dependency.getAllSuccessors().forEach(queue::add);
-        }
-        return true;
     }
 
     private static void enforceFinalizers(Node node) {

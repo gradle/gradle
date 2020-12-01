@@ -40,6 +40,7 @@ import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
+import org.gradle.execution.plan.ConsumedAndProducedLocations
 import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
 import org.gradle.execution.plan.LocalTaskNode
@@ -78,7 +79,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
-    def executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver)
+    def executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ConsumedAndProducedLocations())
     def taskGraph = new DefaultTaskExecutionGraph(
         new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService),
         [nodeExecutor],
@@ -547,7 +548,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         final Task a = task("a", task("a-dep"))
         Task b = task("b")
         Spec<Task> spec = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
+            boolean isSatisfiedBy(Task element) {
                 return element != a
             }
         }
@@ -573,7 +574,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task b = task("b")
         Task c = task("c", a, b)
         Spec<Task> spec = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
+            boolean isSatisfiedBy(Task element) {
                 return element != a
             }
         }
