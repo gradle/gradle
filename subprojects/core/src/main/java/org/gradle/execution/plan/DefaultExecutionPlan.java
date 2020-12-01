@@ -578,10 +578,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     continue;
                 }
 
-                detectMissingDependencies(node);
-
                 if (node.allDependenciesSuccessful()) {
                     node.startExecution(this::recordNodeExecutionStarted);
+                    detectMissingDependencies(node);
                 } else {
                     node.skipExecution(this::recordNodeCompleted);
                 }
@@ -821,40 +820,50 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private void detectMissingDependencies(Node node) {
         if (node instanceof LocalTaskNode) {
-            for (String outputPath : node.getMutationInfo().outputPaths) {
-                consumedDirectories.getNodesRelatedTo(outputPath).stream()
-                    .filter(consumerNode -> missesDependency(node, consumerNode))
-                    .forEach(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
-            }
-            Set<File> consumedFiles = new LinkedHashSet<>();
-            ((LocalTaskNode) node).getTaskProperties().getInputFileProperties()
-                .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-                    @Override
-                    public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                        contents.forEach(consumedFiles::add);
-                    }
+            try {
+                for (String outputPath : node.getMutationInfo().outputPaths) {
+                    consumedDirectories.getNodesRelatedTo(outputPath).stream()
+                        .filter(consumerNode -> missesDependency(node, consumerNode))
+                        .forEach(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
+                }
+                Set<File> consumedFiles = new LinkedHashSet<>();
+                ((LocalTaskNode) node).getTaskProperties().getInputFileProperties()
+                    .forEach(spec -> {
+                        try {
+                            spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
+                                @Override
+                                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                                    contents.forEach(consumedFiles::add);
+                                }
 
-                    @Override
-                    public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                        fileTree.forEach(consumedFiles::add);
-                    }
+                                @Override
+                                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                                    fileTree.forEach(consumedFiles::add);
+                                }
 
-                    @Override
-                    public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                        consumedFiles.add(root);
-                    }
+                                @Override
+                                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                                    consumedFiles.add(root);
+                                }
 
-                    @Override
-                    public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                        consumedFiles.add(file);
-                    }
-                }));
-            for (File consumedFile : consumedFiles) {
-                String consumedLocation = consumedFile.getAbsolutePath();
-                producedDirectories.getNodesRelatedTo(consumedLocation).stream()
-                    .filter(producerNode -> missesDependency(producerNode, node))
-                    .forEach(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
-                consumedDirectories.recordRelatedToNode(node, Collections.singleton(consumedLocation));
+                                @Override
+                                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                                    consumedFiles.add(file);
+                                }
+                            });
+                        } catch (Throwable t) {
+                            LOGGER.debug("Problems resolving input file property {} of {}", spec.getPropertyName(), node, t);
+                        }
+                    });
+                for (File consumedFile : consumedFiles) {
+                    String consumedLocation = consumedFile.getAbsolutePath();
+                    producedDirectories.getNodesRelatedTo(consumedLocation).stream()
+                        .filter(producerNode -> missesDependency(producerNode, node))
+                        .forEach(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
+                    consumedDirectories.recordRelatedToNode(node, Collections.singleton(consumedLocation));
+                }
+            } catch (Throwable t) {
+                LOGGER.warn("Error while checking for missing dependencies", t);
             }
         }
     }
