@@ -375,7 +375,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     @ToolingApiVersion(">=6.8")
-    def "Can launch test from included build via build operation"() {
+    def "Can launch test with test launcher via build operation"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
@@ -424,7 +424,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     @ToolingApiVersion(">=6.8")
-    def "Can launch test from included build via test launcher"() {
+    def "Can launch test with test launcher via test filter"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
@@ -458,6 +458,47 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
             def testLauncher = connection.newTestLauncher()
             collectOutputs(testLauncher)
             testLauncher.withJvmTestClasses("MyIncludedTest").run()
+        }
+
+        then:
+        outputContains("BUILD SUCCESSFUL")
+    }
+
+    @ToolingApiVersion(">=6.8")
+    def "Can launch test with test launcher via test filter targeting a specific task"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+             ${mavenCentralRepository()}
+
+             dependencies { testImplementation 'junit:junit:4.13' }
+        """
+        file("other-build/sub/src/test/java/MyIncludedTest.java") << """
+            import org.junit.Test;
+            import static org.junit.Assert.assertTrue;
+
+            public class MyIncludedTest {
+
+                @Test
+                public void myTestMethod() {
+                    assertTrue(true);
+                }
+            }
+        """
+
+        when:
+        withConnection { connection ->
+            def testLauncher = connection.newTestLauncher()
+            collectOutputs(testLauncher)
+            testLauncher.withTaskAndTestClasses(":other-build:sub:test", ["MyIncludedTest"]).run()
         }
 
         then:
