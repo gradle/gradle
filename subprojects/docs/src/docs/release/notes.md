@@ -319,6 +319,23 @@ dependencyResolutionManagement {
 
 You can learn more about declaring rules globally in the [user manual](userguide/component_metadata_rules.html#sec:rules_in_settings).
 
+### Locking of Gradle settings dependencies
+
+[Dependency locking](userguide/dependency_locking.html) makes builds using dynamic versions deterministic.
+
+So far you could lock dependency configurations from your project or from the project buildscript classpath.
+This release adds support to lock configurations from the [Gradle `settings.gradle(.kts)`](userguide/build_lifecycle.html#sec:settings_file):
+
+```
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+```
+
+See the documentation for more details on [locking settings configurations](userguide/dependency_locking.html#locking_settings_classpath_configuration).
+
 <a name="other-improvements"></a>
 ## Other improvements
 
