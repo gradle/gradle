@@ -56,6 +56,18 @@ tasks.assemble {
     dependsOn(assembleReport)
 }
 
+configurations.create("configurationCacheReport") {
+    isVisible = false
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report"))
+    }
+    outgoing.artifact(assembleReport)
+}
+
 val stageDir = layout.buildDirectory.dir("stageDevReport")
 
 val stageDevReport by tasks.registering(Sync::class) {

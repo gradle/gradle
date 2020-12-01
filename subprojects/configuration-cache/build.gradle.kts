@@ -5,33 +5,40 @@ plugins {
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
 }
 
-tasks {
-    withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            freeCompilerArgs += listOf(
-                "-XXLanguage:+NewInference",
-                "-XXLanguage:+SamConversionForKotlinFunctions"
-            )
-        }
-    }
+val configurationCacheReportPath by configurations.creating {
+    isVisible = false
+    isCanBeConsumed = false
+    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
+}
 
-    processResources {
-        from({ project(":configuration-cache-report").tasks.named("assembleReport") }) {
-            into("org/gradle/configurationcache")
-        }
-    }
+dependencies {
+    configurationCacheReportPath(project(":configuration-cache-report"))
+}
 
-    configCacheIntegTest {
-        enabled = false
+tasks.processResources {
+    from(configurationCacheReportPath) { into("org/gradle/configurationcache") }
+}
+
+// The integration tests in this project do not need to run in 'config cache' mode.
+tasks.configCacheIntegTest {
+    enabled = false
+}
+
+// The same options should eventually be used for all Kotlin sources.
+// When ready, move these to 'gradlebuild.kotlin-library' and adjust sources where needed.
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs += listOf(
+            "-XXLanguage:+NewInference",
+            "-XXLanguage:+SamConversionForKotlinFunctions"
+        )
     }
 }
 
-afterEvaluate {
-    // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
-    // For the current project, we simply disable it since there are no tasks in there.
-    tasks.withType<ValidatePlugins>().configureEach {
-        enabled = false
-    }
+// This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
+// For the current project, we simply disable it since there are no tasks in there.
+tasks.withType<ValidatePlugins>().configureEach {
+    enabled = false
 }
 
 dependencies {
