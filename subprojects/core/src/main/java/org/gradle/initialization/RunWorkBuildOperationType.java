@@ -23,7 +23,7 @@ public class RunWorkBuildOperationType implements BuildOperationType<RunWorkBuil
         /**
          * @since 6.8
          */
-        String getBuildPath();
+        String getBuildIdentityPath();
     }
 
     public interface Result {

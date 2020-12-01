@@ -32,9 +32,9 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     private final String methodName;
     private final Object parentId;
     private String taskPath;
-    private final String buildId;
+    private final String buildIdentityPath;
 
-    public DefaultTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId, String taskPath, String buildId) {
+    public DefaultTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId, String taskPath, String buildIdentityPath) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -44,7 +44,7 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         this.methodName = methodName;
         this.parentId = parentId;
         this.taskPath = taskPath;
-        this.buildId = buildId;
+        this.buildIdentityPath = buildIdentityPath;
     }
 
     @Override
@@ -91,7 +91,12 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         return taskPath;
     }
 
+    /**
+     * The identity path of the build that executed this test.
+     *
+     * @return the identity path of the build of {@code null} for the root build.
+     */
     public String getBuildIdentityPath() {
-        return buildId;
+        return buildIdentityPath;
     }
 }

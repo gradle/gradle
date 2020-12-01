@@ -127,11 +127,11 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         Map<String, GradleInternal> testTaskPaths = new LinkedHashMap<>();
         for (InternalTestDescriptor testDescriptor : testExecutionRequest.getTestExecutionDescriptors()) {
             DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
-            String buildId = defaultTestDescriptor.getBuildIdentityPath();
-            if (buildId != null) {
-                GradleInternal includedBuild = includedBuilds.get(buildId);
+            String buildIdentityPath = defaultTestDescriptor.getBuildIdentityPath();
+            if (buildIdentityPath != null) {
+                GradleInternal includedBuild = includedBuilds.get(buildIdentityPath);
                 if (includedBuild == null) {
-                    throw new IllegalStateException("Build operation references nonexisting included build: " + buildId);
+                    throw new IllegalStateException("Build operation references nonexisting included build: " + buildIdentityPath);
                 }
                 testTaskPaths.put(defaultTestDescriptor.getTaskPath(), includedBuild);
             } else {

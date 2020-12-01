@@ -57,7 +57,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildEventSubscriptions clientSubscriptions;
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
-    private final Map<Object, String> includedBuildIds = Maps.newConcurrentMap();
+    private final Map<Object, String> includedBuildIdentityPaths = Maps.newConcurrentMap();
 
     ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildOperationAncestryTracker ancestryTracker, BuildEventSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
@@ -70,7 +70,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         if (buildOperation.getMetadata().equals(BuildOperationCategory.RUN_WORK)) {
             Object details = buildOperation.getDetails();
             if (details instanceof RunWorkBuildOperationType.Details) {
-                includedBuildIds.put(buildOperation.getId(), ((RunWorkBuildOperationType.Details)details).getBuildPath());
+                includedBuildIdentityPaths.put(buildOperation.getId(), ((RunWorkBuildOperationType.Details)details).getBuildIdentityPath());
             }
         }
 
@@ -116,8 +116,8 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         String methodName = null;
         Object parentId = getParentId(buildOperationId, suite);
         String testTaskPath = getTaskPath(buildOperationId);
-        String buildId = getBuildId(buildOperationId);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suite.getName(), className, methodName, parentId, testTaskPath, buildId);
+        String buildIdentityPath = getBuildIdentityPath(buildOperationId);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suite.getName(), className, methodName, parentId, testTaskPath, buildIdentityPath);
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, TestDescriptorInternal test) {
@@ -129,8 +129,8 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         String methodName = test.getName();
         Object parentId = getParentId(buildOperationId, test);
         String taskPath = getTaskPath(buildOperationId);
-        String buildId = getBuildId(buildOperationId);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, null, className, methodName, parentId, taskPath, buildId);
+        String buildIdentityPath = getBuildIdentityPath(buildOperationId);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, null, className, methodName, parentId, taskPath, buildIdentityPath);
     }
 
     @Nullable
@@ -138,8 +138,8 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get).orElse(null);
     }
 
-    private String getBuildId(OperationIdentifier buildOperationId) {
-        return ancestryTracker.findClosestExistingAncestor(buildOperationId, includedBuildIds::get).orElse(null);
+    private String getBuildIdentityPath(OperationIdentifier buildOperationId) {
+        return ancestryTracker.findClosestExistingAncestor(buildOperationId, includedBuildIdentityPaths::get).orElse(null);
     }
 
     private Object getParentId(OperationIdentifier buildOperationId, TestDescriptorInternal descriptor) {

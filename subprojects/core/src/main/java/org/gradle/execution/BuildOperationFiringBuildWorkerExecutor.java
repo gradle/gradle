@@ -75,7 +75,7 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
             builder.totalProgress(gradle.getTaskGraph().size());
             return builder.details(new RunWorkBuildOperationType.Details() {
                 @Override
-                public String getBuildPath() {
+                public String getBuildIdentityPath() {
                     return gradle.getIdentityPath().toString();
                 }
             });
