@@ -102,8 +102,4 @@ public interface BuildStateRegistry {
      * Creates a new standalone nested build tree.
      */
     NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
-
-    void registerBuildLogicBuild(BuildDefinition registration);
-
-    Collection<IncludedBuildState> getBuildLogicBuilds();
 }

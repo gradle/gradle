@@ -16,7 +16,7 @@
 
 package org.gradle.composite.internal.plugins;
 
-import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -35,11 +35,11 @@ public class EarlyCompositeBuildPluginResolverContributor implements PluginResol
 
     private static final String SOURCE_DESCRIPTION = "Early configured Included Builds";
 
-    private final BuildStateRegistry buildRegistry;
+    private final BuildIncluder buildIncluder;
     private final Map<PluginId, PluginResolution> results = new HashMap<>();
 
-    public EarlyCompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry) {
-        this.buildRegistry = buildRegistry;
+    public EarlyCompositeBuildPluginResolverContributor(BuildIncluder buildIncluder) {
+        this.buildIncluder = buildIncluder;
     }
 
     @Override
@@ -62,7 +62,7 @@ public class EarlyCompositeBuildPluginResolverContributor implements PluginResol
         }
 
         private PluginResolution resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
-            for (IncludedBuildState build : buildRegistry.getBuildLogicBuilds()) {
+            for (IncludedBuildState build : buildIncluder.includeRegisteredBuildLogicBuilds()) {
                 // ensure the build is configured - this finds and registers any plugin publications the build may have
                 build.getConfiguredBuild();
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));

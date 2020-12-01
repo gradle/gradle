@@ -60,8 +60,6 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         succeeds()
     }
 
-    // Currently included build included in another included build is only included in the root project - same behavior as with regular included builds
-    @NotYetImplemented
     def "nested included build logic build can contribute build logic to including included build"() {
         given:
         settingsFile << """
@@ -96,7 +94,8 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
     }
 
 
-    // To be decided if we want the transitivity to work or not. Currently all the included builds are included into root project
+    // To be decided if we want the transitivity to work or not. Currently all the included builds are visible by the root project
+    @NotYetImplemented
     def "nested included build logic build can contribute build logic to the root build"() {
         given:
         settingsFile << """
@@ -125,8 +124,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         outputContains("logic-2 project plugin applied")
     }
 
-    // To be decided if we want the transitivity to work or not. Currently all the included builds are included into root project
-    @NotYetImplemented
+    // To be decided if we want the transitivity to work or not. Currently all the included builds are visible by the root project
     def "included build logic builds are not visible transitively"() {
         given:
         settingsFile << """

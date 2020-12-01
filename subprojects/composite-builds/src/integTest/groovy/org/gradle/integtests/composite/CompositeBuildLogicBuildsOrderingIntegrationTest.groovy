@@ -47,11 +47,14 @@ class CompositeBuildLogicBuildsOrderingIntegrationTest extends AbstractComposite
         outputContains("logic-2 project plugin applied")
     }
 
-    // in the current implementation, we fall back to configuring all including builds when a plugin is not found - this results in all the publications from included builds becoming visible everywhere
-    // what we want: only the build that includes should see plugins from the included build
-    @NotYetImplemented
     def "first included build can not see plugins contributed to root by second included build"() {
         when:
+        buildFile << """
+            plugins {
+                id("logic-1.project-plugin")
+            }
+        """
+
         file("logic-1/build.gradle").setText("""
             plugins {
                 id("groovy-gradle-plugin")
@@ -64,11 +67,17 @@ class CompositeBuildLogicBuildsOrderingIntegrationTest extends AbstractComposite
         failureDescriptionContains("Plugin [id: 'logic-2.project-plugin'] was not found in any of the following sources:")
     }
 
-    // in the current implementation, we fall back to configuring all including builds when a plugin is not found - this results in all the publications from included builds becoming visible everywhere
+    // currently the second included build can see plugins from the build that was included first by the root - order of inclusion matters
     // what we want: only the build that includes should see plugins from the included build
     @NotYetImplemented
     def "second included build can not see plugins contributed to root by first included build"() {
         when:
+        buildFile << """
+            plugins {
+                id("logic-2.project-plugin")
+            }
+        """
+
         file("logic-2/build.gradle").setText("""
             plugins {
                 id("groovy-gradle-plugin")

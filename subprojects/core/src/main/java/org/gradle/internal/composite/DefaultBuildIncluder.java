@@ -26,11 +26,17 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.management.internal.PluginRequests;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class DefaultBuildIncluder implements BuildIncluder {
 
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
     private final Instantiator instantiator;
+    private final List<BuildDefinition> buildLogicBuildDefinitions = new ArrayList<>();
 
     public DefaultBuildIncluder(BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
         this.buildRegistry = buildRegistry;
@@ -45,7 +51,12 @@ public class DefaultBuildIncluder implements BuildIncluder {
 
     @Override
     public void registerBuildLogicBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
-        buildRegistry.registerBuildLogicBuild(toBuildDefinition(includedBuildSpec, gradle));
+        buildLogicBuildDefinitions.add(toBuildDefinition(includedBuildSpec, gradle));
+    }
+
+    @Override
+    public Collection<IncludedBuildState> includeRegisteredBuildLogicBuilds() {
+        return buildLogicBuildDefinitions.stream().map(buildRegistry::addIncludedBuild).collect(Collectors.toList());
     }
 
     private BuildDefinition toBuildDefinition(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
