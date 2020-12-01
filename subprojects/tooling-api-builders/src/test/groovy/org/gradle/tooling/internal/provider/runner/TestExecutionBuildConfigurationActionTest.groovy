@@ -29,6 +29,7 @@ import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
@@ -46,6 +47,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     ProjectInternal projectInternal
     ServiceRegistry serviceRegistry = Mock()
     TaskSelector taskSelector = Mock()
+    BuildStateRegistry buildStateRegistry = Mock()
     Test testTask
     TaskContainerInternal tasksContainerInternal
     TestFilter testFilter
@@ -71,6 +73,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         debugOptions.isDebugMode() >> false
         testExecutionRequest.getDebugOptions() >> debugOptions
 
+        buildStateRegistry.getIncludedBuilds() >> []
         setupProject()
         setupTestTask()
     }
@@ -81,6 +84,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         _ * gradleInternal.getRootProject() >> projectInternal
         _ * gradleInternal.getServices() >> serviceRegistry
         _ * serviceRegistry.get(TaskSelector) >> taskSelector
+        _ * serviceRegistry.get(BuildStateRegistry) >> buildStateRegistry
     }
 
     def "empty test execution request configures no tasks"() {

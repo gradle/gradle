@@ -117,13 +117,13 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     }
 
     private static List<Test> configureBuildForTestTasks(GradleInternal rootBuild, TestExecutionRequestAction testExecutionRequest) {
-        List<ContainerAwareTaskPath> testTaskPaths = collectTaskPaths(rootBuild, testExecutionRequest);
+        final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
+        List<ContainerAwareTaskPath> testTaskPaths = collectTaskPaths(rootBuild, testDescriptors);
 
         List<Test> testTasksToRun = new ArrayList<>();
         for (ContainerAwareTaskPath testTaskPath : testTaskPaths) {
             Set<Test> tasks = lookupTestTasks(testTaskPath);
             for (Test testTask : tasks) {
-                final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
                     if (defaultTestDescriptor.getTaskPath().equals(testTaskPath.getPath())) {
@@ -142,11 +142,11 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private static List<ContainerAwareTaskPath> collectTaskPaths(GradleInternal rootBuild, TestExecutionRequestAction testExecutionRequest) {
+    private static List<ContainerAwareTaskPath> collectTaskPaths(GradleInternal rootBuild, Collection<InternalTestDescriptor> testDescriptors) {
         Map<String, GradleInternal> includedBuilds = getIncludedBuilds(rootBuild);
 
         List<ContainerAwareTaskPath> testTaskPaths = new ArrayList<>();
-        for (InternalTestDescriptor testDescriptor : testExecutionRequest.getTestExecutionDescriptors()) {
+        for (InternalTestDescriptor testDescriptor : testDescriptors) {
             DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
             String buildIdentityPath = defaultTestDescriptor.getBuildIdentityPath();
             if (buildIdentityPath != null) {
