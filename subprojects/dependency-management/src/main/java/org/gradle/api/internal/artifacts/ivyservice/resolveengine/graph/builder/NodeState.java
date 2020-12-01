@@ -244,7 +244,7 @@ public class NodeState implements DependencyGraphNode {
         }
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
-        if (transitiveEdgeCount == 0 && !isRoot() && !metaData.isExternalVariant()) {
+        if (transitiveEdgeCount == 0 && !isRoot() && canIgnoreExternalVariant()) {
             handleNonTransitiveNode(discoveredEdges);
             return;
         }
@@ -279,6 +279,19 @@ public class NodeState implements DependencyGraphNode {
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
+    }
+
+    private boolean canIgnoreExternalVariant() {
+        if (!metaData.isExternalVariant()) {
+            return true;
+        }
+        // We need to ignore external variants when all edges are artifact ones
+        for (EdgeState incomingEdge : incomingEdges) {
+            if (!incomingEdge.isArtifactOnlyEdge()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /*
@@ -1230,7 +1243,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ResolvedVariantResult findExternalVariant() {
-        if (!metaData.isExternalVariant()) {
+        if (canIgnoreExternalVariant()) {
             return null;
         }
         // An external variant must have exactly one outgoing edge

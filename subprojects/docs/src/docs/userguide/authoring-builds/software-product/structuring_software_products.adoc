@@ -1,4 +1,4 @@
-= Structuring and Building a Software Product with Gradle
+= Structuring large Projects
 
 As software projects grow, it is common to organize large systems into components that are connected following a certain software architecture.
 Usually, it makes sense to also organize the artifacts (source code etc.) that make up the software in repositories and folder structures that reflect component boundaries and architecture.
