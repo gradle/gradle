@@ -20,6 +20,8 @@ import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.types.DefaultTaskDescriptor
 import org.gradle.internal.build.event.types.DefaultTaskFailureResult
@@ -36,6 +38,7 @@ import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -54,8 +57,20 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         signalBuildFinished()
     }
 
+    def "onTaskCompletion listener must be a BuildService"() {
+        given:
+        def illegalListener = Mock(OperationCompletionListener)
+
+        when:
+        registry.onTaskCompletion(Providers.of(illegalListener))
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith "'onTaskCompletion' listener provider must be a registered '$BuildService.name' provider"
+    }
+
     def "listener can receive task finish events"() {
-        def listener = Mock(OperationCompletionListener)
+        def listener = Mock(OperationCompletionListenerBuildService)
         def provider = Providers.of(listener)
         def success = taskFinishEvent()
         def failure = failedTaskFinishEvent()
@@ -111,7 +126,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     }
 
     def "does nothing when listener is already subscribed"() {
-        def listener = Mock(OperationCompletionListener)
+        def listener = Mock(OperationCompletionListenerBuildService)
         def provider = Providers.of(listener)
 
         when:
@@ -123,14 +138,20 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     }
 
     def "listeners receive events concurrently"() {
-        def listener1 = {
-            thread.blockUntil.received
-            instant.handled
-        } as OperationCompletionListener
-        def listener2 = {
-            instant.received
-            thread.blockUntil.handled
-        } as OperationCompletionListener
+        def listener1 = new OperationCompletionListenerBuildService() {
+            @Override
+            void onFinish(FinishEvent event) {
+                thread.blockUntil.received
+                instant.handled
+            }
+        }
+        def listener2 = new OperationCompletionListenerBuildService() {
+            @Override
+            void onFinish(FinishEvent event) {
+                instant.received
+                thread.blockUntil.handled
+            }
+        }
 
         when:
         registry.onTaskCompletion(Providers.of(listener1))
@@ -147,8 +168,8 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
 
     def "broken listener is quarantined and failure rethrown at completion of build"() {
         def failure = new RuntimeException()
-        def brokenListener = Mock(OperationCompletionListener)
-        def okListener = Mock(OperationCompletionListener)
+        def brokenListener = Mock(OperationCompletionListenerBuildService)
+        def okListener = Mock(OperationCompletionListenerBuildService)
 
         when:
         registry.onTaskCompletion(Providers.of(brokenListener))
@@ -204,6 +225,16 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
 
     private BuildOperationDescriptor descriptor() {
         new BuildOperationDescriptor(Stub(OperationIdentifier), null, "name", "name", "name", null, null, 12)
+    }
+
+    /**
+     * OperationCompletionListener instances must also be BuildService instances.
+     */
+    abstract class OperationCompletionListenerBuildService implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
+        @Override
+        BuildServiceParameters.None getParameters() {
+            return null
+        }
     }
 
     class MockBuildEventListenerFactory implements BuildEventListenerFactory {

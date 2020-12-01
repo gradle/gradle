@@ -22,6 +22,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.Cast;
@@ -59,6 +60,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static java.lang.String.format;
 
 public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
     private final BuildEventListenerFactory factory;
@@ -110,6 +113,8 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             return;
         }
 
+        requireBuildServiceProvider((ProviderInternal<?>) listenerProvider);
+
         ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(listenerProvider, executorFactory);
         subscriptions.put(listenerProvider, subscription);
 
@@ -122,6 +127,19 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             if (listener instanceof BuildOperationListener) {
                 buildOperationListenerManager.addListener((BuildOperationListener) listener);
             }
+        }
+    }
+
+    private void requireBuildServiceProvider(ProviderInternal<?> listenerProvider) {
+        Class<?> implementationType = listenerProvider.getType();
+        if (!BuildService.class.isAssignableFrom(implementationType)) {
+            throw new IllegalArgumentException(
+                format(
+                    "'onTaskCompletion' listener provider must be a registered '%s' provider, got '%s'.",
+                    BuildService.class.getName(),
+                    listenerProvider
+                )
+            );
         }
     }
 
