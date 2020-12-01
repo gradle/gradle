@@ -42,11 +42,12 @@ import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
     private final GradleInternal gradle;
@@ -61,9 +62,10 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     public void configure(BuildExecutionContext context) {
         final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
         final GradleInternal gradleInternal = context.getGradle();
+        List<GradleInternal> includedBuilds = gradleInternal.getServices().get(BuildStateRegistry.class).getIncludedBuilds().stream().map(IncludedBuildState::getBuild).collect(Collectors.toList());
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal.getServices().get(TaskSelector.class), testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForTestTasks(gradleInternal, testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, includedBuilds, testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForTestTasks(gradleInternal, includedBuilds, testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addEntryTasks(allTestTasksToRun);
     }
@@ -116,9 +118,9 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private static List<Test> configureBuildForTestTasks(GradleInternal rootBuild, TestExecutionRequestAction testExecutionRequest) {
+    private static List<Test> configureBuildForTestTasks(GradleInternal rootBuild, List<GradleInternal> includedBuilds, TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
-        List<ContainerAwareTaskPath> testTaskPaths = collectTaskPaths(rootBuild, testDescriptors);
+        List<ContainerAwareTaskPath> testTaskPaths = collectTaskPaths(rootBuild, includedBuilds, testDescriptors);
 
         List<Test> testTasksToRun = new ArrayList<>();
         for (ContainerAwareTaskPath testTaskPath : testTaskPaths) {
@@ -142,15 +144,15 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private static List<ContainerAwareTaskPath> collectTaskPaths(GradleInternal rootBuild, Collection<InternalTestDescriptor> testDescriptors) {
-        Map<String, GradleInternal> includedBuilds = getIncludedBuilds(rootBuild);
+    private static List<ContainerAwareTaskPath> collectTaskPaths(GradleInternal rootBuild, List<GradleInternal> allBuilds, Collection<InternalTestDescriptor> testDescriptors) {
+        Map<String, GradleInternal> identityPathToBuild = allBuilds.stream().collect(Collectors.toMap(b -> b.getIdentityPath().getPath(), Function.identity()));
 
         List<ContainerAwareTaskPath> testTaskPaths = new ArrayList<>();
         for (InternalTestDescriptor testDescriptor : testDescriptors) {
             DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
             String buildIdentityPath = defaultTestDescriptor.getBuildIdentityPath();
             if (buildIdentityPath != null) {
-                GradleInternal includedBuild = includedBuilds.get(buildIdentityPath);
+                GradleInternal includedBuild = identityPathToBuild.get(buildIdentityPath);
                 if (includedBuild == null) {
                     throw new IllegalStateException("Build operation references nonexisting included build: " + buildIdentityPath);
                 }
@@ -185,27 +187,16 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasks;
     }
 
-    private static Map<String, GradleInternal> getIncludedBuilds(GradleInternal rootBuild) {
-        BuildStateRegistry buildStateRegistry = rootBuild.getServices().get(BuildStateRegistry.class);
-        Map<String, GradleInternal> includedBuilds = new LinkedHashMap<>();
-        for (IncludedBuildState includedBuild : buildStateRegistry.getIncludedBuilds()) {
-            includedBuilds.put(includedBuild.getIdentityPath().getPath(), includedBuild.getBuild());
-        }
-        return includedBuilds;
-    }
-
-    private List<Test> configureBuildForInternalJvmTestRequest(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest) {
+    private List<Test> configureBuildForInternalJvmTestRequest(GradleInternal rootBuild, List<GradleInternal> includedBuilds, TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
-        if(internalJvmTestRequests.isEmpty()){
+        if (internalJvmTestRequests.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<Test> tasksToExecute = new ArrayList<>();
-        final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
-        for (Map.Entry<String, GradleInternal> entry : getIncludedBuilds(gradle).entrySet()) {
-            allprojects.addAll(entry.getValue().getRootProject().getAllprojects());
-        }
-        for (Project project : allprojects) {
+        List<Project> allProjectsInAllBuilds = includedBuilds.stream().flatMap(b -> b.getRootProject().getAllprojects().stream()).collect(Collectors.toList());
+        allProjectsInAllBuilds.addAll(rootBuild.getRootProject().getAllprojects());
+        for (Project project : allProjectsInAllBuilds) {
             final Collection<Test> testTasks = project.getTasks().withType(Test.class);
             for (Test testTask : testTasks) {
                 for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
