@@ -29,6 +29,8 @@ public interface TaskExecutionContext {
 
     TaskExecutionMode getTaskExecutionMode();
 
+    Runnable getValidationAction();
+
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 
     /**

@@ -52,6 +52,7 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
     private ImmutableSet<String> inputFileLocations;
+    private Runnable validationAction;
 
     public LocalTaskNode(TaskInternal task) {
         this.task = task;
@@ -287,5 +288,13 @@ public class LocalTaskNode extends TaskNode {
 
     public Optional<ImmutableSet<String>> getInputFileLocations() {
         return Optional.ofNullable(inputFileLocations);
+    }
+
+    public Runnable getValidationAction() {
+        return validationAction;
+    }
+
+    public void setValidationAction(Runnable validationAction) {
+        this.validationAction = validationAction;
     }
 }

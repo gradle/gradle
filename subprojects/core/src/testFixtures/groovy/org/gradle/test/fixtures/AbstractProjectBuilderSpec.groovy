@@ -66,9 +66,9 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         def taskProperties = DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal)
         // Finalize the task properties
         for (LifecycleAwareValue value : taskProperties.getLifecycleAwareValues()) {
-            value.prepareValue();
+            value.prepareValue()
         }
-        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext(null, taskProperties))
+        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext(null, taskProperties, { }))
         task.state.rethrowFailure()
     }
 }

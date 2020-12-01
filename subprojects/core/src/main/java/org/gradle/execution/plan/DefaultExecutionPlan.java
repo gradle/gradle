@@ -92,7 +92,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
-    private final Map<Pair<Node, Node>, Boolean> reachableCache2 = new HashMap<>();
     private final List<Node> dependenciesWhichRequireMonitoring = new ArrayList<>();
     private boolean maybeNodesReady;
 
@@ -499,7 +498,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         runningNodes.clear();
         consumedDirectories.clear();
         producedDirectories.clear();
-        reachableCache2.clear();
     }
 
     @Override
@@ -580,7 +578,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.allDependenciesSuccessful()) {
                     node.startExecution(this::recordNodeExecutionStarted);
-                    detectMissingDependencies(node);
+                    if (node instanceof LocalTaskNode) {
+                        ((LocalTaskNode) node).setValidationAction(() -> detectMissingDependencies((LocalTaskNode) node));
+                    }
                 } else {
                     node.skipExecution(this::recordNodeCompleted);
                 }
@@ -818,53 +818,40 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private void detectMissingDependencies(Node node) {
-        if (node instanceof LocalTaskNode) {
-            try {
-                for (String outputPath : node.getMutationInfo().outputPaths) {
-                    consumedDirectories.getNodesRelatedTo(outputPath).stream()
-                        .filter(consumerNode -> missesDependency(node, consumerNode))
-                        .forEach(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
+    private void detectMissingDependencies(LocalTaskNode node) {
+        for (String outputPath : node.getMutationInfo().outputPaths) {
+            consumedDirectories.getNodesRelatedTo(outputPath).stream()
+                .filter(consumerNode -> missesDependency(node, consumerNode))
+                .forEach(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
+        }
+        Set<String> consumedLocations = new LinkedHashSet<>();
+        node.getTaskProperties().getInputFileProperties()
+            .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
+                @Override
+                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                    contents.forEach(location -> consumedLocations.add(location.getAbsolutePath()));
                 }
-                Set<File> consumedFiles = new LinkedHashSet<>();
-                ((LocalTaskNode) node).getTaskProperties().getInputFileProperties()
-                    .forEach(spec -> {
-                        try {
-                            spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-                                @Override
-                                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                                    contents.forEach(consumedFiles::add);
-                                }
 
-                                @Override
-                                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                                    fileTree.forEach(consumedFiles::add);
-                                }
-
-                                @Override
-                                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                                    consumedFiles.add(root);
-                                }
-
-                                @Override
-                                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                                    consumedFiles.add(file);
-                                }
-                            });
-                        } catch (Throwable t) {
-                            LOGGER.debug("Problems resolving input file property {} of {}", spec.getPropertyName(), node, t);
-                        }
-                    });
-                for (File consumedFile : consumedFiles) {
-                    String consumedLocation = consumedFile.getAbsolutePath();
-                    producedDirectories.getNodesRelatedTo(consumedLocation).stream()
-                        .filter(producerNode -> missesDependency(producerNode, node))
-                        .forEach(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
-                    consumedDirectories.recordRelatedToNode(node, Collections.singleton(consumedLocation));
+                @Override
+                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                    fileTree.forEach(location -> consumedLocations.add(location.getAbsolutePath()));
                 }
-            } catch (Throwable t) {
-                LOGGER.warn("Error while checking for missing dependencies", t);
-            }
+
+                @Override
+                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                    consumedLocations.add(root.getAbsolutePath());
+                }
+
+                @Override
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                    consumedLocations.add(file.getAbsolutePath());
+                }
+            }));
+        consumedDirectories.recordRelatedToNode(node, consumedLocations);
+        for (String consumedLocation : consumedLocations) {
+            producedDirectories.getNodesRelatedTo(consumedLocation).stream()
+                .filter(producerNode -> missesDependency(producerNode, node))
+                .forEach(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
         }
     }
 

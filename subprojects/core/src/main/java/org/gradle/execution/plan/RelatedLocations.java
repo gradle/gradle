@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 public class RelatedLocations {
-    private RelatedLocation root = new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of());
+    private volatile RelatedLocation root = new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of());
 
     public Collection<Node> getNodesRelatedTo(String location) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
@@ -41,14 +41,14 @@ public class RelatedLocations {
         return builder.build();
     }
 
-    public void recordRelatedToNode(Node node, Iterable<String> locations) {
+    public synchronized void recordRelatedToNode(Node node, Iterable<String> locations) {
         for (String location : locations) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
             root = root.recordRelatedToNode(relativePath, node);
         }
     }
 
-    void clear() {
+    public synchronized void clear() {
         root = new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of());
     }
 
