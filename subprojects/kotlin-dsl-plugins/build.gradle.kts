@@ -72,7 +72,6 @@ classycle {
     excludePatterns.set(listOf("org/gradle/kotlin/dsl/plugins/base/**"))
 }
 
-// plugins ------------------------------------------------------------
 pluginPublish {
     bundledGradlePlugin(
         name = "embeddedKotlin",
@@ -110,13 +109,6 @@ pluginPublish {
     )
 }
 
-// TODO:kotlin-dsl investigate
-// See https://builds.gradle.org/viewLog.html?buildId=19024848&problemId=23230
-tasks.noDaemonIntegTest {
-    enabled = false
-}
-
-// TODO:kotlin-dsl
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
