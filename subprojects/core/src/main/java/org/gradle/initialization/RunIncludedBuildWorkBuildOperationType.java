@@ -18,7 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.internal.operations.BuildOperationType;
 
-public class RunWorkBuildOperationType implements BuildOperationType<RunWorkBuildOperationType.Details, RunWorkBuildOperationType.Result> {
+public class RunIncludedBuildWorkBuildOperationType implements BuildOperationType<RunIncludedBuildWorkBuildOperationType.Details, RunIncludedBuildWorkBuildOperationType.Result> {
     public interface Details {
         /**
          * @since 6.8
@@ -29,6 +29,6 @@ public class RunWorkBuildOperationType implements BuildOperationType<RunWorkBuil
     public interface Result {
     }
 
-    private RunWorkBuildOperationType() {
+    private RunIncludedBuildWorkBuildOperationType() {
     }
 }

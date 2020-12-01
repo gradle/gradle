@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.initialization.RunWorkBuildOperationType;
+import org.gradle.initialization.RunIncludedBuildWorkBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
@@ -69,8 +69,8 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         if (buildOperation.getMetadata().equals(BuildOperationCategory.RUN_WORK)) {
             Object details = buildOperation.getDetails();
-            if (details instanceof RunWorkBuildOperationType.Details) {
-                includedBuildIdentityPaths.put(buildOperation.getId(), ((RunWorkBuildOperationType.Details)details).getBuildIdentityPath());
+            if (details instanceof RunIncludedBuildWorkBuildOperationType.Details) {
+                includedBuildIdentityPaths.put(buildOperation.getId(), ((RunIncludedBuildWorkBuildOperationType.Details)details).getBuildIdentityPath());
             }
         }
 

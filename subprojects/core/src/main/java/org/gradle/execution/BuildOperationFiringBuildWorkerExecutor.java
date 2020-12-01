@@ -18,7 +18,7 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.RunWorkBuildOperationType;
+import org.gradle.initialization.RunIncludedBuildWorkBuildOperationType;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -71,14 +71,15 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
                 builder.details(new RunRootBuildWorkBuildOperationType.Details(buildStartTime));
             } else {
                 builder.metadata(BuildOperationCategory.RUN_WORK);
+                builder.details(new RunIncludedBuildWorkBuildOperationType.Details() {
+                    @Override
+                    public String getBuildIdentityPath() {
+                        return gradle.getIdentityPath().toString();
+                    }
+                });
             }
             builder.totalProgress(gradle.getTaskGraph().size());
-            return builder.details(new RunWorkBuildOperationType.Details() {
-                @Override
-                public String getBuildIdentityPath() {
-                    return gradle.getIdentityPath().toString();
-                }
-            });
+            return builder;
         }
     }
 }
