@@ -36,7 +36,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
-        outputContains("configuring build-logic")
         outputContains("build-logic settings plugin applied")
     }
 
@@ -58,7 +57,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
-        outputContains("configuring build-logic")
         outputContains("build-logic project plugin applied")
     }
 
@@ -83,85 +81,8 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
-        outputContains("configuring build-logic")
         outputContains("build-logic settings plugin applied")
         outputContains("build-logic project plugin applied")
-    }
-
-    def "build logic build is not configured if plugins from it are not used"() {
-        given:
-        buildLogicBuild('build-logic')
-        settingsFile << """
-            pluginManagement {
-                includeBuild('build-logic')
-            }
-        """
-
-        when:
-        succeeds()
-
-        then:
-        outputDoesNotContain("configuring build-logic")
-    }
-
-    def "build logic build is not configured when published settings plugin is found in repository"() {
-        given:
-        def repoDeclaration = """
-            repositories {
-                maven {
-                    url("${mavenRepo.uri}")
-                }
-            }
-        """
-        def pluginId = "published.settings-plugin"
-        publishSettingsPlugin(pluginId, repoDeclaration)
-        buildLogicBuild('build-logic')
-
-        when:
-        settingsFile << """
-            pluginManagement {
-                $repoDeclaration
-                includeBuild('build-logic')
-            }
-            plugins {
-                id("$pluginId") version "1.0"
-            }
-        """
-
-        then:
-        succeeds()
-        outputContains("$pluginId from repository applied")
-        outputDoesNotContain("configuring build-logic")
-    }
-
-    def "build logic build is configured when published settings plugin is not found in repository"() {
-        given:
-        def repoDeclaration = """
-            repositories {
-                maven {
-                    url("${mavenRepo.uri}")
-                }
-            }
-        """
-        def pluginId = "published.settings-plugin"
-        publishSettingsPlugin(pluginId, repoDeclaration)
-        buildLogicBuild('build-logic')
-
-        when:
-        settingsFile << """
-            pluginManagement {
-                $repoDeclaration
-                includeBuild('build-logic')
-            }
-            plugins {
-                id("some-plugin") version "1.0"
-            }
-        """
-
-        then:
-        fails()
-        outputContains("configuring build-logic")
-        failureDescriptionContains("Plugin [id: 'some-plugin', version: '1.0'] was not found in any of the following sources:")
     }
 
     def "settings plugin from included build is used over published plugin when no version is specified"() {
@@ -190,7 +111,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         succeeds()
-        outputContains("configuring build-logic")
         outputContains("build-logic settings plugin applied")
     }
 
@@ -220,7 +140,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         succeeds()
-        outputDoesNotContain("configuring build-logic")
         outputContains("$pluginId from repository applied")
     }
 
@@ -238,7 +157,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         fails()
 
         then:
-        outputDoesNotContain("configuring build-logic")
         failureDescriptionContains("Plugin [id: 'build-logic.settings-plugin'] was not found in any of the following sources:")
     }
 
@@ -288,7 +206,6 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         fails("build")
-        outputDoesNotContain("configuring included-build")
         failureDescriptionContains("Could not determine the dependencies of task ':compileJava'.")
         failureCauseContains("Cannot resolve external dependency com.example:included-build")
     }

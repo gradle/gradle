@@ -21,4 +21,5 @@ import org.gradle.initialization.IncludedBuildSpec;
 
 public interface BuildIncluder {
     IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle);
+    void registerBuildLogicBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle);
 }

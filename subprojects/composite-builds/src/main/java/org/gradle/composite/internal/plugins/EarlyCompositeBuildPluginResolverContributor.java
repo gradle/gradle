@@ -62,10 +62,7 @@ public class EarlyCompositeBuildPluginResolverContributor implements PluginResol
         }
 
         private PluginResolution resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
-            for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-                if (!build.canContributePlugins()) {
-                    continue;
-                }
+            for (IncludedBuildState build : buildRegistry.getBuildLogicBuilds()) {
                 // ensure the build is configured - this finds and registers any plugin publications the build may have
                 build.getConfiguredBuild();
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));

@@ -40,12 +40,21 @@ public class DefaultBuildIncluder implements BuildIncluder {
 
     @Override
     public IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
+        return buildRegistry.addIncludedBuild(toBuildDefinition(includedBuildSpec, gradle));
+    }
+
+    @Override
+    public void registerBuildLogicBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
+        buildRegistry.registerBuildLogicBuild(toBuildDefinition(includedBuildSpec, gradle));
+    }
+
+    private BuildDefinition toBuildDefinition(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
         gradle.getOwner().assertCanAdd(includedBuildSpec);
 
         DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
         includedBuildSpec.configurer.execute(configurable);
 
-        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+        return BuildDefinition.fromStartParameterForBuild(
             gradle.getStartParameter(),
             configurable.getName(),
             includedBuildSpec.rootDir,
@@ -54,7 +63,6 @@ public class DefaultBuildIncluder implements BuildIncluder {
             publicBuildPath,
             includedBuildSpec.buildLogicBuild
         );
-
-        return buildRegistry.addIncludedBuild(buildDefinition);
     }
+
 }

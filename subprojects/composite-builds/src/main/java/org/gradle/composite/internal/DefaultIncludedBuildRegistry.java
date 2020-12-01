@@ -42,11 +42,14 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
@@ -64,7 +67,9 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
 
-    private final Map<Path, IncludedBuildState> componentIncludedBuilds = new LinkedHashMap<>();
+    private final Map<Path, IncludedBuildState> libraryBuilds = new LinkedHashMap<>();
+    private final List<BuildDefinition> buildLogicBuildRegistrations = new ArrayList<>();
+    private List<IncludedBuildState> buildLogicBuilds;
 
     public DefaultIncludedBuildRegistry(BuildTreeState owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
         this.owner = owner;
@@ -174,7 +179,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private void registerSubstitutions() {
-        for (IncludedBuildState includedBuild : componentIncludedBuilds.values()) {
+        for (IncludedBuildState includedBuild : libraryBuilds.values()) {
             dependencySubstitutionsBuilder.build(includedBuild);
         }
     }
@@ -205,6 +210,19 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         // Attach the build only after it has been fully constructed.
         rootOfNestedBuildTree.attach();
         return rootOfNestedBuildTree;
+    }
+
+    @Override
+    public void registerBuildLogicBuild(BuildDefinition registration) {
+        buildLogicBuildRegistrations.add(registration);
+    }
+
+    @Override
+    public Collection<IncludedBuildState> getBuildLogicBuilds() {
+        if (buildLogicBuilds == null) {
+            buildLogicBuilds = buildLogicBuildRegistrations.stream().map(this::addIncludedBuild).collect(Collectors.toList());
+        }
+        return buildLogicBuilds;
     }
 
     private void validateNameIsNotBuildSrc(String name, File dir) {
@@ -250,7 +268,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             }
         }
         if (!buildDefinition.canContributePlugins()) {
-            componentIncludedBuilds.put(includedBuild.getIdentityPath(), includedBuild);
+            libraryBuilds.put(includedBuild.getIdentityPath(), includedBuild);
         }
         // TODO: else, verify that the build definition is the same
         return includedBuild;

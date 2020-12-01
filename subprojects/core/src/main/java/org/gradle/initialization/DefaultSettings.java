@@ -276,7 +276,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             this);
     }
 
-
     @Override
     public ClassLoaderScope getBaseClassLoaderScope() {
         return baseClassLoaderScope;
@@ -345,7 +344,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
         List<IncludedBuildSpec> includedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
         for (IncludedBuildSpec buildSpec : includedBuilds) {
-            getBuildIncluder().includeBuild(buildSpec, gradle);
+            getBuildIncluder().registerBuildLogicBuild(buildSpec, gradle);
             includedBuildSpecs.add(buildSpec);
         }
     }
