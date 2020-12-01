@@ -201,8 +201,11 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         }
 
         List<Test> tasksToExecute = new ArrayList<>();
-
         final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
+        // TODO this should be cleaned up
+        for (Map.Entry<String, GradleInternal> entry : getIncludedBuilds(gradle).entrySet()) {
+            allprojects.addAll(entry.getValue().getDefaultProject().getAllprojects());
+        }
         for (Project project : allprojects) {
             final Collection<Test> testTasks = project.getTasks().withType(Test.class);
             for (Test testTask : testTasks) {

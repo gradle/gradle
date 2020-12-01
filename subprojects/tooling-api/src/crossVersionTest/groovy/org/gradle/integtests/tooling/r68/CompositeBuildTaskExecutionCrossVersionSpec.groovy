@@ -423,6 +423,47 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("BUILD SUCCESSFUL")
     }
 
+    @ToolingApiVersion(">=6.8")
+    def "Can launch test from included build via test launcher"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+             ${mavenCentralRepository()}
+
+             dependencies { testImplementation 'junit:junit:4.13' }
+        """
+        file("other-build/sub/src/test/java/MyIncludedTest.java") << """
+            import org.junit.Test;
+            import static org.junit.Assert.assertTrue;
+
+            public class MyIncludedTest {
+
+                @Test
+                public void myTestMethod() {
+                    assertTrue(true);
+                }
+            }
+        """
+
+        when:
+        withConnection { connection ->
+            def testLauncher = connection.newTestLauncher()
+            collectOutputs(testLauncher)
+            testLauncher.withJvmTestClasses("MyIncludedTest").run()
+        }
+
+        then:
+        outputContains("BUILD SUCCESSFUL")
+    }
+
     private void executeTaskViaTAPI(String... task) {
         withConnection { connection ->
             def build = connection.newBuild()
