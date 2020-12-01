@@ -20,6 +20,7 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.Provider
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -34,6 +35,8 @@ import org.gradle.kotlin.dsl.*
 
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import kotlin.LazyThreadSafetyMode.NONE
+
 
 /**
  * Configures the Kotlin compiler to recognise Gradle functional interface
@@ -46,6 +49,16 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         plugins.apply(SamWithReceiverGradleSubplugin::class.java)
         extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
             samWithReceiver.annotation(HasImplicitReceiver::class.qualifiedName!!)
+        }
+
+        kotlinDslPluginOptions {
+            tasks.withType<KotlinCompile>().configureEach {
+                it.applyExperimentalWarning(
+                    experimentalWarning,
+                    project.toString(),
+                    project.experimentalWarningLink
+                )
+            }
         }
 
         afterEvaluate {
@@ -63,7 +76,6 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                             KotlinCompilerArguments.referencesToSyntheticJavaProperties
                         )
                     }
-                    it.applyExperimentalWarning(experimentalWarning.get())
                 }
             }
         }
@@ -72,10 +84,9 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 
 
 private
-fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) {
+fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Provider<Boolean>, target: String, link: String) {
     replaceLoggerWith(
-        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger as ContextAwareTaskLogger, project.toString(), project.experimentalWarningLink)
-        else KotlinCompilerWarningSilencingLogger(logger as ContextAwareTaskLogger)
+        KotlinCompilerWarningAwareLogger(logger as ContextAwareTaskLogger, experimentalWarning, target, link)
     )
 }
 
@@ -97,26 +108,24 @@ fun KotlinCompile.replaceLoggerWith(logger: Logger) {
 
 
 private
-class KotlinCompilerWarningSubstitutingLogger(
+class KotlinCompilerWarningAwareLogger(
     private val delegate: ContextAwareTaskLogger,
+    private val experimentalWarning: Provider<Boolean>,
     private val target: String,
     private val link: String
 ) : ContextAwareTaskLogger by delegate {
 
-    override fun warn(message: String) {
-        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(kotlinDslPluginExperimentalWarning(target, link))
-        else delegate.warn(message)
+    private
+    val isExperimentalWarningEnabled by lazy(NONE) {
+        experimentalWarning.get()
     }
-}
-
-
-private
-class KotlinCompilerWarningSilencingLogger(
-    private val delegate: ContextAwareTaskLogger
-) : ContextAwareTaskLogger by delegate {
 
     override fun warn(message: String) {
-        if (!message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
+        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
+            if (isExperimentalWarningEnabled) {
+                delegate.warn(kotlinDslPluginExperimentalWarning(target, link))
+            }
+        } else {
             delegate.warn(message)
         }
     }
