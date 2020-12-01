@@ -60,7 +60,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
     @Override
     public void configure(BuildExecutionContext context) {
-        final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
+        final Set<Test> allTestTasksToRun = new LinkedHashSet<>();
         final GradleInternal gradleInternal = context.getGradle();
         List<GradleInternal> includedBuilds = gradleInternal.getServices().get(BuildStateRegistry.class).getIncludedBuilds().stream().map(IncludedBuildState::getBuild).collect(Collectors.toList());
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal.getServices().get(TaskSelector.class), testExecutionRequest));
@@ -94,7 +94,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     private List<Test> configureBuildForTestDescriptors(TaskSelector taskSelector, TestExecutionRequestAction testExecutionRequest) {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
 
-        List<Test> testTasksToRun = new ArrayList<Test>();
+        List<Test> testTasksToRun = new ArrayList<>();
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
             String testTaskPath = entry.getKey();
             TaskSelection taskSelection = taskSelector.getSelection(testTaskPath);
