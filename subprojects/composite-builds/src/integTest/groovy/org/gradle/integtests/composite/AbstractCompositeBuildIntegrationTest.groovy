@@ -206,21 +206,52 @@ public class ${className} implements Plugin<Project> {
         assert output.contains(string.trim())
     }
 
-    void buildLogicBuild(String buildName) {
-        file("$buildName/settings.gradle") << """
-            rootProject.name = "$buildName"
-        """
-        file("$buildName/build.gradle") << """
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-        """
-        file("$buildName/src/main/groovy/${buildName}.project-plugin.gradle") << """
-            println('$buildName project plugin applied')
-        """
-        file("$buildName/src/main/groovy/${buildName}.settings-plugin.settings.gradle") << """
-            println('$buildName settings plugin applied')
-        """
+    BuildLogicBuildFixture buildLogicBuild(String buildName) {
+        return new BuildLogicBuildFixture(buildName)
+    }
+
+    class BuildLogicBuildFixture {
+        final String buildName
+        final String settingsPluginId
+        final String projectPluginId
+
+        final TestFile settingsFile
+        final TestFile buildFile
+
+        BuildLogicBuildFixture(String buildName) {
+            this.buildName = buildName
+            this.settingsPluginId = "${buildName}.settings-plugin"
+            this.projectPluginId = "${buildName}.project-plugin"
+            this.settingsFile = file("$buildName/settings.gradle")
+            this.buildFile = file("$buildName/build.gradle")
+
+            settingsFile << """
+                rootProject.name = "$buildName"
+            """
+            buildFile << """
+                plugins {
+                    id("groovy-gradle-plugin")
+                }
+            """
+            file("$buildName/src/main/groovy/${projectPluginId}.gradle") << """
+                println('$projectPluginId applied')
+            """
+            file("$buildName/src/main/groovy/${settingsPluginId}.settings.gradle") << """
+                println('$settingsPluginId applied')
+            """
+        }
+
+        void assertSettingsPluginApplied() {
+            outputContains("$settingsPluginId applied")
+        }
+
+        void assertSettingsPluginNotApplied() {
+            outputDoesNotContain("$settingsPluginId applied")
+        }
+
+        void assertProjectPluginApplied() {
+            outputContains("$projectPluginId applied")
+        }
     }
 
 }

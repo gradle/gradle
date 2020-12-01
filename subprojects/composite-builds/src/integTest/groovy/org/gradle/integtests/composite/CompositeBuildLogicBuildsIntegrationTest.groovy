@@ -22,13 +22,13 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
     def "included build logic builds can contribute settings plugins"() {
         given:
-        buildLogicBuild('build-logic')
+        def buildLogicBuild = buildLogicBuild("build-logic")
         settingsFile << """
             pluginManagement {
-                includeBuild('build-logic')
+                includeBuild("${buildLogicBuild.buildName}")
             }
             plugins {
-                id("build-logic.settings-plugin")
+                id("${buildLogicBuild.settingsPluginId}")
             }
         """
 
@@ -36,20 +36,20 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
-        outputContains("build-logic settings plugin applied")
+        buildLogicBuild.assertSettingsPluginApplied()
     }
 
     def "included build logic builds can contribute project plugins"() {
         given:
-        buildLogicBuild('build-logic')
+        def buildLogicBuild = buildLogicBuild("build-logic")
         settingsFile << """
             pluginManagement {
-                includeBuild('build-logic')
+                includeBuild("${buildLogicBuild.buildName}")
             }
         """
         buildFile << """
             plugins {
-                id("build-logic.project-plugin")
+                id("${buildLogicBuild.projectPluginId}")
             }
         """
 
@@ -57,23 +57,23 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
-        outputContains("build-logic project plugin applied")
+        buildLogicBuild.assertProjectPluginApplied()
     }
 
     def "included build logic build can contribute both settings and project plugins"() {
         given:
-        buildLogicBuild('build-logic')
+        def buildLogicBuild = buildLogicBuild("build-logic")
         settingsFile << """
             pluginManagement {
-                includeBuild('build-logic')
+                includeBuild("${buildLogicBuild.buildName}")
             }
             plugins {
-                id("build-logic.settings-plugin")
+                id("${buildLogicBuild.settingsPluginId}")
             }
         """
         buildFile << """
             plugins {
-                id("build-logic.project-plugin")
+                id("${buildLogicBuild.projectPluginId}")
             }
         """
 
@@ -81,8 +81,8 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
-        outputContains("build-logic settings plugin applied")
-        outputContains("build-logic project plugin applied")
+        buildLogicBuild.assertSettingsPluginApplied()
+        buildLogicBuild.assertProjectPluginApplied()
     }
 
     def "settings plugin from included build is used over published plugin when no version is specified"() {
@@ -94,24 +94,23 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
                 }
             }
         """
-        def pluginId = "build-logic.settings-plugin"
-        publishSettingsPlugin(pluginId, repoDeclaration)
-        buildLogicBuild('build-logic')
+        def buildLogicBuild = buildLogicBuild("build-logic")
+        publishSettingsPlugin(buildLogicBuild.settingsPluginId, repoDeclaration)
 
         when:
         settingsFile << """
             pluginManagement {
                 $repoDeclaration
-                includeBuild('build-logic')
+                includeBuild("${buildLogicBuild.buildName}")
             }
             plugins {
-                id("$pluginId")
+                id("${buildLogicBuild.settingsPluginId}")
             }
         """
 
         then:
         succeeds()
-        outputContains("build-logic settings plugin applied")
+        buildLogicBuild.assertSettingsPluginApplied()
     }
 
     def "published settings plugin is used over included build plugin when version is specified"() {
@@ -123,54 +122,54 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
                 }
             }
         """
-        def pluginId = "build-logic.settings-plugin"
-        publishSettingsPlugin(pluginId, repoDeclaration)
-        buildLogicBuild('build-logic')
+        def buildLogicBuild = buildLogicBuild("build-logic")
+        publishSettingsPlugin(buildLogicBuild.settingsPluginId, repoDeclaration)
 
         when:
         settingsFile << """
             pluginManagement {
                 $repoDeclaration
-                includeBuild('build-logic')
+                includeBuild("${buildLogicBuild.buildName}")
             }
             plugins {
-                id("$pluginId") version "1.0"
+                id("${buildLogicBuild.settingsPluginId}") version "1.0"
             }
         """
 
         then:
         succeeds()
-        outputContains("$pluginId from repository applied")
+        outputContains("${buildLogicBuild.settingsPluginId} from repository applied")
+        buildLogicBuild.assertSettingsPluginNotApplied()
     }
 
     def "regular included build can not contribute settings plugins"() {
         given:
-        buildLogicBuild('build-logic')
+        def buildLogicBuild = buildLogicBuild("build-logic")
         settingsFile << """
             plugins {
-                id("build-logic.settings-plugin")
+                id("${buildLogicBuild.settingsPluginId}")
             }
-            includeBuild('build-logic')
+            includeBuild("${buildLogicBuild.buildName}")
         """
 
         when:
         fails()
 
         then:
-        failureDescriptionContains("Plugin [id: 'build-logic.settings-plugin'] was not found in any of the following sources:")
+        failureDescriptionContains("Plugin [id: '${buildLogicBuild.settingsPluginId}'] was not found in any of the following sources:")
     }
 
     // Emit the deprecation warning in CompositeBuildPluginResolverContributor once we settle on and publicize the new API for build logic builds
     @NotYetImplemented
     def "regular included builds contributing project plugins is deprecated"() {
         given:
-        buildLogicBuild('build-logic')
+        def buildLogicBuild = buildLogicBuild("build-logic")
         settingsFile << """
-            includeBuild('build-logic')
+            includeBuild("${buildLogicBuild.buildName}")
         """
         buildFile << """
             plugins {
-                id("build-logic.project-plugin")
+                id("${buildLogicBuild.projectPluginId}")
             }
         """
 
@@ -179,15 +178,15 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
         succeeds()
 
         then:
-        outputContains("build-logic project plugin applied")
+        buildLogicBuild.assertProjectPluginApplied()
     }
 
     def "included build logic build is not visible as library component"() {
         given:
-        buildLogicAndProductionLogicBuild('included-build')
+        def build = buildLogicAndLibraryBuild("included-build")
         settingsFile << """
             pluginManagement {
-                includeBuild('included-build')
+                includeBuild("${build.buildName}")
             }
         """
 
@@ -197,7 +196,7 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
                 id("java-library")
             }
             dependencies {
-                implementation("com.example:included-build")
+                implementation("${build.group}:${build.buildName}")
             }
         """
         file("src/main/java/Foo.java") << """
@@ -212,22 +211,22 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
     def "a build can be included both as a build logic build and as regular build and can contribute both plugins and library components"() {
         given:
-        buildLogicAndProductionLogicBuild('included-build')
+        def build = buildLogicAndLibraryBuild("included-build")
         settingsFile << """
             pluginManagement {
-                includeBuild('included-build')
+                includeBuild("${build.buildName}")
             }
-            includeBuild('included-build')
+            includeBuild("${build.buildName}")
         """
 
         when:
         buildFile << """
             plugins {
                 id("java-library")
-                id("included-build.project-plugin")
+                id("${build.projectPluginId}")
             }
             dependencies {
-                implementation("com.example:included-build")
+                implementation("${build.group}:${build.buildName}")
             }
         """
         file("src/main/java/Foo.java") << """
@@ -236,32 +235,32 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         succeeds("build")
-        assertTaskExecuted(':included-build', ':compileJava')
+        assertTaskExecuted(":${build.buildName}", ':compileJava')
         assertTaskExecuted(':', ':compileJava')
-        outputContains('included-build project plugin applied')
+        build.assertProjectPluginApplied()
     }
 
     def "a build can be included both as a build logic build and as regular build and can contribute both settings plugins and library components"() {
         given:
-        buildLogicAndProductionLogicBuild('included-build')
+        def build = buildLogicAndLibraryBuild("included-build")
         settingsFile << """
             pluginManagement {
-                includeBuild('included-build')
+                includeBuild("${build.buildName}")
             }
             plugins {
-                id("included-build.settings-plugin")
+                id("${build.settingsPluginId}")
             }
-            includeBuild('included-build')
+            includeBuild("${build.buildName}")
         """
 
         when:
         buildFile << """
             plugins {
                 id("java-library")
-                id("included-build.project-plugin")
+                id("${build.projectPluginId}")
             }
             dependencies {
-                implementation("com.example:included-build")
+                implementation("${build.group}:${build.buildName}")
             }
         """
         file("src/main/java/Foo.java") << """
@@ -270,27 +269,50 @@ class CompositeBuildLogicBuildsIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         succeeds("build")
-        assertTaskExecuted(':included-build', ':compileJava')
+        assertTaskExecuted(":${build.buildName}", ':compileJava')
         assertTaskExecuted(':', ':compileJava')
-        outputContains('included-build settings plugin applied')
-        outputContains('included-build project plugin applied')
+        build.assertSettingsPluginApplied()
+        build.assertProjectPluginApplied()
     }
 
-    private void buildLogicAndProductionLogicBuild(String buildName) {
-        buildLogicBuild(buildName)
+    private BuildLogicAndLibraryBuildFixture buildLogicAndLibraryBuild(String buildName) {
+        return new BuildLogicAndLibraryBuildFixture(buildLogicBuild(buildName))
+    }
 
-        file("$buildName/build.gradle").setText("""
-            plugins {
-                id("groovy-gradle-plugin")
-                id("java-library")
-            }
+    class BuildLogicAndLibraryBuildFixture {
+        private final AbstractCompositeBuildIntegrationTest.BuildLogicBuildFixture buildLogicBuild
+        final String buildName
+        final String settingsPluginId
+        final String projectPluginId
+        final String group
 
-            group = "com.example"
-            version = "1.0"
-        """)
-        file("$buildName/src/main/java/Bar.java") << """
-            public class Bar {}
-        """
+        BuildLogicAndLibraryBuildFixture(AbstractCompositeBuildIntegrationTest.BuildLogicBuildFixture buildLogicBuild) {
+            this.buildLogicBuild = buildLogicBuild
+            this.buildName = buildLogicBuild.buildName
+            this.settingsPluginId = buildLogicBuild.settingsPluginId
+            this.projectPluginId = buildLogicBuild.projectPluginId
+            this.group = "com.example"
+            buildLogicBuild.buildFile.setText("""
+                plugins {
+                    id("groovy-gradle-plugin")
+                    id("java-library")
+                }
+
+                group = "${group}"
+                version = "1.0"
+            """)
+            file("$buildName/src/main/java/Bar.java") << """
+                public class Bar {}
+            """
+        }
+
+        void assertSettingsPluginApplied() {
+            buildLogicBuild.assertProjectPluginApplied()
+        }
+
+        void assertProjectPluginApplied() {
+            buildLogicBuild.assertProjectPluginApplied()
+        }
     }
 
     private void publishSettingsPlugin(String pluginId, String repoDeclaration) {

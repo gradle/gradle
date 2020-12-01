@@ -20,20 +20,18 @@ import groovy.transform.NotYetImplemented
 
 class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    def setup() {
-        buildLogicBuild('logic-1')
-        buildLogicBuild('logic-2')
-    }
+    private final BuildLogicBuildFixture build1 = buildLogicBuild("logic-1")
+    private final BuildLogicBuildFixture build2 = buildLogicBuild("logic-2")
 
     def "can nest included build logic builds"() {
         when:
         settingsFile << """
             pluginManagement {
-                includeBuild('logic-1')
+                includeBuild("${build1.buildName}")
             }
         """
-        file('logic-1/settings.gradle') << """
-            includeBuild('../logic-2')
+        build1.settingsFile << """
+            includeBuild("../${build2.buildName}")
         """
 
         then:
@@ -46,14 +44,14 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         when:
         settingsFile << """
             pluginManagement {
-                includeBuild('logic-1')
+                includeBuild(${build1.buildName})
             }
             plugins {
-                id("logic-1.settings-plugin")
+                id("${build1.settingsPluginId}")
             }
         """
-        file('logic-1/settings.gradle') << """
-            includeBuild('../logic-2')
+        build1.settingsFile << """
+            includeBuild("../${build2.buildName}")
         """
 
         then:
@@ -64,35 +62,34 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         given:
         settingsFile << """
             pluginManagement {
-                includeBuild("logic-2")
+                includeBuild("${build2.buildName}")
             }
         """
-        file("logic-2/settings.gradle").setText("""
+        build2.settingsFile.setText("""
             pluginManagement {
-                includeBuild("../logic-1")
+                includeBuild("../${build1.buildName}")
             }
-            rootProject.name = "logic-2"
+            rootProject.name = "${build2.buildName}"
         """)
 
         when:
         buildFile << """
             plugins {
-                id("logic-2.project-plugin")
+                id("${build2.projectPluginId}")
             }
         """
-        file("logic-2/build.gradle").setText("""
+        build2.buildFile.setText("""
             plugins {
                 id("groovy-gradle-plugin")
-                id("logic-1.project-plugin")
+                id("${build1.projectPluginId}")
             }
         """)
 
         then:
         succeeds()
-        outputContains("logic-1 project plugin applied")
-        outputContains("logic-2 project plugin applied")
+        build1.assertProjectPluginApplied()
+        build2.assertProjectPluginApplied()
     }
-
 
     // To be decided if we want the transitivity to work or not. Currently all the included builds are visible by the root project
     @NotYetImplemented
@@ -100,28 +97,28 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         given:
         settingsFile << """
             pluginManagement {
-                includeBuild("logic-2")
+                includeBuild("${build2.buildName}")
             }
         """
-        file("logic-2/settings.gradle").setText("""
+        build2.settingsFile.setText("""
             pluginManagement {
-                includeBuild("../logic-1")
+                includeBuild("../${build1.buildName}")
             }
-            rootProject.name = "logic-2"
+            rootProject.name = "${build2.buildName}"
         """)
 
         when:
         buildFile << """
             plugins {
-                id("logic-1.project-plugin")
-                id("logic-2.project-plugin")
+                id("${build1.projectPluginId}")
+                id("${build2.projectPluginId}")
             }
         """
 
         then:
         succeeds()
-        outputContains("logic-1 project plugin applied")
-        outputContains("logic-2 project plugin applied")
+        build1.assertProjectPluginApplied()
+        build2.assertProjectPluginApplied()
     }
 
     // To be decided if we want the transitivity to work or not. Currently all the included builds are visible by the root project
@@ -129,27 +126,27 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         given:
         settingsFile << """
             pluginManagement {
-                includeBuild("logic-2")
+                includeBuild("${build2.buildName}")
             }
         """
-        file("logic-2/settings.gradle").setText("""
+        build2.settingsFile.setText("""
             pluginManagement {
-                includeBuild("../logic-1")
+                includeBuild("../${build1.buildName}")
             }
-            rootProject.name = "logic-2"
+            rootProject.name = "${build2.buildName}"
         """)
 
         when:
         buildFile << """
             plugins {
-                id("logic-1.project-plugin")
-                id("logic-2.project-plugin")
+                id("${build1.projectPluginId}")
+                id("${build2.projectPluginId}")
             }
         """
 
         then:
         fails()
-        failureDescriptionContains("Plugin [id: 'logic-1.project-plugin'] was not found in any of the following sources:")
+        failureDescriptionContains("Plugin [id: '${build1.projectPluginId}'] was not found in any of the following sources:")
     }
 
 }
