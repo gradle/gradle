@@ -31,45 +31,13 @@ dependencies {
     integTestImplementation(project(":internal-testing"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 
+    integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
+        because("Tests require 'future-plugin-versions.properties' on the test classpath")
+    }
+
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
     integTestLocalRepository(project(":kotlin-dsl-plugins"))
-}
-
-val pluginBundles = listOf(
-    ":kotlin-dsl-plugins"
-)
-
-pluginBundles.forEach {
-    evaluationDependsOn(it)
-}
-
-tasks {
-    val writeFuturePluginVersions by registering {
-
-        group = "build"
-        description = "Merges all future plugin bundle versions so they can all be tested at once"
-
-        val futurePluginVersionsTasks =
-            pluginBundles.map {
-                project(it).tasks["writeFuturePluginVersions"] as WriteProperties
-            }
-
-        dependsOn(futurePluginVersionsTasks)
-        inputs.files(futurePluginVersionsTasks.map { it.outputFile })
-        outputs.file(layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties"))
-
-        doLast {
-            outputs.files.singleFile.bufferedWriter().use { writer ->
-                inputs.files.forEach { input ->
-                    writer.appendln(input.readText())
-                }
-            }
-        }
-    }
-    sourceSets.integTest.get().output.dir(
-        writeFuturePluginVersions.map { it.outputs.files.singleFile.parentFile }
-    )
 }
 
 testFilesCleanup {
