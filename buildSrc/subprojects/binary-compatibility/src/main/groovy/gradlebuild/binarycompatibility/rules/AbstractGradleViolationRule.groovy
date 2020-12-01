@@ -149,7 +149,6 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 <br>
                 <p>
                 If you did this intentionally, please accept the change and provide an explanation:
-                </p>
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#accept-${changeId}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="accept-${changeId}">
                   <div class="well">
@@ -157,9 +156,9 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                     <pre>${prettyPrintJson(acceptanceJson)}</pre>
                   </div>
                 </div>
+                </p>
                 <p>
                 If change was made on the `release` branch but hasn't yet been published to the baseline version, update the baseline version:
-                </p>
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#update-baseline-${changeId}" aria-expanded="false" aria-controls="collapseExample">Update baseline</a>
                 <div class="collapse" id="update-baseline-${changeId}">
                   <div class="well">
@@ -168,9 +167,9 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                       See <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">the documentation</a> for more details.
                   </div>
                 </div>
+                </p>
                 <p>
                 If change was made on the `release` branch but hasn't yet been merged to `master`, merge `release` to `master`:
-                </p>
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#merge-release-${changeId}" aria-expanded="false" aria-controls="collapseExample">Merge release to master</a>
                 <div class="collapse" id="merge-release-${changeId}">
                   <div class="well">
@@ -178,6 +177,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                       On `master` branch, these two files are usually reset (cleaned up), unless you have special reasons not to do so.
                   </div>
                 </div>
+                </p>
                 """.stripIndent()
         )
         return violation
