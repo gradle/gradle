@@ -36,7 +36,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
     private final Instantiator instantiator;
-    private final List<BuildDefinition> buildLogicBuildDefinitions = new ArrayList<>();
+    private final List<BuildDefinition> pluginBuildDefinitions = new ArrayList<>();
 
     public DefaultBuildIncluder(BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
         this.buildRegistry = buildRegistry;
@@ -50,13 +50,13 @@ public class DefaultBuildIncluder implements BuildIncluder {
     }
 
     @Override
-    public void registerBuildLogicBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
-        buildLogicBuildDefinitions.add(toBuildDefinition(includedBuildSpec, gradle));
+    public void registerPluginBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
+        pluginBuildDefinitions.add(toBuildDefinition(includedBuildSpec, gradle));
     }
 
     @Override
-    public Collection<IncludedBuildState> includeRegisteredBuildLogicBuilds() {
-        return buildLogicBuildDefinitions.stream().map(buildRegistry::addIncludedBuild).collect(Collectors.toList());
+    public Collection<IncludedBuildState> includeRegisteredPluginBuilds() {
+        return pluginBuildDefinitions.stream().map(buildRegistry::addIncludedBuild).collect(Collectors.toList());
     }
 
     private BuildDefinition toBuildDefinition(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
@@ -72,7 +72,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
             PluginRequests.EMPTY,
             configurable.getDependencySubstitutionAction(),
             publicBuildPath,
-            includedBuildSpec.buildLogicBuild
+            includedBuildSpec.pluginBuild
         );
     }
 

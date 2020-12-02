@@ -67,7 +67,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
 
         private PluginResolution resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
             for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-                if (build == consumingBuild || build.isImplicitBuild() || build.canContributePlugins()) {
+                if (build == consumingBuild || build.isImplicitBuild() || build.isPluginBuild()) {
                     continue;
                 }
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));

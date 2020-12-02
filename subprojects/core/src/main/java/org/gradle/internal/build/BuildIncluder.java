@@ -23,6 +23,6 @@ import java.util.Collection;
 
 public interface BuildIncluder {
     IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle);
-    void registerBuildLogicBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle);
-    Collection<IncludedBuildState> includeRegisteredBuildLogicBuilds();
+    void registerPluginBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle);
+    Collection<IncludedBuildState> includeRegisteredPluginBuilds();
 }

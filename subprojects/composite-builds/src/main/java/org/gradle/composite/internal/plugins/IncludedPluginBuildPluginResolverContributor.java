@@ -31,14 +31,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class EarlyCompositeBuildPluginResolverContributor implements PluginResolverContributor {
+public class IncludedPluginBuildPluginResolverContributor implements PluginResolverContributor {
 
-    private static final String SOURCE_DESCRIPTION = "Early configured Included Builds";
+    private static final String SOURCE_DESCRIPTION = "Included Plugin Builds";
 
     private final BuildIncluder buildIncluder;
     private final Map<PluginId, PluginResolution> results = new HashMap<>();
 
-    public EarlyCompositeBuildPluginResolverContributor(BuildIncluder buildIncluder) {
+    public IncludedPluginBuildPluginResolverContributor(BuildIncluder buildIncluder) {
         this.buildIncluder = buildIncluder;
     }
 
@@ -62,7 +62,7 @@ public class EarlyCompositeBuildPluginResolverContributor implements PluginResol
         }
 
         private PluginResolution resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
-            for (IncludedBuildState build : buildIncluder.includeRegisteredBuildLogicBuilds()) {
+            for (IncludedBuildState build : buildIncluder.includeRegisteredPluginBuilds()) {
                 // ensure the build is configured - this finds and registers any plugin publications the build may have
                 build.getConfiguredBuild();
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));

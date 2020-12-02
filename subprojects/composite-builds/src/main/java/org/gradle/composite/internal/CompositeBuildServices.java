@@ -26,7 +26,7 @@ import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
-import org.gradle.composite.internal.plugins.EarlyCompositeBuildPluginResolverContributor;
+import org.gradle.composite.internal.plugins.IncludedPluginBuildPluginResolverContributor;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
@@ -94,8 +94,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new CompositeBuildPluginResolverContributor(buildRegistry, consumingBuild);
         }
 
-        public PluginResolverContributor createEarlyPluginResolver(BuildIncluder buildIncluder) {
-            return new EarlyCompositeBuildPluginResolverContributor(buildIncluder);
+        public PluginResolverContributor createIncludedPluginBuildPluginResolver(BuildIncluder buildIncluder) {
+            return new IncludedPluginBuildPluginResolverContributor(buildIncluder);
         }
     }
 

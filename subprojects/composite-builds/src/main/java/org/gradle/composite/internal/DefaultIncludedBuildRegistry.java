@@ -250,7 +250,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
                 throw new IllegalStateException("Unexpected state for build.");
             }
         }
-        if (!buildDefinition.canContributePlugins()) {
+        if (!buildDefinition.isPluginBuild()) {
             libraryBuilds.put(includedBuild.getIdentityPath(), includedBuild);
         }
         // TODO: else, verify that the build definition is the same

@@ -35,7 +35,7 @@ public class BuildDefinition {
     private final PluginRequests injectedSettingsPlugins;
     private final Action<? super DependencySubstitutions> dependencySubstitutions;
     private final PublicBuildPath fromBuild;
-    private final boolean canContributePlugins;
+    private final boolean pluginBuild;
 
     private BuildDefinition(
         @Nullable String name,
@@ -44,14 +44,14 @@ public class BuildDefinition {
         PluginRequests injectedSettingsPlugins,
         Action<? super DependencySubstitutions> dependencySubstitutions,
         PublicBuildPath fromBuild,
-        boolean canContributePlugins) {
+        boolean pluginBuild) {
         this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
         this.injectedSettingsPlugins = injectedSettingsPlugins;
         this.dependencySubstitutions = dependencySubstitutions;
         this.fromBuild = fromBuild;
-        this.canContributePlugins = canContributePlugins;
+        this.pluginBuild = pluginBuild;
     }
 
     /**
@@ -94,8 +94,8 @@ public class BuildDefinition {
         return dependencySubstitutions;
     }
 
-    public boolean canContributePlugins() {
-        return canContributePlugins;
+    public boolean isPluginBuild() {
+        return pluginBuild;
     }
 
     public static BuildDefinition fromStartParameterForBuild(
@@ -105,7 +105,7 @@ public class BuildDefinition {
         PluginRequests pluginRequests,
         Action<? super DependencySubstitutions> dependencySubstitutions,
         PublicBuildPath fromBuild,
-        boolean canContributePlugins
+        boolean pluginBuild
     ) {
         return new BuildDefinition(
             name,
@@ -114,7 +114,7 @@ public class BuildDefinition {
             pluginRequests,
             dependencySubstitutions,
             fromBuild,
-            canContributePlugins);
+            pluginBuild);
     }
 
     public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
@@ -135,6 +135,6 @@ public class BuildDefinition {
      * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
      */
     public BuildDefinition newInstance() {
-        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, dependencySubstitutions, fromBuild, canContributePlugins);
+        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, dependencySubstitutions, fromBuild, pluginBuild);
     }
 }

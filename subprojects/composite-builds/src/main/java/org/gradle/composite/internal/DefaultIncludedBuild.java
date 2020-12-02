@@ -104,8 +104,8 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public boolean canContributePlugins() {
-        return buildDefinition.canContributePlugins();
+    public boolean isPluginBuild() {
+        return buildDefinition.isPluginBuild();
     }
 
     @Override
