@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -40,7 +40,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
     }
 
     // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
-    @ToBeFixedForConfigurationCache(because = "needs investigation")
+    @ToBeFixedForConfigurationCache
     def "can nest early included build logic builds"() {
         when:
         settingsFile << """
@@ -148,38 +148,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         build2.assertSettingsPluginApplied()
     }
 
-    // To be decided if we want the transitivity to work or not
-    @NotYetImplemented
-    def "nested included build logic build can contribute build logic to the root build"() {
-        given:
-        settingsFile << """
-            pluginManagement {
-                includeBuild("${build2.buildName}")
-            }
-        """
-        build2.settingsFile.setText("""
-            pluginManagement {
-                includeBuild("../${build1.buildName}")
-            }
-            rootProject.name = "${build2.buildName}"
-        """)
-
-        when:
-        buildFile << """
-            plugins {
-                id("${build1.projectPluginId}")
-                id("${build2.projectPluginId}")
-            }
-        """
-
-        then:
-        succeeds()
-        build1.assertProjectPluginApplied()
-        build2.assertProjectPluginApplied()
-    }
-
-    // To be decided if we want the transitivity to work or not
-    def "included build logic builds are not visible transitively"() {
+    def "included build logic build project plugins are not visible transitively"() {
         given:
         settingsFile << """
             pluginManagement {
@@ -206,4 +175,90 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         failureDescriptionContains("Plugin [id: '${build1.projectPluginId}'] was not found in any of the following sources:")
     }
 
+    def "included build logic build project plugins are visible when included explicitly"() {
+        given:
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${build2.buildName}")
+                includeBuild("${build1.buildName}")
+            }
+        """
+        build2.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build1.buildName}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+
+        when:
+        buildFile << """
+            plugins {
+                id("${build1.projectPluginId}")
+                id("${build2.projectPluginId}")
+            }
+        """
+
+        then:
+        succeeds()
+        build1.assertProjectPluginApplied()
+        build2.assertProjectPluginApplied()
+    }
+
+    // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
+    @ToBeFixedForConfigurationCache
+    def "included build logic build settings plugins are not visible transitively"() {
+        when:
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${build2.buildName}")
+            }
+            plugins {
+                id("${build1.settingsPluginId}")
+                id("${build2.settingsPluginId}")
+            }
+        """
+        build2.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build1.buildName}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+
+        then:
+        fails()
+        failureDescriptionContains("Plugin [id: '${build1.settingsPluginId}'] was not found in any of the following sources:")
+    }
+
+    def "included build logic build settings plugins are visible when included explicitly"() {
+        given:
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${build2.buildName}")
+                includeBuild("${build1.buildName}")
+            }
+            plugins {
+                id("${build1.settingsPluginId}")
+                id("${build2.settingsPluginId}")
+            }
+        """
+        build2.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build1.buildName}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+
+        when:
+        buildFile << """
+            plugins {
+                id("${build1.projectPluginId}")
+                id("${build2.projectPluginId}")
+            }
+        """
+
+        then:
+        succeeds()
+        build1.assertSettingsPluginApplied()
+        build2.assertSettingsPluginApplied()
+    }
 }
