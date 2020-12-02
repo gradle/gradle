@@ -18,7 +18,6 @@ package org.gradle.internal.logging.slf4j;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -26,17 +25,11 @@ import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
+import static org.gradle.internal.logging.slf4j.BuildOperationAwareLogger.toLogLevel;
+
 public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
-    private static final MessageRewriter NOOP_REWRITER = new MessageRewriter() {
-        @Override
-        public String rewrite(LogLevel logLevel, String message) {
-            return message;
-        }
-    };
-
-    private final BuildOperationAwareLogger delegate;
-    private MessageRewriter messageRewriter = NOOP_REWRITER;
+    private BuildOperationAwareLogger delegate;
     private OperationIdentifier fallbackOperationIdentifier = null;
 
     public DefaultContextAwareTaskLogger(Logger delegate) {
@@ -45,7 +38,7 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
     @Override
     public void setMessageRewriter(MessageRewriter messageRewriter) {
-        this.messageRewriter = messageRewriter;
+        delegate = new MessageRewritingBuildOperationAwareLogger(delegate, messageRewriter);
     }
 
     @Override
@@ -168,10 +161,7 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
         if (buildOperationId == null) {
             buildOperationId = fallbackOperationIdentifier;
         }
-        message = messageRewriter.rewrite(logLevel, message);
-        if (message == null) {
-            return;
-        }
+
         delegate.log(logLevel, throwable, message, buildOperationId);
     }
 
@@ -357,19 +347,6 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
         if (isInfoEnabled()) {
             log(LogLevel.INFO, t, msg);
         }
-    }
-
-    private LogLevel toLogLevel(Marker marker) {
-        if (marker == null) {
-            return LogLevel.INFO;
-        }
-        if (marker == Logging.LIFECYCLE) {
-            return LogLevel.LIFECYCLE;
-        }
-        if (marker == Logging.QUIET) {
-            return LogLevel.QUIET;
-        }
-        return LogLevel.INFO;
     }
 
     @Override
