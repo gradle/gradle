@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.tooling.r68
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
