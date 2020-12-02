@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r68
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
@@ -422,47 +421,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         outputContains("BUILD SUCCESSFUL")
-    }
-
-    @ToolingApiVersion(">=6.8")
-    def "Can launch test with test launcher via test filter"() {
-        setup:
-        settingsFile << "includeBuild('other-build')"
-        file('other-build/settings.gradle') << """
-            rootProject.name = 'other-build'
-            include 'sub'
-        """
-        file('other-build/sub/build.gradle') << """
-            plugins {
-                id 'java-library'
-            }
-
-             ${mavenCentralRepository()}
-
-             dependencies { testImplementation 'junit:junit:4.13' }
-        """
-        file("other-build/sub/src/test/java/MyIncludedTest.java") << """
-            import org.junit.Test;
-            import static org.junit.Assert.assertTrue;
-
-            public class MyIncludedTest {
-
-                @Test
-                public void myTestMethod() {
-                    assertTrue(true);
-                }
-            }
-        """
-
-        when:
-        withConnection { connection ->
-            def testLauncher = connection.newTestLauncher()
-            collectOutputs(testLauncher)
-            testLauncher.withJvmTestClasses("MyIncludedTest").run()
-        }
-
-        then:
-        thrown(TestExecutionException)
     }
 
     @ToolingApiVersion(">=6.8")
