@@ -19,12 +19,12 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositePluginBuildsNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    private final BuildLogicBuildFixture build1 = buildLogicBuild("logic-1")
-    private final BuildLogicBuildFixture build2 = buildLogicBuild("logic-2")
+    private final PluginBuildFixture build1 = pluginBuild("logic-1")
+    private final PluginBuildFixture build2 = pluginBuild("logic-2")
 
-    def "can nest included build logic builds"() {
+    def "can nest included plugin builds"() {
         when:
         settingsFile << """
             pluginManagement {
@@ -41,7 +41,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
 
     // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
     @ToBeFixedForConfigurationCache
-    def "can nest early included build logic builds"() {
+    def "can nest early included plugin builds"() {
         when:
         settingsFile << """
             pluginManagement {
@@ -59,7 +59,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         succeeds()
     }
 
-    def "nested included build logic build can contribute project plugins to including included build"() {
+    def "nested included plugin build can contribute project plugins to including included build"() {
         given:
         settingsFile << """
             pluginManagement {
@@ -92,7 +92,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         build2.assertProjectPluginApplied()
     }
 
-    def "nested included build logic build can contribute settings plugins to including included build"() {
+    def "nested included plugin build can contribute settings plugins to including included build"() {
         given:
         settingsFile << """
             pluginManagement {
@@ -122,7 +122,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         build2.assertProjectPluginApplied()
     }
 
-    def "nested early included build logic build can contribute settings plugins to including included build"() {
+    def "nested early included plugin build can contribute settings plugins to including included build"() {
         when:
         settingsFile << """
             pluginManagement {
@@ -148,7 +148,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         build2.assertSettingsPluginApplied()
     }
 
-    def "included build logic build project plugins are not visible transitively"() {
+    def "included plugin build project plugins are not visible transitively"() {
         given:
         settingsFile << """
             pluginManagement {
@@ -175,7 +175,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         failureDescriptionContains("Plugin [id: '${build1.projectPluginId}'] was not found in any of the following sources:")
     }
 
-    def "included build logic build project plugins are visible when included explicitly"() {
+    def "included plugin build project plugins are visible when included explicitly"() {
         given:
         settingsFile << """
             pluginManagement {
@@ -206,7 +206,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
 
     // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
     @ToBeFixedForConfigurationCache
-    def "included build logic build settings plugins are not visible transitively"() {
+    def "included plugin build settings plugins are not visible transitively"() {
         when:
         settingsFile << """
             pluginManagement {
@@ -229,7 +229,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         failureDescriptionContains("Plugin [id: '${build1.settingsPluginId}'] was not found in any of the following sources:")
     }
 
-    def "included build logic build settings plugins are visible when included explicitly"() {
+    def "included plugin build settings plugins are visible when included explicitly"() {
         given:
         settingsFile << """
             pluginManagement {

@@ -206,11 +206,11 @@ public class ${className} implements Plugin<Project> {
         assert output.contains(string.trim())
     }
 
-    BuildLogicBuildFixture buildLogicBuild(String buildName) {
-        return new BuildLogicBuildFixture(buildName)
+    PluginBuildFixture pluginBuild(String buildName) {
+        return new PluginBuildFixture(buildName)
     }
 
-    class BuildLogicBuildFixture {
+    class PluginBuildFixture {
         final String buildName
         final String settingsPluginId
         final String projectPluginId
@@ -218,7 +218,7 @@ public class ${className} implements Plugin<Project> {
         final TestFile settingsFile
         final TestFile buildFile
 
-        BuildLogicBuildFixture(String buildName) {
+        PluginBuildFixture(String buildName) {
             this.buildName = buildName
             this.settingsPluginId = "${buildName}.settings-plugin"
             this.projectPluginId = "${buildName}.project-plugin"

@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.composite
 
-class CompositeBuildLogicBuildsOrderingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositePluginBuildsOrderingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    private final BuildLogicBuildFixture build1 = buildLogicBuild("logic-1")
-    private final BuildLogicBuildFixture build2 = buildLogicBuild("logic-2")
+    private final PluginBuildFixture build1 = pluginBuild("logic-1")
+    private final PluginBuildFixture build2 = pluginBuild("logic-2")
 
     def setup() {
         settingsFile << """
@@ -30,7 +30,7 @@ class CompositeBuildLogicBuildsOrderingIntegrationTest extends AbstractComposite
         """
     }
 
-    def "two included build logic builds can contribute plugins to including build"() {
+    def "two included plugin builds can contribute plugins to including build"() {
         when:
         buildFile << """
             plugins {
