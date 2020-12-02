@@ -28,6 +28,7 @@ public class TestEventSerializer {
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
+        registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
         registry.register(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
         registry.register(WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
         registry.register(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
@@ -154,6 +155,27 @@ public class TestEventSerializer {
         public void write(Encoder encoder, DefaultTestSuiteDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
+        }
+    }
+
+    private static class DefaultNestedTestSuiteDescriptorSerializer implements Serializer<DefaultNestedTestSuiteDescriptor> {
+        final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
+
+        @Override
+        public DefaultNestedTestSuiteDescriptor read(Decoder decoder) throws Exception {
+            Object id = idSerializer.read(decoder);
+            String name = decoder.readString();
+            String displayName = decoder.readString();
+            CompositeIdGenerator.CompositeId parentId = idSerializer.read(decoder);
+            return new DefaultNestedTestSuiteDescriptor(id, name, displayName, parentId);
+        }
+
+        @Override
+        public void write(Encoder encoder, DefaultNestedTestSuiteDescriptor value) throws Exception {
+            idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
+            encoder.writeString(value.getName());
+            encoder.writeString(value.getDisplayName());
+            idSerializer.write(encoder, value.getParentId());
         }
     }
 

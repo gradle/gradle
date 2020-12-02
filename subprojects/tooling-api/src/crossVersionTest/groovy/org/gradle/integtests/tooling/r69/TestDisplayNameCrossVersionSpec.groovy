@@ -68,10 +68,20 @@ public class SimpleTests {
         }
 
         then:
-
-        assertTaskExecuted(":test")
-        assertTestExecuted(className: "org.example.SimpleTests", methodName: null, displayName: "a class display name")
-        assertTestExecuted(className: "org.example.SimpleTests", methodName: "test()", displayName: "and a test display name")
+        jvmTestEvents {
+            task(":test") {
+                suite("Gradle Test Run :test") {
+                    suite("Gradle Test Executor") {
+                        suite("org.example.SimpleTests") {
+                            displayName "a class display name"
+                            test("test()") {
+                                displayName "and a test display name"
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     def "reports display names of nested test classes"() {
@@ -170,18 +180,43 @@ class TestingAStackDemo {
         }
 
         then:
-
-        assertTaskExecuted(":test")
-        assertTestExecuted(className: "org.example.TestingAStackDemo", methodName: null, displayName: "A stack")
-        assertTestExecuted(className: "org.example.TestingAStackDemo", methodName: "isInstantiatedWithNew()", displayName: "is instantiated with new Stack()")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew", methodName: null, displayName: "when new")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew", methodName: "isEmpty()", displayName: "is empty")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew", methodName: "throwsExceptionWhenPopped()", displayName: "throws EmptyStackException when popped")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew", methodName: "throwsExceptionWhenPeeked()", displayName: "throws EmptyStackException when peeked")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew\$AfterPushing", methodName: null, displayName: "after pushing an element")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew\$AfterPushing", methodName: "isNotEmpty()", displayName: "it is no longer empty")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew\$AfterPushing", methodName: "returnElementWhenPopped()", displayName: "returns the element when popped and is empty")
-        assertTestExecuted(className: "org.example.TestingAStackDemo\$WhenNew\$AfterPushing", methodName: "returnElementWhenPeeked()", displayName: "returns the element when peeked but remains not empty")
+        jvmTestEvents {
+            task(":test") {
+                suite("Gradle Test Run :test") {
+                    suite("Gradle Test Executor") {
+                        suite("org.example.TestingAStackDemo") {
+                            displayName "A stack"
+                            test("isInstantiatedWithNew()") {
+                                displayName "is instantiated with new Stack()"
+                            }
+                            suite("org.example.TestingAStackDemo\$WhenNew") {
+                                displayName "when new"
+                                test("isEmpty()") {
+                                    displayName "is empty"
+                                }
+                                test("throwsExceptionWhenPeeked()") {
+                                    displayName "throws EmptyStackException when peeked"
+                                }
+                                test("throwsExceptionWhenPopped()") {
+                                    displayName "throws EmptyStackException when popped"
+                                }
+                                suite("org.example.TestingAStackDemo\$WhenNew\$AfterPushing") {
+                                    test("isNotEmpty()") {
+                                        displayName "it is no longer empty"
+                                    }
+                                    test("returnElementWhenPeeked()") {
+                                        displayName "returns the element when peeked but remains not empty"
+                                    }
+                                    test("returnElementWhenPopped()") {
+                                        displayName "returns the element when popped and is empty"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     def "reports display names of parameterized tests"() {
@@ -218,14 +253,34 @@ public class ParameterizedTests {
         }
 
         then:
-        assertTaskExecuted(":test")
-        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: null, displayName: "Parameterized test")
-        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: null, displayName: "1st test")
-        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test1(String)[1]", displayName: "[1] foo")
-        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test1(String)[2]", displayName: "[2] bar")
-        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: null, displayName: "2nd test")
-        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test2(String)[1]", displayName: "[1] foo")
-        assertTestExecuted(className: "org.example.ParameterizedTests", methodName: "test2(String)[2]", displayName: "[2] bar")
+        jvmTestEvents {
+            task(":test") {
+                suite("Gradle Test Run :test") {
+                    suite("Gradle Test Executor") {
+                        suite("org.example.ParameterizedTests") {
+                            suite("test1(String)") {
+                                displayName "1st test"
+                                test("test1(String)[1]") {
+                                    displayName "[1] foo"
+                                }
+                                test("test1(String)[2]") {
+                                    displayName "[2] bar"
+                                }
+                            }
+                            suite("test2(String)") {
+                                displayName "2nd test"
+                                test("test2(String)[1]") {
+                                    displayName "[1] foo"
+                                }
+                                test("test2(String)[2]") {
+                                    displayName "[2] bar"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     def "reports display names for dynamic tests"() {
@@ -274,13 +329,36 @@ public class DynamicTests {
         }
 
         then:
-        assertTaskExecuted(":test")
-        assertTestExecuted(className: "org.example.DynamicTests", methodName: null)
-        assertTestExecuted(className: "org.example.DynamicTests", methodName: null, displayName: "testFactory()")
-        assertTestExecuted(className: "org.example.DynamicTests", methodName: null, displayName: "some nested container")
-        assertTestExecuted(className: "org.example.DynamicTests", methodName: "testFactory()[1][1][1]", displayName: "foo")
-        assertTestExecuted(className: "org.example.DynamicTests", methodName: "testFactory()[1][1][2]", displayName: "bar")
-        assertTestExecuted(className: "org.example.DynamicTests", methodName: null, displayName: "another test factory")
-        assertTestExecuted(className: "org.example.DynamicTests", methodName: "anotherTestFactory()[1]", displayName: "foo")
+        jvmTestEvents {
+            task(":test") {
+                suite("Gradle Test Run :test") {
+                    suite("Gradle Test Executor") {
+                        suite("org.example.DynamicTests") {
+                            suite("testFactory()") {
+                                displayName "Test suite 'testFactory()'"
+                                suite("testFactory()[1]") {
+                                    displayName "some container"
+                                    suite("testFactory()[1][1]") {
+                                        displayName "some nested container"
+                                        test("testFactory()[1][1][1]") {
+                                            displayName "foo"
+                                        }
+                                        test("testFactory()[1][1][2]") {
+                                            displayName "bar"
+                                        }
+                                    }
+                                }
+                            }
+                            suite("anotherTestFactory()") {
+                                displayName "another test factory"
+                                test("anotherTestFactory()[1]") {
+                                    displayName "foo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

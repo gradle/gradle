@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junitplatform
 
+import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -241,7 +242,7 @@ public class UninstantiableExtension implements BeforeEachCallback {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('UnknownClass')
+            .testClass(JUnitSupport.UNKNOWN_CLASS)
             .assertTestFailed('initializationError', containsString('UninstantiableExtension'))
     }
 
