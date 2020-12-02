@@ -42,7 +42,8 @@ class KotlinDslWorkspaceProvider(
             .withDisplayName("kotlin-dsl"),
         fileAccessTimeJournal,
         inMemoryCacheDecoratorFactory,
-        stringInterner
+        stringInterner,
+        2 // scripts and accessors caches sit below the root directory
     )
 
     val accessors = subWorkspace("accessors")
