@@ -21,9 +21,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -33,10 +32,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Named;
 import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
@@ -64,7 +61,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.reflect.Methods.DESCRIPTOR_EQUIVALENCE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
@@ -72,14 +68,9 @@ import static org.gradle.internal.reflect.PropertyAccessorType.*;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
-    private final LoadingCache<CacheKey, StructBindings<?>> bindings = CacheBuilder.newBuilder()
+    private final LoadingCache<CacheKey, StructBindings<?>> bindings = Caffeine.newBuilder().executor(Runnable::run)
         .weakValues()
-        .build(new CacheLoader<CacheKey, StructBindings<?>>() {
-            @Override
-            public StructBindings<?> load(CacheKey key) throws Exception {
-                return extract(key.publicType, key.viewTypes, key.delegateType);
-            }
-        });
+        .build(key -> extract(key.publicType, key.viewTypes, key.delegateType));
 
     private final ModelSchemaStore schemaStore;
 
@@ -94,13 +85,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
     @Override
     public <T> StructBindings<T> getBindings(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType) {
-        try {
-            return Cast.uncheckedCast(bindings.get(new CacheKey(publicType, internalViewTypes, delegateType)));
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
+        return Cast.uncheckedCast(bindings.get(new CacheKey(publicType, internalViewTypes, delegateType)));
     }
 
     <T, D> StructBindings<T> extract(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<D> delegateType) {

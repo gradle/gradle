@@ -15,8 +15,8 @@
  */
 package org.gradle.cache.internal.btree;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class CachingBlockStore implements BlockStore {
     private final BlockStore store;
     private final Map<BlockPointer, BlockPayload> dirty = new LinkedHashMap<BlockPointer, BlockPayload>();
-    private final Cache<BlockPointer, BlockPayload> indexBlockCache = CacheBuilder.newBuilder().maximumSize(100).concurrencyLevel(1).build();
+    private final Cache<BlockPointer, BlockPayload> indexBlockCache = Caffeine.newBuilder().executor(Runnable::run).maximumSize(100).build();
     private final ImmutableSet<Class<? extends BlockPayload>> cacheableBlockTypes;
 
     public CachingBlockStore(BlockStore store, Collection<Class<? extends BlockPayload>> cacheableBlockTypes) {

@@ -17,9 +17,8 @@
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.base.Preconditions;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
@@ -43,19 +42,15 @@ public class PBXGroup extends PBXReference {
         sortPolicy = SortPolicy.BY_NAME;
         children = Lists.newArrayList();
 
-        childGroupsByName = CacheBuilder.newBuilder().build(
-            new CacheLoader<String, PBXGroup>() {
-                @Override
-                public PBXGroup load(String key) throws Exception {
-                    PBXGroup group = new PBXGroup(key, null, SourceTree.GROUP);
-                    children.add(group);
-                    return group;
-                }
-            });
+        childGroupsByName = Caffeine.newBuilder().executor(Runnable::run).build(key -> {
+            PBXGroup group = new PBXGroup(key, null, SourceTree.GROUP);
+            children.add(group);
+            return group;
+        });
     }
 
     public PBXGroup getOrCreateChildGroupByName(String name) {
-        return childGroupsByName.getUnchecked(name);
+        return childGroupsByName.get(name);
     }
 
     public List<PBXReference> getChildren() {

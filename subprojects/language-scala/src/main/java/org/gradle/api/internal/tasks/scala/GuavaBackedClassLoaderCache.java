@@ -17,10 +17,9 @@
 package org.gradle.api.internal.tasks.scala;
 
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
 
 import java.util.concurrent.Callable;
 
@@ -35,19 +34,15 @@ public class GuavaBackedClassLoaderCache<K> implements AutoCloseable {
 
 
     public GuavaBackedClassLoaderCache(int maxSize) {
-        cache = CacheBuilder
+        cache = Caffeine
             .newBuilder()
             .maximumSize(maxSize)
-            .removalListener(new RemovalListener<K, ClassLoader>() {
-                @Override
-                public void onRemoval(RemovalNotification<K, ClassLoader> notification) {
-                    ClassLoader value = notification.getValue();
-                    if (value instanceof AutoCloseable) {
-                        try {
-                            ((AutoCloseable) value).close();
-                        } catch(Exception ex) {
-                            throw new RuntimeException("Failed to close classloader", ex);
-                        }
+            .removalListener((K key, ClassLoader value, RemovalCause cause) -> {
+                if (value instanceof AutoCloseable) {
+                    try {
+                        ((AutoCloseable) value).close();
+                    } catch(Exception ex) {
+                        throw new RuntimeException("Failed to close classloader", ex);
                     }
                 }
             })
@@ -55,7 +50,15 @@ public class GuavaBackedClassLoaderCache<K> implements AutoCloseable {
     }
 
     public ClassLoader get(K key, Callable<ClassLoader> loader) throws Exception {
-        return cache.get(key, loader);
+        return cache.get(key, k -> {
+          try {
+            return loader.call();
+          } catch (RuntimeException e) {
+            throw e;
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        });
     }
 
     public void clear() {

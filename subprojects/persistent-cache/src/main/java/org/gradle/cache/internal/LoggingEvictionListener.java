@@ -16,10 +16,9 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.RemovalCause;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.RemovalListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +42,11 @@ class LoggingEvictionListener implements RemovalListener<Object, Object> {
     }
 
     @Override
-    public void onRemoval(RemovalNotification<Object, Object> notification) {
-        if (notification.getCause() == RemovalCause.SIZE) {
+    public void onRemoval(Object key, Object value, RemovalCause cause) {
+        if (cause == RemovalCause.SIZE) {
             if (evictionCounter % logInterval == 0) {
-                logger.info("Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+                logger.info("Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}",
+                    cacheId, cache.estimatedSize(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
             }
             evictionCounter++;
         }

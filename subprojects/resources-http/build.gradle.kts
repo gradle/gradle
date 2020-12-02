@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.jclToSlf4j)
     implementation(libs.jcifs)
+    implementation(libs.caffeine)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

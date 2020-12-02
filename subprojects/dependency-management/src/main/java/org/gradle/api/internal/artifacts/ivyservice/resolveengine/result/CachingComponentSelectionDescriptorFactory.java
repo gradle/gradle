@@ -15,17 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.internal.Describables;
 
-import java.util.concurrent.ExecutionException;
 
 public class CachingComponentSelectionDescriptorFactory implements ComponentSelectionDescriptorFactory {
-    private final Cache<Key, ComponentSelectionDescriptor> descriptors = CacheBuilder.newBuilder()
+    private final Cache<Key, ComponentSelectionDescriptor> descriptors = Caffeine.newBuilder().executor(Runnable::run)
         .maximumSize(10000)
         .build();
 
@@ -41,19 +40,11 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
 
     @Override
     public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause) {
-        try {
-            return descriptors.get(new Key(cause, Describables.of(cause.getDefaultReason())), () -> new DefaultComponentSelectionDescriptor(cause));
-        } catch (ExecutionException e) {
-            return new DefaultComponentSelectionDescriptor(cause);
-        }
+        return descriptors.get(new Key(cause, Describables.of(cause.getDefaultReason())), key -> new DefaultComponentSelectionDescriptor(cause));
     }
 
     private ComponentSelectionDescriptor getOrCreate(ComponentSelectionCause cause, Describable description) {
-        try {
-            return descriptors.get(new Key(cause, description), () -> new DefaultComponentSelectionDescriptor(cause, description));
-        } catch (ExecutionException e) {
-            return new DefaultComponentSelectionDescriptor(cause, description);
-        }
+        return descriptors.get(new Key(cause, description), key -> new DefaultComponentSelectionDescriptor(cause, description));
     }
 
     private static class Key {

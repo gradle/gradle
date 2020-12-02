@@ -42,6 +42,7 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.ant)
+    implementation(libs.caffeine)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
@@ -104,6 +105,7 @@ dependencies {
     testFixturesImplementation(project(":normalization-java"))
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
+    testFixturesImplementation(libs.caffeine)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.ant)
 

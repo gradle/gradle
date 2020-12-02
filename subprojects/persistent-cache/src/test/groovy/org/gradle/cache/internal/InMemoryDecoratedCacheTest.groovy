@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import com.google.common.cache.CacheBuilder
+import com.github.benmanes.caffeine.cache.Caffeine
 import org.gradle.cache.FileLock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
@@ -25,7 +25,7 @@ import java.util.function.Function
 
 class InMemoryDecoratedCacheTest extends ConcurrentSpec {
     def target = Mock(MultiProcessSafeAsyncPersistentIndexedCache)
-    def cache = new InMemoryDecoratedCache(target, CacheBuilder.newBuilder().build(), "id", new AtomicReference<FileLock.State>())
+    def cache = new InMemoryDecoratedCache(target, Caffeine.newBuilder().build(), "id", new AtomicReference<FileLock.State>())
 
     def "does not produce value when present in memory and marks completed"() {
         def producer = Mock(Function)

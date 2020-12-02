@@ -17,9 +17,9 @@
 package org.gradle.api.internal.model;
 
 import com.google.common.base.Objects;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
@@ -74,7 +74,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
     private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
     private final String factorySuffix;
-    private final Function<Class<?>, LoadingCache<String, Object>> cacheFactory = type -> CacheBuilder.newBuilder().build(loaderFor(type));
+    private final Function<Class<?>, LoadingCache<String, Object>> cacheFactory = type -> Caffeine.newBuilder().executor(Runnable::run).build(loaderFor(type));
 
     public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
         implSuffix = ClassGeneratorSuffixRegistry.assign("$Impl");
@@ -84,7 +84,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
 
     public <T extends Named> T named(final Class<T> type, final String name) throws ObjectInstantiationException {
         try {
-            return type.cast(generatedTypes.get(type, cacheFactory).getUnchecked(name));
+            return type.cast(generatedTypes.get(type, cacheFactory).get(name));
         } catch (UncheckedExecutionException e) {
             throw new ObjectInstantiationException(type, e.getCause());
         } catch (Exception e) {
@@ -291,7 +291,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
         }
     }
 
-    protected abstract static class ClassGeneratingLoader extends CacheLoader<String, Object> {
+    protected abstract static class ClassGeneratingLoader implements CacheLoader<String, Object> {
         @Override
         public abstract Object load(String name);
     }

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Store;
@@ -42,7 +42,7 @@ public class CachedStoreFactory<T> implements Closeable {
 
     public CachedStoreFactory(String displayName) {
         this.displayName = displayName;
-        cache = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).expireAfterAccess(CACHE_EXPIRY, TimeUnit.MILLISECONDS).build();
+        cache = Caffeine.newBuilder().executor(Runnable::run).maximumSize(CACHE_SIZE).expireAfterAccess(CACHE_EXPIRY, TimeUnit.MILLISECONDS).build();
         stats = new Stats();
     }
 

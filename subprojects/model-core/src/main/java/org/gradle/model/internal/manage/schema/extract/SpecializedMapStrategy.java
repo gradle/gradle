@@ -16,11 +16,9 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.NodeBackedModelMap;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -29,21 +27,15 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Currently only handles interfaces with no type parameters that directly extend ModelMap.
  */
 public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
-    private final LoadingCache<ModelType<?>, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
+    private final LoadingCache<ModelType<?>, Class<?>> generatedImplementationTypes = Caffeine.newBuilder().executor(Runnable::run)
         .weakValues()
-        .build(new CacheLoader<ModelType<?>, Class<?>>() {
-            @Override
-            public Class<?> load(ModelType<?> contractType) throws Exception {
-                return generator.generate(NodeBackedModelMap.class, contractType.getConcreteClass());
-            }
-        });
+        .build(contractType -> generator.generate(NodeBackedModelMap.class, contractType.getConcreteClass()));
 
     @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
@@ -67,12 +59,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
             return;
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
-        Class<?> proxyImpl;
-        try {
-            proxyImpl = generatedImplementationTypes.get(modelType);
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        Class<?> proxyImpl = generatedImplementationTypes.get(modelType);
         extractionContext.found(getModelSchema(extractionContext, elementType, proxyImpl));
     }
 

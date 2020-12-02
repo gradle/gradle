@@ -16,16 +16,14 @@
 
 package org.gradle.execution;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
@@ -35,13 +33,8 @@ import java.io.IOException;
  */
 public class ProjectExecutionServiceRegistry implements AutoCloseable {
     private final NodeExecutionContext global;
-    private final LoadingCache<ProjectInternal, NodeExecutionContext> projectRegistries = CacheBuilder.newBuilder()
-        .build(new CacheLoader<ProjectInternal, NodeExecutionContext>() {
-            @Override
-            public NodeExecutionContext load(@Nonnull ProjectInternal project) {
-                return new DefaultNodeExecutionContext(new ProjectExecutionServices(project));
-            }
-        });
+    private final LoadingCache<ProjectInternal, NodeExecutionContext> projectRegistries = Caffeine.newBuilder().executor(Runnable::run)
+        .build(project -> new DefaultNodeExecutionContext(new ProjectExecutionServices(project)));
 
     public ProjectExecutionServiceRegistry(ServiceRegistry globalServices) {
         global = globalServices::get;
@@ -51,7 +44,7 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
         if (project == null) {
             return global;
         }
-        return projectRegistries.getUnchecked(project);
+        return projectRegistries.get(project);
     }
 
     @Override

@@ -23,8 +23,8 @@ import org.gradle.api.plugins.JavaPluginExtension
 abstract class UnitTestAndCompileExtension(private val java: JavaPluginExtension) {
 
     fun usedInWorkers() {
-        java.targetCompatibility = JavaVersion.VERSION_1_6
-        java.sourceCompatibility = JavaVersion.VERSION_1_6
+        java.targetCompatibility = JavaVersion.VERSION_1_8
+        java.sourceCompatibility = JavaVersion.VERSION_1_8
         java.disableAutoTargetJvm()
     }
 

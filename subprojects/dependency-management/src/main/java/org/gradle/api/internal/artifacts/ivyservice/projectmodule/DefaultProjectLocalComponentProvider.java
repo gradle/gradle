@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
@@ -45,7 +43,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
-    private final Cache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build();
+    private final Cache<ProjectComponentIdentifier, LocalComponentMetadata> projects = Caffeine.newBuilder().executor(Runnable::run).build();
 
     public DefaultProjectLocalComponentProvider(ProjectStateRegistry projectStateRegistry, ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metadataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
         this.projectStateRegistry = projectStateRegistry;
@@ -60,22 +58,18 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         if (!isLocalProject(projectIdentifier)) {
             return null;
         }
-        try {
-            // Resolving a project component can cause traversal to other projects, at which
-            // point we could release the project lock and allow another task to run.  We can't
-            // use a cache loader here because it is synchronized.  If the other task also tries
-            // to resolve a project component, he can block trying to get the lock around the
-            // loader while still holding the project lock.  To avoid this deadlock, we check,
-            // then release the project lock only if we need to resolve the project and ensure
-            // that only the thread holding the lock can populate the metadata for a project.
-            LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
-            if (metadata == null) {
-                metadata = getLocalComponentMetadata(projectIdentifier);
-            }
-            return metadata;
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        // Resolving a project component can cause traversal to other projects, at which
+        // point we could release the project lock and allow another task to run.  We can't
+        // use a cache loader here because it is synchronized.  If the other task also tries
+        // to resolve a project component, he can block trying to get the lock around the
+        // loader while still holding the project lock.  To avoid this deadlock, we check,
+        // then release the project lock only if we need to resolve the project and ensure
+        // that only the thread holding the lock can populate the metadata for a project.
+        LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
+        if (metadata == null) {
+            metadata = getLocalComponentMetadata(projectIdentifier);
         }
+        return metadata;
     }
 
     private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {

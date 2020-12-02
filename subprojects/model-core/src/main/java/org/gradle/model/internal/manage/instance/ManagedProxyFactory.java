@@ -17,9 +17,8 @@
 package org.gradle.model.internal.manage.instance;
 
 import com.google.common.base.Objects;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -33,14 +32,9 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
     private final ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
-    private final LoadingCache<CacheKey, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
+    private final LoadingCache<CacheKey, Class<?>> generatedImplementationTypes = Caffeine.newBuilder().executor(Runnable::run)
         .weakValues()
-        .build(new CacheLoader<CacheKey, Class<?>>() {
-            @Override
-            public Class<?> load(CacheKey key) throws Exception {
-                return proxyClassGenerator.generate(key.backingStateType, key.schema, key.structBindings);
-            }
-        });
+        .build(key -> proxyClassGenerator.generate(key.backingStateType, key.schema, key.structBindings));
 
     /**
      * Generates a view of the given type.

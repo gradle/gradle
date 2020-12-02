@@ -25,6 +25,7 @@ public class AntUtil {
     /**
      * @return Factory method to create new Project instances
      */
+     @SuppressWarnings("deprecation")
     public static Project createProject() {
         final Project project = new Project();
 

@@ -49,6 +49,7 @@ dependencies {
         api(libs.bouncycastlePgp)       { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
+        api(libs.caffeine)              { version { strictly("2.8.6") }}
         api(libs.commonsCodec)          { version { strictly("1.13") }}
         api(libs.commonsCompress)       { version { strictly("1.19") }}
         api(libs.commonsHttpclient)     { version { strictly("4.5.10") }}

@@ -15,6 +15,7 @@ dependencies {
     api(project(":build-operations"))
 
     implementation(libs.slf4jApi)
+    implementation(libs.caffeine)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

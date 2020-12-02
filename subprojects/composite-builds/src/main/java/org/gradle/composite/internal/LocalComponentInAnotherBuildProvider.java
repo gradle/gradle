@@ -16,20 +16,15 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-
-import java.util.concurrent.ExecutionException;
 
 /**
  * Provides the metadata for a local component consumed from a build that is not the producing build.
@@ -39,12 +34,7 @@ import java.util.concurrent.ExecutionException;
 public class LocalComponentInAnotherBuildProvider implements LocalComponentProvider {
     private final ProjectStateRegistry projectRegistry;
     private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
-    private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projectMetadata = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, LocalComponentMetadata>() {
-        @Override
-        public LocalComponentMetadata load(ProjectComponentIdentifier projectIdentifier) {
-            return getRegisteredProject(projectIdentifier);
-        }
-    });
+    private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projectMetadata = Caffeine.newBuilder().executor(Runnable::run).build(this::getRegisteredProject);
 
     public LocalComponentInAnotherBuildProvider(ProjectStateRegistry projectRegistry, IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder) {
         this.projectRegistry = projectRegistry;
@@ -53,11 +43,7 @@ public class LocalComponentInAnotherBuildProvider implements LocalComponentProvi
 
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
-        try {
-            return projectMetadata.get(project);
-        } catch (ExecutionException | UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
+        return projectMetadata.get(project);
     }
 
     private LocalComponentMetadata getRegisteredProject(final ProjectComponentIdentifier projectId) {

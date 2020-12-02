@@ -16,13 +16,10 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -31,19 +28,13 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
 
-    private final LoadingCache<NodeInitializerContext<?>, NodeInitializer> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<NodeInitializerContext<?>, NodeInitializer> cache = Caffeine.newBuilder().executor(Runnable::run)
         .weakValues()
-        .build(new CacheLoader<NodeInitializerContext<?>, NodeInitializer>() {
-            @Override
-            public NodeInitializer load(NodeInitializerContext<?> context) throws Exception {
-                return extractNodeInitializer(context);
-            }
-        });
+        .build(this::extractNodeInitializer);
 
     private final List<NodeInitializerExtractionStrategy> allStrategies;
     private final List<NodeInitializerExtractionStrategy> additionalStrategies;
@@ -75,13 +66,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     @Override
     public NodeInitializer getNodeInitializer(NodeInitializerContext<?> nodeInitializerContext) {
-        try {
-            return cache.get(nodeInitializerContext);
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
+        return cache.get(nodeInitializerContext);
     }
 
     private <T> NodeInitializer extractNodeInitializer(NodeInitializerContext<T> context) {

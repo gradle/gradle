@@ -80,6 +80,7 @@ public interface ArtifactResolutionQuery {
      * @param componentType The expected type of the component.
      * @param artifactTypes The artifacts to retrieve for the queried components.
      */
+    @SuppressWarnings("unchecked")
     ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes);
 
 

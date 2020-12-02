@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -51,8 +51,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -94,11 +92,11 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectModelResolver projectModelResolver;
-    private final Cache<String, State> stateCache = CacheBuilder.<String, State>newBuilder()
+    private final Cache<String, State> stateCache = Caffeine.newBuilder().executor(Runnable::run)
         .maximumSize(1)
         .expireAfterAccess(10, TimeUnit.SECONDS)
         .build();
-    private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache = CacheBuilder.<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>>newBuilder()
+    private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache = Caffeine.newBuilder().executor(Runnable::run)
         .maximumSize(3000)
         .expireAfterAccess(10, TimeUnit.SECONDS)
         .build();
@@ -138,13 +136,8 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     private State getState() {
         try {
-            return stateCache.get("state", new Callable<State>() {
-                @Override
-                public State call() {
-                    return buildState();
-                }
-            });
-        } catch (ExecutionException ex) {
+            return stateCache.get("state", key -> buildState());
+        } catch (RuntimeException ex) {
             throw new RuntimeException("Unable to build native dependent binaries resolution cache", ex);
         }
     }

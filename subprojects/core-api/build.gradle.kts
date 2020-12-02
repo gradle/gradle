@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.ant)
+    implementation(libs.caffeine)
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

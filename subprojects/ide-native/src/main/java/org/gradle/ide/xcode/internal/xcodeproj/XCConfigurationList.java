@@ -17,9 +17,8 @@
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
@@ -40,15 +39,11 @@ public class XCConfigurationList extends PBXProjectItem {
         defaultConfigurationName = Optional.absent();
         defaultConfigurationIsVisible = false;
 
-        buildConfigurationsByName = CacheBuilder.newBuilder().build(
-            new CacheLoader<String, XCBuildConfiguration>() {
-                @Override
-                public XCBuildConfiguration load(String key) throws Exception {
-                    XCBuildConfiguration configuration = new XCBuildConfiguration(key);
-                    buildConfigurations.add(configuration);
-                    return configuration;
-                }
-            });
+        buildConfigurationsByName = Caffeine.newBuilder().executor(Runnable::run).build(key -> {
+            XCBuildConfiguration configuration = new XCBuildConfiguration(key);
+            buildConfigurations.add(configuration);
+            return configuration;
+        });
     }
 
     public LoadingCache<String, XCBuildConfiguration> getBuildConfigurationsByName() {

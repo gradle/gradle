@@ -16,8 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.CrossProcessCacheAccess;
@@ -76,7 +76,7 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
 
     private Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
         LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
-        final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
+        final Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder().executor(Runnable::run).maximumSize(maxSize).recordStats().removalListener(evictionListener);
         Cache<Object, Object> inMemoryCache = cacheBuilder.build();
         evictionListener.setCache(inMemoryCache);
         return inMemoryCache;

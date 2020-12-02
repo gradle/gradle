@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
+    implementation(libs.caffeine)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.asm)

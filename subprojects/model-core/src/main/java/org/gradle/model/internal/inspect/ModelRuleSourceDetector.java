@@ -18,16 +18,15 @@ package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
 import org.gradle.model.RuleSource;
 
 import java.lang.ref.Reference;
@@ -36,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleSourceDetector {
@@ -48,7 +46,7 @@ public class ModelRuleSourceDetector {
         }
     };
 
-    final LoadingCache<Class<?>, Collection<Reference<Class<? extends RuleSource>>>> cache = CacheBuilder.newBuilder()
+    final LoadingCache<Class<?>, Collection<Reference<Class<? extends RuleSource>>>> cache = Caffeine.newBuilder().executor(Runnable::run)
             .weakKeys()
             .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends RuleSource>>>>() {
                 @Override
@@ -82,18 +80,14 @@ public class ModelRuleSourceDetector {
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Iterable<Class<? extends RuleSource>> getDeclaredSources(Class<?> container) {
-        try {
-            return FluentIterable.from(cache.get(container))
-                    .transform(new Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>() {
-                        @Override
-                        public Class<? extends RuleSource> apply(Reference<Class<? extends RuleSource>> input) {
-                            return input.get();
-                        }
-                    })
-                    .filter(Predicates.notNull());
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return FluentIterable.from(cache.get(container))
+                .transform(new Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>() {
+                    @Override
+                    public Class<? extends RuleSource> apply(Reference<Class<? extends RuleSource>> input) {
+                        return input.get();
+                    }
+                })
+                .filter(Predicates.notNull());
     }
 
     public boolean hasRules(Class<?> container) {

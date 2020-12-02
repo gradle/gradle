@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -34,8 +34,8 @@ public class ClassLoaderCache {
     private final Cache<UUID, ClassLoader> classLoaderIds;
 
     public ClassLoaderCache() {
-        classLoaderDetails = CacheBuilder.newBuilder().weakKeys().build();
-        classLoaderIds = CacheBuilder.newBuilder().softValues().build();
+        classLoaderDetails = Caffeine.newBuilder().executor(Runnable::run).weakKeys().build();
+        classLoaderIds = Caffeine.newBuilder().executor(Runnable::run).softValues().build();
     }
 
     public ClassLoader getClassLoader(ClassLoaderDetails details, Transformer<ClassLoader, ClassLoaderDetails> factory) {

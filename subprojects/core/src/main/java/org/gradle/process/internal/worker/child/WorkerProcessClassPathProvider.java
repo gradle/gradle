@@ -106,6 +106,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "native-platform",
             "kryo",
             "commons-lang",
+            "caffeine",
             "guava",
             "javax.inject",
             "groovy-all",

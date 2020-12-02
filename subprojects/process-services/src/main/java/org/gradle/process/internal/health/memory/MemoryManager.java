@@ -18,12 +18,16 @@ package org.gradle.process.internal.health.memory;
 
 public interface MemoryManager {
 
+    @SuppressWarnings("overloads")
     void addListener(JvmMemoryStatusListener listener);
 
+    @SuppressWarnings("overloads")
     void addListener(OsMemoryStatusListener listener);
 
+    @SuppressWarnings("overloads")
     void removeListener(JvmMemoryStatusListener listener);
 
+    @SuppressWarnings("overloads")
     void removeListener(OsMemoryStatusListener listener);
 
     /**

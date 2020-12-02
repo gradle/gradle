@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import org.apache.http.ssl.SSLInitializationException;
 import org.gradle.internal.Factory;
@@ -56,13 +56,13 @@ public class DefaultSslContextFactory implements SslContextFactory {
         "java.home"
     );
 
-    private LoadingCache<Map<String, String>, SSLContext> cache = CacheBuilder.newBuilder().softValues().build(
+    private LoadingCache<Map<String, String>, SSLContext> cache = Caffeine.newBuilder().executor(Runnable::run).softValues().build(
         new SynchronizedSystemPropertiesCacheLoader(new SslContextCacheLoader())
     );
 
     @Override
     public SSLContext createSslContext() {
-        return cache.getUnchecked(getCurrentProperties());
+        return cache.get(getCurrentProperties());
     }
 
     private Map<String, String> getCurrentProperties() {
@@ -78,7 +78,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
         });
     }
 
-    private static class SynchronizedSystemPropertiesCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
+    private static class SynchronizedSystemPropertiesCacheLoader implements CacheLoader<Map<String, String>, SSLContext> {
         private final SslContextCacheLoader delegate;
 
         private SynchronizedSystemPropertiesCacheLoader(SslContextCacheLoader delegate) {
@@ -109,7 +109,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
         }
     }
 
-    private static class SslContextCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
+    private static class SslContextCacheLoader implements CacheLoader<Map<String, String>, SSLContext> {
         @Override
         public SSLContext load(Map<String, String> props) {
             // TODO: We should see if we can go back to using HttpClient again.

@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.asmUtil)
+    implementation(libs.caffeine)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

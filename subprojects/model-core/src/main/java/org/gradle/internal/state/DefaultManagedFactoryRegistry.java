@@ -16,14 +16,14 @@
 
 package org.gradle.internal.state;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import javax.annotation.Nullable;
 
 public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
     private final ManagedFactoryRegistry parent;
-    private final Cache<Integer, ManagedFactory> managedFactoryCache = CacheBuilder.newBuilder().build();
+    private final Cache<Integer, ManagedFactory> managedFactoryCache = Caffeine.newBuilder().executor(Runnable::run).build();
 
     public DefaultManagedFactoryRegistry(ManagedFactoryRegistry parent) {
         this.parent = parent;

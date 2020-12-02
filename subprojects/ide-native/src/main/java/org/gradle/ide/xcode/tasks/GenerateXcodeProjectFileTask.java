@@ -108,7 +108,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         }
 
         // Create build configuration at the project level from all target's build configuration
-        project.getTargets().stream().flatMap(it -> it.getBuildConfigurationList().getBuildConfigurationsByName().asMap().keySet().stream()).forEach(project.getBuildConfigurationList().getBuildConfigurationsByName()::getUnchecked);
+        project.getTargets().stream().flatMap(it -> it.getBuildConfigurationList().getBuildConfigurationsByName().asMap().keySet().stream()).forEach(project.getBuildConfigurationList().getBuildConfigurationsByName()::get);
 
         XcodeprojSerializer serializer = new XcodeprojSerializer(gidGenerator, project);
         final NSDictionary rootObject = serializer.toPlist();
@@ -167,7 +167,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
 
         xcodeTarget.getBinaries().forEach(xcodeBinary -> {
-            NSDictionary settings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).getBuildSettings();
+            NSDictionary settings = target.getBuildConfigurationList().getBuildConfigurationsByName().get(xcodeBinary.getBuildConfigurationName()).getBuildSettings();
 
             File binaryOutputFile = xcodeBinary.getOutputFile().get().getAsFile();
             settings.put("CONFIGURATION_BUILD_DIR", new NSString(binaryOutputFile.getParentFile().getAbsolutePath()));
@@ -215,7 +215,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
 
         getAllBinaries().stream().filter(it -> !Objects.equals(it.getBuildConfigurationName(), TEST_DEBUG)).forEach(configureBuildSettings(xcodeTarget, target));
 
-        NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
+        NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().get(TEST_DEBUG).getBuildSettings();
 
         if (!xcodeTarget.getCompileModules().isEmpty()) {
             testRunnerSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
@@ -242,7 +242,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         // Create unbuildable build configuration so the indexer can keep functioning
         if (xcodeTarget.getBinaries().isEmpty()) {
             NSDictionary settings = newBuildSettings(xcodeTarget);
-            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(UNBUILDABLE_BUILD_CONFIGURATION_NAME).setBuildSettings(settings);
+            target.getBuildConfigurationList().getBuildConfigurationsByName().get(UNBUILDABLE_BUILD_CONFIGURATION_NAME).setBuildSettings(settings);
         }
 
         return target;
@@ -253,7 +253,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             NSDictionary settings = newBuildSettings(xcodeTarget);
             settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.getArchitectureName()));
             settings.put("VALID_ARCHS", xcodeTarget.getBinaries().stream().map(it -> GenerateXcodeProjectFileTask.toXcodeArchitecture(it.getArchitectureName())).distinct().collect(Collectors.joining(" ")));
-            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).setBuildSettings(settings);
+            target.getBuildConfigurationList().getBuildConfigurationsByName().get(xcodeBinary.getBuildConfigurationName()).setBuildSettings(settings);
         };
     }
 

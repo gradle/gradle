@@ -44,6 +44,7 @@ abstract class ExternalModulesExtension {
     val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
     val bsh = "org.apache-extras.beanshell:bsh"
+    val caffeine = "com.github.ben-manes.caffeine:caffeine"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
@@ -182,6 +183,7 @@ abstract class ExternalModulesExtension {
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
+        caffeine to License.Apache2,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,

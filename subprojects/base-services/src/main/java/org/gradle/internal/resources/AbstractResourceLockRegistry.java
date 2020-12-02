@@ -16,23 +16,20 @@
 
 package org.gradle.internal.resources;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry {
-    private final Cache<K, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
+    private final Cache<K, T> resourceLocks = Caffeine.newBuilder().executor(Runnable::run).weakValues().build();
     private final ConcurrentMap<Long, ThreadLockDetails> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails>();
     private final ResourceLockCoordinationService coordinationService;
 
@@ -41,16 +38,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     protected T getOrRegisterResourceLock(final K key, final ResourceLockProducer<K, T> producer) {
-        try {
-            return resourceLocks.get(key, new Callable<T>() {
-                @Override
-                public T call() {
-                    return createResourceLock(key, producer);
-                }
-            });
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return resourceLocks.get(key, k -> createResourceLock(k, producer));
     }
 
     protected T createResourceLock(final K key, final ResourceLockProducer<K, T> producer) {

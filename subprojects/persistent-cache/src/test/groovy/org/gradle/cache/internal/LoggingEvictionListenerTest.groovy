@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import com.google.common.cache.CacheBuilder
+import com.github.benmanes.caffeine.cache.Caffeine
 import org.slf4j.Logger
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class LoggingEvictionListenerTest extends Specification {
         if (replaceLogger) {
             evictionListener.logger = logger
         }
-        def cache = CacheBuilder.newBuilder().maximumSize(1000).removalListener(evictionListener).build()
+        def cache = Caffeine.newBuilder().maximumSize(1000).removalListener(evictionListener).build()
         evictionListener.setCache(cache)
 
         when:

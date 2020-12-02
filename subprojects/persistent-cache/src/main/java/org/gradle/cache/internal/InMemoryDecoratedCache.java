@@ -16,16 +16,13 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.cache.Cache;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.util.concurrent.Runnables;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -51,15 +48,10 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
 
     @Override
     public V get(final K key) {
-        Object value;
-        try {
-            value = inMemoryCache.get(key, () -> {
-                Object out = delegate.get(key);
-                return out == null ? NULL : out;
-            });
-        } catch (UncheckedExecutionException | ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
+        Object value = inMemoryCache.get(key, k -> {
+            Object out = delegate.get(key);
+            return out == null ? NULL : out;
+        });
         if (value == NULL) {
             return null;
         } else {
@@ -79,7 +71,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
             } else if (value != null) {
                 return Cast.uncheckedCast(value);
             }
-            value = inMemoryCache.get(key, () -> {
+            value = inMemoryCache.get(key, k -> {
                 if (!wasNull) {
                     Object out = delegate.get(key);
                     if (out != null) {
@@ -91,8 +83,6 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                 completionRef.set(Runnables.doNothing());
                 return generatedValue;
             });
-        } catch (UncheckedExecutionException | ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
         } finally {
             completionRef.get().run();
         }

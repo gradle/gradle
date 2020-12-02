@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":plugin-use"))
 
     implementation(libs.slf4jApi)
+    implementation(libs.caffeine)
     implementation(libs.guava)
 
     testImplementation(testFixtures(project(":dependency-management")))

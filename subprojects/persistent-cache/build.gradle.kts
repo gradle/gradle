@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":logging"))
 
     implementation(libs.slf4jApi)
+    implementation(libs.caffeine)
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
