@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.slf4j;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -29,15 +28,24 @@ import org.slf4j.helpers.MessageFormatter;
 
 public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
-    private BuildOperationAwareLogger delegate;
+    private static final MessageRewriter NOOP_REWRITER = new MessageRewriter() {
+        @Override
+        public String rewrite(LogLevel logLevel, String message) {
+            return message;
+        }
+    };
+
+    private final BuildOperationAwareLogger delegate;
+    private MessageRewriter messageRewriter = NOOP_REWRITER;
     private OperationIdentifier fallbackOperationIdentifier = null;
 
     public DefaultContextAwareTaskLogger(Logger delegate) {
         this.delegate = Cast.cast(BuildOperationAwareLogger.class, delegate);
     }
 
-    public void decorateDelegate(Transformer<Logger, Logger> factory) {
-        delegate = Cast.cast(BuildOperationAwareLogger.class, factory.transform(delegate));
+    @Override
+    public void setMessageRewriter(MessageRewriter messageRewriter) {
+        this.messageRewriter = messageRewriter;
     }
 
     @Override
@@ -159,6 +167,10 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
         OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
         if (buildOperationId == null) {
             buildOperationId = fallbackOperationIdentifier;
+        }
+        message = messageRewriter.rewrite(logLevel, message);
+        if (message == null) {
+            return;
         }
         delegate.log(logLevel, throwable, message, buildOperationId);
     }

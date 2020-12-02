@@ -24,12 +24,12 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.logging.slf4j.BuildOperationAwareLogger
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import spock.lang.Issue
 
@@ -525,21 +525,16 @@ class DefaultTaskTest extends AbstractTaskTest {
         task.actions[0].displayName == "Execute unnamed action"
     }
 
-    def "can decorate task logger"() {
-        expect:
-        task.logger instanceof ContextAwareTaskLogger
-        task.logger.delegate == AbstractTask.BUILD_LOGGER
-        def originalInstance = task.logger
+    def "can rewrite task logger warnings"() {
+        given:
+        def rewriter = Mock(ContextAwareTaskLogger.MessageRewriter)
 
         when:
-        def logger = Mock(BuildOperationAwareLogger)
-        task.decorateLogger { original ->
-            logger
-        }
+        task.setLoggerMessageRewriter(rewriter)
+        task.logger.warn("test")
 
         then:
-        task.logger.is(originalInstance)
-        task.logger.delegate == logger
+        1 * rewriter.rewrite(LogLevel.WARN, "test")
     }
 }
 

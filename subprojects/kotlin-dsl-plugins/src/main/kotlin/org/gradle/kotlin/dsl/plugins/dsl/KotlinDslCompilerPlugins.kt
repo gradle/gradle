@@ -19,13 +19,11 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Transformer
-import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.internal.logging.slf4j.WarningRewriterBuildOperationAwareLogger
+import org.gradle.api.logging.LogLevel
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -84,25 +82,13 @@ object KotlinCompilerArguments {
 
 private
 fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Provider<Boolean>, target: String, link: String) {
-    decorateLoggerWith { original ->
-        WarningRewriterBuildOperationAwareLogger(original, newRewriter(experimentalWarning, target, link))
-    }
-}
-
-
-private
-fun KotlinCompile.decorateLoggerWith(factory: Transformer<Logger, Logger>) {
-    (this as TaskInternal).decorateLogger(factory)
-}
-
-
-private
-fun newRewriter(experimentalWarning: Provider<Boolean>, target: String, link: String) = { message: String ->
-    if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
-        if (experimentalWarning.get()) kotlinDslPluginExperimentalWarning(target, link)
-        else null
-    } else {
-        message
+    (this as TaskInternal).setLoggerMessageRewriter { logLevel, message ->
+        if (logLevel == LogLevel.WARN && message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
+            if (experimentalWarning.get()) kotlinDslPluginExperimentalWarning(target, link)
+            else null
+        } else {
+            message
+        }
     }
 }
 
