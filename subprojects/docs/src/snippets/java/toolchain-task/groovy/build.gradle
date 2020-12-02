@@ -1,9 +1,9 @@
 import javax.inject.Inject;
 
-class CustomTaskUsingToolchains extends DefaultTask {
+abstract class CustomTaskUsingToolchains extends DefaultTask {
 
     @Nested
-    final Property<JavaLauncher> launcher = project.objects.property(JavaLauncher.class)
+    abstract Property<JavaLauncher> getLauncher()
 
     @Inject
     CustomTaskUsingToolchains(ObjectFactory factory) {

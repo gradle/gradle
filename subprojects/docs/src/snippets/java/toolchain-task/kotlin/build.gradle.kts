@@ -1,9 +1,9 @@
 import javax.inject.Inject;
 
-open class CustomTaskUsingToolchains : DefaultTask {
+abstract class CustomTaskUsingToolchains : DefaultTask {
 
     @get:Nested
-    val launcher: Property<JavaLauncher> = project.objects.property()
+    abstract val launcher: Property<JavaLauncher>
 
     @Inject
     constructor() {
