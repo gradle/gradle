@@ -252,6 +252,10 @@ public class ${className} implements Plugin<Project> {
         void assertProjectPluginApplied() {
             outputContains("$projectPluginId applied")
         }
+
+        void assertProjectPluginNotApplied() {
+            outputDoesNotContain("$projectPluginId applied")
+        }
     }
 
 }

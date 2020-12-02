@@ -142,6 +142,67 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         pluginBuild.assertSettingsPluginNotApplied()
     }
 
+    def "project plugin from included build is used over published plugin when no version is specified"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginBuild = pluginBuild("build-logic")
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild("${pluginBuild.buildName}")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}")
+            }
+        """
+
+        then:
+        succeeds()
+        pluginBuild.assertProjectPluginApplied()
+    }
+
+    def "published project plugin is used over included build plugin when version is specified"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginBuild = pluginBuild("build-logic")
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild("${pluginBuild.buildName}")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "1.0"
+            }
+        """
+
+        then:
+        succeeds()
+        outputContains("${pluginBuild.projectPluginId} from repository applied")
+        pluginBuild.assertProjectPluginNotApplied()
+    }
+
     def "regular included build can not contribute settings plugins"() {
         given:
         def pluginBuild = pluginBuild("build-logic")
@@ -316,13 +377,20 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
     }
 
     private void publishSettingsPlugin(String pluginId, String repoDeclaration) {
-        file("plugin/src/main/java/PublishedSettingsPlugin.java") << """
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
+        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.initialization.Settings")
+    }
 
-            public class PublishedSettingsPlugin implements Plugin<Settings> {
+    private void publishProjectPlugin(String pluginId, String repoDeclaration) {
+        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.Project")
+    }
+
+    private void publishPlugin(String pluginId, String repoDeclaration, String pluginTarget) {
+        file("plugin/src/main/java/PublishedPlugin.java") << """
+            import org.gradle.api.Plugin;
+
+            public class PublishedPlugin implements Plugin<$pluginTarget> {
                 @Override
-                public void apply(Settings settings) {
+                public void apply($pluginTarget target) {
                     System.out.println("${pluginId} from repository applied");
                 }
             }
@@ -341,7 +409,7 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
                 plugins {
                     publishedPlugin {
                         id = '${pluginId}'
-                        implementationClass = 'PublishedSettingsPlugin'
+                        implementationClass = 'PublishedPlugin'
                     }
                 }
             }
