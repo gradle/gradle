@@ -22,17 +22,36 @@ plugins {
 }
 
 val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {
+    group = "verification"
     description = "Generates a report of incubating APIS"
     title.set(project.name)
     versionFile.set(rootProject.file("version.txt"))
     releasedVersionsFile.set(rootProject.file("released-versions.json"))
     sources.from(sourceSets.main.get().java.sourceDirectories)
-    htmlReportFile.set(file("$buildDir/reports/incubation/${project.name}.html"))
-    textReportFile.set(file("$buildDir/reports/incubation/${project.name}.txt"))
+    htmlReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.html")))
+    textReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.txt")))
 }
+
 plugins.withId("org.jetbrains.kotlin.jvm") {
     reportTask {
         sources.from(sourceSets.main.get().kotlin.sourceDirectories)
     }
 }
+
 tasks.named("check") { dependsOn(reportTask) }
+
+consumableVariant("txt", reportTask.flatMap { it.textReportFile })
+consumableVariant("html", reportTask.flatMap { it.htmlReportFile })
+
+fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = configurations.create("incubatingReport${reportType.capitalize()}") {
+    isVisible = false
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("incubation-report-$reportType"))
+    }
+    extendsFrom(configurations.implementation.get())
+    outgoing.artifact(artifact)
+}
