@@ -409,7 +409,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         def buildFinished = server.expectAndBlock('build-finished')
 
         when:
-        gradle = executer.withTasks(":util:resolve", "--info").start()
+        gradle = executer.withTasks(":util:resolve").start()
 
         then:
         jar.waitForAllPendingCalls()
