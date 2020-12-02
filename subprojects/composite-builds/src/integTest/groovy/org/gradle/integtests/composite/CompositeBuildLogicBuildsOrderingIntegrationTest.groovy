@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
-
 class CompositeBuildLogicBuildsOrderingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     private final BuildLogicBuildFixture build1 = buildLogicBuild("logic-1")
@@ -67,9 +65,33 @@ class CompositeBuildLogicBuildsOrderingIntegrationTest extends AbstractComposite
         failureDescriptionContains("Plugin [id: '${build2.projectPluginId}'] was not found in any of the following sources:")
     }
 
-    // currently the second included build can see plugins from the build that was included first by the root - order of inclusion matters
-    // what we want: only the build that includes should see plugins from the included build
-    @NotYetImplemented
+    def "first included build can include the build it needs plugins from explicitly"() {
+        when:
+        buildFile << """
+            plugins {
+                id("${build1.projectPluginId}")
+            }
+        """
+
+        build1.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build2.buildName}")
+            }
+            rootProject.name = "${build1.buildName}"
+        """)
+        build1.buildFile.setText("""
+            plugins {
+                id("groovy-gradle-plugin")
+                id("${build2.projectPluginId}")
+            }
+        """)
+
+        then:
+        succeeds()
+        build2.assertProjectPluginApplied()
+        build1.assertProjectPluginApplied()
+    }
+
     def "second included build can not see plugins contributed to root by first included build"() {
         when:
         buildFile << """
@@ -90,4 +112,31 @@ class CompositeBuildLogicBuildsOrderingIntegrationTest extends AbstractComposite
         failureDescriptionContains("Plugin [id: '${build1.projectPluginId}'] was not found in any of the following sources:")
     }
 
+    def "second included build can include the build it needs plugins from explicitly"() {
+        when:
+        buildFile << """
+            plugins {
+                id("${build2.projectPluginId}")
+            }
+        """
+
+        build2.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build1.buildName}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+        build2.buildFile.setText("""
+            plugins {
+                id("groovy-gradle-plugin")
+                id("${build1.projectPluginId}")
+            }
+        """)
+
+
+        then:
+        succeeds()
+        build1.assertProjectPluginApplied()
+        build2.assertProjectPluginApplied()
+    }
 }
