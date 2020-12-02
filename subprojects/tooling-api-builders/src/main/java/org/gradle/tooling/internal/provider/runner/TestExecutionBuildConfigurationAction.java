@@ -149,7 +149,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
         }
         Set<Test> result = new LinkedHashSet<>();
-        for (Task task : taskSelection.getTasks()) {
+        for (Task task : tasks) {
             if (!(task instanceof Test)) {
                 throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
             }
