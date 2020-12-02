@@ -40,7 +40,7 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
             def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
             return isGroovyProject ? new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
         }
-        runner.targetVersions = ["6.8-20201028230040+0000"]
+        runner.targetVersions = ["6.9-20201201230040+0000"]
         if (isGroovyProject) {
             runner.minimumBaseVersion = '5.0'
         }
