@@ -19,11 +19,11 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.provider.Provider
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -63,7 +63,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                             KotlinCompilerArguments.referencesToSyntheticJavaProperties
                         )
                     }
-                    it.applyExperimentalWarning(experimentalWarning, project.toString(), project.experimentalWarningLink)
+                    it.applyExperimentalWarning(experimentalWarning.get())
                 }
             }
         }
@@ -81,16 +81,27 @@ object KotlinCompilerArguments {
 
 
 private
-fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Provider<Boolean>, target: String, link: String) {
-    (this as TaskInternal).setLoggerMessageRewriter { logLevel, message ->
-        if (logLevel == LogLevel.WARN && message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
-            if (experimentalWarning.get()) kotlinDslPluginExperimentalWarning(target, link)
-            else null
-        } else {
-            message
+fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) {
+    setWarningRewriter(newLoggerMessageRewriterFor(experimentalWarning, project.toString(), project.experimentalWarningLink))
+}
+
+
+private
+fun KotlinCompile.setWarningRewriter(rewriter: ContextAwareTaskLogger.MessageRewriter) {
+    (this as TaskInternal).setLoggerMessageRewriter(rewriter)
+}
+
+
+private
+fun newLoggerMessageRewriterFor(experimentalWarning: Boolean, target: String, link: String) =
+    { logLevel: LogLevel, message: String ->
+        when {
+            logLevel != LogLevel.WARN -> message
+            !message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions) -> message
+            experimentalWarning -> kotlinDslPluginExperimentalWarning(target, link)
+            else -> null
         }
     }
-}
 
 
 fun kotlinDslPluginExperimentalWarning(target: String, link: String) =
