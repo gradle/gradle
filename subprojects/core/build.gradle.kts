@@ -177,3 +177,5 @@ tasks.compileTestGroovy {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integTest.usesSamples.set(true)

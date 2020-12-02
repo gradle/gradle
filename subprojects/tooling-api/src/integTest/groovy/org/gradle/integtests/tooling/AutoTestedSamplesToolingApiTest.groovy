@@ -23,7 +23,7 @@ import org.gradle.tooling.model.Element
 import org.junit.Rule
 import spock.lang.Specification
 
-public class AutoTestedSamplesToolingApiTest extends Specification {
+class AutoTestedSamplesToolingApiTest extends Specification {
 
     @Rule public final TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
@@ -31,7 +31,7 @@ public class AutoTestedSamplesToolingApiTest extends Specification {
         expect:
 
         def util = new AutoTestedSamplesUtil()
-        util.findSamples("subprojects/tooling-api/src/main") { file, sample, tagSuffix ->
+        util.findSamples("src/main") { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
             def javaSource = """
 //some typical imports

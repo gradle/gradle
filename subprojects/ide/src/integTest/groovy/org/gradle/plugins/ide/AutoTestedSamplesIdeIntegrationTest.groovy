@@ -23,6 +23,6 @@ class AutoTestedSamplesIdeIntegrationTest extends AbstractAutoTestedSamplesTest 
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/ide/src/main")
+        runSamplesFrom("src/main")
     }
 }

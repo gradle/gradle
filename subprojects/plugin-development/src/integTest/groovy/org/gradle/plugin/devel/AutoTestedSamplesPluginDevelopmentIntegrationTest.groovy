@@ -23,6 +23,6 @@ class AutoTestedSamplesPluginDevelopmentIntegrationTest extends AbstractAutoTest
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/plugin-development/src/main")
+        runSamplesFrom("src/main")
     }
 }

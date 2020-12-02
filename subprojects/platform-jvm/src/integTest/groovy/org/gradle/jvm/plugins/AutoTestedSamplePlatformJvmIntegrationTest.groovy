@@ -25,6 +25,6 @@ class AutoTestedSamplePlatformJvmIntegrationTest extends AbstractAutoTestedSampl
     @Test
     void runSamples() {
         executer.noDeprecationChecks()
-        runSamplesFrom("subprojects/platform-jvm/src/main")
+        runSamplesFrom("src/main")
     }
 }

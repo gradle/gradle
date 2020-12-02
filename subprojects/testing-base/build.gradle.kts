@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     id("gradlebuild.distribution.api-java")
@@ -71,4 +70,4 @@ classycle {
     excludePatterns.set(listOf("org/gradle/api/internal/tasks/testing/**"))
 }
 
-integrationTestUsesSampleDir("subprojects/testing-base/src/main")
+integTest.usesSamples.set(true)

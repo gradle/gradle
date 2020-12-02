@@ -39,23 +39,23 @@ class AutoTestedSamplesUtil {
         list.each() { runSamplesFromFile(it, runner) }
     }
 
-    String findDir(String dir) {
+    static String findDir(String dir) {
         def workDir = SystemProperties.instance.currentDir
-        def candidates = [
-            "$workDir/$dir",        //when ran from IDEA
-            "$workDir/../../$dir"  //when ran from command line
-        ]
-        for (c in candidates) {
-            if (new File(c).exists()) {
-                return c
-            }
+        def samplesDir = new File("$workDir/$dir")
+        if (samplesDir.exists()) {
+            assertDeclaredAsInput(samplesDir.absolutePath)
+            return samplesDir
         }
-        throw new RuntimeException("""Couldn't find the root folder :-( Please update the logic so that it detects the root folder correctly.
-I tried looking for a root folder here: $candidates
-""")
+        throw new RuntimeException("$samplesDir does not exist")
     }
 
-    void runSamplesFromFile(File file, Closure runner) {
+    static void assertDeclaredAsInput(String dir) {
+        String inputs = System.getProperty("declaredSampleInputs")
+        assert inputs: "Must declare samples dir as inputs: 'integTest.usesSamples.set(true)'"
+        assert inputs == dir
+    }
+
+    static void runSamplesFromFile(File file, Closure runner) {
         String text = file.text
         def samples = SAMPLE_START.matcher(text)
         while (samples.find()) {

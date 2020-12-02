@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     id("gradlebuild.distribution.api-java")
@@ -67,4 +66,4 @@ classycle {
         "org/gradle/api/tasks/ScalaRuntime*"))
 }
 
-integrationTestUsesSampleDir("subprojects/scala/src/main")
+integTest.usesSamples.set(true)

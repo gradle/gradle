@@ -23,7 +23,7 @@ class AutoTestedSamplesIvyIntegrationTest extends AbstractAutoTestedSamplesTest 
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/ivy/src/main")
+        runSamplesFrom("src/main")
     }
 
 }
