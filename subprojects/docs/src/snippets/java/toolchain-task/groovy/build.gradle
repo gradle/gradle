@@ -6,7 +6,7 @@ abstract class CustomTaskUsingToolchains extends DefaultTask {
     abstract Property<JavaLauncher> getLauncher()
 
     @Inject
-    CustomTaskUsingToolchains(ObjectFactory factory) {
+    CustomTaskUsingToolchains() {
         // Access the default toolchain
         def toolchain = project.getExtensions().getByType(JavaPluginExtension.class).toolchain
 
