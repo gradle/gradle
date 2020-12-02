@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -38,13 +39,13 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         succeeds()
     }
 
-    // fails with "The settings are not yet available for build."
-    @NotYetImplemented
+    // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
+    @ToBeFixedForConfigurationCache(because = "needs investigation")
     def "can nest early included build logic builds"() {
         when:
         settingsFile << """
             pluginManagement {
-                includeBuild(${build1.buildName})
+                includeBuild("${build1.buildName}")
             }
             plugins {
                 id("${build1.settingsPluginId}")
@@ -119,6 +120,32 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         succeeds()
         build1.assertSettingsPluginApplied()
         build2.assertProjectPluginApplied()
+    }
+
+    def "nested early included build logic build can contribute settings plugins to including included build"() {
+        when:
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${build2.buildName}")
+            }
+            plugins {
+                id("${build2.settingsPluginId}")
+            }
+        """
+        build2.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build1.buildName}")
+            }
+            plugins {
+                id("${build1.settingsPluginId}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+
+        then:
+        succeeds()
+        build1.assertSettingsPluginApplied()
+        build2.assertSettingsPluginApplied()
     }
 
     // To be decided if we want the transitivity to work or not

@@ -170,6 +170,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.removeFirst();
             build.loadSettings();
+            assertNameDoesNotClashWithRootSubproject(build);
         }
     }
 
@@ -280,5 +281,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     @Override
     public void stop() {
         CompositeStoppable.stoppable(buildsByIdentifier.values()).stop();
+    }
+
+    private void assertNameDoesNotClashWithRootSubproject(IncludedBuildState includedBuild) {
+        if (rootBuild.getLoadedSettings().findProject(":" + includedBuild.getName()) != null) {
+            throw new GradleException("Included build in " + includedBuild.getBuildRootDir() + " has name '" + includedBuild.getName() + "' which is the same as a project of the main build.");
+        }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.composite;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -58,7 +57,6 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 if (!includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
                     IncludedBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec, gradle);
-                    assertNameDoesNotClashWithRootSubproject(rootBuild, includedBuild);
                     children.add(includedBuild.getModel());
                 } else {
                     children.add(new IncludedRootBuild((CompositeBuildParticipantBuildState) buildRegistry.getRootBuild()));
@@ -74,9 +72,4 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         return settings;
     }
 
-    private void assertNameDoesNotClashWithRootSubproject(RootBuildState rootBuild, IncludedBuildState includedBuild) {
-        if (rootBuild.getLoadedSettings().findProject(":" + includedBuild.getName()) != null) {
-            throw new GradleException("Included build in " + includedBuild.getBuildRootDir() + " has name '" + includedBuild.getName() + "' which is the same as a project of the main build.");
-        }
-    }
 }
