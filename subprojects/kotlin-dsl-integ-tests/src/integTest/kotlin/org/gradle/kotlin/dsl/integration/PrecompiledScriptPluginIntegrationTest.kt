@@ -19,6 +19,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache
     fun `generated code follows kotlin-dsl coding conventions`() {
 
+        assumeNonEmbeddedGradleExecuter() // ktlint plugin issue in embedded mode
+
         withBuildScript(
             """
             plugins {
