@@ -40,6 +40,11 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
     }
 
     @Override
+    boolean isLevelAtMost(LogLevel levelLimit) {
+        return levelLimit.compareTo(context.getLevel()) >= 0;
+    }
+
+    @Override
     void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier) {
         LogEvent logEvent = new LogEvent(clock.getCurrentTime(), name, logLevel, message, throwable, operationIdentifier);
         OutputEventListener outputEventListener = context.getOutputEventListener();
@@ -49,10 +54,5 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
             // fall back to standard out
             e.printStackTrace(System.out);
         }
-    }
-
-    @Override
-    public boolean isEnabled(LogLevel level) {
-        return level.compareTo(context.getLevel()) >= 0;
     }
 }

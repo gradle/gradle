@@ -29,17 +29,26 @@ import javax.annotation.Nullable;
 
 abstract class BuildOperationAwareLogger implements Logger {
 
-    abstract void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier);
-
     @Override
     public abstract String getName();
 
+    abstract boolean isLevelAtMost(LogLevel level);
+
+    abstract void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier);
+
     @Override
-    public abstract boolean isEnabled(LogLevel level);
+    public boolean isTraceEnabled() {
+        return false;
+    }
 
     @Override
     public boolean isTraceEnabled(Marker marker) {
         return isTraceEnabled();
+    }
+
+    @Override
+    public boolean isDebugEnabled() {
+        return isLevelAtMost(LogLevel.DEBUG);
     }
 
     @Override
@@ -48,8 +57,28 @@ abstract class BuildOperationAwareLogger implements Logger {
     }
 
     @Override
+    public boolean isInfoEnabled() {
+        return isLevelAtMost(LogLevel.INFO);
+    }
+
+    @Override
+    public boolean isInfoEnabled(Marker marker) {
+        return isLevelAtMost(toLogLevel(marker));
+    }
+
+    @Override
+    public boolean isWarnEnabled() {
+        return isLevelAtMost(LogLevel.WARN);
+    }
+
+    @Override
     public boolean isWarnEnabled(Marker marker) {
         return isWarnEnabled();
+    }
+
+    @Override
+    public boolean isErrorEnabled() {
+        return isLevelAtMost(LogLevel.ERROR);
     }
 
     @Override
@@ -58,43 +87,13 @@ abstract class BuildOperationAwareLogger implements Logger {
     }
 
     @Override
-    public boolean isTraceEnabled() {
-        return false;
-    }
-
-    @Override
-    public boolean isDebugEnabled() {
-        return isEnabled(LogLevel.DEBUG);
-    }
-
-    @Override
-    public boolean isInfoEnabled() {
-        return isEnabled(LogLevel.INFO);
-    }
-
-    @Override
-    public boolean isInfoEnabled(Marker marker) {
-        return isEnabled(toLogLevel(marker));
-    }
-
-    @Override
-    public boolean isWarnEnabled() {
-        return isEnabled(LogLevel.WARN);
-    }
-
-    @Override
-    public boolean isErrorEnabled() {
-        return isEnabled(LogLevel.ERROR);
-    }
-
-    @Override
     public boolean isLifecycleEnabled() {
-        return isEnabled(LogLevel.LIFECYCLE);
+        return isLevelAtMost(LogLevel.LIFECYCLE);
     }
 
     @Override
     public boolean isQuietEnabled() {
-        return isEnabled(LogLevel.QUIET);
+        return isLevelAtMost(LogLevel.QUIET);
     }
 
     @Override
@@ -296,6 +295,11 @@ abstract class BuildOperationAwareLogger implements Logger {
     }
 
     @Override
+    public boolean isEnabled(LogLevel level) {
+        return isLevelAtMost(level);
+    }
+
+    @Override
     public void log(LogLevel level, String message) {
         if (isEnabled(level)) {
             log(level, null, message);
@@ -321,19 +325,6 @@ abstract class BuildOperationAwareLogger implements Logger {
         if (isInfoEnabled()) {
             log(LogLevel.INFO, t, msg);
         }
-    }
-
-    static LogLevel toLogLevel(@Nullable Marker marker) {
-        if (marker == null) {
-            return LogLevel.INFO;
-        }
-        if (marker == Logging.LIFECYCLE) {
-            return LogLevel.LIFECYCLE;
-        }
-        if (marker == Logging.QUIET) {
-            return LogLevel.QUIET;
-        }
-        return LogLevel.INFO;
     }
 
     @Override
@@ -509,5 +500,18 @@ abstract class BuildOperationAwareLogger implements Logger {
         if (isErrorEnabled(marker)) {
             log(LogLevel.ERROR, t, msg);
         }
+    }
+
+    static LogLevel toLogLevel(@Nullable Marker marker) {
+        if (marker == null) {
+            return LogLevel.INFO;
+        }
+        if (marker == Logging.LIFECYCLE) {
+            return LogLevel.LIFECYCLE;
+        }
+        if (marker == Logging.QUIET) {
+            return LogLevel.QUIET;
+        }
+        return LogLevel.INFO;
     }
 }

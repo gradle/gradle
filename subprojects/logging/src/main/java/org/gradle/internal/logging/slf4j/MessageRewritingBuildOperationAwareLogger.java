@@ -39,8 +39,8 @@ class MessageRewritingBuildOperationAwareLogger extends BuildOperationAwareLogge
     }
 
     @Override
-    public boolean isEnabled(LogLevel level) {
-        return delegate.isEnabled(level);
+    boolean isLevelAtMost(LogLevel level) {
+        return delegate.isLevelAtMost(level);
     }
 
     @Override
