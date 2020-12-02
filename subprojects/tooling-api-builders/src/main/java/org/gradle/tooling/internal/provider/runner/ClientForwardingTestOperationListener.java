@@ -100,7 +100,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, TestDescriptorInternal suite) {
         Object id = suite.getId();
         String name = suite.getName();
-        String displayName = suite.toString();
+        String displayName = backwardsCompatibleDisplayNameOf(suite);
         String testKind = InternalJvmTestDescriptor.KIND_SUITE;
         String className = suite.getClassName();
         String methodName = null;
@@ -112,13 +112,27 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, TestDescriptorInternal test) {
         Object id = test.getId();
         String name = test.getName();
-        String displayName = test.toString();
+        String displayName = backwardsCompatibleDisplayNameOf(test);
         String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;
         String className = test.getClassName();
         String methodName = test.getName();
         Object parentId = getParentId(buildOperationId, test);
         String taskPath = getTaskPath(buildOperationId);
         return new DefaultTestDescriptor(id, name, displayName, testKind, null, className, methodName, parentId, taskPath);
+    }
+
+    /**
+     * This method returns a display name which is "compatible with" what previous
+     * Gradle versions did.
+     */
+    private static String backwardsCompatibleDisplayNameOf(TestDescriptorInternal descriptor) {
+        String className = descriptor.getClassName();
+        String methodName = descriptor.getName();
+        String displayName = descriptor.getDisplayName();
+        if (methodName != null && methodName.equals(displayName) || className != null && className.equals(displayName)) {
+            return descriptor.toString();
+        }
+        return displayName;
     }
 
     @Nullable

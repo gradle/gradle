@@ -1,4 +1,4 @@
-= Customizing a Software Product build
+= Tweaking Project Structure
 
 This chapter covers more details on selected topics related to <<structuring_software_products.adoc#,structuring and building a software product with Gradle>>.
 

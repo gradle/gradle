@@ -220,4 +220,99 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
             }
         }
     }
+
+    def "resolution result ignores an ignored available-at variant"() {
+        given:
+        repository {
+            'org:moduleA:1.0' {
+                variants(["api", "runtime"]) {
+                    availableAt("../../external/1.0/external-1.0.module", "org", "external", "1.0")
+                }
+            }
+            'org:external:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf("org:moduleA:1.0@module")
+            }
+
+            tasks.named("checkDeps") {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    boolean found = false
+                    result.allComponents {
+                        if (id instanceof ModuleComponentIdentifier && id.module == 'moduleA') {
+                            found = true
+                            assert variant.owner.module == 'moduleA'
+                            assert variants.size() == 1
+                            def externalVariant = variants[0].externalVariant
+                            assert !externalVariant.present
+                        } else {
+                            variants.each {
+                                assert !it.externalVariant.present
+                            }
+                        }
+                    }
+                    assert found
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:moduleA:1.0' {
+                expectGetMetadata()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:moduleA:1.0") {
+                    artifact([type: 'module'])
+                }
+            }
+        }
+    }
+
+    def "does not resolve available-at variant when using artifact notation"() {
+        given:
+        repository {
+            'org:moduleA:1.0' {
+                variants(["api", "runtime"]) {
+                    availableAt("../../external/1.0/external-1.0.module", "org", "external", "1.0")
+                }
+            }
+            'org:external:1.0' {
+                dependsOn('org:do_not_reach:1.0')
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf("org:moduleA:1.0@module")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:moduleA:1.0' {
+                expectGetMetadata()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:moduleA:1.0") {
+                    artifact([type: 'module'])
+                }
+            }
+        }
+    }
+
+
 }

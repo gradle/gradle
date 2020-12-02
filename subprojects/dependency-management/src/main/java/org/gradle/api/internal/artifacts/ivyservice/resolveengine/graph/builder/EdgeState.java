@@ -497,4 +497,8 @@ class EdgeState implements DependencyGraphEdge {
     boolean isUsed() {
         return used;
     }
+
+    public boolean isArtifactOnlyEdge() {
+        return !isTransitive && !dependencyMetadata.getArtifacts().isEmpty();
+    }
 }

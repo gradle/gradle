@@ -112,9 +112,24 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         true
     }
 
-    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className, String methodName, String taskpath) {
+    private static boolean optionalMatch(String actual, String requested) {
+        if (requested == null) {
+            return true
+        }
+        actual == requested
+    }
 
-        def descriptorByClassAndMethod = descriptors.findAll { it.className == className && it.methodName == methodName }
+    Collection<TestOperationDescriptor> testDescriptors(String className, String methodName = null, String taskPath = null, String displayName = null) {
+        findTestDescriptors(events.tests.collect { it.descriptor }, className, methodName, taskPath, displayName)
+    }
+
+    private static Collection<TestOperationDescriptor> findTestDescriptors(List<TestOperationDescriptor> descriptors, String className, String methodName = null, String taskpath = null, String displayName = null) {
+
+        def descriptorByClassAndMethod = descriptors.findAll {
+            it.className == className &&
+                it.methodName == methodName &&
+                optionalMatch(it.displayName, displayName)
+        }
         if (taskpath == null) {
             return descriptorByClassAndMethod
         }
@@ -131,17 +146,9 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         }
     }
 
-    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className, String methodName) {
-        testDescriptors(descriptors, className, methodName, null)
-    }
-
-    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className) {
-        testDescriptors(descriptors, className, null)
-    }
-
     boolean hasTestDescriptor(testInfo) {
         def collect = events.tests.collect { it.descriptor }
-        !testDescriptors(collect, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
+        !findTestDescriptors(collect, testInfo.className, testInfo.methodName, testInfo.task, testInfo.displayName).isEmpty()
     }
 
 
@@ -176,7 +183,10 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
 
             build.dependsOn secondTest
         """
+        addDefaultTests()
+    }
 
+    void addDefaultTests() {
         file("src/test/java/example/MyTest.java") << """
             package example;
             public class MyTest {
@@ -247,7 +257,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
 
     }
 
-    def simpleJavaProject() {
+    String simpleJavaProject() {
         """
         allprojects{
             apply plugin: 'java'

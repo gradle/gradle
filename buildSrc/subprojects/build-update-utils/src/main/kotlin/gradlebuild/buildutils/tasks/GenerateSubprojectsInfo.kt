@@ -16,41 +16,18 @@
 
 package gradlebuild.buildutils.tasks
 
-import com.google.gson.GsonBuilder
-import gradlebuild.buildutils.model.GradleSubproject
-import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 
 
-abstract class GenerateSubprojectsInfo : DefaultTask() {
-
-    private
-    val subprojectsFolder = project.layout.projectDirectory.dir("subprojects")
-
-    private
-    val subprojectsJson = project.layout.projectDirectory.file(".teamcity/subprojects.json")
+abstract class GenerateSubprojectsInfo : SubprojectsInfo() {
 
     @TaskAction
     fun generateSubprojectsInfo() {
-        val subprojects: List<GradleSubproject> = subprojectsFolder.asFile.listFiles(File::isDirectory)!!
-            .sorted()
-            .map(this::generateSubproject)
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        subprojectsJson.asFile.writeText(gson.toJson(subprojects))
+        subprojectsJson.asFile.writeText(generateSubprojectsJson())
     }
 
-    private
-    fun generateSubproject(subprojectDir: File): GradleSubproject {
-        return GradleSubproject(
-            subprojectDir.name,
-            subprojectDir.name,
-            subprojectDir.hasDescendantDir("src/test"),
-            if (subprojectDir.name == "docs") true else subprojectDir.hasDescendantDir("src/integTest"),
-            subprojectDir.hasDescendantDir("src/crossVersionTest")
-        )
+    companion object {
+        internal
+        const val TASK_NAME = "generateSubprojectsInfo"
     }
-
-    private
-    fun File.hasDescendantDir(descendant: String) = resolve(descendant).isDirectory
 }
