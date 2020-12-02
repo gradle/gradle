@@ -58,7 +58,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         succeeds()
     }
 
-    def "nested included build logic build can contribute build logic to including included build"() {
+    def "nested included build logic build can contribute project plugins to including included build"() {
         given:
         settingsFile << """
             pluginManagement {
@@ -91,7 +91,37 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         build2.assertProjectPluginApplied()
     }
 
-    // To be decided if we want the transitivity to work or not. Currently all the included builds are visible by the root project
+    def "nested included build logic build can contribute settings plugins to including included build"() {
+        given:
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${build2.buildName}")
+            }
+        """
+        build2.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build1.buildName}")
+            }
+            plugins {
+                id("${build1.settingsPluginId}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+
+        when:
+        buildFile << """
+            plugins {
+                id("${build2.projectPluginId}")
+            }
+        """
+
+        then:
+        succeeds()
+        build1.assertSettingsPluginApplied()
+        build2.assertProjectPluginApplied()
+    }
+
+    // To be decided if we want the transitivity to work or not
     @NotYetImplemented
     def "nested included build logic build can contribute build logic to the root build"() {
         given:
@@ -121,7 +151,7 @@ class CompositeBuildLogicBuildsNestingIntegrationTest extends AbstractCompositeB
         build2.assertProjectPluginApplied()
     }
 
-    // To be decided if we want the transitivity to work or not. Currently all the included builds are visible by the root project
+    // To be decided if we want the transitivity to work or not
     def "included build logic builds are not visible transitively"() {
         given:
         settingsFile << """
