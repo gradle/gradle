@@ -41,7 +41,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     @Override
     public JvmInstallationMetadata getMetadata(File javaHome) {
-        if (!javaHome.exists()) {
+        if (javaHome == null || !javaHome.exists()) {
             return failure(javaHome, "No such directory: " + javaHome);
         }
         EnumMap<ProbedSystemProperty, String> metadata;

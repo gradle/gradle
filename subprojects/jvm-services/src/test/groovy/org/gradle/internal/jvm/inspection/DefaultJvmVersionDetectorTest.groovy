@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.internal.ExecException
 import spock.lang.Specification
 
 class DefaultJvmVersionDetectorTest extends Specification {
@@ -34,6 +35,20 @@ class DefaultJvmVersionDetectorTest extends Specification {
     def "can determine version of java command for current jvm"() {
         expect:
         detector.getJavaVersion(Jvm.current().getJavaExecutable().path) == JavaVersion.current()
+    }
+
+    def "can determine version of java command without file extension"() {
+        expect:
+        detector.getJavaVersion(Jvm.current().getJavaExecutable().path.replace(".exe", "")) == JavaVersion.current()
+    }
+
+    def "fails for unknown java command"() {
+        when:
+        detector.getJavaVersion("unknown")
+
+        then:
+        def e = thrown(ExecException)
+        e.message.contains("A problem occurred starting process 'command 'unknown''")
     }
 
     def "fails for invalid jvm"() {
