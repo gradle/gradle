@@ -24,7 +24,7 @@ import org.gradle.internal.time.MockClock
 @CompileStatic
 class ToStringLogger extends OutputEventListenerBackedLogger {
 
-    private final StringBuilder log = new StringBuilder();
+    private final StringBuilder log = new StringBuilder()
 
     ToStringLogger() {
         super("ToStringLogger", new OutputEventListenerBackedLoggerContext(new MockClock()), new MockClock())
