@@ -157,12 +157,12 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
-        OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
-        if (buildOperationId == null) {
-            buildOperationId = fallbackOperationIdentifier;
-        }
+        delegate.log(logLevel, throwable, message, currentBuildOperationId());
+    }
 
-        delegate.log(logLevel, throwable, message, buildOperationId);
+    private OperationIdentifier currentBuildOperationId() {
+        OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
+        return buildOperationId != null ? buildOperationId : fallbackOperationIdentifier;
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg) {
