@@ -27,7 +27,9 @@ import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningServic
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class JavaToolchainQueryService {
@@ -37,6 +39,7 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
+    private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
 
     @Inject
     public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
@@ -45,6 +48,7 @@ public class JavaToolchainQueryService {
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).forUseAtConfigurationTime().map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.matchingToolchains = new ConcurrentHashMap<>();
     }
 
     <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
@@ -54,7 +58,7 @@ public class JavaToolchainQueryService {
     Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         return new DefaultProvider<>(() -> {
             if (((DefaultToolchainSpec) filter).isConfigured()) {
-                return query(filter);
+                return matchingToolchains.computeIfAbsent(filter, k -> query(k));
             } else {
                 return null;
             }

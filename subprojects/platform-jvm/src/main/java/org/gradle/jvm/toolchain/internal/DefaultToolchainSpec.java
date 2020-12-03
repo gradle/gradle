@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -68,4 +69,22 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
         return builder.toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultToolchainSpec that = (DefaultToolchainSpec) o;
+        return Objects.equal(languageVersion.get(), that.languageVersion.get()) &&
+            Objects.equal(vendor.get(), that.vendor.get()) &&
+            Objects.equal(implementation.get(), that.implementation.get());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(languageVersion.get(), vendor.get(), implementation.get());
+    }
 }
