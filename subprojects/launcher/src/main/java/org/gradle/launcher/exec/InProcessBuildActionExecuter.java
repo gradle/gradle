@@ -18,12 +18,16 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
+import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
+import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecutor {
@@ -47,6 +51,9 @@ public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecuto
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildTreeContext buildTree) {
+        if (!supportsConfigurationCache(action)) {
+            action.getStartParameter().setConfigurationCache(false);
+        }
         buildOperationNotificationValve.start();
         try {
             RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
@@ -63,5 +70,15 @@ public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecuto
         } finally {
             buildOperationNotificationValve.stop();
         }
+    }
+
+    private boolean supportsConfigurationCache(BuildAction action) {
+        if (action instanceof BuildModelAction) {
+            return !Cast.cast(BuildModelAction.class, action).isModelRequest();
+        }
+        if (action instanceof ClientProvidedBuildAction) {
+            return false;
+        }
+        return !(action instanceof ClientProvidedPhasedAction);
     }
 }
