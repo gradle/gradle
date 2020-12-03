@@ -159,8 +159,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         FileLookup fileLookup,
         InstantiationScheme actionInstantiationScheme,
         ServiceLookup internalServices,
-        DirectorySensitivity dependenciesDirectorySensitivity,
-        DirectorySensitivity artifactDirectorySensitivity) {
+        DirectorySensitivity artifactDirectorySensitivity,
+        DirectorySensitivity dependenciesDirectorySensitivity) {
         super(implementationClass, fromAttributes);
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
