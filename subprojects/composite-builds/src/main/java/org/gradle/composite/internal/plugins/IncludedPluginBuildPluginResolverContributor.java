@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal.plugins;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -67,10 +66,7 @@ public class IncludedPluginBuildPluginResolverContributor implements PluginResol
 
         private PluginResolution resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
             for (IncludedBuildState build : buildIncluder.includeRegisteredPluginBuilds()) {
-                // ensure the build is configured - this finds and registers any plugin publications the build may have
-                GradleInternal gradle = build.getConfiguredBuild();
-                // ensure substitutions are registered for any dependencies the plugin build may have
-                buildRegistry.registerSubstitutionsFor(gradle.getIncludedBuilds());
+                buildRegistry.ensureConfigured(build);
 
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {

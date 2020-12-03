@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -210,9 +211,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void registerSubstitutionsFor(Collection<IncludedBuild> includedBuilds) {
-        for (IncludedBuild includedBuild : includedBuilds) {
-            for (IncludedBuildState buildState : getIncludedBuilds()) {
+    public void ensureConfigured(IncludedBuildState buildToConfigure) {
+        GradleInternal gradle = buildToConfigure.getConfiguredBuild();
+        for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
+            for (IncludedBuildState buildState : libraryBuilds.values()) {
                 if (includedBuild.getName().equals(buildState.getName())) {
                     dependencySubstitutionsBuilder.build(buildState);
                 }
