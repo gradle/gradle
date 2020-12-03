@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -94,6 +95,14 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     ConfigurationInternal getConsistentResolutionSource();
 
     Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints();
+
+    /**
+     * Decorates a resolve exception with more context. This can be used
+     * to give hints to the user when a resolution error happens.
+     * @param e a resolve exception
+     * @return a decorated resolve exception, or the same exception
+     */
+    ResolveException maybeAddContext(ResolveException e);
 
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration

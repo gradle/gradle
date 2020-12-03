@@ -21,9 +21,12 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.gradle.util.GradleVersion
 import org.gradle.util.TestPrecondition
 import org.gradle.util.ToBeImplemented
 import spock.lang.IgnoreIf
+import spock.lang.Issue
+
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -731,6 +734,31 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 
         cleanup:
         pluginPortal.stop()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15336")
+    def "reasonable error message if a dependency cannot be resolved because local repositories differ"() {
+        buildFile << """
+            repositories {
+                maven {
+                    url "dummy"
+                }
+            }
+
+            dependencies {
+                conf 'org:module:1.0'
+            }
+
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertThatCause(containsNormalizedString("""Could not resolve all dependencies for configuration ':conf'.
+The project declares repositories, effectively ignoring the repositories you have declared in the settings.
+You can figure out how project repositories are declared by configuring your build to fail on project repositories.
+See https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories for details."""))
     }
 
     void withSettingsPlugin() {
