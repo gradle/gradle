@@ -23,7 +23,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
  *
  * <p>A {@code TestLauncher} allows you to execute tests in a Gradle build.</p>
  *
- * <p>If the target Gradle version is >=6.8 then you can use {@code TestLauncher} to execute tests from included builds. Test operation descriptors from included builds work out-of-the-box. You can
+ * <p>If the target Gradle version is &gt;=6.8 then you can use {@code TestLauncher} to execute tests from included builds. Test operation descriptors from included builds work out-of-the-box. You can
  * target tasks from included builds by specifying the task identity path (i.e. {@code ':included-build-name:subproject-name:taskName'}).</p>
  *
  * <p>However, you cannot use the methods with included builds that don't specify the target test tasks (e.g. {@code withJvmTestClasses()} and {@code withJvmTestMethods()}). Those methods configure
