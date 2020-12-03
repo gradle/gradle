@@ -20,7 +20,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.internal.os.OperatingSystem
 
+
 fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
+
 
 object BuildEnvironment {
 
