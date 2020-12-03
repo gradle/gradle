@@ -240,7 +240,7 @@ include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.r
 ====
 
 
-Both `${languageLC.raw}-library-conventions` and `${languageLC.raw}-application-conventions` apply the `${languageLC.raw}-library-conventions` plugin *(1)* so that the configuration performed there is shared by library and application projects alike.
+Both `${languageLC.raw}-library-conventions` and `${languageLC.raw}-application-conventions` apply the `${languageLC.raw}-common-conventions` plugin *(1)* so that the configuration performed there is shared by library and application projects alike.
 Next they apply the `java-library` or `application` plugin respectively *(2)* thus combining our common configuration logic with specifics for a library or application.
 While there is no more fine grained configuration in this example, library or application project specific build configuration can go into one of these convention plugin scripts.
 
