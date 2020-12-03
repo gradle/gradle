@@ -1,4 +1,3 @@
-import gradlebuild.cleanup.WhenNotEmpty
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -65,8 +64,4 @@ classycle {
         "org/gradle/api/reporting/model/internal/*",
         "org/gradle/api/reporting/dependencies/internal/*",
         "org/gradle/api/plugins/internal/*"))
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }

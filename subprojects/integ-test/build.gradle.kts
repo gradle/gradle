@@ -1,5 +1,3 @@
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -48,6 +46,4 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
+testFilesCleanup.reportOnly.set(true)

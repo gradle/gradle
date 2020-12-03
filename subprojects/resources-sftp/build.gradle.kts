@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -43,8 +41,4 @@ dependencies {
     integTestImplementation(libs.sshdSftp)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }

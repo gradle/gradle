@@ -1,5 +1,3 @@
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -77,10 +75,6 @@ classycle {
         "org/gradle/api/tasks/compile/**",
         "org/gradle/external/javadoc/**"
     ))
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }
 
 integTest.usesSamples.set(true)

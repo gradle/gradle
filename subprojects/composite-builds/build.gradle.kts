@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import gradlebuild.cleanup.WhenNotEmpty
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -42,6 +40,4 @@ dependencies {
     }
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
+testFilesCleanup.reportOnly.set(true)

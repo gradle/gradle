@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
     id("gradlebuild.distribution.api-kotlin")
@@ -130,6 +129,4 @@ classycle {
     excludePatterns.set(listOf("org/gradle/kotlin/dsl/**"))
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
+testFilesCleanup.reportOnly.set(true)

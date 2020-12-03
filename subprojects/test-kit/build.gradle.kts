@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.cleanup.WhenNotEmpty
 import gradlebuild.integrationtests.getIncludeCategories
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
@@ -63,8 +62,4 @@ tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
     // TestKit multi version tests are not using JUnit categories
     getIncludeCategories().clear()
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.distribution.implementation-java")
 }
@@ -114,9 +112,7 @@ classycle {
     excludePatterns.set(listOf("org/gradle/**"))
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
+testFilesCleanup.reportOnly.set(true)
 
 tasks.clean {
     val testFiles = layout.buildDirectory.dir("tmp/test files")

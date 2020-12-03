@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.WhenNotEmpty
-
 
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
@@ -49,6 +47,4 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
+testFilesCleanup.reportOnly.set(true)

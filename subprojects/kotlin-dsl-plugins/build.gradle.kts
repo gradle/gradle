@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.portalplugin.kotlin")
     id("gradlebuild.kotlin-dsl-plugin-extensions")
@@ -72,6 +70,8 @@ classycle {
     excludePatterns.set(listOf("org/gradle/kotlin/dsl/plugins/base/**"))
 }
 
+testFilesCleanup.reportOnly.set(true)
+
 pluginPublish {
     bundledGradlePlugin(
         name = "embeddedKotlin",
@@ -107,8 +107,4 @@ pluginPublish {
         pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
         pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins"
     )
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }

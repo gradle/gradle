@@ -1,5 +1,3 @@
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -20,10 +18,6 @@ dependencies {
     integTestImplementation(testFixtures(project(":core")))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }
 
 integTest.usesSamples.set(true)
