@@ -25,6 +25,6 @@ class AutoTestedSamplesPluginsIntegrationTest extends AbstractAutoTestedSamplesT
     void runSamples() {
         //for debugging purposes you can samples for a single class
 //        includeOnly '**/Test.java'
-        runSamplesFrom("subprojects/plugins/src/main")
+        runSamplesFrom("src/main")
     }
 }

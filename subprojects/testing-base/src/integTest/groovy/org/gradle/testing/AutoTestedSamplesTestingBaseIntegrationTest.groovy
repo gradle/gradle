@@ -22,6 +22,6 @@ import org.junit.Test
 class AutoTestedSamplesTestingBaseIntegrationTest extends AbstractAutoTestedSamplesTest {
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/testing-base/src/main")
+        runSamplesFrom("src/main")
     }
 }

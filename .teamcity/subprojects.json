@@ -164,7 +164,7 @@
     "dirName": "core-api",
     "name": "core-api",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

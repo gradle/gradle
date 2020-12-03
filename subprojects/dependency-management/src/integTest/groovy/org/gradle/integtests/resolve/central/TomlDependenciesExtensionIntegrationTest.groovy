@@ -294,8 +294,10 @@ lib = "org.gradle.test:lib:1.0"
 """
         file("buildSrc/settings.gradle") << """
             dependencyResolutionManagement {
-                versionCatalog("libs") {
-                    from(files("../gradle/dependencies.toml"))
+                versionCatalogs {
+                    libs {
+                        from(files("../gradle/dependencies.toml"))
+                    }
                 }
             }
         """
@@ -432,8 +434,10 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         """
         settingsFile << """
             dependencyResolutionManagement {
-                versionCatalog("libs") {
-                    alias('other').to('org.gradle.test:other:1.0')
+                versionCatalogs {
+                    libs {
+                        alias('other').to('org.gradle.test:other:1.0')
+                    }
                 }
             }
         """
@@ -470,8 +474,10 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
         """
         settingsFile << """
             dependencyResolutionManagement {
-                versionCatalog("libs") {
-                    alias('my-lib').to('org.gradle.test:lib:1.0')
+                versionCatalogs {
+                    libs {
+                        alias('my-lib').to('org.gradle.test:lib:1.0')
+                    }
                 }
             }
         """
@@ -653,8 +659,10 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
         def path = file("missing.toml").absolutePath
         settingsFile << """
             dependencyResolutionManagement {
-                versionCatalog('libs') {
-                    from(files("missing.toml"))
+                versionCatalogs {
+                    libs {
+                        from(files("missing.toml"))
+                    }
                 }
             }
         """

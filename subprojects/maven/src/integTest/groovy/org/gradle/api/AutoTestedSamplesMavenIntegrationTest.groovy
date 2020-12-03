@@ -25,7 +25,7 @@ class AutoTestedSamplesMavenIntegrationTest extends AbstractAutoTestedSamplesTes
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/maven/src/main")
+        runSamplesFrom("src/main")
     }
 
 }

@@ -23,6 +23,6 @@ class AutoTestedSamplesLanguageJavaIntegrationTest extends AbstractAutoTestedSam
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/language-java/src/main")
+        runSamplesFrom("src/main")
     }
 }

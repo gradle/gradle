@@ -17,6 +17,7 @@
 package gradlebuild.integrationtests
 
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
 
@@ -125,7 +126,8 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
-    tasks.register(name, IntegrationTest::class) {
+    tasks.register<IntegrationTest>(name) {
+        val integTest = project.the<IntegrationTestExtension>()
         project.bucketProvider().configureTest(this, sourceSet, testType)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
@@ -133,17 +135,14 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
         extraConfig.execute(this)
+        if (integTest.usesSamples.get()) {
+            val samplesDir = layout.projectDirectory.dir("src/main")
+            systemProperty("declaredSampleInputs", samplesDir.asFile.toString())
+            inputs.files(rootProject.files(samplesDir))
+                .withPropertyName("autoTestedSamples")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+        }
     }
-
-
-fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
-    tasks.withType<IntegrationTest>().configureEach {
-        systemProperty("declaredSampleInputs", sampleDirs.joinToString(";"))
-        inputs.files(rootProject.files(sampleDirs))
-            .withPropertyName("autoTestedSamples")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-    }
-}
 
 
 private

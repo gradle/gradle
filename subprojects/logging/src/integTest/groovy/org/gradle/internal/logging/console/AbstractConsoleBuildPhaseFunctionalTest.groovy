@@ -329,7 +329,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     ${server.callFromBuild('size-transform')}
-                    File output = outputs.registerOutput(input.name + parameters.suffix)
+                    File output = outputs.file(input.name + parameters.suffix)
                     output.text = String.valueOf(input.length())
                 }
             }
@@ -393,6 +393,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
                     doLast {
                         ${server.callFromBuild('resolve-task')}
+                        size.artifactFiles.files.each { println it }
                     }
                 }
             }

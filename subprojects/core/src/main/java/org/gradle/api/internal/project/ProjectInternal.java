@@ -20,6 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
@@ -150,4 +153,19 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     @Override
     ScriptHandlerInternal getBuildscript();
+
+    /**
+     * Returns a dependency resolver which can be used to resolve
+     * dependencies in isolation from the project itself. This is
+     * particularly useful if the repositories or configurations
+     * needed for resolution shouldn't leak to the project state.
+     * @return a detached resolver
+     */
+    DetachedResolver newDetachedResolver();
+
+    interface DetachedResolver {
+        RepositoryHandler getRepositories();
+        DependencyHandler getDependencies();
+        ConfigurationContainer getConfigurations();
+    }
 }

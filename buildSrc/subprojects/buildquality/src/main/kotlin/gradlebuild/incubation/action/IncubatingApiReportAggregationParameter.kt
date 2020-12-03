@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package gradlebuild.cleanup.extension
+package gradlebuild.incubation.action
 
-import gradlebuild.cleanup.services.DaemonTracker
-import org.gradle.api.provider.Provider
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.workers.WorkParameters
 
 
-abstract class CleanupExtension(val tracker: Provider<DaemonTracker>)
+interface IncubatingApiReportAggregationParameter : WorkParameters {
+    val reports: ConfigurableFileCollection
+    val htmlReportFile: RegularFileProperty
+}

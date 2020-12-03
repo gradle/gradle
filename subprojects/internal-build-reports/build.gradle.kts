@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
-import gradlebuild.incubation.tasks.IncubatingApiReportTask
-
 plugins {
-    id("gradlebuild.internal.java")
+    id("gradlebuild.incubation-report-aggregation")
 }
 
-val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
-    val allReports = collectAllIncubationReports()
-    dependsOn(allReports)
-    reports = allReports.associateBy({ it.title.get() }) { it.textReportFile.asFile.get() }
+dependencies {
+    reports(platform(project(":distributions-full")))
 }
-
-tasks.register<Zip>("allIncubationReportsZip") {
-    destinationDirectory.set(layout.buildDirectory.dir("reports/incubation"))
-    archiveBaseName.set("incubating-apis")
-    from(allIncubationReports.get().htmlReportFile)
-    from(collectAllIncubationReports().map { it.htmlReportFile })
-}
-
-fun Project.collectAllIncubationReports() = rootProject.subprojects.flatMap { it.tasks.withType<IncubatingApiReportTask>() }

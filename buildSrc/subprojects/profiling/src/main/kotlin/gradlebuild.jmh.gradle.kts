@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.jmh.tasks.JmhHTMLReport
 
 plugins {
     id("me.champeau.gradle.jmh")
@@ -35,4 +36,10 @@ configurations {
 jmh {
     isIncludeTests = false
     resultFormat = "CSV"
+}
+
+val jmhReport = tasks.register<JmhHTMLReport>("jmhReport") {
+    group = "jmh"
+    csv.set(tasks.jmh.map { layout.buildDirectory.file("reports/jmh/results.csv").get() })
+    destination.set(layout.buildDirectory.dir("reports/jmh-html"))
 }

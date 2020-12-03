@@ -21,10 +21,15 @@ import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTasks
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.includeCategories
+import gradlebuild.integrationtests.extension.IntegrationTestExtension
 
 plugins {
     java
     id("gradlebuild.dependency-modules")
+}
+
+extensions.create<IntegrationTestExtension>("integTest").apply {
+    usesSamples.convention(false)
 }
 
 val sourceSet = addSourceSet(TestType.INTEGRATION)

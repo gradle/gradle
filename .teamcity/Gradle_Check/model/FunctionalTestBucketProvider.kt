@@ -117,19 +117,12 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
-        if (testCoverage.testType == TestType.platform) {
-            val docsSubproject = validSubprojects.filter { it.name == "docs" }
-            val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { it.subProject.name != "docs" }
-            return docsSubproject + splitIntoBuckets(
-                LinkedList(otherSubProjectTestClassTimes),
-                SubprojectTestClassTime::totalTime,
-                { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
-                { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
-                testCoverage.expectedBucketNumber - docsSubproject.size,
-                MAX_PROJECT_NUMBER_IN_BUCKET
-            )
+        return if (testCoverage.testType == TestType.platform) {
+            specialBucketForSubproject(listOf("core", "dependency-management", "docs"), validSubprojects, subProjectTestClassTimes, testCoverage)
+        } else if (testCoverage.os == Os.LINUX) {
+            specialBucketForSubproject(listOf("core", "dependency-management"), validSubprojects, subProjectTestClassTimes, testCoverage)
         } else {
-            return splitIntoBuckets(
+            splitIntoBuckets(
                 LinkedList(subProjectTestClassTimes),
                 SubprojectTestClassTime::totalTime,
                 { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
@@ -138,6 +131,24 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
                 MAX_PROJECT_NUMBER_IN_BUCKET
             )
         }
+    }
+
+    private fun specialBucketForSubproject(
+        specialSubprojectNames: List<String>,
+        validSubprojects: List<GradleSubproject>,
+        subProjectTestClassTimes: List<SubprojectTestClassTime>,
+        testCoverage: TestCoverage
+    ): List<BuildTypeBucket> {
+        val specialSubprojects = validSubprojects.filter { specialSubprojectNames.contains(it.name) }
+        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !specialSubprojectNames.contains(it.subProject.name) }
+        return specialSubprojects + splitIntoBuckets(
+            LinkedList(otherSubProjectTestClassTimes),
+            SubprojectTestClassTime::totalTime,
+            { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
+            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
+            testCoverage.expectedBucketNumber - specialSubprojects.size,
+            MAX_PROJECT_NUMBER_IN_BUCKET
+        )
     }
 
     private fun determineSubProjectClassTimes(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): Map<String, List<TestClassTime>>? {

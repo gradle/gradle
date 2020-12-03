@@ -74,4 +74,11 @@ public interface DomainObjectContext {
      */
     boolean isRootScript();
 
+    /**
+     * Returns true if the context represents a detached state, for
+     * example detached dependency resolution
+     */
+    default boolean isDetachedState() {
+        return false;
+    }
 }

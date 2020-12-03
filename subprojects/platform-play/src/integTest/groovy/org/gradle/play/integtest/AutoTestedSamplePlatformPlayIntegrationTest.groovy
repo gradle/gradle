@@ -23,6 +23,6 @@ class AutoTestedSamplePlatformPlayIntegrationTest extends AbstractAutoTestedSamp
     @Test
     void runSamples() {
         executer.noDeprecationChecks()
-        runSamplesFrom("subprojects/platform-play/src/main")
+        runSamplesFrom("src/main")
     }
 }

@@ -1,5 +1,4 @@
 import gradlebuild.cleanup.WhenNotEmpty
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     id("gradlebuild.distribution.api-java")
@@ -84,4 +83,4 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-integrationTestUsesSampleDir("subprojects/language-java/src/main")
+integTest.usesSamples.set(true)

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import gradlebuild.cleanup.WhenNotEmpty
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     id("gradlebuild.distribution.api-java")
@@ -85,4 +84,4 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-integrationTestUsesSampleDir("subprojects/ide/src/main")
+integTest.usesSamples.set(true)

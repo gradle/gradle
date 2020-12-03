@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.initialization.resolve;
 
-package org.gradle.integtests.samples
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 
-import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
-import org.junit.Test
-
-class AutoTestedSamplesCoreIntegrationTest extends AbstractAutoTestedSamplesTest {
-
-    @Test
-    void runSamples() {
-        runSamplesFrom("subprojects/core/src/main/java")
-    }
+/**
+ * The container for declaring version catalogs
+ *
+ * @since 6.9
+ */
+@Incubating
+public interface VersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {
 }

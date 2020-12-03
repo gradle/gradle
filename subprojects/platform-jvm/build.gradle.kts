@@ -1,5 +1,3 @@
-import gradlebuild.integrationtests.integrationTestUsesSampleDir
-
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.jmh")
@@ -53,8 +51,6 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-integrationTestUsesSampleDir("subprojects/platform-jvm/src/main")
-
 classycle {
     excludePatterns.set(listOf(
         // Needed for the factory methods in the interface
@@ -62,3 +58,5 @@ classycle {
         "org/gradle/jvm/toolchain/internal/**"
     ))
 }
+
+integTest.usesSamples.set(true)

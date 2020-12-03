@@ -76,52 +76,55 @@ val publishPluginsToTestRepository by tasks.registering {
     }
 }
 
-afterEvaluate {
-    val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
-        outputFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties").get().asFile
+val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
+    outputFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties").get().asFile
+}
+sourceSets.main.get().output.dir(
+    writeFuturePluginVersions.map { it.outputFile.parentFile }
+)
+configurations.runtimeElements.get().outgoing {
+    variants.named("resources") {
+        artifact(writeFuturePluginVersions.map { it.outputFile.parentFile })
     }
-    sourceSets.main.get().output.dir(
-        writeFuturePluginVersions.map { it.outputFile.parentFile }
-    )
+}
 
-    publishing {
-        repositories {
-            maven {
-                name = "test"
-                url = uri(localRepository)
-            }
-        }
-    }
-
-    gradlePlugin {
-        plugins.all {
-
-            val plugin = this
-
-            publishPluginsToTestRepository.configure {
-                dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
-            }
-
-            writeFuturePluginVersions {
-                property(plugin.id, version)
-            }
+publishing {
+    repositories {
+        maven {
+            name = "test"
+            url = uri(localRepository)
         }
     }
+}
 
-    // For local consumption by tests - this should be unified with publish-public-libraries if possible
-    configurations.create("localLibsRepositoryElements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-local-repository"))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+gradlePlugin {
+    plugins.all {
+
+        val plugin = this
+
+        publishPluginsToTestRepository.configure {
+            dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
         }
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        isVisible = false
-        outgoing.artifact(localRepository) {
-            builtBy(publishPluginsToTestRepository)
+
+        writeFuturePluginVersions {
+            property(plugin.id, version)
         }
+    }
+}
+
+// For local consumption by tests - this should be unified with publish-public-libraries if possible
+configurations.create("localLibsRepositoryElements") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-local-repository"))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+    }
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    isVisible = false
+    outgoing.artifact(localRepository) {
+        builtBy(publishPluginsToTestRepository)
     }
 }
 

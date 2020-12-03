@@ -23,7 +23,7 @@ class AutoTestedSamplesPublishIntegrationTest extends AbstractAutoTestedSamplesT
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/publish/src/main")
+        runSamplesFrom("src/main")
     }
 
 }
