@@ -16,6 +16,7 @@
 
 import com.gradle.scan.plugin.BuildScanExtension
 import gradlebuild.basics.BuildEnvironment.isCiServer
+import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
@@ -56,6 +57,10 @@ if (isCiServer) {
         extractAllReportsFromCI()
         monitorUnexpectedCacheMisses()
     }
+}
+
+if (project.testDistributionEnabled()) {
+    buildScan.tag("TEST_DISTRIBUTION")
 }
 
 extractCheckstyleAndCodenarcData()

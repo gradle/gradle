@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.extension.vendorAndMajorVersion
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
@@ -184,8 +185,6 @@ fun Test.addOsAsInputs() {
     // the version currently differs between our dev infrastructure, so we only track the name and the architecture
     inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
 }
-
-fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
 
 fun configureTests() {
     normalization {
