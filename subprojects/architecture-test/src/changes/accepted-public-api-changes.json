@@ -543,6 +543,14 @@
             "changes": [
                 "Parameter 1 from null accepting to non-null accepting breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "Remove deprecated internal method",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.replaceLogger(org.gradle.api.logging.Logger)"
+            ]
         }
     ]
 }

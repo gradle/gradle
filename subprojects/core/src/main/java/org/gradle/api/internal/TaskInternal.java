@@ -21,12 +21,12 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
@@ -91,14 +91,9 @@ public interface TaskInternal extends Task, Configurable<Task> {
     TaskIdentity<?> getTaskIdentity();
 
     /**
-     * Replace this task's logger.
-     *
-     * Callers of {@link #getLogger()} will get the replacement logger after this method invocation.
-     *
-     * @param logger the replacement logger
+     * Sets the log message rewriter for this task's logger.
      */
-    @Deprecated
-    void replaceLogger(Logger logger);
+    void setLoggerMessageRewriter(ContextAwareTaskLogger.MessageRewriter messageRewriter);
 
     @Internal
     Set<Provider<? extends BuildService<?>>> getRequiredServices();

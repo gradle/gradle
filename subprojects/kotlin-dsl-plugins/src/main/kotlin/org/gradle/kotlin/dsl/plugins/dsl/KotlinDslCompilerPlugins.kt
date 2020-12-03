@@ -19,10 +19,10 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.logging.Logger
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -71,15 +71,6 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 }
 
 
-private
-fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) {
-    replaceLoggerWith(
-        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger as ContextAwareTaskLogger, project.toString(), project.experimentalWarningLink)
-        else KotlinCompilerWarningSilencingLogger(logger as ContextAwareTaskLogger)
-    )
-}
-
-
 object KotlinCompilerArguments {
     const val javaParameters = "-java-parameters"
     const val jsr305Strict = "-Xjsr305=strict"
@@ -90,37 +81,27 @@ object KotlinCompilerArguments {
 
 
 private
-fun KotlinCompile.replaceLoggerWith(logger: Logger) {
-    @Suppress("deprecation")
-    (this as TaskInternal).replaceLogger(logger)
+fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) {
+    setWarningRewriter(newLoggerMessageRewriterFor(experimentalWarning, project.toString(), project.experimentalWarningLink))
 }
 
 
 private
-class KotlinCompilerWarningSubstitutingLogger(
-    private val delegate: ContextAwareTaskLogger,
-    private val target: String,
-    private val link: String
-) : ContextAwareTaskLogger by delegate {
-
-    override fun warn(message: String) {
-        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(kotlinDslPluginExperimentalWarning(target, link))
-        else delegate.warn(message)
-    }
+fun KotlinCompile.setWarningRewriter(rewriter: ContextAwareTaskLogger.MessageRewriter) {
+    (this as TaskInternal).setLoggerMessageRewriter(rewriter)
 }
 
 
 private
-class KotlinCompilerWarningSilencingLogger(
-    private val delegate: ContextAwareTaskLogger
-) : ContextAwareTaskLogger by delegate {
-
-    override fun warn(message: String) {
-        if (!message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
-            delegate.warn(message)
+fun newLoggerMessageRewriterFor(experimentalWarning: Boolean, target: String, link: String) =
+    { logLevel: LogLevel, message: String ->
+        when {
+            logLevel != LogLevel.WARN -> message
+            !message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions) -> message
+            experimentalWarning -> kotlinDslPluginExperimentalWarning(target, link)
+            else -> null
         }
     }
-}
 
 
 fun kotlinDslPluginExperimentalWarning(target: String, link: String) =
