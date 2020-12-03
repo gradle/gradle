@@ -531,14 +531,16 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             if (parameterObject != null) {
                 parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
                     @Override
-                    public void visitInputFileProperty(String propertyName,
-                                                       boolean optional,
-                                                       boolean skipWhenEmpty,
-                                                       DirectorySensitivity directorySensitivity,
-                                                       boolean incremental,
-                                                       @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                                                       PropertyValue value,
-                                                       InputFilePropertyType filePropertyType) {
+                    public void visitInputFileProperty(
+                        String propertyName,
+                        boolean optional,
+                        boolean skipWhenEmpty,
+                        DirectorySensitivity directorySensitivity,
+                        boolean incremental,
+                        @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                        PropertyValue value,
+                        InputFilePropertyType filePropertyType
+                    ) {
                         context.add(value.getTaskDependencies());
                     }
                 });
