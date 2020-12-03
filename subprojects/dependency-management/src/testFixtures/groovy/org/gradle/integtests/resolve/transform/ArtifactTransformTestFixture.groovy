@@ -53,7 +53,6 @@ trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     }
 
     void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), Builder builder) {
-
         buildFile << """
 import ${javax.inject.Inject.name}
 // TODO: Default imports should work for of inner classes
