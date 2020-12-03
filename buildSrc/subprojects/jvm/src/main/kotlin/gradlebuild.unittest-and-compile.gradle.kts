@@ -198,6 +198,8 @@ fun configureTests() {
         plugins.apply(TestDistributionPlugin::class.java)
     }
 
+    fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
+
     tasks.withType<Test>().configureEach {
         filterEnvironmentVariables()
 
@@ -218,8 +220,7 @@ fun configureTests() {
             }
         }
 
-
-        if (project.testDistributionEnabled() && name != "test") {
+        if (project.testDistributionEnabled() && !isUnitTest()) {
             println("Test distribution has been enabled for $testName")
             useJUnitPlatform()
             distribution {
