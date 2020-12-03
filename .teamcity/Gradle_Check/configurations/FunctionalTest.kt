@@ -81,8 +81,7 @@ class FunctionalTest(
     }
 })
 
-fun enableExperimentalTestDistribution(testCoverage: TestCoverage, subprojects: List<String>) =
-    testCoverage.isQuick && testCoverage.os == Os.LINUX && subprojects == listOf("core")
+fun enableExperimentalTestDistribution(testCoverage: TestCoverage, subprojects: List<String>) = testCoverage.os == Os.LINUX && subprojects == listOf("core")
 
 fun getTestTaskName(testCoverage: TestCoverage, stage: Stage, subprojects: List<String>): String {
     val testTaskName = "${testCoverage.testType.name}Test"
