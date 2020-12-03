@@ -19,12 +19,12 @@ package org.gradle.kotlin.dsl.resolver
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.kotlin.dsl.*
 import org.gradle.util.GradleVersion
 import java.io.File
@@ -46,28 +46,18 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     override fun sourceDirs(): Collection<File> =
         try {
-            collectSourceDirs()
+            sourceDirs
         } catch (ex: Exception) {
             project.logger.warn("Unexpected exception while resolving Gradle distribution sources: ${ex.message}", ex)
             emptyList()
         }
 
     private
-    fun collectSourceDirs() =
-        withSourceRepository {
-            registerTransforms()
-            transientConfigurationForSourcesDownload().files
-        }
-
-    private
-    fun <T> withSourceRepository(produce: () -> T): T =
-        createSourceRepository().let {
-            try {
-                produce()
-            } finally {
-                repositories.remove(it)
-            }
-        }
+    val sourceDirs by lazy {
+        createSourceRepository()
+        registerTransforms()
+        transientConfigurationForSourcesDownload().files
+    }
 
     private
     fun registerTransforms() {
@@ -115,9 +105,6 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
             }
             artifact("[module]-[revision](-[classifier])(.[ext])")
         }
-    }.also {
-        // push the repository first in the list, for performance
-        makeItFirstInTheList(it)
     }
 
     private
@@ -134,14 +121,6 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     private
     fun toVersionRange(gradleVersion: String) =
         "(${minimumGradleVersion()}, $gradleVersion]"
-
-    private
-    fun makeItFirstInTheList(repository: ArtifactRepository) {
-        repositories.apply {
-            remove(repository)
-            addFirst(repository)
-        }
-    }
 
     private
     inline fun <reified T : TransformAction<TransformParameters.None>> registerTransform(configure: Action<TransformSpec<TransformParameters.None>>) =
@@ -176,16 +155,23 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         Integer.valueOf(versionDigit) - 1
 
     private
+    val resolver by lazy { projectInternal.newDetachedResolver() }
+
+    private
+    val projectInternal
+        get() = project as ProjectInternal
+
+    private
     val repositories
-        get() = project.repositories
+        get() = resolver.repositories
 
     private
     val configurations
-        get() = project.configurations
+        get() = resolver.configurations
 
     private
     val dependencies
-        get() = project.dependencies
+        get() = resolver.dependencies
 
     private
     val gradleVersion

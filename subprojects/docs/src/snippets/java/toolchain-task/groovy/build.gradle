@@ -1,17 +1,17 @@
 import javax.inject.Inject;
 
-class CustomTaskUsingToolchains extends DefaultTask {
+abstract class CustomTaskUsingToolchains extends DefaultTask {
 
-    @Input
-    final Property<JavaLauncher> launcher = project.objects.property(JavaLauncher.class);
+    @Nested
+    abstract Property<JavaLauncher> getLauncher()
 
     @Inject
-    CustomTaskUsingToolchains(ObjectFactory factory) {
+    CustomTaskUsingToolchains() {
         // Access the default toolchain
         def toolchain = project.getExtensions().getByType(JavaPluginExtension.class).toolchain
 
         // acquire a provider that returns the launcher for the toolchain
-        JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+        JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class)
         Provider<JavaLauncher> defaultLauncher = service.launcherFor(toolchain);
 
         // use it as our default for the property

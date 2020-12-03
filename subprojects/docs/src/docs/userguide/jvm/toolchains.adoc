@@ -265,6 +265,7 @@ org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 == Toolchains for plugin authors
 
 Custom tasks that require a tool from the JDK should expose a `Property<T>` with the desired tool as generic type.
+The property should be declared as a <<more_about_tasks.adoc#sec:task_input_nested_inputs,`@Nested` input>>.
 By injecting the `JavaToolchainService` in the plugin or task, it is also possible to wire a convention in those properties by obtaining the `JavaToolchainSpec` from the `java` extension on the project.
 The example below showcases how to use the default toolchain as convention while allowing users to individually configure the toolchain per task.
 

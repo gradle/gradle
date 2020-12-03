@@ -548,7 +548,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, DependencyResolutionManagementInternal drm, DomainObjectContext context) {
             return () -> {
                 List<ResolutionAwareRepository> repositories = collectRepositories(repositoryHandler);
-                if (context.isScript()) {
+                if (context.isScript() || context.isDetachedState()) {
                     return repositories;
                 }
                 DependencyResolutionManagementInternal.RepositoriesModeInternal mode = drm.getConfiguredRepositoriesMode();
