@@ -118,9 +118,9 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
             .sortedBy { -it.totalTime }
 
         return if (testCoverage.testType == TestType.platform) {
-            specialBucketForSubproject(listOf("core", "docs"), validSubprojects, subProjectTestClassTimes, testCoverage)
+            specialBucketForSubproject(listOf("core", "dependency-management", "docs"), validSubprojects, subProjectTestClassTimes, testCoverage)
         } else if (testCoverage.os == Os.LINUX) {
-            specialBucketForSubproject(listOf("core"), validSubprojects, subProjectTestClassTimes, testCoverage)
+            specialBucketForSubproject(listOf("core", "dependency-management"), validSubprojects, subProjectTestClassTimes, testCoverage)
         } else {
             splitIntoBuckets(
                 LinkedList(subProjectTestClassTimes),
