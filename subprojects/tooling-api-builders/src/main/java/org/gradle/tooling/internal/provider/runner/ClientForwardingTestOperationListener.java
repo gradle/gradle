@@ -70,7 +70,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
             if (!(task instanceof Test)) {
                 return;
             }
-            runningTasks.put(buildOperation.getId(), task.getPath());
+            runningTasks.put(buildOperation.getId(), ((Test) task).getIdentityPath().getPath());
         } else if (details instanceof ExecuteTestBuildOperationType.Details) {
             ExecuteTestBuildOperationType.Details testOperationDetails = (ExecuteTestBuildOperationType.Details) details;
             TestDescriptorInternal testDescriptor = (TestDescriptorInternal) testOperationDetails.getTestDescriptor();
