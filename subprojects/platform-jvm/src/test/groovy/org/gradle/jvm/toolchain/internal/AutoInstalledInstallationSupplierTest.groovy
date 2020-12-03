@@ -78,6 +78,45 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         directories*.source == ["Auto-provisioned by Gradle", "Auto-provisioned by Gradle", "Auto-provisioned by Gradle"]
     }
 
+    def "automatically enabled if downloads are enabled"() {
+        def jdk = temporaryFolder.createDir("11.0.6.hs-adpt")
+
+        given:
+        def cacheDir = newCacheDirProvider([jdk] as Set)
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("false")
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable("true")
+        def supplier = new AutoInstalledInstallationSupplier(providerFactory, cacheDir)
+
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directoriesAsStablePaths(directories) == stablePaths([jdk.absolutePath])
+        directories*.source == ["Auto-provisioned by Gradle"]
+    }
+
+    def "automatically enabled if downloads are enabled by default"() {
+        def jdk = temporaryFolder.createDir("11.0.6.hs-adpt")
+
+        given:
+        def cacheDir = newCacheDirProvider([jdk] as Set)
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("false")
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(null)
+        def supplier = new AutoInstalledInstallationSupplier(providerFactory, cacheDir)
+
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directoriesAsStablePaths(directories) == stablePaths([jdk.absolutePath])
+        directories*.source == ["Auto-provisioned by Gradle"]
+    }
+
+
     def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
         actualDirectories*.location.absolutePath.sort()
     }
@@ -88,18 +127,23 @@ class AutoInstalledInstallationSupplierTest extends Specification {
     }
 
     def createSupplier(Set<File> javaHomes) {
-        def cacheDir = new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager)) {
+        def cacheDir = newCacheDirProvider(javaHomes)
+        new AutoInstalledInstallationSupplier(createProviderFactory(), cacheDir)
+    }
+
+    private JdkCacheDirectory newCacheDirProvider(javaHomes) {
+        new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager)) {
             @Override
             Set<File> listJavaHomes() {
                 return javaHomes
             }
         }
-        new AutoInstalledInstallationSupplier(createProviderFactory(), cacheDir)
     }
 
     ProviderFactory createProviderFactory() {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(null)
         providerFactory
     }
 

@@ -241,6 +241,31 @@ class JavaToolchainQueryServiceTest extends Specification {
         e.message == "Provisioned toolchain '${File.separator}path${File.separator}12.broken' could not be probed."
     }
 
+    def "provisioned toolchain is cached no re-request"() {
+        given:
+        def registry = createInstallationRegistry([])
+        def toolchainFactory = newToolchainFactory()
+        int installed = 0
+        def provisionService = new JavaToolchainProvisioningService() {
+            Optional<File> tryInstall(JavaToolchainSpec spec) {
+                installed++
+                Optional.of(new File("/path/12"))
+            }
+        }
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService, createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(12))
+        def toolchain = queryService.findMatchingToolchain(filter)
+        toolchain.get()
+        toolchain.get()
+        toolchain.get()
+
+        then:
+        installed == 1
+    }
+
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)

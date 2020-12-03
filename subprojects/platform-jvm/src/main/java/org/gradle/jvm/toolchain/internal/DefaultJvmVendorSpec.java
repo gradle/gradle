@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.base.Objects;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -59,5 +60,22 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jav
     @Override
     public String toString() {
         return description;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultJvmVendorSpec that = (DefaultJvmVendorSpec) o;
+        return Objects.equal(description, that.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(description);
     }
 }
