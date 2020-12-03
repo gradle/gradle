@@ -24,7 +24,7 @@ import java.util.Optional;
 public enum TaskExecutionMode {
     INCREMENTAL(null, true, true),
     NO_OUTPUTS_WITHOUT_ACTIONS("Task has not declared any outputs nor actions.", false, false),
-    NO_OUTPUTS_WITH_ACTIONS("Task has not declared any outputs despite executing actions.", false, false),
+    NO_OUTPUTS_WITH_ACTIONS("Task has not declared any outputs despite executing actions.", true, false),
     RERUN_TASKS_ENABLED("Executed with '--rerun-tasks'.", true, false),
     UP_TO_DATE_WHEN_FALSE("Task.upToDateWhen is false.", true, false);
 
