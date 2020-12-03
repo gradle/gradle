@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.Action
+import org.gradle.configurationcache.fixtures.SomeToolingBuildAction
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -27,12 +28,8 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.gradle.GradleBuild
-import spock.lang.Ignore
 
 class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     @Override
@@ -69,13 +66,13 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        run("assemble", ENABLE_SYS_PROP)
+        run("assemble", AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
 
         then:
         outputContains("Configuration cache is an incubating feature.")
 
         when:
-        run("assemble", ENABLE_SYS_PROP)
+        run("assemble", AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
 
         then:
         outputContains("Configuration cache is an incubating feature.")
@@ -90,14 +87,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        executer.withJvmArgs(ENABLE_SYS_PROP)
+        executer.withJvmArgs(AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
         run("assemble")
 
         then:
         outputContains("Configuration cache is an incubating feature.")
 
         when:
-        executer.withJvmArgs(ENABLE_SYS_PROP)
+        executer.withJvmArgs(AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
         run("assemble")
 
         then:
@@ -131,14 +128,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             registry.register(new my.MyModelBuilder())
         """
         file("gradle.properties") << """
-            $ENABLE_GRADLE_PROP=true
+            $AbstractConfigurationCacheIntegrationTest.ENABLE_GRADLE_PROP=true
         """.stripIndent()
 
         expect:
         usingToolingConnection(testDirectory) { connection ->
             2.times {
                 def output = new ByteArrayOutputStream()
-                def model = connection.action(new MyBuildAction())
+                def model = connection.action(new SomeToolingBuildAction())
                     .addJvmArguments(executer.jvmArgs)
                     .forTasks("assemble")
                     .setStandardOutput(output)
@@ -147,13 +144,6 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
                 assert model == "It works!"
                 assert !output.toString().contains("Configuration cache is an incubating feature.")
             }
-        }
-    }
-
-    static class MyBuildAction implements BuildAction<String> {
-        @Override
-        String execute(BuildController controller) {
-            return controller.getModel(String)
         }
     }
 
