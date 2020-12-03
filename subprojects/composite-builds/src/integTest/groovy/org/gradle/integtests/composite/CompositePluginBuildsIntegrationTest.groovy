@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.ToBeImplemented
 
 class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -144,6 +143,34 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         pluginBuild.assertSettingsPluginNotApplied()
     }
 
+    def "settings plugin from included build is used over published plugin when version specified is not found in repository"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginBuild = pluginBuild("build-logic")
+        publishSettingsPlugin(pluginBuild.settingsPluginId, repoDeclaration)
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild("${pluginBuild.buildName}")
+            }
+            plugins {
+                id("${pluginBuild.settingsPluginId}") version "2.0"
+            }
+        """
+
+        then:
+        succeeds()
+        pluginBuild.assertSettingsPluginApplied()
+    }
+
     def "project plugin from included build is used over published plugin when no version is specified"() {
         given:
         def repoDeclaration = """
@@ -203,6 +230,36 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         succeeds()
         outputContains("${pluginBuild.projectPluginId} from repository applied")
         pluginBuild.assertProjectPluginNotApplied()
+    }
+
+    def "project plugin from included build is used over published plugin when version specified is not found in repository"() {
+        given:
+        def repoDeclaration = """
+            repositories {
+                maven {
+                    url("${mavenRepo.uri}")
+                }
+            }
+        """
+        def pluginBuild = pluginBuild("build-logic")
+        publishProjectPlugin(pluginBuild.projectPluginId, repoDeclaration)
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                $repoDeclaration
+                includeBuild("${pluginBuild.buildName}")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}") version "2.0"
+            }
+        """
+
+        then:
+        succeeds()
+        pluginBuild.assertProjectPluginApplied()
     }
 
     def "regular included build can not contribute settings plugins"() {
@@ -342,7 +399,7 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
     @ToBeFixedForConfigurationCache
     // fails to resolve implementation("${libraryBuild.group}:${libraryBuild.buildName}") in included pluginBuild
     // this could even be related to what the config cache failure is suggesting
-    @ToBeImplemented
+    @NotYetImplemented
     def "library build included in plugin build can be used in settings plugin when such settings plugin is included in another build"() {
         given:
         def libraryBuild = pluginAndLibraryBuild("library")
