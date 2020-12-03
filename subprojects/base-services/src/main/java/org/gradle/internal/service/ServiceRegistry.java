@@ -36,7 +36,7 @@ public interface ServiceRegistry extends ServiceLookup {
      * @throws UnknownServiceException When there is no service of the given type available.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
-    @UsedByScanPlugin
+    @UsedByScanPlugin("scan, test-retry")
     <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException;
 
     /**
