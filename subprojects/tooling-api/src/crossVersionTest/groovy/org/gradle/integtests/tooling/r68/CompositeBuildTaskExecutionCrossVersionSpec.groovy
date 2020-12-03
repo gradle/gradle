@@ -375,7 +375,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     @ToolingApiVersion(">=6.8")
-    def "Can launch test with test launcher via build operation"() {
+    def "can launch test with test launcher via build operation"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
@@ -424,7 +424,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     @ToolingApiVersion(">=6.8")
-    def "Can launch test with test launcher via test filter targeting a specific task"() {
+    def "can launch test with test launcher via test filter targeting a specific task"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """

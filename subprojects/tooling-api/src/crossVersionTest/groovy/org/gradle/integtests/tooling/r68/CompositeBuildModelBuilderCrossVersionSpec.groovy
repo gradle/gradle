@@ -28,7 +28,7 @@ import org.gradle.tooling.model.GradleProject
 @TargetGradleVersion('>=6.8')
 class CompositeBuildModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
-    def "Can run task from included build when querying a model"() {
+    def "can run task from included build when querying a model"() {
         given:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << """
