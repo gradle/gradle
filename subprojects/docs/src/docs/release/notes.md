@@ -22,6 +22,7 @@ We would like to thank the following community contributors for their contributi
 [Stefan Oehme](https://github.com/oehme),
 [Thad House](https://github.com/ThadHouse),
 [knittl](https://github.com/knittl),
+[hywelbennett](https://github.com/hywelbennett),
 [Gregorios Leach](https://github.com/simtel12).
 
 ## Upgrade instructions
