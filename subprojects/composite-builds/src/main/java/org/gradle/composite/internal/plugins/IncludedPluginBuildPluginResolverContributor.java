@@ -16,7 +16,9 @@
 
 package org.gradle.composite.internal.plugins;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.BuildIncluder;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -35,10 +37,12 @@ public class IncludedPluginBuildPluginResolverContributor implements PluginResol
 
     private static final String SOURCE_DESCRIPTION = "Included Plugin Builds";
 
+    private final BuildStateRegistry buildRegistry;
     private final BuildIncluder buildIncluder;
     private final Map<PluginId, PluginResolution> results = new HashMap<>();
 
-    public IncludedPluginBuildPluginResolverContributor(BuildIncluder buildIncluder) {
+    public IncludedPluginBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
+        this.buildRegistry = buildRegistry;
         this.buildIncluder = buildIncluder;
     }
 
@@ -64,7 +68,10 @@ public class IncludedPluginBuildPluginResolverContributor implements PluginResol
         private PluginResolution resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
             for (IncludedBuildState build : buildIncluder.includeRegisteredPluginBuilds()) {
                 // ensure the build is configured - this finds and registers any plugin publications the build may have
-                build.getConfiguredBuild();
+                GradleInternal gradle = build.getConfiguredBuild();
+                // ensure substitutions are registered for any dependencies the plugin build may have
+                buildRegistry.registerSubstitutionsFor(gradle.getIncludedBuilds());
+
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
                     return pluginResolution.get();

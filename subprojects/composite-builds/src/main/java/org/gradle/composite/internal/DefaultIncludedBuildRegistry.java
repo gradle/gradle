@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import com.google.common.base.MoreObjects;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
@@ -206,6 +207,17 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         // Attach the build only after it has been fully constructed.
         rootOfNestedBuildTree.attach();
         return rootOfNestedBuildTree;
+    }
+
+    @Override
+    public void registerSubstitutionsFor(Collection<IncludedBuild> includedBuilds) {
+        for (IncludedBuild includedBuild : includedBuilds) {
+            for (IncludedBuildState buildState : getIncludedBuilds()) {
+                if (includedBuild.getName().equals(buildState.getName())) {
+                    dependencySubstitutionsBuilder.build(buildState);
+                }
+            }
+        }
     }
 
     private void validateNameIsNotBuildSrc(String name, File dir) {

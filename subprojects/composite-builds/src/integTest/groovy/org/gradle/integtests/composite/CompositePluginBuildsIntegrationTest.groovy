@@ -18,6 +18,7 @@ package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
 
 class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -397,9 +398,6 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
 
     // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
     @ToBeFixedForConfigurationCache
-    // fails to resolve implementation("${libraryBuild.group}:${libraryBuild.buildName}") in included pluginBuild
-    // this could even be related to what the config cache failure is suggesting
-    @NotYetImplemented
     def "library build included in plugin build can be used in settings plugin when such settings plugin is included in another build"() {
         given:
         def libraryBuild = pluginAndLibraryBuild("library")
@@ -460,12 +458,38 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         pluginBuild.assertProjectPluginApplied()
     }
 
+    def "a build that applies an included settings plugin can be included in another build"() {
+        given:
+        def settingsPluginBuild = pluginBuild("settings")
+        def lib1 = pluginAndLibraryBuild("lib1")
+
+        when:
+        lib1.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${settingsPluginBuild.buildName}")
+            }
+            plugins {
+                id("${settingsPluginBuild.settingsPluginId}")
+            }
+            rootProject.name="${lib1.buildName}"
+        """)
+        settingsFile << """
+            includeBuild("${lib1.buildName}")
+        """
+
+        then:
+        succeeds()
+        settingsPluginBuild.assertSettingsPluginApplied()
+    }
+
     private BuildLogicAndLibraryBuildFixture pluginAndLibraryBuild(String buildName) {
         return new BuildLogicAndLibraryBuildFixture(pluginBuild(buildName))
     }
 
     class BuildLogicAndLibraryBuildFixture {
         private final AbstractCompositeBuildIntegrationTest.PluginBuildFixture pluginBuild
+        final TestFile settingsFile
+        final TestFile buildFile
         final String buildName
         final String settingsPluginId
         final String projectPluginId
@@ -473,6 +497,8 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
 
         BuildLogicAndLibraryBuildFixture(AbstractCompositeBuildIntegrationTest.PluginBuildFixture pluginBuild) {
             this.pluginBuild = pluginBuild
+            this.settingsFile = pluginBuild.settingsFile
+            this.buildFile = pluginBuild.buildFile
             this.buildName = pluginBuild.buildName
             this.settingsPluginId = pluginBuild.settingsPluginId
             this.projectPluginId = pluginBuild.projectPluginId

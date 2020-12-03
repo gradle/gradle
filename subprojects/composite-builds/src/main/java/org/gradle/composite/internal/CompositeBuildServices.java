@@ -94,8 +94,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new CompositeBuildPluginResolverContributor(buildRegistry, consumingBuild);
         }
 
-        public PluginResolverContributor createIncludedPluginBuildPluginResolver(BuildIncluder buildIncluder) {
-            return new IncludedPluginBuildPluginResolverContributor(buildIncluder);
+        public PluginResolverContributor createIncludedPluginBuildPluginResolver(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
+            return new IncludedPluginBuildPluginResolverContributor(buildRegistry, buildIncluder);
         }
     }
 
