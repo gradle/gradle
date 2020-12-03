@@ -43,7 +43,6 @@ configureCompile()
 configureSourcesVariant()
 configureJarTasks()
 configureTests()
-failOnEmptySourceFolder()
 
 tasks.registerCITestDistributionLifecycleTasks()
 
@@ -246,20 +245,6 @@ fun removeTeamcityTempProperty() {
 
 val Project.maxParallelForks: Int
     get() = findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
-
-fun failOnEmptySourceFolder() {
-    // Empty source dirs produce cache misses, and are not caught by `git status`.
-    // Fail if we find any.
-    tasks.withType<SourceTask>().configureEach {
-        doFirst {
-            source.visit {
-                if (file.isDirectory && file.listFiles()?.isEmpty() == true) {
-                    throw IllegalStateException("Empty src dir found. This causes build cache misses. See github.com/gradle/gradle/issues/2463.\nRun the following command to fix it.\nrmdir ${file.absolutePath}")
-                }
-            }
-        }
-    }
-}
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
