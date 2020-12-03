@@ -286,9 +286,9 @@ include::sample[dir="snippets/plugins/publishing/groovy", files="build.gradle[ta
 include::sample[dir="snippets/plugins/publishing/kotlin", files="build.gradle.kts[tags=complete-plugin-publishing]"]
 ====
 
-Running `gradle publish` in the sample directory causes the following repo layouts to exist:
+Running `gradle publish` in the sample directory creates the following Maven repository layout (the Ivy layout is similar):
 
-image::pluginMarkers.png[]
+image::plugin-markers.png[]
 
 [[sec:old_plugin_application]]
 === Legacy Plugin Application
