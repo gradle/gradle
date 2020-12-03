@@ -200,6 +200,7 @@ fun configureTests() {
     }
 
     tasks.withType<Test>().configureEach {
+        outputs.cacheIf { false }
         filterEnvironmentVariables()
 
         maxParallelForks = project.maxParallelForks
@@ -219,15 +220,16 @@ fun configureTests() {
             }
         }
 
-        if (project.testDistributionEnabled()) {
+
+        if (project.testDistributionEnabled() && name != "test") {
+            println("Test distribution has been enabled for $testName")
+            useJUnitPlatform()
             distribution {
-                maxLocalExecutors.set(0)
-                maxRemoteExecutors.set(if ("test" == testName) 5 else 20)
                 enabled.set(true)
                 when {
-                    OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux"))
-                    OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows"))
-                    OperatingSystem.current().isMacOsX -> requirements.set(listOf("os=macos"))
+                    OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
+                    OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows", "gbt-dogfooding"))
+                    OperatingSystem.current().isMacOsX -> requirements.set(listOf("os=macos", "gbt-dogfooding"))
                 }
             }
         }
