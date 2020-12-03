@@ -216,7 +216,7 @@ include::sample[dir="kotlin",files="settings.gradle.kts[]"]
 
 Since our build consists of multiple-subprojects, we want to share build logic and configuration between them.
 For this, we utilize so-called _convention plugins_ that are located in the `buildSrc` folder.
-Convention plugins in `buildSrc` are an easy way to utilise Gradle's plugin system to write reusable bids of build configuration.
+Convention plugins in `buildSrc` are an easy way to utilise Gradle's plugin system to write reusable bits of build configuration.
 
 in this sample, we can find three such convention plugins that are based on each other:
 
