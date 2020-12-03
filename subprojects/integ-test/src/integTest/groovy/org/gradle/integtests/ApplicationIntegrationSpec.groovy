@@ -290,6 +290,7 @@ class Main {
 installDist.destinationDir = buildDir
 """
         when:
+        executer.expectDeprecationWarning(":startScripts consumes the output of :installDist, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         runAndFail "installDist"
 
         then:

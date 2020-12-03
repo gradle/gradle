@@ -108,6 +108,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         }
         // Generate external jar with entries in alphabetical order
         def externalJar = file('build/libs/external.jar')
+        executer.expectDeprecationWarning(":a:compileJava consumes the output of :alphabetic, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning(":a:javadoc consumes the output of :alphabetic, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         succeeds("alphabetic", ":a:javadoc")
         new ZipTestFixture(externalJar).hasDescendantsInOrder('META-INF/MANIFEST.MF', 'a', 'b', 'c', 'd')
 
@@ -154,6 +156,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             file("external/$it").touch()
         }
         // Generate external jar with entries with a current timestamp
+        executer.expectDeprecationWarning(":a:compileJava consumes the output of :currentTime, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning(":a:javadoc consumes the output of :currentTime, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         succeeds("currentTime", ":a:javadoc")
         def oldHash = externalJar.md5Hash
         when:
@@ -195,6 +199,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         duplicate.text = "duplicate"
 
         // Generate external jar with entries with a duplicate 'a' file
+        executer.expectDeprecationWarning(":a:compileJava consumes the output of :duplicate, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning(":a:javadoc consumes the output of :duplicate, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         succeeds("duplicate", ":a:javadoc")
         def oldHash = externalJar.md5Hash
 
