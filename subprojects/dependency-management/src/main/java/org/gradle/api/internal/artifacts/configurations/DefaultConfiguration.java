@@ -110,6 +110,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -494,6 +495,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         intrinsicFiles.visitContents(visitor);
+    }
+
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        formatter.node("configuration: " + getIdentityPath());
     }
 
     @Override
@@ -1372,6 +1378,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (!lenient) {
                 resolutionHost.rethrowFailure("files", collectingVisitor.getFailures());
             }
+        }
+
+        @Override
+        protected void appendContents(TreeFormatter formatter) {
+            formatter.node("contains: " + getDisplayName());
         }
 
         private SelectedArtifactSet getSelectedArtifacts() {
