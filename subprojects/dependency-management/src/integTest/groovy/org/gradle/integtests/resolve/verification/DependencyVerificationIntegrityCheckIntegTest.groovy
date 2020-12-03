@@ -358,8 +358,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
 
             task resolve {
-                inputs.files(configurations.compileClasspath)
-                inputs.files(configurations.testRuntimeClasspath)
                 doLast {
                     println "First resolution"
                     println $firstResolution
