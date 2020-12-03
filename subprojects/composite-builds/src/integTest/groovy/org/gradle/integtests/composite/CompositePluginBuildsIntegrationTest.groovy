@@ -17,6 +17,8 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.ToBeImplemented
 
 class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -334,6 +336,71 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         assertTaskExecuted(':', ':compileJava')
         build.assertSettingsPluginApplied()
         build.assertProjectPluginApplied()
+    }
+
+    // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
+    @ToBeFixedForConfigurationCache
+    // fails to resolve implementation("${libraryBuild.group}:${libraryBuild.buildName}") in included pluginBuild
+    // this could even be related to what the config cache failure is suggesting
+    @ToBeImplemented
+    def "library build included in plugin build can be used in settings plugin when such settings plugin is included in another build"() {
+        given:
+        def libraryBuild = pluginAndLibraryBuild("library")
+        def pluginBuild = pluginBuild("plugin")
+
+        pluginBuild.settingsFile << """
+            includeBuild("../${libraryBuild.buildName}")
+        """
+        pluginBuild.buildFile << """
+            dependencies {
+                implementation("${libraryBuild.group}:${libraryBuild.buildName}")
+            }
+        """
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+            plugins {
+                id("${pluginBuild.settingsPluginId}")
+            }
+        """
+
+        then:
+        succeeds()
+        pluginBuild.assertSettingsPluginApplied()
+    }
+
+    def "library build included in plugin build can be used in project plugin when such project plugin is included in another build"() {
+        given:
+        def libraryBuild = pluginAndLibraryBuild("library")
+        def pluginBuild = pluginBuild("plugin")
+
+        pluginBuild.settingsFile << """
+            includeBuild("../${libraryBuild.buildName}")
+        """
+        pluginBuild.buildFile << """
+            dependencies {
+                implementation("${libraryBuild.group}:${libraryBuild.buildName}")
+            }
+        """
+
+        when:
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild.buildName}")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild.projectPluginId}")
+            }
+        """
+
+        then:
+        succeeds()
+        pluginBuild.assertProjectPluginApplied()
     }
 
     private BuildLogicAndLibraryBuildFixture pluginAndLibraryBuild(String buildName) {
