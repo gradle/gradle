@@ -65,6 +65,9 @@ import org.gradle.tooling.model.Task;
  * }
  * </pre>
  *
+ * <p>If the target Gradle version is >=6.8 then you can use {@code BuildLauncher} to execute tasks from included builds. You can target tasks from included builds by specifying the task
+ * identity path (i.e. {@code ':included-build-name:subproject-name:taskName'}).</p>
+ *
  * @since 1.0-milestone-3
  */
 public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
