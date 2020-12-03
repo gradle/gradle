@@ -54,8 +54,10 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                versionCatalog("libs") {
-                    from("org.gradle.test:my-platform:1.0")
+                versionCatalogs {
+                    libs {
+                        from("org.gradle.test:my-platform:1.0")
+                    }
                 }
             }
         """
@@ -89,9 +91,11 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                versionCatalog("libs") {
-                    from("org.gradle.test:my-platform:1.0")
-                    version('lib', '1.1') // override version declared in the platform, this is order sensitive
+                versionCatalogs {
+                    libs {
+                        from("org.gradle.test:my-platform:1.0")
+                        version('lib', '1.1') // override version declared in the platform, this is order sensitive
+                    }
                 }
             }
         """
@@ -133,8 +137,10 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                versionCatalog("libs") {
-                    from("org.gradle.test:my-platform:+")
+                versionCatalogs {
+                    libs {
+                        from("org.gradle.test:my-platform:+")
+                    }
                 }
             }
         """
@@ -162,8 +168,10 @@ org.gradle.test:my-platform:1.0
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                versionCatalog("libs") {
-                    from("org.gradle.test:my-platform:1.0")
+                versionCatalogs {
+                    libs {
+                        from("org.gradle.test:my-platform:1.0")
+                    }
                 }
             }
         """
@@ -178,8 +186,10 @@ org.gradle.test:my-platform:1.0
     def "reasonable error message if a no repositories are defined in settings"() {
         settingsFile << """
             dependencyResolutionManagement {
-                versionCatalog("libs") {
-                    from("org.gradle.test:my-platform:1.0")
+                versionCatalogs {
+                    libs {
+                        from("org.gradle.test:my-platform:1.0")
+                    }
                 }
             }
         """

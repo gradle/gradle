@@ -25,51 +25,64 @@ dependencyResolutionManagement {
     }
 }
 
-// tag::consume_catalog[]
-dependencyResolutionManagement {
-    versionCatalog("libs") {
-        from("com.mycompany:catalog:1.0")
+if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() != null) {
+    // tag::consume_catalog[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            create("libs") {
+                from("com.mycompany:catalog:1.0")
+            }
+        }
     }
+    // end::consume_catalog[]
 }
-// end::consume_catalog[]
 
-// tag::overwrite_version[]
-dependencyResolutionManagement {
-    versionCatalog("libs") {
-        from("com.mycompany:catalog:1.0")
-        // overwrite the "groovy" version declared in the imported catalog
-        version("groovy", "3.0.6")
+if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() != null) {
+    // tag::overwrite_version[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            create("libs") {
+                from("com.mycompany:catalog:1.0")
+                // overwrite the "groovy" version declared in the imported catalog
+                version("groovy", "3.0.6")
+            }
+        }
     }
+    // end::overwrite_version[]
 }
-// end::overwrite_version[]
 
-if (providers.systemProperty("compose").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("compose1").forUseAtConfigurationTime().getOrNull() != null) {
     // tag::compose_catalog[]
     dependencyResolutionManagement {
-        versionCatalog("libs") {
-            from("com.mycompany:catalog:1.0")
-            from("com.other:catalog:1.1")
-            // and add explicit dependencies
-            alias("my-alias").to("my.own:lib:1.2")
+        versionCatalogs {
+            create("libs") {
+                from("com.mycompany:catalog:1.0")
+                from("com.other:catalog:1.1")
+                // and add explicit dependencies
+                alias("my-alias").to("my.own:lib:1.2")
+            }
         }
     }
     // end::compose_catalog[]
+}
 
+if (providers.systemProperty("compose2").forUseAtConfigurationTime().getOrNull() != null) {
     // tag::compose_catalog_filtering[]
     dependencyResolutionManagement {
-        versionCatalog("libs") {
-            from("com.mycompany:catalog:1.0") {
-                // import everything, excluding the following dependency
-                excludeDependency("some-alias")
+        versionCatalogs {
+            create("libs") {
+                from("com.mycompany:catalog:1.0") {
+                    // import everything, excluding the following dependency
+                    excludeDependency("some-alias")
+                }
+                from("com.other:catalog:1.1") {
+                    // exclude everything but this dependency
+                    includeDependency("some-dep")
+                }
+                // and add explicit dependencies
+                alias("some-alias").to("my.own:lib:1.2")
             }
-            from("com.other:catalog:1.1") {
-                // exclude everything but this dependency
-                includeDependency("some-dep")
-            }
-            // and add explicit dependencies
-            alias("some-alias").to("my.own:lib:1.2")
         }
     }
     // end::compose_catalog_filtering[]
-
 }

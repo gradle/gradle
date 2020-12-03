@@ -17,9 +17,10 @@ package org.gradle.api.initialization.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.MutableVersionConstraint;
-import org.gradle.internal.Actions;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.Actions;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.List;
  */
 @Incubating
 @HasInternalProtocol
-public interface VersionCatalogBuilder {
+public interface VersionCatalogBuilder extends Named {
 
     /**
      * A description for the dependencies model, which will be used in

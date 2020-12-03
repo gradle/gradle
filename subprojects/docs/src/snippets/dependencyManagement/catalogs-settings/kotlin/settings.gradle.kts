@@ -22,51 +22,61 @@ dependencyResolutionManagement {
     }
 }
 
-// tag::simple_catalog[]
-dependencyResolutionManagement {
+if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() != null) {
+    // tag::simple_catalog[]
     dependencyResolutionManagement {
-        versionCatalog("libs") {
-            alias("groovy").to("org.codehaus.groovy:groovy:3.0.5")
-            alias("groovy-json").to("org.codehaus.groovy:groovy-json:3.0.5")
-            alias("groovy-nio").to("org.codehaus.groovy:groovy-nio:3.0.5")
-            alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
-                strictly("[3.8, 4.0[")
-                prefer("3.9")
+        versionCatalogs {
+            create("libs") {
+                alias("groovy").to("org.codehaus.groovy:groovy:3.0.5")
+                alias("groovy-json").to("org.codehaus.groovy:groovy-json:3.0.5")
+                alias("groovy-nio").to("org.codehaus.groovy:groovy-nio:3.0.5")
+                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                    strictly("[3.8, 4.0[")
+                    prefer("3.9")
+                }
             }
         }
     }
+    // end::simple_catalog[]
 }
-// end::simple_catalog[]
 
-// tag::catalog_with_versions[]
-dependencyResolutionManagement {
-    versionCatalog("libs") {
-        version("groovy", "3.0.5")
-        version("checkstyle", "8.37")
-        alias("groovy").to("org.codehaus.groovy", "groovy").versionRef("groovy")
-        alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
-        alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
-        alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
-            strictly("[3.8, 4.0[")
-            prefer("3.9")
+if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() != null) {
+    // tag::catalog_with_versions[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            create("libs") {
+                version("groovy", "3.0.5")
+                version("checkstyle", "8.37")
+                alias("groovy").to("org.codehaus.groovy", "groovy").versionRef("groovy")
+                alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
+                alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
+                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                    strictly("[3.8, 4.0[")
+                    prefer("3.9")
+                }
+            }
         }
     }
+    // end::catalog_with_versions[]
 }
-// end::catalog_with_versions[]
 
-// tag::catalog_with_bundle[]
-dependencyResolutionManagement {
-    versionCatalog("libs") {
-        version("groovy", "3.0.5")
-        version("checkstyle", "8.37")
-        alias("groovy").to("org.codehaus.groovy", "groovy").versionRef("groovy")
-        alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
-        alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
-        alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
-            strictly("[3.8, 4.0[")
-            prefer("3.9")
+if (providers.systemProperty("create3").forUseAtConfigurationTime().getOrNull() != null) {
+    // tag::catalog_with_bundle[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            create("libs") {
+                version("groovy", "3.0.5")
+                version("checkstyle", "8.37")
+                alias("groovy").to("org.codehaus.groovy", "groovy").versionRef("groovy")
+                alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
+                alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
+                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                    strictly("[3.8, 4.0[")
+                    prefer("3.9")
+                }
+                bundle("groovy", listOf("groovy", "groovy-json", "groovy-nio"))
+            }
         }
-        bundle("groovy", listOf("groovy", "groovy-json", "groovy-nio"))
     }
+    // end::catalog_with_bundle[]
 }
-// end::catalog_with_bundle[]

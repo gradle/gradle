@@ -16,7 +16,9 @@
 rootProject.name = 'platform'
 
 dependencyResolutionManagement {
-    versionCatalog('libs') {
-        alias('mylib').to('org:mylib:1.0')
+    versionCatalogs {
+        libs {
+            alias('mylib').to('org:mylib:1.0')
+        }
     }
 }

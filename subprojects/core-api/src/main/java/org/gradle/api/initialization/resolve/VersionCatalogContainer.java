@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.initialization.resolve;
 
-// tag::import_main_catalog[]
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("lib") {
-            from(files("../gradle/dependencies.toml"))
-        }
-    }
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
+
+/**
+ * The container for declaring version catalogs
+ *
+ * @since 6.9
+ */
+@Incubating
+public interface VersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {
 }
-// end::import_main_catalog[]

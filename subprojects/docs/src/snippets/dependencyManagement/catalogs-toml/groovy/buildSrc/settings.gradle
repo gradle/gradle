@@ -16,8 +16,10 @@
 
 // tag::import_main_catalog[]
 dependencyResolutionManagement {
-    versionCatalog('lib') {
-        from(files("../gradle/dependencies.toml"))
+    versionCatalogs {
+        lib {
+            from(files("../gradle/dependencies.toml"))
+        }
     }
 }
 // end::import_main_catalog[]
