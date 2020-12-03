@@ -24,11 +24,12 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
@@ -82,10 +83,11 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         run(["clean"])
 
         and: "reusing the configuration cache in a different daemon"
-        configurationCacheRun(supportedTasks, 1)
+        configurationCacheRun(supportedTasks + ["--info"], 1)
 
         then:
         result.output.count("Reusing configuration cache") == 1
+        result.output.contains("Starting build in new daemon")
 
         /*
         and:
@@ -106,10 +108,8 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO remove
             ],
-            // use a unique JVM argument to force a different daemon
-            [
-                "-Xms${1024 + daemonId}m".toString()
-            ]
+            // use a unique testKitDir per daemonId other than 0 as 0 means default daemon.
+            daemonId != 0 ? file("test-kit/$daemonId") : null
         )
     }
 
@@ -120,14 +120,24 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         return result
     }
 
-    private void run(List<String> tasks, List<String> jvmArgs = []) {
+    private void run(List<String> tasks, File testKitDir = null) {
         result = null
-        result = ((DefaultGradleRunner) runner(*(tasks + GRADLE_BUILD_TEST_ARGS)))
-            .withJvmArguments(jvmArgs)
-            .build()
+        result = runnerFor(tasks, testKitDir).build()
     }
 
     private BuildResult result
+
+    private GradleRunner runnerFor(List<String> tasks, File testKitDir) {
+        List<String> gradleArgs = tasks + GRADLE_BUILD_TEST_ARGS
+        return testKitDir != null
+            ? runnerWithTestKitDir(testKitDir, gradleArgs)
+            : runner(*gradleArgs)
+    }
+
+    private GradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
+        runner(*(gradleArgs + ["-g", IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath]))
+            .withTestKitDir(testKitDir)
+    }
 
     private static final List<String> GRADLE_BUILD_TEST_ARGS = [
         "-PbuildTimestamp=" + newTimestamp()
