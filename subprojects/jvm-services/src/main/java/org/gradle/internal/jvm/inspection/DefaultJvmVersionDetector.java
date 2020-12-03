@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.ExecException;
 
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 
 public class DefaultJvmVersionDetector implements JvmVersionDetector {
 
@@ -38,11 +39,13 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
 
     @Override
     public JavaVersion getJavaVersion(String javaCommand) {
-        final File executable = new File(javaCommand);
-        if(!executable.exists()) {
-            throw new ExecException("A problem occurred starting process 'command '" + javaCommand + "''");
+        File executable = new File(javaCommand);
+        File parentFolder = executable.getParentFile();
+        if(parentFolder == null || !parentFolder.exists()) {
+            Exception cause = new NoSuchFileException(javaCommand);
+            throw new ExecException("A problem occurred starting process 'command '" + javaCommand + "''", cause);
         }
-        return getVersionFromJavaHome(executable.getParentFile().getParentFile());
+        return getVersionFromJavaHome(parentFolder.getParentFile());
     }
 
     private JavaVersion getVersionFromJavaHome(File javaHome) {
