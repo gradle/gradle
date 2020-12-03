@@ -265,7 +265,7 @@ Looking at the build scripts, we can see that they include up to three blocks
   In a well-structured build, it may only apply one _convention plugin_ as in this example.
   The convention plugin will then take care of applying and configuring core Gradle plugins (like `application` or `java-library`) other convention plugin or community plugins from the Plugin Portal.
 * Second, if the project has dependencies, a `dependencies {}` block should be added.
-  Dependencies can be external, such as the JUnit dependencies wie add in `${languageLC.raw}-common-conventions`, or can point to other local subprojects.
+  Dependencies can be external, such as the JUnit dependencies we add in `${languageLC.raw}-common-conventions`, or can point to other local subprojects.
   For this, the `project(...)` notation is used.
   In our example, the `utilities` library requires the `list` library.
   And the `app` makes use of the `utilities` library.
