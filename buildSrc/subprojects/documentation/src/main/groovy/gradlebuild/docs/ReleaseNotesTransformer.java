@@ -74,7 +74,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         Document document = Jsoup.parse(CharStreams.toString(in));
         document.outputSettings().indentAmount(2).prettyPrint(true);
-        document.prependChild(new DocumentType("html", "", "", ""));
+        document.prependChild(new DocumentType("html", "", ""));
         document.head().
                 append("<meta charset='utf-8'>").
                 append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
@@ -94,7 +94,7 @@ public class ReleaseNotesTransformer extends FilterReader {
         // Turn Gradle Jira issue numbers into issue links
         rewritten = rewritten.replaceAll("GRADLE-\\d+", "<a href=\"https://issues.gradle.org/browse/$0\">$0</a>");
         // Turn Gradle Github issue numbers into issue links
-        rewritten = rewritten.replaceAll("(gradle\\/[a-zA-Z\\-_]+)#(\\d+)", "<a href=\"https://github.com/$1/issues/$2\">$0</a>");
+        rewritten = rewritten.replaceAll("(gradle/[a-zA-Z\\-_]+)#(\\d+)", "<a href=\"https://github.com/$1/issues/$2\">$0</a>");
         document.body().html(rewritten);
 
         return new StringReader(document.toString());
