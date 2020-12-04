@@ -22,17 +22,17 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.resolve.internal.FallbackPluginResolverContributor;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class IncludedPluginBuildPluginResolverContributor implements PluginResolverContributor {
+public class IncludedPluginBuildPluginResolverContributor implements FallbackPluginResolverContributor {
 
     private static final String SOURCE_DESCRIPTION = "Included Plugin Builds";
 
@@ -48,11 +48,6 @@ public class IncludedPluginBuildPluginResolverContributor implements PluginResol
     @Override
     public void collectResolversInto(Collection<PluginResolver> resolvers) {
         resolvers.add(new CompositeBuildPluginResolver());
-    }
-
-    @Override
-    public boolean isFallback() {
-        return true;
     }
 
     private class CompositeBuildPluginResolver implements PluginResolver {

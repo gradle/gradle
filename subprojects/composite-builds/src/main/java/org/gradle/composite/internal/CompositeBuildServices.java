@@ -39,6 +39,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.plugin.use.resolve.internal.FallbackPluginResolverContributor;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
@@ -94,7 +95,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new CompositeBuildPluginResolverContributor(buildRegistry, consumingBuild);
         }
 
-        public PluginResolverContributor createIncludedPluginBuildPluginResolver(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
+        public FallbackPluginResolverContributor createIncludedPluginBuildPluginResolver(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
             return new IncludedPluginBuildPluginResolverContributor(buildRegistry, buildIncluder);
         }
     }
