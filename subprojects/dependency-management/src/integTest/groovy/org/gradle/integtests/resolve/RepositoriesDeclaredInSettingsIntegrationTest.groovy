@@ -737,6 +737,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15336")
+    @ToBeFixedForConfigurationCache(because = "Decorated exception is not rethrown")
     def "reasonable error message if a dependency cannot be resolved because local repositories differ"() {
         buildFile << """
             repositories {
