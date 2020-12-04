@@ -39,14 +39,14 @@ public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecuto
                                         PayloadSerializer payloadSerializer,
                                         BuildOperationNotificationValve buildOperationNotificationValve,
                                         BuildCancellationToken buildCancellationToken,
-                                        BuildActionRunner buildActionRunner,
-                                        ConfigurationCacheSupport configurationCacheSupport) {
+                                        ConfigurationCacheSupport configurationCacheSupport,
+                                        BuildActionRunner buildActionRunner) {
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
         this.payloadSerializer = payloadSerializer;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
-        this.buildCancellationToken = buildCancellationToken;
         this.configurationCacheSupport = configurationCacheSupport;
+        this.buildCancellationToken = buildCancellationToken;
     }
 
     @Override

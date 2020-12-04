@@ -162,13 +162,13 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 payloadSerializer,
                 buildOperationNotificationValve,
                 buildCancellationToken,
+                configurationCacheSupport,
                 new RunAsBuildOperationBuildActionRunner(
                     new BuildCompletionNotifyingBuildActionRunner(
                         new FileSystemWatchingBuildActionRunner(
                             new ValidatingBuildActionRunner(
                                 new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory,
-                                    new ChainingBuildActionRunner(buildActionRunners)))))),
-                configurationCacheSupport
+                                    new ChainingBuildActionRunner(buildActionRunners))))))
             );
         }
     }
