@@ -117,6 +117,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
@@ -333,10 +334,14 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
         @Override
         public void reportValidationWarnings(UnitOfWork work, Collection<String> warnings) {
-            LOGGER.warn("Validation failed for {}, disabling execution optimizations", work.getDisplayName());
+            LOGGER.warn("Validation failed for {}, disabling optimizations:{}",
+                work.getDisplayName(),
+                warnings.stream().map(warning -> "\n  - " + warning).collect(Collectors.joining()));
             warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
+                .withContext("Due to the failed validation execution optimizations are disabled.")
                 .willBeRemovedInGradle7()
-                .withUserManual("more_about_tasks", "sec:up_to_date_checks").nagUser());
+                .withUserManual("more_about_tasks", "sec:up_to_date_checks")
+                .nagUser());
         }
     }
 }
