@@ -216,7 +216,7 @@ include::sample[dir="kotlin",files="settings.gradle.kts[]"]
 
 Since our build consists of multiple-subprojects, we want to share build logic and configuration between them.
 For this, we utilize so-called _convention plugins_ that are located in the `buildSrc` folder.
-Convention plugins in `buildSrc` are an easy way to utilise Gradle's plugin system to write reusable bids of build configuration.
+Convention plugins in `buildSrc` are an easy way to utilise Gradle's plugin system to write reusable bits of build configuration.
 
 in this sample, we can find three such convention plugins that are based on each other:
 
@@ -240,7 +240,7 @@ include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.r
 ====
 
 
-Both `${languageLC.raw}-library-conventions` and `${languageLC.raw}-application-conventions` apply the `${languageLC.raw}-library-conventions` plugin *(1)* so that the configuration performed there is shared by library and application projects alike.
+Both `${languageLC.raw}-library-conventions` and `${languageLC.raw}-application-conventions` apply the `${languageLC.raw}-common-conventions` plugin *(1)* so that the configuration performed there is shared by library and application projects alike.
 Next they apply the `java-library` or `application` plugin respectively *(2)* thus combining our common configuration logic with specifics for a library or application.
 While there is no more fine grained configuration in this example, library or application project specific build configuration can go into one of these convention plugin scripts.
 
@@ -265,7 +265,7 @@ Looking at the build scripts, we can see that they include up to three blocks
   In a well-structured build, it may only apply one _convention plugin_ as in this example.
   The convention plugin will then take care of applying and configuring core Gradle plugins (like `application` or `java-library`) other convention plugin or community plugins from the Plugin Portal.
 * Second, if the project has dependencies, a `dependencies {}` block should be added.
-  Dependencies can be external, such as the JUnit dependencies wie add in `${languageLC.raw}-common-conventions`, or can point to other local subprojects.
+  Dependencies can be external, such as the JUnit dependencies we add in `${languageLC.raw}-common-conventions`, or can point to other local subprojects.
   For this, the `project(...)` notation is used.
   In our example, the `utilities` library requires the `list` library.
   And the `app` makes use of the `utilities` library.

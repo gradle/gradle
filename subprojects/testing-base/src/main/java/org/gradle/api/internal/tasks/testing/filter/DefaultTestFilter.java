@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-@UsedByScanPlugin("test-distribution")
+@UsedByScanPlugin("test-distribution, test-retry")
 public class DefaultTestFilter implements TestFilter {
 
     private final Set<String> includeTestNames = new HashSet<String>();

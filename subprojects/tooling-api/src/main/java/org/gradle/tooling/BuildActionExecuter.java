@@ -70,9 +70,12 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
     }
 
     /**
-     * Specifies the tasks to execute before executing the BuildAction.
+     * <p>Specifies the tasks to execute before executing the BuildAction.</p>
      *
-     * If not configured, null, or an empty array is passed, then no tasks will be executed.
+     * <p>If not configured, null, or an empty array is passed, then no tasks will be executed.</p>
+     *
+     * <p>If the target Gradle version is &gt;=6.8 then you can execute tasks from included builds. You can target tasks from included builds by specifying the task identity path (i.e. {@code
+     * ':included-build-name:subproject-name:taskName'}).</p>
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created. An empty list will run the project's default tasks.
      * @return this
@@ -81,9 +84,12 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
     BuildActionExecuter<T> forTasks(String... tasks);
 
     /**
-     * Specifies the tasks to execute before executing the BuildAction.
+     * <p>Specifies the tasks to execute before executing the BuildAction.</p>
      *
-     * If not configured, null, or an empty array is passed, then no tasks will be executed.
+     * <p>If not configured, null, or an empty array is passed, then no tasks will be executed.</p>
+     *
+     * <p>If the target Gradle version is &gt;=6.8 then you can execute tasks from included builds. You can target tasks from included builds by specifying the task identity path (i.e. {@code
+     * ':included-build-name:subproject-name:taskName'}).</p>
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created. An empty list will run the project's default tasks.
      * @return this

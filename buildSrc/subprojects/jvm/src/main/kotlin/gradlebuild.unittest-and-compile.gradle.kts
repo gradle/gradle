@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.extension.vendorAndMajorVersion
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
@@ -185,8 +186,6 @@ fun Test.addOsAsInputs() {
     inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
 }
 
-fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
-
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -198,6 +197,8 @@ fun configureTests() {
     if (project.testDistributionEnabled()) {
         plugins.apply(TestDistributionPlugin::class.java)
     }
+
+    fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
 
     tasks.withType<Test>().configureEach {
         filterEnvironmentVariables()
@@ -219,8 +220,7 @@ fun configureTests() {
             }
         }
 
-
-        if (project.testDistributionEnabled() && name != "test") {
+        if (project.testDistributionEnabled() && !isUnitTest()) {
             println("Test distribution has been enabled for $testName")
             useJUnitPlatform()
             distribution {

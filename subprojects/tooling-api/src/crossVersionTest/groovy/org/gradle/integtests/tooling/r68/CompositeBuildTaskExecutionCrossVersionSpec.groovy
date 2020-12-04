@@ -19,6 +19,11 @@ package org.gradle.integtests.tooling.r68
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.TestLauncher
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.test.TestFinishEvent
+import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -369,6 +374,96 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("do something")
     }
 
+    @ToolingApiVersion(">=6.8")
+    def "can launch test with test launcher via build operation"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+             ${mavenCentralRepository()}
+
+             dependencies { testImplementation 'junit:junit:4.13' }
+        """
+        file("other-build/sub/src/test/java/MyIncludedTest.java") << """
+            import org.junit.Test;
+            import static org.junit.Assert.assertTrue;
+
+            public class MyIncludedTest {
+
+                @Test
+                public void myTestMethod() {
+                    assertTrue(true);
+                }
+            }
+        """
+
+        TestOperationCollector collector = new TestOperationCollector()
+        withConnection { connection ->
+            def build = connection.newBuild()
+            build.addProgressListener(collector)
+            build.forTasks(":other-build:sub:test").run()
+        }
+        TestOperationDescriptor descriptor = collector.descriptors.find { it.name == "myTestMethod" }
+
+        when:
+        withConnection { connection ->
+            TestLauncher launcher = connection.newTestLauncher().withTests(descriptor)
+            collectOutputs(launcher)
+            launcher.run()
+        }
+
+        then:
+        outputContains("BUILD SUCCESSFUL")
+    }
+
+    @ToolingApiVersion(">=6.8")
+    def "can launch test with test launcher via test filter targeting a specific task"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+             ${mavenCentralRepository()}
+
+             dependencies { testImplementation 'junit:junit:4.13' }
+        """
+        file("other-build/sub/src/test/java/MyIncludedTest.java") << """
+            import org.junit.Test;
+            import static org.junit.Assert.assertTrue;
+
+            public class MyIncludedTest {
+
+                @Test
+                public void myTestMethod() {
+                    assertTrue(true);
+                }
+            }
+        """
+
+        when:
+        withConnection { connection ->
+            def testLauncher = connection.newTestLauncher()
+            collectOutputs(testLauncher)
+            testLauncher.withTaskAndTestClasses(":other-build:sub:test", ["MyIncludedTest"]).run()
+        }
+
+        then:
+        outputContains("BUILD SUCCESSFUL")
+    }
+
     private void executeTaskViaTAPI(String... task) {
         withConnection { connection ->
             def build = connection.newBuild()
@@ -411,5 +506,17 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
     private boolean outputContains(String expectedOutput) {
         return stdout.toString().contains(expectedOutput)
+    }
+
+    class TestOperationCollector implements ProgressListener {
+
+        List<TestOperationDescriptor> descriptors = []
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof TestFinishEvent) {
+                descriptors += ((TestFinishEvent) event).descriptor
+            }
+        }
     }
 }

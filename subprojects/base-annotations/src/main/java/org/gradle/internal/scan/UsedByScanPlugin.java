@@ -23,7 +23,9 @@ import java.lang.annotation.Target;
 
 /**
  * Documents that the type or method is referenced by the build scan plugin,
- * and therefore changes need to be carefully managed.
+ * and therefore changes need to be carefully managed. Other plugins like the
+ * test-retry or the test-distribution plugin clarify their usage in the {@link #value}.
+ * property.
  *
  * @since 4.0
  */
