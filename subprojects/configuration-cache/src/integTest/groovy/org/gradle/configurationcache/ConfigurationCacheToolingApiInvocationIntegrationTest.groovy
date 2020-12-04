@@ -66,13 +66,13 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        run("assemble", AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
+        run("assemble", ENABLE_SYS_PROP)
 
         then:
         outputContains("Configuration cache is an incubating feature.")
 
         when:
-        run("assemble", AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
+        run("assemble", ENABLE_SYS_PROP)
 
         then:
         outputContains("Configuration cache is an incubating feature.")
@@ -87,14 +87,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        executer.withJvmArgs(AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
+        executer.withJvmArgs(ENABLE_SYS_PROP)
         run("assemble")
 
         then:
         outputContains("Configuration cache is an incubating feature.")
 
         when:
-        executer.withJvmArgs(AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
+        executer.withJvmArgs(ENABLE_SYS_PROP)
         run("assemble")
 
         then:
@@ -128,7 +128,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             registry.register(new my.MyModelBuilder())
         """
         file("gradle.properties") << """
-            $AbstractConfigurationCacheIntegrationTest.ENABLE_GRADLE_PROP=true
+            $ENABLE_GRADLE_PROP=true
         """.stripIndent()
 
         expect:
