@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.extension.CleanupExtension
 import gradlebuild.cleanup.services.CachesCleaner
 import gradlebuild.integrationtests.tasks.DistributionTest
 
@@ -47,9 +46,7 @@ fun executerRequiresFullDistribution(taskName: String) =
 
 fun DistributionTest.addSetUpAndTearDownActions() {
     cachesCleaner.set(cachesCleanerService)
-
-    val cleanupExtension = rootProject.extensions.getByType<CleanupExtension>()
-    tracker.set(cleanupExtension.tracker)
+    tracker.set(gradle.sharedServices.registrations["daemonTracker"].service)
 }
 
 fun DistributionTest.configureGradleTestEnvironment() {

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.extension.CleanupExtension
 import gradlebuild.cleanup.services.DaemonTracker
 import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 
@@ -26,7 +25,6 @@ val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", Dae
     parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
     parameters.rootProjectDir.set(layout.projectDirectory)
 }
-extensions.create<CleanupExtension>("cleanup", trackerService)
 
 tasks.register<KillLeakingJavaProcesses>("killExistingProcessesStartedByGradle") {
     tracker.set(trackerService)
