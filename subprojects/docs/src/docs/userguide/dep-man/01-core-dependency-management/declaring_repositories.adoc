@@ -504,6 +504,8 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_settings]"]
 ====
 
+[[sub:fail_build_on_project_repositories]]
+
 If, for some reason, a project or a plugin declares a repository in a project, Gradle would warn you.
 You can however make it _fail the build_ if you want to enforce that only settings repositories are used:
 
