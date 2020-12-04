@@ -24,14 +24,23 @@ import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Contains the singleton services for a single build tree which consists of one or more builds.
@@ -68,5 +77,36 @@ public class BuildTreeScopeServices {
 
     public DefaultProjectStateRegistry createProjectPathRegistry(WorkerLeaseService workerLeaseService) {
         return new DefaultProjectStateRegistry(workerLeaseService);
+    }
+
+    ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
+        return new WorkValidationWarningReporterImpl();
+    }
+
+    private static class WorkValidationWarningReporterImpl implements ValidateStep.ValidationWarningReporter, Closeable {
+        private static final Logger LOGGER = LoggerFactory.getLogger(WorkValidationWarningReporterImpl.class);
+
+        private final AtomicInteger workWithFailuresCount = new AtomicInteger();
+
+        @Override
+        public void reportValidationWarnings(UnitOfWork work, Collection<String> warnings) {
+            workWithFailuresCount.incrementAndGet();
+            LOGGER.warn("Validation failed for {}, disabling optimizations:{}",
+                work.getDisplayName(),
+                warnings.stream().map(warning -> "\n  - " + warning).collect(Collectors.joining()));
+            warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
+                .withContext("Due to the failed validation execution optimizations are disabled.")
+                .willBeRemovedInGradle7()
+                .withUserManual("more_about_tasks", "sec:up_to_date_checks")
+                .nagUser());
+        }
+
+        @Override
+        public void close() {
+            int workWithFailures = workWithFailuresCount.get();
+            if (workWithFailures > 0) {
+                LOGGER.warn("Execution optimizations have been disabled for {} invalid unit(s) of work during the build. Consult deprecation warnings for more information.", workWithFailures);
+            }
+        }
     }
 }

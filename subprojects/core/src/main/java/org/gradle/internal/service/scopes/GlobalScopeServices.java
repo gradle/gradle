@@ -61,15 +61,12 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
-import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -112,12 +109,8 @@ import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
 import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
@@ -323,25 +316,5 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     OverlappingOutputDetector createOverlappingOutputDetector() {
         return new DefaultOverlappingOutputDetector();
-    }
-
-    ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
-        return new WorkValidationWarningReporterImpl();
-    }
-
-    private static class WorkValidationWarningReporterImpl implements ValidateStep.ValidationWarningReporter {
-        private static final Logger LOGGER = LoggerFactory.getLogger(WorkValidationWarningReporterImpl.class);
-
-        @Override
-        public void reportValidationWarnings(UnitOfWork work, Collection<String> warnings) {
-            LOGGER.warn("Validation failed for {}, disabling optimizations:{}",
-                work.getDisplayName(),
-                warnings.stream().map(warning -> "\n  - " + warning).collect(Collectors.joining()));
-            warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
-                .withContext("Due to the failed validation execution optimizations are disabled.")
-                .willBeRemovedInGradle7()
-                .withUserManual("more_about_tasks", "sec:up_to_date_checks")
-                .nagUser());
-        }
     }
 }
