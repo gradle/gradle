@@ -24,15 +24,18 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 
 import java.text.SimpleDateFormat
+
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
  *
@@ -43,14 +46,6 @@ import java.text.SimpleDateFormat
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
-    private BuildResult result
-
-    BuildResult getResult() {
-        if (result == null) {
-            throw new IllegalStateException("Need to run a build before result is availble.")
-        }
-        return result
-    }
 
     def "can build gradle with configuration cache enabled"() {
 
@@ -70,13 +65,13 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         ]
 
         when:
-        configurationCacheRun(*supportedTasks)
+        configurationCacheRun(supportedTasks, 0)
 
         then:
         result.output.count("Calculating task graph as no configuration cache is available") == 1
 
-        when:
-        configurationCacheRun(*supportedTasks)
+        when: "reusing the configuration cache in the same daemon"
+        configurationCacheRun(supportedTasks, 0)
 
         then:
         result.output.count("Reusing configuration cache") == 1
@@ -85,13 +80,14 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         // result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
 
         when:
-        run("clean")
+        run(["clean"])
 
-        and:
-        configurationCacheRun(*supportedTasks)
+        and: "reusing the configuration cache in a different daemon"
+        configurationCacheRun(supportedTasks + ["--info"], 1)
 
         then:
         result.output.count("Reusing configuration cache") == 1
+        result.output.contains("Starting build in new daemon")
 
         /*
         and:
@@ -106,20 +102,44 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
             .assertTestClassesExecuted(testClass)
     }
 
-    private void configurationCacheRun(String... tasks) {
-        result = run(
-            "--${ConfigurationCacheOption.LONG_OPTION}",
-            "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn", // TODO remove
-            *tasks
+    private void configurationCacheRun(List<String> tasks, int daemonId) {
+        run(
+            tasks + [
+                "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
+                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO remove
+            ],
+            // use a unique testKitDir per daemonId other than 0 as 0 means default daemon.
+            daemonId != 0 ? file("test-kit/$daemonId") : null
         )
     }
 
-    BuildResult run(String... tasks) {
-        result = null
-        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS)).build()
+    BuildResult getResult() {
+        if (result == null) {
+            throw new IllegalStateException("Need to run a build before result is available.")
+        }
+        return result
     }
 
-    private static final String[] GRADLE_BUILD_TEST_ARGS = [
+    private void run(List<String> tasks, File testKitDir = null) {
+        result = null
+        result = runnerFor(tasks, testKitDir).build()
+    }
+
+    private BuildResult result
+
+    private GradleRunner runnerFor(List<String> tasks, File testKitDir) {
+        List<String> gradleArgs = tasks + GRADLE_BUILD_TEST_ARGS
+        return testKitDir != null
+            ? runnerWithTestKitDir(testKitDir, gradleArgs)
+            : runner(*gradleArgs)
+    }
+
+    private GradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
+        runner(*(gradleArgs + ["-g", IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath]))
+            .withTestKitDir(testKitDir)
+    }
+
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [
         "-PbuildTimestamp=" + newTimestamp()
     ]
 
