@@ -157,24 +157,27 @@ fun configureJarTasks() {
     }
 }
 
+fun getPropertyFromAnySource(propertyName : String ) : Provider<String> {
+    return providers.gradleProperty(propertyName).forUseAtConfigurationTime()
+        .orElse(providers.systemProperty(propertyName).forUseAtConfigurationTime())
+        .orElse(providers.environmentVariable(propertyName).forUseAtConfigurationTime())
+}
+
 fun Test.configureJvmForTest() {
-    val jvmForTest = project.the<BuildJvms>().testJvm.get()
-    val jvmVersionForTest = JavaLanguageVersion.of(project.buildJvms.testJavaVersion.get())
+    val jvmVersionForTest = JavaLanguageVersion.of(getPropertyFromAnySource("testJavaVersion").getOrElse(JavaVersion.current().majorVersion))
 
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion.set(jvmVersionForTest)
+        vendor.set(JvmVendorSpec.ADOPTOPENJDK)
     }
     javaLauncher.set(launcher)
-    environment["JAVA_HOME"] = javaLauncher.get().metadata.installationPath.asFile.absolutePath
     if (jvmVersionForTest.canCompileOrRun(9)) {
         // allow embedded executer to modify environment variables
         jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
         // allow embedded executer to inject legacy types into the system classloader
         jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
     }
-    // Includes JVM vendor and major version
-    inputs.property("javaInstallation", Callable { jvmForTest.vendorAndMajorVersion() })
 }
 
 fun Test.addOsAsInputs() {

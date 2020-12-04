@@ -26,7 +26,7 @@ import org.gradle.jvm.toolchain.JavaInstallationRegistry
 /**
  * Provides access to the different JVMs that are used to build, compile and test.
  */
-abstract class BuildJvms(javaInstallationRegistry: JavaInstallationRegistry, testJavaHome: Provider<Directory>, testJavaVersion: Provider<String>) {
+abstract class BuildJvms(javaInstallationRegistry: JavaInstallationRegistry, testJavaHome: Provider<Directory>) {
     private
     val productionJdkName = "AdoptOpenJDK 11"
 
@@ -39,9 +39,8 @@ abstract class BuildJvms(javaInstallationRegistry: JavaInstallationRegistry, tes
         it
     }
 
+    private
     val testJvm = javaInstallationRegistry.installationForDirectory(testJavaHome).orElse(buildJvm)
-
-    val testJavaVersion = testJavaVersion.orElse(buildJvm.map(JavaInstallation::getJavaVersion).map(JavaVersion::getMajorVersion)).map(Integer::parseInt)
 
     fun validateForProductionEnvironment() {
         val buildInstallation = buildJvm.get()
