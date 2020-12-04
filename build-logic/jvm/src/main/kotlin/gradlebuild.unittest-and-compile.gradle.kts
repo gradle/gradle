@@ -167,10 +167,7 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher.set(launcher)
     environment["JAVA_HOME"] = javaLauncher.get().metadata.installationPath.asFile.absolutePath
-    if (jvmVersionForTest == JavaLanguageVersion.of(7)) {
-        // enable class unloading
-        jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
-    } else if (jvmVersionForTest.canCompileOrRun(9)) {
+    if (jvmVersionForTest.canCompileOrRun(9)) {
         // allow embedded executer to modify environment variables
         jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
         // allow embedded executer to inject legacy types into the system classloader
