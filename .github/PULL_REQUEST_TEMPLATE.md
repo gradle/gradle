@@ -13,7 +13,8 @@ Fixes #?
 - [ ] Provide integration tests (under `<subproject>/src/integTest`) to verify changes from a user perspective
 - [ ] Provide unit tests (under `<subproject>/src/test`) to verify logic
 - [ ] Update User Guide, DSL Reference, and Javadoc for public-facing changes
-- [ ] Ensure that tests pass locally: `./gradlew <changed-subproject>:check`
+- [ ] Ensure that tests pass sanity check: `./gradlew sanityCheck`
+- [ ] Ensure that tests pass locally: `./gradlew <changed-subproject>:quickTest`
 
 ### Gradle Core Team Checklist
 - [ ] Verify design and implementation 
