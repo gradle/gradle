@@ -482,6 +482,74 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         settingsPluginBuild.assertSettingsPluginApplied()
     }
 
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    def "a build can depend on included library build that applies a project plugin that comes from an included settings plugin and depends on another included build"() {
+        given:
+        def pluginLibraryBuild = pluginAndLibraryBuild("plugin-lib")
+        def projectPluginBuild = pluginBuild("project-plugin")
+        projectPluginBuild.settingsFile << """
+            includeBuild("../${pluginLibraryBuild.buildName}")
+        """
+        projectPluginBuild.buildFile << """
+            dependencies {
+                implementation("${pluginLibraryBuild.group}:${pluginLibraryBuild.buildName}")
+            }
+        """
+        def settingsPluginBuild = pluginBuild("settings-plugin")
+
+        // workaround to use Kotlin precompiled script plugin because Groovy version does not support pluginManagement {} in settings plugins (to be fixed)
+        settingsPluginBuild.buildFile.setText("""
+            plugins {
+                id("org.gradle.kotlin.kotlin-dsl") version "1.4.9"
+            }
+            repositories {
+                gradlePluginPortal()
+            }
+        """)
+        file("${settingsPluginBuild.buildName}/src/main/kotlin/${settingsPluginBuild.settingsPluginId}.settings.gradle.kts") << """
+            pluginManagement {
+                includeBuild("../${projectPluginBuild.buildName}")
+            }
+            println("${settingsPluginBuild.settingsPluginId} applied")
+        """
+
+        def projectLibrary = pluginAndLibraryBuild("project-lib")
+        projectLibrary.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${settingsPluginBuild.buildName}")
+            }
+            plugins {
+                id("${settingsPluginBuild.settingsPluginId}")
+            }
+            rootProject.name="${projectLibrary.buildName}"
+        """)
+        projectLibrary.buildFile.setText("""
+            plugins {
+                id("java-library")
+                id("${projectPluginBuild.projectPluginId}")
+            }
+            group = "${projectLibrary.group}"
+        """)
+
+        when:
+        settingsFile << """
+            includeBuild("${projectLibrary.buildName}")
+        """
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation("${projectLibrary.group}:${projectLibrary.buildName}")
+            }
+        """
+
+        then:
+        succeeds("check")
+        settingsPluginBuild.assertSettingsPluginApplied()
+        projectPluginBuild.assertProjectPluginApplied()
+    }
+
     private BuildLogicAndLibraryBuildFixture pluginAndLibraryBuild(String buildName) {
         return new BuildLogicAndLibraryBuildFixture(pluginBuild(buildName))
     }
