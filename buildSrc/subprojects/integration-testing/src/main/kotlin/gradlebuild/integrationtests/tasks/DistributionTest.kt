@@ -17,6 +17,7 @@
 package gradlebuild.integrationtests.tasks
 
 import gradlebuild.cleanup.services.CachesCleaner
+import gradlebuild.cleanup.services.DaemonTracker
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -32,7 +33,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
-import org.gradle.api.tasks.testing.TestListener
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 import java.io.File
@@ -97,7 +97,7 @@ abstract class DistributionTest : Test() {
     val localRepository = LocalRepositoryEnvironmentProvider(project)
 
     @get:Internal
-    abstract val tracker: Property<Any>
+    abstract val tracker: Property<DaemonTracker>
 
     @get:Internal
     abstract val cachesCleaner: Property<CachesCleaner>
@@ -127,9 +127,7 @@ abstract class DistributionTest : Test() {
     override fun executeTests() {
         cachesCleaner.get().cleanUpCaches()
 
-        val daemonTrackerService = tracker.get()
-        val testListener = daemonTrackerService.javaClass.getMethod("newDaemonListener").invoke(daemonTrackerService) as TestListener
-        addTestListener(testListener)
+        addTestListener(tracker.get().newDaemonListener())
         super.executeTests()
     }
 }
