@@ -24,7 +24,7 @@ public class AttachAgentToDaemon {
 
         gradleProperties.put("org.gradle.jvmargs", newJvmArgs);
         gradleProperties.store(new FileOutputStream(new File("gradle.properties")), "");
-        gradleProperties.store(new FileOutputStream(new File("buildSrc/gradle.properties")), "");
+        gradleProperties.store(new FileOutputStream(new File("build-logic/gradle.properties")), "");
     }
 
     private static String getGradleUserHomeDir() {
