@@ -388,6 +388,7 @@ task someTask {
 
         executer.expectDocumentedDeprecationWarning("Property 'inputFile' has @Input annotation used on property of type 'File'. " +
             "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+            "Due to the failed validation execution optimizations are disabled. " +
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
 
         when:
@@ -429,7 +430,13 @@ task someTask(type: SomeTask) {
 }
 """
         if (expectedValidationProblem) {
-            executer.beforeExecute { executer.expectDocumentedDeprecationWarning(expectedValidationProblem) }
+            executer.beforeExecute {
+                executer.expectDocumentedDeprecationWarning(expectedValidationProblem + " " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                    "Due to the failed validation execution optimizations are disabled. " +
+                    "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+                )
+            }
         }
 
         given:
@@ -471,7 +478,7 @@ task someTask(type: SomeTask) {
         where:
         type                                  | initialValue                                          | newValue                                                     | expectedValidationProblem
         "String"                              | "'value 1'"                                           | "'value 2'"                                                  | null
-        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | "Property 'v' has @Input annotation used on property of type 'File'. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | "Property 'v' has @Input annotation used on property of type 'File'."
         "boolean"                             | "true"                                                | "false"                                                      | null
         "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"                                              | null
         "int"                                 | "123"                                                 | "-45"                                                        | null
@@ -489,10 +496,10 @@ task someTask(type: SomeTask) {
         "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"                                    | null
         "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"                                          | null
         "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"                                                 | null
-        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | "Property 'v' has @Input annotation used on property of type 'FileCollection'. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | "Property 'v' has @Input annotation used on property of type 'FileCollection'."
         "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"                                         | null
         "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"                                 | null
-        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | "Property 'v' of mutable type 'org.gradle.api.provider.Property' is writable. Properties of this type should be read-only and mutated via the value itself. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | "Property 'v' of mutable type 'org.gradle.api.provider.Property' is writable. Properties of this type should be read-only and mutated via the value itself."
         "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"               | null
         "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"                | null
         "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | null
