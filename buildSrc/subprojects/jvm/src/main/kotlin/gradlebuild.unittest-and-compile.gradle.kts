@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.groovy
+import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.testDistributionEnabled
-import gradlebuild.basics.tasks.ClasspathManifest
+import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.extension.vendorAndMajorVersion
+import gradlebuild.basics.tasks.ClasspathManifest
+import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
-import java.util.concurrent.Callable
 import java.util.jar.Attributes
-import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
-import gradlebuild.filterEnvironmentVariables
 
 plugins {
     groovy
@@ -170,10 +169,7 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher.set(launcher)
     environment["JAVA_HOME"] = javaLauncher.get().metadata.installationPath.asFile.absolutePath
-    if (jvmVersionForTest == JavaLanguageVersion.of(7)) {
-        // enable class unloading
-        jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
-    } else if (jvmVersionForTest.canCompileOrRun(9)) {
+    if (jvmVersionForTest.canCompileOrRun(9)) {
         // allow embedded executer to modify environment variables
         jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
         // allow embedded executer to inject legacy types into the system classloader
