@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release significantly improves the [performance of Kotlin DSL build scripts compilation](#kotlin-dsl-performance), adds several [improvements to Java toolchain support](#java-toolchain-improvements), including vendor selection, and makes it easy to [execute tasks from included builds directly from the command line](#composite-builds). This release also introduces new [dependency management APIs for consistent resolution](#dm-features).
+This release significantly improves the [performance of Kotlin DSL build scripts compilation](#kotlin-dsl-performance), adds several [improvements to Java toolchain support](#java-toolchain-improvements), including vendor selection, and makes it easy to [execute any tasks in a composite build directly from the command line](#composite-builds). This release also introduces new [dependency management APIs for consistent resolution](#dm-features).
 
 The [experimental configuration cache](#configuration-cache) has added support for composite builds and more core plugins shipped with Gradle.
 
