@@ -84,6 +84,8 @@ import org.gradle.api.internal.tasks.DefaultSourceSet
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
@@ -105,6 +107,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
             plugins { id "java" }
+
+            abstract class SomeBuildService implements $BuildService.name<${BuildServiceParameters.name}.None> {
+            }
 
             class SomeBean {
                 private ${baseType.name} badReference
@@ -142,7 +147,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(3)
             withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
+                "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
             withProblemsWithStackTraceCount(0)
         }
@@ -215,6 +220,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultComponentArtifactsResult       | ComponentResult                | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute().components.first()"
         DefaultResolvedArtifactResult         | ArtifactResult                 | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary, SourcesArtifact).execute().components.first().getArtifacts(SourcesArtifact).first()"
         DefaultResolvedVariantResult          | ResolvedVariantResult          | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary, SourcesArtifact).execute().components.first().getArtifacts(SourcesArtifact).first().variant"
+
+        // direct BuildService reference, build services must always be referenced via their providers
+        'SomeBuildService'                    | BuildService                   | "project.gradle.sharedServices.registerIfAbsent('service', SomeBuildService) {}.get()"
+
+        concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
     }
 
     @Unroll

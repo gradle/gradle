@@ -49,6 +49,7 @@ import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.publish.Publication
+import org.gradle.api.services.BuildService
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
@@ -125,4 +126,8 @@ fun BindingsBuilder.unsupportedTypes() {
 
     // Publishing types
     bind(unsupported<Publication>())
+
+    // Direct build service references
+    // Build services must always be referenced via their providers.
+    bind(unsupported<BuildService<*>>())
 }
