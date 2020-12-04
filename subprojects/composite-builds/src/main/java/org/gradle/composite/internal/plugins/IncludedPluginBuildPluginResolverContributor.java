@@ -36,21 +36,29 @@ public class IncludedPluginBuildPluginResolverContributor implements FallbackPlu
 
     private static final String SOURCE_DESCRIPTION = "Included Plugin Builds";
 
-    private final BuildStateRegistry buildRegistry;
-    private final BuildIncluder buildIncluder;
-    private final Map<PluginId, PluginResolution> results = new HashMap<>();
+    private final PluginResolver resolver;
 
     public IncludedPluginBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
-        this.buildRegistry = buildRegistry;
-        this.buildIncluder = buildIncluder;
+        this.resolver = new IncludedPluginBuildPluginResolver(buildRegistry, buildIncluder);
     }
 
     @Override
     public void collectResolversInto(Collection<PluginResolver> resolvers) {
-        resolvers.add(new CompositeBuildPluginResolver());
+        resolvers.add(resolver);
     }
 
-    private class CompositeBuildPluginResolver implements PluginResolver {
+    private static class IncludedPluginBuildPluginResolver implements PluginResolver {
+
+        private final BuildStateRegistry buildRegistry;
+        private final BuildIncluder buildIncluder;
+
+        private final Map<PluginId, PluginResolution> results = new HashMap<>();
+
+        private IncludedPluginBuildPluginResolver(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
+            this.buildRegistry = buildRegistry;
+            this.buildIncluder = buildIncluder;
+        }
+
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
             PluginResolution resolution = results.computeIfAbsent(pluginRequest.getId(), this::resolvePluginFromIncludedBuilds);

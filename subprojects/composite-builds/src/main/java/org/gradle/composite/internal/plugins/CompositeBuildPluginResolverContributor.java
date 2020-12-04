@@ -36,21 +36,29 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
 
     private static final String SOURCE_DESCRIPTION = "Included Builds";
 
-    private final BuildStateRegistry buildRegistry;
-    private final BuildState consumingBuild;
-    private final Map<PluginId, PluginResolution> results = new HashMap<>();
+    private final PluginResolver resolver;
 
     public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
-        this.buildRegistry = buildRegistry;
-        this.consumingBuild = consumingBuild;
+        this.resolver = new CompositeBuildPluginResolver(buildRegistry, consumingBuild);
     }
 
     @Override
     public void collectResolversInto(Collection<PluginResolver> resolvers) {
-        resolvers.add(new CompositeBuildPluginResolver());
+        resolvers.add(resolver);
     }
 
-    private class CompositeBuildPluginResolver implements PluginResolver {
+    private static class CompositeBuildPluginResolver implements PluginResolver {
+
+        private final BuildStateRegistry buildRegistry;
+        private final BuildState consumingBuild;
+
+        private final Map<PluginId, PluginResolution> results = new HashMap<>();
+
+        private CompositeBuildPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
+            this.buildRegistry = buildRegistry;
+            this.consumingBuild = consumingBuild;
+        }
+
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
             if (buildRegistry.getIncludedBuilds().isEmpty()) {
