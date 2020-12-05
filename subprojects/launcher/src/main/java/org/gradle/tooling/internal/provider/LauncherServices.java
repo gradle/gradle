@@ -21,6 +21,7 @@ import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.ConfigurationCacheSupport;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -153,15 +154,22 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                           BuildStateRegistry buildStateRegistry,
                                                           PayloadSerializer payloadSerializer,
                                                           BuildOperationNotificationValve buildOperationNotificationValve,
-                                                          BuildCancellationToken buildCancellationToken
+                                                          BuildCancellationToken buildCancellationToken,
+                                                          ConfigurationCacheSupport configurationCacheSupport
         ) {
-            return new InProcessBuildActionExecuter(buildStateRegistry, payloadSerializer, buildOperationNotificationValve, buildCancellationToken,
+            return new InProcessBuildActionExecuter(
+                buildStateRegistry,
+                payloadSerializer,
+                buildOperationNotificationValve,
+                buildCancellationToken,
+                configurationCacheSupport,
                 new RunAsBuildOperationBuildActionRunner(
                     new BuildCompletionNotifyingBuildActionRunner(
                         new FileSystemWatchingBuildActionRunner(
                             new ValidatingBuildActionRunner(
                                 new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory,
-                                    new ChainingBuildActionRunner(buildActionRunners)))))));
+                                    new ChainingBuildActionRunner(buildActionRunners))))))
+            );
         }
     }
 }
