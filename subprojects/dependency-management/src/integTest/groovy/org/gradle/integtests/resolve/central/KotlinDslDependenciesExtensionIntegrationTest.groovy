@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.central
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 /**
@@ -84,6 +85,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15382")
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     def "can add a dependency in a project via a precompiled script plugin"() {
         settingsKotlinFile << """
             dependencyResolutionManagement {
