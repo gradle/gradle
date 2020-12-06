@@ -32,7 +32,7 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
-import org.gradle.api.initialization.resolve.VersionCatalogContainer;
+import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -129,7 +129,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
-    public void versionCatalogs(Action<? super VersionCatalogContainer> spec) {
+    public void versionCatalogs(Action<? super MutableVersionCatalogContainer> spec) {
         spec.execute(versionCatalogs);
     }
 

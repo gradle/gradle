@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.central
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Issue
 
 /**
  * This test isn't meant to check the behavior of the extension generation like the other
@@ -73,6 +74,58 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
                 }
             }
         """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15382")
+    def "can add a dependency in a project via a precompiled script plugin"() {
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        alias("lib").to("org:test:1.0")
+                    }
+                }
+            }
+        """
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+        file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """
+            pluginManager.withPlugin("java") {
+                val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+                dependencies.addProvider("implementation", libs.findDependency("lib").get())
+            }
+        """
+
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+                id("my.plugin")
+            }
+
+            tasks.register("checkDeps") {
+                inputs.files(configurations.compileClasspath)
+                doLast {
+                    val fileNames = configurations.compileClasspath.files.map(File::name)
+                    assert(fileNames == listOf("test-1.0.jar"))
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module('org', 'test', '1.0').publish()
 
         when:
         lib.pom.expectGet()

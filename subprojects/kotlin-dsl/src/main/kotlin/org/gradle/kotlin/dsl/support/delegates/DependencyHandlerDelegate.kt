@@ -59,6 +59,9 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun <T : Any, U : ExternalModuleDependency> addProvider(configurationName: String, dependencyNotation: Provider<T>, configuration: Action<in U>) =
         delegate.addProvider(configurationName, dependencyNotation, configuration)
 
+    override fun <T : Any?> addProvider(configurationName: String, dependencyNotation: Provider<T>) =
+        delegate.addProvider(configurationName, dependencyNotation)
+
     override fun create(dependencyNotation: Any): Dependency =
         delegate.create(dependencyNotation)
 

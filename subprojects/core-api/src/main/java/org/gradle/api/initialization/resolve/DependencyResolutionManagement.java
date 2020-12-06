@@ -58,7 +58,7 @@ public interface DependencyResolutionManagement {
      *
      * @since 6.9
      */
-    void versionCatalogs(Action<? super VersionCatalogContainer> spec);
+    void versionCatalogs(Action<? super MutableVersionCatalogContainer> spec);
 
     /**
      * Returns the name of the extension generated for type-safe project accessors.
