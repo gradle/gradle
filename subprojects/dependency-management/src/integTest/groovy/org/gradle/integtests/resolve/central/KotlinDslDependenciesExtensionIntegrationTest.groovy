@@ -138,4 +138,52 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
         then:
         succeeds ':checkDeps'
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/15350")
+    def "provides invoke method supporting provider"() {
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
+        def lib2 = mavenHttpRepo.module('org.gradle.test', 'lib2', '1.1').publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                    }
+                }
+            }
+        """
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            val custom by configurations.creating {
+                configurations.implementation.get().extendsFrom(this)
+            }
+            dependencies {
+                custom(libs.my.lib)
+                custom(libs.my.lib2) {
+                    because("Some comment why why need this dependency")
+                }
+            }
+
+            tasks.register("checkDeps") {
+                inputs.files(configurations.compileClasspath)
+                doLast {
+                    val fileNames = configurations.compileClasspath.files.map(File::name)
+                    assert(fileNames == listOf("lib-1.1.jar", "lib2-1.1.jar"))
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
 }

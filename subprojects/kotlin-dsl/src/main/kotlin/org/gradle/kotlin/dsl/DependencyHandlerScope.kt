@@ -17,12 +17,14 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
 
 
@@ -223,6 +225,31 @@ private constructor(
      */
     inline operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 6.9
+     */
+    @Incubating
+    operator fun Configuration.invoke(dependency: Provider<*>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProvider(name, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 6.9
+     */
+    @Incubating
+    operator fun Configuration.invoke(dependency: Provider<Any>) =
+        addProvider(name, dependency)
 
     /**
      * Configures the dependencies.
