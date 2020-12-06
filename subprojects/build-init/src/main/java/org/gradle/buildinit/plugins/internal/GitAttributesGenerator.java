@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.io.LineFeedPrintWriter;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -29,7 +30,7 @@ public class GitAttributesGenerator implements BuildContentGenerator {
     public void generate(InitSettings settings) {
         File file = settings.getTarget().file(".gitattributes").getAsFile();
         try {
-            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+            try (PrintWriter writer = new LineFeedPrintWriter(new FileWriter(file))) {
                 writer.println("#");
                 writer.println("# https://help.github.com/articles/dealing-with-line-endings/");
                 writer.println("#");
