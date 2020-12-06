@@ -171,11 +171,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
 
     @Override
     public void blocking(Runnable action) {
-        if (projectLockRegistry.canChangeLocks()) {
+        if (projectLockRegistry.mayAttemptToChangeLocks()) {
             // Need to run the action without the project locks
             withoutProjectLock(action);
         } else {
-            // Can just run the action, as it is safe to retain the project locks
+            // Can just run the action, as it is safe to retain the project locks or the current thread is allowed to do whatever it likes
             action.run();
         }
     }
@@ -183,6 +183,16 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     @Override
     public <T> T whileDisallowingProjectLockChanges(Factory<T> action) {
         return projectLockRegistry.whileDisallowingLockChanges(action);
+    }
+
+    @Override
+    public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
+        return projectLockRegistry.allowUncontrolledAccessToAnyResource(factory);
+    }
+
+    @Override
+    public boolean isAllowedUncontrolledAccessToAnyProject() {
+        return projectLockRegistry.isAllowedUncontrolledAccessToAnyResource();
     }
 
     @Override

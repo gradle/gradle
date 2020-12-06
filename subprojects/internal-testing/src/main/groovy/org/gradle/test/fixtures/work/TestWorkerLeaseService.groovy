@@ -104,6 +104,16 @@ class TestWorkerLeaseService implements WorkerLeaseService {
         action.run()
     }
 
+    @Override
+    <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
+        return factory.create()
+    }
+
+    @Override
+    boolean isAllowedUncontrolledAccessToAnyProject() {
+        return false
+    }
+
     private WorkerLeaseRegistry.WorkerLease workerLease() {
         return new WorkerLeaseRegistry.WorkerLease() {
             @Override
