@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Specifies how a fingerprinter should handle directories that are found in a filecollection.
@@ -35,13 +35,13 @@ public enum DirectorySensitivity {
      */
     IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory);
 
-    private final Function<FileSystemLocationSnapshot, Boolean> fingerprintCheck;
+    private final Predicate<FileSystemLocationSnapshot> fingerprintCheck;
 
-    DirectorySensitivity(Function<FileSystemLocationSnapshot, Boolean> fingerprintCheck) {
+    DirectorySensitivity(Predicate<FileSystemLocationSnapshot> fingerprintCheck) {
         this.fingerprintCheck = fingerprintCheck;
     }
 
     public boolean shouldFingerprint(FileSystemLocationSnapshot snapshot) {
-        return fingerprintCheck.apply(snapshot);
+        return fingerprintCheck.test(snapshot);
     }
 }

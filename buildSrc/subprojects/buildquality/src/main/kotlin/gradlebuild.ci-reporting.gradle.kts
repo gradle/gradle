@@ -62,7 +62,7 @@ fun isCleanupRunnerStep(gradle: Gradle) =
 
 
 /**
- * After archiving the test files, do a cleanup to get rid of TeamCity "XX published a lot of small artifacts" warning
+ * After archiving the test files, do a cleanup to get rid of TeamCity "XX published a lot of small artifacts" warning.
  */
 fun cleanUp(filesToCleanUp: List<File>) {
     try {

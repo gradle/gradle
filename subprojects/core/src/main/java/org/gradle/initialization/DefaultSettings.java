@@ -383,4 +383,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public void preventFromFurtherMutation() {
         dependencyResolutionManagement.preventFromFurtherMutation();
     }
+
+    @Override
+    public DependencyResolutionManagementInternal getDependencyResolutionManagement() {
+        return dependencyResolutionManagement;
+    }
 }
