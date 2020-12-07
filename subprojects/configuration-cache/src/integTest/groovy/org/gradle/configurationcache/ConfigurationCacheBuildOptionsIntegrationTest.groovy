@@ -109,6 +109,87 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             : 'producer.flatMap { it.outputFile }.map { it.asFile.readText() }'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13334")
+    @Unroll
+    def "absent #operator with convention used as task input"() {
+
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildKotlinFile """
+            val stringProvider = providers
+                .$operator("string")
+            abstract class PrintString @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+                @get:Input
+                val string: Property<String> = objects.property<String>().convention("absent")
+                @TaskAction
+                fun printString() {
+                    println("The string is " + string.orNull)
+                }
+            }
+            tasks.register<PrintString>("printString") {
+                string.set(stringProvider)
+            }
+        """
+
+        when:
+        configurationCacheRun "printString"
+
+        then:
+        output.count("The string is absent") == 1
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "printString"
+
+        then:
+        output.count("The string is absent") == 1
+        configurationCache.assertStateLoaded()
+
+        where:
+        operator << ['systemProperty', 'gradleProperty', 'environmentVariable']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13334")
+    @Unroll
+    def "absent #operator used as optional task input"() {
+
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildKotlinFile """
+            val stringProvider = providers
+                .$operator("string")
+            abstract class PrintString : DefaultTask() {
+                @get:Input
+                @get:Optional
+                abstract val string: Property<String>
+                @TaskAction
+                fun printString() {
+                    println("The string is " + (string.orNull ?: "absent"))
+                }
+            }
+            tasks.register<PrintString>("printString") {
+                string.set(stringProvider)
+            }
+        """
+
+        when:
+        configurationCacheRun "printString"
+
+        then:
+        output.count("The string is absent") == 1
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "printString"
+
+        then:
+        output.count("The string is absent") == 1
+        configurationCache.assertStateLoaded()
+
+        where:
+        operator << ['systemProperty', 'gradleProperty', 'environmentVariable']
+    }
+
     @Unroll
     def "system property from #systemPropertySource used as task and build logic input"() {
 
