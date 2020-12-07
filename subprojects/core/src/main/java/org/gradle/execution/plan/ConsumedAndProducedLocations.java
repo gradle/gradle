@@ -17,14 +17,14 @@
 package org.gradle.execution.plan;
 
 public class ConsumedAndProducedLocations {
-    private final RelatedLocations producedDirectories = new RelatedLocations();
-    private final RelatedLocations consumedDirectories = new RelatedLocations();
+    private final RelatedLocations producedLocations = new RelatedLocations();
+    private final RelatedLocations consumedLocations = new RelatedLocations();
 
-    public RelatedLocations getProducedDirectories() {
-        return producedDirectories;
+    public RelatedLocations getProducedLocations() {
+        return producedLocations;
     }
 
-    public RelatedLocations getConsumedDirectories() {
-        return consumedDirectories;
+    public RelatedLocations getConsumedLocations() {
+        return consumedLocations;
     }
 }
