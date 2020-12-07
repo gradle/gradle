@@ -590,8 +590,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             LOGGER.debug("Cannot acquire worker lease lock for node {}", node);
             return false;
             // TODO: convert output file checks to a resource lock
-        } else if (!canRunWithCurrentlyExecutedNodes(node, mutations)) {
+        } else if (!canRunWithCurrentlyExecutedNodes(mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
+            return false;
+        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             return false;
         }
         return true;
@@ -644,21 +646,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return !projectLocks.isEmpty();
     }
 
-    private boolean canRunWithCurrentlyExecutedNodes(Node node, MutationInfo mutations) {
-        Set<String> candidateNodeDestroyables = mutations.destroyablePaths;
-
-        if (!runningNodes.isEmpty()) {
-            Set<String> candidateNodeOutputs = mutations.outputPaths;
-            Set<String> candidateMutations = !candidateNodeOutputs.isEmpty() ? candidateNodeOutputs : candidateNodeDestroyables;
-            if (hasNodeWithOverlappingMutations(candidateMutations)) {
-                return false;
-            }
-        }
-
-        return !doesDestroyNotYetConsumedOutputOfAnotherNode(node, candidateNodeDestroyables);
+    private boolean canRunWithCurrentlyExecutedNodes(MutationInfo mutations) {
+        return runningNodes.isEmpty() || !hasNodeWithOverlappingMutations(mutations);
     }
 
-    private boolean hasNodeWithOverlappingMutations(Set<String> candidateMutationPaths) {
+    private boolean hasNodeWithOverlappingMutations(MutationInfo mutations) {
+        Set<String> candidateNodeOutputs = mutations.outputPaths;
+        Set<String> candidateMutationPaths = !candidateNodeOutputs.isEmpty()
+            ? candidateNodeOutputs
+            : mutations.destroyablePaths;
         if (!candidateMutationPaths.isEmpty()) {
             for (Node runningNode : runningNodes) {
                 MutationInfo runningMutations = runningNode.getMutationInfo();
