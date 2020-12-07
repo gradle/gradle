@@ -12,7 +12,7 @@ repositories {
 // tag::toolchain[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(14))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 // end::toolchain[]

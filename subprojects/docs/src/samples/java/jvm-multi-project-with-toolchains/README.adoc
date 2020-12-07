@@ -11,7 +11,7 @@ include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conv
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
 ====
 
-While most modules are fine with the defaults, the one of our modules overrides the defaults as it has more specific requirements.
+While most modules are fine with the defaults, the `list` subproject overrides the defaults as it has more specific requirements.
 
 ====
 include::sample[dir="groovy",files="list/build.gradle[tags=customToolchain]"]
