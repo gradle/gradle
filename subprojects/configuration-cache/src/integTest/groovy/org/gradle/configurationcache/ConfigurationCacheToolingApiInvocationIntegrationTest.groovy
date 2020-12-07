@@ -42,20 +42,20 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             plugins {
                 id("java")
             }
+            println("script log statement")
         """
 
         when:
         configurationCacheRun("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
+        outputContains("script log statement")
 
         when:
         configurationCacheRun("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
-        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("script log statement")
     }
 
     def "can enable configuration cache using system property in build arguments"() {
@@ -63,20 +63,20 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             plugins {
                 id("java")
             }
+            println("script log statement")
         """
 
         when:
         run("assemble", ENABLE_SYS_PROP)
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
+        outputContains("script log statement")
 
         when:
         run("assemble", ENABLE_SYS_PROP)
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
-        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("script log statement")
     }
 
     def "can enable configuration cache using system property in build JVM arguments"() {
@@ -84,6 +84,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             plugins {
                 id("java")
             }
+            println("script log statement")
         """
 
         when:
@@ -91,15 +92,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         run("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
+        outputContains("script log statement")
 
         when:
         executer.withJvmArgs(ENABLE_SYS_PROP)
         run("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
-        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("script log statement")
     }
 
     def "configuration cache is disabled for model building actions"() {
@@ -124,6 +124,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             plugins {
                 id("java")
             }
+            println("script log statement")
             def registry = services.get(org.gradle.tooling.provider.model.ToolingModelBuilderRegistry)
             registry.register(new my.MyModelBuilder())
         """
@@ -142,7 +143,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
                     .setStandardError(System.err)
                     .run()
                 assert model == "It works!"
-                assert !output.toString().contains("Configuration cache is an incubating feature.")
+                assert output.toString().contains("script log statement")
             }
         }
     }
