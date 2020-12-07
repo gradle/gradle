@@ -42,6 +42,40 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=simple_catalog]"]
 ====
 
+[NOTE]
+.Mapping of aliases to type-safe accessors
+====
+Aliases must consist of a series of identifiers separated by a dash (`-`, recommended), an underscore (`_`) or a dot (`.`).
+Identifiers themselves must consist of ascii characters, preferably lowercase, eventually followed by numbers.
+
+For example:
+
+- `guava` is a valid alias
+- `groovy-core` is a valid alias
+- `commons-lang3` is a valid alias
+- `androidx.awesome.lib` is also a valid alias
+- but `this.#is.not!`
+
+Then type safe accessors are generated for _each subgroup_.
+For example, given the following aliases:
+
+`guava`, `groovy-core`, `groovy-xml`, `groovy-json`, `androidx.awesome.lib`
+
+We would generate the following type-safe accessors:
+
+- `libs.guava`
+- `libs.groovy.core`
+- `libs.groovy.xml`
+- `libs.groovy.json`
+- `libs.androidx.awesome.lib`
+
+It is illegal to have an alias to a dependency which happens to also belong to a nested group.
+For example `commons` and `commons-core` is illegal.
+
+In case you want to avoid the generation of a subgroup accessor, we recommend to rely on case to differentiate.
+For example the aliases `groovyCore`, `groovyJson` and `groovyXml` would be mapped to the `libs.groovyCore`, `libs.groovyJson` and `libs.groovyXml` accessors respectively.
+====
+
 [[sec:common-version-numbers]]
 ==== Dependencies with same version numbers
 

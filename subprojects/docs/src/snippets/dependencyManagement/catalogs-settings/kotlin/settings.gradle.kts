@@ -27,7 +27,7 @@ if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() 
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
-                alias("groovy").to("org.codehaus.groovy:groovy:3.0.5")
+                alias("groovy-core").to("org.codehaus.groovy:groovy:3.0.5")
                 alias("groovy-json").to("org.codehaus.groovy:groovy-json:3.0.5")
                 alias("groovy-nio").to("org.codehaus.groovy:groovy-nio:3.0.5")
                 alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
@@ -47,7 +47,7 @@ if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() 
             create("libs") {
                 version("groovy", "3.0.5")
                 version("checkstyle", "8.37")
-                alias("groovy").to("org.codehaus.groovy", "groovy").versionRef("groovy")
+                alias("groovy-core").to("org.codehaus.groovy", "groovy").versionRef("groovy")
                 alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
                 alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
                 alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
@@ -67,14 +67,14 @@ if (providers.systemProperty("create3").forUseAtConfigurationTime().getOrNull() 
             create("libs") {
                 version("groovy", "3.0.5")
                 version("checkstyle", "8.37")
-                alias("groovy").to("org.codehaus.groovy", "groovy").versionRef("groovy")
+                alias("groovy-core").to("org.codehaus.groovy", "groovy").versionRef("groovy")
                 alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
                 alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
                 alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
                     strictly("[3.8, 4.0[")
                     prefer("3.9")
                 }
-                bundle("groovy", listOf("groovy", "groovy-json", "groovy-nio"))
+                bundle("groovy", listOf("groovy-core", "groovy-json", "groovy-nio"))
             }
         }
     }

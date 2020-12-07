@@ -552,7 +552,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
             }
 
             dependencies {
-                implementation libs.buildSrcLib
+                implementation libs.build.src.lib
             }
         """
         file("buildSrc/settings.gradle") << """
@@ -601,7 +601,7 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
             version = 'zloubi'
 
             dependencies {
-                implementation libs.fromIncluded
+                implementation libs.from.included
             }
         """
         file("included/settings.gradle") << """
@@ -964,4 +964,41 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         }
     }
 
+    def "reasonable error message if an alias clashes with a group of dependencies"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("top").to("org:test:1.0") // would generate libs.top as a Provider<Dependency>
+                        alias("top.bottom").to("org:bottom:1.0") // would generate libs.top as a factory of dependencies
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ":help"
+
+        then:
+        failure.assertHasCause "Cannot generate top level accessors because it contains both aliases and groups of the same name: [top]"
+    }
+
+    def "reasonable error message if an alias clashes with a sub-group of dependencies"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("top.middle").to("org:test:1.0") // would generate libs.top.middle as a Provider<Dependency>
+                        alias("top.middle.bottom").to("org:bottom:1.0") // would generate libs.top.middle as a factory of dependencies
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ":help"
+
+        then:
+        failure.assertHasCause "Cannot generate accessors for top because it contains both aliases and groups of the same name: [middle]"
+    }
 }

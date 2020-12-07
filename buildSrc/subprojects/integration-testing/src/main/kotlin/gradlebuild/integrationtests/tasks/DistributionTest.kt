@@ -24,6 +24,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildService
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -97,7 +98,7 @@ abstract class DistributionTest : Test() {
     val localRepository = LocalRepositoryEnvironmentProvider(project)
 
     @get:Internal
-    abstract val tracker: Property<Any>
+    abstract val tracker: Property<BuildService<*>>
 
     @get:Internal
     abstract val cachesCleaner: Property<CachesCleaner>

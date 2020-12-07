@@ -33,11 +33,15 @@ public abstract class AbstractSourceGenerator {
     }
 
     static String toJavaName(String alias) {
-        return Splitter.on(SEPARATOR_PATTERN)
+        return nameSplitter()
             .splitToList(alias)
             .stream()
             .map(StringUtils::capitalize)
             .collect(Collectors.joining());
+    }
+
+    protected static Splitter nameSplitter() {
+        return Splitter.on(SEPARATOR_PATTERN);
     }
 
     protected void addImport(String clazz) throws IOException {

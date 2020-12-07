@@ -18,6 +18,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.ConfigurationCacheSupport;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeContext;
@@ -32,21 +33,25 @@ public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecuto
     private final PayloadSerializer payloadSerializer;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
     private final BuildCancellationToken buildCancellationToken;
+    private final ConfigurationCacheSupport configurationCacheSupport;
 
     public InProcessBuildActionExecuter(BuildStateRegistry buildStateRegistry,
                                         PayloadSerializer payloadSerializer,
                                         BuildOperationNotificationValve buildOperationNotificationValve,
                                         BuildCancellationToken buildCancellationToken,
+                                        ConfigurationCacheSupport configurationCacheSupport,
                                         BuildActionRunner buildActionRunner) {
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
         this.payloadSerializer = payloadSerializer;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
+        this.configurationCacheSupport = configurationCacheSupport;
         this.buildCancellationToken = buildCancellationToken;
     }
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildTreeContext buildTree) {
+        applySupportedFeatures(action);
         buildOperationNotificationValve.start();
         try {
             RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
@@ -62,6 +67,12 @@ public class InProcessBuildActionExecuter implements BuildTreeBuildActionExecuto
             });
         } finally {
             buildOperationNotificationValve.stop();
+        }
+    }
+
+    private void applySupportedFeatures(BuildAction action) {
+        if (!configurationCacheSupport.canBuild(action)) {
+            action.getStartParameter().setConfigurationCache(false);
         }
     }
 }

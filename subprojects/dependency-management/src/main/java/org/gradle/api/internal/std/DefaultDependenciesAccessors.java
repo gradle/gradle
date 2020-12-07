@@ -39,6 +39,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
@@ -142,15 +143,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private void executeWork(UnitOfWork work) {
-        engine.execute(work)
-            .getExecutionResult()
-            .ifSuccessful(er -> {
-                GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
-                ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
-                sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
-                classes = classes.plus(generatedClasses);
-                classLoaderScope.export(generatedClasses);
-            });
+        ExecutionEngine.Result result = engine.execute(work);
+        ExecutionResult er = result.getExecutionResult().get();
+        GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
+        ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
+        sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
+        classes = classes.plus(generatedClasses);
+        classLoaderScope.export(generatedClasses);
     }
 
     private static boolean assertCanGenerateAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {

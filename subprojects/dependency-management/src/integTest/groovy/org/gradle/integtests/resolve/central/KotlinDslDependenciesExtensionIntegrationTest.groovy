@@ -58,7 +58,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
             }
 
             dependencies {
-                implementation(libs.myLib) {
+                implementation(libs.my.lib) {
                     version {
                         strictly("1.1")
                     }

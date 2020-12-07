@@ -64,7 +64,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                implementation libs.myLib
+                implementation libs.my.lib
             }
         """
 
@@ -80,7 +80,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
         def platformProject = preparePlatformProject '''
             versionCatalog {
                 def v = version('lib', '1.0')
-                alias('my-lib').to('org.test', 'lib').versionRef(v)
+                alias('my-lib-core').to('org.test', 'lib').versionRef(v)
                 alias('my-lib-json').to('org.test', 'lib-json').versionRef(v)
             }
         '''
@@ -102,8 +102,8 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             dependencies {
-                implementation libs.myLib
-                implementation libs.myLibJson
+                implementation libs.my.lib.core
+                implementation libs.my.lib.json
             }
         """
 
@@ -150,7 +150,7 @@ org.gradle.test:my-platform:1.0
 
         buildFile << """
             dependencies {
-                implementation libs.myLib
+                implementation libs.my.lib
             }
         """
 
