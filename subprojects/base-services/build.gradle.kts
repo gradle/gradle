@@ -1,16 +1,13 @@
-/*
- * A set of generic services and utilities.
- *
- * Should have a very small set of dependencies, and should be appropriate to embed in an external
- * application (eg as part of the tooling API).
- */
-
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.jmh")
 }
 
+description = "A set of generic services and utilities."
+
 gradlebuildJava.usedInWorkers()
+
+moduleIdentity.createBuildReceipt()
 
 dependencies {
     api(project(":base-annotations"))
@@ -37,5 +34,3 @@ dependencies {
 }
 
 jmh.include = listOf("HashingAlgorithmsBenchmark")
-
-moduleIdentity.createBuildReceipt()

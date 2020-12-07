@@ -1,9 +1,8 @@
-/**
- * Process execution abstractions.
- */
 plugins {
     id("gradlebuild.distribution.api-java")
 }
+
+description = "Process execution abstractions."
 
 gradlebuildJava.usedInWorkers()
 
@@ -23,5 +22,5 @@ dependencies {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/process/internal/**"))
+    excludePatterns.add("org/gradle/process/internal/**")
 }

@@ -52,11 +52,9 @@ strictCompile {
 }
 
 classycle {
-    excludePatterns.set(listOf(
-        // Needed for the factory methods in the interface
-        "org/gradle/jvm/toolchain/JavaLanguageVersion**",
-        "org/gradle/jvm/toolchain/internal/**"
-    ))
+    // Needed for the factory methods in the interface
+    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
+    excludePatterns.add("org/gradle/jvm/toolchain/internal/**")
 }
 
 integTest.usesSamples.set(true)

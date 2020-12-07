@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package gradlebuild.cleanup.extension
+package org.gradle.api.tasks
 
-import gradlebuild.cleanup.WhenNotEmpty
-import org.gradle.api.provider.Property
+import spock.lang.Specification
 
+class JavaExecTest extends Specification {
 
-abstract class TestFileCleanUpExtension {
-    abstract val policy: Property<WhenNotEmpty>
+    def 'javaLauncher is annotated with @Nested and @Optional'() {
+        given:
+        def launcherMethod = JavaExec.class.getMethod('getJavaLauncher', [] as Class[])
+
+        expect:
+        launcherMethod.isAnnotationPresent(Nested)
+        launcherMethod.isAnnotationPresent(Optional)
+    }
 }

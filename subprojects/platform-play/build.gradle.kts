@@ -92,6 +92,7 @@ strictCompile {
     ignoreRawTypes() // deprecated raw types
     ignoreDeprecations() // uses deprecated software model types
 }
+
 val integTestPrepare by tasks.registering(IntegrationTest::class) {
     systemProperties["org.gradle.integtest.executer"] = "embedded"
     if (BuildEnvironment.isCiServer) {

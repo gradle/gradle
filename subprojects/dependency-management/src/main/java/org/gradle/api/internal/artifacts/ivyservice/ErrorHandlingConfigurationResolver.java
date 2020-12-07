@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 
 import java.io.File;
 import java.util.List;
@@ -99,9 +100,20 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
     private static ResolveException wrapException(Throwable e, ResolveContext resolveContext) {
         if (e instanceof ResolveException) {
-            return (ResolveException) e;
+            ResolveException resolveException = (ResolveException) e;
+            return maybeAddHintToResolveException(resolveContext, resolveException);
         }
         return new ResolveException(resolveContext.getDisplayName(), e);
+    }
+
+    private static ResolveException maybeAddHintToResolveException(ResolveContext resolveContext, ResolveException resolveException) {
+        List<? extends Throwable> causes = resolveException.getCauses();
+        boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
+        if (hasModuleNotFound && resolveContext instanceof ConfigurationInternal) {
+            ConfigurationInternal config = (ConfigurationInternal) resolveContext;
+            return config.maybeAddContext(resolveException);
+        }
+        return resolveException;
     }
 
     private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {

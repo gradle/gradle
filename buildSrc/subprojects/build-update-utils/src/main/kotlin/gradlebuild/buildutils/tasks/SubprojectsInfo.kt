@@ -23,7 +23,7 @@ import org.gradle.api.tasks.Internal
 import java.io.File
 
 
-open class SubprojectsInfo : DefaultTask() {
+abstract class SubprojectsInfo : DefaultTask() {
 
     private
     val subprojectsFolder = project.layout.projectDirectory.dir("subprojects")

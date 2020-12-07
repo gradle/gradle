@@ -686,7 +686,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         projectPathString,
                         isVisible(),
                         isTransitive(),
-                        resolver.getRepositories()
+                        resolver::getRepositories
                     ));
             }
         });
@@ -722,6 +722,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints() {
         return consistentResolutionConstraints;
+    }
+
+    @Override
+    public ResolveException maybeAddContext(ResolveException e) {
+        if (ignoresSettingsRepositories()) {
+            return new ResolveExceptionWithHints(getDisplayName(), e.getCauses(),
+                "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
+                "You can figure out how project repositories are declared by configuring your build to fail on project repositories.",
+                "See " + documentationRegistry.getDocumentationFor("declaring_repositories", "sub:fail_build_on_project_repositories") + " for details.");
+        }
+        return e;
+    }
+
+    private boolean ignoresSettingsRepositories() {
+        if (owner instanceof ProjectInternal) {
+            ProjectInternal project = (ProjectInternal) this.owner;
+            return !project.getRepositories().isEmpty() &&
+                !project.getGradle().getSettings().getDependencyResolutionManagement().getRepositoryHandler().isEmpty();
+        }
+        return false;
     }
 
     private void assertNoDependencyResolutionConsistencyCycle() {

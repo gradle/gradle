@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package gradlebuild.cleanup
+package gradlebuild.testcleanup.extension
+
+import org.gradle.api.provider.Property
 
 
-enum class WhenNotEmpty {
-    /** Fail the build when files are found */
-    FAIL,
-    /** Report only that files were found */
-    REPORT;
+abstract class TestFileCleanUpExtension {
+    abstract val reportOnly: Property<Boolean>
 }

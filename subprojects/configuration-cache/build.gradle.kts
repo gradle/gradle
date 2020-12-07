@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
@@ -26,7 +24,7 @@ tasks.configCacheIntegTest {
 
 // The same options should eventually be used for all Kotlin sources.
 // When ready, move these to 'gradlebuild.kotlin-library' and adjust sources where needed.
-tasks.withType<KotlinCompile>().configureEach {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += listOf(
             "-XXLanguage:+NewInference",
@@ -51,6 +49,7 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":file-watching"))
+    implementation(project(":launcher"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":model-core"))
@@ -107,5 +106,5 @@ dependencies {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/configurationcache/**"))
+    excludePatterns.add("org/gradle/configurationcache/**")
 }

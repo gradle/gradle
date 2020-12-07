@@ -1,4 +1,3 @@
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }

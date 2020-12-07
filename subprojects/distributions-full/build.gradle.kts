@@ -1,5 +1,3 @@
-import gradlebuild.run.tasks.RunEmbeddedGradle
-
 plugins {
     id("gradlebuild.distribution.packaging")
     id("gradlebuild.verify-build-environment")
@@ -25,7 +23,7 @@ dependencies {
     pluginsRuntimeOnly(project(":ide-play"))
 }
 
-tasks.register<RunEmbeddedGradle>("runDevGradle") {
+tasks.register<gradlebuild.run.tasks.RunEmbeddedGradle>("runDevGradle") {
     group = "verification"
     description = "Runs an embedded Gradle using the partial distribution for ${project.path}."
     gradleClasspath.from(configurations.runtimeClasspath.get(), tasks.runtimeApiInfoJar)

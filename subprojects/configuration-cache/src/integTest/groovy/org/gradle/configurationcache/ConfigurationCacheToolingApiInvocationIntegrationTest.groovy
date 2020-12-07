@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.Action
+import org.gradle.configurationcache.fixtures.SomeToolingBuildAction
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -27,6 +29,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 
 class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     @Override
@@ -99,6 +102,74 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         outputContains("Reusing configuration cache.")
     }
 
+    def "configuration cache is disabled for model building actions"() {
+
+        given:
+        file("buildSrc/src/main/groovy/my/My.groovy") << """
+            package my
+
+            import org.gradle.tooling.provider.model.ToolingModelBuilder
+            import org.gradle.api.Project
+
+            class MyModelBuilder implements ToolingModelBuilder {
+                boolean canBuild(String modelName) {
+                    return modelName == "java.lang.String"
+                }
+                Object buildAll(String modelName, Project project) {
+                    return "It works!"
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            def registry = services.get(org.gradle.tooling.provider.model.ToolingModelBuilderRegistry)
+            registry.register(new my.MyModelBuilder())
+        """
+        file("gradle.properties") << """
+            $ENABLE_GRADLE_PROP=true
+        """.stripIndent()
+
+        expect:
+        usingToolingConnection(testDirectory) { connection ->
+            2.times {
+                def output = new ByteArrayOutputStream()
+                def model = connection.action(new SomeToolingBuildAction())
+                    .addJvmArguments(executer.jvmArgs)
+                    .forTasks("assemble")
+                    .setStandardOutput(output)
+                    .setStandardError(System.err)
+                    .run()
+                assert model == "It works!"
+                assert !output.toString().contains("Configuration cache is an incubating feature.")
+            }
+        }
+    }
+
+    private static void usingToolingConnection(File workingDir, Action<ProjectConnection> action) {
+        def context = new IntegrationTestBuildContext()
+        def connector = GradleConnector
+            .newConnector()
+            .forProjectDirectory(workingDir)
+            .useGradleUserHomeDir(context.gradleUserHomeDir)
+            .searchUpwards(false)
+        if (GradleContextualExecuter.embedded) {
+            connector.embedded(true).useClasspathDistribution()
+        } else {
+            connector.embedded(false).useInstallation(context.gradleHomeDir)
+        }
+        ProjectConnection connection = connector.connect()
+        try {
+            action.execute(connection)
+        } finally {
+            connection.close()
+            if (GradleContextualExecuter.embedded) {
+                System.clearProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME)
+            }
+        }
+    }
+
     static class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         private final List<String> jvmArgs = []
 
@@ -118,33 +189,15 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         protected ExecutionResult doRun() {
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
-            def context = new IntegrationTestBuildContext()
-            def connector = GradleConnector
-                .newConnector()
-                .forProjectDirectory(workingDir)
-                .useGradleUserHomeDir(context.gradleUserHomeDir)
-                .searchUpwards(false)
-            if (GradleContextualExecuter.embedded) {
-                connector.embedded(true).useClasspathDistribution()
-            } else {
-                connector.embedded(false).useInstallation(context.gradleHomeDir)
-            }
             def args = allArgs
             args.remove("--no-daemon")
-
-            def connection = connector.connect()
-            try {
+            usingToolingConnection(workingDir) { connection ->
                 connection.newBuild()
                     .addJvmArguments(jvmArgs)
                     .withArguments(args)
                     .setStandardOutput(output)
                     .setStandardError(error)
                     .run()
-            } finally {
-                connection.close()
-                if (GradleContextualExecuter.embedded) {
-                    System.clearProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME)
-                }
             }
             return OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }

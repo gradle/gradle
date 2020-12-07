@@ -37,32 +37,28 @@ plugins {
 
 val shadedJarExtension = extensions.create<ShadedJarExtension>("shadedJar", createConfigurationToShade())
 
-registerTransforms(shadedJarExtension)
+registerTransforms()
 
-val shadedJarTask = addShadedJarTask(shadedJarExtension)
+val shadedJarTask = addShadedJarTask()
 
 addInstallShadedJarTask(shadedJarTask)
 addShadedJarVariant(shadedJarTask)
 configureShadedSourcesJarVariant()
 
-fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
-    afterEvaluate {
-        dependencies {
-            registerTransform(ShadeClasses::class) {
-                from
-                    .attribute(Attributes.artifactType, "jar")
-                    .attribute(Attributes.minified, true)
-                to.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
-                parameters {
-                    shadowPackage = "org.gradle.internal.impldep"
-                    keepPackages = shadedJarExtension.keepPackages.get()
-                    unshadedPackages = shadedJarExtension.unshadedPackages.get()
-                    ignoredPackages = shadedJarExtension.ignoredPackages.get()
-                }
+fun registerTransforms() {
+    dependencies {
+        registerTransform(ShadeClasses::class) {
+            from.attribute(Attributes.artifactType, "jar")
+                .attribute(Attributes.minified, true)
+            to.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
+            parameters {
+                shadowPackage.set("org.gradle.internal.impldep")
+                keepPackages.set(shadedJarExtension.keepPackages)
+                unshadedPackages.set(shadedJarExtension.unshadedPackages)
+                ignoredPackages.set(shadedJarExtension.ignoredPackages)
             }
         }
-    }
-    dependencies {
+
         registerTransform(FindRelocatedClasses::class) {
             from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
             to.attribute(Attributes.artifactType, relocatedClassesType)
@@ -97,7 +93,7 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
     }
 }
 
-fun addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<ShadedJar> {
+fun addShadedJarTask(): TaskProvider<ShadedJar> {
     val configurationToShade = shadedJarExtension.shadedConfiguration
 
     return tasks.register("${project.name.kebabToCamel()}ShadedJar", ShadedJar::class) {

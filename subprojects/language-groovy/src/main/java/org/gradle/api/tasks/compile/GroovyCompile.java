@@ -53,9 +53,9 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -442,7 +442,8 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      * @since 6.8
      */
     @Incubating
-    @Internal
+    @Nested
+    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
