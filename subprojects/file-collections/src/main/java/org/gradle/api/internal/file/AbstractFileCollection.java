@@ -347,11 +347,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         public ValueProducer getProducer() {
             return new ValueProducer() {
                 @Override
-                public boolean isKnown() {
-                    return true;
-                }
-
-                @Override
                 public boolean isProducesDifferentValueOverTime() {
                     return false;
                 }
