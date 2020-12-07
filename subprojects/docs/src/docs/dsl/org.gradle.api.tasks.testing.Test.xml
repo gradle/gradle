@@ -101,6 +101,10 @@
                 <td><literal>false</literal></td>
             </tr>
             <tr>
+                <td>modularity</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>javaLauncher</td>
                 <td><literal>java.toolchain</literal></td>
             </tr>
