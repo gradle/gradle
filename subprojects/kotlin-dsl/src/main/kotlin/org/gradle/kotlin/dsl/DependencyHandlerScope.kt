@@ -236,7 +236,7 @@ private constructor(
      * @since 6.9
      */
     @Incubating
-    operator fun Configuration.invoke(dependency: Provider<*>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+    operator fun <T : Any> Configuration.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProvider(name, dependency, dependencyConfiguration)
 
     /**
@@ -248,7 +248,7 @@ private constructor(
      * @since 6.9
      */
     @Incubating
-    operator fun Configuration.invoke(dependency: Provider<Any>) =
+    operator fun <T : Any> Configuration.invoke(dependency: Provider<T>) =
         addProvider(name, dependency)
 
     /**
@@ -261,7 +261,7 @@ private constructor(
      * @since 6.9
      */
     @Incubating
-    operator fun String.invoke(dependency: Provider<*>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+    operator fun <T : Any> String.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProvider(this, dependency, dependencyConfiguration)
 
     /**
@@ -273,7 +273,7 @@ private constructor(
      * @since 6.9
      */
     @Incubating
-    operator fun String.invoke(dependency: Provider<Any>) =
+    operator fun <T : Any> String.invoke(dependency: Provider<T>) =
         addProvider(this, dependency)
 
     /**
