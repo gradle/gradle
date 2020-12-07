@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -67,10 +65,6 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }
 
 integTest.usesSamples.set(true)

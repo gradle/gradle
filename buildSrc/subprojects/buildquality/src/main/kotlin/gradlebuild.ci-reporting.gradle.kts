@@ -16,11 +16,10 @@
 
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.classycle.tasks.Classycle
-import gradlebuild.cleanup.WhenNotEmpty
-import gradlebuild.cleanup.extension.TestFileCleanUpExtension
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
+import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
 import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
@@ -39,18 +38,18 @@ import java.util.zip.ZipOutputStream
  * Reducing the number of reports also makes it easier to find the important ones when analysing a failed build in
  * Team City.
  */
-subprojects.forEach {
-    // Configure the testFilesCleanup policy in each subproject's build script (This should be done directly in each subproject)
-    it.extensions.create<TestFileCleanUpExtension>("testFilesCleanup")
+
+val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
+    reportOnly.convention(false)
 }
 
 if (BuildEnvironment.isCiServer) {
     gradle.buildFinished {
         val failedTasks = failedTasks()
         val executedTasks = executedTasks()
-        val tmpTestFiles = subprojects.flatMap { it.tmpTestFiles() }
+        val tmpTestFiles = tmpTestFiles()
         prepareReportsForCiPublishing(failedTasks, executedTasks, tmpTestFiles)
-        cleanUp(tmpTestFiles.map { it.first })
+        cleanUp(tmpTestFiles)
         if (!isCleanupRunnerStep(gradle!!)) {
             verifyTestFilesCleanup(failedTasks, tmpTestFiles)
         }
@@ -74,47 +73,40 @@ fun cleanUp(filesToCleanUp: List<File>) {
     }
 }
 
-fun getCleanUpPolicy(childProjectName: String) = childProjects[childProjectName]?.extensions?.getByType(TestFileCleanUpExtension::class.java)?.policy?.getOrElse(WhenNotEmpty.FAIL)
-
-fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<Pair<File, String>>) {
+fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<File>) {
     if (failedTasks.any { it is Test }) {
         println("Leftover files: $tmpTestFiles")
         return
     }
 
-    val testFilesToFail = tmpTestFiles.filter { getCleanUpPolicy(it.second) != WhenNotEmpty.REPORT }
-    val testFilesToReport = tmpTestFiles.filter { getCleanUpPolicy(it.second) == WhenNotEmpty.REPORT }
-
-    if (testFilesToReport.isNotEmpty()) {
-        println("Found non-empty test files dir:\n${testFilesToReport.joinToString("\n") { it.first.absolutePath }}")
-    }
-
-    if (testFilesToFail.isNotEmpty()) {
-        throw GradleException("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.first.absolutePath }}")
+    if (tmpTestFiles.isNotEmpty()) {
+        if (testFilesCleanup.reportOnly.get()) {
+            println("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.absolutePath }}")
+        } else {
+            throw GradleException("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.absolutePath }}")
+        }
     }
 }
 
-fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<Task>, tmpTestFiles: List<Pair<File, String>>) {
+fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<Task>, tmpTestFiles: List<File>) {
     val failedTaskCustomReports = failedTasks.flatMap { it.failedTaskGenericHtmlReports() }
     val attachedReports = executedTasks.flatMap { it.attachedReportLocations() }
     val executedTaskCustomReports = failedTasks.flatMap { it.failedTaskCustomReports() }
 
     val allReports = failedTaskCustomReports + attachedReports + executedTaskCustomReports + tmpTestFiles
-    allReports.distinctBy { (report, _) -> report }.forEach { (report, projectName) ->
-        prepareReportForCiPublishing(report, projectName)
+    allReports.forEach { report ->
+        prepareReportForCiPublishing(report)
     }
 }
 
-fun Project.tmpTestFiles() =
-    layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter {
-        Files.walk(it.toPath()).use { paths -> !paths.allMatch { it.toFile().isDirectory } }
-    }?.map {
-        it to name
+fun tmpTestFiles() =
+    layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter { dir ->
+        Files.walk(dir.toPath()).use { paths -> !paths.allMatch { it.toFile().isDirectory } }
     } ?: emptyList()
 
-fun executedTasks() = gradle.taskGraph.allTasks.filter { it.state.executed }
+fun executedTasks() = gradle.taskGraph.allTasks.filter { it.project == project && it.state.executed }
 
-fun failedTasks() = gradle.taskGraph.allTasks.filter { it.state.failure != null || it.containsFailedTest() }
+fun failedTasks() = gradle.taskGraph.allTasks.filter { it.project == project && (it.state.failure != null || it.containsFailedTest()) }
 
 // We count the test task containing flaky result as failed
 fun Task.containsFailedTest(): Boolean {
@@ -136,25 +128,25 @@ fun Task.containsFailedTest(): Boolean {
 }
 
 fun Task.failedTaskGenericHtmlReports() = when (this) {
-    is Reporting<*> -> listOf(this.reports["html"].destination to project.name)
+    is Reporting<*> -> listOf(this.reports["html"].destination)
     else -> emptyList()
 }
 
 fun Task.failedTaskCustomReports() = when (this) {
-    is ValidatePlugins -> listOf(outputFile.get().asFile to project.name)
-    is Classycle -> listOf(reportFile to project.name)
-    is FindBrokenInternalLinks -> listOf(reportFile.get().asFile to project.name)
+    is ValidatePlugins -> listOf(outputFile.get().asFile)
+    is Classycle -> listOf(reportFile)
+    is FindBrokenInternalLinks -> listOf(reportFile.get().asFile)
     is DistributionTest -> listOf(
-        gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon").get().asFile to "all-logs",
-        gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon").get().asFile to "all-logs",
-        gradleInstallationForTest.daemonRegistry.get().asFile to "all-logs"
+        gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon").get().asFile,
+        gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon").get().asFile,
+        gradleInstallationForTest.daemonRegistry.get().asFile
     )
     else -> emptyList()
 }
 
 fun Task.attachedReportLocations() = when (this) {
-    is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName) to project.name)
-    is PerformanceTest -> listOf(reportDir.parentFile to project.name)
+    is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName))
+    is PerformanceTest -> listOf(reportDir.parentFile)
     else -> emptyList()
 }
 
@@ -175,16 +167,16 @@ fun zip(destZip: File, srcDir: File) {
     }
 }
 
-fun prepareReportForCiPublishing(report: File, projectName: String) {
+fun prepareReportForCiPublishing(report: File) {
     if (report.exists()) {
         if (report.isDirectory) {
-            val destFile = rootProject.layout.buildDirectory.file("report-$projectName-${report.name}.zip").get().asFile
+            val destFile = rootProject.layout.buildDirectory.file("report-${project.name}-${report.name}.zip").get().asFile
             zip(destFile, report)
         } else {
             copy {
                 from(report)
                 into(rootProject.layout.buildDirectory)
-                rename { "report-$projectName-${report.parentFile.name}-${report.name}" }
+                rename { "report-${project.name}-${report.parentFile.name}-${report.name}" }
             }
         }
     }

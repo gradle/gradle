@@ -1,5 +1,3 @@
-import gradlebuild.cleanup.WhenNotEmpty
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -42,7 +40,4 @@ dependencies {
     }
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
-
+testFilesCleanup.reportOnly.set(true)

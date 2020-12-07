@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.internal.kotlin")
 }
@@ -40,6 +38,4 @@ dependencies {
     integTestLocalRepository(project(":kotlin-dsl-plugins"))
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
+testFilesCleanup.reportOnly.set(true)
