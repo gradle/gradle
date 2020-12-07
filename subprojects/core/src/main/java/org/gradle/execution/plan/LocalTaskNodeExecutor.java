@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -53,7 +53,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
                 return true;
             }
-            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode, localTaskNode.getTaskProperties(), () -> detectMissingDependencies(localTaskNode));
+            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode, localTaskNode.getTaskProperties(), validationContext -> detectMissingDependencies(localTaskNode, validationContext));
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
             localTaskNode.getPostAction().execute(task);
@@ -63,12 +63,12 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         }
     }
 
-    private void detectMissingDependencies(LocalTaskNode node) {
+    private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
         RelatedLocations consumedDirectories = consumedAndProducedLocations.getConsumedDirectories();
         for (String outputPath : node.getMutationInfo().outputPaths) {
             consumedDirectories.getNodesRelatedTo(outputPath).stream()
                 .filter(consumerNode -> missesDependency(node, consumerNode))
-                .forEach(consumerWithoutDependency -> emitMissingDependencyDeprecationWarning(node, consumerWithoutDependency));
+                .forEach(consumerWithoutDependency -> collectValidationWarning(node, consumerWithoutDependency, validationContext));
         }
         Set<String> consumedLocations = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
@@ -97,7 +97,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String consumedLocation : consumedLocations) {
             consumedAndProducedLocations.getProducedDirectories().getNodesRelatedTo(consumedLocation).stream()
                 .filter(producerNode -> missesDependency(producerNode, node))
-                .forEach(producerWithoutDependency -> emitMissingDependencyDeprecationWarning(producerWithoutDependency, node));
+                .forEach(producerWithoutDependency -> collectValidationWarning(producerWithoutDependency, node, validationContext));
         }
     }
 
@@ -126,7 +126,10 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         return true;
     }
 
-    private void emitMissingDependencyDeprecationWarning(Node producer, Node consumer) {
-        DeprecationLogger.deprecateBehaviour(String.format("%s consumes the output of %s, but does not declare a dependency.", consumer, producer)).willBeRemovedInGradle7().undocumented().nagUser();
+    private void collectValidationWarning(Node producer, Node consumer, TypeValidationContext validationContext) {
+        validationContext.visitPropertyProblem(
+            TypeValidationContext.Severity.WARNING,
+            String.format("%s consumes the output of %s, but does not declare a dependency", consumer, producer)
+        );
     }
 }

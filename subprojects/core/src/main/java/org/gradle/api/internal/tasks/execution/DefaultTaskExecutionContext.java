@@ -20,23 +20,25 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
     private final TaskProperties properties;
-    private final Runnable validationAction;
+    private final Consumer<TypeValidationContext> validationAction;
     private TaskExecutionMode taskExecutionMode;
     private Long executionTime;
     private BuildOperationContext snapshotTaskInputsBuildOperationContext;
 
     private final Timer executionTimer;
 
-    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, Runnable validationAction) {
+    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, Consumer<TypeValidationContext> validationAction) {
         this.localTaskNode = localTaskNode;
         this.properties = taskProperties;
         this.validationAction = validationAction;
@@ -54,7 +56,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public Runnable getValidationAction() {
+    public Consumer<TypeValidationContext> getValidationAction() {
         return validationAction;
     }
 

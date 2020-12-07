@@ -469,8 +469,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        executer.expectDeprecationWarning(":backup consumes the output of :restore, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning(":restore consumes the output of :backup, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning(":backup consumes the output of :restore, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        executer.expectDocumentedDeprecationWarning(":restore consumes the output of :backup, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         run 'backup', 'restore'
 
         then:
@@ -487,8 +487,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         //
         // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
-        executer.expectDeprecationWarning(":backup consumes the output of :restore, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning(":restore consumes the output of :backup, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning(":backup consumes the output of :restore, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        executer.expectDocumentedDeprecationWarning(":restore consumes the output of :backup, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         run 'backup', 'restore', '--info'
 
         then:
