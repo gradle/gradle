@@ -551,15 +551,54 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         where:
         type                             | reference                                                   | invocation
-        Logger.name                      | "logger"                                                    | "info('hi')"
         ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
-        ResourceHandler.name             | "resources"                                                 | "toString()"
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
         ArchiveOperations.name           | "project.services.get(${ArchiveOperations.name})"           | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
+    }
+
+
+    @Unroll
+    def "restores task fields whose value is an instance of #type"() {
+
+        buildFile << """
+            class SomeBean {
+                $type value
+            }
+
+            class SomeTask extends DefaultTask {
+                @Internal
+                final SomeBean bean = new SomeBean()
+                @Internal
+                $type value
+
+                @TaskAction
+                void run() {
+                    value.$invocation
+                    bean.value.$invocation
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = $reference
+                bean.value = $reference
+            }
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        type                 | reference   | invocation
+        Logger.name          | "logger"    | "info('hi')"
+        ResourceHandler.name | "resources" | "toString()"
     }
 
     @Unroll
