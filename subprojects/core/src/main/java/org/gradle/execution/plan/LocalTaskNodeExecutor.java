@@ -36,10 +36,12 @@ import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
-    private final ConsumedAndProducedLocations consumedAndProducedLocations;
+    private final RelatedLocations producedLocations;
+    private final RelatedLocations consumedLocations;
 
-    public LocalTaskNodeExecutor(ConsumedAndProducedLocations consumedAndProducedLocations) {
-        this.consumedAndProducedLocations = consumedAndProducedLocations;
+    public LocalTaskNodeExecutor(RelatedLocations producedLocations, RelatedLocations consumedLocations) {
+        this.producedLocations = producedLocations;
+        this.consumedLocations = consumedLocations;
     }
 
     @Override
@@ -64,38 +66,37 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
     }
 
     private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
-        RelatedLocations consumedDirectories = consumedAndProducedLocations.getConsumedDirectories();
         for (String outputPath : node.getMutationInfo().outputPaths) {
-            consumedDirectories.getNodesRelatedTo(outputPath).stream()
+            consumedLocations.getNodesRelatedTo(outputPath).stream()
                 .filter(consumerNode -> missesDependency(node, consumerNode))
                 .forEach(consumerWithoutDependency -> collectValidationWarning(node, consumerWithoutDependency, validationContext));
         }
-        Set<String> consumedLocations = new LinkedHashSet<>();
+        Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
             .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    contents.forEach(location -> consumedLocations.add(location.getAbsolutePath()));
+                    contents.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
                 }
 
                 @Override
                 public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    fileTree.forEach(location -> consumedLocations.add(location.getAbsolutePath()));
+                    fileTree.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
                 }
 
                 @Override
                 public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                    consumedLocations.add(root.getAbsolutePath());
+                    locationsConsumedByThisTask.add(root.getAbsolutePath());
                 }
 
                 @Override
                 public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    consumedLocations.add(file.getAbsolutePath());
+                    locationsConsumedByThisTask.add(file.getAbsolutePath());
                 }
             }));
-        consumedDirectories.recordRelatedToNode(node, consumedLocations);
-        for (String consumedLocation : consumedLocations) {
-            consumedAndProducedLocations.getProducedDirectories().getNodesRelatedTo(consumedLocation).stream()
+        consumedLocations.recordRelatedToNode(node, locationsConsumedByThisTask);
+        for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
+            producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
                 .filter(producerNode -> missesDependency(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationWarning(producerWithoutDependency, node, validationContext));
         }

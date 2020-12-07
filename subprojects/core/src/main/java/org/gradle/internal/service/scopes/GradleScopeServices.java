@@ -199,7 +199,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     LocalTaskNodeExecutor createLocalTaskNodeExecutor(ConsumedAndProducedLocations consumedAndProducedLocations) {
-        return new LocalTaskNodeExecutor(consumedAndProducedLocations);
+        return new LocalTaskNodeExecutor(
+            consumedAndProducedLocations.getProducedDirectories(),
+            consumedAndProducedLocations.getConsumedDirectories()
+        );
     }
 
     WorkNodeExecutor createWorkNodeExecutor() {
@@ -232,7 +235,13 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         TaskDependencyResolver dependencyResolver,
         ConsumedAndProducedLocations consumedAndProducedLocations
     ) {
-        return new DefaultExecutionPlan(gradleInternal.getIdentityPath().toString(), taskNodeFactory, dependencyResolver, consumedAndProducedLocations);
+        return new DefaultExecutionPlan(
+            gradleInternal.getIdentityPath().toString(),
+            taskNodeFactory,
+            dependencyResolver,
+            consumedAndProducedLocations.getProducedDirectories(),
+            consumedAndProducedLocations.getConsumedDirectories()
+        );
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(

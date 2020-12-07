@@ -27,9 +27,4 @@ public class ConsumedAndProducedLocations {
     public RelatedLocations getConsumedDirectories() {
         return consumedDirectories;
     }
-
-    public void clear() {
-        producedDirectories.clear();
-        consumedDirectories.clear();
-    }
 }
