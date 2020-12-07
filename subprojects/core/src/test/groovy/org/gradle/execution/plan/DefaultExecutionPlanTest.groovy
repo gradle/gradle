@@ -41,7 +41,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, invalidNodeRunningLock)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator)
         _ * workerLease.tryLock() >> true
     }
 

@@ -49,7 +49,6 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     def thisBuild = backing.gradle
     def project = project()
     def resourceLockState = new MockResourceLockState(acquired)
-    def invalidNodeRunningLock = new SimpleResourceLock()
     def nodeValidator = Mock(NodeValidator)
 
     protected Set<ProjectInternal> getLockedProjects() {
@@ -195,38 +194,6 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         @Override
         String getDisplayName() {
             return "some lock"
-        }
-    }
-
-    class SimpleResourceLock implements ResourceLock {
-        boolean locked
-
-        @Override
-        synchronized boolean isLocked() {
-            return locked
-        }
-
-        @Override
-        synchronized boolean isLockedByCurrentThread() {
-            return locked
-        }
-
-        @Override
-        synchronized boolean tryLock() {
-            if (locked) {
-                return false
-            }
-            locked = true
-        }
-
-        @Override
-        synchronized void unlock() {
-            locked = false
-        }
-
-        @Override
-        String getDisplayName() {
-            return "simple lock"
         }
     }
 }

@@ -77,9 +77,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private final NodeValidator nodeValidator;
-    private final ResourceLock invalidNodeRunningLock;
     private Spec<? super Task> filter = Specs.satisfyAll();
 
+    private boolean invalidNodeRunning;
     private boolean continueOnFailure;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
@@ -91,12 +91,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, NodeValidator nodeValidator, ResourceLock invalidNodeRunningLock) {
+    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, NodeValidator nodeValidator) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
         this.nodeValidator = nodeValidator;
-        this.invalidNodeRunningLock = invalidNodeRunningLock;
     }
 
     @Override
@@ -658,11 +657,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 // Invalid work is not allowed to run together with any other work
                 return false;
             }
-            if (!tryLockInvalidWork()) {
-                // This should not happen
-                return false;
-            }
-        } else if (invalidNodeRunningLock.isLocked()) {
+            invalidNodeRunning = true;
+        } else if (invalidNodeRunning) {
             // No new work should be started when invalid work is running
             return false;
         }
@@ -774,14 +770,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private boolean tryLockInvalidWork() {
-        return invalidNodeRunningLock.tryLock();
-    }
-
-    private void unlockInvalidWorkRunning() {
-        invalidNodeRunningLock.unlock();
-    }
-
     private void recordNodeExecutionStarted(Node node) {
         runningNodes.add(node);
     }
@@ -824,7 +812,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         } finally {
             unlockProjectFor(node);
             unlockSharedResourcesFor(node);
-            unlockInvalidWorkRunning();
+            invalidNodeRunning = false;
         }
     }
 
