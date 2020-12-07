@@ -63,6 +63,8 @@ import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def cancellationToken = Mock(BuildCancellationToken)
     def listenerManager = new DefaultListenerManager(Scopes.Build)
@@ -79,7 +81,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
-    def executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new RelatedLocations(), new RelatedLocations())
+    def executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new RelatedLocations(CASE_SENSITIVE), new RelatedLocations(CASE_SENSITIVE))
     def taskGraph = new DefaultTaskExecutionGraph(
         new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService),
         [nodeExecutor],

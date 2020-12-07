@@ -16,9 +16,16 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.internal.snapshot.CaseSensitivity;
+
 public class ConsumedAndProducedLocations {
-    private final RelatedLocations producedLocations = new RelatedLocations();
-    private final RelatedLocations consumedLocations = new RelatedLocations();
+    private final RelatedLocations producedLocations;
+    private final RelatedLocations consumedLocations;
+
+    public ConsumedAndProducedLocations(CaseSensitivity caseSensitivity) {
+        producedLocations = new RelatedLocations(caseSensitivity);
+        consumedLocations = new RelatedLocations(caseSensitivity);
+    }
 
     public RelatedLocations getProducedLocations() {
         return producedLocations;
