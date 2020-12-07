@@ -44,7 +44,7 @@ strictCompile {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/api/reporting/internal/**"))
+    excludePatterns.add("org/gradle/api/reporting/internal/**")
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {

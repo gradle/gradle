@@ -38,5 +38,5 @@ dependencies {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/internal/featurelifecycle/**"))
+    excludePatterns.add("org/gradle/internal/featurelifecycle/**")
 }
