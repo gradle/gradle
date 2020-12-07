@@ -39,7 +39,6 @@ abstract class BuildJvms(javaInstallationRegistry: JavaInstallationRegistry, tes
         it
     }
 
-    private
     val testJvm = javaInstallationRegistry.installationForDirectory(testJavaHome).orElse(buildJvm)
 
     fun validateForProductionEnvironment() {
