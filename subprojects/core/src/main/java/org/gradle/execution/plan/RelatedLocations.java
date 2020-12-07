@@ -24,13 +24,12 @@ import org.gradle.internal.snapshot.ChildMapFactory;
 import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
-import java.util.Collection;
 import java.util.function.Consumer;
 
 public class RelatedLocations {
-    private volatile RelatedLocation root = new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of());
+    private volatile RelatedLocation root = new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of());
 
-    public Collection<Node> getNodesRelatedTo(String location) {
+    public ImmutableSet<Node> getNodesRelatedTo(String location) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
         if (relativePath.length() == 0) {
@@ -41,44 +40,33 @@ public class RelatedLocations {
         return builder.build();
     }
 
-    public synchronized void recordRelatedToNode(Node node, Iterable<String> locations) {
-        for (String location : locations) {
+    public synchronized void recordRelatedToNode(Node node, Iterable<String> locationsRelatedToNode) {
+        for (String location : locationsRelatedToNode) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
             root = root.recordRelatedToNode(relativePath, node);
         }
     }
 
     public synchronized void clear() {
-        root = new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of());
+        root = new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of());
     }
 
-    private interface RelatedLocation {
-        Collection<Node> getNodes();
-        void visitNodes(VfsRelativePath relativePath, Consumer<Node> nodeConsumer);
-        void visitNodes(Consumer<Node> nodeConsumer);
-        RelatedLocation recordRelatedToNode(VfsRelativePath relativePath, Node node);
-
-        ChildMap<RelatedLocation> getChildren();
-    }
-
-    private static final class DefaultRelatedLocation implements RelatedLocation {
+    private static final class RelatedLocation {
         private final ChildMap<RelatedLocation> children;
         private final ImmutableList<Node> relatedNodes;
 
-        private DefaultRelatedLocation(ChildMap<RelatedLocation> children, ImmutableList<Node> relatedNodes) {
+        private RelatedLocation(ChildMap<RelatedLocation> children, ImmutableList<Node> relatedNodes) {
             this.children = children;
             this.relatedNodes = relatedNodes;
         }
 
-        @Override
-        public Collection<Node> getNodes() {
+        public ImmutableList<Node> getNodes() {
             return relatedNodes;
         }
 
-        @Override
-        public void visitNodes(VfsRelativePath relativePath, Consumer<Node> nodeConsumer) {
+        public void visitNodes(VfsRelativePath relatedToLocation, Consumer<Node> nodeConsumer) {
             relatedNodes.forEach(nodeConsumer);
-            children.withNode(relativePath, CaseSensitivity.CASE_SENSITIVE, new ChildMap.NodeHandler<RelatedLocation, String>() {
+            children.withNode(relatedToLocation, CaseSensitivity.CASE_SENSITIVE, new ChildMap.NodeHandler<RelatedLocation, String>() {
                 @Override
                 public String handleAsDescendantOfChild(VfsRelativePath pathInChild, RelatedLocation child) {
                     child.visitNodes(pathInChild, nodeConsumer);
@@ -104,22 +92,20 @@ public class RelatedLocations {
             });
         }
 
-        @Override
         public void visitNodes(Consumer<Node> nodeConsumer) {
             getNodes().forEach(nodeConsumer);
             children.visitChildren((__, child) -> child.visitNodes(nodeConsumer));
         }
 
-        @Override
-        public RelatedLocation recordRelatedToNode(VfsRelativePath relativePath, Node node) {
-            if (relativePath.length() == 0) {
-                return new DefaultRelatedLocation(children, ImmutableList.<Node>builderWithExpectedSize(relatedNodes.size() + 1)
+        public RelatedLocation recordRelatedToNode(VfsRelativePath locationRelatedToNode, Node node) {
+            if (locationRelatedToNode.length() == 0) {
+                return new RelatedLocation(children, ImmutableList.<Node>builderWithExpectedSize(relatedNodes.size() + 1)
                     .addAll(relatedNodes)
                     .add(node)
                     .build()
                 );
             }
-            ChildMap<RelatedLocation> newChildren = children.store(relativePath, CaseSensitivity.CASE_SENSITIVE, new ChildMap.StoreHandler<RelatedLocation>() {
+            ChildMap<RelatedLocation> newChildren = children.store(locationRelatedToNode, CaseSensitivity.CASE_SENSITIVE, new ChildMap.StoreHandler<RelatedLocation>() {
                 @Override
                 public RelatedLocation handleAsDescendantOfChild(VfsRelativePath pathInChild, RelatedLocation child) {
                     return child.recordRelatedToNode(pathInChild, node);
@@ -127,29 +113,28 @@ public class RelatedLocations {
 
                 @Override
                 public RelatedLocation handleAsAncestorOfChild(String childPath, RelatedLocation child) {
-                    ChildMap<RelatedLocation> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(relativePath.length() + 1).getAsString(), child)));
-                    return new DefaultRelatedLocation(singletonChild, ImmutableList.of(node));
+                    ChildMap<RelatedLocation> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(locationRelatedToNode.length() + 1).getAsString(), child)));
+                    return new RelatedLocation(singletonChild, ImmutableList.of(node));
                 }
 
                 @Override
                 public RelatedLocation mergeWithExisting(RelatedLocation child) {
-                    return new DefaultRelatedLocation(child.getChildren(), ImmutableList.<Node>builderWithExpectedSize(child.getNodes().size() + 1).addAll(child.getNodes()).add(node).build());
+                    return new RelatedLocation(child.getChildren(), ImmutableList.<Node>builderWithExpectedSize(child.getNodes().size() + 1).addAll(child.getNodes()).add(node).build());
                 }
 
                 @Override
                 public RelatedLocation createChild() {
-                    return new DefaultRelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(node));
+                    return new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(node));
                 }
 
                 @Override
                 public RelatedLocation createNodeFromChildren(ChildMap<RelatedLocation> children) {
-                    return new DefaultRelatedLocation(children, ImmutableList.of());
+                    return new RelatedLocation(children, ImmutableList.of());
                 }
             });
-            return new DefaultRelatedLocation(newChildren, ImmutableList.of());
+            return new RelatedLocation(newChildren, ImmutableList.of());
         }
 
-        @Override
         public ChildMap<RelatedLocation> getChildren() {
             return children;
         }
