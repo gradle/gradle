@@ -66,6 +66,7 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.DefaultExecutionPlan;
+import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
@@ -82,6 +83,7 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -97,6 +99,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ExclusiveAccessResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -223,10 +226,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     ExecutionPlan createExecutionPlan(
         GradleInternal gradleInternal,
+        ResourceLockCoordinationService resourceLockCoordinationService,
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver
     ) {
-        return new DefaultExecutionPlan(gradleInternal.getIdentityPath().toString(), taskNodeFactory, dependencyResolver);
+        ExclusiveAccessResourceLock invalidWorkRunningLock = new ExclusiveAccessResourceLock("invalid work lock", resourceLockCoordinationService, Actions.doNothing(), Actions.doNothing());
+        return new DefaultExecutionPlan(gradleInternal.getIdentityPath().toString(), taskNodeFactory, dependencyResolver, new DefaultNodeValidator(), invalidWorkRunningLock);
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(

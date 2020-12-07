@@ -76,6 +76,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
+    private final NodeValidator nodeValidator;
+    private final ResourceLock invalidNodeRunningLock;
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private boolean continueOnFailure;
@@ -89,10 +91,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
+    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, NodeValidator nodeValidator, ResourceLock invalidNodeRunningLock) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
+        this.nodeValidator = nodeValidator;
+        this.invalidNodeRunningLock = invalidNodeRunningLock;
     }
 
     @Override
@@ -541,7 +545,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
-        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext(); ) {
             Node node = iterator.next();
             if (node.isComplete()) {
                 LOGGER.debug("Monitored node {} completed", node);
@@ -579,6 +583,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return null;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     private boolean tryAcquireLocksForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease, MutationInfo mutations) {
         if (!tryLockProjectFor(node)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
@@ -633,6 +638,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         MutationInfo mutations = node.getMutationInfo();
         if (!mutations.resolved) {
             node.resolveMutations();
+            mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
         }
         return mutations;
     }
@@ -647,10 +653,26 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean canRunWithCurrentlyExecutedNodes(MutationInfo mutations) {
-        return runningNodes.isEmpty() || !hasNodeWithOverlappingMutations(mutations);
+        if (mutations.hasValidationProblem) {
+            if (!runningNodes.isEmpty()) {
+                // Invalid work is not allowed to run together with any other work
+                return false;
+            }
+            if (!tryLockInvalidWork()) {
+                // This should not happen
+                return false;
+            }
+        } else if (invalidNodeRunningLock.isLocked()) {
+            // No new work should be started when invalid work is running
+            return false;
+        }
+        return !hasRunningNodeWithOverlappingMutations(mutations);
     }
 
-    private boolean hasNodeWithOverlappingMutations(MutationInfo mutations) {
+    private boolean hasRunningNodeWithOverlappingMutations(MutationInfo mutations) {
+        if (runningNodes.isEmpty()) {
+            return false;
+        }
         Set<String> candidateNodeOutputs = mutations.outputPaths;
         Set<String> candidateMutationPaths = !candidateNodeOutputs.isEmpty()
             ? candidateNodeOutputs
@@ -752,6 +774,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
+    private boolean tryLockInvalidWork() {
+        return invalidNodeRunningLock.tryLock();
+    }
+
+    private void unlockInvalidWorkRunning() {
+        invalidNodeRunningLock.unlock();
+    }
+
     private void recordNodeExecutionStarted(Node node) {
         runningNodes.add(node);
     }
@@ -794,6 +824,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         } finally {
             unlockProjectFor(node);
             unlockSharedResourcesFor(node);
+            unlockInvalidWorkRunning();
         }
     }
 

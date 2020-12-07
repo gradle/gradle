@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.Sets;
-
-import java.util.Set;
-
-class MutationInfo {
-    final Node node;
-    final Set<Node> consumingNodes = Sets.newHashSet();
-    final Set<String> outputPaths = Sets.newHashSet();
-    final Set<String> destroyablePaths = Sets.newHashSet();
-    boolean hasFileInputs;
-    boolean hasOutputs;
-    boolean hasLocalState;
-    boolean resolved;
-    boolean hasValidationProblem;
-
-    MutationInfo(Node node) {
-        this.node = node;
-    }
+public interface NodeValidator {
+    boolean hasValidationProblems(Node node);
 }

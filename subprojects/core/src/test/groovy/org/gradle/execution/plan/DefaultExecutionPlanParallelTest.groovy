@@ -51,7 +51,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * lease.tryLock() >> true
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, invalidNodeRunningLock)
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {
@@ -738,6 +738,58 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.getNode(finalized).isSuccessful()
         executionPlan.getNode(finalizer).state == Node.ExecutionState.SKIPPED
+    }
+
+    def "no task is started when invalid task is running"() {
+        given:
+        def first = task("first", type: Async)
+        def second = task("second", type: Async)
+
+        when:
+        addToGraphAndPopulate(second, first)
+        def invalidTaskNode = selectNextTaskNode()
+
+        then:
+        invalidTaskNode.task == first
+        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == first }) >> true
+
+        when:
+        def noTaskSelected = selectNextTask()
+        then:
+        noTaskSelected == null
+        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == second }) >> false
+
+        when:
+        executionPlan.finishedExecuting(invalidTaskNode)
+        def validTask = selectNextTask()
+        then:
+        validTask == second
+    }
+
+    def "an invalid task is not started when another task is running"() {
+        given:
+        def first = task("fist", type: Async)
+        def second = task("second", type: Async)
+
+        when:
+        addToGraphAndPopulate(second, first)
+        def validTaskNode = selectNextTaskNode()
+
+        then:
+        validTaskNode.task == first
+        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == first }) >> false
+
+        when:
+        def noTaskSelected = selectNextTask()
+        then:
+        noTaskSelected == null
+        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == second }) >> true
+
+        when:
+        executionPlan.finishedExecuting(validTaskNode)
+        def invalidTask = selectNextTask()
+        then:
+        invalidTask == second
     }
 
     private void tasksAreNotExecutedInParallel(Task first, Task second) {
