@@ -137,6 +137,32 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForConfigurationCache
+    fun `can use Kotlin 1 dot 4 language features`() {
+
+        withBuildScript(
+            """
+
+            val myList = listOf(
+                "foo",
+                "bar", // trailing comma
+            )
+
+            task("test") {
+                doLast {
+                    print(myList)
+                }
+            }
+            """
+        )
+
+        assertThat(
+            build("test", "-q").output,
+            equalTo("[foo, bar]")
+        )
+    }
+
+    @Test
     fun `use of the plugins block on nested project block fails with reasonable error message`() {
 
         withBuildScript(
