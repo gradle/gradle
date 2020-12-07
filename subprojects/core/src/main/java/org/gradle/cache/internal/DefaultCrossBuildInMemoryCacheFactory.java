@@ -33,6 +33,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -58,8 +59,8 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     @Override
-    public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild() {
-        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache = new CrossBuildCacheRetainingDataFromPreviousBuild<>();
+    public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> keepBetweenBuilds) {
+        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache = new CrossBuildCacheRetainingDataFromPreviousBuild<>(keepBetweenBuilds);
         listenerManager.addListener(cache);
         return cache;
     }
@@ -247,23 +248,36 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private final ManualEvictionInMemoryCache<K, V> delegate = new ManualEvictionInMemoryCache<>();
         private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
         private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
+        private final Predicate<V> keepBetweenBuilds;
+
+        public CrossBuildCacheRetainingDataFromPreviousBuild(Predicate<V> keepBetweenBuilds) {
+            this.keepBetweenBuilds = keepBetweenBuilds;
+        }
 
         @Override
         public V get(K key, Function<? super K, ? extends V> factory) {
-            keysFromCurrentBuild.put(key, Boolean.TRUE);
-            return delegate.get(key, factory);
+            V value = delegate.get(key, factory);
+            markAccessedInCurrentBuild(key, value);
+            return value;
         }
 
         @Override
         public V getIfPresent(K key) {
-            keysFromCurrentBuild.put(key, Boolean.TRUE);
-            return delegate.getIfPresent(key);
+            V value = delegate.getIfPresent(key);
+            markAccessedInCurrentBuild(key, value);
+            return value;
         }
 
         @Override
         public void put(K key, V value) {
-            keysFromCurrentBuild.put(key, Boolean.TRUE);
+            markAccessedInCurrentBuild(key, value);
             delegate.put(key, value);
+        }
+
+        private void markAccessedInCurrentBuild(K key, @Nullable V value) {
+            if (value != null && keepBetweenBuilds.test(value)) {
+                keysFromCurrentBuild.put(key, Boolean.TRUE);
+            }
         }
 
         @Override
