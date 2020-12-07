@@ -59,4 +59,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             workerLeaseService.getCurrentWorkerLease()
         );
     }
+
+    @Override
+    public void prepareBuild(IncludedBuildState includedBuild) {
+        includedBuild.loadSettings();
+    }
 }

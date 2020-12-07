@@ -396,8 +396,6 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         build.assertProjectPluginApplied()
     }
 
-    // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
-    @ToBeFixedForConfigurationCache
     def "library build included in plugin build can be used in settings plugin when such settings plugin is included in another build"() {
         given:
         def libraryBuild = pluginAndLibraryBuild("library")

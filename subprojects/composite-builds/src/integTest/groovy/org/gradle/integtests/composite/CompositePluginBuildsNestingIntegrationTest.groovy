@@ -17,8 +17,6 @@
 package org.gradle.integtests.composite
 
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class CompositePluginBuildsNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     private final PluginBuildFixture build1 = pluginBuild("logic-1")
@@ -39,8 +37,6 @@ class CompositePluginBuildsNestingIntegrationTest extends AbstractCompositeBuild
         succeeds()
     }
 
-    // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
-    @ToBeFixedForConfigurationCache
     def "can nest early included plugin builds"() {
         when:
         settingsFile << """
@@ -49,6 +45,11 @@ class CompositePluginBuildsNestingIntegrationTest extends AbstractCompositeBuild
             }
             plugins {
                 id("${build1.settingsPluginId}")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("${build1.projectPluginId}")
             }
         """
         build1.settingsFile << """
@@ -204,8 +205,6 @@ class CompositePluginBuildsNestingIntegrationTest extends AbstractCompositeBuild
         build2.assertProjectPluginApplied()
     }
 
-    // Fails with config cache: Cannot find parent ClassLoaderScopeIdentifier{coreAndPlugins:settings} for child scope ClassLoaderScopeIdentifier{coreAndPlugins:settings:.../logic-1/buildSrc}
-    @ToBeFixedForConfigurationCache
     def "included plugin build settings plugins are not visible transitively"() {
         when:
         settingsFile << """

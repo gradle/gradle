@@ -259,6 +259,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             includedBuildsByRootDir.put(buildDir, includedBuild);
             pendingIncludedBuilds.add(includedBuild);
             addBuild(includedBuild);
+            includedBuildFactory.prepareBuild(includedBuild);
         } else {
             if (includedBuild.isImplicitBuild() != isImplicit) {
                 throw new IllegalStateException("Unexpected state for build.");
