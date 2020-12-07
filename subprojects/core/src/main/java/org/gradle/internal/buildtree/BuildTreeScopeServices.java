@@ -95,7 +95,7 @@ public class BuildTreeScopeServices {
                 work.getDisplayName(),
                 warnings.stream().map(warning -> "\n  - " + warning).collect(Collectors.joining()));
             warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
-                .withContext("Due to the failed validation execution optimizations are disabled.")
+                .withContext("Execution optimizations are disabled due to the failed validation.")
                 .willBeRemovedInGradle7()
                 .withUserManual("more_about_tasks", "sec:up_to_date_checks")
                 .nagUser());
