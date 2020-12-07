@@ -152,7 +152,7 @@ public class ExecutionGradleServices {
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
-        ValidateStep.ValidationWarningReporter validationWarningReporter,
+        ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem
     ) {
         // @formatter:off
@@ -163,7 +163,7 @@ public class ExecutionGradleServices {
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(

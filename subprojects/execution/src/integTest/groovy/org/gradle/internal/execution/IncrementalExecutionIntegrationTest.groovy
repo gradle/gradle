@@ -113,7 +113,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def inputFingerprinter = new DefaultInputFingerprinter(valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def validationWarningReporter = Mock(ValidateStep.ValidationWarningReporter)
+    def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")

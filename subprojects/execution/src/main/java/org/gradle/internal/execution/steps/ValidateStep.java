@@ -44,12 +44,12 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
 
     private final VirtualFileSystem virtualFileSystem;
-    private final ValidateStep.ValidationWarningReporter warningReporter;
+    private final ValidationWarningRecorder warningReporter;
     private final Step<? super ValidationContext, ? extends R> delegate;
 
     public ValidateStep(
         VirtualFileSystem virtualFileSystem,
-        ValidationWarningReporter warningReporter,
+        ValidationWarningRecorder warningReporter,
         Step<? super ValidationContext, ? extends R> delegate
     ) {
         this.virtualFileSystem = virtualFileSystem;
@@ -67,7 +67,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         ImmutableCollection<String> errors = problems.get(Severity.ERROR);
 
         if (!warnings.isEmpty()) {
-            warningReporter.reportValidationWarnings(work, warnings);
+            warningReporter.recordValidationWarnings(work, warnings);
         }
 
         if (!errors.isEmpty()) {
@@ -147,8 +147,8 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         return ModelType.of(type).getDisplayName();
     }
 
-    public interface ValidationWarningReporter {
-        void reportValidationWarnings(UnitOfWork work, Collection<String> warnings);
+    public interface ValidationWarningRecorder {
+        void recordValidationWarnings(UnitOfWork work, Collection<String> warnings);
     }
 
     private static class DefaultWorkValidationContext implements UnitOfWork.WorkValidationContext {

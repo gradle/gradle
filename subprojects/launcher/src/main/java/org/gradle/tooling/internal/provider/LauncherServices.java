@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
+import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -83,12 +84,13 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     static class ToolingGlobalScopeServices {
         BuildExecuter createBuildExecuter(StyledTextOutputFactory styledTextOutputFactory,
                                           LoggingManagerInternal loggingManager,
+                                          WorkValidationWarningReporter workValidationWarningReporter,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
                                           ServiceRegistry globalServices) {
             // @formatter:off
             return
                 new SetupLoggingActionExecuter(loggingManager,
-                new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(),
+                new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(), workValidationWarningReporter,
                 new StartParamsValidatingActionExecuter(
                 new GradleThreadBuildActionExecuter(
                 new SessionScopeLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices
@@ -153,14 +155,15 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                           BuildStateRegistry buildStateRegistry,
                                                           PayloadSerializer payloadSerializer,
                                                           BuildOperationNotificationValve buildOperationNotificationValve,
-                                                          BuildCancellationToken buildCancellationToken
+                                                          BuildCancellationToken buildCancellationToken,
+                                                          WorkValidationWarningReporter workValidationWarningReporter
         ) {
             return new InProcessBuildActionExecuter(buildStateRegistry, payloadSerializer, buildOperationNotificationValve, buildCancellationToken,
                 new RunAsBuildOperationBuildActionRunner(
                     new BuildCompletionNotifyingBuildActionRunner(
                         new FileSystemWatchingBuildActionRunner(
                             new ValidatingBuildActionRunner(
-                                new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory,
+                                new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory, workValidationWarningReporter,
                                     new ChainingBuildActionRunner(buildActionRunners)))))));
         }
     }
