@@ -268,8 +268,13 @@ Gradle's documentation now contains a [sample](samples/sample_structuring_softwa
 
 ### Consistent dependency resolution
 
-Sometimes, the dependencies resolved for the runtime classpath may have different versions than the dependencies resolved for the compile classpath.
+Dependency resolution in Gradle happens a lot during a build.
+From the classpath to compile code or run tests, to the tools used for static analysis, they all resolve a configuration to a set of dependencies at some point.
+
+However, these resolutions happen in isolation.
+Sometimes, the dependencies resolved for the runtime classpath have different versions than the dependencies resolved for the compile classpath.
 This typically happens when a transitive dependency that is only present at runtime brings in a higher version of a first level dependency.
+Similarly, the runtime classpath of tests could use different versions than the compile classpath of production code.
 
 To mitigate this problem, Gradle now lets you declare consistency between dependency configurations.
 For example, in the Java ecosystem, you can write:

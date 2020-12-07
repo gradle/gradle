@@ -84,8 +84,9 @@ In general, the graph of dependencies at runtime is a superset of the compile de
 
 Gradle resolves those dependency graphs independently.
 This means, in the Java ecosystem for example, that the resolution of the "compile classpath" doesn't influence the resolution of the "runtime classpath".
+Similarly, test dependencies could end up bumping the version of production dependencies, causing some surprising results when executing tests.
 
-This can lead to surprising behaviors which can be mitated by enabling dependency resolution consistency.
+These surprising behaviors can be mitigated by enabling dependency resolution consistency.
 
 [[sec::project_dependency_resolution_consistency]]
 === Enabling project-local dependency resolution consistency
@@ -102,9 +103,9 @@ Then resolving the `compileClasspath` configuration would resolve the `groovy` l
 However, resolving the `runtimeClasspath` configuration would instead return `groovy 3.0.2`.
 
 The reason for this is that a transitive dependency of `vertx`, which is a `runtimeOnly` dependency, brings a higher version of `groovy`.
-In general, this isn't a problem but it also means that the version of the Groovy library that you are going to use at runtime is going to be different from the one that you used for compilation.
+In general, this isn't a problem, but it also means that the version of the Groovy library that you are going to use at runtime is going to be different from the one that you used for compilation.
 
-In order to avoid this situation, Gradle offers an API to explain that configurations should be resolved consitently.
+In order to avoid this situation, Gradle offers an API to explain that configurations should be resolved consistently.
 
 [[sec:configuration_consistency]]
 === Declaring resolution consistency between configurations
