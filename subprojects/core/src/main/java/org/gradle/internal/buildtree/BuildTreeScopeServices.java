@@ -80,11 +80,11 @@ public class BuildTreeScopeServices {
     }
 
     ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
-        return new WorkValidationWarningReporterImpl();
+        return new DefaultWorkValidationWarningReporter();
     }
 
-    private static class WorkValidationWarningReporterImpl implements ValidateStep.ValidationWarningReporter, Closeable {
-        private static final Logger LOGGER = LoggerFactory.getLogger(WorkValidationWarningReporterImpl.class);
+    private static class DefaultWorkValidationWarningReporter implements ValidateStep.ValidationWarningReporter, Closeable {
+        private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningReporter.class);
 
         private final AtomicInteger workWithFailuresCount = new AtomicInteger();
 
