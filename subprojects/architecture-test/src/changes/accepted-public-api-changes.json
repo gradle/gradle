@@ -15,6 +15,21 @@
             "changes": [
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
+        },{
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(java.lang.String,org.gradle.api.provider.Provider,kotlin.jvm.functions.Function1)",
+            "acceptation": "Bug in the binary compatiblity checker: https://github.com/gradle/gradle/issues/15448",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(java.lang.String,org.gradle.api.provider.Provider)",
+            "acceptation": "Bug in the binary compatiblity checker: https://github.com/gradle/gradle/issues/15448",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
         }
     ]
 }

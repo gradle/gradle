@@ -252,6 +252,31 @@ private constructor(
         addProvider(name, dependency)
 
     /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     * @param dependencyConfiguration the configuration to be applied to the dependency
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 6.9
+     */
+    @Incubating
+    operator fun String.invoke(dependency: Provider<*>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        addProvider(this, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param dependency the dependency provider to be added.
+     *
+     * @see [DependencyHandler.addProvider]
+     * @since 6.9
+     */
+    @Incubating
+    operator fun String.invoke(dependency: Provider<Any>) =
+        addProvider(this, dependency)
+
+    /**
      * Configures the dependencies.
      */
     inline operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
