@@ -21,7 +21,8 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import spock.lang.Unroll
 
-import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -31,10 +32,9 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @RunFor([
-        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject", "largeJavaMultiProject", "bigNative"],
-            iterationMatcher = "^clean assemble.*"),
-        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["withVerboseJUnit"],
-            iterationMatcher = "^cleanTest.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject"], iterationMatcher = "^clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "bigNative"], iterationMatcher = "^clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["withVerboseJUnit"], iterationMatcher = "^cleanTest.*")
     ])
     @Unroll
     def "#tasks with rich console"() {

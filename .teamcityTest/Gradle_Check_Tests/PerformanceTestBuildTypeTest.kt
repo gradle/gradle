@@ -48,9 +48,9 @@ class PerformanceTestBuildTypeTest {
                 functionalTests = listOf(
                     TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
                     TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)),
-                performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX)),
+                performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX)),
                 omitsSlowProjects = true),
-            PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX),
+            PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX),
             "Description",
             "performance",
             listOf("largeTestProject", "smallTestProject"),

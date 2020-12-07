@@ -20,11 +20,11 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 
-import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ['mediumSwiftMulti', 'bigSwiftApp'])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ['mediumSwiftMulti', 'bigSwiftApp'])
 )
 class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
