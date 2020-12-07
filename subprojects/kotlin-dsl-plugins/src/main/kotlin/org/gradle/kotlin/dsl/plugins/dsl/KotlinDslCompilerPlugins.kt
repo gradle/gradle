@@ -58,7 +58,6 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                         freeCompilerArgs += listOf(
                             KotlinCompilerArguments.javaParameters,
                             KotlinCompilerArguments.jsr305Strict,
-                            KotlinCompilerArguments.newInference,
                             KotlinCompilerArguments.samConversionForKotlinFunctions,
                             KotlinCompilerArguments.referencesToSyntheticJavaProperties
                         )
@@ -74,7 +73,6 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 object KotlinCompilerArguments {
     const val javaParameters = "-java-parameters"
     const val jsr305Strict = "-Xjsr305=strict"
-    const val newInference = "-XXLanguage:+NewInference"
     const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
     const val referencesToSyntheticJavaProperties = "-XXLanguage:+ReferencesToSyntheticJavaProperties"
 }

@@ -341,7 +341,6 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     languageVersion = LanguageVersion.KOTLIN_1_4,
     apiVersion = ApiVersion.KOTLIN_1_4,
     specificFeatures = mapOf(
-        LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
         LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED,
         LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED,
         LanguageFeature.SamConversionPerArgument to LanguageFeature.State.ENABLED,

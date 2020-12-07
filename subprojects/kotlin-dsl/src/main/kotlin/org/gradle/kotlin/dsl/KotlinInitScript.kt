@@ -65,7 +65,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-api-version", "1.4",
         "-jvm-target", "1.8",
         "-Xjsr305=strict",
-        "-XXLanguage:+NewInference",
         "-XXLanguage:+SamConversionForKotlinFunctions",
         "-XXLanguage:+ReferencesToSyntheticJavaProperties"
     ]
