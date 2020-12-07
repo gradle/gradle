@@ -19,7 +19,6 @@ package org.gradle.integtests.composite
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
 class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -483,7 +482,6 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         settingsPluginBuild.assertSettingsPluginApplied()
     }
 
-    @Ignore("The pluginManagement { includeBuild() } is not public and can't be used from Kotlin plugin yet, while the same syntax in Groovy precompiled plugins is not yet supported")
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "a build can depend on included library build that applies a project plugin that comes from an included settings plugin and depends on another included build"() {
         given:
@@ -510,7 +508,7 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         """)
         file("${settingsPluginBuild.buildName}/src/main/kotlin/${settingsPluginBuild.settingsPluginId}.settings.gradle.kts") << """
             pluginManagement {
-                includeBuild("../${projectPluginBuild.buildName}")
+                (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../${projectPluginBuild.buildName}")
             }
             println("${settingsPluginBuild.settingsPluginId} applied")
         """
