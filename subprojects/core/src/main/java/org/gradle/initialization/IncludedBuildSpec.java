@@ -24,11 +24,17 @@ import java.io.File;
 public class IncludedBuildSpec {
 
     public final File rootDir;
+    public final boolean pluginBuild;
     public final Action<? super ConfigurableIncludedBuild> configurer;
 
-    public IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
+    public IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer, boolean pluginBuild) {
         this.rootDir = rootDir;
         this.configurer = configurer;
+        this.pluginBuild = pluginBuild;
+    }
+
+    public IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
+        this(rootDir, configurer, false);
     }
 
 }

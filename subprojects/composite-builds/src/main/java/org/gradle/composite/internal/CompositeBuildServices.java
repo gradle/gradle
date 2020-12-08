@@ -26,7 +26,9 @@ import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
+import org.gradle.composite.internal.plugins.IncludedPluginBuildPluginResolverContributor;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
@@ -37,6 +39,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.plugin.use.resolve.internal.FallbackPluginResolverContributor;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
@@ -90,6 +93,10 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
 
         public PluginResolverContributor createPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
             return new CompositeBuildPluginResolverContributor(buildRegistry, consumingBuild);
+        }
+
+        public FallbackPluginResolverContributor createIncludedPluginBuildPluginResolver(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
+            return new IncludedPluginBuildPluginResolverContributor(buildRegistry, buildIncluder);
         }
     }
 

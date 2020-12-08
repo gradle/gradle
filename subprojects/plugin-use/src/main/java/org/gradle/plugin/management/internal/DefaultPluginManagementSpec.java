@@ -18,6 +18,11 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.internal.Actions;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.plugin.management.PluginResolutionStrategy;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginDependencySpec;
@@ -25,15 +30,27 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class DefaultPluginManagementSpec implements PluginManagementSpecInternal {
 
     private final PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final PluginDependenciesSpec pluginDependenciesSpec;
+    private final FileResolver fileResolver;
+    private final BuildIncluder buildIncluder;
+    private final GradleInternal gradle;
 
-    public DefaultPluginManagementSpec(PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider, PluginResolutionStrategyInternal pluginResolutionStrategy) {
+    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
+
+    public DefaultPluginManagementSpec(PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider, PluginResolutionStrategyInternal pluginResolutionStrategy, FileResolver fileResolver, BuildIncluder buildIncluder, GradleInternal gradle) {
         this.pluginRepositoryHandlerProvider = pluginRepositoryHandlerProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
+        this.fileResolver = fileResolver;
+        this.buildIncluder = buildIncluder;
+        this.gradle = gradle;
         this.pluginDependenciesSpec = new PluginDependenciesSpecImpl();
     }
 
@@ -65,6 +82,19 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
     @Override
     public PluginDependenciesSpec getPlugins() {
         return pluginDependenciesSpec;
+    }
+
+    @Override
+    public void includeBuild(String projectPath) {
+        File projectDir = fileResolver.resolve(projectPath);
+        IncludedBuildSpec buildSpec = new IncludedBuildSpec(projectDir, Actions.doNothing(), true);
+        includedBuildSpecs.add(buildSpec);
+        buildIncluder.registerPluginBuild(buildSpec, gradle);
+    }
+
+    @Override
+    public List<IncludedBuildSpec> getIncludedBuilds() {
+        return includedBuildSpecs;
     }
 
     private class PluginDependenciesSpecImpl implements PluginDependenciesSpec {

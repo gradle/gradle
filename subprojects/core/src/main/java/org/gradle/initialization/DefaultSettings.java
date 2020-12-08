@@ -19,10 +19,10 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
@@ -46,6 +46,7 @@ import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.management.internal.PluginManagementSpecInternal;
 import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;
@@ -71,7 +72,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
 
-    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
+    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
@@ -274,7 +275,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             this);
     }
 
-
     @Override
     public ClassLoaderScope getBaseClassLoaderScope() {
         return baseClassLoaderScope;
@@ -340,6 +340,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
         rule.execute(getPluginManagement());
+        includedBuildSpecs.addAll(((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds());
     }
 
     @Override

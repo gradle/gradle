@@ -32,6 +32,7 @@ public interface IncludedBuildState extends NestedBuildState, CompositeBuildPart
     String getName();
     File getRootDirectory();
     IncludedBuild getModel();
+    boolean isPluginBuild();
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
 
     SettingsInternal loadSettings();

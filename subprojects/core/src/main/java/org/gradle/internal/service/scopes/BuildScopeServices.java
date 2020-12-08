@@ -152,6 +152,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultPublicBuildPath;
@@ -159,6 +160,7 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
@@ -418,19 +420,17 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         SettingsProcessor settingsProcessor,
         BuildStateRegistry buildRegistry,
         ProjectStateRegistry projectRegistry,
-        PublicBuildPath publicBuildPath,
-        Instantiator instantiator,
         BuildLayoutFactory buildLayoutFactory,
-        GradlePropertiesController gradlePropertiesController
+        GradlePropertiesController gradlePropertiesController,
+        BuildIncluder buildIncluder
     ) {
         return new DefaultSettingsLoaderFactory(
             settingsProcessor,
             buildRegistry,
             projectRegistry,
-            publicBuildPath,
-            instantiator,
             buildLayoutFactory,
-            gradlePropertiesController
+            gradlePropertiesController,
+            buildIncluder
         );
     }
 
@@ -618,6 +618,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             scriptExecutionListener,
             instantiatorFactory.inject()
         );
+    }
+
+    protected BuildIncluder createBuildIncluder(BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+        return new DefaultBuildIncluder(buildRegistry, publicBuildPath, instantiator);
     }
 
 }

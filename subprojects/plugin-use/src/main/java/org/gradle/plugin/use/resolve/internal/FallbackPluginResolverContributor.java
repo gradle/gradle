@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.management.internal;
+package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.plugin.management.PluginManagementSpec;
+import java.util.Collection;
 
-import java.util.List;
-
-public interface PluginManagementSpecInternal extends PluginManagementSpec {
-
-    @Override
-    PluginResolutionStrategyInternal getResolutionStrategy();
-
-    void includeBuild(String projectPath);
-
-    List<IncludedBuildSpec> getIncludedBuilds();
+public interface FallbackPluginResolverContributor {
+    void collectResolversInto(Collection<PluginResolver> resolvers);
 }

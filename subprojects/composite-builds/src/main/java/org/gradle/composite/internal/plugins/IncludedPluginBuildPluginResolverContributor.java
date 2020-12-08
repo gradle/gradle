@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,30 @@
 
 package org.gradle.composite.internal.plugins;
 
-import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.resolve.internal.FallbackPluginResolverContributor;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class CompositeBuildPluginResolverContributor implements PluginResolverContributor {
+public class IncludedPluginBuildPluginResolverContributor implements FallbackPluginResolverContributor {
 
-    private static final String SOURCE_DESCRIPTION = "Included Builds";
+    private static final String SOURCE_DESCRIPTION = "Included Plugin Builds";
 
     private final PluginResolver resolver;
 
-    public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
-        this.resolver = new CompositeBuildPluginResolver(buildRegistry, consumingBuild);
+    public IncludedPluginBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
+        this.resolver = new IncludedPluginBuildPluginResolver(buildRegistry, buildIncluder);
     }
 
     @Override
@@ -47,44 +47,32 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         resolvers.add(resolver);
     }
 
-    private static class CompositeBuildPluginResolver implements PluginResolver {
+    private static class IncludedPluginBuildPluginResolver implements PluginResolver {
 
         private final BuildStateRegistry buildRegistry;
-        private final BuildState consumingBuild;
+        private final BuildIncluder buildIncluder;
 
         private final Map<PluginId, PluginResolution> results = new HashMap<>();
 
-        private CompositeBuildPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild) {
+        private IncludedPluginBuildPluginResolver(BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
             this.buildRegistry = buildRegistry;
-            this.consumingBuild = consumingBuild;
+            this.buildIncluder = buildIncluder;
         }
 
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-            if (buildRegistry.getIncludedBuilds().isEmpty()) {
-                return;
-            }
-
             PluginResolution resolution = results.computeIfAbsent(pluginRequest.getId(), this::resolvePluginFromIncludedBuilds);
             if (resolution != null) {
                 result.found(SOURCE_DESCRIPTION, resolution);
-            } else {
-                result.notFound(SOURCE_DESCRIPTION, "None of the included builds contain this plugin");
             }
         }
 
         private PluginResolution resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
-            for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-                if (build == consumingBuild || build.isImplicitBuild() || build.isPluginBuild()) {
-                    continue;
-                }
+            for (IncludedBuildState build : buildIncluder.includeRegisteredPluginBuilds()) {
+                buildRegistry.ensureConfigured(build);
+
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
-                    // TODO: once we are ready to publicize build logic build inclusion via pluginManagement {}
-                    /*DeprecationLogger.deprecateAction("Including builds that contribute Gradle plugins outside of pluginManagement {} block in settings file")
-                        .willBeRemovedInGradle8()
-                        .withUpgradeGuideSection(6, "included_builds_contributing_plugins")
-                        .nagUser();*/
                     return pluginResolution.get();
                 }
             }
