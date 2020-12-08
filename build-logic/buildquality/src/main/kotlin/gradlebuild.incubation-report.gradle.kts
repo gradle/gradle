@@ -15,6 +15,7 @@
  */
 
 import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.repoRoot
 import gradlebuild.incubation.tasks.IncubatingApiReportTask
 
 plugins {
@@ -25,8 +26,8 @@ val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {
     group = "verification"
     description = "Generates a report of incubating APIS"
     title.set(project.name)
-    versionFile.set(rootProject.file("version.txt"))
-    releasedVersionsFile.set(rootProject.file("released-versions.json"))
+    versionFile.set(repoRoot().file("version.txt"))
+    releasedVersionsFile.set(repoRoot().file("released-versions.json"))
     sources.from(sourceSets.main.get().java.sourceDirectories)
     htmlReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.html")))
     textReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.txt")))

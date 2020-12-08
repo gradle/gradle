@@ -176,6 +176,7 @@ abstract class AbstractBinaryCompatibilityTest {
      */
     private
     fun runBinaryCompatibilityCheck(v1: File.() -> Unit, v2: File.() -> Unit, block: CheckResult.() -> Unit = {}): CheckResult {
+        rootDir.withFile("version.txt", "1.0")
 
         val inputBuildDir = rootDir.withUniqueDirectory("input-build").apply {
 

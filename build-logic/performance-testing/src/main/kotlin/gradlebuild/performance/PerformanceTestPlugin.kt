@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.kotlindsl.selectStringProperties
 import gradlebuild.basics.kotlindsl.stringPropertyOrNull
+import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
@@ -168,7 +169,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         tasks.withType<PerformanceTestReport>().configureEach {
             classpath.from(performanceSourceSet.runtimeClasspath)
-            performanceResultsDirectory.set(project.rootProject.file("perf-results"))
+            performanceResultsDirectory.set(repoRoot().dir("perf-results"))
             reportDir.set(project.layout.buildDirectory.dir(this@configureEach.name))
             databaseParameters.set(project.propertiesForPerformanceDb())
             val moduleIdentity = project.the<ModuleIdentityExtension>()
@@ -182,13 +183,13 @@ class PerformanceTestPlugin : Plugin<Project> {
             classpath(performanceSourceSet.runtimeClasspath)
             mainClass.set("org.gradle.performance.results.PerformanceTestRuntimesGenerator")
             systemProperties(project.propertiesForPerformanceDb())
-            args(project.rootProject.file(".teamcity/performance-test-durations.json").absolutePath)
+            args(repoRoot().file(".teamcity/performance-test-durations.json").asFile.absolutePath)
             // Never up-to-date since it reads data from the database.
             outputs.upToDateWhen { false }
         }
 
-        val performanceScenarioJson = rootProject.file(".teamcity/performance-tests-ci.json")
-        val tmpPerformanceScenarioJson = buildDir.resolve("performance-tests-ci.json")
+        val performanceScenarioJson = repoRoot().file(".teamcity/performance-tests-ci.json").asFile
+        val tmpPerformanceScenarioJson = project.layout.buildDirectory.file("performance-tests-ci.json").get().asFile
         createGeneratePerformanceDefinitionJsonTask("writePerformanceScenarioDefinitions", performanceSourceSet, performanceScenarioJson)
         val writeTmpPerformanceScenarioDefinitions = createGeneratePerformanceDefinitionJsonTask("writeTmpPerformanceScenarioDefinitions", performanceSourceSet, tmpPerformanceScenarioJson)
 
@@ -443,7 +444,7 @@ class PerformanceTestExtension(
                 // Rename the json file specific per task, so we can copy multiple of those files from one build on Teamcity
                 rename(Config.performanceTestResultsJsonName, "perf-results-${performanceTest.name}.json")
             }
-            destinationDirectory.set(buildDir)
+            destinationDirectory.set(project.layout.buildDirectory)
             archiveFileName.set("test-results-${junitXmlDir.name}.zip")
         }
 }
@@ -460,7 +461,7 @@ fun Project.propertiesForPerformanceDb(): Map<String, String> =
 
 private
 fun Project.loadScenariosFromFile(testProject: String): List<String> {
-    val scenarioFile = project.rootProject.file("performance-test-splits/include-$testProject-performance-scenarios.csv")
+    val scenarioFile = repoRoot().file("performance-test-splits/include-$testProject-performance-scenarios.csv").asFile
     return if (scenarioFile.isFile)
         scenarioFile.readLines(StandardCharsets.UTF_8)
             .filter { it.isNotEmpty() }

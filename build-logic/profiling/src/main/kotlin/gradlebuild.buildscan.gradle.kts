@@ -128,7 +128,7 @@ fun extractCheckstyleAndCodenarcData() {
                 val checkstyle = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
                 val errors = checkstyle.getElementsByTag("file").flatMap { file ->
                     file.getElementsByTag("error").map { error ->
-                        val filePath = rootProject.relativePath(file.attr("name"))
+                        val filePath = project.relativePath(file.attr("name"))
                         "$filePath:${error.attr("line")}:${error.attr("column")} \u2192 ${error.attr("message")}"
                     }
                 }
@@ -141,7 +141,7 @@ fun extractCheckstyleAndCodenarcData() {
                 val errors = codenarc.getElementsByTag("Package").flatMap { codenarcPackage ->
                     codenarcPackage.getElementsByTag("File").flatMap { file ->
                         file.getElementsByTag("Violation").map { violation ->
-                            val filePath = rootProject.relativePath(file.attr("name"))
+                            val filePath = project.relativePath(file.attr("name"))
                             val message = violation.run {
                                 getElementsByTag("Message").first()
                                     ?: getElementsByTag("SourceLine").first()

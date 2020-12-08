@@ -16,6 +16,7 @@
 
 package gradlebuild.performance.tasks
 
+import gradlebuild.basics.repoRoot
 import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -56,7 +57,7 @@ abstract class BuildCommitDistribution : DefaultTask() {
 
     @TaskAction
     fun buildCommitDistribution() {
-        val rootProjectDir = project.rootProject.rootDir.absolutePath
+        val rootProjectDir = project.repoRoot().asFile.absolutePath
         val commit = commitBaseline.map { it.substring(it.lastIndexOf('-') + 1) }
         tryBuildDistribution(RemoteProject.checkout(this, rootProjectDir, commit.get()))
         println("Building the commit distribution succeeded, now the baseline is ${commitBaseline.get()}")

@@ -17,6 +17,7 @@
 package gradlebuild.integrationtests
 
 import gradlebuild.basics.kotlindsl.stringPropertyOrEmpty
+import gradlebuild.basics.repoRoot
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
@@ -28,15 +29,15 @@ import java.util.Properties
 
 
 fun Project.bucketProvider(): BuildBucketProvider {
-    if (!rootProject.extra.has("bucketProvider")) {
+    if (!rootProject.extra.has("bucketProvider")) { // TODO do not use 'extra' but a build service (https://github.com/gradle/gradle-private/issues/3141)
         rootProject.extra["bucketProvider"] = when {
             project.stringPropertyOrEmpty("includeTestClasses").isNotBlank() -> {
-                val content = project.rootProject.file("test-splits/include-test-classes.properties").readText()
+                val content = repoRoot().file("test-splits/include-test-classes.properties").asFile.readText()
                 println("Tests to be included:\n$content")
                 IncludeTestClassProvider(readTestClasses(content))
             }
             project.stringPropertyOrEmpty("excludeTestClasses").isNotBlank() -> {
-                val content = project.rootProject.file("test-splits/exclude-test-classes.properties").readText()
+                val content = repoRoot().file("test-splits/exclude-test-classes.properties").asFile.readText()
                 println("Tests to be excluded:\n$content")
                 ExcludeTestClassProvider(readTestClasses(content))
             }

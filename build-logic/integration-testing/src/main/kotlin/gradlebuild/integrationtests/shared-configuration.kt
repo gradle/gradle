@@ -138,7 +138,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         if (integTest.usesSamples.get()) {
             val samplesDir = layout.projectDirectory.dir("src/main")
             systemProperty("declaredSampleInputs", samplesDir.asFile.toString())
-            inputs.files(rootProject.files(samplesDir))
+            inputs.files(samplesDir)
                 .withPropertyName("autoTestedSamples")
                 .withPathSensitivity(PathSensitivity.RELATIVE)
         }

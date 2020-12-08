@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.CachesCleaner
 import gradlebuild.integrationtests.tasks.DistributionTest
 
@@ -22,12 +23,14 @@ plugins {
     id("gradlebuild.module-identity")
 }
 
-val intTestHomeDir = rootProject.layout.projectDirectory.dir("intTestHomeDir")
+val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
 val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
     parameters.gradleVersion.set(moduleIdentity.version.map { it.version })
     parameters.homeDir.set(intTestHomeDir)
 }
+
+fun Gradle.rootBuild(): Gradle = parent.let { it?.rootBuild() ?: this }
 
 tasks.withType<DistributionTest>().configureEach {
     shouldRunAfter("test")
@@ -46,12 +49,11 @@ fun executerRequiresFullDistribution(taskName: String) =
 
 fun DistributionTest.addSetUpAndTearDownActions() {
     cachesCleaner.set(cachesCleanerService)
-    tracker.set(gradle.sharedServices.registrations["daemonTracker"].service)
+    tracker.set(gradle.rootBuild().sharedServices.registrations["daemonTracker"].service)
 }
 
 fun DistributionTest.configureGradleTestEnvironment() {
     val taskName = name
-    val rootProjectDirectory = rootProject.layout.projectDirectory
 
     gradleInstallationForTest.apply {
         if (executerRequiresDistribution(taskName)) {
@@ -68,8 +70,8 @@ fun DistributionTest.configureGradleTestEnvironment() {
         gradleUserHomeDir.set(intTestHomeDir)
         // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
-        daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
-        gradleSnippetsDir.set(rootProjectDirectory.dir("subprojects/docs/src/snippets"))
+        daemonRegistry.set(repoRoot().dir("build/daemon"))
+        gradleSnippetsDir.set(repoRoot().dir("subprojects/docs/src/snippets"))
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts

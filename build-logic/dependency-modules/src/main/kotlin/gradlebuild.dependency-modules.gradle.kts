@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.repoRoot
 import gradlebuild.modules.extension.ExternalModulesExtension
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -86,13 +87,13 @@ fun applyAutomaticUpgradeOfCapabilities() {
 }
 
 fun readCapabilitiesFromJson() {
-    val extra = gradle.rootProject.extra
+    val extra = gradle.rootProject.extra // TODO do not use 'extra' but a build service (https://github.com/gradle/gradle-private/issues/3141) or do not use an external file here at all
     val capabilities: List<CapabilitySpec>
     if (extra.has("capabilities")) {
         @Suppress("unchecked_cast")
         capabilities = extra["capabilities"] as List<CapabilitySpec>
     } else {
-        val capabilitiesFile = gradle.rootProject.layout.projectDirectory.file("gradle/dependency-management/capabilities.json").asFile
+        val capabilitiesFile = repoRoot().file("gradle/dependency-management/capabilities.json").asFile
         capabilities = if (capabilitiesFile.exists()) {
             readCapabilities(capabilitiesFile)
         } else {
