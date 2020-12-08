@@ -20,8 +20,6 @@ import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.execution.DefaultWorkValidationWarningRecorder;
-import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
@@ -70,9 +68,5 @@ public class BuildTreeScopeServices {
 
     public DefaultProjectStateRegistry createProjectPathRegistry(WorkerLeaseService workerLeaseService) {
         return new DefaultProjectStateRegistry(workerLeaseService);
-    }
-
-    WorkValidationWarningReporter createValidationWarningReporter() {
-        return new DefaultWorkValidationWarningRecorder();
     }
 }

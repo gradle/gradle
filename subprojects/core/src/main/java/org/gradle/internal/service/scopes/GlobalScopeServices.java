@@ -49,6 +49,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
+import org.gradle.execution.DefaultWorkValidationWarningRecorder;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeListeners;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -316,5 +317,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     OverlappingOutputDetector createOverlappingOutputDetector() {
         return new DefaultOverlappingOutputDetector();
+    }
+
+    DefaultWorkValidationWarningRecorder createValidationWarningReporter() {
+        return new DefaultWorkValidationWarningRecorder();
     }
 }

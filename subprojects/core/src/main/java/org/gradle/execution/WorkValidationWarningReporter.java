@@ -17,5 +17,10 @@
 package org.gradle.execution;
 
 public interface WorkValidationWarningReporter {
-    void reportWorkValidationWarnings();
+    /**
+     * Reports any validation warnings at the end of the build.
+     *
+     * Resets the warning state for the next build.
+     */
+    void reportWorkValidationWarningsAtEndOfBuild();
 }

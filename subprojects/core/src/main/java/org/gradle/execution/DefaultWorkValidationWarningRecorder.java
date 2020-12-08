@@ -45,8 +45,8 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     }
 
     @Override
-    public void reportWorkValidationWarnings() {
-        int workWithFailures = workWithFailuresCount.get();
+    public void reportWorkValidationWarningsAtEndOfBuild() {
+        int workWithFailures = workWithFailuresCount.getAndSet(0);
         if (workWithFailures > 0) {
             LOGGER.warn("\nExecution optimizations have been disabled for {} invalid unit(s) of work during the build. Consult deprecation warnings for more information.", workWithFailures);
         }

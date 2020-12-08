@@ -57,7 +57,7 @@ public class BuildResultLogger {
         DeprecationLogger.reportSuppressedDeprecations();
 
         // Summary of validation warnings during the build
-        workValidationWarningReporter.reportWorkValidationWarnings();
+        workValidationWarningReporter.reportWorkValidationWarningsAtEndOfBuild();
 
         boolean buildSucceeded = result.getFailure() == null;
 
