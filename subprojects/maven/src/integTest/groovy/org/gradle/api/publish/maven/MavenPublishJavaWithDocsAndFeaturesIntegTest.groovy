@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 class MavenPublishJavaWithDocsAndFeaturesIntegTest extends AbstractMavenPublishJavaIntegTest {
@@ -26,6 +27,50 @@ class MavenPublishJavaWithDocsAndFeaturesIntegTest extends AbstractMavenPublishJ
 
     List<String> features() {
         [MavenJavaModule.MAIN_FEATURE, "feature2", "feature3"]
+    }
+
+    def "creates separate javadoc artifacts for the features"() {
+        features().each { featureName ->
+            def sourceSetName = featureName == MavenJavaModule.MAIN_FEATURE ? MavenJavaModule.MAIN_FEATURE : "${featureName}SourceSet"
+            def className = classNameForFeature(featureName)
+            file("src/${sourceSetName}/java/${className}.java").text = """
+                /**
+                 * This is my awesome implementation of the ${featureName} feature
+                 */
+                public class ${className} {
+                }
+            """
+        }
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        when:
+        // Run all javadoc tasks before the JAR tasks to expose that they output to the same location
+        run "javadoc", "feature2SourceSetJavadoc", "feature3SourceSetJavadoc", "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        features().each { featureName ->
+            def featurePostFix = featureName == MavenJavaModule.MAIN_FEATURE ? '' : "-${featureName}"
+            def javadocFile = file("build/libs/${javaLibrary.artifactId}-${javaLibrary.version}${featurePostFix}-javadoc.jar")
+            assert javadocFile.isFile()
+            def javadocContents = new ZipTestFixture(javadocFile)
+            javadocContents.assertContainsFile("${classNameForFeature(featureName)}.html")
+            features().findAll { it != featureName }.each { otherFeatureName ->
+                javadocContents.assertNotContainsFile("${classNameForFeature(otherFeatureName)}.html")
+            }
+        }
+    }
+
+    private static String classNameForFeature(String featureName) {
+        "MyClassFor${featureName.capitalize()}"
     }
 
 }
