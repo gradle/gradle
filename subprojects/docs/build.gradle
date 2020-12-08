@@ -555,6 +555,6 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
         def distributionName = testTask.classpath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
         ["-DintegTest.gradleHomeDir=${gradleHomeDir.singleFile}",
          "-DintegTest.samplesdir=${samplesdir.get().asFile}",
-         "-DintegTest.gradleUserHomeDir=${repoRoot().dir("intTestHomeDir/$distributionName").asFile}"]
+         "-DintegTest.gradleUserHomeDir=${repoRoot(project).dir("intTestHomeDir/$distributionName").asFile}"]
     }
 }
