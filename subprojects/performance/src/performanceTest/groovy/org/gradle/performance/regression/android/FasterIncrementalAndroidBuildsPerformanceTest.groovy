@@ -37,13 +37,13 @@ import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 
-import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
+import static org.gradle.performance.annotations.ScenarioType.PER_WEEK
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @RunFor(
-    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
+    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
 )
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.2"
@@ -79,7 +79,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     @RunFor([
-        @Scenario(type = EXPERIMENT, operatingSystems = [LINUX, MAC_OS, WINDOWS], testProjects = ["santaTrackerAndroidBuild"])
+        @Scenario(type = PER_WEEK, operatingSystems = [LINUX, MAC_OS, WINDOWS], testProjects = ["santaTrackerAndroidBuild"])
     ])
     def "file system watching baseline non-abi change (build comparison)"() {
         given:

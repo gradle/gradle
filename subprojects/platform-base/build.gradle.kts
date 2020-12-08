@@ -37,7 +37,7 @@ dependencies {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/**"))
+    excludePatterns.add("org/gradle/**")
 }
 
 integTest.usesSamples.set(true)

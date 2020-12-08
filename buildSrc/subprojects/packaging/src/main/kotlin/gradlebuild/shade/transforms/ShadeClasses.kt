@@ -25,7 +25,9 @@ import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -52,13 +54,13 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
 
     interface Parameters : TransformParameters {
         @get:Input
-        var shadowPackage: String
+        val shadowPackage: Property<String>
         @get:Input
-        var keepPackages: Set<String>
+        val keepPackages: SetProperty<String>
         @get:Input
-        var unshadedPackages: Set<String>
+        val unshadedPackages: SetProperty<String>
         @get:Input
-        var ignoredPackages: Set<String>
+        val ignoredPackages: SetProperty<String>
     }
 
     @get:PathSensitive(PathSensitivity.NONE)
@@ -72,7 +74,7 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
         val manifestFile = outputDirectory.resolve(manifestFileName)
         val buildReceiptFile = outputDirectory.resolve(BuildReceipt.buildReceiptFileName)
 
-        val classGraph = JarAnalyzer(parameters.shadowPackage, parameters.keepPackages, parameters.unshadedPackages, parameters.ignoredPackages).analyze(input.get().asFile, classesDir, manifestFile, buildReceiptFile)
+        val classGraph = JarAnalyzer(parameters.shadowPackage.get(), parameters.keepPackages.get(), parameters.unshadedPackages.get(), parameters.ignoredPackages.get()).analyze(input.get().asFile, classesDir, manifestFile, buildReceiptFile)
 
         outputDirectory.resolve(classTreeFileName).bufferedWriter().use {
             Gson().toJson(classGraph.getDependencies(), it)

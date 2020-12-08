@@ -265,10 +265,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         public File getFile() {
             return delegate.getFile();
         }
-
-        public DisplayName getTargetVariantName() {
-            return delegate.variantName;
-        }
     }
 
     private static class CollectionSpec implements Artifacts {

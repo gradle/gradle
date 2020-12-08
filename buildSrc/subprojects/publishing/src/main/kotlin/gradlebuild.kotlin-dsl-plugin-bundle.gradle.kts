@@ -32,10 +32,10 @@ tasks.validatePlugins.configure {
 
 // Remove gradleApi() and gradleTestKit() as we want to compile/run against Gradle modules
 // TODO consider splitting `java-gradle-plugin` to provide only what's necessary here
-afterEvaluate {
-    configurations.all {
-        dependencies.remove(project.dependencies.gradleApi())
-        dependencies.remove(project.dependencies.gradleTestKit())
+configurations.all {
+    withDependencies {
+        remove(project.dependencies.gradleApi())
+        remove(project.dependencies.gradleTestKit())
     }
 }
 

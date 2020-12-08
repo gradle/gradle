@@ -49,6 +49,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             get() = "bar"
             set(value) = Unit
 
+        operator fun String.invoke(p: String, block: String.() -> Unit) = Unit
+
     """
 
     private
@@ -105,6 +107,10 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             get() = "bar"
             set(value) = Unit
 
+        /** @since 2.0 */
+        @Incubating
+        operator fun String.invoke(p: String, block: String.() -> Unit) = Unit
+
     """
 
     @Test
@@ -137,6 +143,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "SourceKt.getBazarExt(int)"),
                 added("Method", "SourceKt.getBazool()"),
                 added("Method", "SourceKt.getBool()"),
+                added("Method", "SourceKt.invoke(java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)"),
                 added("Method", "SourceKt.isBool()"),
                 added("Method", "SourceKt.isFool()"),
                 added("Method", "SourceKt.setBazar(java.lang.String)"),
@@ -174,6 +181,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.getBazarExt(int)"),
                 newApi("Method", "SourceKt.getBazool()"),
                 newApi("Method", "SourceKt.getBool()"),
+                newApi("Method", "SourceKt.invoke(java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)"),
                 newApi("Method", "SourceKt.isBool()"),
                 newApi("Method", "SourceKt.isFool()"),
                 newApi("Method", "SourceKt.setBazar(java.lang.String)"),
@@ -216,6 +224,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.getBazarExt(int)"),
                 newApi("Method", "SourceKt.getBazool()"),
                 newApi("Method", "SourceKt.getBool()"),
+                newApi("Method", "SourceKt.invoke(java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)"),
                 newApi("Method", "SourceKt.isBool()"),
                 newApi("Method", "SourceKt.isFool()"),
                 newApi("Method", "SourceKt.setBazar(java.lang.String)"),
@@ -340,6 +349,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "Bar.getBazarExt(int)"),
                 added("Method", "Bar.getBazool()"),
                 added("Method", "Bar.getBool()"),
+                added("Method", "Bar.invoke(java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)"),
                 added("Method", "Bar.isBool()"),
                 added("Method", "Bar.isFool()"),
                 added("Method", "Bar.setBazar(java.lang.String)"),
@@ -387,6 +397,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "Bar.getBazarExt(int)"),
                 newApi("Method", "Bar.getBazool()"),
                 newApi("Method", "Bar.getBool()"),
+                newApi("Method", "Bar.invoke(java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)"),
                 newApi("Method", "Bar.isBool()"),
                 newApi("Method", "Bar.isFool()"),
                 newApi("Method", "Bar.setBazar(java.lang.String)"),

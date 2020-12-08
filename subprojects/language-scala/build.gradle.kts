@@ -53,8 +53,6 @@ strictCompile {
 }
 
 classycle {
-    excludePatterns.set(listOf(
-        "org/gradle/api/internal/tasks/scala/**",
-        "org/gradle/language/scala/internal/toolchain/**"))
+    excludePatterns.add("org/gradle/api/internal/tasks/scala/**")
+    excludePatterns.add("org/gradle/language/scala/internal/toolchain/**")
 }
-

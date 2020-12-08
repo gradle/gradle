@@ -17,10 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import spock.lang.Unroll
-
 
 abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -172,7 +170,6 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         [api, pathSensitivity] << [API.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
-    @ToBeFixedForConfigurationCache(because = "doesn't like FileCollection in transform parameters")
     def "artifact transforms are sensitive to empty directories by default"() {
         createParameterizedTransformWithSensitivity(DirectorySensitivity.DEFAULT)
         file('augmented').mkdir()
@@ -212,7 +209,6 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         assertTransformExecuted()
     }
 
-    @ToBeFixedForConfigurationCache(because = "doesn't like FileCollection in transform parameters")
     def "artifact transforms ignore empty directories when specified"() {
         createParameterizedTransformWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES)
         file('augmented').mkdir()
@@ -390,13 +386,13 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
 
                     System.out.println "Augmenting..."
                     fileSystemOperations.copy {
-                        from input
-                        into augmentedDir
+                        it.from input
+                        it.into augmentedDir
                     }
                     parameters.files.each { file ->
                         fileSystemOperations.copy {
-                            from(file)
-                            into(augmentedDir)
+                            it.from(file)
+                            it.into(augmentedDir)
                         }
                     }
                 }
@@ -483,7 +479,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
                 @Override
                 void transform(TransformOutputs outputs) {
                     File zippedFile = getZippedFile().get().getAsFile()
-                    File unzipDir = outputs.dir(zippedFile.getName())
+                    File unzipDir = outputs.dir(zippedFile.getName() + "/unzipped")
                     try {
                         unzipTo(zippedFile, unzipDir)
                     } catch (IOException e) {

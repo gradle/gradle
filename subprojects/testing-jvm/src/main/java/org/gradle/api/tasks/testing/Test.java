@@ -50,6 +50,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -1167,12 +1168,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 6.7
      */
     @Incubating
-    @Internal("getJavaVersion() is used as @Input")
+    @Nested
+    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
 
-    @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
             // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.

@@ -50,7 +50,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
     private final AtomicReference<Thread> ownerOfAllProjects = new AtomicReference<>();
-    private final Set<Thread> canDoAnythingToAnyProject = new CopyOnWriteArraySet<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -161,21 +160,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void allowUncontrolledAccessToAnyProject(Runnable runnable) {
-        allowUncontrolledAccessToAnyProject(Factories.toFactory(runnable));
-    }
-
-    @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        Thread currentThread = Thread.currentThread();
-        boolean added = canDoAnythingToAnyProject.add(currentThread);
-        try {
-            return factory.create();
-        } finally {
-            if (added) {
-                canDoAnythingToAnyProject.remove(currentThread);
-            }
-        }
+        return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
     }
 
     private class ProjectStateImpl implements ProjectState {
@@ -269,7 +255,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
             Thread currentThread = Thread.currentThread();
-            if (canDoAnythingToAnyProject.contains(currentThread) || canDoAnythingToThisProject.contains(currentThread)) {
+            if (workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || canDoAnythingToThisProject.contains(currentThread)) {
                 // Current thread is allowed to access anything at any time, so run the function
                 return function.apply(getMutableModel());
             }
@@ -327,7 +313,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public boolean hasMutableState() {
             Thread currentThread = Thread.currentThread();
-            return canDoAnythingToThisProject.contains(currentThread) || canDoAnythingToAnyProject.contains(currentThread) || ownerOfAllProjects.get() == currentThread || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            return canDoAnythingToThisProject.contains(currentThread) || workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || ownerOfAllProjects.get() == currentThread || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
 
         @Override

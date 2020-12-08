@@ -24,11 +24,11 @@ import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor([
-    @Scenario(type = TEST, operatingSystems = [LINUX],
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX],
         testProjects = ["largeJavaMultiProject", "largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"])
 ])
 class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {

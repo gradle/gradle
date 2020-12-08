@@ -60,6 +60,15 @@ public interface ProjectLeaseRegistry {
     void withoutProjectLock(Runnable action);
 
     /**
+     * Allows the given code to access the mutable state of any project, regardless of which other threads may be accessing the project.
+     *
+     * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
+     */
+    <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory);
+
+    boolean isAllowedUncontrolledAccessToAnyProject();
+
+    /**
      * Performs some blocking action. If the current thread is allowed to make changes to project locks, then release all locks
      * then run the action and reacquire any locks.
      * If the current thread is not allowed to make changes to the project locks (via {@link #whileDisallowingProjectLockChanges(Factory)},

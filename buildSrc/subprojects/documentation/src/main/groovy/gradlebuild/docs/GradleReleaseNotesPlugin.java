@@ -70,7 +70,6 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             MapProperty<String, String> replacementTokens = task.getReplacementTokens();
             replacementTokens.put("version", moduleIdentity.getVersion().map(GradleVersion::getVersion));
             replacementTokens.put("baseVersion", moduleIdentity.getVersion().map(v -> v.getBaseVersion().getVersion()));
-            replacementTokens.put("releaseDate", moduleIdentity.getBuildTimestamp());
 
             task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/release-notes.html"));
         });

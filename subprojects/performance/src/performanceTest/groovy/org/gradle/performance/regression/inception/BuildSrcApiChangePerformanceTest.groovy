@@ -25,11 +25,11 @@ import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 
-import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = SLOW, operatingSystems = [LINUX],
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX],
         testProjects = ["mediumMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
 )
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.resources.ResourceHandler
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -550,7 +551,6 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         where:
         type                             | reference                                                   | invocation
-        Logger.name                      | "logger"                                                    | "info('hi')"
         ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
@@ -558,6 +558,47 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         ArchiveOperations.name           | "project.services.get(${ArchiveOperations.name})"           | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
+    }
+
+
+    @Unroll
+    def "restores task fields whose value is an instance of #type"() {
+
+        buildFile << """
+            class SomeBean {
+                $type value
+            }
+
+            class SomeTask extends DefaultTask {
+                @Internal
+                final SomeBean bean = new SomeBean()
+                @Internal
+                $type value
+
+                @TaskAction
+                void run() {
+                    value.$invocation
+                    bean.value.$invocation
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = $reference
+                bean.value = $reference
+            }
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        type                 | reference   | invocation
+        Logger.name          | "logger"    | "info('hi')"
+        ResourceHandler.name | "resources" | "toString()"
     }
 
     @Unroll

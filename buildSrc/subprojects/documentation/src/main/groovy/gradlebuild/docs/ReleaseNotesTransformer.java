@@ -85,7 +85,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         wrapH2InSectionTopic(document);
         addAnchorsForHeadings(document);
-        document.body().prepend("<h3 class='releaseinfo'>Version @version@ (built @releaseDate@)</h3>");
+        document.body().prepend("<h3 class='releaseinfo'>Version @version@</h3>");
         document.body().prepend("<h1>Gradle Release Notes</h1>");
         addTOC(document);
         wrapContentInContainer(document);
