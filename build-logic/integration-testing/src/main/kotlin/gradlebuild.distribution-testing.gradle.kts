@@ -49,7 +49,9 @@ fun executerRequiresFullDistribution(taskName: String) =
 
 fun DistributionTest.addSetUpAndTearDownActions() {
     cachesCleaner.set(cachesCleanerService)
-    tracker.set(gradle.rootBuild().sharedServices.registrations["daemonTracker"].service)
+    gradle.rootBuild().sharedServices.registrations.findByName("daemonTracker")?.let {
+        tracker.set(it.service)
+    }
 }
 
 fun DistributionTest.configureGradleTestEnvironment() {

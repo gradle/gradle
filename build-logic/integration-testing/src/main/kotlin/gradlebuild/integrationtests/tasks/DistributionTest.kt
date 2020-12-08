@@ -128,9 +128,11 @@ abstract class DistributionTest : Test() {
     override fun executeTests() {
         cachesCleaner.get().cleanUpCaches()
 
-        val daemonTrackerService = tracker.get()
-        val testListener = daemonTrackerService.javaClass.getMethod("newDaemonListener").invoke(daemonTrackerService) as TestListener
-        addTestListener(testListener)
+        if (tracker.isPresent) {
+            val daemonTrackerService = tracker.get()
+            val testListener = daemonTrackerService.javaClass.getMethod("newDaemonListener").invoke(daemonTrackerService) as TestListener
+            addTestListener(testListener)
+        }
         super.executeTests()
     }
 }
