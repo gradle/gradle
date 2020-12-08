@@ -18,23 +18,35 @@ package org.gradle.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.internal.composite.ConfigurableIncludedPluginBuild;
+import org.gradle.internal.composite.DefaultConfigurableIncludedBuild;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
 public class IncludedBuildSpec {
 
     public final File rootDir;
-    public final boolean pluginBuild;
-    public final Action<? super ConfigurableIncludedBuild> configurer;
+    private final Action<? super ConfigurableIncludedBuild> configurer;
+    private final Class<? extends DefaultConfigurableIncludedBuild> configurableType;
 
-    public IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer, boolean pluginBuild) {
+    private IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer, Class<? extends DefaultConfigurableIncludedBuild> configurableType) {
         this.rootDir = rootDir;
         this.configurer = configurer;
-        this.pluginBuild = pluginBuild;
+        this.configurableType = configurableType;
     }
 
-    public IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
-        this(rootDir, configurer, false);
+    public static IncludedBuildSpec includedPluginBuild(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
+        return new IncludedBuildSpec(rootDir, configurer, ConfigurableIncludedPluginBuild.class);
     }
 
+    public static IncludedBuildSpec includedBuild(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
+        return new IncludedBuildSpec(rootDir, configurer, DefaultConfigurableIncludedBuild.class);
+    }
+
+    public DefaultConfigurableIncludedBuild configureSpec(Instantiator instantiator) {
+        DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(configurableType, rootDir);
+        configurer.execute(configurable);
+        return configurable;
+    }
 }

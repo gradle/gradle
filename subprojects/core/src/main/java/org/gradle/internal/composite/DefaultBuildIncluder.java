@@ -62,8 +62,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
     private BuildDefinition toBuildDefinition(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
         gradle.getOwner().assertCanAdd(includedBuildSpec);
 
-        DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
-        includedBuildSpec.configurer.execute(configurable);
+        DefaultConfigurableIncludedBuild configurable = includedBuildSpec.configureSpec(instantiator);
 
         return BuildDefinition.fromStartParameterForBuild(
             gradle.getStartParameter(),
@@ -72,8 +71,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
             PluginRequests.EMPTY,
             configurable.getDependencySubstitutionAction(),
             publicBuildPath,
-            includedBuildSpec.pluginBuild
+            configurable.isPluginBuild()
         );
     }
-
 }

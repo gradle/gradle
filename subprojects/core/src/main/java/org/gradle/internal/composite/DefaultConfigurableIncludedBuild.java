@@ -69,7 +69,11 @@ public class DefaultConfigurableIncludedBuild implements ConfigurableIncludedBui
         throw new IllegalStateException("IncludedBuild.task() cannot be used while configuring the included build");
     }
 
-    public Action<DependencySubstitutions> getDependencySubstitutionAction() {
+    Action<DependencySubstitutions> getDependencySubstitutionAction() {
         return dependencySubstitutionActions;
+    }
+
+    boolean isPluginBuild() {
+        return false;
     }
 }
