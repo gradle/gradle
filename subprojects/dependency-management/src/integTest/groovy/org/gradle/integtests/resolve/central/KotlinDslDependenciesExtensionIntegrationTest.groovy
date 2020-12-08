@@ -153,6 +153,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
                 }
             }
         """
+        withCheckDeps()
         buildKotlinFile << """
             plugins {
                 `java-library`
@@ -168,12 +169,9 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
                 }
             }
 
-            tasks.register("checkDeps") {
-                inputs.files(configurations.compileClasspath)
-                doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::name)
-                    assert(fileNames == listOf("lib-1.1.jar", "lib2-1.1.jar"))
-                }
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-1.1.jar", "lib2-1.1.jar"))
             }
         """
 
@@ -201,6 +199,9 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
                 }
             }
         """
+
+        withCheckDeps()
+        
         buildKotlinFile << """
             plugins {
                 `java-library`
@@ -216,12 +217,9 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
                 }
             }
 
-            tasks.register("checkDeps") {
-                inputs.files(configurations.compileClasspath)
-                doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::name)
-                    assert(fileNames == listOf("lib-1.1.jar", "lib2-1.1.jar"))
-                }
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-1.1.jar", "lib2-1.1.jar"))
             }
         """
 
@@ -233,5 +231,23 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
 
         then:
         succeeds ':checkDeps'
+    }
+
+    private void withCheckDeps() {
+        buildKotlinFile << """
+            abstract class CheckDeps: DefaultTask() {
+                @get:InputFiles
+                abstract val files: ConfigurableFileCollection
+
+                @get:Input
+                abstract val expected: ListProperty<String>
+
+                @TaskAction
+                fun verify() {
+                    val fileNames = files.files.map(File::name)
+                    assert(fileNames == expected.get()) { "Expected \${expected.get()} but got \$fileNames" }
+                }
+            }
+        """
     }
 }
