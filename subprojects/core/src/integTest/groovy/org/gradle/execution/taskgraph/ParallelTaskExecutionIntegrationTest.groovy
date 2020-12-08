@@ -472,6 +472,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             executer.expectDocumentedDeprecationWarning("Property 'invalidInput' has @Input annotation used on property of type 'File'. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
             executer.withFullDeprecationStackTraceDisabled()
 
@@ -489,6 +490,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             executer.expectDocumentedDeprecationWarning("Property 'invalidInput' has @Input annotation used on property of type 'File'. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
             executer.withFullDeprecationStackTraceDisabled()
 
