@@ -225,6 +225,9 @@ class ConfigurationCacheHost internal constructor(
             service<WorkerLeaseService>().currentWorkerLease
         )
 
+        override fun prepareBuild(includedBuild: IncludedBuildState) {
+        }
+
         private
         fun processSettings(): SettingsInternal {
             // Fire build operation required by build scans to determine build path (and settings execution time)
