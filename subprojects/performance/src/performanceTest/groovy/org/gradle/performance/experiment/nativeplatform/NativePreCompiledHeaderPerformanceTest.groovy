@@ -20,11 +20,11 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 
-import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
+import static org.gradle.performance.annotations.ScenarioType.PER_WEEK
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ["smallPCHNative", "mediumPCHNative", "bigPCHNative"])
+    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["smallPCHNative", "mediumPCHNative", "bigPCHNative"])
 )
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
 

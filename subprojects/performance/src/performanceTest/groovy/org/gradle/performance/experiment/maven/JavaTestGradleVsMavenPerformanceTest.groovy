@@ -23,7 +23,7 @@ import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
+import static org.gradle.performance.annotations.ScenarioType.PER_WEEK
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 /**
@@ -31,7 +31,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
  * sure we are always faster than Maven.
  */
 @RunFor(
-    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects =  ["mediumMonolithicJavaProject", "mediumJavaMultiProject"])
+    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects =  ["mediumMonolithicJavaProject", "mediumJavaMultiProject"])
 )
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 

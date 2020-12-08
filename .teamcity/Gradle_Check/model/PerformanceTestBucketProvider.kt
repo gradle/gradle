@@ -142,7 +142,7 @@ fun determineScenarioTestDurations(os: Os, performanceTestDurations: OperatingSy
 
 fun determineScenariosFor(performanceTestSpec: PerformanceTestSpec, performanceTestConfigurations: List<PerformanceTestConfiguration>): List<PerformanceScenario> {
     val performanceTestTypes = if (performanceTestSpec.performanceTestType in setOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection)) {
-        listOf(PerformanceTestType.test, PerformanceTestType.slow)
+        listOf(PerformanceTestType.per_commit, PerformanceTestType.per_day)
     } else {
         listOf(performanceTestSpec.performanceTestType)
     }
