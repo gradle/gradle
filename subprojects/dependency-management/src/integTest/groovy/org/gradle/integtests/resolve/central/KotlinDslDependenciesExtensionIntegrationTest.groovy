@@ -71,7 +71,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::name)
+                    val fileNames = configurations.compileClasspath.files.map(File::getName)
                     assert(fileNames == listOf("lib-1.1.jar"))
                 }
             }
