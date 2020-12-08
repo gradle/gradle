@@ -582,7 +582,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return null;
     }
 
-    @SuppressWarnings("RedundantIfStatement")
     private boolean tryAcquireLocksForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease, MutationInfo mutations) {
         if (!tryLockProjectFor(node)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
@@ -599,6 +598,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return false;
         } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             return false;
+        }
+        if (mutations.hasValidationProblem) {
+            invalidNodeRunning = true;
         }
         return true;
     }
@@ -657,7 +659,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 // Invalid work is not allowed to run together with any other work
                 return false;
             }
-            invalidNodeRunning = true;
         } else if (invalidNodeRunning) {
             // No new work should be started when invalid work is running
             return false;
