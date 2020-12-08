@@ -773,7 +773,7 @@ class DependencyManagementBuildScopeServices {
             OutputSnapshotter outputSnapshotter,
             OverlappingOutputDetector overlappingOutputDetector,
             TimeoutHandler timeoutHandler,
-            ValidateStep.ValidationWarningReporter validationWarningReporter,
+            ValidateStep.ValidationWarningRecorder validationWarningRecorder,
             VirtualFileSystem virtualFileSystem
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
@@ -785,7 +785,7 @@ class DependencyManagementBuildScopeServices {
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, inputFingerprinter, outputSnapshotter, overlappingOutputDetector,
             new NoOpCachingStateStep(
             new ResolveChangesStep<>(changeDetector,

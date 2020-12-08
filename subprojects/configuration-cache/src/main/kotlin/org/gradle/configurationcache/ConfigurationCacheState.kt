@@ -335,6 +335,7 @@ class ConfigurationCacheState(
             writeString(name!!)
             writeFile(buildRootDir)
             write(fromBuild)
+            writeBoolean(isPluginBuild())
         }
     }
 
@@ -343,13 +344,15 @@ class ConfigurationCacheState(
         val includedBuildName = readString()
         val includedBuildRootDir = readFile()
         val fromBuild = readNonNull<PublicBuildPath>()
+        val pluginBuild = readBoolean()
         return BuildDefinition.fromStartParameterForBuild(
             parentBuild.gradle.startParameter,
             includedBuildName,
             includedBuildRootDir,
             PluginRequests.EMPTY,
             Actions.doNothing(),
-            fromBuild
+            fromBuild,
+            pluginBuild
         )
     }
 

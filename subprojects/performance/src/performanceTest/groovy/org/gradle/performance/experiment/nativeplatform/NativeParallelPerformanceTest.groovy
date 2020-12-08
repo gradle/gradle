@@ -20,11 +20,11 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 
-import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
+import static org.gradle.performance.annotations.ScenarioType.PER_WEEK
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = EXPERIMENT, operatingSystems = [LINUX], testProjects = ['smallNative', 'mediumNative', 'bigNative', 'multiNative'])
+    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ['smallNative', 'mediumNative', 'bigNative', 'multiNative'])
 )
 class NativeParallelPerformanceTest extends AbstractCrossBuildPerformanceTest {
 

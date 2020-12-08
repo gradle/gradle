@@ -138,7 +138,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             buildDirectory,
             resolver.resolveAll(spec.getInjectedPlugins()),
             Actions.doNothing(),
-            publicBuildPath
+            publicBuildPath,
+            false
         );
     }
 

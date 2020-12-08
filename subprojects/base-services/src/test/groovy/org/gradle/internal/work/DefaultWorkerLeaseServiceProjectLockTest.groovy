@@ -337,6 +337,17 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         then:
         def e = thrown(IllegalStateException)
         e.message == "This thread may not acquire more locks."
+
+        when:
+        workerLeaseService.whileDisallowingProjectLockChanges {
+            workerLeaseService.whileDisallowingProjectLockChanges {}
+            workerLeaseService.withLocks([projectLock]) {
+            }
+        }
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "This thread may not acquire more locks."
     }
 
     def "fails when attempting to release a project lock and changes are disallowed"() {
@@ -369,7 +380,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         }
     }
 
-    def "releases project locks in blocking action when changes to locks are sallowed"() {
+    def "releases and reacquires project locks in blocking action when changes to locks are allowed"() {
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         expect:
@@ -379,6 +390,36 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                 assert !lockIsHeld(projectLock)
             }
             assert lockIsHeld(projectLock)
+        }
+    }
+
+    def "thread can be granted uncontrolled access to any project"() {
+        expect:
+        !workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
+        def result = workerLeaseService.allowUncontrolledAccessToAnyProject {
+            assert workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
+            workerLeaseService.allowUncontrolledAccessToAnyProject {
+                assert workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
+            }
+            assert workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
+            "result"
+        }
+        result == "result"
+        !workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
+    }
+
+    def "does not release project locks in blocking action when thread has uncontrolled access to any project"() {
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        expect:
+        workerLeaseService.withLocks([projectLock]) {
+            workerLeaseService.allowUncontrolledAccessToAnyProject {
+                assert lockIsHeld(projectLock)
+                workerLeaseService.blocking {
+                    assert lockIsHeld(projectLock)
+                }
+                assert lockIsHeld(projectLock)
+            }
         }
     }
 

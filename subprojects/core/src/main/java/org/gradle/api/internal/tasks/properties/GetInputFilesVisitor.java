@@ -41,14 +41,16 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitInputFileProperty(final String propertyName,
-                                       boolean optional,
-                                       boolean skipWhenEmpty,
-                                       DirectorySensitivity directorySensitivity,
-                                       boolean incremental,
-                                       @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                                       PropertyValue value,
-                                       InputFilePropertyType filePropertyType) {
+    public void visitInputFileProperty(
+        final String propertyName,
+        boolean optional,
+        boolean skipWhenEmpty,
+        DirectorySensitivity directorySensitivity,
+        boolean incremental,
+        @Nullable Class<? extends FileNormalizer> fileNormalizer,
+        PropertyValue value,
+        InputFilePropertyType filePropertyType
+    ) {
         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,

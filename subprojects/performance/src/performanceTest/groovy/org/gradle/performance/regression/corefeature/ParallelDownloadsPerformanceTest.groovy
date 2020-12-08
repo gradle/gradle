@@ -34,11 +34,11 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicInteger
 
-import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = SLOW, operatingSystems = [LINUX], testProjects = ["springBootApp"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["springBootApp"])
 )
 class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
     File tmpRepoDir = temporaryFolder.createDir('repository')

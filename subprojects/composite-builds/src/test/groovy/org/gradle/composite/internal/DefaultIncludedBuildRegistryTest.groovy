@@ -269,7 +269,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
             rootDir,
             PluginRequests.EMPTY,
             Actions.doNothing(),
-            null
+            null,
+            false
         )
     }
 

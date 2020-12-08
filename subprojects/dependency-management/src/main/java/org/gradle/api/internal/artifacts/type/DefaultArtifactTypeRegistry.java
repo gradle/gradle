@@ -51,19 +51,28 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     }
 
     @Override
-    public void visitArtifactTypes(Consumer<String> action) {
-        Set<String> seen = new HashSet<>();
+    public void visitArtifactTypes(Consumer<? super ImmutableAttributes> action) {
+        Set<ImmutableAttributes> seen = new HashSet<>();
+
         if (artifactTypeDefinitions != null) {
             for (ArtifactTypeDefinition artifactTypeDefinition : artifactTypeDefinitions) {
-                seen.add(artifactTypeDefinition.getName());
-                action.accept(artifactTypeDefinition.getName());
+                ImmutableAttributes attributes = ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
+                attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_FORMAT, artifactTypeDefinition.getName()), attributes);
+                if (seen.add(attributes)) {
+                    action.accept(attributes);
+                }
             }
         }
+
         for (ArtifactTransformRegistration transform : transformRegistry.getTransforms()) {
-            String format = transform.getFrom().getAttribute(ARTIFACT_FORMAT);
-            // Not a directory and some format that is not already registered
-            if (format != null && !format.equals(ArtifactTypeDefinition.DIRECTORY_TYPE) && seen.add(format)) {
-                action.accept(format);
+            AttributeContainerInternal sourceAttributes = transform.getFrom();
+            String format = sourceAttributes.getAttribute(ARTIFACT_FORMAT);
+            // Some format that is not already registered
+            if (format != null) {
+                ImmutableAttributes attributes = sourceAttributes.asImmutable();
+                if (seen.add(attributes)) {
+                    action.accept(attributes);
+                }
             }
         }
     }

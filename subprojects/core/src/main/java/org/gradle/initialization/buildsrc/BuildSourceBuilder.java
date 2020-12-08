@@ -96,7 +96,8 @@ public class BuildSourceBuilder {
             buildSrcDir,
             PluginRequests.EMPTY,
             Actions.doNothing(),
-            publicBuildPath
+            publicBuildPath,
+            true
         );
         assert buildSrcStartParameter.getBuildFile() == null;
 

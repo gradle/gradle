@@ -1,5 +1,3 @@
-import gradlebuild.cleanup.WhenNotEmpty
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -36,8 +34,4 @@ dependencies {
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
 }

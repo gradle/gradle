@@ -51,16 +51,13 @@ tasks.registerCITestDistributionLifecycleTasks()
 fun configureCompile() {
     java.targetCompatibility = JavaVersion.VERSION_1_8
     java.sourceCompatibility = JavaVersion.VERSION_1_8
-    afterEvaluate {
-        val jdkForCompilation = buildJvms.compileJvm.get()
 
-        tasks.withType<JavaCompile>().configureEach {
-            configureCompileTask(this, options, jdkForCompilation)
-        }
-        tasks.withType<GroovyCompile>().configureEach {
-            groovyOptions.encoding = "utf-8"
-            configureCompileTask(this, options, jdkForCompilation)
-        }
+    tasks.withType<JavaCompile>().configureEach {
+        configureCompileTask(this, options, buildJvms.compileJvm.get())
+    }
+    tasks.withType<GroovyCompile>().configureEach {
+        groovyOptions.encoding = "utf-8"
+        configureCompileTask(this, options, buildJvms.compileJvm.get())
     }
     addCompileAllTask()
 }
@@ -69,13 +66,12 @@ fun configureSourcesVariant() {
     java {
         withSourcesJar()
     }
-    val implementation by configurations
 
     @Suppress("unused_variable")
     val transitiveSourcesElements by configurations.creating {
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(implementation)
+        extendsFrom(configurations.implementation.get())
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))

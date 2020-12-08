@@ -63,8 +63,8 @@ class DefaultTransformerCodec(
             val inputArtifactNormalizer = readClassOf<FileNormalizer>()
             val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
             val isCacheable = readBoolean()
-            val directorySensitivity = readEnum<DirectorySensitivity>()
-            val dependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
+            val inputArtifactDirectorySensitivity = readEnum<DirectorySensitivity>()
+            val inputArtifactDependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
             val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransformer.IsolatedParameters, DefaultTransformer.IsolateTransformerParameters>>()
             DefaultTransformer(
                 implementationClass,
@@ -76,8 +76,8 @@ class DefaultTransformerCodec(
                 fileLookup,
                 actionScheme.instantiationScheme,
                 isolate.owner.service(ServiceRegistry::class.java),
-                directorySensitivity,
-                dependenciesDirectorySensitivity
+                inputArtifactDirectorySensitivity,
+                inputArtifactDependenciesDirectorySensitivity
             )
         }
     }

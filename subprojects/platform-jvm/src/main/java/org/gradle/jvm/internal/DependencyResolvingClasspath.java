@@ -151,7 +151,7 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
             }
 
             @Override
-            public void visitArtifactTypes(Consumer<String> action) {
+            public void visitArtifactTypes(Consumer<? super ImmutableAttributes> action) {
                 throw new UnsupportedOperationException();
             }
 

@@ -16,6 +16,7 @@
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.
@@ -46,8 +47,9 @@ plugins.withId("java-base") {
             }
         }
     }
-    afterEvaluate {
-        configurations.all {
+    configurations.all {
+        // TODO we should be able to solve this only by requesting attributes for artifacts - https://github.com/gradle/gradle/issues/11831#issuecomment-580686994
+        (this as ConfigurationInternal).beforeLocking {
             // everywhere where we resolve, prefer the minified version
             if (isCanBeResolved && !isCanBeConsumed && name != "currentApiClasspath") {
                 attributes.attribute(minified, true)

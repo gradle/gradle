@@ -51,6 +51,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
@@ -126,6 +127,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public <T, U extends ExternalModuleDependency> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration) {
         doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation, closureOf(configuration));
+    }
+
+    @Override
+    public <T> void addProvider(String configurationName, Provider<T> dependencyNotation) {
+        addProvider(configurationName, dependencyNotation, Actions.doNothing());
     }
 
     @SuppressWarnings("ConstantConditions")

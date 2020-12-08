@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.initialization.resolve;
 
-package gradlebuild.cleanup
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 
-
-enum class WhenNotEmpty {
-    /** Fail the build when files are found */
-    FAIL,
-    /** Report only that files were found */
-    REPORT;
+/**
+ * The container for declaring version catalogs
+ *
+ * @since 6.9
+ */
+@Incubating
+public interface MutableVersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {
 }

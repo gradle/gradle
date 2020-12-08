@@ -22,4 +22,12 @@ import org.gradle.util.Path;
 
 public interface IncludedBuildFactory {
     IncludedBuildState createBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner);
+
+    /**
+     * Should be called after the build is included and any listeners notified
+     * This ensures that the required classloaders are created in the right order which is required for configuration cache
+     */
+    default void prepareBuild(IncludedBuildState includedBuild) {
+        includedBuild.loadSettings();
+    }
 }

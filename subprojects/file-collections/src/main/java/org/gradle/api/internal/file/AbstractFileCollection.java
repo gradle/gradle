@@ -76,7 +76,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     /**
-     * This is final - override {@link #appendContents(TreeFormatter)}  instead.
+     * This is final - override {@link #appendContents(TreeFormatter)}  instead to add type specific content.
      */
     @Override
     public final TreeFormatter describeContents(TreeFormatter formatter) {

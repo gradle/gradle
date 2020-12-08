@@ -24,7 +24,7 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
-    def warningReporter = Mock(ValidateStep.ValidationWarningReporter)
+    def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
     def delegateResult = Mock(Result)
@@ -95,7 +95,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
         }
 
         then:
-        1 * warningReporter.reportValidationWarning(expectedWarning)
+        1 * warningReporter.recordValidationWarnings(work, { warnings -> warnings == [expectedWarning] })
         1 * virtualFileSystem.invalidateAll()
 
         then:
@@ -115,7 +115,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
         }
 
         then:
-        1 * warningReporter.reportValidationWarning("Type '$Object.simpleName': Validation warning.")
+        1 * warningReporter.recordValidationWarnings(work, { warnings -> warnings == ["Type '$Object.simpleName': Validation warning."]})
 
         then:
         def ex = thrown WorkValidationException

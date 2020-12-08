@@ -23,12 +23,12 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 
-import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @RunFor(
-    @Scenario(type = SLOW, operatingSystems = [LINUX, WINDOWS], testProjects = ["largeJavaMultiProject"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX, WINDOWS], testProjects = ["largeJavaMultiProject"])
 )
 class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 

@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.initialization.resolve;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
+package gradlebuild.testcleanup.extension
 
-/**
- * The container for declaring version catalogs
- *
- * @since 6.9
- */
-@Incubating
-public interface VersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {
+import org.gradle.api.provider.Property
+
+
+abstract class TestFileCleanUpExtension {
+    abstract val reportOnly: Property<Boolean>
 }

@@ -211,14 +211,16 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
 
         @Override
-        public void visitInputFileProperty(String propertyName,
-                                           boolean optional,
-                                           boolean skipWhenEmpty,
-                                           DirectorySensitivity directorySensitivity,
-                                           boolean incremental,
-                                           @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                                           PropertyValue value,
-                                           InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(
+            String propertyName,
+            boolean optional,
+            boolean skipWhenEmpty,
+            DirectorySensitivity directorySensitivity,
+            boolean incremental,
+            @Nullable Class<? extends FileNormalizer> fileNormalizer,
+            PropertyValue value,
+            InputFilePropertyType filePropertyType
+        ) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;
         }

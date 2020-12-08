@@ -18,7 +18,6 @@ plugins {
     id("gradlebuild.lifecycle")                  // CI: Add lifecycle tasks to for the CI pipeline (currently needs to be applied early as it might modify global properties)
     id("gradlebuild.generate-subprojects-info")  // CI: Generate subprojects information for the CI testing pipeline fan out
     id("gradlebuild.cleanup")                    // CI: Advanced cleanup after the build (like stopping daemons started by tests)
-    id("gradlebuild.ci-reporting")               // CI: Prepare reports to be uploaded to TeamCity
 
     id("gradlebuild.buildscan")                  // Reporting: Add more data through custom tags to build scans
 

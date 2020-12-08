@@ -20,7 +20,7 @@ import com.google.common.collect.Interners;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
-import org.gradle.api.initialization.resolve.VersionCatalogContainer;
+import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainObjectContainer<VersionCatalogBuilder> implements VersionCatalogContainer {
+public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainObjectContainer<VersionCatalogBuilder> implements MutableVersionCatalogContainer {
     private static final String VALID_EXTENSION_NAME = "[a-z]([a-zA-Z0-9])+";
     private static final Pattern VALID_EXTENSION_PATTERN = Pattern.compile(VALID_EXTENSION_NAME);
 
@@ -96,7 +96,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
 
     @Override
     public TypeOf<?> getPublicType() {
-        return typeOf(VersionCatalogContainer.class);
+        return typeOf(MutableVersionCatalogContainer.class);
     }
 
     void setPlugins(PluginDependenciesSpec plugins) {

@@ -29,7 +29,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
     BuildTestFile buildC
 
     MavenModule publishedModuleB
-    List arguments = []
     TestFile buildBjar
 
     def setup() {

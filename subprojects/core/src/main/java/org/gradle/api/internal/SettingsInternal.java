@@ -26,6 +26,7 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.internal.management.DependencyResolutionManagementInternal;
 
 import java.io.File;
 import java.util.List;
@@ -70,4 +71,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
     BuildCacheConfigurationInternal getBuildCache();
 
     void preventFromFurtherMutation();
+
+    DependencyResolutionManagementInternal getDependencyResolutionManagement();
 }
