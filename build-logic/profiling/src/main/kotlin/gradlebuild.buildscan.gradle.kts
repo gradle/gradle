@@ -45,9 +45,12 @@ val tcBuildTypeName = "tcBuildType"
 
 val cacheMissTagged = AtomicBoolean(false)
 
-val buildScan = the<BuildScanExtension>() // we can not use plugin {} because this is registered by a settings plugin
+// We can not use plugin {} because this is registered by a settings plugin.
+// We do 'findByType' to make this script compile in pre-compiled script compilation.
+// TODO to avoid the above, turn this into a settings plugin
+val buildScan = extensions.findByType<BuildScanExtension>()
 inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
-    buildScan.apply(configure)
+    buildScan?.apply(configure)
 }
 
 extractCiData()
@@ -60,7 +63,7 @@ if (isCiServer) {
 }
 
 if (project.testDistributionEnabled()) {
-    buildScan.tag("TEST_DISTRIBUTION")
+    buildScan?.tag("TEST_DISTRIBUTION")
 }
 
 extractCheckstyleAndCodenarcData()
@@ -68,13 +71,13 @@ extractCheckstyleAndCodenarcData()
 extractWatchFsData()
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
-    buildScan.tag("SYNC")
+    buildScan?.tag("SYNC")
 }
 
 fun monitorUnexpectedCacheMisses() {
     gradle.taskGraph.afterTask {
         if (buildCacheEnabled() && isCacheMiss() && isNotTaggedYet()) {
-            buildScan.tag("CACHE_MISS")
+            buildScan?.tag("CACHE_MISS")
         }
     }
 }
@@ -133,7 +136,7 @@ fun extractCheckstyleAndCodenarcData() {
                     }
                 }
 
-                errors.forEach { buildScan.value("Checkstyle Issue", it) }
+                errors.forEach { buildScan?.value("Checkstyle Issue", it) }
             }
 
             if (this is CodeNarc && reports.xml.destination.exists()) {
@@ -151,7 +154,7 @@ fun extractCheckstyleAndCodenarcData() {
                     }
                 }
 
-                errors.forEach { buildScan.value("CodeNarc Issue", it) }
+                errors.forEach { buildScan?.value("CodeNarc Issue", it) }
             }
         }
     }
@@ -192,7 +195,7 @@ fun Project.extractWatchFsData() {
     }
 }
 
-open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension) : BuildOperationListener {
+open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension?) : BuildOperationListener {
 
     override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
     }
@@ -205,13 +208,13 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
             is RunBuildBuildOperationType.Result -> buildOperationListenerManager.removeListener(this)
             is BuildFinishedFileSystemWatchingBuildOperationType.Result -> {
                 if (result.isWatchingEnabled) {
-                    buildScan.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    buildScan?.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
                     result.statistics?.let {
-                        buildScan.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
-                        buildScan.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
-                        buildScan.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
-                        buildScan.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
-                        buildScan.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
+                        buildScan?.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
+                        buildScan?.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
+                        buildScan?.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
+                        buildScan?.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
+                        buildScan?.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
                     }
                 }
             }
@@ -233,7 +236,7 @@ fun Project.extractAllReportsFromCI() {
                         if (report.destination.isDirectory) "report-${project.name}-${report.destination.name}.zip"
                         else "report-${project.name}-${report.destination.parentFile.name}-${report.destination.name}"
                     val reportLink = "$basePath/$reportPath"
-                    buildScan.link(linkName, reportLink)
+                    buildScan?.link(linkName, reportLink)
                 }
         }
     }
