@@ -222,12 +222,15 @@ class PerformanceTestPlugin : Plugin<Project> {
             this.reportGeneratorClass.set(reportGeneratorClass)
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
-        performanceTestReport.configure {
+        performanceTestReport {
             finalizedBy(performanceTestReportZipTask)
         }
-        project.tasks.named<Delete>("clean${name.capitalize()}") {
-            delete(performanceTestReport)
-            dependsOn("clean${performanceTestReportZipTask.name.capitalize()}")
+        tasks.withType<Delete>().configureEach {
+            if (name == "clean${name.capitalize()}") {
+                // do not use 'tasks.named("clean...")' because that realizes the base task to apply the clean rule
+                delete(performanceTestReport)
+                dependsOn("clean${performanceTestReportZipTask.name.capitalize()}")
+            }
         }
         return performanceTestReport
     }
@@ -415,9 +418,12 @@ class PerformanceTestExtension(
         performanceTest.configure {
             finalizedBy(testResultsZipTask)
         }
-        project.tasks.named<Delete>("clean${name.capitalize()}") {
-            delete(performanceTest)
-            dependsOn("clean${testResultsZipTask.name.capitalize()}")
+        project.tasks.withType<Delete>().configureEach {
+            // do not use 'tasks.named("clean...")' because that realizes the base task to apply the clean rule
+            if (name == "clean${name.capitalize()}") {
+                delete(performanceTest)
+                dependsOn("clean${testResultsZipTask.name.capitalize()}")
+            }
         }
         return performanceTest
     }
