@@ -106,13 +106,13 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
         dependsOn(
             gradle.includedBuild("build-logic-commons").task(":check"),
             gradle.includedBuild("build-logic").task(":check"),
-            ":docs:checkstyleApi",
-            ":internal-build-reports:allIncubationReportsZip",
-            ":architecture-test:checkBinaryCompatibility",
-            ":docs:javadocAll",
-            ":architecture-test:test",
-            ":tooling-api:toolingApiShadedJar",
-            ":performance:verifyPerformanceScenarioDefinitions",
+            gradle.includedBuild("subprojects").task(":docs:checkstyleApi"),
+            gradle.includedBuild("subprojects").task(":internal-build-reports:allIncubationReportsZip"),
+            gradle.includedBuild("subprojects").task(":architecture-test:checkBinaryCompatibility"),
+            gradle.includedBuild("subprojects").task(":docs:javadocAll"),
+            gradle.includedBuild("subprojects").task(":architecture-test:test"),
+            gradle.includedBuild("subprojects").task(":tooling-api:toolingApiShadedJar"),
+            gradle.includedBuild("subprojects").task(":performance:verifyPerformanceScenarioDefinitions"),
             ":checkSubprojectsInfo"
         )
     }
