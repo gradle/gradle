@@ -753,13 +753,15 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         invalidTaskNode.task == first
-        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == first }) >> true
+        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == first }) >> true
+        0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
         def noTaskSelected = selectNextTask()
         then:
         noTaskSelected == null
-        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == second }) >> false
+        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == second }) >> false
+        0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
         executionPlan.finishedExecuting(invalidTaskNode)
@@ -779,13 +781,15 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         validTaskNode.task == first
-        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == first }) >> false
+        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == first }) >> false
+        0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
         def noTaskSelected = selectNextTask()
         then:
         noTaskSelected == null
-        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == second }) >> true
+        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == second }) >> true
+        0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
         executionPlan.finishedExecuting(validTaskNode)
@@ -813,7 +817,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         firstTaskNode.state == Node.ExecutionState.EXECUTING
         firstTaskNode.task == broken
-        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == broken }) >> false
+        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == broken }) >> false
         0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
@@ -824,7 +828,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         secondTaskNode.state == Node.ExecutionState.SKIPPED
         secondTaskNode.task == invalid
         _ * broken.state >> brokenState
-        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == invalid }) >> true
+        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == invalid }) >> true
         0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
@@ -833,7 +837,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         thirdTaskNode.state == Node.ExecutionState.EXECUTING
         thirdTaskNode.task == regular
-        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == regular }) >> false
+        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == regular }) >> false
         0 * nodeValidator.hasValidationProblems(_ as Node)
     }
 
