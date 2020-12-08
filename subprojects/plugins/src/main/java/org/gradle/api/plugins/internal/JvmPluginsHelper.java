@@ -102,10 +102,6 @@ public class JvmPluginsHelper {
         Configuration compileOnlyConfiguration = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         compileOnlyConfiguration.extendsFrom(compileOnlyApiConfiguration);
 
-        @SuppressWarnings("deprecation")
-        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
-        apiConfiguration.extendsFrom(compileConfiguration);
-
         return apiConfiguration;
     }
 

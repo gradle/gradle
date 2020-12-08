@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.spockframework.util.TextUtil
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -33,6 +34,7 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.core.StringContains.containsString
 
 @UnsupportedWithConfigurationCache(because = "legacy maven plugin")
+@Ignore("Maven plugin is going to be removed")
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 

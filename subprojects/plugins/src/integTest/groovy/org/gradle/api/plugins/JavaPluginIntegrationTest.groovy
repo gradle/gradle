@@ -44,25 +44,4 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "expect"
     }
 
-    def "jar task is created lazily"() {
-        buildFile << """
-            apply plugin: 'java'
-
-            tasks.named('jar').configure {
-                println "jar task created"
-            }
-
-            task printArtifacts {
-                doLast {
-                    configurations.runtime.artifacts.files.each { println it }
-                }
-            }
-        """
-
-        when:
-        succeeds("printArtifacts")
-
-        then:
-        result.groupedOutput.task(':printArtifacts').output.contains("jar task created")
-    }
 }

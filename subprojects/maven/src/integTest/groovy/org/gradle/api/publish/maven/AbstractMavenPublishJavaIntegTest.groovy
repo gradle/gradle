@@ -544,9 +544,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
-        if (deprecatedConfiguration) {
-            executer.expectDeprecationWarning()
-        }
         given:
         createBuildScripts """
             publishing {
@@ -589,18 +586,14 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
 
         where:
-        plugin         | gradleConfiguration | mavenScope | deprecatedConfiguration
-        'java'         | 'compile'           | 'compile'  | true
-        'java'         | 'runtime'           | 'compile'  | true
-        'java'         | 'implementation'    | 'runtime'  | false
-        'java'         | 'runtimeOnly'       | 'runtime'  | false
+        plugin         | gradleConfiguration | mavenScope
+        'java'         | 'implementation'    | 'runtime'
+        'java'         | 'runtimeOnly'       | 'runtime'
 
-        'java-library' | 'api'               | 'compile'  | false
-        'java-library' | 'compileOnlyApi'    | 'compile'  | false
-        'java-library' | 'compile'           | 'compile'  | true
-        'java-library' | 'runtime'           | 'compile'  | true
-        'java-library' | 'runtimeOnly'       | 'runtime'  | false
-        'java-library' | 'implementation'    | 'runtime'  | false
+        'java-library' | 'api'               | 'compile'
+        'java-library' | 'compileOnlyApi'    | 'compile'
+        'java-library' | 'runtimeOnly'       | 'runtime'
+        'java-library' | 'implementation'    | 'runtime'
 
     }
 
@@ -810,7 +803,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
             configurations {
                 api.exclude(group: "api-group", module: "api-module")
                 apiElements.exclude(group: "apiElements-group", module: "apiElements-module")
-                runtime.exclude(group: "runtime-group", module: "runtime-module")
                 runtimeElements.exclude(group: "runtimeElements-group", module: "runtimeElements-module")
                 implementation.exclude(group: "implementation-group", module: "implementation-module")
                 runtimeOnly.exclude(group: "runtimeOnly-group", module: "runtimeOnly-module")
@@ -849,10 +841,8 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         with(javaLibrary.parsedPom) {
             with(scopes.compile) {
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
-                hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("api-group", "api-module"))
                 hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
-                hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("runtime-group", "runtime-module"))
                 hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("api-group", "api-module"))
             }
             with(scopes.runtime) {
@@ -860,7 +850,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("implementation-group", "implementation-module"))
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("api-group", "api-module"))
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtimeOnly-group", "runtimeOnly-module"))
-                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
             }
         }
 
@@ -869,13 +858,11 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
             variant("apiElements") {
                 dependency('org.test:a:1.0') {
                     hasExclude('apiElements-group', 'apiElements-module')
-                    hasExclude('runtime-group', 'runtime-module')
                     hasExclude('api-group', 'api-module')
                     noMoreExcludes()
                 }
                 dependency('org.gradle.test:subproject:1.2') {
                     hasExclude('apiElements-group', 'apiElements-module')
-                    hasExclude('runtime-group', 'runtime-module')
                     hasExclude('api-group', 'api-module')
                     noMoreExcludes()
                 }
@@ -886,7 +873,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                     hasExclude('implementation-group', 'implementation-module')
                     hasExclude('api-group', 'api-module')
                     hasExclude('runtimeOnly-group', 'runtimeOnly-module')
-                    hasExclude('runtime-group', 'runtime-module')
                     noMoreExcludes()
                 }
             }

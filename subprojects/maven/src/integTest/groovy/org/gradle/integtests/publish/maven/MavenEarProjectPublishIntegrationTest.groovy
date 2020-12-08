@@ -17,8 +17,10 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Ignore
 
 @UnsupportedWithConfigurationCache(because = "legacy maven plugin")
+@Ignore("Maven plugin is going to be removed")
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

@@ -27,9 +27,11 @@ import org.gradle.util.Resources
 import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @UnsupportedWithConfigurationCache(because = "legacy maven plugin")
+@Ignore("Maven plugin is going to be removed")
 class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule

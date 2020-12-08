@@ -16,7 +16,6 @@
 package org.gradle.api.plugins;
 
 import org.apache.maven.project.MavenProject;
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -116,59 +115,40 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         configureUploadArchivesTask();
 
         PluginContainer plugins = project.getPlugins();
-        plugins.withType(JavaPlugin.class, new Action<JavaPlugin>() {
-            @Override
-            public void execute(JavaPlugin javaPlugin) {
-                configureJavaScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
-                configureInstall(project);
-            }
+        plugins.withType(JavaPlugin.class, javaPlugin -> {
+            configureJavaScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
+            configureInstall(project);
         });
-        plugins.withType(WarPlugin.class, new Action<WarPlugin>() {
-            @Override
-            public void execute(WarPlugin warPlugin) {
-                configureWarScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
-            }
-        });
-        plugins.withType(JavaLibraryPlugin.class, new Action<JavaLibraryPlugin>() {
-            @Override
-            public void execute(JavaLibraryPlugin javaLibraryPlugin) {
-                configureJavaLibraryScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
-            }
-        });
+        plugins.withType(WarPlugin.class, warPlugin -> configureWarScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings()));
+        plugins.withType(JavaLibraryPlugin.class, javaLibraryPlugin -> configureJavaLibraryScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings()));
     }
 
     private void configureUploadTasks(final DefaultDeployerFactory deployerFactory) {
-        project.getTasks().withType(Upload.class, new Action<Upload>() {
-            @Override
-            public void execute(Upload upload) {
-                RepositoryHandler repositories = upload.getRepositories();
-                DefaultRepositoryHandler handler = (DefaultRepositoryHandler) repositories;
-                DefaultMavenRepositoryHandlerConvention repositoryConvention = new DefaultMavenRepositoryHandlerConvention(handler, deployerFactory);
-                new DslObject(repositories).getConvention().getPlugins().put("maven", repositoryConvention);
-            }
+        project.getTasks().withType(Upload.class, upload -> {
+            RepositoryHandler repositories = upload.getRepositories();
+            DefaultRepositoryHandler handler = (DefaultRepositoryHandler) repositories;
+            DefaultMavenRepositoryHandlerConvention repositoryConvention = new DefaultMavenRepositoryHandlerConvention(handler, deployerFactory);
+            new DslObject(repositories).getConvention().getPlugins().put("maven", repositoryConvention);
         });
     }
 
     private void configureUploadArchivesTask() {
-        configurationActionContainer.add(new Action<ProjectInternal>() {
-            @Override
-            public void execute(ProjectInternal project) {
-                Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
-                if (uploadArchives == null) {
-                    return;
-                }
+        configurationActionContainer.add(project -> {
+            Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
+            if (uploadArchives == null) {
+                return;
+            }
 
-                ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
-                Module module = configuration.getModule();
-                for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
-                    MavenPom pom = resolver.getPom();
-                    ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(
-                        pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
-                        pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
-                        pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
-                    );
-                    publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.withTypeAndName("Maven repository", resolver.getName()), publicationId, true));
-                }
+            ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
+            Module module = configuration.getModule();
+            for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
+                MavenPom pom = resolver.getPom();
+                ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(
+                    pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
+                    pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
+                    pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
+                );
+                publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.withTypeAndName("Maven repository", resolver.getName()), publicationId, true));
             }
         });
     }
@@ -181,16 +161,8 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJavaScopeMappings(ConfigurationContainer configurations, Conf2ScopeMappingContainer mavenScopeMappings) {
-        mavenScopeMappings.addMapping(COMPILE_PRIORITY, configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME),
-            Conf2ScopeMappingContainer.COMPILE);
-        mavenScopeMappings.addMapping(RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME),
-            Conf2ScopeMappingContainer.RUNTIME);
         mavenScopeMappings.addMapping(RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME),
             Conf2ScopeMappingContainer.RUNTIME);
-        mavenScopeMappings.addMapping(TEST_COMPILE_PRIORITY, configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME),
-            Conf2ScopeMappingContainer.TEST);
-        mavenScopeMappings.addMapping(TEST_RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME),
-            Conf2ScopeMappingContainer.TEST);
         mavenScopeMappings.addMapping(TEST_RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME),
             Conf2ScopeMappingContainer.TEST);
     }

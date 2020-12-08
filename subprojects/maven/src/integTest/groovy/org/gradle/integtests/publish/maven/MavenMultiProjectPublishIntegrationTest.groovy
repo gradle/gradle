@@ -18,9 +18,11 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Ignore
 import spock.lang.Issue
 
 @UnsupportedWithConfigurationCache(because = "legacy maven plugin")
+@Ignore("Maven plugin is going to be removed")
 class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
@@ -34,7 +36,7 @@ class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(":project2")
+        implementation project(":project2")
     }
 }
         """)
@@ -52,7 +54,7 @@ project(":project1") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(":project2")
+        implementation project(":project2")
     }
 }
 
@@ -74,7 +76,7 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(":project2")
+        implementation project(":project2")
     }
 }
 
@@ -99,7 +101,7 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(":project2")
+        implementation project(":project2")
     }
 }
 
@@ -128,8 +130,8 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(path: ":project2")
-        compile project(path: ":project2", configuration: "otherStuff")
+        implementation project(path: ":project2")
+        implementation project(path: ":project2", configuration: "otherStuff")
     }
 }
 
@@ -155,8 +157,8 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(":project2")
-        compile project(path: ":project2", configuration: "otherStuff")
+        implementation project(":project2")
+        implementation project(path: ":project2", configuration: "otherStuff")
         testCompile project(path: ":project2", configuration: "moreStuff")
     }
 }
@@ -211,7 +213,7 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(":project2")
+        implementation project(":project2")
     }
 }
 
@@ -236,7 +238,7 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(path: ":project2", configuration: "otherStuff")
+        implementation project(path: ":project2", configuration: "otherStuff")
     }
 }
 
@@ -277,7 +279,7 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(path: ":project2", configuration: "baseConfig")
+        implementation project(path: ":project2", configuration: "baseConfig")
     }
 }
 
@@ -322,7 +324,7 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(":project2")
+        implementation project(":project2")
         testCompile project(path: ":project2", configuration: "testRuntime")
     }
 }
@@ -353,7 +355,7 @@ project(":project2") {
         createBuildScripts("""
 project(":project1") {
     dependencies {
-        compile project(path: ":project2", configuration: "extendedConfig")
+        implementation project(path: ":project2", configuration: "extendedConfig")
     }
 }
 
@@ -401,13 +403,13 @@ project(":project2") {
             project(':project1') {
                 dependencies {
                     runtime     'commons-collections:commons-collections:3.2.2'
-                    testRuntime 'commons-collections:commons-collections:3.2.2'
-                    compile     project(':project2')
-                    runtime     project(':project2')
-                    testCompile project(':project2')
-                    testRuntime project(':project2')
-                    testCompile project(':project3')
-                    testRuntime project(':project3')
+                    testRuntimeOnly 'commons-collections:commons-collections:3.2.2'
+                    implementation     project(':project2')
+                    runtimeOnly     project(':project2')
+                    testImplementation project(':project2')
+                    testRuntimeOnly project(':project2')
+                    testImplementation project(':project3')
+                    testRuntimeOnly project(':project3')
                 }
             }
         """.stripIndent()
@@ -428,16 +430,16 @@ project(":project2") {
         createBuildScripts """
             project(':project1') {
                 dependencies {
-                    compile(project(':project2')) {
+                    implementation(project(':project2')) {
                         exclude group: 'org.slf4j', module: 'slf4j-api'
                     }
-                    compile('ch.qos.logback:logback-classic:1.1.7') {
+                    implementation('ch.qos.logback:logback-classic:1.1.7') {
                         exclude group: 'org.slf4j', module: 'slf4j-api'
                     }
-                    testCompile(project(':project2')) {
+                    testImplementation(project(':project2')) {
                         exclude group: 'ch.qos.logback', module: 'logback-core'
                     }
-                    testRuntime('ch.qos.logback:logback-classic:1.1.7') {
+                    testRuntimeOnly('ch.qos.logback:logback-classic:1.1.7') {
                         exclude group: 'ch.qos.logback', module: 'logback-core'
                     }
                 }
@@ -468,11 +470,11 @@ project(":project2") {
         createBuildScripts """
             project(':project1') {
                 dependencies {
-                    compile('ch.qos.logback:logback-classic:1.1.5') {
+                    implementation('ch.qos.logback:logback-classic:1.1.5') {
                         exclude group: 'org.slf4j', module: 'slf4j-api'
                     }
-                    testCompile 'ch.qos.logback:logback-classic:1.1.6'
-                    testRuntime('ch.qos.logback:logback-classic:1.1.7') {
+                    testImplementation 'ch.qos.logback:logback-classic:1.1.6'
+                    testRuntimeOnly('ch.qos.logback:logback-classic:1.1.7') {
                         exclude group: 'ch.qos.logback', module: 'logback-core'
                     }
                 }

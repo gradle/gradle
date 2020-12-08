@@ -164,7 +164,7 @@ project(':tool') {
 		implementation project(':api')
 		implementation project(':impl')
 	}
-    task checkDeps(dependsOn: configurations.compile) {
+    task checkDeps {
         doLast {
             assert configurations.runtimeClasspath*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
             def metadata = configurations.runtimeClasspath.resolvedConfiguration
@@ -228,7 +228,7 @@ project(':tool') {
 	        force 'org:foo:1.3.3'
 	    }
 	}
-    task checkDeps(dependsOn: configurations.compile) {
+    task checkDeps {
         doLast {
             assert configurations.runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
         }
