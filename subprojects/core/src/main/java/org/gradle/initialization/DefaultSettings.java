@@ -40,7 +40,6 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
-import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
@@ -72,7 +71,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final ClassLoaderScope baseClassLoaderScope;
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
-    private final BuildIncluder buildIncluder;
 
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
@@ -95,7 +93,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.services = serviceRegistryFactory.createFor(this);
         this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         this.dependencyResolutionManagement = createDependencyResolutionManagement();
-        this.buildIncluder = services.get(BuildIncluder.class);
     }
 
     private DependencyResolutionManagementInternal createDependencyResolutionManagement() {
@@ -343,12 +340,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
         rule.execute(getPluginManagement());
-
-        List<IncludedBuildSpec> includedBuilds = ((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds();
-        for (IncludedBuildSpec buildSpec : includedBuilds) {
-            buildIncluder.registerPluginBuild(buildSpec, gradle);
-            includedBuildSpecs.add(buildSpec);
-        }
+        includedBuildSpecs.addAll(((PluginManagementSpecInternal) getPluginManagement()).getIncludedBuilds());
     }
 
     @Override

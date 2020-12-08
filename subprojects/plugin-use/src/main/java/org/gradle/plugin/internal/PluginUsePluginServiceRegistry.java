@@ -18,6 +18,7 @@ package org.gradle.plugin.internal;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
@@ -72,8 +74,9 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     private static class SettingsScopeServices {
 
         protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginDependencyResolutionServices dependencyResolutionServices,
-                                                                  PluginResolutionStrategyInternal internalPluginResolutionStrategy, FileResolver fileResolver) {
-            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy, fileResolver);
+                                                                  PluginResolutionStrategyInternal internalPluginResolutionStrategy, FileResolver fileResolver,
+                                                                  BuildIncluder buildIncluder, GradleInternal gradle) {
+            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy, fileResolver, buildIncluder, gradle);
         }
     }
 
