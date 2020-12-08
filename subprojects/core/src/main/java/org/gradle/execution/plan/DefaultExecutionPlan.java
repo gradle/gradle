@@ -570,6 +570,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.allDependenciesSuccessful()) {
                     node.startExecution(this::recordNodeExecutionStarted);
+                    if (mutations.hasValidationProblem) {
+                        invalidNodeRunning = true;
+                    }
                 } else {
                     node.skipExecution(this::recordNodeCompleted);
                 }
@@ -598,9 +601,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return false;
         } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             return false;
-        }
-        if (mutations.hasValidationProblem) {
-            invalidNodeRunning = true;
         }
         return true;
     }
