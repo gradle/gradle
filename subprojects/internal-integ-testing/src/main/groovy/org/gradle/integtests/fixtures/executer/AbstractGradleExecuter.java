@@ -91,7 +91,6 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
-import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
@@ -161,7 +160,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private final List<String> buildJvmOpts = new ArrayList<>();
     private final List<String> commandLineJvmOpts = new ArrayList<>();
     private boolean useOnlyRequestedJvmOpts;
-    private boolean useOwnUserHomeServices;
+    protected boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
@@ -1076,10 +1075,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
-        boolean useCustomGradleUserHomeDir = gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir());
-        if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
-            properties.put(REUSE_USER_HOME_SERVICES, "false");
-        }
         if (!noExplicitTmpDir) {
             if (tmpDir == null) {
                 tmpDir = getDefaultTmpDir();
@@ -1305,10 +1300,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         insideKotlinCompilerFlakyStacktrace = true;
                         i++;
                     } else if (insideKotlinCompilerFlakyStacktrace &&
-                        (line.contains("java.rmi.UnmarshalException") || 
+                        (line.contains("java.rmi.UnmarshalException") ||
                          line.contains("java.io.EOFException")) ||
-                         // Verbose logging by Jetty when connector is shutdown 
-                         // https://github.com/eclipse/jetty.project/issues/3529      
+                         // Verbose logging by Jetty when connector is shutdown
+                         // https://github.com/eclipse/jetty.project/issues/3529
                          line.contains("java.nio.channels.CancelledKeyException")) {
                         i++;
                         i = skipStackTrace(lines, i);

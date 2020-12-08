@@ -111,6 +111,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -302,6 +303,16 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             System.setProperty("user.dir", originalSysProperties.getProperty("user.dir"));
             System.setIn(originalStdIn);
         }
+    }
+
+    @Override
+    protected Map<String, String> getImplicitJvmSystemProperties() {
+        Map<String, String> properties = super.getImplicitJvmSystemProperties();
+        boolean useCustomGradleUserHomeDir = getGradleUserHomeDir() != null && !getGradleUserHomeDir().equals(buildContext.getGradleUserHomeDir());
+        if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
+            properties.put(REUSE_USER_HOME_SERVICES, "false");
+        }
+        return properties;
     }
 
     private LoggingManagerInternal createLoggingManager(StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
