@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -28,6 +29,7 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -792,6 +794,49 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         invalidTask == second
     }
 
+    def "a skipped invalid task does not hold up rest of build"() {
+        given:
+        executionPlan.continueOnFailure = true
+        def failure = new RuntimeException("BOOM!")
+        def brokenState = Stub(TaskStateInternal) {
+            getFailure() >> failure
+            rethrowFailure() >> { throw failure }
+        }
+        def broken = task("broken", type: Async)
+        def invalid = task("invalid", type: Async, dependsOn: [broken])
+        def regular = task("task", type: Async)
+
+        when:
+        addToGraphAndPopulate(broken, invalid, regular)
+        def firstTaskNode = selectNextTaskNode()
+
+        then:
+        firstTaskNode.state == Node.ExecutionState.EXECUTING
+        firstTaskNode.task == broken
+        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == broken }) >> false
+        0 * nodeValidator.hasValidationProblems(_ as Node)
+
+        when:
+        executionPlan.finishedExecuting(firstTaskNode)
+        def secondTaskNode = selectNextTaskNode()
+
+        then:
+        secondTaskNode.state == Node.ExecutionState.SKIPPED
+        secondTaskNode.task == invalid
+        _ * broken.state >> brokenState
+        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == invalid }) >> true
+        0 * nodeValidator.hasValidationProblems(_ as Node)
+
+        when:
+        def thirdTaskNode = selectNextTaskNode()
+
+        then:
+        thirdTaskNode.state == Node.ExecutionState.EXECUTING
+        thirdTaskNode.task == regular
+        1 * nodeValidator.hasValidationProblems({ Node node -> node instanceof LocalTaskNode && node.task == regular }) >> false
+        0 * nodeValidator.hasValidationProblems(_ as Node)
+    }
+
     private void tasksAreNotExecutedInParallel(Task first, Task second) {
         addToGraphAndPopulate(first, second)
 
@@ -859,6 +904,13 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         @OutputFiles
         FileCollection getOutputFiles() {
             throw new Exception("BOOM!")
+        }
+    }
+
+    static class FailingTask extends DefaultTask {
+        @TaskAction
+        void execute() {
+            throw new RuntimeException("BOOM!")
         }
     }
 
