@@ -29,5 +29,5 @@ public interface ArtifactTypeRegistry extends Factory<ArtifactTypeContainer> {
 
     ImmutableAttributes mapAttributesFor(File file);
 
-    void visitArtifactTypes(Consumer<String> action);
+    void visitArtifactTypes(Consumer<? super ImmutableAttributes> action);
 }
