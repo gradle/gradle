@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.std;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.artifacts.VersionCatalog;
+import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
@@ -54,11 +57,14 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.IncubationLogger;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -198,6 +204,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         ExtensionContainer container = project.getExtensions();
         try {
             if (!models.isEmpty()) {
+                ImmutableMap.Builder<String, VersionCatalog> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
                         Class<? extends ExternalModuleDependencyFactory> factory;
@@ -205,10 +212,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                             factory = factories.computeIfAbsent(model.getName(), n -> loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(n)));
                         }
                         if (factory != null) {
-                            container.create(model.getName(), factory, model);
+                            VersionCatalog catalog = container.create(model.getName(), factory, model);
+                            catalogs.put(catalog.getName(), catalog);
                         }
                     }
                 }
+                container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs.build());
             }
         } finally {
             if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
@@ -472,5 +481,26 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     }
 
+    // public for injection
+    public static class DefaultVersionCatalogsExtension implements VersionCatalogsExtension {
+        private final Map<String, VersionCatalog> catalogs;
 
+        @Inject
+        public DefaultVersionCatalogsExtension(Map<String, VersionCatalog> catalogs) {
+            this.catalogs = catalogs;
+        }
+
+        @Override
+        public Optional<VersionCatalog> find(String name) {
+            if (catalogs.containsKey(name)) {
+                return Optional.of(catalogs.get(name));
+            }
+            return Optional.empty();
+        }
+
+        @Override
+        public Iterator<VersionCatalog> iterator() {
+            return catalogs.values().iterator();
+        }
+    }
 }

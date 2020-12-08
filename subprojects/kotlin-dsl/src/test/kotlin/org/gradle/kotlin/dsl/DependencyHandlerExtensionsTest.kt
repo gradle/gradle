@@ -16,10 +16,12 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.Provider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -319,6 +321,84 @@ class DependencyHandlerExtensionsTest {
             }
             verifyNoMoreInteractions()
         }
+    }
+
+    @Test
+    fun `can use a Provider as a dependency notation using String invoke`() {
+
+        val dependencyHandler = newDependencyHandlerMock {
+            on { add(any(), any()) }.thenReturn(null)
+        }
+
+        val notation = mock<Provider<MinimalExternalModuleDependency>>()
+
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
+        dependencies {
+            "configuration"(notation)
+        }
+
+        verify(dependencyHandler).addProvider("configuration", notation)
+    }
+
+    @Test
+    fun `can use a Provider as a dependency notation using String invoke with configuration`() {
+
+        val dependencyHandler = newDependencyHandlerMock {
+            on { add(any(), any()) }.thenReturn(null)
+        }
+
+        val notation = mock<Provider<MinimalExternalModuleDependency>>()
+
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
+        dependencies {
+            "configuration"(notation) {
+                because("Hello, Kotlin!")
+            }
+        }
+
+        verify(dependencyHandler).addProvider(eq("configuration"), eq(notation), any<Action<ExternalModuleDependency>>())
+    }
+
+    @Test
+    fun `can use a Provider as a dependency notation using Configuration invoke`() {
+
+        val dependencyHandler = newDependencyHandlerMock {
+            on { add(any(), any()) }.thenReturn(null)
+        }
+
+        val notation = mock<Provider<MinimalExternalModuleDependency>>()
+        val config = mock<Configuration> {
+            on { getName() } doReturn "config"
+        }
+
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
+        dependencies {
+            config(notation)
+        }
+
+        verify(dependencyHandler).addProvider(eq("config"), eq(notation))
+    }
+
+    @Test
+    fun `can use a Provider as a dependency notation using Configuration invoke with configuration`() {
+
+        val dependencyHandler = newDependencyHandlerMock {
+            on { add(any(), any()) }.thenReturn(null)
+        }
+
+        val notation = mock<Provider<MinimalExternalModuleDependency>>()
+        val config = mock<Configuration> {
+            on { getName() } doReturn "config"
+        }
+
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
+        dependencies {
+            config(notation) {
+                because("Hello, Kotlin!")
+            }
+        }
+
+        verify(dependencyHandler).addProvider(eq("config"), eq(notation), any<Action<ExternalModuleDependency>>())
     }
 }
 

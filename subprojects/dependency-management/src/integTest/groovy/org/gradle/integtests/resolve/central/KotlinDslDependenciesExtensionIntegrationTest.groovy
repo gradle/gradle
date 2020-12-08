@@ -17,7 +17,10 @@
 package org.gradle.integtests.resolve.central
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import spock.lang.Issue
 
 /**
  * This test isn't meant to check the behavior of the extension generation like the other
@@ -80,5 +83,171 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
 
         then:
         succeeds ':checkDeps'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15382")
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    @ToBeFixedForConfigurationCache
+    def "can add a dependency in a project via a precompiled script plugin"() {
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        alias("lib").to("org:test:1.0")
+                    }
+                }
+            }
+        """
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+        file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """
+            pluginManager.withPlugin("java") {
+                val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+                dependencies.addProvider("implementation", libs.findDependency("lib").get())
+            }
+        """
+
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+                id("my.plugin")
+            }
+
+            tasks.register("checkDeps") {
+                inputs.files(configurations.compileClasspath)
+                doLast {
+                    val fileNames = configurations.compileClasspath.files.map(File::name)
+                    assert(fileNames == listOf("test-1.0.jar"))
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module('org', 'test', '1.0').publish()
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15350")
+    def "provides Configuration.invoke method supporting provider"() {
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
+        def lib2 = mavenHttpRepo.module('org.gradle.test', 'lib2', '1.1').publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                    }
+                }
+            }
+        """
+        withCheckDeps()
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            val custom by configurations.creating {
+                configurations.implementation.get().extendsFrom(this)
+            }
+            dependencies {
+                custom(libs.my.lib)
+                custom(libs.my.lib2) {
+                    because("Some comment why we need this dependency")
+                }
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-1.1.jar", "lib2-1.1.jar"))
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15350")
+    def "provides String.invoke method supporting provider"() {
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
+        def lib2 = mavenHttpRepo.module('org.gradle.test', 'lib2', '1.1').publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                    }
+                }
+            }
+        """
+
+        withCheckDeps()
+        
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            val custom by configurations.creating {
+                configurations.implementation.get().extendsFrom(this)
+            }
+            dependencies {
+                "custom"(libs.my.lib)
+                "custom"(libs.my.lib2) {
+                    because("Some comment why we need this dependency")
+                }
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-1.1.jar", "lib2-1.1.jar"))
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
+
+    private void withCheckDeps() {
+        buildKotlinFile << """
+            abstract class CheckDeps: DefaultTask() {
+                @get:InputFiles
+                abstract val files: ConfigurableFileCollection
+
+                @get:Input
+                abstract val expected: ListProperty<String>
+
+                @TaskAction
+                fun verify() {
+                    val fileNames = files.files.map(File::name)
+                    assert(fileNames == expected.get()) { "Expected \${expected.get()} but got \$fileNames" }
+                }
+            }
+        """
     }
 }

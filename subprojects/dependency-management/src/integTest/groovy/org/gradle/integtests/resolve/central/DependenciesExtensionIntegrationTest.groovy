@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve.central
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.resolve.PluginDslSupport
+import spock.lang.Issue
 import spock.lang.Unroll
 
-class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest {
+class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIntegrationTest implements PluginDslSupport {
 
     @Unroll
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
@@ -1000,5 +1002,140 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
 
         then:
         failure.assertHasCause "Cannot generate accessors for top because it contains both aliases and groups of the same name: [middle]"
+    }
+
+    def "can access all version catalogs with optional API"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib").to("org:test:1.0")
+                        alias("lib2").to("org:test2:1.0")
+                        bundle("all", ["lib", "lib2"])
+                    }
+                    other {
+                        version("ver", "1.1")
+                        alias("lib").to("org", "test2").versionRef("ver")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def catalogs = project.extensions.getByType(VersionCatalogsExtension)
+            tasks.register("verifyCatalogs") {
+                doLast {
+                    def libs = catalogs.named("libs")
+                    def other = catalogs.find("other").get()
+                    assert !catalogs.find("missing").present
+                    def lib = libs.findDependency('lib')
+                    assert lib.present
+                    assert lib.get() instanceof Provider
+                    assert !libs.findDependency('missing').present
+                    assert libs.findBundle('all').present
+                    assert !libs.findBundle('missing').present
+                    assert other.findVersion('ver').present
+                    assert !other.findVersion('missing').present
+                }
+            }
+        """
+
+        when:
+        run 'verifyCatalogs'
+
+        then:
+        noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15382")
+    def "can add a dependency in a project via a buildSrc plugin"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib").to("org:test:1.0")
+                    }
+                }
+            }
+        """
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.*
+            import groovy.transform.CompileStatic
+            import org.gradle.api.artifacts.VersionCatalogsExtension
+
+            @CompileStatic // to make sure we don't rely on dynamic APIs
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    def libs = p.extensions.getByType(VersionCatalogsExtension).named('libs')
+                    p.dependencies.addProvider("implementation", libs.findDependency('lib').get())
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+            apply plugin: MyPlugin
+        """
+        def lib = mavenHttpRepo.module('org', 'test', '1.0').publish()
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:test:1.0')
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15382")
+    def "can add a dependency in a project via a precompiled script plugin"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib").to("org:test:1.0")
+                    }
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file("buildSrc/src/main/groovy/my.plugin.gradle") << """
+            pluginManager.withPlugin('java') {
+                def libs = extensions.getByType(VersionCatalogsExtension).named('libs')
+                dependencies.addProvider("implementation", libs.findDependency('lib').get())
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+        """
+
+        withPlugin('my.plugin')
+
+        def lib = mavenHttpRepo.module('org', 'test', '1.0').publish()
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:test:1.0')
+            }
+        }
     }
 }

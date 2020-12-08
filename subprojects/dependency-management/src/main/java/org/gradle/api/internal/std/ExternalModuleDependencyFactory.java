@@ -15,5 +15,7 @@
  */
 package org.gradle.api.internal.std;
 
-public interface ExternalModuleDependencyFactory {
+import org.gradle.api.artifacts.VersionCatalog;
+
+public interface ExternalModuleDependencyFactory extends VersionCatalog {
 }
