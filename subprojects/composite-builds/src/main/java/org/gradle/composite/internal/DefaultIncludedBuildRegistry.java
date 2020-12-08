@@ -171,7 +171,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     public void finalizeIncludedBuilds() {
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.removeFirst();
-            build.loadSettings();
             assertNameDoesNotClashWithRootSubproject(build);
         }
     }
