@@ -115,12 +115,15 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         expectDeprecationWarnings(result,
             "Type 'AsciidoctorTask': non-property method 'asGemPath()' should not be annotated with: @Optional, @InputDirectory. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
             "Property 'logDocuments' has redundant getters: 'getLogDocuments()' and 'isLogDocuments()'. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
             "Property 'separateOutputDirs' has redundant getters: 'getSeparateOutputDirs()' and 'isSeparateOutputDirs()'. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
         )
     }
@@ -169,6 +172,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 "  - 'org.asciidoctor.convert' is deprecated. When you have time please switch over to 'org.asciidoctor.jvm.convert'.",
                 "Property 'logDocuments' is annotated with @Optional that is not allowed for @Console properties. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                    "Execution optimizations are disabled due to the failed validation. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
             )
         }
@@ -338,6 +342,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         expectDeprecationWarnings(result,
             "Property 'classesJarScanningRequired' is private and annotated with @Internal. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
             "The AbstractArchiveTask.baseName property has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the archiveBaseName property instead. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:baseName for more details."
