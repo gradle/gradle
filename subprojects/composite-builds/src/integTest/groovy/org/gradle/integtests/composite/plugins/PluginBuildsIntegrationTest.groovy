@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.composite
+package org.gradle.integtests.composite.plugins
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.test.fixtures.file.TestFile
 
-class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
     def "included plugin builds can contribute settings plugins"() {
         given:
@@ -356,8 +355,8 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
 
         then:
         succeeds("build")
-        assertTaskExecuted(":${build.buildName}", ':compileJava')
-        assertTaskExecuted(':', ':compileJava')
+        executed(":${build.buildName}:compileJava")
+        executed(":compileJava")
         build.assertProjectPluginApplied()
     }
 
@@ -390,8 +389,8 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
 
         then:
         succeeds("build")
-        assertTaskExecuted(":${build.buildName}", ':compileJava')
-        assertTaskExecuted(':', ':compileJava')
+        executed(":${build.buildName}:compileJava")
+        executed(":compileJava")
         build.assertSettingsPluginApplied()
         build.assertProjectPluginApplied()
     }
@@ -546,92 +545,5 @@ class CompositePluginBuildsIntegrationTest extends AbstractCompositeBuildIntegra
         succeeds("check")
         settingsPluginBuild.assertSettingsPluginApplied()
         projectPluginBuild.assertProjectPluginApplied()
-    }
-
-    private BuildLogicAndLibraryBuildFixture pluginAndLibraryBuild(String buildName) {
-        return new BuildLogicAndLibraryBuildFixture(pluginBuild(buildName))
-    }
-
-    class BuildLogicAndLibraryBuildFixture {
-        private final AbstractCompositeBuildIntegrationTest.PluginBuildFixture pluginBuild
-        final TestFile settingsFile
-        final TestFile buildFile
-        final String buildName
-        final String settingsPluginId
-        final String projectPluginId
-        final String group
-
-        BuildLogicAndLibraryBuildFixture(AbstractCompositeBuildIntegrationTest.PluginBuildFixture pluginBuild) {
-            this.pluginBuild = pluginBuild
-            this.settingsFile = pluginBuild.settingsFile
-            this.buildFile = pluginBuild.buildFile
-            this.buildName = pluginBuild.buildName
-            this.settingsPluginId = pluginBuild.settingsPluginId
-            this.projectPluginId = pluginBuild.projectPluginId
-            this.group = "com.example"
-            pluginBuild.buildFile.setText("""
-                plugins {
-                    id("groovy-gradle-plugin")
-                    id("java-library")
-                }
-
-                group = "${group}"
-                version = "1.0"
-            """)
-            file("$buildName/src/main/java/Bar.java") << """
-                public class Bar {}
-            """
-        }
-
-        void assertSettingsPluginApplied() {
-            pluginBuild.assertProjectPluginApplied()
-        }
-
-        void assertProjectPluginApplied() {
-            pluginBuild.assertProjectPluginApplied()
-        }
-    }
-
-    private void publishSettingsPlugin(String pluginId, String repoDeclaration) {
-        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.initialization.Settings")
-    }
-
-    private void publishProjectPlugin(String pluginId, String repoDeclaration) {
-        publishPlugin(pluginId, repoDeclaration, "org.gradle.api.Project")
-    }
-
-    private void publishPlugin(String pluginId, String repoDeclaration, String pluginTarget) {
-        file("plugin/src/main/java/PublishedPlugin.java") << """
-            import org.gradle.api.Plugin;
-
-            public class PublishedPlugin implements Plugin<$pluginTarget> {
-                @Override
-                public void apply($pluginTarget target) {
-                    System.out.println("${pluginId} from repository applied");
-                }
-            }
-        """
-        file("plugin/build.gradle") << """
-            plugins {
-                id("java-gradle-plugin")
-                id("maven-publish")
-            }
-            group = "com.example"
-            version = "1.0"
-            publishing {
-                $repoDeclaration
-            }
-            gradlePlugin {
-                plugins {
-                    publishedPlugin {
-                        id = '${pluginId}'
-                        implementationClass = 'PublishedPlugin'
-                    }
-                }
-            }
-        """
-        executer.inDirectory(file("plugin")).withTasks("publish").run()
-        file("plugin").forceDeleteDir()
-        mavenRepo.module("com.example", "plugin", "1.0").assertPublished()
     }
 }
