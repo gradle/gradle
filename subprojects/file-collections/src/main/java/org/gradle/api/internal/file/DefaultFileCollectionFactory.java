@@ -41,11 +41,13 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -308,6 +310,26 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
             UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory);
             nested.add(source);
+        }
+
+        @Override
+        protected void appendContents(TreeFormatter formatter) {
+            formatter.node("source");
+            formatter.startChildren();
+            appendItem(formatter, source);
+            formatter.endChildren();
+        }
+
+        private void appendItem(TreeFormatter formatter, Object item) {
+            if (item instanceof FileCollectionInternal) {
+                ((FileCollectionInternal) item).describeContents(formatter);
+            } else if (item instanceof ArrayList) {
+                for (Object child : (List) item) {
+                    appendItem(formatter, child);
+                }
+            } else {
+                formatter.node(item + " (class: " + item.getClass().getName() + ")");
+            }
         }
     }
 }
