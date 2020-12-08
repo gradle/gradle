@@ -59,8 +59,8 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     @Override
-    public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> keepBetweenBuilds) {
-        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache = new CrossBuildCacheRetainingDataFromPreviousBuild<>(keepBetweenBuilds);
+    public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
+        CrossBuildCacheRetainingDataFromPreviousBuild<K, V> cache = new CrossBuildCacheRetainingDataFromPreviousBuild<>(retentionFilter);
         listenerManager.addListener(cache);
         return cache;
     }
@@ -248,10 +248,10 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private final ManualEvictionInMemoryCache<K, V> delegate = new ManualEvictionInMemoryCache<>();
         private final ConcurrentMap<K, Boolean> keysFromPreviousBuild = new ConcurrentHashMap<>();
         private final ConcurrentMap<K, Boolean> keysFromCurrentBuild = new ConcurrentHashMap<>();
-        private final Predicate<V> keepBetweenBuilds;
+        private final Predicate<V> retentionFilter;
 
-        public CrossBuildCacheRetainingDataFromPreviousBuild(Predicate<V> keepBetweenBuilds) {
-            this.keepBetweenBuilds = keepBetweenBuilds;
+        public CrossBuildCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
+            this.retentionFilter = retentionFilter;
         }
 
         @Override
@@ -275,7 +275,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         private void markAccessedInCurrentBuild(K key, @Nullable V value) {
-            if (value != null && keepBetweenBuilds.test(value)) {
+            if (value != null && retentionFilter.test(value)) {
                 keysFromCurrentBuild.put(key, Boolean.TRUE);
             }
         }

@@ -28,7 +28,7 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
     }
 
     @Override
-    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> keepBetweenBuilds) {
+    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
         return new TestCache<K, V>()
     }
 

@@ -51,9 +51,9 @@ public interface CrossBuildInMemoryCacheFactory {
      *
      * <p>Note: this should be used to create _only_ global/Gradle user home scoped instances.
      *
-     * @param keepBetweenBuilds Determines which values should be kept between builds
+     * @param retentionFilter Determines which values should be retained till the next build.
      */
-    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> keepBetweenBuilds);
+    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter);
 
     /**
      * Creates a new cache instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or soft references depending on their usage.
