@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -43,12 +44,12 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
 
     private final VirtualFileSystem virtualFileSystem;
-    private final ValidateStep.ValidationWarningReporter warningReporter;
+    private final ValidationWarningRecorder warningReporter;
     private final Step<? super ValidationContext, ? extends R> delegate;
 
     public ValidateStep(
         VirtualFileSystem virtualFileSystem,
-        ValidationWarningReporter warningReporter,
+        ValidationWarningRecorder warningReporter,
         Step<? super ValidationContext, ? extends R> delegate
     ) {
         this.virtualFileSystem = virtualFileSystem;
@@ -65,7 +66,9 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         ImmutableCollection<String> warnings = problems.get(Severity.WARNING);
         ImmutableCollection<String> errors = problems.get(Severity.ERROR);
 
-        warnings.forEach(warningReporter::reportValidationWarning);
+        if (!warnings.isEmpty()) {
+            warningReporter.recordValidationWarnings(work, warnings);
+        }
 
         if (!errors.isEmpty()) {
             throw new WorkValidationException(
@@ -144,8 +147,8 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         return ModelType.of(type).getDisplayName();
     }
 
-    public interface ValidationWarningReporter {
-        void reportValidationWarning(String warning);
+    public interface ValidationWarningRecorder {
+        void recordValidationWarnings(UnitOfWork work, Collection<String> warnings);
     }
 
     private static class DefaultWorkValidationContext implements UnitOfWork.WorkValidationContext {

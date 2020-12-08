@@ -148,7 +148,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def fileOperations = Stub(FileOperations)
     def deleter = TestFiles.deleter()
-    def validationWarningReporter = Stub(ValidateStep.ValidationWarningReporter)
+    def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
 
     // @formatter:off
     def executionEngine = new DefaultExecutionEngine(

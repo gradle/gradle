@@ -35,7 +35,10 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         file('foo').createFile()
 
         given:
-        executer.expectDocumentedDeprecationWarning("Property 'input' is annotated with @IgnoreEmptyDirectories that is not allowed for ${nonDirectoryInput.annotation} properties. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        executer.expectDocumentedDeprecationWarning("Property 'input' is annotated with @IgnoreEmptyDirectories that is not allowed for ${nonDirectoryInput.annotation} properties. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+            "Execution optimizations are disabled due to the failed validation. " +
+            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
 
         expect:
         succeeds("taskWithInputs")
@@ -57,7 +60,10 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         file('foo').createFile()
 
         given:
-        executer.expectDocumentedDeprecationWarning("Property 'output' is annotated with @IgnoreEmptyDirectories that is not allowed for ${output.annotation} properties. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        executer.expectDocumentedDeprecationWarning("Property 'output' is annotated with @IgnoreEmptyDirectories that is not allowed for ${output.annotation} properties. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+            "Execution optimizations are disabled due to the failed validation. " +
+            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
 
         expect:
         succeeds("taskWithOutputs")
@@ -159,7 +165,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
                 @TaskAction
                 void doSomething() {
                     outputFiles.each { outputFile ->
-                        def file = ${output.directoryType ? 'new File(outputFile, "output")' : 'outputFile' }
+                        def file = ${output.directoryType ? 'new File(outputFile, "output")' : 'outputFile'}
                         file.parentFile.mkdirs()
                         file.withWriter { writer ->
                             sources.each { writer.println it }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
+import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.InternalBuildListener;
@@ -40,10 +41,18 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     private final BuildResultLogger resultLogger;
     private String action;
 
-    public BuildLogger(Logger logger, StyledTextOutputFactory textOutputFactory, StartParameter startParameter, BuildRequestMetaData requestMetaData, BuildStartedTime buildStartedTime, Clock clock) {
+    public BuildLogger(
+        Logger logger,
+        StyledTextOutputFactory textOutputFactory,
+        StartParameter startParameter,
+        BuildRequestMetaData requestMetaData,
+        BuildStartedTime buildStartedTime,
+        Clock clock,
+        WorkValidationWarningReporter workValidationWarningReporter
+    ) {
         this.logger = logger;
         exceptionReporter = new BuildExceptionReporter(textOutputFactory, startParameter, requestMetaData.getClient());
-        resultLogger = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, new TersePrettyDurationFormatter());
+        resultLogger = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, new TersePrettyDurationFormatter(), workValidationWarningReporter);
     }
 
     @Override

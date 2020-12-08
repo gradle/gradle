@@ -17,6 +17,7 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.BuildResult
+import org.gradle.execution.WorkValidationWarningReporter
 import org.gradle.internal.logging.format.DurationFormatter
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
@@ -31,7 +32,8 @@ class BuildResultLoggerTest extends Specification {
     private BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(0)
     private Clock clock = Mock(Clock)
     private DurationFormatter durationFormatter = Mock(DurationFormatter)
-    private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, durationFormatter)
+    def workValidationWarningReporter = Stub(WorkValidationWarningReporter)
+    private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, durationFormatter, workValidationWarningReporter)
 
     def "logs build success with total time"() {
         when:

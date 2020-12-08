@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -39,9 +40,11 @@ import java.util.List;
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
     private final StyledTextOutputFactory styledTextOutputFactory;
+    private final WorkValidationWarningReporter workValidationWarningReporter;
 
-    public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory, BuildActionRunner delegate) {
+    public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, BuildActionRunner delegate) {
         this.styledTextOutputFactory = styledTextOutputFactory;
+        this.workValidationWarningReporter = workValidationWarningReporter;
         this.delegate = delegate;
     }
 
@@ -56,7 +59,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         TaskExecutionStatisticsEventAdapter taskStatisticsCollector = new TaskExecutionStatisticsEventAdapter();
         listenerManager.addListener(taskStatisticsCollector);
 
-        BuildLogger buildLogger = new BuildLogger(Logging.getLogger(BuildLogger.class), styledTextOutputFactory, startParameter, buildRequestMetaData, buildStartedTime, clock);
+        BuildLogger buildLogger = new BuildLogger(Logging.getLogger(BuildLogger.class), styledTextOutputFactory, startParameter, buildRequestMetaData, buildStartedTime, clock, workValidationWarningReporter);
         // Register as a 'logger' to support this being replaced by build logic.
         buildController.getGradle().useLogger(buildLogger);
 

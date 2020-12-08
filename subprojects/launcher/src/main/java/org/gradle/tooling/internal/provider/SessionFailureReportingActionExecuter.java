@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -42,10 +43,12 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecute
     private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final Clock clock;
+    private final WorkValidationWarningReporter workValidationWarningReporter;
 
-    public SessionFailureReportingActionExecuter(StyledTextOutputFactory styledTextOutputFactory, Clock clock, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
+    public SessionFailureReportingActionExecuter(StyledTextOutputFactory styledTextOutputFactory, Clock clock, WorkValidationWarningReporter workValidationWarningReporter, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.clock = clock;
+        this.workValidationWarningReporter = workValidationWarningReporter;
         this.delegate = delegate;
     }
 
@@ -63,7 +66,7 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecute
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(SessionScopeLifecycleBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock);
+            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(SessionScopeLifecycleBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock, workValidationWarningReporter);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);
