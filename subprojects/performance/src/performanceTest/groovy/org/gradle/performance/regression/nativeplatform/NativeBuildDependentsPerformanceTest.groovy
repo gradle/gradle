@@ -21,7 +21,7 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import spock.lang.Unroll
 
-import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -32,7 +32,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @RunFor(
-        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["nativeDependents"], iterationMatcher = ".*libA0.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["nativeDependents"], iterationMatcher = ".*libA0.*")
     )
     @Unroll
     def "run #task"() {
@@ -55,7 +55,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @RunFor([
-        @Scenario(type = TEST, operatingSystems = [LINUX], testProjects = ["nativeDependents"], iterationMatcher = ".*libA0.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["nativeDependents"], iterationMatcher = ".*libA0.*")
     ])
     @Unroll
     def "run #subprojectPath:dependentComponents"() {
