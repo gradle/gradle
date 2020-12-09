@@ -19,9 +19,13 @@ package org.gradle.configurationcache.fixtures
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 
-class SomeToolingBuildAction implements BuildAction<String> {
+interface SomeToolingModel {
+    String getMessage()
+}
+
+class SomeToolingModelBuildAction implements BuildAction<SomeToolingModel> {
     @Override
-    String execute(BuildController controller) {
-        return controller.getModel(String)
+    SomeToolingModel execute(BuildController controller) {
+        return controller.getModel(SomeToolingModel)
     }
 }
