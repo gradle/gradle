@@ -9,7 +9,7 @@ labels: 'a:chore, from:member'
 
 ### Checklist
 - [ ] Validate whether we should de-incubate the API in the 7.0 release.
-    - If the removal is not possible then create a follow-up issue and link it in the [overview spreadsheet](https://docs.google.com/spreadsheets/d/19J1nR_dFKpfKdu5KDFMVZGfjR0ysT9DthsBUPwf8mkM/edit#gid=1195622786)
+    - If the removal is not possible, create a follow-up issue and link it in the [overview spreadsheet](https://docs.google.com/spreadsheets/d/19J1nR_dFKpfKdu5KDFMVZGfjR0ysT9DthsBUPwf8mkM/edit#gid=1195622786)
 - [ ] Update release notes (add API to promoted features)
 - [ ] Check User Manual (it might mention that the API is still incubating)
   - Think about updating snippets and samples to use this API
