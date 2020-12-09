@@ -20,6 +20,36 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Plugin development improvements
+
+### Included plugin builds
+
+Co-developing a plugin by including its build in settings file was only possible for project plugins.
+Settings plugins had to be developed in isolation, published to a binary repository and then consumed in a project.
+
+This release introduces a new API in settings that allows using a settings plugin from an included build:
+```
+pluginManagement {
+    includeBuild("../my-settings-plugin")
+}
+plugins {
+    id("my.settings-plugin") // assuming that the above included build produces a settings plugin my.settings-plugin
+}
+```
+
+Builds included inside `pluginManagement` block can also contribute project plugins, however, any library components they
+produce will not be visible to the including build.
+If a build produces both plugins and libraries that the including build wants to use, such build should be included
+both in `pluginManagement` block and outside it:
+```
+pluginManagement {
+    includeBuild("../project-with-plugin-and-library") // contributes plugins
+}
+includeBuild("../project-with-plugin-and-library") // contributes libraries
+```
+This can be seen similarly to the repository declaration - 
+repositories are specified separately for plugin dependencies and for production dependencies.
+
 <!-- 
 
 ================== TEMPLATE ==============================
