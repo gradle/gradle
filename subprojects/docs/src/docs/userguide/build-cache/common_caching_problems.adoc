@@ -95,6 +95,13 @@ Gradle tracks only the major version of Java as an input for compilation and tes
 Currently, it does _not_ track the vendor nor the minor version.
 Still, the vendor and the minor version may influence the bytecode produced by compilation.
 
+[NOTE]
+====
+If you're using <<toolchains.adoc#toolchains,Java Toolchains>>, the Java major version, the vendor (if specified) and implementation (if specified) will be tracked automatically as an input for compilation
+and test execution.
+====
+
+
 If you use different JVM vendors for compiling or running Java we strongly suggest that you add the vendor as an input to the corresponding tasks.
 This can be achieved by using the <<more_about_tasks.adoc#sec:task_input_output_runtime_api,runtime API>> as shown in the following snippet.
 
