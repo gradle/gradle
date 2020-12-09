@@ -42,6 +42,8 @@ import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
@@ -53,7 +55,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * lease.tryLock() >> true
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new RelatedLocations(CASE_SENSITIVE), new RelatedLocations(CASE_SENSITIVE))
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {

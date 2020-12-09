@@ -46,6 +46,7 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeExecutor
 import org.gradle.execution.plan.PlanExecutor
+import org.gradle.execution.plan.RelatedLocations
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNodeDependencyResolver
 import org.gradle.execution.plan.TaskNodeFactory
@@ -61,6 +62,8 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
+
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def cancellationToken = Mock(BuildCancellationToken)
@@ -78,7 +81,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
-    def executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator)
+    def executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new RelatedLocations(CASE_SENSITIVE), new RelatedLocations(CASE_SENSITIVE))
     def taskGraph = new DefaultTaskExecutionGraph(
         new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService),
         [nodeExecutor],
@@ -547,7 +550,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         final Task a = task("a", task("a-dep"))
         Task b = task("b")
         Spec<Task> spec = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
+            boolean isSatisfiedBy(Task element) {
                 return element != a
             }
         }
@@ -573,7 +576,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task b = task("b")
         Task c = task("c", a, b)
         Spec<Task> spec = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
+            boolean isSatisfiedBy(Task element) {
                 return element != a
             }
         }

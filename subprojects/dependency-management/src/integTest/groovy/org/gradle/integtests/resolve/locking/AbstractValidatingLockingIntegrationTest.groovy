@@ -152,7 +152,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':lockedConf'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':lockedConf'.")
         failure.assertHasCause("Did not resolve 'org:bar:1.0' which is part of the dependency lock state")
         failure.assertHasCause("Did not resolve 'org:baz:1.0' which is part of the dependency lock state")
 
@@ -196,7 +196,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':lockedConf'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':lockedConf'.")
         failure.assertHasCause("Resolved 'org:bar:1.0' which is not part of the dependency lock state")
 
         where:
@@ -233,7 +233,7 @@ configurations {
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':lockedConf\'.')
+        failure.assertHasCause('Could not resolve all files for configuration \':lockedConf\'.')
         failure.assertHasCause('Did not resolve \'org:foo:1.0\' which is part of the dependency lock state')
 
         where:

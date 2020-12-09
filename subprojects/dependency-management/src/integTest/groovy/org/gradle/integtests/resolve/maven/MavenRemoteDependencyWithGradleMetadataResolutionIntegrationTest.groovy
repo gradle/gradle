@@ -683,7 +683,7 @@ dependencies {
         fails("checkDeps")
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("""Could not find test:a:1.2.
 Searched in the following locations:
   - ${m.pom.uri}
@@ -732,7 +732,7 @@ dependencies {
         fails("checkDeps")
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not get resource '${m.moduleMetadata.uri}'.")
 
@@ -777,7 +777,7 @@ dependencies {
         fails("checkDeps")
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
 
@@ -789,7 +789,7 @@ dependencies {
         fails("checkDeps")
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
     }

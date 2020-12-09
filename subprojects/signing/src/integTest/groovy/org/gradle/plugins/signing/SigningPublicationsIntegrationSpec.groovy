@@ -573,23 +573,26 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        succeeds "publish"
-
+        succeeds ":publishIvyPublicationToIvyRepository"
         then:
         skipped(":signIvyPublication")
-        skipped(":signMavenPublication")
         executedAndNotSkipped(":publishIvyPublicationToIvyRepository")
-        executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
+        and:
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
 
+        when:
+        succeeds(":publishMavenPublicationToMavenRepository")
+        then:
+        skipped(":signMavenPublication")
+        executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
         and:
         pom().assertExists()
         pomSignature().assertDoesNotExist()
         m2RepoFile(jarFileName).assertExists()
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
-        ivyRepoFile(jarFileName).assertExists()
-        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
-        ivyRepoFile("ivy-${version}.xml").assertExists()
-        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
     }
 
     @ToBeFixedForConfigurationCache
@@ -647,10 +650,18 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        succeeds "publish", "-Psign=true"
-
+        succeeds "publishIvyPublicationToIvyRepository", "-Psign=true"
         then:
         executedAndNotSkipped(":signIvyPublication", ":publishIvyPublicationToIvyRepository")
+        and:
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertExists()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertExists()
+
+        when:
+        succeeds "publishMavenPublicationToMavenRepository", "-Psign=true"
+        then:
         executedAndNotSkipped(":signMavenPublication", ":publishMavenPublicationToMavenRepository")
 
         and:
@@ -660,20 +671,24 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         moduleSignature().assertExists()
         m2RepoFile(jarFileName).assertExists()
         m2RepoFile("${jarFileName}.asc").assertExists()
-        ivyRepoFile(jarFileName).assertExists()
-        ivyRepoFile("${jarFileName}.asc").assertExists()
-        ivyRepoFile("ivy-${version}.xml").assertExists()
-        ivyRepoFile("ivy-${version}.xml.asc").assertExists()
 
         when:
-        succeeds "cleanRepo", "publish", "-Psign=false"
+        succeeds "cleanRepo", "publishIvyPublicationToIvyRepository", "-Psign=false"
 
         then:
         skipped(":signIvyPublication")
-        skipped(":signMavenPublication")
         executedAndNotSkipped(":publishIvyPublicationToIvyRepository")
-        executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
+        and:
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
 
+        when:
+        succeeds "cleanRepo", "publishMavenPublicationToMavenRepository", "-Psign=false"
+        then:
+        skipped(":signMavenPublication")
+        executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
         and:
         pom().assertExists()
         pomSignature().assertDoesNotExist()
@@ -681,20 +696,23 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         moduleSignature().assertDoesNotExist()
         m2RepoFile(jarFileName).assertExists()
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
+
+        when:
+        succeeds "cleanRepo", "publishIvyPublicationToIvyRepository", "-Psign=skip"
+        then:
+        skipped(":signIvyPublication")
+        executedAndNotSkipped(":publishIvyPublicationToIvyRepository")
+        and:
         ivyRepoFile(jarFileName).assertExists()
         ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
         ivyRepoFile("ivy-${version}.xml").assertExists()
         ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
 
         when:
-        succeeds "cleanRepo", "publish", "-Psign=skip"
-
+        succeeds "cleanRepo", "publishMavenPublicationToMavenRepository", "-Psign=skip"
         then:
-        skipped(":signIvyPublication")
         skipped(":signMavenPublication")
-        executedAndNotSkipped(":publishIvyPublicationToIvyRepository")
         executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
-
         and:
         pom().assertExists()
         pomSignature().assertDoesNotExist()
@@ -702,9 +720,5 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         moduleSignature().assertDoesNotExist()
         m2RepoFile(jarFileName).assertExists()
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
-        ivyRepoFile(jarFileName).assertExists()
-        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
-        ivyRepoFile("ivy-${version}.xml").assertExists()
-        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
     }
 }

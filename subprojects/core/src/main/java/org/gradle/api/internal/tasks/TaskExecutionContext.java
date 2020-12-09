@@ -20,14 +20,18 @@ import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public interface TaskExecutionContext {
 
     LocalTaskNode getLocalTaskNode();
 
     TaskExecutionMode getTaskExecutionMode();
+
+    Consumer<TypeValidationContext> getValidationAction();
 
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 
