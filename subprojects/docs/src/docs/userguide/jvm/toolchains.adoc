@@ -51,6 +51,7 @@ Support for the Scala plugin will be released later.
 However, _running tests_ can leverage the toolchain support since the `Test` task does support toolchains.
 ====
 
+[[sec:vendors]]
 === Using toolchains by specific vendors
 
 In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
@@ -89,6 +90,12 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-implementation]"]
 ====
 
+[NOTE]
+====
+The Java major version, the vendor (if specified) and implementation (if specified)
+will be tracked as an input for compilation and test execution.
+====
+
 
 == Specify custom toolchains for individual tasks
 
@@ -111,7 +118,7 @@ include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",file
 ====
 
 Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
-By default, Gradle prefers installed JDKs over JREs.
+By default, Gradle prefers installed JDKs over JREs if they can satisfy the requirements.
 
 Toolchains tool providers can be obtained from the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainService.html[`javaToolchains`] extension.
 
@@ -279,4 +286,9 @@ The example below showcases how to use the default toolchain as convention while
 ====
 include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle"]
 include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.kts"]
+====
+
+[NOTE]
+====
+With the property correctly configured as `@Nested`, it will automatically track the Java major version, the vendor (if specified) and implementation (if specified) as an input.
 ====
