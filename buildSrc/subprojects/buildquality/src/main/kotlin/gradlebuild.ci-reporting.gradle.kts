@@ -92,7 +92,7 @@ fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<T
     val failedTaskCustomReports = failedTasks.flatMap { it.failedTaskGenericHtmlReports() }
     val attachedReports = executedTasks.flatMap { it.attachedReportLocations() }
     val executedTaskCustomReports = failedTasks.flatMap { it.failedTaskCustomReports() }
-    val testDistributionTraceJsons = executedTasks.flatMap { it.findTraceJson() }
+    val testDistributionTraceJsons = executedTasks.filterIsInstance<Test>().flatMap { it.findTraceJson() }
 
     val allReports = failedTaskCustomReports + attachedReports + executedTaskCustomReports + tmpTestFiles + testDistributionTraceJsons
     allReports.forEach { report ->
