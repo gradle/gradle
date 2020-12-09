@@ -21,7 +21,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -41,9 +40,9 @@ public class PmdExtension extends CodeQualityExtension {
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
-    private Property<Integer> rulesMinimumPriority;
-    private Property<Integer> maxFailures;
-    private Property<Boolean> incrementalAnalysis;
+    private final Property<Integer> rulesMinimumPriority;
+    private final Property<Integer> maxFailures;
+    private final Property<Boolean> incrementalAnalysis;
 
     public PmdExtension(Project project) {
         this.project = project;
@@ -140,36 +139,6 @@ public class PmdExtension extends CodeQualityExtension {
      */
     public Property<Integer> getRulesMinimumPriority() {
         return rulesMinimumPriority;
-    }
-
-    /**
-     * The rule priority threshold.
-     *
-     * @deprecated See {@link #getRulesMinimumPriority()}
-     */
-    @Deprecated
-    public int getRulePriority() {
-        DeprecationLogger.deprecateProperty(PmdExtension.class, "rulePriority")
-            .replaceWith("rulesMinimumPriority")
-            .willBeRemovedInGradle7()
-            .withDslReference()
-            .nagUser();
-        return rulesMinimumPriority.get();
-    }
-
-    /**
-     * Sets the rule priority threshold.
-     *
-     * @deprecated See {@link #getRulesMinimumPriority()}
-     */
-    @Deprecated
-    public void setRulePriority(int intValue) {
-        DeprecationLogger.deprecateProperty(PmdExtension.class, "rulePriority")
-            .replaceWith("rulesMinimumPriority")
-            .willBeRemovedInGradle7()
-            .withDslReference()
-            .nagUser();
-        rulesMinimumPriority.set(intValue);
     }
 
     /**
