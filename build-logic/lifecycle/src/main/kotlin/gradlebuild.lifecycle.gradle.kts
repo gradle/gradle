@@ -94,13 +94,13 @@ fun needsToUseTestVersionsAll() = isRequestedTask(allVersionsCrossVersionTest)
     || isRequestedTask(soakTest)
 
 fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
-    register(compileAllBuild) {
+    named(compileAllBuild) {
         description = "Initialize CI Pipeline by priming the cache before fanning out"
         group = ciGroup
-        dependsOn(":base-services:createBuildReceipt")
+        gradle.includedBuild("subprojects").task(":base-services:createBuildReceipt")
     }
 
-    register(sanityCheck) {
+    named(sanityCheck) {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
@@ -126,8 +126,12 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         description = "Build production distros and smoke test them"
         group = "build"
         dependsOn(
-            ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists",
-            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
+            gradle.includedBuild("subprojects").task(":distributions-full:verifyIsProductionBuildEnvironment"),
+            gradle.includedBuild("subprojects").task(":distributions-full:buildDists"),
+            gradle.includedBuild("subprojects").task(":distributions-integ-tests:forkingIntegTest"),
+            gradle.includedBuild("subprojects").task(":docs:releaseNotes"),
+            gradle.includedBuild("subprojects").task(":docs:incubationReport"),
+            gradle.includedBuild("subprojects").task(":docs:checkDeadInternalLinks")
         )
     }
 }
