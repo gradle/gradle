@@ -76,8 +76,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
+    private final NodeValidator nodeValidator;
     private Spec<? super Task> filter = Specs.satisfyAll();
 
+    private boolean invalidNodeRunning;
     private boolean continueOnFailure;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
@@ -89,10 +91,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
+    public DefaultExecutionPlan(String displayName, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, NodeValidator nodeValidator) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
+        this.nodeValidator = nodeValidator;
     }
 
     @Override
@@ -567,6 +570,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.allDependenciesSuccessful()) {
                     node.startExecution(this::recordNodeExecutionStarted);
+                    if (mutations.hasValidationProblem) {
+                        invalidNodeRunning = true;
+                    }
                 } else {
                     node.skipExecution(this::recordNodeCompleted);
                 }
@@ -590,8 +596,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             LOGGER.debug("Cannot acquire worker lease lock for node {}", node);
             return false;
             // TODO: convert output file checks to a resource lock
-        } else if (!canRunWithCurrentlyExecutedNodes(node, mutations)) {
+        } else if (!canRunWithCurrentlyExecutedNodes(mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
+            return false;
+        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             return false;
         }
         return true;
@@ -631,6 +639,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         MutationInfo mutations = node.getMutationInfo();
         if (!mutations.resolved) {
             node.resolveMutations();
+            mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
         }
         return mutations;
     }
@@ -644,21 +653,27 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return !projectLocks.isEmpty();
     }
 
-    private boolean canRunWithCurrentlyExecutedNodes(Node node, MutationInfo mutations) {
-        Set<String> candidateNodeDestroyables = mutations.destroyablePaths;
-
-        if (!runningNodes.isEmpty()) {
-            Set<String> candidateNodeOutputs = mutations.outputPaths;
-            Set<String> candidateMutations = !candidateNodeOutputs.isEmpty() ? candidateNodeOutputs : candidateNodeDestroyables;
-            if (hasNodeWithOverlappingMutations(candidateMutations)) {
+    private boolean canRunWithCurrentlyExecutedNodes(MutationInfo mutations) {
+        if (mutations.hasValidationProblem) {
+            if (!runningNodes.isEmpty()) {
+                // Invalid work is not allowed to run together with any other work
                 return false;
             }
+        } else if (invalidNodeRunning) {
+            // No new work should be started when invalid work is running
+            return false;
         }
-
-        return !doesDestroyNotYetConsumedOutputOfAnotherNode(node, candidateNodeDestroyables);
+        return !hasRunningNodeWithOverlappingMutations(mutations);
     }
 
-    private boolean hasNodeWithOverlappingMutations(Set<String> candidateMutationPaths) {
+    private boolean hasRunningNodeWithOverlappingMutations(MutationInfo mutations) {
+        if (runningNodes.isEmpty()) {
+            return false;
+        }
+        Set<String> candidateNodeOutputs = mutations.outputPaths;
+        Set<String> candidateMutationPaths = !candidateNodeOutputs.isEmpty()
+            ? candidateNodeOutputs
+            : mutations.destroyablePaths;
         if (!candidateMutationPaths.isEmpty()) {
             for (Node runningNode : runningNodes) {
                 MutationInfo runningMutations = runningNode.getMutationInfo();
@@ -798,6 +813,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         } finally {
             unlockProjectFor(node);
             unlockSharedResourcesFor(node);
+            invalidNodeRunning = false;
         }
     }
 
