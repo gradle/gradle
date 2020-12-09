@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
@@ -67,7 +66,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
      * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
      *
-     * File are resolved based on the supplied URL and the configured {@link #layout(String, Closure)} for this repository.
+     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
      *
      * @param url The base URL.
      */
@@ -141,65 +140,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * Specifies how the items of the repository are organized.
      * <p>
      * The layout is configured with the supplied closure.
-     * <p>
-     * Recognised values are as follows:
-     * </p>
-     * <h4>'gradle'</h4>
-     * <p>
-     * A Repository Layout that applies the following patterns:
-     * </p>
-     * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value #GRADLE_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value #GRADLE_IVY_PATTERN}</code></li>
-     * </ul>
-     * <h4>'maven'</h4>
-     * <p>
-     * A Repository Layout that applies the following patterns:
-     * </p>
-     * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value #MAVEN_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value #MAVEN_IVY_PATTERN}</code></li>
-     * </ul>
-     * <p>
-     * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
-     * </p>
-     * <h4>'ivy'</h4>
-     * <p>
-     * A Repository Layout that applies the following patterns:
-     * </p>
-     * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
-     * </ul>
-     * <p><b>Note:</b> this pattern is currently {@link org.gradle.api.Incubating incubating}.</p>
-     * <h4>'pattern'</h4>
-     * <p>
-     * A repository layout that allows custom patterns to be defined. eg:
-     * </p>
-     * <pre>
-     * repositories {
-     *     ivy {
-     *         layout 'pattern' , {
-     *             artifact '[module]/[revision]/[artifact](.[ext])'
-     *             ivy '[module]/[revision]/ivy.xml'
-     *         }
-     *     }
-     * }
-     * </pre>
-     * <p>The available pattern tokens are listed as part of <a href="http://ant.apache.org/ivy/history/master/concept.html#patterns">Ivy's Main Concepts documentation</a>.</p>
-     *
-     * @param layoutName The name of the layout to use.
-     * @param config The action used to configure the layout.
-     * @since 2.3 (feature was already present in Groovy DSL, this particular method introduced in 2.3)
-     * @deprecated use {@link #layout(String)} or {@link #patternLayout(Action)}
-     */
-    @Deprecated
-    void layout(String layoutName, Action<? extends RepositoryLayout> config);
-
-    /**
-     * Specifies how the items of the repository are organized.
-     * <p>
-     * The layout is configured with the supplied closure.
      * <pre class='autoTested'>
      * repositories {
      *     ivy {
@@ -216,17 +156,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * @since 5.0
      */
     void patternLayout(Action<? super  IvyPatternRepositoryLayout> config);
-
-    /**
-     * Specifies how the items of the repository are organized. See {@link #layout(String, org.gradle.api.Action)}
-     *
-     * @param layoutName The name of the layout to use.
-     * @param config The closure used to configure the layout.
-     * An instance of {@link RepositoryLayout} is passed as a parameter to the closure.
-     * @deprecated use {@link #layout(String)} or {@link #patternLayout(Action)}
-     */
-    @Deprecated
-    void layout(String layoutName, Closure config);
 
     /**
      * Returns the meta-data provider used when resolving artifacts from this repository. The provider is responsible for locating and interpreting the meta-data

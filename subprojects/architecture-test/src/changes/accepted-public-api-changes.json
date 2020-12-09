@@ -30,6 +30,22 @@
             "changes": [
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.IvyArtifactRepository.layout(java.lang.String,org.gradle.api.Action)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.IvyArtifactRepository.layout(java.lang.String,groovy.lang.Closure)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

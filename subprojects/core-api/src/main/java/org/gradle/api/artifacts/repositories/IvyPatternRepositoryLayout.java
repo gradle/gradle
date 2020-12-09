@@ -16,12 +16,14 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Action;
+
 /**
  * A repository layout that uses user-supplied patterns. Each pattern will be appended to the base URI for the repository.
  * At least one artifact pattern must be specified. If no Ivy patterns are specified, then the artifact patterns will be used.
  * Optionally supports a Maven style layout for the 'organisation' part, replacing any dots with forward slashes.
  *
- * For examples see the reference for {@link org.gradle.api.artifacts.repositories.IvyArtifactRepository#layout(String, org.gradle.api.Action)}.
+ * For examples see the reference for {@link org.gradle.api.artifacts.repositories.IvyArtifactRepository#patternLayout(Action)}.
  *
  * @since 2.3 (feature was already present in Groovy DSL, this type introduced in 2.3)
  */
