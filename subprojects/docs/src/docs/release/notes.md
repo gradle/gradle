@@ -27,7 +27,8 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 Developing plugins as part of a composite build was so far only possible for project plugins.
 Settings plugins always had to be developed in isolation and published to a binary repository.
 
-This release introduces a new API in settings that allows using a settings plugin from an included build:
+This release introduces a new DSL construct in the settings file for including plugin builds.
+Build included like that can provide both project and settings plugins.
 ```
 pluginManagement {
     includeBuild("../my-settings-plugin")
