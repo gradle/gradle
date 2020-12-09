@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Function
+import java.util.function.Predicate
 
 class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFactory {
     @Override
@@ -27,7 +28,7 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
     }
 
     @Override
-    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild() {
+    <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
         return new TestCache<K, V>()
     }
 

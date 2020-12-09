@@ -53,6 +53,10 @@
                 <td></td>
             </tr>
             <tr>
+                <td>modularity</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>javadocTool</td>
                 <td><literal>java.toolchain</literal></td>
             </tr>

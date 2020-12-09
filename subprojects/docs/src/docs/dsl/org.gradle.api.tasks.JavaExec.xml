@@ -45,6 +45,18 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>mainClass</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>mainModule</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>modularity</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>args</td>
                 <td><literal>[]</literal></td>
             </tr>

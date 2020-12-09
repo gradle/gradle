@@ -24,7 +24,7 @@ class CacheRetainingDataFromPreviousBuildTest extends AbstractCrossBuildInMemory
 
     @Override
     CrossBuildInMemoryCache<String, Object> newCache() {
-        return factory.newCacheRetainingDataFromPreviousBuild()
+        return factory.newCacheRetainingDataFromPreviousBuild { value -> true }
     }
 
     def "retains values from the previous session"() {
@@ -56,6 +56,43 @@ class CacheRetainingDataFromPreviousBuildTest extends AbstractCrossBuildInMemory
         cache.get("a", function)
         // Do not refresh "b" or "c"
         then:
+        0 * function._
+
+        when:
+        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        cache.get("a", function)
+        cache.get("b", function)
+        cache.get("c", function)
+        then:
+        1 * function.apply("c") >> new Object()
+        0 * function._
+    }
+
+    def "does not retain values from the previous session which are not to be kept"() {
+        def function = Mock(Function)
+        def notToBeKept = new Object()
+
+        when:
+        def cache = factory.newCacheRetainingDataFromPreviousBuild { value -> value != notToBeKept }
+        cache.get("a", function)
+        cache.get("b", function)
+        cache.get("c", function)
+
+        then:
+        1 * function.apply("a") >> new Object()
+        1 * function.apply("b") >> notToBeKept
+        1 * function.apply("c") >> notToBeKept
+        0 * function._
+
+        when:
+        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+        cache.get("a", function)
+        cache.get("b", function)
+        cache.get("c", function)
+
+        then:
+        1 * function.apply("b") >> new Object()
+        1 * function.apply("c") >> notToBeKept
         0 * function._
 
         when:

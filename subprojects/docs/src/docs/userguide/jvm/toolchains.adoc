@@ -38,7 +38,7 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 
 1. Setup all compile, test and javadoc tasks to use the defined toolchain which may be different than the one Gradle itself uses
 2. Gradle detects <<#sec:auto_detection,locally installed JVMs>>
-3. Gradle chooses a JRE/JDK matching the requirements of the build (in this case a JVM supporting Java 14)
+3. Gradle chooses a JRE/JDK matching the requirements of the build (in this case a JVM supporting Java 11)
 4. If no matching JVM is found, it will automatically download a matching JDK from https://adoptopenjdk.net/[AdoptOpenJDK]
 
 [NOTE]
@@ -95,12 +95,19 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 In case you want to tweak which toolchain is used for a specific task, you can specify the exact tool a task is using.
 For example, the `Test` task exposes a `JavaLauncher` property that defines which java executable to use for launching the tests.
 
-In the example below, we configure the default toolchain to use JDK8 for compiling and testing.
+In the example below, we configure all java compilation tasks to use JDK8.
 Additionally, we introduce a new `Test` task that is going to run our unit tests but using a JDK 14.
 
 ====
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+====
+
+In addition, in the `application` subproject, we add another Java execution task to run our application with JDK 14.
+
+====
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="application/build.gradle.kts[tags=customExec]"]
 ====
 
 Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
@@ -110,9 +117,9 @@ Toolchains tool providers can be obtained from the link:{javadocPath}/org/gradle
 
 Three tools are available:
 
-* A `JavaCompiler` which is the tool used by the `JavaCompile` task
-* A `JavaLauncher` which is the tool used by the `JavaExec` or `Test` tasks
-* A `JavadocTool` which is the tool used by the `Javadoc` task
+* A `JavaCompiler` which is the tool used by the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html#org.gradle.api.tasks.compile.JavaCompile:javaCompiler[JavaCompile] task
+* A `JavaLauncher` which is the tool used by the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:javaLauncher[JavaExec] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:javaLauncher[Test] tasks
+* A `JavadocTool` which is the tool used by the link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html#org.gradle.api.tasks.javadoc.Javadoc:javadocTool[Javadoc] task
 
 === Integration with tasks relying on a Java executable or Java home
 
