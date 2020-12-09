@@ -98,7 +98,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
         }
         gradleWrapper {
             name = "GRADLE_RUNNER"
-            tasks = "clean $gradleTasks"
+            tasks = ":clean $gradleTasks"
             gradleParams = (
                     buildToolGradleParameters(daemon) +
                     listOf(extraParameters) +
@@ -151,7 +151,7 @@ fun BaseGradleBuildType.killProcessStep(stepName: String, daemon: Boolean, os: O
         gradleWrapper {
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "killExistingProcessesStartedByGradle"
+            tasks = ":killExistingProcessesStartedByGradle"
             gradleParams = (
                 buildToolGradleParameters(daemon) +
                     "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8

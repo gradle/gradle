@@ -59,7 +59,7 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
     if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
         gradleRunnerStep(
             model,
-            ":$performanceProjectName:$taskName --channel %performance.channel%",
+            ":subprojects:$performanceProjectName:$taskName --channel %performance.channel%",
             extraParameters = listOf(
                 "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",

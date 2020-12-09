@@ -12,7 +12,7 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     applyDefaults(
         model,
         this,
-        "packageBuild",
+        ":packageBuild",
         extraParameters = buildScanTag("BuildDistributions") +
             " -PtestJavaVersion=${LINUX.buildJavaVersion.major}" +
             " -Porg.gradle.java.installations.auto-download=false"

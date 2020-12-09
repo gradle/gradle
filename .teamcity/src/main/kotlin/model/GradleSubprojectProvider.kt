@@ -20,9 +20,9 @@ import com.alibaba.fastjson.JSON
 import java.io.File
 
 val ignoredSubprojects = listOf(
-    "soak", // soak test
-    "distributions-integ-tests", // build distribution testing
-    "architecture-test" // sanity check
+    "subprojects:soak", // soak test
+    "subprojects:distributions-integ-tests", // build distribution testing
+    "subprojects:architecture-test" // sanity check
 )
 
 interface GradleSubprojectProvider {

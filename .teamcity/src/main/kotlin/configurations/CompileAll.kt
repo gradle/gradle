@@ -20,7 +20,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
     applyDefaults(
         model,
         this,
-        "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true",
+        ":compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true",
         extraParameters = buildScanTag("CompileAll") + " " + "-Porg.gradle.java.installations.auto-download=false"
     )
 
