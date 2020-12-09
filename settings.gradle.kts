@@ -7,6 +7,9 @@ pluginManagement {
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
         maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
     }
+
+    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("build-logic-commons")
+    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("build-logic")
 }
 
 plugins {
@@ -16,9 +19,6 @@ plugins {
     // Keep version with `build-logic/build-platform/buildSrc.gradle.kts` in sync
     id("com.gradle.enterprise.test-distribution").version("2.0")
 }
-
-includeBuild("build-logic-commons")
-includeBuild("build-logic")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 includeBuild("subprojects")
