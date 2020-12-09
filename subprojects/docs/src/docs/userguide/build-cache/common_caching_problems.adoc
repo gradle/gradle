@@ -97,8 +97,9 @@ Still, the vendor and the minor version may influence the bytecode produced by c
 
 [NOTE]
 ====
-If you're using <<toolchains.adoc#toolchains,Java Toolchains>>, the Java major version, the vendor (if specified) and implementation (if specified) will be tracked automatically as an input for compilation
-and test execution.
+If you're using <<toolchains.adoc#toolchains,Java Toolchains>>, the Java major version,
+the vendor (if specified) and implementation (if specified) will be tracked automatically
+as an input for compilation and test execution.
 ====
 
 

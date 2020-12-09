@@ -92,8 +92,8 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 
 [NOTE]
 ====
-The Java major version, the vendor (if specified) and implementation (if specified) will be tracked as an input for compilation
-and test execution.
+The Java major version, the vendor (if specified) and implementation (if specified)
+will be tracked as an input for compilation and test execution.
 ====
 
 
