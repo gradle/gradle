@@ -116,14 +116,11 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
             systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
         }
     }
-}
 
-
-fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
-    parameters.includeTestClasses.set(project.stringPropertyOrEmpty("includeTestClasses"))
-    parameters.excludeTestClasses.set(project.stringPropertyOrEmpty("excludeTestClasses"))
-    parameters.onlyTestGradleVersion.set(project.stringPropertyOrEmpty("onlyTestGradleVersion"))
-    parameters.repoRoot.set(repoRoot())
+    // There are cases where unit tests are deactivated (on CI)
+    tasks.named<Test>("test") {
+        buildBucketProvider().configureUnitTestTask(this)
+    }
 }
 
 
@@ -131,7 +128,7 @@ internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register<IntegrationTest>(name) {
         val integTest = project.the<IntegrationTestExtension>()
-        project.getBucketProvider().get().bucketProvider.configureTest(this, sourceSet.name)
+        buildBucketProvider().configureTest(this, sourceSet, testType)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -146,6 +143,16 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
                 .withPathSensitivity(PathSensitivity.RELATIVE)
         }
     }
+
+
+private
+fun Project.buildBucketProvider() =
+    gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
+        parameters.includeTestClasses.set(stringPropertyOrEmpty("includeTestClasses"))
+        parameters.excludeTestClasses.set(stringPropertyOrEmpty("excludeTestClasses"))
+        parameters.onlyTestGradleVersion.set(stringPropertyOrEmpty("onlyTestGradleVersion"))
+        parameters.repoRoot.set(project.repoRoot())
+    }.get().bucketProvider
 
 
 private
