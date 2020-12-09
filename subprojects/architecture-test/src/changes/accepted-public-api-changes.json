@@ -145,6 +145,38 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getConfigDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.setConfigDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleExtension",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleExtension.getConfigDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleExtension",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleExtension.setConfigDir(java.io.File)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

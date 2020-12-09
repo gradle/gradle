@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -41,7 +40,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
@@ -116,8 +114,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return The reports container
      */
     @Override
+    @SuppressWarnings("rawtypes")
     public CheckstyleReports reports(@DelegatesTo(value = CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return reports(new ClosureBackedAction<CheckstyleReports>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     /**
@@ -238,54 +237,11 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * </p>
      *
      * @return path to other Checkstyle configuration files
-     * @since 4.0
+     * @since 6.0
      */
     @Optional
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
-    @Nullable
-    @Deprecated
-    // @ReplacedBy("configDirectory")
-    public File getConfigDir() {
-        // TODO: The annotations need to be moved to the new property
-        DeprecationLogger.deprecateMethod(Checkstyle.class, "getConfigDir()").replaceWith("Checkstyle.getConfigDirectory()")
-            .willBeRemovedInGradle7()
-            .withDslReference(Checkstyle.class, "configDir")
-            .nagUser();
-        File configDir = getConfigDirectory().getAsFile().getOrNull();
-        if (configDir != null && configDir.exists()) {
-            return configDir;
-        }
-        return null;
-    }
-
-    /**
-     * Path to other Checkstyle configuration files.
-     * <p>
-     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
-     * </p>
-     *
-     * @since 4.0
-     */
-    @Deprecated
-    public void setConfigDir(Provider<File> configDir) {
-        DeprecationLogger.deprecateMethod(Checkstyle.class, "setConfigDir()").replaceWith("Checkstyle.getConfigDirectory().set()")
-            .willBeRemovedInGradle7()
-            .withDslReference(Checkstyle.class, "configDir")
-            .nagUser();
-        this.configDirectory.set(getProject().getLayout().dir(configDir));
-    }
-
-    /**
-     * Path to other Checkstyle configuration files.
-     * <p>
-     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
-     * </p>
-     *
-     * @return path to other Checkstyle configuration files
-     * @since 6.0
-     */
-    @Internal
     public DirectoryProperty getConfigDirectory() {
         return configDirectory;
     }

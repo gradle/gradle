@@ -17,9 +17,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.resources.TextResource;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -35,7 +33,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     private final Project project;
 
     private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
+    private Map<String, Object> configProperties = new LinkedHashMap<>();
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
@@ -90,42 +88,6 @@ public class CheckstyleExtension extends CodeQualityExtension {
      */
     public void setConfigProperties(Map<String, Object> configProperties) {
         this.configProperties = configProperties;
-    }
-
-    /**
-     * Path to other Checkstyle configuration files. By default, this path is {@code $rootProject.projectDir/config/checkstyle}
-     * <p>
-     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
-     * </p>
-     *
-     * @return path to other Checkstyle configuration files
-     * @since 4.0
-     */
-    @Deprecated
-    @ReplacedBy("configDirectory")
-    public File getConfigDir() {
-        DeprecationLogger.deprecateMethod(CheckstyleExtension.class, "getConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory()")
-            .willBeRemovedInGradle7()
-            .withDslReference(CheckstyleExtension.class, "configDir")
-            .nagUser();
-        return configDirectory.get().getAsFile();
-    }
-
-    /**
-     * Path to other Checkstyle configuration files. By default, this path is {@code $rootProject.projectDir/config/checkstyle}
-     * <p>
-     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
-     * </p>
-     *
-     * @since 4.0
-     */
-    @Deprecated
-    public void setConfigDir(File configDir) {
-        DeprecationLogger.deprecateMethod(CheckstyleExtension.class, "setConfigDir()").replaceWith("CheckstyleExtension.getConfigDirectory().set()")
-            .willBeRemovedInGradle7()
-            .withDslReference(CheckstyleExtension.class, "configDir")
-            .nagUser();
-        this.configDirectory.set(configDir);
     }
 
     /**
