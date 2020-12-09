@@ -131,7 +131,7 @@ class PluginBuildConfigurationIntegrationTest extends AbstractPluginBuildIntegra
         fails()
 
         then:
-        failureCauseContains("Included plugin builds can not have dependency substitutions")
+        failureCauseContains("Could not find method dependencySubstitution()")
     }
 
 }

@@ -16,37 +16,88 @@
 
 package org.gradle.initialization;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.internal.composite.ConfigurableIncludedPluginBuild;
+import org.gradle.api.internal.BuildDefinition;
+import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.DefaultConfigurableIncludedBuild;
+import org.gradle.internal.composite.DefaultConfigurableIncludedPluginBuild;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.management.internal.ConfigurableIncludedPluginBuild;
+import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.io.File;
 
-public class IncludedBuildSpec {
+public abstract class IncludedBuildSpec {
 
     public final File rootDir;
-    private final Action<? super ConfigurableIncludedBuild> configurer;
-    private final Class<? extends DefaultConfigurableIncludedBuild> configurableType;
 
-    private IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer, Class<? extends DefaultConfigurableIncludedBuild> configurableType) {
+    protected IncludedBuildSpec(File rootDir) {
         this.rootDir = rootDir;
-        this.configurer = configurer;
-        this.configurableType = configurableType;
     }
 
-    public static IncludedBuildSpec includedPluginBuild(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
-        return new IncludedBuildSpec(rootDir, configurer, ConfigurableIncludedPluginBuild.class);
+    public abstract BuildDefinition toBuildDefinition(StartParameter startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator);
+
+    public static IncludedBuildSpec includedPluginBuild(File rootDir, Action<? super ConfigurableIncludedPluginBuild> configurer) {
+        return new IncludedPluginBuildSpec(rootDir, configurer);
     }
 
-    public static IncludedBuildSpec includedBuild(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
-        return new IncludedBuildSpec(rootDir, configurer, DefaultConfigurableIncludedBuild.class);
+    public static IncludedBuildSpec includedBuild(File rootDir, Action<ConfigurableIncludedBuild> configurer) {
+        return new IncludedLibraryBuildSpec(rootDir, configurer);
     }
 
-    public DefaultConfigurableIncludedBuild configureSpec(Instantiator instantiator) {
-        DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(configurableType, rootDir);
-        configurer.execute(configurable);
-        return configurable;
+    private static class IncludedLibraryBuildSpec extends IncludedBuildSpec {
+
+        private final Action<? super ConfigurableIncludedBuild> configurer;
+
+        private IncludedLibraryBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
+            super(rootDir);
+            this.configurer = configurer;
+        }
+
+        @Override
+        public BuildDefinition toBuildDefinition(StartParameter startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+            DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, rootDir);
+            configurer.execute(configurable);
+
+            return BuildDefinition.fromStartParameterForBuild(
+                startParameter,
+                configurable.getName(),
+                rootDir,
+                PluginRequests.EMPTY,
+                configurable.getDependencySubstitutionAction(),
+                publicBuildPath,
+                false
+            );
+        }
+    }
+
+    private static class IncludedPluginBuildSpec extends IncludedBuildSpec {
+
+        private final Action<? super ConfigurableIncludedPluginBuild> configurer;
+
+        private IncludedPluginBuildSpec(File rootDir, Action<? super ConfigurableIncludedPluginBuild> configurer) {
+            super(rootDir);
+            this.configurer = configurer;
+        }
+
+        @Override
+        public BuildDefinition toBuildDefinition(StartParameter startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator) {
+            DefaultConfigurableIncludedPluginBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedPluginBuild.class, rootDir);
+            configurer.execute(configurable);
+
+            return BuildDefinition.fromStartParameterForBuild(
+                startParameter,
+                configurable.getName(),
+                rootDir,
+                PluginRequests.EMPTY,
+                ImmutableActionSet.empty(),
+                publicBuildPath,
+                true
+            );
+        }
     }
 }
+

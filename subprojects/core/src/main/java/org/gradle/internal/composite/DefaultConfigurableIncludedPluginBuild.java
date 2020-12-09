@@ -17,24 +17,20 @@
 package org.gradle.internal.composite;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencySubstitutions;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.internal.ImmutableActionSet;
+import org.gradle.plugin.management.internal.ConfigurableIncludedPluginBuild;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultConfigurableIncludedBuild implements ConfigurableIncludedBuild {
+public class DefaultConfigurableIncludedPluginBuild implements ConfigurableIncludedPluginBuild {
 
     private final File projectDir;
 
     private String name;
-    private ImmutableActionSet<DependencySubstitutions> dependencySubstitutionActions = ImmutableActionSet.empty();
 
-    public DefaultConfigurableIncludedBuild(File projectDir) {
+    public DefaultConfigurableIncludedPluginBuild(File projectDir) {
         this.projectDir = projectDir;
         this.name = projectDir.getName();
     }
@@ -58,18 +54,8 @@ public class DefaultConfigurableIncludedBuild implements ConfigurableIncludedBui
     }
 
     @Override
-    public void dependencySubstitution(@Nonnull Action<? super DependencySubstitutions> action) {
-        Preconditions.checkNotNull(action, "action must not be null");
-        dependencySubstitutionActions = dependencySubstitutionActions.add(action);
-    }
-
-    @Override
     @Nonnull
     public TaskReference task(@Nullable String path) {
         throw new IllegalStateException("IncludedBuild.task() cannot be used while configuring the included build");
-    }
-
-    public Action<DependencySubstitutions> getDependencySubstitutionAction() {
-        return dependencySubstitutionActions;
     }
 }

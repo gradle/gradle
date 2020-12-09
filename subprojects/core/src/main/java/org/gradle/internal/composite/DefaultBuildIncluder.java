@@ -24,7 +24,6 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,17 +60,6 @@ public class DefaultBuildIncluder implements BuildIncluder {
 
     private BuildDefinition toBuildDefinition(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
         gradle.getOwner().assertCanAdd(includedBuildSpec);
-
-        DefaultConfigurableIncludedBuild configurable = includedBuildSpec.configureSpec(instantiator);
-
-        return BuildDefinition.fromStartParameterForBuild(
-            gradle.getStartParameter(),
-            configurable.getName(),
-            includedBuildSpec.rootDir,
-            PluginRequests.EMPTY,
-            configurable.getDependencySubstitutionAction(),
-            publicBuildPath,
-            configurable.isPluginBuild()
-        );
+        return includedBuildSpec.toBuildDefinition(gradle.getStartParameter(), publicBuildPath, instantiator);
     }
 }
