@@ -67,7 +67,7 @@ public interface PluginManagementSpec {
 
     /**
      * Includes a plugin build at the specified path to the composite build.
-     * Included plugin builds can contribute settings and project plugins to the project.
+     * Included plugin builds can contribute settings and project plugins.
      * @param rootProject The path to the root project directory for the build.
      *
      * @since 6.9
