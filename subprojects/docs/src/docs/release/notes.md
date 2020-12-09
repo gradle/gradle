@@ -8,6 +8,8 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
+[Martin d'Anjou](https://github.com/martinda)
+
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
