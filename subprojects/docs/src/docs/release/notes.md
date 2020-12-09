@@ -24,8 +24,8 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ### Included plugin builds
 
-Co-developing a plugin by including its build in settings file was only possible for project plugins.
-Settings plugins had to be developed in isolation, published to a binary repository and then consumed in a project.
+Developing plugins as part of a composite build was so far only possible for project plugins.
+Settings plugins always had to be developed in isolation and published to a binary repository.
 
 This release introduces a new API in settings that allows using a settings plugin from an included build:
 ```
