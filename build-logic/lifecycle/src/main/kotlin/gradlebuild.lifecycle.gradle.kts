@@ -14,107 +14,71 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.BuildEnvironment
-import java.time.Duration
-import java.util.Timer
-import kotlin.concurrent.timerTask
-
-// Lifecycle tasks used to to fan out the build into multiple builds in a CI pipeline.
+plugins {
+    id("lifecycle-base") // Make sure the basic lifecycle tasks are added through 'lifecycle-base'. Other plugins might sneakily apply that to the root project.
+}
 
 val ciGroup = "CI Lifecycle"
 
-val compileAllBuild = "compileAllBuild"
+val baseLifecycleTasks = listOf(
+    LifecycleBasePlugin.CLEAN_TASK_NAME,
+    LifecycleBasePlugin.ASSEMBLE_TASK_NAME,
+    LifecycleBasePlugin.BUILD_TASK_NAME
+)
 
-val sanityCheck = "sanityCheck"
+// See also 'gradlebuild.ci-lifecycle'
+val lifecycleTasks = mapOf(
+    "compileAllBuild" to "Initialize CI Pipeline by priming the cache before fanning out",
+    "sanityCheck" to "Run all basic checks (without tests) - to be run locally and on CI for early feedback",
+    "quickTest" to "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode",
+    "platformTest" to "Run all unit, integration and cross-version (against latest release) tests in forking execution mode",
+    "allVersionsIntegMultiVersionTest" to "Run all multi-version integration tests with all version to cover",
+    "parallelTest" to "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel",
+    "noDaemonTest" to "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon",
+    "configCacheTest" to "Run all integration tests with instant execution",
+    "watchFsTest" to "Run all integration tests with file system watching enabled",
+    "forceRealizeDependencyManagementTest" to "Runs all integration tests with the dependency management engine in 'force component realization' mode",
+    "quickFeedbackCrossVersionTest" to "Run cross-version tests against a limited set of versions",
+    "allVersionsCrossVersionTest" to "Run cross-version tests against all released versions (latest patch release of each)"
+)
 
-val quickTest = "quickTest"
-
-val platformTest = "platformTest"
-
-val allVersionsCrossVersionTest = "allVersionsCrossVersionTest"
-
-val allVersionsIntegMultiVersionTest = "allVersionsIntegMultiVersionTest"
-
-val soakTest = "soakTest"
-
-val smokeTest = "smokeTest"
-
-
-setupTimeoutMonitorOnCI()
-setupGlobalState()
-
-tasks.registerDistributionsPromotionTasks()
-
-tasks.registerEarlyFeedbackRootLifecycleTasks()
-
-/**
- * Print all stacktraces of running JVMs on the machine upon timeout. Helps us diagnose deadlock issues.
- */
-fun setupTimeoutMonitorOnCI() {
-    if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
-        val timer = Timer(true).apply {
-            schedule(
-                timerTask {
-                    exec {
-                        commandLine(
-                            "${System.getProperty("java.home")}/bin/java",
-                            project.layout.projectDirectory.file("subprojects/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").asFile,
-                            project.layout.projectDirectory.asFile.absolutePath
-                        )
-                    }
-                },
-                determineTimeoutMillis()
-            )
-        }
-        gradle.buildFinished {
-            timer.cancel()
+if (subprojects.isEmpty() && gradle.parent == null) { // the umbrella build if any
+    baseLifecycleTasks.forEach { lifecycleTask ->
+        tasks.named(lifecycleTask) {
+            group = ciGroup
+            dependsOn(gradle.includedBuilds.filter { !it.name.contains("build-logic") }.map { it.task(":$lifecycleTask") })
         }
     }
-}
-
-fun determineTimeoutMillis() = when {
-    isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest) -> Duration.ofMinutes(30).toMillis()
-    isRequestedTask(smokeTest) -> Duration.ofHours(1).plusMinutes(30).toMillis()
-    else -> Duration.ofHours(2).plusMinutes(45).toMillis()
-}
-
-fun setupGlobalState() {
-    if (needsToUseTestVersionsPartial()) {
-        globalProperty("testVersions" to "partial")
+    lifecycleTasks.forEach { (lifecycleTask, taskDescription) ->
+        tasks.register(lifecycleTask) {
+            group = ciGroup
+            description = taskDescription
+            dependsOn(gradle.includedBuilds.filter { !it.name.contains("build-logic") }.map { it.task(":$lifecycleTask") })
+        }
     }
-    if (needsToUseTestVersionsAll()) {
-        globalProperty("testVersions" to "all")
+    tasks.registerDistributionsPromotionTasks()
+    tasks.expandSanityCheck()
+} else if (subprojects.isNotEmpty()) { // a root build
+    setupGlobalState()
+    baseLifecycleTasks.forEach { lifecycleTask ->
+        tasks.named(lifecycleTask) {
+            group = ciGroup
+            dependsOn(subprojects.map { "${it.name}:$lifecycleTask" })
+        }
     }
-}
-
-fun needsToUseTestVersionsPartial() = isRequestedTask(platformTest)
-
-fun needsToUseTestVersionsAll() = isRequestedTask(allVersionsCrossVersionTest)
-    || isRequestedTask(allVersionsIntegMultiVersionTest)
-    || isRequestedTask(soakTest)
-
-fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
-    named(compileAllBuild) {
-        description = "Initialize CI Pipeline by priming the cache before fanning out"
-        group = ciGroup
-        gradle.includedBuild("subprojects").task(":base-services:createBuildReceipt")
+    lifecycleTasks.forEach { (lifecycleTask, taskDescription) ->
+        tasks.register(lifecycleTask) {
+            group = ciGroup
+            description = taskDescription
+            dependsOn(subprojects.map { "${it.name}:$lifecycleTask" })
+        }
     }
-
-    named(sanityCheck) {
-        description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
-        group = "verification"
-        dependsOn(
-            gradle.includedBuild("build-logic-commons").task(":check"),
-            gradle.includedBuild("build-logic").task(":check"),
-            gradle.includedBuild("subprojects").task(":docs:checkstyleApi"),
-            gradle.includedBuild("subprojects").task(":internal-build-reports:allIncubationReportsZip"),
-            gradle.includedBuild("subprojects").task(":architecture-test:checkBinaryCompatibility"),
-            gradle.includedBuild("subprojects").task(":docs:javadocAll"),
-            gradle.includedBuild("subprojects").task(":architecture-test:test"),
-            gradle.includedBuild("subprojects").task(":tooling-api:toolingApiShadedJar"),
-            gradle.includedBuild("subprojects").task(":performance:verifyPerformanceScenarioDefinitions"),
-            ":checkSubprojectsInfo"
-        )
+} else {
+    lifecycleTasks.forEach { (lifecycleTask, taskDescription) ->
+        tasks.register(lifecycleTask) {
+            group = ciGroup
+            description = taskDescription
+        }
     }
 }
 
@@ -136,6 +100,41 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
     }
 }
 
+fun TaskContainer.expandSanityCheck() {
+    named("sanityCheck") {
+        dependsOn(
+            gradle.includedBuild("build-logic-commons").task(":check"),
+            gradle.includedBuild("build-logic").task(":check"),
+            gradle.includedBuild("subprojects").task(":docs:checkstyleApi"),
+            gradle.includedBuild("subprojects").task(":internal-build-reports:allIncubationReportsZip"),
+            gradle.includedBuild("subprojects").task(":architecture-test:checkBinaryCompatibility"),
+            gradle.includedBuild("subprojects").task(":docs:javadocAll"),
+            gradle.includedBuild("subprojects").task(":architecture-test:test"),
+            gradle.includedBuild("subprojects").task(":tooling-api:toolingApiShadedJar"),
+            gradle.includedBuild("subprojects").task(":performance:verifyPerformanceScenarioDefinitions"),
+            ":checkSubprojectsInfo"
+        )
+    }
+}
+
+fun setupGlobalState() {
+    if (needsToUseTestVersionsPartial()) {
+        globalProperty("testVersions" to "partial")
+    }
+    if (needsToUseTestVersionsAll()) {
+        globalProperty("testVersions" to "all")
+    }
+}
+
+fun needsToUseTestVersionsPartial() = isRequestedTask("platformTest")
+
+fun needsToUseTestVersionsAll() = isRequestedTask("allVersionsCrossVersionTest")
+    || isRequestedTask("allVersionsIntegMultiVersionTest")
+    || isRequestedTask("soakTest")
+
+fun isRequestedTask(taskName: String) = gradle.startParameter.taskNames.contains(taskName)
+    || gradle.startParameter.taskNames.any { it.contains(":$taskName") }
+
 fun globalProperty(pair: Pair<String, Any>) {
     val propertyName = pair.first
     val value = pair.second
@@ -147,6 +146,3 @@ fun globalProperty(pair: Pair<String, Any>) {
     }
     extra.set(propertyName, value)
 }
-
-fun isRequestedTask(taskName: String) = gradle.startParameter.taskNames.contains(taskName)
-    || gradle.startParameter.taskNames.any { it.contains(":$taskName") }

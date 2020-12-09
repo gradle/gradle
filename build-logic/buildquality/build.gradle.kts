@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":basics"))
+    implementation(project(":lifecycle"))
     implementation(project(":binary-compatibility"))
     implementation(project(":cleanup"))
     implementation(project(":documentation"))

@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":lifecycle"))
     implementation(project(":idea"))
     implementation(project(":profiling"))
 

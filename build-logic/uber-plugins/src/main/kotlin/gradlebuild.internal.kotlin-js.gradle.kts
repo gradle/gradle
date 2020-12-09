@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 plugins {
+    id("gradlebuild.lifecycle")
     kotlin("js")
     id("gradlebuild.dependency-modules")
     id("gradlebuild.repositories")
@@ -58,10 +59,8 @@ tasks {
         dependsOn(ktlintCheckTasks)
     }
 
-    register("quickTest") {
+    named("quickTest") {
         dependsOn(named("test"))
         dependsOn(ktlintCheckTasks)
     }
-
-    register("platformTest")
 }

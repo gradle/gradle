@@ -15,6 +15,7 @@
  */
 
 plugins {
+    id("gradlebuild.lifecycle")
     `java-base`
     id("gradlebuild.dependency-modules")
     id("gradlebuild.repositories")

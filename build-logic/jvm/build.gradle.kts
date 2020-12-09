@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":basics"))
+    implementation(project(":lifecycle"))
     implementation(project(":dependency-modules"))
     implementation(project(":module-identity"))
 

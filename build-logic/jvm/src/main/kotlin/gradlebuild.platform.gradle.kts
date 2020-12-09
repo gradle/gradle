@@ -15,6 +15,7 @@
  */
 
 plugins {
+    id("gradlebuild.lifecycle")
     id("java-platform")
     id("gradlebuild.dependency-modules")
 }

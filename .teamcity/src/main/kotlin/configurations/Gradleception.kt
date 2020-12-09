@@ -37,7 +37,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
         }
         localGradle {
             name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-            tasks = ":clean :sanityCheck subprojects:test"
+            tasks = ":clean :sanityCheck :subprojects:test :subprojects:distributionsIntegTests:forkingIntegTest"
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
             gradleParams = defaultParameters
         }

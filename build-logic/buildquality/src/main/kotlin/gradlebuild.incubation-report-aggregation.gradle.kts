@@ -1,6 +1,7 @@
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
 
 plugins {
+    id("gradlebuild.lifecycle")
     id("base")
 }
 

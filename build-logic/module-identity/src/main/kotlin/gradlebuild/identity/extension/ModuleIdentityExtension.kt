@@ -65,8 +65,11 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
             this.commitId.set(this@ModuleIdentityExtension.gradleBuildCommitId)
             this.receiptFolder.set(project.layout.buildDirectory.dir("generated-resources/build-receipt"))
         }
-        tasks.named<Jar>("jar").configure {
+        tasks.named<Jar>("jar") {
             from(createBuildReceipt.map { it.receiptFolder })
+        }
+        tasks.named("compileAll") {
+            dependsOn(createBuildReceipt)
         }
     }
 

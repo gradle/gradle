@@ -26,6 +26,7 @@ import org.gradle.internal.os.OperatingSystem
 import java.util.jar.Attributes
 
 plugins {
+    id("gradlebuild.lifecycle")
     groovy
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
@@ -41,8 +42,7 @@ configureCompile()
 configureSourcesVariant()
 configureJarTasks()
 configureTests()
-
-tasks.registerCITestDistributionLifecycleTasks()
+wireLifecycleTasks()
 
 fun configureCompile() {
     java.toolchain {
@@ -267,54 +267,53 @@ val Project.maxParallelForks: Int
         findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
     }
 
-/**
- * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
- */
-fun TaskContainer.registerCITestDistributionLifecycleTasks() {
-    val ciGroup = "CI Lifecycle"
-
-    register("quickTest") {
-        description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
-        group = ciGroup
+fun wireLifecycleTasks() {
+    tasks.named("compileAllBuild") {
+        dependsOn("compileAll")
     }
-
-    register("platformTest") {
-        description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
-        group = ciGroup
+    tasks.named("sanityCheck") {
+        dependsOn("compileAll", "codeQuality")
     }
-
-    register("quickFeedbackCrossVersionTest") {
-        description = "Run cross-version tests against a limited set of versions"
-        group = ciGroup
+    tasks.named("quickTest") {
+        dependsOn("test")
     }
-
-    register("allVersionsCrossVersionTest") {
-        description = "Run cross-version tests against all released versions (latest patch release of each)"
-        group = ciGroup
+    tasks.named("platformTest") {
+        dependsOn("test")
     }
-
-    register("allVersionsIntegMultiVersionTest") {
-        description = "Run all multi-version integration tests with all version to cover"
-        group = ciGroup
+    tasks.named("quickTest") {
+        dependsOn("embeddedIntegTest")
     }
-
-    register("parallelTest") {
-        description = "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel"
-        group = ciGroup
+    tasks.named("platformTest") {
+        dependsOn("forkingIntegTest")
     }
-
-    register("noDaemonTest") {
-        description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
-        group = ciGroup
+    tasks.named("allVersionsIntegMultiVersionTest") {
+        dependsOn("integMultiVersionTest")
     }
-
-    register("configCacheTest") {
-        description = "Run all integration tests with instant execution"
-        group = ciGroup
+    tasks.named("parallelTest") {
+        dependsOn("parallelIntegTest")
     }
-
-    register("forceRealizeDependencyManagementTest") {
-        description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
-        group = ciGroup
+    tasks.named("noDaemonTest") {
+        dependsOn("noDaemonIntegTest")
+    }
+    tasks.named("configCacheTest") {
+        dependsOn("configCacheIntegTest")
+    }
+    tasks.named("watchFsTest") {
+        dependsOn("watchFsIntegTest")
+    }
+    tasks.named("forceRealizeDependencyManagementTest") {
+        dependsOn("integForceRealizeTest")
+    }
+    tasks.named("quickTest") {
+        dependsOn("embeddedCrossVersionTest")
+    }
+    tasks.named("platformTest") {
+        dependsOn("forkingCrossVersionTest")
+    }
+    tasks.named("quickFeedbackCrossVersionTest") {
+        dependsOn("quickFeedbackCrossVersionTests")
+    }
+    tasks.named("allVersionsCrossVersionTest") {
+        dependsOn("allVersionsCrossVersionTests")
     }
 }
