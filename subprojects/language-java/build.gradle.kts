@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":worker-processes"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
+    implementation(project(":file-temp"))
     implementation(project(":persistent-cache"))
     implementation(project(":jvm-services"))
     implementation(project(":core-api"))

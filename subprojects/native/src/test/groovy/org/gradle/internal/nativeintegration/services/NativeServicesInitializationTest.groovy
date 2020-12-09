@@ -17,12 +17,14 @@
 package org.gradle.internal.nativeintegration.services
 
 import net.rubygrapefruit.platform.Native
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
 import org.gradle.internal.service.ServiceRegistry
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
+import javax.inject.Inject
 import java.lang.reflect.Constructor
 
 class NativeServicesInitializationTest extends Specification {
@@ -30,7 +32,15 @@ class NativeServicesInitializationTest extends Specification {
     def "cannot get an instance of NativeServices without initializing first" () {
         // Construct an isolated classloader so we can load a pristine NativeServices class
         // that's guaranteed not to have been initialized before
-        URL[] jars = [jar(NativeServices), jar(ServiceRegistry), jar(Native), jar(LoggerFactory), jar(Chmod)]
+        URL[] jars = [
+            jar(NativeServices),
+            jar(ServiceRegistry),
+            jar(Native),
+            jar(LoggerFactory),
+            jar(Chmod),
+            jar(TemporaryFileProvider),
+            jar(Inject)
+        ]
         ClassLoader classLoader = new URLClassLoader(jars, null as ClassLoader)
         Class nativeServicesClass = classLoader.loadClass(NativeServices.getName())
         JavaMethod nativeServicesGetInstance = JavaMethod.ofStatic(nativeServicesClass, nativeServicesClass, "getInstance")

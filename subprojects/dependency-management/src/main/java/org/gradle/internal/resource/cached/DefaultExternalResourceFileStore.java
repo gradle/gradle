@@ -17,11 +17,16 @@ package org.gradle.internal.resource.cached;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Namer;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String> implements ExternalResourceFileStore {
@@ -43,7 +48,30 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
 
     private static final Namer<String> NAMER = s -> StringUtils.substringAfterLast(s, "/");
 
-    public DefaultExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+    private DefaultExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
         super(baseDir, tmpProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);
+    }
+
+    @ServiceScope(Scopes.Build.class)
+    public static class Factory {
+        private final TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider;
+        private final FileAccessTimeJournal fileAccessTimeJournal;
+        private final ChecksumService checksumService;
+
+        @Inject
+        public Factory(TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
+            this.tmpDirTemporaryFileProvider = tmpDirTemporaryFileProvider;
+            this.fileAccessTimeJournal = fileAccessTimeJournal;
+            this.checksumService = checksumService;
+        }
+
+        public DefaultExternalResourceFileStore create(ArtifactCacheMetadata artifactCacheMetadata) {
+            return new DefaultExternalResourceFileStore(
+                artifactCacheMetadata.getExternalResourcesStoreDirectory(),
+                tmpDirTemporaryFileProvider,
+                fileAccessTimeJournal,
+                checksumService
+            );
+        }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -24,7 +25,7 @@ import spock.lang.Specification
 class ClasspathBuilderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(ClasspathBuilderTest)
-    def builder = new ClasspathBuilder()
+    ClasspathBuilder builder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.root))
 
     def "creates an empty jar"() {
         def file = tmpDir.file("thing.zip")

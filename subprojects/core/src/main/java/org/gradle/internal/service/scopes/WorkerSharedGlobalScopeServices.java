@@ -21,8 +21,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -107,10 +105,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     StreamHasher createStreamHasher() {
         return new DefaultStreamHasher();
-    }
-
-    TemporaryFileProvider createTemporaryFileProvider() {
-        return new TmpDirTemporaryFileProvider();
     }
 
     Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {

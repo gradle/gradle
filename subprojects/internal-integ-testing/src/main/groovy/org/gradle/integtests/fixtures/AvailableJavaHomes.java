@@ -22,7 +22,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
@@ -208,7 +210,10 @@ public abstract class AvailableJavaHomes {
 
     private static List<JvmInstallationMetadata> discoverLocalInstallations() {
         ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
-        JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory));
+        TemporaryFileProvider temporaryFileProvider = TmpDirTemporaryFileProvider.createLegacy();
+        DefaultJvmMetadataDetector defaultJvmMetadataDetector =
+            new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
+        JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         final List<JvmInstallationMetadata> jvms = new SharedJavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor(), OperatingSystem.current())
             .listInstallations().stream()
             .map(InstallationLocation::getLocation)

@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
+    implementation(project(":file-temp"))
     implementation(project(":persistent-cache"))
     implementation(project(":snapshots"))
     implementation(project(":dependency-management"))

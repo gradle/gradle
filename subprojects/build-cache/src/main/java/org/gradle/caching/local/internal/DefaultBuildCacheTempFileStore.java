@@ -19,6 +19,7 @@ package org.gradle.caching.local.internal;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.file.TempFiles;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
         File tempFile = null;
         try {
             try {
-                tempFile = File.createTempFile(hashCode + "-", PARTIAL_FILE_SUFFIX, dir);
+                tempFile = TempFiles.createTempFile(hashCode + "-", PARTIAL_FILE_SUFFIX, dir);
             } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }

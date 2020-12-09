@@ -42,9 +42,9 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GFileUtils.moveFile
 
 import com.google.common.annotations.VisibleForTesting
+import org.gradle.api.internal.file.TemporaryFileProvider
 
 import java.io.File
-import java.io.File.createTempFile
 
 import java.net.URI
 import java.net.URISyntaxException
@@ -98,6 +98,7 @@ class KotlinScriptClassPathProvider(
     val coreAndPluginsScope: ClassLoaderScope,
     val gradleApiJarsProvider: JarsProvider,
     val jarCache: JarCache,
+    val temporaryFileProvider: TemporaryFileProvider,
     val progressMonitorProvider: JarGenerationProgressMonitorProvider
 ) {
 
@@ -158,7 +159,7 @@ class KotlinScriptClassPathProvider(
     private
     fun gradleKotlinDslExtensions(): File =
         produceFrom("kotlin-dsl-extensions") { outputFile, onProgress ->
-            generateApiExtensionsJar(outputFile, gradleJars, gradleApiMetadataJar, onProgress)
+            generateApiExtensionsJar(temporaryFileProvider, outputFile, gradleJars, gradleApiMetadataJar, onProgress)
         }
 
     private
@@ -182,7 +183,8 @@ class KotlinScriptClassPathProvider(
 
     private
     fun tempFileFor(outputFile: File): File =
-        createTempFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
+        temporaryFileProvider.createTemporaryFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
+            // This is here as a safety measure in case the process stops before moving this file to it's destination.
             deleteOnExit()
         }
 

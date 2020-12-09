@@ -196,12 +196,12 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
             }
 
             @Override
-            File createTemporaryFile(String prefix, @Nullable String suffix, @Nullable String... path) {
+            File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
                 return null
             }
 
             @Override
-            File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
+            File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, String... path) {
                 return tmpDir.createDir(path)
             }
         }

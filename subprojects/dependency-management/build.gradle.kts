@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":files"))
+    implementation(project(":file-temp"))
     implementation(project(":file-collections"))
     implementation(project(":persistent-cache"))
     implementation(project(":core-api"))

@@ -7,6 +7,7 @@ description = "JVM invocation and inspection abstractions"
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
+    implementation(project(":file-temp"))
     implementation(project(":process-services"))
     implementation(project(":logging"))
     implementation(libs.inject)
