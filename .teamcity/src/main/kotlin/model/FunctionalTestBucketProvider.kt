@@ -199,7 +199,7 @@ class LargeSubprojectSplitBucket(val subproject: GradleSubproject, number: Int, 
             testCoverage,
             stage,
             subprojects = listOf(subproject.name),
-            extraParameters = if (include) "-PincludeTestClasses=true -x ${subproject.name}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
+            extraParameters = if (include) "-PincludeTestClasses=true -x :${subproject.path}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
             preBuildSteps = prepareTestClassesStep(testCoverage.os)
         )
 
@@ -261,7 +261,7 @@ class SmallSubprojectBucket(val subprojectsBuildTime: List<SubprojectTestClassTi
             getDescription(testCoverage),
             testCoverage,
             stage,
-            subprojects.map { it.name }
+            subprojects.map { it.path }
         )
 
     override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")

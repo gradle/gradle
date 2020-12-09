@@ -26,7 +26,7 @@ import java.io.File
 abstract class SubprojectsInfo : DefaultTask() {
 
     private
-    val subprojectsFolder = project.layout.projectDirectory.dir("subprojects")
+    val buildRootFolders = project.gradle.includedBuilds.map { it.projectDir }.filter { !it.name.contains("build-logic") }
 
     @get:Internal
     protected
@@ -41,7 +41,7 @@ abstract class SubprojectsInfo : DefaultTask() {
 
     private
     fun generateSubprojects(): List<GradleSubproject> {
-        return subprojectsFolder.asFile.listFiles(File::isDirectory)!!
+        return buildRootFolders.flatMap { it.listFiles(File::isDirectory)!!.asIterable() }
             .filter {
                 File(it, "build.gradle.kts").exists() ||
                     File(it, "build.gradle").exists()
@@ -55,7 +55,7 @@ abstract class SubprojectsInfo : DefaultTask() {
     fun generateSubproject(subprojectDir: File): GradleSubproject {
         return GradleSubproject(
             subprojectDir.name,
-            subprojectDir.name,
+            subprojectDir.parentFile.name + ":" + subprojectDir.name,
             subprojectDir.hasDescendantDir("src/test"),
             if (subprojectDir.name == "docs") true else subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest")
