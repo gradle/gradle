@@ -40,8 +40,7 @@ plugins {
 The above example assumes that the included build defines a settings plugin with the id `my.settings-plugin`.
 
 Library components produced by builds included though the `pluginManagement` block are not automatically visible to the including build.
-If a build produces both plugins and libraries that the including build wants to use, such build should be included
-both in `pluginManagement` block and outside it:
+However, the same build can be included as plugin build and normal library build:
 ```
 pluginManagement {
     // contributes plugins
