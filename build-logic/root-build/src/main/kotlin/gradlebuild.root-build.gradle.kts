@@ -47,12 +47,12 @@ val lifecycleTasks = listOf(
 if (subprojects.isEmpty()) { // umbrella build
     baseLifecycleTasks.forEach { lifecycleTask ->
         tasks.named(lifecycleTask) {
-            dependsOn(gradle.includedBuilds.map { it.task(":${lifecycleTask}") })
+            dependsOn(gradle.includedBuilds.filter { !it.name.contains("build-logic") }.map { it.task(":${lifecycleTask}") })
         }
     }
     lifecycleTasks.forEach { lifecycleTask ->
         tasks.register(lifecycleTask) {
-            dependsOn(gradle.includedBuilds.map { it.task(":${lifecycleTask}") })
+            dependsOn(gradle.includedBuilds.filter { !it.name.contains("build-logic") }.map { it.task(":${lifecycleTask}") })
         }
     }
 } else {
