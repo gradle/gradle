@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.resources.ReadableResource;
 
 
 public class DefaultArchiveOperations implements ArchiveOperations {
@@ -26,6 +27,16 @@ public class DefaultArchiveOperations implements ArchiveOperations {
 
     public DefaultArchiveOperations(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
+    }
+
+    @Override
+    public ReadableResource gzip(Object path) {
+        return fileOperations.getResources().gzip(path);
+    }
+
+    @Override
+    public ReadableResource bzip2(Object path) {
+        return fileOperations.getResources().bzip2(path);
     }
 
     @Override

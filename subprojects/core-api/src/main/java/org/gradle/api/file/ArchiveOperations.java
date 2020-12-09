@@ -17,6 +17,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -31,6 +32,24 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @Incubating
 @ServiceScope(Scopes.Build.class)
 public interface ArchiveOperations {
+
+    /**
+     * Creates resource that points to a gzip compressed file at the given path.
+     * The path is evaluated as per {@link Project#file(Object)}.
+     *
+     * @param path The path evaluated as per {@link Project#file(Object)}.
+     * @since 6.9
+     */
+    ReadableResource gzip(Object path);
+
+    /**
+     * Creates resource that points to a bzip2 compressed file at the given path.
+     * The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     *
+     * @param path The path evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     * @since 6.9
+     */
+    ReadableResource bzip2(Object path);
 
     /**
      * <p>Creates a read-only {@code FileTree} which contains the contents of the given ZIP file, as defined by {@link Project#zipTree(Object)}.</p>
