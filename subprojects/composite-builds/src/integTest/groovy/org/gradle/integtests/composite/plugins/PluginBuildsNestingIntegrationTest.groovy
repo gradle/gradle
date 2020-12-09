@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.composite
+package org.gradle.integtests.composite.plugins
 
-
-class CompositePluginBuildsNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class PluginBuildsNestingIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
     private final PluginBuildFixture build1 = pluginBuild("logic-1")
     private final PluginBuildFixture build2 = pluginBuild("logic-2")

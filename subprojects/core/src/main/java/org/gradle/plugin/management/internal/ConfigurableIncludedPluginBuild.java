@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,24 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.Action;
-import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.api.Incubating;
+import org.gradle.api.initialization.IncludedBuild;
 
-import java.util.List;
+// TODO: move to org.gradle.api.initialization in core-api when making public
+/**
+ * A plugin build that is to be included in the composite.
+ *
+ * @since 7.0
+ */
+@Incubating
+public interface ConfigurableIncludedPluginBuild extends IncludedBuild {
 
-public interface PluginManagementSpecInternal extends PluginManagementSpec {
-
-    @Override
-    PluginResolutionStrategyInternal getResolutionStrategy();
-
-    void includeBuild(String projectPath);
-
-    void includeBuild(String projectPath, Action<ConfigurableIncludedPluginBuild> configuration);
-
-    List<IncludedBuildSpec> getIncludedBuilds();
+    /**
+     * Sets the name of the included build.
+     *
+     * @param name the name of the build
+     * @since 7.0
+     */
+    @Incubating
+    void setName(String name);
 }

@@ -86,10 +86,15 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
 
     @Override
     public void includeBuild(String projectPath) {
+        includeBuild(projectPath, Actions.doNothing());
+    }
+
+    @Override
+    public void includeBuild(String projectPath, Action<ConfigurableIncludedPluginBuild> configuration) {
         File projectDir = fileResolver.resolve(projectPath);
-        IncludedBuildSpec buildSpec = new IncludedBuildSpec(projectDir, Actions.doNothing(), true);
-        includedBuildSpecs.add(buildSpec);
+        IncludedBuildSpec buildSpec = IncludedBuildSpec.includedPluginBuild(projectDir, configuration);
         buildIncluder.registerPluginBuild(buildSpec, gradle);
+        includedBuildSpecs.add(buildSpec);
     }
 
     @Override
