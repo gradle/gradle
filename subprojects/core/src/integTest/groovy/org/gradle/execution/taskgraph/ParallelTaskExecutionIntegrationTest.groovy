@@ -466,7 +466,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "other tasks are not started when an invalid task task is running"() {
         given:
-        withParallelThreads(2)
+        withParallelThreads(3)
 
         expect:
         2.times {
@@ -484,7 +484,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "invalid task is not executed in parallel with other task"() {
         given:
-        withParallelThreads(2)
+        withParallelThreads(3)
 
         expect:
         2.times {
