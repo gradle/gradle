@@ -52,10 +52,6 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
     "-PteamCityToken" to "%teamcity.user.bot-gradle.token%"
 ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
-fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
-    "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%"
-)
-
 const val individualPerformanceTestArtifactRules = """
 subprojects/*/build/test-results-*.zip => results
 subprojects/*/build/tmp/**/log.txt => failure-logs
