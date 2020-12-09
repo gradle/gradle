@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.tooling.r31
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
@@ -28,7 +29,7 @@ import org.gradle.tooling.model.idea.IdeaProject
  * Dependency substitution is performed for models in a composite build
  */
 @TargetGradleVersion(">=3.1")
-class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
+class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     TestFile buildA
     TestFile buildB
 
@@ -38,7 +39,7 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    testCompile "org.test:b1:1.0"
+                    ${testImplementationConfiguration} "org.test:b1:1.0"
                 }
             """
         }
@@ -77,7 +78,7 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
             }
             project(":b1") {
                 dependencies {
-                    compile project(":b2")
+                    ${implementationConfiguration} project(":b2")
                 }
             }
 """
@@ -121,7 +122,7 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
             }
             project(":b1") {
                 dependencies {
-                    compile project(":b2")
+                    ${implementationConfiguration} project(":b2")
                 }
             }
 """

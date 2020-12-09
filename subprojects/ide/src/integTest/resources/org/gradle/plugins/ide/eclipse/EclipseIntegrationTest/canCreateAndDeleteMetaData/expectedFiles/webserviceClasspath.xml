@@ -11,20 +11,20 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="src" path="/api">
 		<attributes>
-			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 			<attribute name="without_test_code" value="true"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar">
 		<attributes>
-			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="gradle_used_by_scope" value="main"/>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-sources.jar" kind="lib" path="@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-javadoc.jar!/"/>
-			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="gradle_used_by_scope" value="main"/>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>

@@ -18,9 +18,10 @@ package org.gradle.plugins.ide.tooling.r28
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     @TargetGradleVersion(">=2.8")
     def "makes sure module names are unique in gradle"() {
@@ -32,13 +33,13 @@ subprojects {
 
 project(':impl') {
     dependencies {
-        compile project(':api')
+        ${implementationConfiguration} project(':api')
     }
 }
 
 project(':contrib:impl') {
     dependencies {
-        compile project(':contrib:api')
+        ${implementationConfiguration} project(':contrib:api')
     }
 }
 """

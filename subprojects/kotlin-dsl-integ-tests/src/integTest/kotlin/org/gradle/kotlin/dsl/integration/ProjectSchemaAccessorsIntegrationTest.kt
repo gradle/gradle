@@ -668,7 +668,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             plugins { `java-library` }
 
             dependencies {
-                compile("org.apache.commons:commons-io:1.3.2")
+                implementation("org.apache.commons:commons-io:1.3.2")
             }
 
             ${jcenterRepository(GradleDsl.KOTLIN)}

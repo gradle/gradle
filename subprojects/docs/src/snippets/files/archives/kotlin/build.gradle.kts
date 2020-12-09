@@ -31,7 +31,7 @@ tasks.register<Copy>("unpackLibsDirectory") {
 tasks.register<Zip>("zip") {
     from("src/dist")
     into("libs") {
-        from(configurations.runtime)
+        from(configurations.runtimeClasspath)
     }
 }
 // end::zip[]
@@ -40,7 +40,7 @@ tasks.register<Zip>("zip") {
 tasks.register<Tar>("tar") {
     from("src/dist")
     into("libs") {
-        from(configurations.runtime)
+        from(configurations.runtimeClasspath)
     }
 }
 // end::tar[]

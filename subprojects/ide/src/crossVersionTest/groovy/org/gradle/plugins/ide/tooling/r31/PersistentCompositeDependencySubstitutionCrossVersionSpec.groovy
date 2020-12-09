@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.tooling.r31
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
@@ -27,7 +28,7 @@ import org.gradle.tooling.model.idea.IdeaProject
  * Dependency substitution is performed for models in a composite build
  */
 @TargetGradleVersion(">=3.1")
-class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
+class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     TestFile buildA
     TestFile buildB
     TestFile buildC
@@ -38,7 +39,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    testCompile "org.test:b1:1.0"
+                    ${testImplementationConfiguration} "org.test:b1:1.0"
                 }
             """
             settingsFile << """
@@ -54,7 +55,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
                 }
                 project(':b1') {
                     dependencies {
-                        testCompile "org.test:buildC:1.0"
+                        ${testImplementationConfiguration} "org.test:buildC:1.0"
                     }
                 }
             """
@@ -87,7 +88,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
             }
             project(":b1") {
                 dependencies {
-                    compile project(":b2")
+                    ${implementationConfiguration} project(":b2")
                 }
             }
 """
@@ -123,7 +124,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
             }
             project(":b1") {
                 dependencies {
-                    compile project(":b2")
+                    ${implementationConfiguration} project(":b2")
                 }
             }
 """
@@ -180,15 +181,15 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         given:
         buildA.buildFile << """
             dependencies {
-                testCompile "org.test:buildC:1.0"
-                testCompile "org.buildD:b1:1.0"
+                ${testImplementationConfiguration} "org.test:buildC:1.0"
+                ${testImplementationConfiguration} "org.buildD:b1:1.0"
             }
 """
         def buildD = multiProjectBuildInSubFolder("buildD", ["b1", "buildC"]) {
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
-                    
+
                     group = 'org.buildD'
                 }
 """

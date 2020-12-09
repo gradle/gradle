@@ -16,12 +16,13 @@
 package org.gradle.plugins.ide.tooling.r11rc1
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
+class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "idea libraries contain gradle module information"() {
         given:
@@ -62,9 +63,9 @@ repositories {
 }
 
 dependencies {
-    compile 'foo.bar:coolLib:2.0'
-    compile 'unresolved.org:funLib:1.0'
-    compile files('yetAnotherJar.jar')
+    ${implementationConfiguration} 'foo.bar:coolLib:2.0'
+    ${implementationConfiguration} 'unresolved.org:funLib:1.0'
+    ${implementationConfiguration} files('yetAnotherJar.jar')
 }
 """
     }
