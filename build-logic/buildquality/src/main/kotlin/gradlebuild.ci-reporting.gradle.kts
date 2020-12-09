@@ -44,14 +44,16 @@ val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCle
 }
 
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
-    gradle.buildFinished {
-        val failedTasks = failedTasks()
-        val executedTasks = executedTasks()
-        val tmpTestFiles = tmpTestFiles()
-        prepareReportsForCiPublishing(failedTasks, executedTasks, tmpTestFiles)
-        cleanUp(tmpTestFiles)
-        if (!isCleanupRunnerStep(gradle!!)) {
-            verifyTestFilesCleanup(failedTasks, tmpTestFiles)
+    gradle.taskGraph.whenReady {
+        gradle.buildFinished {
+            val failedTasks = failedTasks()
+            val executedTasks = executedTasks()
+            val tmpTestFiles = tmpTestFiles()
+            prepareReportsForCiPublishing(failedTasks, executedTasks, tmpTestFiles)
+            cleanUp(tmpTestFiles)
+            if (!isCleanupRunnerStep(gradle!!)) {
+                verifyTestFilesCleanup(failedTasks, tmpTestFiles)
+            }
         }
     }
 }
