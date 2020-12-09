@@ -91,7 +91,7 @@ task consumer {
         succeeds("consumer", "producer")
     }
 
-    def "dependency chain counts as dependency (including #dependency)"() {
+    def "transitive dependencies are accepted as valid dependencies (including #dependency)"() {
         buildFile << """
             task producer {
                 def outputFile = file("output.txt")
@@ -126,6 +126,7 @@ task consumer {
         """
 
         expect:
+        // We add the intermediate tasks here, since the dependency relation doesn't necessarily force their scheduling
         succeeds("producer", "b", "c", "consumer")
 
         where:

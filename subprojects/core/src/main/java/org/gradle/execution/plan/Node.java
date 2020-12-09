@@ -247,6 +247,11 @@ public abstract class Node implements Comparable<Node> {
         return dependencySuccessors;
     }
 
+    /**
+     * Returns all the nodes which are hard successors, i.e. which have a non-removable relationship to the current node.
+     *
+     * For example, for tasks `shouldRunAfter` isn't a hard successor while `mustRunAfter` is.
+     */
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getHardSuccessors() {
         return dependencySuccessors;
