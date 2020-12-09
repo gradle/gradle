@@ -47,7 +47,9 @@ public interface ValueSupplier {
         NoProducer NO_PRODUCER = new NoProducer();
         UnknownProducer UNKNOWN_PRODUCER = new UnknownProducer();
 
-        boolean isKnown();
+        default boolean isKnown() {
+            return true;
+        }
 
         boolean isProducesDifferentValueOverTime();
 
@@ -98,10 +100,6 @@ public interface ValueSupplier {
     }
 
     class ExternalValueProducer implements ValueProducer {
-        @Override
-        public boolean isKnown() {
-            return true;
-        }
 
         @Override
         public boolean isProducesDifferentValueOverTime() {
@@ -120,11 +118,6 @@ public interface ValueSupplier {
         public TaskProducer(Task task, boolean content) {
             this.task = task;
             this.content = content;
-        }
-
-        @Override
-        public boolean isKnown() {
-            return true;
         }
 
         @Override
@@ -188,10 +181,6 @@ public interface ValueSupplier {
     }
 
     class NoProducer implements ValueProducer {
-        @Override
-        public boolean isKnown() {
-            return true;
-        }
 
         @Override
         public boolean isProducesDifferentValueOverTime() {

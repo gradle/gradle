@@ -21,6 +21,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -260,12 +261,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Override
         public ValueProducer getProducer() {
-            // For now, assume value is never calculated from a task output
-            if (value.hasBeenObtained()) {
-                return ValueProducer.unknown();
-            } else {
-                return ValueProducer.externalValue();
-            }
+            return ValueProducer.externalValue();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
 
         @Override
