@@ -113,13 +113,13 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         }
         // Do a breadth first search for any dependency
         ArrayDeque<Node> queue = new ArrayDeque<>();
-        consumer.getAllSuccessors().forEach(queue::add);
+        consumer.getHardSuccessors().forEach(queue::add);
         while (!queue.isEmpty()) {
             Node dependency = queue.removeFirst();
             if (dependency == producer) {
                 return false;
             }
-            dependency.getAllSuccessors().forEach(queue::add);
+            dependency.getHardSuccessors().forEach(queue::add);
         }
         return true;
     }
