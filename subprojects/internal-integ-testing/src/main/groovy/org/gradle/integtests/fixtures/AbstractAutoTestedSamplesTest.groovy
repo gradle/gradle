@@ -26,7 +26,6 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             def buildFile = testFile('build.gradle')
             def settingsFile = testFile('settings.gradle')
             def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile
-            executer.withFullDeprecationStackTraceDisabled()
             if (tagSuffix.contains('WithDeprecations')) {
                 executer.noDeprecationChecks()
             }

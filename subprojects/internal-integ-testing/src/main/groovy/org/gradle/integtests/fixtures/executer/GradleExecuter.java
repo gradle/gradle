@@ -198,9 +198,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withNoExplicitNativeServicesDir();
 
     /**
-     * Disables the rendering of stack traces for deprecation logging.
+     * Enables the rendering of stack traces for deprecation logging.
      */
-    GradleExecuter withFullDeprecationStackTraceDisabled();
+    GradleExecuter withFullDeprecationStackTraceEnabled();
 
     /**
      * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://file-leak-detector.kohsuke.org/

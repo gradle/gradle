@@ -87,8 +87,8 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        if (!fullStacktraceEnabled) {
-            executer.withFullDeprecationStackTraceDisabled()
+        if (fullStacktraceEnabled) {
+            executer.withFullDeprecationStackTraceEnabled()
         }
         if (warningsCountInConsole > 0) {
             executer.expectDeprecationWarnings(warningsCountInConsole)
@@ -171,7 +171,6 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
         executer.expectDeprecationWarning()
         executer.usingInitScript(initScript)
         run '-s'
@@ -199,8 +198,8 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        if (!withFullStacktrace) {
-            executer.withFullDeprecationStackTraceDisabled()
+        if (withFullStacktrace) {
+            executer.withFullDeprecationStackTraceEnabled()
         }
         executer.expectDeprecationWarning()
         run()
@@ -233,8 +232,8 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        if (!withFullStacktrace) {
-            executer.withFullDeprecationStackTraceDisabled()
+        if (withFullStacktrace) {
+            executer.withFullDeprecationStackTraceEnabled()
         }
         executer.expectDeprecationWarning()
         run()
