@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.basics.extension.BuildJvms
-import gradlebuild.basics.repoRoot
 
-plugins {
-    `java-base`
+package gradlebuild.testing
+
+
+enum class TestType(val prefix: String, val executers: List<String>) {
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache", "watchFs")),
+    CROSSVERSION("crossVersion", listOf("embedded", "forking"))
 }
-
-val testJavaHomePropertyName = "testJavaHome"
-
-val testJavaHomePath = providers.gradleProperty(testJavaHomePropertyName).forUseAtConfigurationTime()
-    .orElse(providers.systemProperty(testJavaHomePropertyName).forUseAtConfigurationTime())
-    .orElse(providers.environmentVariable(testJavaHomePropertyName).forUseAtConfigurationTime())
-val testJavaHome = repoRoot().dir(testJavaHomePath)
-
-extensions.create<BuildJvms>("buildJvms", javaInstalls, testJavaHome)

@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.basics.extension.BuildJvms
-import gradlebuild.basics.repoRoot
 
 plugins {
-    `java-base`
+    id("gradlebuild.buildscan") // Reporting: Add more data through custom tags to build scans
+    id("gradlebuild.ide") // Local development: Tweak IDEA import
 }
-
-val testJavaHomePropertyName = "testJavaHome"
-
-val testJavaHomePath = providers.gradleProperty(testJavaHomePropertyName).forUseAtConfigurationTime()
-    .orElse(providers.systemProperty(testJavaHomePropertyName).forUseAtConfigurationTime())
-    .orElse(providers.environmentVariable(testJavaHomePropertyName).forUseAtConfigurationTime())
-val testJavaHome = repoRoot().dir(testJavaHomePath)
-
-extensions.create<BuildJvms>("buildJvms", javaInstalls, testJavaHome)

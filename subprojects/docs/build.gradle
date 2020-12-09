@@ -1,6 +1,7 @@
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.gradle.docs.samples.internal.tasks.InstallSample
 
+import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
 
 plugins {
@@ -554,6 +555,6 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
         def distributionName = testTask.classpath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
         ["-DintegTest.gradleHomeDir=${gradleHomeDir.singleFile}",
          "-DintegTest.samplesdir=${samplesdir.get().asFile}",
-         "-DintegTest.gradleUserHomeDir=${project.rootProject.layout.projectDirectory.dir("intTestHomeDir/$distributionName").asFile}"]
+         "-DintegTest.gradleUserHomeDir=${repoRoot(project).dir("intTestHomeDir/$distributionName").asFile}"]
     }
 }

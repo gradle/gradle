@@ -15,6 +15,7 @@
  */
 
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
@@ -39,8 +40,7 @@ version = collectVersionDetails(moduleIdentity)
 fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): String {
     moduleIdentity.baseName.convention("gradle-$name")
 
-    val baseVersion = rootProject.trimmedContentsOfFile("version.txt")
-        ?: return "" // Need to handle the case where the file does not exist and wheere 'gradleProperty' is not yet accesible for script compilation
+    val baseVersion = trimmedContentsOfFile("version.txt")
 
     val finalRelease = gradleProperty("finalRelease")
     val rcNumber = gradleProperty("rcNumber")
@@ -95,7 +95,7 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
         provider {
             ReleasedVersionsDetails(
                 moduleIdentity.version.forUseAtConfigurationTime().get().baseVersion,
-                rootProject.layout.projectDirectory.file("released-versions.json")
+                repoRoot().file("released-versions.json")
             )
         }
     )
@@ -112,8 +112,8 @@ fun isPromotionBuild(): Boolean = gradle.startParameter.taskNames.contains("prom
  * Returns the trimmed contents of the file at the given [path] after
  * marking the file as a build logic input.
  */
-fun Project.trimmedContentsOfFile(path: String): String? =
-    providers.fileContents(rootProject.layout.projectDirectory.file(path)).asText.forUseAtConfigurationTime().orNull?.trim()
+fun Project.trimmedContentsOfFile(path: String): String =
+    providers.fileContents(repoRoot().file(path)).asText.forUseAtConfigurationTime().get().trim()
 
 fun Project.environmentVariable(variableName: String): Provider<String> =
     providers.environmentVariable(variableName).forUseAtConfigurationTime()
@@ -177,7 +177,7 @@ fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
                     .presence()
             )
             buildReceiptFileContents.set(
-                rootProject.layout.projectDirectory
+                repoRoot()
                     .dir("incoming-distributions")
                     .file(BuildReceipt.buildReceiptFileName)
                     .let(providers::fileContents)

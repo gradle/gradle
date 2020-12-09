@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// dot -Tpng subprojects/docs/src/docs/userguide/img/swift-shared-library-task-graph.dot > subprojects/docs/src/docs/userguide/img/swift-shared-library-task-graph.png
+// dot -Tpng src/docs/userguide/img/swift-shared-library-task-graph.dot > src/docs/userguide/img/swift-shared-library-task-graph.png
 digraph swiftSharedLibraryTaskGraph {
   graph [ dpi = 100, fontname="Sans"];
   node [fontname = "Sans"];

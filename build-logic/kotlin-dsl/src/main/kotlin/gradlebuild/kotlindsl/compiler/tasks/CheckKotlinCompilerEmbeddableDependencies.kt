@@ -16,6 +16,7 @@
 
 package gradlebuild.kotlindsl.compiler.tasks
 
+import gradlebuild.basics.repoRoot
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.Classpath
@@ -53,7 +54,7 @@ abstract class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
             var message = "$path dependencies to kotlin-compiler-embeddable dependencies are wrong\n\nexpected:\n\n"
             message += expectedFiles.joinToString(separator = "\n", postfix = "\n\ngot:\n\n") { "  $it" }
             message += currentFiles.joinToString(separator = "\n", postfix = "\n\n") { "  $it" }
-            message += "Please fix dependency declarations in ${project.buildFile.relativeTo(project.rootDir)}"
+            message += "Please fix dependency declarations in ${project.buildFile.relativeTo(project.repoRoot().asFile)}"
             message
         }
         receiptFile.get().asFile.apply {

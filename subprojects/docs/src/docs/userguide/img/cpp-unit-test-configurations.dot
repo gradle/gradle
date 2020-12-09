@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// dot -Tpng subprojects/docs/src/docs/userguide/img/cpp-unit-test-configurations.dot > subprojects/docs/src/docs/userguide/img/cpp-unit-test-configurations.png
+// dot -Tpng src/docs/userguide/img/cpp-unit-test-configurations.dot > src/docs/userguide/img/cpp-unit-test-configurations.png
 digraph cppUnitTestConfigurations {
   graph [ dpi = 100, fontname="Sans"];
   node [fontname = "Sans"];

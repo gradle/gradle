@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// dot -Tpng subprojects/docs/src/docs/userguide/img/cpp-sourcesets-compilation.dot > subprojects/docs/src/docs/userguide/img/cpp-sourcesets-compilation.png
+// dot -Tpng src/docs/userguide/img/cpp-sourcesets-compilation.dot > src/docs/userguide/img/cpp-sourcesets-compilation.png
 digraph cppSourcesetsCompilation {
   graph [ dpi = 100, fontname="Sans"];
   node [fontname = "Sans"];
