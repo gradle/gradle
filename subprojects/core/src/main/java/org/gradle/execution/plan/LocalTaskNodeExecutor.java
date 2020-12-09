@@ -106,15 +106,12 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         if (consumer == producer) {
             return false;
         }
+        // This is a performance optimization to short-cut the search for a dependency if there is a direct dependency.
+        // We use `getDependencySuccessors()` instead of `getAllDependencySuccessors()`, since the former is a Set while the latter is only an Iterable.
         if (consumer.getDependencySuccessors().contains(producer)) {
             return false;
         }
-        for (Node dependency : consumer.getAllSuccessors()) {
-            if (dependency == producer || dependency.getDependencySuccessors().contains(producer)) {
-                return false;
-            }
-        }
-        // Do a deep search
+        // Do a breadth first search for any dependency
         ArrayDeque<Node> queue = new ArrayDeque<>();
         consumer.getAllSuccessors().forEach(queue::add);
         while (!queue.isEmpty()) {
