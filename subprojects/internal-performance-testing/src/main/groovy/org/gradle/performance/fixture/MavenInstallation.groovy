@@ -51,6 +51,7 @@ class MavenInstallation {
     static String probeVersion(File home) {
         def mvn = findMvnExecutable(home)
         def env = System.getenv().findAll { it.key != "M2" && it.key != "M2_HOME" }.collect { "${it.key}=${it.value}" }
+        env += "JAVA_HOME=${System.getProperty("java.home")}"
         def process = [mvn.absolutePath, "--version"].execute(env, home)
         def exitValue = process.waitFor()
         if (exitValue != 0) {
