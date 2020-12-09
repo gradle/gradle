@@ -198,7 +198,7 @@ class LargeSubprojectSplitBucket(val subproject: GradleSubproject, number: Int, 
             getDescription(testCoverage),
             testCoverage,
             stage,
-            subprojects = listOf(subproject.name),
+            subprojects = listOf(subproject.path),
             extraParameters = if (include) "-PincludeTestClasses=true -x :${subproject.path}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
             preBuildSteps = prepareTestClassesStep(testCoverage.os)
         )
