@@ -85,7 +85,7 @@ class PerformanceTest(
                             extraParameters,
                             os
                         ) +
-                            buildToolGradleParameters(isContinue = false) +
+                            buildToolGradleParameters() +
                             buildScanTag("PerformanceTest") +
                             model.parentBuildCache.gradleParameters(os)
                         ).joinToString(separator = " ")

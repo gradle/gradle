@@ -52,10 +52,6 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
     "-PteamCityToken" to "%teamcity.user.bot-gradle.token%"
 ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
-fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
-    "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%"
-)
-
 const val individualPerformanceTestArtifactRules = """
 subprojects/*/build/test-results-*.zip => results
 subprojects/*/build/tmp/**/log.txt => failure-logs
@@ -86,7 +82,7 @@ fun BuildSteps.substDirOnWindows(os: Os, buildCache: BuildCache) {
         gradleWrapper {
             name = "CLEAN_BUILD_SRC_ON_SUBST_DRIVE"
             tasks = "clean"
-            workingDir = "P:/buildSrc"
+            workingDir = "P:/build-logic"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             gradleWrapperPath = "../"
             gradleParams = (
@@ -108,7 +104,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os, buildCache: BuildCache) {
         gradleWrapper {
             name = "CLEAN_BUILD_SRC_ON_CHECKOUT"
             tasks = "clean"
-            workingDir = "%teamcity.build.checkoutDir%/buildSrc"
+            workingDir = "%teamcity.build.checkoutDir%/build-logic"
             gradleWrapperPath = "../"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             gradleParams = (

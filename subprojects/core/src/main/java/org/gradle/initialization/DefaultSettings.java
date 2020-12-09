@@ -317,13 +317,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     public void includeBuild(Object rootProject) {
-        includeBuild(rootProject, Actions.<ConfigurableIncludedBuild>doNothing());
+        includeBuild(rootProject, Actions.doNothing());
     }
 
     @Override
     public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
         File projectDir = getFileResolver().resolve(rootProject);
-        includedBuildSpecs.add(new IncludedBuildSpec(projectDir, configuration));
+        includedBuildSpecs.add(IncludedBuildSpec.includedBuild(projectDir, configuration));
     }
 
     @Override

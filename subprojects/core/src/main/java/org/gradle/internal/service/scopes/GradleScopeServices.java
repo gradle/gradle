@@ -67,6 +67,7 @@ import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ConsumedAndProducedLocations;
 import org.gradle.execution.plan.DefaultExecutionPlan;
+import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
@@ -241,6 +242,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             gradleInternal.getIdentityPath().toString(),
             taskNodeFactory,
             dependencyResolver,
+            new DefaultNodeValidator(),
             consumedAndProducedLocations.getProducedLocations(),
             consumedAndProducedLocations.getConsumedLocations()
         );
