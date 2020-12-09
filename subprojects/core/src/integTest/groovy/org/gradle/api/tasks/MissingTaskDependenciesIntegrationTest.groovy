@@ -27,24 +27,24 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
-task producer {
-    def outputFile = file("${producedLocation}")
-    outputs.${producerOutput}
-    doLast {
-        outputFile.parentFile.mkdirs()
-        outputFile.text = "produced"
-    }
-}
+            task producer {
+                def outputFile = file("${producedLocation}")
+                outputs.${producerOutput}
+                doLast {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = "produced"
+                }
+            }
 
-task consumer {
-    def inputFile = file("${consumedLocation}")
-    def outputFile = file("consumerOutput.txt")
-    inputs.files(inputFile)
-    outputs.file(outputFile)
-    doLast {
-        outputFile.text = "consumed"
-    }
-}
+            task consumer {
+                def inputFile = file("${consumedLocation}")
+                def outputFile = file("consumerOutput.txt")
+                inputs.files(inputFile)
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "consumed"
+                }
+            }
         """
 
         when:
@@ -157,6 +157,30 @@ task consumer {
             }
 
             consumer.shouldRunAfter(producer)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(DEPRECATION_WARNING)
+        succeeds("producer", "consumer")
+    }
+
+    def "detects missing dependencies even if the consumer does not have outputs"() {
+        buildFile << """
+            task producer {
+                def outputFile = file("output.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "produced"
+                }
+            }
+
+            task consumer {
+                def inputFile = file("output.txt")
+                inputs.files(inputFile)
+                doLast {
+                    println "Hello " + inputFile.text
+                }
+            }
         """
 
         expect:
