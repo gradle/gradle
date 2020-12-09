@@ -22,7 +22,7 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 /**
  * The container for declaring version catalogs
  *
- * @since 6.9
+ * @since 7.0
  */
 @Incubating
 public interface MutableVersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {

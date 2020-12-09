@@ -24,7 +24,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec;
 /**
  * Allows configuring a version catalog.
  *
- * @since 6.9
+ * @since 7.0
  */
 @Incubating
 @HasInternalProtocol

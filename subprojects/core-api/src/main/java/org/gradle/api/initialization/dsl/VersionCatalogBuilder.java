@@ -29,7 +29,7 @@ import java.util.List;
  * A version catalog builder. Dependencies defined via this model
  * will trigger the generation of accessors available in build scripts.
  *
- * @since 6.9
+ * @since 7.0
  */
 @Incubating
 @HasInternalProtocol
@@ -115,7 +115,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * Allows configuring an alias
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     interface AliasBuilder {
@@ -137,7 +137,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * Allows configuring the version of a library
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     interface LibraryAliasBuilder {
@@ -170,7 +170,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * Configures how another model is imported into the current model.
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     interface ImportSpec {

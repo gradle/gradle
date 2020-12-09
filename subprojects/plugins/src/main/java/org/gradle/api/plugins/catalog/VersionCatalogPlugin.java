@@ -38,7 +38,7 @@ import javax.inject.Inject;
  * <p>A {@link Plugin} makes it possible to generate a version catalog,  which is a set of versions and
  * coordinates for dependencies and plugins to import in the settings of a Gradle build.</p>
  *
- * @since 6.9
+ * @since 7.0
  */
 @Incubating
 public class VersionCatalogPlugin implements Plugin<Project> {

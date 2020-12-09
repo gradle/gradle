@@ -114,7 +114,7 @@ public interface Usage extends Named {
      * A version catalog, packaged as TOML files, for use as recommendations
      * for dependency and plugin versions.
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     String VERSION_CATALOG = "version-catalog";

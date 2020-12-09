@@ -182,7 +182,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     /**
      * Returns the set of suppressed validation errors
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     @Input

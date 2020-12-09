@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
  * Gives access to all version catalogs available.
  *
- * @since 6.9
+ * @since 7.0
  */
 @Incubating
 public interface VersionCatalogsExtension extends Iterable<VersionCatalog> {

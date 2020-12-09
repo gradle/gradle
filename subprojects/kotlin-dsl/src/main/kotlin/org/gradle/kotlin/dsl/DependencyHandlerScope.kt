@@ -233,7 +233,7 @@ private constructor(
      * @param dependencyConfiguration the configuration to be applied to the dependency
      *
      * @see [DependencyHandler.addProvider]
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     operator fun <T : Any> Configuration.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
@@ -245,7 +245,7 @@ private constructor(
      * @param dependency the dependency provider to be added.
      *
      * @see [DependencyHandler.addProvider]
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     operator fun <T : Any> Configuration.invoke(dependency: Provider<T>) =
@@ -258,7 +258,7 @@ private constructor(
      * @param dependencyConfiguration the configuration to be applied to the dependency
      *
      * @see [DependencyHandler.addProvider]
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     operator fun <T : Any> String.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
@@ -270,7 +270,7 @@ private constructor(
      * @param dependency the dependency provider to be added.
      *
      * @see [DependencyHandler.addProvider]
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     operator fun <T : Any> String.invoke(dependency: Provider<T>) =
