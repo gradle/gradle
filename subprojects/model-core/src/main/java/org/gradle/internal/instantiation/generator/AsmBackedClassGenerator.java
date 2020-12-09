@@ -68,6 +68,7 @@ import org.objectweb.asm.Type;
 import sun.reflect.ReflectionFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -361,6 +362,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String MAPPING_FIELD = "_gr_map_";
         private static final String META_CLASS_FIELD = "_gr_mc_";
         private static final String SERVICES_FIELD = "_gr_svcs_";
+        private static final String NAME_FIELD = "_gr_n_";
         private static final String DISPLAY_NAME_FIELD = "_gr_dn_";
         private static final String OWNER_FIELD = "_gr_owner_";
         private static final String FACTORY_ID_FIELD = "_gr_fid_";
@@ -409,6 +411,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type EXTENSION_CONTAINER_TYPE = Type.getType(ExtensionContainer.class);
         private static final Type DESCRIBABLE_TYPE = Type.getType(Describable.class);
         private static final Type DISPLAY_NAME_TYPE = Type.getType(DisplayName.class);
+        private static final Type INJECT_TYPE = Type.getType(Inject.class);
 
         private static final String RETURN_STRING = Type.getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = Type.getMethodDescriptor(DESCRIBABLE_TYPE);
@@ -443,6 +446,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
+        private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(VOID_TYPE, STRING_TYPE);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -566,14 +570,49 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addConstructor(Constructor<?> constructor) {
+        public void addNameConstructor() {
+            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "<init>", RETURN_VOID_FROM_STRING, null, EMPTY_STRINGS);
+
+            methodVisitor.visitAnnotation(INJECT_TYPE.getDescriptor(), true)
+                .visitEnd();
+
+            methodVisitor.visitCode();
+
+            // this.super()
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, OBJECT_TYPE.getInternalName(), "<init>", RETURN_VOID, false);
+
+            // this.name = name
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitVarInsn(ALOAD, 1);
+            methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), NAME_FIELD, STRING_TYPE.getDescriptor());
+
+            // this.init_method()
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), INIT_METHOD, RETURN_VOID, false);
+
+            methodVisitor.visitInsn(RETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        @Override
+        public void addConstructor(Constructor<?> constructor, boolean addNameParameter) {
             List<Type> paramTypes = new ArrayList<>();
             for (Class<?> paramType : constructor.getParameterTypes()) {
                 paramTypes.add(Type.getType(paramType));
             }
-            String methodDescriptor = Type.getMethodDescriptor(VOID_TYPE, paramTypes.toArray(EMPTY_TYPES));
+            String superMethodDescriptor = Type.getMethodDescriptor(VOID_TYPE, paramTypes.toArray(EMPTY_TYPES));
 
-            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "<init>", methodDescriptor, signature(constructor), EMPTY_STRINGS);
+            String methodDescriptor;
+            if (addNameParameter) {
+                paramTypes.add(0, STRING_TYPE);
+                methodDescriptor = Type.getMethodDescriptor(VOID_TYPE, paramTypes.toArray(EMPTY_TYPES));
+            } else {
+                methodDescriptor = superMethodDescriptor;
+            }
+
+            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "<init>", methodDescriptor, signature(constructor, addNameParameter), EMPTY_STRINGS);
 
             for (Annotation annotation : constructor.getDeclaredAnnotations()) {
                 if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
@@ -588,12 +627,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // this.super(p0 .. pn)
             methodVisitor.visitVarInsn(ALOAD, 0);
-            for (int typeVar = 0, stackVar = 1; typeVar < paramTypes.size(); ++typeVar) {
+            for (int typeVar = addNameParameter ? 1 : 0, stackVar = addNameParameter ? 2 : 1; typeVar < paramTypes.size(); ++typeVar) {
                 Type argType = paramTypes.get(typeVar);
                 methodVisitor.visitVarInsn(argType.getOpcode(ILOAD), stackVar);
                 stackVar += argType.getSize();
             }
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), "<init>", methodDescriptor, false);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), "<init>", superMethodDescriptor, false);
+
+            if (addNameParameter) {
+                // this.name = name
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitVarInsn(ALOAD, 1);
+                methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), NAME_FIELD, STRING_TYPE.getDescriptor());
+            }
 
             // this.init_method()
             methodVisitor.visitVarInsn(ALOAD, 0);
@@ -1757,6 +1803,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
+        public void addNameProperty() {
+            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_FINAL, NAME_FIELD, STRING_TYPE.getDescriptor(), null, null);
+            addGetter("getName", STRING_TYPE, Type.getMethodDescriptor(STRING_TYPE), null, methodVisitor -> {
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), NAME_FIELD, STRING_TYPE.getDescriptor());
+            });
+        }
+
+        @Override
         public Class<?> generate() {
             writeGenericReturnTypeFields();
             visitor.visitEnd();
@@ -1851,11 +1906,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addConstructor(Constructor<?> constructor) {
+        public void addConstructor(Constructor<?> constructor, boolean addNameParameter) {
         }
 
         @Override
         public void addDefaultConstructor() {
+        }
+
+        @Override
+        public void addNameConstructor() {
         }
 
         @Override
@@ -1944,6 +2003,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
+        }
+
+        @Override
+        public void addNameProperty() {
         }
 
         @Override

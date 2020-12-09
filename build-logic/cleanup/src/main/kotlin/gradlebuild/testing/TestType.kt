@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.fixtures
+package gradlebuild.testing
 
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 
-class SomeToolingBuildAction implements BuildAction<String> {
-    @Override
-    String execute(BuildController controller) {
-        return controller.getModel(String)
-    }
+enum class TestType(val prefix: String, val executers: List<String>) {
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache", "watchFs")),
+    CROSSVERSION("crossVersion", listOf("embedded", "forking"))
 }

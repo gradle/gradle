@@ -17,7 +17,8 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.Action
-import org.gradle.configurationcache.fixtures.SomeToolingBuildAction
+import org.gradle.configurationcache.fixtures.SomeToolingModelBuildAction
+import org.gradle.configurationcache.fixtures.SomeToolingModel
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -42,20 +43,42 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             plugins {
                 id("java")
             }
+            println("script log statement")
         """
 
         when:
         configurationCacheRun("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
+        outputContains("script log statement")
 
         when:
         configurationCacheRun("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
-        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("script log statement")
+    }
+
+    def "can enable configuration cache using gradle property in gradle.properties"() {
+        withConfigurationCacheEnabledInGradleProperties()
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            println("script log statement")
+        """
+
+        when:
+        run("assemble")
+
+        then:
+        outputContains("script log statement")
+
+        when:
+        run("assemble")
+
+        then:
+        outputDoesNotContain("script log statement")
     }
 
     def "can enable configuration cache using system property in build arguments"() {
@@ -63,20 +86,20 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             plugins {
                 id("java")
             }
+            println("script log statement")
         """
 
         when:
         run("assemble", ENABLE_SYS_PROP)
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
+        outputContains("script log statement")
 
         when:
         run("assemble", ENABLE_SYS_PROP)
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
-        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("script log statement")
     }
 
     def "can enable configuration cache using system property in build JVM arguments"() {
@@ -84,6 +107,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
             plugins {
                 id("java")
             }
+            println("script log statement")
         """
 
         when:
@@ -91,20 +115,144 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         run("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
+        outputContains("script log statement")
 
         when:
         executer.withJvmArgs(ENABLE_SYS_PROP)
         run("assemble")
 
         then:
-        outputContains("Configuration cache is an incubating feature.")
-        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("script log statement")
     }
 
-    def "configuration cache is disabled for model building actions"() {
+    def "can use test launcher tooling api"() {
 
         given:
+        withConfigurationCacheEnabledInGradleProperties()
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            ${mavenCentralRepository()}
+            dependencies { testImplementation("junit:junit:4.13") }
+            println("script log statement")
+        """
+        file("src/test/java/my/MyTest.java") << """
+            package my;
+            import org.junit.Test;
+            public class MyTest {
+                @Test public void test() {}
+            }
+        """
+
+        expect:
+        usingToolingConnection(testDirectory) { connection ->
+            2.times { runCount ->
+                def output = new ByteArrayOutputStream()
+                connection.newTestLauncher()
+                    .withJvmTestClasses("my.MyTest")
+                    .addJvmArguments(executer.jvmArgs)
+                    .setStandardOutput(output)
+                    .setStandardError(System.err)
+                    .run()
+                if (runCount == 0) {
+                    assert output.toString().contains("script log statement")
+                } else {
+                    assert !output.toString().contains("script log statement")
+                }
+            }
+        }
+    }
+
+    def "configuration cache is disabled for direct model requests"() {
+
+        given:
+        withConfigurationCacheEnabledInGradleProperties()
+        buildWithSomeToolingModelAndScriptLogStatement()
+
+        expect:
+        usingToolingConnection(testDirectory) { connection ->
+            2.times {
+                def output = new ByteArrayOutputStream()
+                def model = connection.model(SomeToolingModel)
+                    .addJvmArguments(executer.jvmArgs)
+                    .setStandardOutput(output)
+                    .setStandardError(System.err)
+                    .get()
+                assert model.message == "It works!"
+                assert output.toString().contains("script log statement")
+            }
+        }
+    }
+
+    def "configuration cache is disabled for client provided build actions"() {
+
+        given:
+        withConfigurationCacheEnabledInGradleProperties()
+        buildWithSomeToolingModelAndScriptLogStatement()
+
+        expect:
+        usingToolingConnection(testDirectory) { connection ->
+            2.times {
+                def output = new ByteArrayOutputStream()
+                def model = connection.action(new SomeToolingModelBuildAction())
+                    .addJvmArguments(executer.jvmArgs)
+                    .setStandardOutput(output)
+                    .setStandardError(System.err)
+                    .run()
+                assert model.message == "It works!"
+                assert output.toString().contains("script log statement")
+            }
+        }
+    }
+
+    def "configuration cache is disabled for client provided phased build actions"() {
+
+        given:
+        withConfigurationCacheEnabledInGradleProperties()
+        buildWithSomeToolingModelAndScriptLogStatement()
+
+        expect:
+        usingToolingConnection(testDirectory) { connection ->
+            2.times {
+                def output = new ByteArrayOutputStream()
+                String projectsLoaded = null
+                String buildFinished = null
+                connection.action()
+                    .projectsLoaded(new SomeToolingModelBuildAction(), { SomeToolingModel model ->
+                        projectsLoaded = model.message
+                    })
+                    .buildFinished(new SomeToolingModelBuildAction(), { SomeToolingModel model ->
+                        buildFinished = model.message
+                    })
+                    .build()
+                    .addJvmArguments(executer.jvmArgs)
+                    .setStandardOutput(output)
+                    .setStandardError(System.err)
+                    .run()
+                assert projectsLoaded == "It works!"
+                assert buildFinished == "It works!"
+                assert output.toString().contains("script log statement")
+            }
+        }
+    }
+
+    private void withConfigurationCacheEnabledInGradleProperties() {
+        file("gradle.properties").text = ENABLE_GRADLE_PROP
+    }
+
+    private void buildWithSomeToolingModelAndScriptLogStatement() {
+        withSomeToolingModelBuilderInBuildSrc()
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            println("script log statement")
+            ${someToolingModelBuilderRegistration()}
+        """
+    }
+
+    private void withSomeToolingModelBuilderInBuildSrc() {
         file("buildSrc/src/main/groovy/my/My.groovy") << """
             package my
 
@@ -113,38 +261,26 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
-                    return modelName == "java.lang.String"
+                    return modelName == "${SomeToolingModel.class.name}"
                 }
                 Object buildAll(String modelName, Project project) {
-                    return "It works!"
+                    return new MyModel("It works!")
                 }
             }
-        """.stripIndent()
-        buildFile << """
-            plugins {
-                id("java")
-            }
-            def registry = services.get(org.gradle.tooling.provider.model.ToolingModelBuilderRegistry)
-            registry.register(new my.MyModelBuilder())
-        """
-        file("gradle.properties") << """
-            $ENABLE_GRADLE_PROP=true
-        """.stripIndent()
 
-        expect:
-        usingToolingConnection(testDirectory) { connection ->
-            2.times {
-                def output = new ByteArrayOutputStream()
-                def model = connection.action(new SomeToolingBuildAction())
-                    .addJvmArguments(executer.jvmArgs)
-                    .forTasks("assemble")
-                    .setStandardOutput(output)
-                    .setStandardError(System.err)
-                    .run()
-                assert model == "It works!"
-                assert !output.toString().contains("Configuration cache is an incubating feature.")
+            class MyModel implements java.io.Serializable {
+                private final String message
+                MyModel(String message) { this.message = message }
+                String getMessage() { message }
             }
-        }
+        """.stripIndent()
+    }
+
+    private static String someToolingModelBuilderRegistration() {
+        """
+        def registry = services.get(org.gradle.tooling.provider.model.ToolingModelBuilderRegistry)
+        registry.register(new my.MyModelBuilder())
+        """
     }
 
     private static void usingToolingConnection(File workingDir, Action<ProjectConnection> action) {

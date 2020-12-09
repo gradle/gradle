@@ -16,6 +16,7 @@
 
 package gradlebuild.packaging
 
+import gradlebuild.basics.repoRoot
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -32,7 +33,7 @@ object GradleDistributionSpecs {
         val runtimeClasspath by configurations.getting
         val runtimeApiInfoJar by tasks.getting
 
-        from("$rootDir/LICENSE")
+        from("${repoRoot()}/LICENSE")
         from("src/toplevel")
 
         into("bin") {
@@ -77,7 +78,7 @@ object GradleDistributionSpecs {
     fun Project.docsDistributionSpec() = copySpec {
         val docsPath by configurations.getting
 
-        from("$rootDir/LICENSE")
+        from("${repoRoot()}/LICENSE")
         from("src/toplevel")
         into("docs") {
             from(docsPath)
@@ -88,10 +89,10 @@ object GradleDistributionSpecs {
      * All the source code of the project such that a complete build can be performed from the sources.
      */
     fun Project.srcDistributionSpec() = copySpec {
-        from(rootProject.file("gradlew")) {
+        from(repoRoot().file("gradlew")) {
             fileMode = Integer.parseInt("0755", 8)
         }
-        from(rootProject.projectDir) {
+        from(repoRoot()) {
             listOf("build-logic-commons", "build-logic-commons/*", "build-logic", "build-logic/*", "subprojects/*").forEach {
                 include("$it/*.gradle")
                 include("$it/*.gradle.kts")

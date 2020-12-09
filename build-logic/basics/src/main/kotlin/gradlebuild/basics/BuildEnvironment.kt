@@ -18,10 +18,25 @@ package gradlebuild.basics
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.gradle.internal.os.OperatingSystem
+import java.lang.IllegalStateException
 
 
 fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
+
+
+fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
+
+
+private
+fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
+    this
+} else {
+    dir("..").also {
+        if (it == it.dir("..")) throw IllegalStateException("Cannot find 'version.txt' file in root of repository")
+    }.parentOrRoot()
+}
 
 
 object BuildEnvironment {

@@ -152,6 +152,8 @@ public abstract class GradleRunner {
      * <p>
      * You may wish to specify a location that is within your project and regularly cleaned, such as the project's build directory.
      * <p>
+     * It can be set using the system property {@code org.gradle.testkit.dir} for the test process,
+     * <p>
      * The actual contents of this directory are an internal implementation detail and may change at any time.
      *
      * @param testKitDir the TestKit directory

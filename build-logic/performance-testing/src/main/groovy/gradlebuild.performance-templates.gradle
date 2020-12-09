@@ -16,15 +16,17 @@
 
 import gradlebuild.performance.generator.tasks.*
 
+import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
+
 
 // === Gradle Build ===
 performanceTest.registerTestProject("gradleBuildCurrent", RemoteProject) {
-    remoteUri = rootDir.absolutePath
+    remoteUri = repoRoot(project).asFile.absolutePath
     ref = moduleIdentity.gradleBuildCommitId
 }
 
 performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
-    remoteUri = rootDir.absolutePath
+    remoteUri = repoRoot(project).asFile.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
     ref = '264bd7744d2e89b2708303cd56bb11bc5003fa7e'
