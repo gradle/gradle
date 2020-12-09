@@ -33,9 +33,10 @@ pluginManagement {
     includeBuild("../my-settings-plugin")
 }
 plugins {
-    id("my.settings-plugin") // assuming that the above included build produces a settings plugin my.settings-plugin
+    id("my.settings-plugin") 
 }
 ```
+The above example assumes that the included build produces a settings plugin with id `my.settings-plugin`.
 
 Builds included inside `pluginManagement` block can also contribute project plugins, however, any library components they
 produce will not be visible to the including build.
@@ -43,11 +44,13 @@ If a build produces both plugins and libraries that the including build wants to
 both in `pluginManagement` block and outside it:
 ```
 pluginManagement {
-    includeBuild("../project-with-plugin-and-library") // contributes plugins
+    // contributes plugins
+    includeBuild("../project-with-plugin-and-library") 
 }
-includeBuild("../project-with-plugin-and-library") // contributes libraries
+// contributes libraries
+includeBuild("../project-with-plugin-and-library") 
 ```
-This can be seen similarly to the repository declaration - 
+This can be viewed similarly to the repository declaration - 
 repositories are specified separately for plugin dependencies and for production dependencies.
 
 <!-- 
