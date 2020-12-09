@@ -49,7 +49,7 @@ pluginManagement {
 // contributes libraries
 includeBuild("../project-with-plugin-and-library") 
 ```
-This can be viewed similarly to the repository declaration - 
+This distinction reflects what Gradle offers for repository declarations - 
 repositories are specified separately for plugin dependencies and for production dependencies.
 
 <!-- 
