@@ -315,7 +315,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @see PmdExtension#getRulesMinimumPriority()
      * @since 6.8
      */
-    @Incubating
     @Input
     public Property<Integer> getRulesMinimumPriority() {
         return rulesMinimumPriority;

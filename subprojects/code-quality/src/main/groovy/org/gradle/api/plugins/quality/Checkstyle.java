@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -286,7 +285,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return path to other Checkstyle configuration files
      * @since 6.0
      */
-    @Incubating
     @Internal
     public DirectoryProperty getConfigDirectory() {
         return configDirectory;
