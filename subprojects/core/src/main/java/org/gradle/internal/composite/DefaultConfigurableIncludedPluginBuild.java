@@ -18,7 +18,7 @@ package org.gradle.internal.composite;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.plugin.management.internal.ConfigurableIncludedPluginBuild;
+import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

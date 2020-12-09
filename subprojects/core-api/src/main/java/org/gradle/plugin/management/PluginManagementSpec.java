@@ -19,6 +19,7 @@ package org.gradle.plugin.management;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 
@@ -63,5 +64,26 @@ public interface PluginManagementSpec {
      */
     @Incubating
     PluginDependenciesSpec getPlugins();
+
+    /**
+     * Includes a plugin build at the specified path to the composite build.
+     * Included plugin builds can contribute settings and project plugins to the project.
+     * @param rootProject The path to the root project directory for the build.
+     *
+     * @since 6.9
+     */
+    @Incubating
+    void includeBuild(String rootProject);
+
+    /**
+     * Includes a plugin build at the specified path to the composite build, with the supplied configuration.
+     * Included plugin builds can contribute settings and project plugins to the project.
+     * @param rootProject The path to the root project directory for the build.
+     * @param configuration An action to configure the included build.
+     *
+     * @since 6.9
+     */
+    @Incubating
+    void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);
 
 }
