@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.util.List;
 
@@ -26,12 +24,10 @@ import java.util.List;
  *
  * @since 5.5
  */
-@Incubating
 public interface EclipseWorkspace {
     /**
      * The filesystem location of the eclipse workspace
      */
-    @Incubating
     File getLocation();
 
     /**
@@ -39,6 +35,5 @@ public interface EclipseWorkspace {
      *
      * This list should include all projects and not make a distinction between gradle and non gradle projects.
      */
-    @Incubating
     List<EclipseWorkspaceProject> getProjects();
 }
