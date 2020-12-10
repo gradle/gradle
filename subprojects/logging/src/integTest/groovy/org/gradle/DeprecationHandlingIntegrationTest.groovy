@@ -16,7 +16,6 @@
 
 package org.gradle
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -36,17 +35,17 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
                 void causeDeprecationWarning() {
-                    DeprecationLogger.deprecateTask("deprecated").replaceWith("foobar").willBeRemovedInGradle7().undocumented().nagUser();
+                    DeprecationLogger.deprecateTask("deprecated").replaceWith("foobar").willBeRemovedInGradle8().undocumented().nagUser();
                     System.out.println("DeprecatedTask.causeDeprecationWarning() executed.");
                 }
 
                 public static void someFeature() {
-                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "someFeature()").willBeRemovedInGradle7().undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "someFeature()").willBeRemovedInGradle8().undocumented().nagUser();
                     System.out.println("DeprecatedTask.someFeature() executed.");
                 }
 
                 void otherFeature() {
-                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "otherFeature()").withAdvice("Relax. This is just a test.").willBeRemovedInGradle7().undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "otherFeature()").withAdvice("Relax. This is just a test.").willBeRemovedInGradle8().undocumented().nagUser();
                     System.out.println("DeprecatedTask.otherFeature() executed.");
                 }
 
@@ -60,7 +59,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             public class DeprecatedPlugin implements Plugin<Project> {
                 @Override
                 public void apply(Project project) {
-                    DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle7().undocumented().nagUser();
+                    DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle8().undocumented().nagUser();
                     project.getTasks().create("deprecated", DeprecatedTask.class);
                 }
             }
@@ -124,7 +123,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (warnings == WarningMode.Fail) {
-            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with Gradle ${GradleVersion.current().nextMajor.version}")
+            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with ${GradleVersion.current().nextMajor}")
         }
 
         where:
@@ -152,7 +151,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in ${GradleVersion.current().nextMajor}. Consider using the Foobar plugin instead.")
+        executer.expectDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in Gradle 8.0. Consider using the Foobar plugin instead.")
         executer.withWarningMode(WarningMode.Fail)
 
         then:
@@ -166,7 +165,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
-                org.gradle.internal.deprecation.DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle7().undocumented().nagUser() // line 2
+                org.gradle.internal.deprecation.DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle8().undocumented().nagUser() // line 2
             }
         """.stripIndent()
 
@@ -252,10 +251,6 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         scenario                  | withFullStacktrace
         'without full stacktrace' | false
         'with full stacktrace'    | true
-    }
-
-    def incrementWarningCountIfJava7(int warningCount) {
-        return JavaVersion.current().isJava7() ? warningCount + 1 : warningCount
     }
 
     boolean assertFullStacktraceResult(boolean fullStacktraceEnabled, int warningsCountInConsole) {
