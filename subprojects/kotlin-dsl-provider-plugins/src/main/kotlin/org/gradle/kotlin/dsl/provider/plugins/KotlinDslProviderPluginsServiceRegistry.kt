@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.provider.plugins
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultKotlinDslPluginSupport
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport
 
 
@@ -41,10 +40,6 @@ object GradleUserHomeServices {
     @Suppress("unused")
     fun createKotlinScriptBasePluginsApplicator() =
         DefaultKotlinScriptBasePluginsApplicator()
-
-    @Suppress("unused")
-    fun createKotlinDslPluginSupport() =
-        DefaultKotlinDslPluginSupport()
 
     @Suppress("unused")
     fun createPrecompiledScriptPluginsSupport() =

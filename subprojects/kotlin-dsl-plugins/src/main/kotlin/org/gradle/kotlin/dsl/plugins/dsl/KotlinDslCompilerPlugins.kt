@@ -21,7 +21,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
@@ -47,7 +46,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
                         apiVersion = "1.4"
                         languageVersion = "1.4"
-                        freeCompilerArgs += serviceOf<KotlinDslPluginSupport>().kotlinCompilerArgs
+                        freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
                     }
                 }
             }

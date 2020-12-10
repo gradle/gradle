@@ -16,6 +16,12 @@
 
 package org.gradle.kotlin.dsl.provider
 
-interface KotlinDslPluginSupport {
+
+object KotlinDslPluginSupport {
+
     val kotlinCompilerArgs: List<String>
+        get() = listOf(
+            "-java-parameters",
+            "-Xjsr305=strict",
+        )
 }
