@@ -364,7 +364,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 }
             }
         } else {
-            result.assertHasCause 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
+            result.assertHasCause "You must specify a base url or at least one artifact pattern for the Ivy repository 'custom repo'."
             operations.none(ResolveConfigurationDependenciesBuildOperationType)
         }
 
