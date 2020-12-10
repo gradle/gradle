@@ -30,6 +30,7 @@ val baseLifecycleTasks = listOf(
 val lifecycleTasks = mapOf(
     "compileAllBuild" to "Initialize CI Pipeline by priming the cache before fanning out",
     "sanityCheck" to "Run all basic checks (without tests) - to be run locally and on CI for early feedback",
+    "unitTest" to "Run only unitTests (usually the default 'test' task of each project)",
     "quickTest" to "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode",
     "platformTest" to "Run all unit, integration and cross-version (against latest release) tests in forking execution mode",
     "allVersionsIntegMultiVersionTest" to "Run all multi-version integration tests with all version to cover",

@@ -268,52 +268,55 @@ val Project.maxParallelForks: Int
     }
 
 fun wireLifecycleTasks() {
-    tasks.named("compileAllBuild") {
+    tasks.compileAllBuild {
         dependsOn("compileAll")
     }
-    tasks.named("sanityCheck") {
+    tasks.sanityCheck {
         dependsOn("compileAll", "codeQuality")
     }
-    tasks.named("quickTest") {
+    tasks.unitTest {
         dependsOn("test")
     }
-    tasks.named("platformTest") {
+    tasks.quickTest {
         dependsOn("test")
     }
-    tasks.named("quickTest") {
+    tasks.platformTest {
+        dependsOn("test")
+    }
+    tasks.quickTest {
         dependsOn("embeddedIntegTest")
     }
-    tasks.named("platformTest") {
+    tasks.platformTest {
         dependsOn("forkingIntegTest")
     }
-    tasks.named("allVersionsIntegMultiVersionTest") {
+    tasks.allVersionsIntegMultiVersionTest {
         dependsOn("integMultiVersionTest")
     }
-    tasks.named("parallelTest") {
+    tasks.parallelTest {
         dependsOn("parallelIntegTest")
     }
-    tasks.named("noDaemonTest") {
+    tasks.noDaemonTest {
         dependsOn("noDaemonIntegTest")
     }
-    tasks.named("configCacheTest") {
+    tasks.configCacheTest {
         dependsOn("configCacheIntegTest")
     }
-    tasks.named("watchFsTest") {
+    tasks.watchFsTest {
         dependsOn("watchFsIntegTest")
     }
-    tasks.named("forceRealizeDependencyManagementTest") {
+    tasks.forceRealizeDependencyManagementTest {
         dependsOn("integForceRealizeTest")
     }
-    tasks.named("quickTest") {
+    tasks.quickTest {
         dependsOn("embeddedCrossVersionTest")
     }
-    tasks.named("platformTest") {
+    tasks.platformTest {
         dependsOn("forkingCrossVersionTest")
     }
-    tasks.named("quickFeedbackCrossVersionTest") {
+    tasks.quickFeedbackCrossVersionTest {
         dependsOn("quickFeedbackCrossVersionTests")
     }
-    tasks.named("allVersionsCrossVersionTest") {
+    tasks.allVersionsCrossVersionTest {
         dependsOn("allVersionsCrossVersionTests")
     }
 }
