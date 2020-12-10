@@ -34,7 +34,6 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     interface Params : BuildServiceParameters {
         val includeTestClasses: Property<String>
         val excludeTestClasses: Property<String>
-        val readTestClasses: Property<String>
         val onlyTestGradleVersion: Property<String>
         val repoRoot: DirectoryProperty
     }
@@ -50,7 +49,7 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
             println("Tests to be excluded:\n$content")
             ExcludeTestClassProvider(readTestClasses(content))
         }
-        parameters.readTestClasses.get().isNotBlank() -> {
+        parameters.onlyTestGradleVersion.get().isNotBlank() -> {
             CrossVersionBucketProvider(parameters.onlyTestGradleVersion.get())
         }
         else -> {
