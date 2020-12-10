@@ -42,6 +42,21 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
 
 
 /**
+ * Allows the container to be configured via an augmented DSL.
+ *
+ * @param configuration The expression to configure this container with
+ * @return The container.
+ */
+@Suppress("nothing_to_inline")
+@Deprecated(level = DeprecationLevel.HIDDEN, message = "For backward compatibility only")
+inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
+    configuration: NamedDomainObjectContainerScope<T>.() -> Unit
+): C = apply {
+    configuration(NamedDomainObjectContainerScope.of(this))
+}
+
+
+/**
  * Property delegate for registering new elements in the container.
  *
  * `tasks { val rebuild by registering }`
