@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
-import org.gradle.api.tasks.javadoc.internal.JavadocCompilerAdapter
-import org.gradle.api.tasks.javadoc.internal.JavadocSpec
 import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.JavaPlatform
@@ -55,11 +53,6 @@ abstract class AbstractJavaToolChainTest extends Specification {
 
         expect:
         toolChain.select(platform(toolChainJavaVersion)).newCompiler(JavaCompileSpec.class) == compiler
-    }
-
-    def "creates compiler for JavadocSpec"() {
-        expect:
-        toolChain.select(platform(toolChainJavaVersion)).newCompiler(JavadocSpec.class) instanceof JavadocCompilerAdapter
     }
 
     def "creates available tool provider for earlier platform"() {
