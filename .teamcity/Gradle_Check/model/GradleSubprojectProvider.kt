@@ -22,7 +22,7 @@ import model.Stage
 import model.TestCoverage
 import java.io.File
 
-val slowSubprojects = listOf("platform-play")
+val slowSubprojects = listOf<String>()
 
 val ignoredSubprojects = listOf(
     "soak", // soak test

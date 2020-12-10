@@ -581,13 +581,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "platform-play",
-    "name": "platform-play",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "plugin-development",
     "name": "plugin-development",
     "unitTests": true,
