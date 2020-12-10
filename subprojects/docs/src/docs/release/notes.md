@@ -93,7 +93,12 @@ ADD RELEASE FEATURES ABOVE
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-The following are the features that have been promoted in this Gradle release.
+In Gradle 7.0 we moved the following classes out of incubation phase.
+
+- org.gradle.tooling.model.eclipse.EclipseRuntime
+- org.gradle.tooling.model.eclipse.EclipseWorkspace
+- org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
+- org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
 
 <!--
 ### Example promoted
