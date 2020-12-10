@@ -1,5 +1,5 @@
 pluginManagement {
-    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../build-logic-base")
+    includeBuild("../build-logic-base")
 }
 
 plugins {

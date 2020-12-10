@@ -25,17 +25,15 @@ pluginManagement {
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
         maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
     }
-    if (this is org.gradle.plugin.management.internal.PluginManagementSpecInternal) {
-        includeBuild(location("build-logic-commons"))
-        includeBuild(location("build-logic"))
-    }
+    includeBuild(location("build-logic-commons"))
+    includeBuild(location("build-logic"))
 }
 
 fun location(path: String): String = when {
     path.startsWith("../../../../") -> {
         throw IllegalStateException("Cannot fine build $path")
     }
-    File(rootDir, path).isDirectory -> {
+    File(rootDir, "$path/settings.gradle.kts").exists() -> {
         path
     }
     else -> {
