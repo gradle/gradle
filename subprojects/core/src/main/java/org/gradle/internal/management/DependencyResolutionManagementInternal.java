@@ -16,14 +16,12 @@
 package org.gradle.internal.management;
 
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement {
-    RepositoryHandler getRepositoryHandler();
 
     void configureProject(ProjectInternal project);
 

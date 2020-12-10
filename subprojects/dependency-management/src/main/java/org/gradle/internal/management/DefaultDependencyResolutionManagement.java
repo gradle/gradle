@@ -93,7 +93,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
-    public RepositoryHandler getRepositoryHandler() {
+    public RepositoryHandler getRepositories() {
         return dependencyResolutionServices.get().getResolveRepositoryHandler();
     }
 
@@ -133,7 +133,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     @Override
     public void preventFromFurtherMutation() {
         this.mutable = false;
-        NamedDomainObjectList<ArtifactRepository> repositoryHandler = getRepositoryHandler();
+        NamedDomainObjectList<ArtifactRepository> repositoryHandler = getRepositories();
         repositoryHandler.whenObjectAdded(this::mutationDisallowed);
         repositoryHandler.whenObjectRemoved(this::mutationDisallowed);
     }
