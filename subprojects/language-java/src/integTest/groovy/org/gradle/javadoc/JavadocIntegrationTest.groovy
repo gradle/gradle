@@ -121,27 +121,10 @@ Joe! -->
 Joe!""")
     }
 
-    @Issue("GRADLE-3152")
-    def "can use the task without applying java-base plugin"() {
-        buildFile << """
-            task javadoc(type: Javadoc) {
-                destinationDir = file("build/javadoc")
-                source "src/main/java"
-            }
-        """
-
-        writeSourceFile()
-
-        when:
-        run("javadoc")
-
-        then:
-        file("build/javadoc/Foo.html").exists()
-    }
-
     def "changing standard doclet options makes task out-of-date"() {
         buildFile << """
-            task javadoc(type: Javadoc) {
+            apply plugin: "java"
+            javadoc {
                 destinationDir = file("build/javadoc")
                 source "src/main/java"
                 options {
@@ -164,7 +147,8 @@ Joe!""")
 
         when:
         buildFile.text = """
-            task javadoc(type: Javadoc) {
+            apply plugin: "java"
+            javadoc {
                 destinationDir = file("build/javadoc")
                 source "src/main/java"
                 options {
@@ -183,10 +167,10 @@ Joe!""")
         buildFile << """
             apply plugin: 'java'
             import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
-            
+
             class CustomJavadocOptionFileOption implements JavadocOptionFileOption<String> {
                 private String value = "foo"
-                
+
                 public String getValue() {
                     return value
                 }
@@ -205,7 +189,7 @@ Joe!""")
                     writerContext.newLine()
                 }
             }
-            
+
             javadoc {
                 options {
                     addOption(new CustomJavadocOptionFileOption())
@@ -222,7 +206,7 @@ Joe!""")
     def "can use various multi-value options"() {
         buildFile << """
             apply plugin: 'java'
-            
+
             javadoc {
                 options {
                     addMultilineStringsOption("addMultilineStringsOption").setValue([
@@ -253,9 +237,9 @@ Joe!""")
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
-'a' 
--addMultilineMultiValueOption 
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption
+'a'
+-addMultilineMultiValueOption
 'b' 'c' """))
     }
 
@@ -275,7 +259,7 @@ Joe!""")
     def "can pass offline links"() {
         buildFile << """
             apply plugin: 'java'
-            
+
             javadoc {
                 options {
                     linksOffline 'https://docs.oracle.com/javase/8/docs/api/', 'gradle/javadocs/jdk'

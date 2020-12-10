@@ -46,6 +46,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getToolChain()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.setToolChain(org.gradle.jvm.toolchain.JavaToolChain)",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

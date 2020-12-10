@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -45,12 +46,9 @@ import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
-import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -196,13 +194,16 @@ public class Javadoc extends SourceTask {
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setOptionsFile(getOptionsFile());
 
-        final JavadocToolAdapter tool = (JavadocToolAdapter) javadocTool.getOrNull();
-        if (tool != null) {
-            tool.execute(spec);
-        } else {
-            Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(JavadocSpec.class);
-            generator.execute(spec);
-        }
+        getJavadocToolAdapter().execute(spec);
+    }
+
+    private JavadocToolAdapter getJavadocToolAdapter() {
+        return (JavadocToolAdapter) this.javadocTool.orElse(getJavadocToolForCurrentJvm()).get();
+    }
+
+    private Provider<JavadocTool> getJavadocToolForCurrentJvm() {
+        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
+        return service.javadocToolFor(new CurrentJvmToolchainSpec(getProject().getObjects()));
     }
 
     /**
@@ -212,29 +213,6 @@ public class Javadoc extends SourceTask {
     @Override
     public FileTree getSource() {
         return super.getSource();
-    }
-
-    /**
-     * Returns the tool chain that will be used to generate the Javadoc.
-     */
-    @Inject
-    @Deprecated
-    public JavaToolChain getToolChain() {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Sets the tool chain to use to generate the Javadoc.
-     */
-    @Deprecated
-    public void setToolChain(@SuppressWarnings("unused") JavaToolChain toolChain) {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
-    }
-
-    private JavaPlatform getPlatform() {
-        return DefaultJavaPlatform.current();
     }
 
     /**
