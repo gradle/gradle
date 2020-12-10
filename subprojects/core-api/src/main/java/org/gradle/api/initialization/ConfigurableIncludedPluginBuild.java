@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.management.internal;
+package org.gradle.api.initialization;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.initialization.IncludedBuild;
 
-// TODO: move to org.gradle.api.initialization in core-api when making public
 /**
  * A plugin build that is to be included in the composite.
  *
- * @since 7.0
+ * @since 6.9
  */
 @Incubating
 public interface ConfigurableIncludedPluginBuild extends IncludedBuild {
 
     /**
-     * Sets the name of the included build.
+     * Sets the name of the included plugin build.
      *
      * @param name the name of the build
-     * @since 7.0
+     * @since 6.9
      */
     @Incubating
     void setName(String name);

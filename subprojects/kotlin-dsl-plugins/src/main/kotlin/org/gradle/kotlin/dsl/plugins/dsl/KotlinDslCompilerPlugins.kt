@@ -53,12 +53,11 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
-                        apiVersion = "1.3"
-                        languageVersion = "1.3"
+                        apiVersion = "1.4"
+                        languageVersion = "1.4"
                         freeCompilerArgs += listOf(
                             KotlinCompilerArguments.javaParameters,
                             KotlinCompilerArguments.jsr305Strict,
-                            KotlinCompilerArguments.newInference,
                             KotlinCompilerArguments.samConversionForKotlinFunctions,
                             KotlinCompilerArguments.referencesToSyntheticJavaProperties
                         )
@@ -74,7 +73,6 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 object KotlinCompilerArguments {
     const val javaParameters = "-java-parameters"
     const val jsr305Strict = "-Xjsr305=strict"
-    const val newInference = "-XXLanguage:+NewInference"
     const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
     const val referencesToSyntheticJavaProperties = "-XXLanguage:+ReferencesToSyntheticJavaProperties"
 }

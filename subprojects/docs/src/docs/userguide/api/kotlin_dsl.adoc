@@ -774,9 +774,6 @@ Sets the target version of the generated JVM bytecode to `1.8`.
 Sets up Kotlin's Java interoperability to strictly follow JSR-305 annotations for increased null safety.
 See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-configuration[Calling Java code from Kotlin] in the Kotlin documentation for more information.
 
-`-XX:NewInference`::
-Enables the experimental Kotlin compiler inference engine (required for SAM conversion for Kotlin functions).
-
 `-XX:SamConversionForKotlinFunctions`::
 Enables SAM (Single Abstract Method) conversion for Kotlin functions in order to allow Kotlin build logic to expose and consume `org.gradle.api.Action<T>` based APIs. Such APIs can then be used uniformly from both the Kotlin and Groovy DSLs.
 +
