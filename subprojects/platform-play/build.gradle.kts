@@ -59,7 +59,6 @@ dependencies {
 
     integTestImplementation(libs.ant)
     integTestRuntimeOnly(project(":composite-builds"))
-    integTestRuntimeOnly(project(":ide-play"))
     integTestRuntimeOnly(project(":testing-junit-platform"))
 
     testFixturesApi(project(":platform-base")) {

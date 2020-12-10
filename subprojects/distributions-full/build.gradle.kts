@@ -20,7 +20,6 @@ dependencies {
     // The following are scheduled to be removed from the distribution completely in Gradle 7.0
     pluginsRuntimeOnly(project(":javascript"))
     pluginsRuntimeOnly(project(":platform-play"))
-    pluginsRuntimeOnly(project(":ide-play"))
 }
 
 tasks.register<gradlebuild.run.tasks.RunEmbeddedGradle>("runDevGradle") {

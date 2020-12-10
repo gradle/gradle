@@ -322,13 +322,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "ide-play",
-    "name": "ide-play",
-    "unitTests": false,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "installation-beacon",
     "name": "installation-beacon",
     "unitTests": false,

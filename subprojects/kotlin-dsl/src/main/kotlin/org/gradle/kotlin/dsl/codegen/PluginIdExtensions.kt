@@ -203,7 +203,6 @@ object UserGuideLink {
             "play" to "play_plugin.html",
             "play-application" to "play_plugin.html",
             "play-cofeescript" to "play_plugin.html",
-            "play-ide" to "play_plugin.html",
             "play-javascript" to "play_plugin.html",
 
             "pmd" to "pmd_plugin.html",
