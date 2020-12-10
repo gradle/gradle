@@ -25,13 +25,19 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.credentials.PasswordCredentials;
@@ -43,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
@@ -113,6 +120,14 @@ public class S3Client {
     }
 
     public void put(InputStream inputStream, Long contentLength, URI destination) {
+        if (contentLength < s3ConnectionProperties.getMultipartThreshold()) {
+            putSingleObject(inputStream, contentLength, destination);
+        } else {
+            putMultiPartObject(inputStream, contentLength, destination);
+        }
+    }
+
+    private void putSingleObject(InputStream inputStream, Long contentLength, URI destination) {
         try {
             S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
             String bucketName = s3RegionalResource.getBucketName();
@@ -127,6 +142,48 @@ public class S3Client {
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
             amazonS3Client.putObject(putObjectRequest);
+        } catch (AmazonClientException e) {
+            throw ResourceExceptions.putFailed(destination, e);
+        }
+    }
+
+    private void putMultiPartObject(InputStream inputStream, Long contentLength, URI destination) {
+        try {
+            S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
+            String bucketName = s3RegionalResource.getBucketName();
+            String s3BucketKey = s3RegionalResource.getKey();
+            configureClient(s3RegionalResource);
+            List<PartETag> partETags = new ArrayList<>();
+            InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName, s3BucketKey)
+                .withCannedACL(CannedAccessControlList.BucketOwnerFullControl);
+            InitiateMultipartUploadResult initResponse = amazonS3Client.initiateMultipartUpload(initRequest);
+            try {
+                long filePosition = 0;
+                long partSize = s3ConnectionProperties.getPartSize();
+
+                LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
+
+                for (int partNumber = 1; filePosition < contentLength; partNumber++) {
+                    partSize = Math.min(partSize, contentLength - filePosition);
+                    UploadPartRequest uploadPartRequest = new UploadPartRequest()
+                        .withBucketName(bucketName)
+                        .withKey(s3BucketKey)
+                        .withUploadId(initResponse.getUploadId())
+                        .withPartNumber(partNumber)
+                        .withPartSize(partSize)
+                        .withInputStream(inputStream);
+                    partETags.add(amazonS3Client.uploadPart(uploadPartRequest).getPartETag());
+                    filePosition += partSize;
+                }
+
+                CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
+                    bucketName, s3BucketKey, initResponse.getUploadId(), partETags
+                );
+                amazonS3Client.completeMultipartUpload(completeRequest);
+            } catch (AmazonClientException e) {
+                amazonS3Client.abortMultipartUpload(new AbortMultipartUploadRequest(bucketName, s3BucketKey, initResponse.getUploadId()));
+                throw e;
+            }
         } catch (AmazonClientException e) {
             throw ResourceExceptions.putFailed(destination, e);
         }

@@ -19,8 +19,14 @@ package org.gradle.internal.resource.transport.aws.s3
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.CannedAccessControlList
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult
 import com.amazonaws.services.s3.model.ObjectListing
+import com.amazonaws.services.s3.model.PartETag
 import com.amazonaws.services.s3.model.PutObjectRequest
+import com.amazonaws.services.s3.model.UploadPartRequest
+import com.amazonaws.services.s3.model.UploadPartResult
 import com.google.common.base.Optional
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -33,6 +39,8 @@ class S3ClientTest extends Specification {
 
     def setup(){
         _ * s3ConnectionProperties.getEndpoint() >> Optional.absent()
+        _ * s3ConnectionProperties.getPartSize() >> 512
+        _ * s3ConnectionProperties.getMultipartThreshold() >> 1024
     }
 
     def "Should upload to s3"() {
@@ -50,6 +58,59 @@ class S3ClientTest extends Specification {
             assert putObjectRequest.key == 'maven/snapshot/myFile.txt'
             assert putObjectRequest.cannedAcl == CannedAccessControlList.BucketOwnerFullControl
             assert putObjectRequest.metadata.contentLength == 12
+        }
+    }
+
+    def "Should upload large files to s3 using the multi-part API"() {
+        given:
+        AmazonS3Client amazonS3Client = Mock()
+        S3ConnectionProperties s3Properties = Stub()
+        _ * s3Properties.getEndpoint() >> Optional.absent()
+        _ * s3Properties.getPartSize() >> 7
+        _ * s3Properties.getMultipartThreshold() >> 10
+        S3Client client = new S3Client(amazonS3Client, s3Properties)
+        def bucketName = 'localhost'
+        def objectKey = 'maven/snapshot/myFile.txt'
+        URI uri = new URI("s3://${bucketName}/${objectKey}")
+        InitiateMultipartUploadResult initResponse = Mock() {
+            getUploadId() >> 1
+        }
+        UploadPartResult uploadPartResult = Mock() {
+            getPartETag() >> Mock(PartETag)
+        }
+
+        when:
+        client.put(Mock(InputStream), 12L, uri)
+        then:
+        1 * amazonS3Client.initiateMultipartUpload(*_) >> { args ->
+            InitiateMultipartUploadRequest initiateMultipartUploadRequest = args[0]
+            assert initiateMultipartUploadRequest.bucketName == bucketName
+            assert initiateMultipartUploadRequest.key == objectKey
+            assert initiateMultipartUploadRequest.cannedACL == CannedAccessControlList.BucketOwnerFullControl
+            initResponse
+        }
+        2 * amazonS3Client.uploadPart(*_) >> { args ->
+            UploadPartRequest uploadPartRequest = args[0]
+            assert uploadPartRequest.bucketName == bucketName
+            assert uploadPartRequest.key == objectKey
+            assert uploadPartRequest.partNumber == 1
+            assert uploadPartRequest.fileOffset == 0
+            assert uploadPartRequest.partSize == 7
+            uploadPartResult
+        } >> { args ->
+            UploadPartRequest uploadPartRequest = args[0]
+            assert uploadPartRequest.bucketName == bucketName
+            assert uploadPartRequest.key == objectKey
+            assert uploadPartRequest.partNumber == 2
+            assert uploadPartRequest.fileOffset == 0
+            assert uploadPartRequest.partSize == 5
+            uploadPartResult
+        }
+        1 * amazonS3Client.completeMultipartUpload(*_) >> { args ->
+            CompleteMultipartUploadRequest uploadRequest = args[0]
+            assert uploadRequest.bucketName == bucketName
+            assert uploadRequest.key == objectKey
+            assert uploadRequest.partETags.size() == 2
         }
     }
 
