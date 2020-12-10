@@ -99,7 +99,7 @@ dependencyResolutionManagement {
         google()
         ivy {
             name = "googleApisJs"
-            setUrl("https://ajax.googleapis.com/ajax/libs")
+            url = uri("https://ajax.googleapis.com/ajax/libs")
             patternLayout {
                 artifact("[organization]/[revision]/[module].[ext]")
                 ivy("[organization]/[revision]/[module].xml")
