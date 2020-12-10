@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.repoRoot
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 
 val installPathProperty = "gradle_installPath"
-val installDirectory = rootProject.layout.projectDirectory.dir(
+val installDirectory = repoRoot().dir(
     providers.gradleProperty(installPathProperty).orElse(
         provider<String> {
             throw RuntimeException("You can't install without setting the $installPathProperty property.")

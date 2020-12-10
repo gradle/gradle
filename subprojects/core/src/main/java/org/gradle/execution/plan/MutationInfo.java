@@ -29,6 +29,7 @@ class MutationInfo {
     boolean hasOutputs;
     boolean hasLocalState;
     boolean resolved;
+    boolean hasValidationProblem;
 
     MutationInfo(Node node) {
         this.node = node;

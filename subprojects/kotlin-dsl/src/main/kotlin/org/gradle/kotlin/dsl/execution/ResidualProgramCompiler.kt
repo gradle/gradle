@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.Project
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -86,6 +87,7 @@ class ResidualProgramCompiler(
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = interpreterLogger,
+    private val temporaryFileProvider: TemporaryFileProvider,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val pluginAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null
@@ -636,7 +638,7 @@ class ResidualProgramCompiler(
         scriptDefinition: ScriptDefinition,
         compileClassPath: ClassPath = classPath
     ): InternalName =
-        withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
+        temporaryFileProvider.withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
             val originalScriptPath = source.path
             compileScript(
                 scriptFile,

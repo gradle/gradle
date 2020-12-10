@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.fixtures
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.Project
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
@@ -63,13 +64,26 @@ fun eval(
 
 
 /**
+ * A simplified Service Registry, suitable for cheaper testing of the DSL outside of Gradle.
+ */
+private
+class SimplifiedKotlinDefaultServiceRegistry() : DefaultServiceRegistry() {
+    init {
+        register {
+            add(TmpDirTemporaryFileProvider::class.java)
+        }
+    }
+}
+
+
+/**
  * A simplified Kotlin script evaluator, suitable for cheaper testing of the DSL outside Gradle.
  */
 private
 class SimplifiedKotlinScriptEvaluator(
     private val baseCacheDir: File,
     private val scriptCompilationClassPath: ClassPath,
-    private val serviceRegistry: ServiceRegistry = DefaultServiceRegistry(),
+    private val serviceRegistry: ServiceRegistry = SimplifiedKotlinDefaultServiceRegistry(),
     private val scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) : AutoCloseable {
 

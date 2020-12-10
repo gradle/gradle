@@ -65,7 +65,9 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.plan.ConsumedAndProducedLocations;
 import org.gradle.execution.plan.DefaultExecutionPlan;
+import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
@@ -95,6 +97,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -102,6 +105,7 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.util.Arrays;
@@ -151,7 +155,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
-        List<BuildConfigurationAction> taskSelectionActions = new LinkedList<BuildConfigurationAction>();
+        List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
         return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
@@ -178,7 +182,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
-        return new DefaultProjectFinder(() -> gradle.getRootProject());
+        return new DefaultProjectFinder(gradle::getRootProject);
     }
 
     TaskNodeFactory createTaskNodeFactory(GradleInternal gradle, IncludedBuildTaskGraph includedBuildTaskGraph) {
@@ -197,8 +201,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskDependencyResolver(dependencyResolvers);
     }
 
-    LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
-        return new LocalTaskNodeExecutor();
+    LocalTaskNodeExecutor createLocalTaskNodeExecutor(ConsumedAndProducedLocations consumedAndProducedLocations) {
+        return new LocalTaskNodeExecutor(
+            consumedAndProducedLocations.getProducedLocations(),
+            consumedAndProducedLocations.getConsumedLocations()
+        );
     }
 
     WorkNodeExecutor createWorkNodeExecutor() {
@@ -221,12 +228,24 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
+    ConsumedAndProducedLocations createConsumedAndProducedLocations(FileSystem fileSystem) {
+        return new ConsumedAndProducedLocations(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE);
+    }
+
     ExecutionPlan createExecutionPlan(
         GradleInternal gradleInternal,
         TaskNodeFactory taskNodeFactory,
-        TaskDependencyResolver dependencyResolver
+        TaskDependencyResolver dependencyResolver,
+        ConsumedAndProducedLocations consumedAndProducedLocations
     ) {
-        return new DefaultExecutionPlan(gradleInternal.getIdentityPath().toString(), taskNodeFactory, dependencyResolver);
+        return new DefaultExecutionPlan(
+            gradleInternal.getIdentityPath().toString(),
+            taskNodeFactory,
+            dependencyResolver,
+            new DefaultNodeValidator(),
+            consumedAndProducedLocations.getProducedLocations(),
+            consumedAndProducedLocations.getConsumedLocations()
+        );
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(
@@ -281,7 +300,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        PluginTarget target = new ImperativeOnlyPluginTarget<GradleInternal>(gradleInternal);
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(gradleInternal);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 

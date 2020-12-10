@@ -28,7 +28,9 @@ import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
@@ -51,6 +53,7 @@ import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBa
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceCreationException;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,6 +161,12 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     private NativeServices() {
         addProvider(new FileSystemServices());
+        register(new Action<ServiceRegistration>() {
+            @Override
+            public void execute(ServiceRegistration registration) {
+                registration.add(TmpDirTemporaryFileProvider.class);
+            }
+        });
     }
 
     @Override

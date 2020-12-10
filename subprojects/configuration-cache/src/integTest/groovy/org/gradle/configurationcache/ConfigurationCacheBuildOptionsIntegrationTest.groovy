@@ -19,7 +19,95 @@ package org.gradle.configurationcache
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.junit.Assume.assumeFalse
+
 class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue("https://github.com/gradle/gradle/issues/13333")
+    @Unroll
+    def "absent #operator orElse #orElseKind used as task input"() {
+
+        assumeFalse(
+            'task dependency inference for orElse(taskOutput) not implemented yet!',
+            orElseKind == 'task output'
+        )
+
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildKotlinFile """
+            abstract class PrintString : DefaultTask() {
+                @get:Input
+                abstract val string: Property<String>
+                @TaskAction
+                fun printString() {
+                    println("The string is " + string.get())
+                }
+            }
+            abstract class ProduceString : DefaultTask() {
+                @get:OutputFile
+                abstract val outputFile: RegularFileProperty
+                @TaskAction
+                fun printString() {
+                    outputFile.get().asFile.writeText("absent")
+                }
+            }
+            val producer = tasks.register<ProduceString>("produceString") {
+                outputFile.set(layout.buildDirectory.file("output.txt"))
+            }
+            val stringProvider = providers
+                .$operator("string")
+                .orElse($orElseArgument)
+            tasks.register<PrintString>("printString") {
+                string.set(stringProvider)
+            }
+        """
+        def printString = { string ->
+            switch (operator) {
+                case 'systemProperty':
+                    configurationCacheRun "printString", "-Dstring=$string"
+                    break
+                case 'gradleProperty':
+                    configurationCacheRun "printString", "-Pstring=$string"
+                    break
+                case 'environmentVariable':
+                    withEnvironmentVars(string: string)
+                    configurationCacheRun "printString"
+                    break
+            }
+        }
+
+        when:
+        configurationCacheRun "printString"
+
+        then:
+        output.count("The string is absent") == 1
+        configurationCache.assertStateStored()
+
+        when:
+        printString "alice"
+
+        then:
+        output.count("The string is alice") == 1
+        configurationCache.assertStateLoaded()
+
+        when:
+        printString "bob"
+
+        then:
+        output.count("The string is bob") == 1
+        configurationCache.assertStateLoaded()
+
+        where:
+        [operator, orElseKind] << [
+            ['systemProperty', 'gradleProperty', 'environmentVariable'],
+            ['primitive', 'provider', 'task output']
+        ].combinations()
+        orElseArgument = orElseKind == 'primitive'
+            ? '"absent"'
+            : orElseKind == 'provider'
+            ? 'providers.provider { "absent" }'
+            : 'producer.flatMap { it.outputFile }.map { it.asFile.readText() }'
+    }
 
     @Unroll
     def "system property from #systemPropertySource used as task and build logic input"() {

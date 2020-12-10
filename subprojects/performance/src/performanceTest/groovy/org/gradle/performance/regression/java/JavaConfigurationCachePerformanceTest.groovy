@@ -37,6 +37,8 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
 
     def setup() {
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
+        runner.targetVersions = ["6.9-20201209165730+0000"]
+        runner.minimumBaseVersion = "6.6"
     }
 
     @RunFor([
@@ -49,8 +51,6 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     @Unroll
     def "assemble #action configuration cache state with #daemon daemon"() {
         given:
-        runner.targetVersions = ["6.8-20201116162838+0000"]
-        runner.minimumBaseVersion = "6.6"
         runner.tasksToRun = ["assemble"]
         runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 

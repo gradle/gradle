@@ -11,6 +11,7 @@ dependencies {
     api(project(":files"))
 
     implementation(project(":base-services"))
+    implementation(project(":file-temp"))
 
     implementation(libs.nativePlatform)
     implementation(libs.nativePlatformFileEvents)
@@ -18,6 +19,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.jansi)
+    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))

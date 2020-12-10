@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin")
+    implementation("com.gradle:gradle-enterprise-gradle-plugin")
 
     implementation(project(":basics"))
     implementation(project(":documentation"))

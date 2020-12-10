@@ -72,6 +72,9 @@ include("build-platform")
 // Utilities for updating the build itself which are not part of the usual build process
 include("build-update-utils")
 
+// Collection of plugins for the root build to configure lifecycle, reporting and IDE integration
+include("root-build")
+
 // Shared basics for all
 include("basics")
 

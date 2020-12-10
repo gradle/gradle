@@ -17,6 +17,8 @@
 package org.gradle.internal.nativeintegration.filesystem.services;
 
 import net.rubygrapefruit.platform.file.PosixFiles;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
@@ -24,7 +26,10 @@ import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink;
+import org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,21 +38,43 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
 public class FileSystemServices {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
 
+    public void configure(ServiceRegistration registration) {
+        registration.add(GenericFileSystem.Factory.class);
+        registration.add(StatStatistics.Collector.class);
+    }
+
     @SuppressWarnings("UnusedDeclaration")
     public FileCanonicalizer createFileCanonicalizer() {
         return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileCanonicalizer", FileSystemServices.class.getClassLoader(), FallbackFileCanonicalizer.class);
     }
 
-    StatStatistics.Collector createFileSystemStatisticsCollector() {
-        return new StatStatistics.Collector();
+    private static Symlink createWindowsJdkSymlink() {
+        if (JavaVersion.current().isJava7Compatible()) {
+            return new WindowsJdk7Symlink();
+        } else {
+            return new WindowsSymlink();
+        }
+    }
+
+    private static Symlink createJdkSymlink(TemporaryFileProvider temporaryFileProvider) {
+        if (JavaVersion.current().isJava7Compatible()) {
+            return new Jdk7Symlink(temporaryFileProvider);
+        } else {
+            return new UnsupportedSymlink();
+        }
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles, FileMetadataAccessor metadataAccessor, StatStatistics.Collector statisticsCollector) {
-
+    public FileSystem createFileSystem(
+        GenericFileSystem.Factory genericFileSystemFactory,
+        OperatingSystem operatingSystem,
+        PosixFiles posixFiles,
+        FileMetadataAccessor metadataAccessor,
+        TemporaryFileProvider temporaryFileProvider
+    ) {
         if (operatingSystem.isWindows()) {
-            Symlink symlink = newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink", FileSystemServices.class.getClassLoader(), WindowsSymlink.class);
-            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink, metadataAccessor, statisticsCollector);
+            final Symlink symlink = createWindowsJdkSymlink();
+            return genericFileSystemFactory.create(new EmptyChmod(), new FallbackStat(), symlink);
         }
 
         if (posixFiles instanceof UnavailablePosixFiles) {
@@ -56,15 +83,15 @@ public class FileSystemServices {
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
             FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
             FileModeAccessor stat = new NativePlatformBackedStat(posixFiles);
-            return new GenericFileSystem(chmod, stat, symlink, metadataAccessor, statisticsCollector);
+            return genericFileSystemFactory.create(chmod, stat, symlink);
         }
 
-        Symlink symlink = newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink", FileSystemServices.class.getClassLoader(), UnsupportedSymlink.class);
+        Symlink symlink = createJdkSymlink(temporaryFileProvider);
         LOGGER.debug("Using {} implementation as symlink.", symlink.getClass().getSimpleName());
 
         // Use java 7 APIs, if available, otherwise fallback to no-op
         Object handler = newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler", FileSystemServices.class.getClassLoader(), UnsupportedFilePermissions.class);
-        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink, metadataAccessor, statisticsCollector);
+        return genericFileSystemFactory.create((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
     }
 
 }

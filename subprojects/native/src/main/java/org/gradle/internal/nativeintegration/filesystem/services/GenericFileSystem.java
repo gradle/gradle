@@ -18,6 +18,8 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.StatStatistics;
@@ -29,6 +31,7 @@ import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
@@ -38,12 +41,30 @@ class GenericFileSystem implements FileSystem {
 
     private Boolean caseSensitive;
     private final boolean canCreateSymbolicLink;
+    private final TemporaryFileProvider temporaryFileProvider;
 
     private final FileModeMutator chmod;
     private final FileModeAccessor stat;
     private final Symlink symlink;
     private final FileMetadataAccessor metadata;
     private final StatStatistics.Collector statisticsCollector;
+
+    public GenericFileSystem(
+        FileModeMutator chmod,
+        FileModeAccessor stat,
+        Symlink symlink,
+        FileMetadataAccessor metadata,
+        StatStatistics.Collector statisticsCollector,
+        TemporaryFileProvider temporaryFileProvider
+    ) {
+        this.metadata = metadata;
+        this.stat = stat;
+        this.symlink = symlink;
+        this.chmod = chmod;
+        this.canCreateSymbolicLink = symlink.isSymlinkCreationSupported();
+        this.statisticsCollector = statisticsCollector;
+        this.temporaryFileProvider = temporaryFileProvider;
+    }
 
     @Override
     public boolean isCaseSensitive() {
@@ -95,21 +116,6 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    public GenericFileSystem(
-        FileModeMutator chmod,
-        FileModeAccessor stat,
-        Symlink symlink,
-        FileMetadataAccessor metadata,
-        StatStatistics.Collector statisticsCollector
-    ) {
-        this.metadata = metadata;
-        this.stat = stat;
-        this.symlink = symlink;
-        this.chmod = chmod;
-        this.canCreateSymbolicLink = symlink.isSymlinkCreationSupported();
-        this.statisticsCollector = statisticsCollector;
-    }
-
     private void initializeCaseSensitive() {
         if (caseSensitive == null) {
 
@@ -132,7 +138,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     private File createFile(String content) throws IOException {
-        File file = File.createTempFile("gradle_fs_probing", null, null);
+        File file = temporaryFileProvider.createTemporaryFile("gradle_fs_probing", null);
         Files.asCharSink(file, Charsets.UTF_8).write(content);
         return file;
     }
@@ -155,9 +161,27 @@ class GenericFileSystem implements FileSystem {
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {
-        File dir = new File(System.getProperty("java.io.tmpdir"));
+        @SuppressWarnings("deprecation")
+        File dir = new File(SystemProperties.getInstance().getJavaIoTmpDir());
         if (!dir.exists()) {
             throw new IOException("java.io.tmpdir is set to a directory that doesn't exist: " + dir);
+        }
+    }
+
+    static final class Factory {
+        private final FileMetadataAccessor fileMetadataAccessor;
+        private final StatStatistics.Collector statisticsCollector;
+        private final TemporaryFileProvider temporaryFileProvider;
+
+        @Inject
+        Factory(FileMetadataAccessor fileMetadataAccessor, StatStatistics.Collector statisticsCollector, TemporaryFileProvider temporaryFileProvider) {
+            this.fileMetadataAccessor = fileMetadataAccessor;
+            this.statisticsCollector = statisticsCollector;
+            this.temporaryFileProvider = temporaryFileProvider;
+        }
+
+        GenericFileSystem create(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink) {
+            return new GenericFileSystem(chmod, stat, symlink, fileMetadataAccessor, statisticsCollector, temporaryFileProvider);
         }
     }
 }

@@ -17,13 +17,32 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.reflect.TypeValidationContext;
+
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
+
+    private final RelatedLocations producedLocations;
+    private final RelatedLocations consumedLocations;
+
+    public LocalTaskNodeExecutor(RelatedLocations producedLocations, RelatedLocations consumedLocations) {
+        this.producedLocations = producedLocations;
+        this.consumedLocations = consumedLocations;
+    }
 
     @Override
     public boolean execute(Node node, NodeExecutionContext context) {
@@ -36,7 +55,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
                 return true;
             }
-            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode, localTaskNode.getTaskProperties());
+            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode, localTaskNode.getTaskProperties(), validationContext -> detectMissingDependencies(localTaskNode, validationContext));
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
             localTaskNode.getPostAction().execute(task);
@@ -44,5 +63,71 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         } else {
             return false;
         }
+    }
+
+    private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
+        for (String outputPath : node.getMutationInfo().outputPaths) {
+            consumedLocations.getNodesRelatedTo(outputPath).stream()
+                .filter(consumerNode -> missesDependency(node, consumerNode))
+                .forEach(consumerWithoutDependency -> collectValidationWarning(node, consumerWithoutDependency, validationContext));
+        }
+        Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
+        node.getTaskProperties().getInputFileProperties()
+            .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
+                @Override
+                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                    contents.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
+                }
+
+                @Override
+                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                    fileTree.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
+                }
+
+                @Override
+                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                    locationsConsumedByThisTask.add(root.getAbsolutePath());
+                }
+
+                @Override
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                    locationsConsumedByThisTask.add(file.getAbsolutePath());
+                }
+            }));
+        consumedLocations.recordRelatedToNode(node, locationsConsumedByThisTask);
+        for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
+            producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
+                .filter(producerNode -> missesDependency(producerNode, node))
+                .forEach(producerWithoutDependency -> collectValidationWarning(producerWithoutDependency, node, validationContext));
+        }
+    }
+
+    private static boolean missesDependency(Node producer, Node consumer) {
+        if (consumer == producer) {
+            return false;
+        }
+        // This is a performance optimization to short-cut the search for a dependency if there is a direct dependency.
+        // We use `getDependencySuccessors()` instead of `getAllDependencySuccessors()`, since the former is a Set while the latter is only an Iterable.
+        if (consumer.getDependencySuccessors().contains(producer)) {
+            return false;
+        }
+        // Do a breadth first search for any dependency
+        ArrayDeque<Node> queue = new ArrayDeque<>();
+        consumer.getHardSuccessors().forEach(queue::add);
+        while (!queue.isEmpty()) {
+            Node dependency = queue.removeFirst();
+            if (dependency == producer) {
+                return false;
+            }
+            dependency.getHardSuccessors().forEach(queue::add);
+        }
+        return true;
+    }
+
+    private void collectValidationWarning(Node producer, Node consumer, TypeValidationContext validationContext) {
+        validationContext.visitPropertyProblem(
+            TypeValidationContext.Severity.WARNING,
+            String.format("%s consumes the output of %s, but does not declare a dependency", consumer, producer)
+        );
     }
 }

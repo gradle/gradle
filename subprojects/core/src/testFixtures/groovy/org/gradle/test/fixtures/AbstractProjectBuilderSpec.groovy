@@ -62,7 +62,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     }
 
     void execute(Task task) {
-        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext(null, DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal)))
+        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext(null, DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal), { }))
         task.state.rethrowFailure()
     }
 }

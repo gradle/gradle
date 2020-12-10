@@ -77,8 +77,23 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), workerProcessClassPathProvider)
     final JavaExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()
-    DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.DEBUG), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(),
-        execHandleFactory, new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory))), outputEventListener, Stub(MemoryManager))
+    final TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
+    final DefaultJvmMetadataDetector defaultJvmMetadataDetector = new DefaultJvmMetadataDetector(
+        execHandleFactory as ExecHandleFactory,
+        tmpDirTemporaryFileProvider
+    )
+    DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(
+        loggingManager(LogLevel.DEBUG),
+        server,
+        classPathRegistry,
+        new LongIdGenerator(),
+        tmpDir.file("gradleUserHome"),
+        tmpDirTemporaryFileProvider,
+        execHandleFactory,
+        new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
+        outputEventListener,
+        Stub(MemoryManager)
+    )
 
     def setup() {
         CurrentBuildOperationRef.instance().set(new DefaultBuildOperationRef(new OperationIdentifier(123), null))
@@ -91,6 +106,10 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
 
     def cleanupSpec() {
         services.close()
+    }
+
+    File gradleUserHome() {
+        return tmpDir.file("gradleUserHome")
     }
 
     Class<?> compileWithoutClasspath(String className, String classText) {

@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":file-collections"))
+    implementation(project(":file-temp"))
     implementation(project(":files"))
     implementation(project(":resources"))
     implementation(project(":build-cache"))
@@ -73,10 +74,10 @@ dependencies {
     }
     testImplementation(project(":plugins"))
     testImplementation(project(":version-control"))
+    testImplementation(testFixtures(project(":core")))
     testImplementation(libs.ant)
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.jacksonKotlin)
-
     testImplementation(libs.archunit)
     testImplementation(libs.kotlinCoroutines)
     testImplementation(libs.awaitility)
@@ -95,6 +96,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":file-temp"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":kotlin-dsl-tooling-builders"))
     testFixturesImplementation(project(":test-kit"))

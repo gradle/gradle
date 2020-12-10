@@ -16,14 +16,13 @@
 
 package org.gradle.api.tasks.scala.internal;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.workers.WorkAction;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +30,9 @@ import java.util.List;
 public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters> {
     @Override
     public void execute() {
-        Path optionsFile = getOptionsPath();
+        ScaladocParameters parameters = getParameters();
+        Path optionsFile = parameters.getOptionsFile().map(RegularFile::getAsFile).map(File::toPath).getOrNull();
         try {
-            ScaladocParameters parameters = getParameters();
             List<String> args = generateArgList(parameters, optionsFile);
             invokeScalaDoc(args);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -44,16 +43,6 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
                 optionsFile.toFile().delete();
             }
         }
-    }
-
-    private Path getOptionsPath() {
-        Path optionsFile = null;
-        try {
-            optionsFile = Files.createTempFile("scaladoc", "options");
-        } catch (IOException e) {
-            // ignore, just continue with the full set of arguments.
-        }
-        return optionsFile;
     }
 
     private List<String> generateArgList(ScaladocParameters parameters, Path optionsFile) {

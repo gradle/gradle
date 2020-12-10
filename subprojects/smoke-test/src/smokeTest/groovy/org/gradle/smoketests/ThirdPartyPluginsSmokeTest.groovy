@@ -267,10 +267,11 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
 
         when:
-        def buildResult = runner('build').build()
+        def buildResult = runner('assembleBootDist', 'check').build()
 
         then:
-        buildResult.task(':build').outcome == SUCCESS
+        buildResult.task(':assembleBootDist').outcome == SUCCESS
+        buildResult.task(':check').outcome == UP_TO_DATE // no tests
         expectNoDeprecationWarnings(buildResult)
 
         when:

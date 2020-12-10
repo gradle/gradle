@@ -21,19 +21,21 @@ import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 
 import com.google.common.annotations.VisibleForTesting
+import org.gradle.api.internal.file.TemporaryFileProvider
 
 import java.io.File
-import java.nio.file.Files.createTempDirectory
 
 
 @VisibleForTesting
 fun generateApiExtensionsJar(
+    temporaryFileProvider: TemporaryFileProvider,
     outputFile: File,
     gradleJars: Collection<File>,
     gradleApiMetadataJar: File,
     onProgress: () -> Unit
 ) {
     ApiExtensionsJarGenerator(
+        temporaryFileProvider,
         gradleJars,
         gradleApiMetadataJar,
         onProgress
@@ -43,6 +45,7 @@ fun generateApiExtensionsJar(
 
 private
 class ApiExtensionsJarGenerator(
+    val temporaryFileProvider: TemporaryFileProvider,
     val gradleJars: Collection<File>,
     val gradleApiMetadataJar: File,
     val onProgress: () -> Unit = {}
@@ -56,7 +59,7 @@ class ApiExtensionsJarGenerator(
 
     private
     fun tempDirFor(outputFile: File): File =
-        createTempDirectory(outputFile.name).toFile().apply {
+        temporaryFileProvider.createTemporaryDirectory(outputFile.nameWithoutExtension, outputFile.extension).apply {
             deleteOnExit()
         }
 
