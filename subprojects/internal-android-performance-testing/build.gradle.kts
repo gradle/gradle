@@ -3,10 +3,6 @@ plugins {
     application
 }
 
-repositories {
-    google()
-}
-
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":tooling-api"))

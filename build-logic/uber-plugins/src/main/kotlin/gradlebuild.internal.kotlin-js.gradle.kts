@@ -21,7 +21,6 @@ plugins {
     id("gradlebuild.lifecycle")
     kotlin("js")
     id("gradlebuild.dependency-modules")
-    id("gradlebuild.repositories")
     id("org.gradle.kotlin-dsl.ktlint-convention")
     id("gradlebuild.code-quality")
 }

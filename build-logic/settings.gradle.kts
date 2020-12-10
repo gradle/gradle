@@ -1,71 +1,13 @@
-/*
- * Copyright 2016 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 pluginManagement {
-    repositories {
-        maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
-        }
-        gradlePluginPortal()
-    }
-    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../build-logic-commons")
+    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../build-logic-base")
 }
 
-dependencyResolutionManagement {
-    repositories {
-        maven {
-            name = "Gradle libs"
-            url = uri("https://repo.gradle.org/gradle/libs")
-            mavenContent {
-                // This repository contains an older version which has been overwritten in Central
-                excludeModule("com.google.j2objc", "j2objc-annotations")
-            }
-        }
-        gradlePluginPortal()
-        maven {
-            name = "Gradle snapshot libs"
-            url = uri("https://repo.gradle.org/gradle/libs-snapshots")
-            mavenContent {
-                // This repository contains an older version which has been overwritten in Central
-                excludeModule("com.google.j2objc", "j2objc-annotations")
-            }
-        }
-        maven {
-            name = "kotlinx"
-            url = uri("https://dl.bintray.com/kotlin/kotlinx")
-        }
-        maven {
-            name = "kotlin-dev"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
-        }
-        maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
-        }
-        maven {
-            name = "ge-release-candidates"
-            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
-        }
-    }
+plugins {
+    id("gradlebuild.settings-plugins")
+    id("gradlebuild.repositories")
 }
 
 includeBuild("../build-logic-commons")
-
-apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // Platform: defines shared dependency versions
 include("build-platform")

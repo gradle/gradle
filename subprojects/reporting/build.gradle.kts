@@ -1,14 +1,8 @@
-import gradlebuild.basics.googleApisJs
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }
 
 val implementationResources: Configuration by configurations.creating
-
-repositories {
-    googleApisJs()
-}
 
 dependencies {
     implementation(project(":base-services"))

@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-repositories {
-    maven {
-        name = "Gradle libs"
-        url = uri("https://repo.gradle.org/gradle/libs")
-    }
-    maven {
-        name = "kotlinx"
-        url = uri("https://kotlin.bintray.com/kotlinx/")
-    }
-    maven {
-        name = "kotlin-dev"
-        url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
-    }
-    maven {
-        name = "kotlin-eap"
-        url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
-    }
+// This is a separate plugin written in Groovy DSL due to https://github.com/gradle/gradle/issues/15416.
+// This should be merged with 'gradlebuild.repositories.settings' when that issue is resolved.
+plugins {
+    id("com.gradle.enterprise")
+    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin")
 }

@@ -1,5 +1,3 @@
-import gradlebuild.basics.googleApisJs
-
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -7,10 +5,6 @@ plugins {
 val reports by configurations.creating
 val flamegraph by configurations.creating
 configurations.compileOnly { extendsFrom(flamegraph) }
-
-repositories {
-    googleApisJs()
-}
 
 dependencies {
     reports("jquery:jquery.min:3.5.1@js")

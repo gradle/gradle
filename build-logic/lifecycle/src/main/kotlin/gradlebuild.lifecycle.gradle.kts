@@ -26,7 +26,6 @@ val baseLifecycleTasks = listOf(
     LifecycleBasePlugin.BUILD_TASK_NAME
 )
 
-// See also 'gradlebuild.ci-lifecycle'
 val lifecycleTasks = mapOf(
     "compileAllBuild" to "Initialize CI Pipeline by priming the cache before fanning out",
     "sanityCheck" to "Run all basic checks (without tests) - to be run locally and on CI for early feedback",
@@ -43,7 +42,7 @@ val lifecycleTasks = mapOf(
     "allVersionsCrossVersionTest" to "Run cross-version tests against all released versions (latest patch release of each)"
 )
 
-if (subprojects.isEmpty() && gradle.parent == null) { // the umbrella build if any
+if (project == rootProject && subprojects.isEmpty() && gradle.parent == null) { // the umbrella build root (only if we run the umbrella build)
     baseLifecycleTasks.forEach { lifecycleTask ->
         tasks.named(lifecycleTask) {
             group = ciGroup

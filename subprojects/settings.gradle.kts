@@ -1,26 +1,12 @@
-import org.gradle.api.internal.FeaturePreviews
-
 pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
-    }
-
-    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../build-logic-commons")
-    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../build-logic")
+    (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../build-logic-base")
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.5")
-    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.1")
+    id("gradlebuild.settings-plugins")
+    id("gradlebuild.repositories")
 }
 
-apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
-
-// If you include a new subproject here, you will need to execute the
-// ./gradlew generateSubprojectsInfo
-// task to update metadata about the build for CI
 
 include("distributions-dependencies") // platform for dependency versions
 include("core-platform")              // platform for Gradle distribution core
@@ -145,9 +131,3 @@ include("smoke-test")
 include("performance")
 include("build-scan-performance")
 include("configuration-cache-report")
-
-FeaturePreviews.Feature.values().forEach { feature ->
-    if (feature.isActive) {
-        enableFeaturePreview(feature.name)
-    }
-}

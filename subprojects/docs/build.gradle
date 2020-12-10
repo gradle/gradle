@@ -3,7 +3,6 @@ import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.samples.internal.tasks.InstallSample
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
-import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
 
 plugins {
     id 'gradlebuild.internal.java'
@@ -12,10 +11,6 @@ plugins {
     id 'gradlebuild.documentation'
     id 'gradlebuild.generate-samples'
     id 'gradlebuild.split-docs'
-}
-
-repositories { handler ->
-    googleApisJs(handler)
 }
 
 configurations {

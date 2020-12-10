@@ -2,7 +2,7 @@ import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
 
 plugins {
     id("gradlebuild.lifecycle")
-    id("base")
+    id("java-base")
 }
 
 val reports by configurations.creating {
