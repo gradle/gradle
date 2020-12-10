@@ -1,4 +1,4 @@
-import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.repoRoot
 import gradlebuild.integrationtests.tasks.GenerateLanguageAnnotations
 import java.util.Properties
 
@@ -106,7 +106,8 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 }
 
 val copyAgpVersionsInfo by tasks.registering(Copy::class) {
-    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
+    // TODO the file 'agp-versions.properties' and the task to generate it should move into this project
+    from(repoRoot().file("gradle/dependency-management/agp-versions.properties"))
     into(layout.buildDirectory.dir("generated-resources/agp-versions"))
 }
 
