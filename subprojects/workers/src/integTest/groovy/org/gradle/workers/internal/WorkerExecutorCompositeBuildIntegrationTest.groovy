@@ -30,9 +30,11 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
     @Issue("https://github.com/gradle/gradle/issues/10317")
     def "can use worker api with composite builds using #pluginId"() {
         settingsFile << """
+            pluginManagement {
+                includeBuild "plugin"
+            }
             rootProject.name = "app"
 
-            includeBuild "plugin"
             includeBuild "lib"
         """
 
@@ -40,6 +42,11 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         withLegacyWorkerPluginInPluginBuild()
         withTypedWorkerPluginInPluginBuild()
 
+        lib.file('settings.gradle') << """
+            pluginManagement {
+                includeBuild "../plugin"
+            }
+        """
         lib.file("build.gradle") << """
             buildscript {
                 dependencies {

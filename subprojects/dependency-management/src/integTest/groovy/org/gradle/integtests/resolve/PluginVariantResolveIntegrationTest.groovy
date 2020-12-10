@@ -77,6 +77,9 @@ class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest 
     @Issue("https://github.com/gradle/gradle/issues/13659")
     def "should report an incompatible Java version of a plugin properly (#id) using composite builds"() {
         settingsFile << """
+            pluginManagement {
+                includeBuild('my-plugin')
+            }
             rootProject.name = 'test-plugin'
 
             includeBuild('my-plugin') {

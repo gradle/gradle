@@ -106,7 +106,11 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
                 id 'other.plugin'
             }
         """
-        settingsFile << "includeBuild('other-plugin')"
+        settingsFile << """
+            pluginManagement {
+                includeBuild('other-plugin')
+            }
+        """
         file('other-plugin/settings.gradle') << "rootProject.name = 'other-plugin'"
         file('other-plugin/build.gradle') << """
             plugins {

@@ -116,8 +116,10 @@ plugins {
 }
 '''
         settingsFile << '''
-includeBuild('included')
-'''
+            pluginManagement {
+                includeBuild('included')
+            }
+        '''
         when:
         fails('runBrokenWorker')
 

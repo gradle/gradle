@@ -219,8 +219,12 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             'org:module:1.0'()
         }
 
-        settingsFile << """
-            includeBuild 'my-plugin'
+        settingsFile.text = """
+            pluginManagement {
+                includeBuild 'my-plugin'
+            }
+
+            $settingsFile.text
 
             dependencyResolutionManagement {
                 repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
