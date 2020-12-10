@@ -2,16 +2,13 @@
 # ------
 .gradle
 /build
-/buildSrc/build
-/buildSrc/**/build
-/build-logic-commons/build
-/build-logic-commons/*/build
-/build-logic/build
-/build-logic/*/build
-/subprojects/*/build
-/subprojects/docs/src/samples/**/build
-/subprojects/docs/src/snippets/**/build
-/subprojects/internal-android-performance-testing/build-android-libs
+/*/build
+/*/*/build
+/*/*/*/build
+/*/*/*/*/build
+/*/docs/src/samples/**/build
+/*/docs/src/snippets/**/build
+/*/internal-android-performance-testing/build-android-libs
 
 # IDEA
 # ----
@@ -22,22 +19,13 @@
 !/.idea/icon.png
 !/.idea/icon_dark.png
 */**/.idea
+*/**/.shelf
 .shelf
 /*.iml
-/*.ipr
-/*.iws
-/buildSrc/.idea
-/buildSrc/.shelf
-/buildSrc/*.iml
-/buildSrc/*.ipr
-/buildSrc/*.iws
-/buildSrc/out
-/buildSrc/subprojects/*/*.iml
-/buildSrc/subprojects/*/out
-/out
-/subprojects/*/*.iml
-/subprojects/*/out
-/.teamcity/*.iml
+/*/*.iml
+/*/*/*.iml
+/*/*/*/*.iml
+/*/*/*/*/*.iml
 /.teamcity/target
 
 # Eclipse
