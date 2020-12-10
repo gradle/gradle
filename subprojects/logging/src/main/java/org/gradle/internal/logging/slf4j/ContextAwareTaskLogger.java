@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 public interface ContextAwareTaskLogger extends Logger {
 
+    @Deprecated // To be removed once `kotlin-dsl` is upgraded
     interface MessageRewriter {
 
         /**
@@ -37,6 +38,7 @@ public interface ContextAwareTaskLogger extends Logger {
         String rewrite(LogLevel logLevel, String message);
     }
 
+    @Deprecated // To be removed once `kotlin-dsl` is upgraded
     void setMessageRewriter(MessageRewriter messageRewriter);
 
     void setFallbackBuildOperationId(OperationIdentifier operationIdentifier);

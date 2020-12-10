@@ -93,6 +93,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     /**
      * Sets the log message rewriter for this task's logger.
      */
+    @Deprecated // To be removed once `kotlin-dsl` is upgraded
     void setLoggerMessageRewriter(ContextAwareTaskLogger.MessageRewriter messageRewriter);
 
     @Internal
