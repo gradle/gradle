@@ -45,6 +45,13 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(null as? Int)
+    sourceCompatibility = "8"
+    targetCompatibility = "8"
+}
+
+
 classycle {
     excludePatterns.add("org/gradle/model/internal/core/**")
     excludePatterns.add("org/gradle/model/internal/inspect/**")

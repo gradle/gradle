@@ -59,11 +59,19 @@ dependencies {
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+}
 
-    buildJvms.whenTestingWithEarlierThan(JavaVersion.VERSION_1_9) {
-        val tools = it.jdk.get().toolsClasspath
-        testRuntimeOnly(tools)
+tasks.withType<Test>().configureEach {
+    if (!javaVersion.isJava9Compatible) {
+        val tools = javaLauncher.get().metadata.installationPath.file("lib/tools.jar")
+        classpath.plus(tools)
     }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(null as? Int)
+    sourceCompatibility = "8"
+    targetCompatibility = "8"
 }
 
 strictCompile {
@@ -75,5 +83,6 @@ classycle {
     excludePatterns.add("org/gradle/api/tasks/compile/**")
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
+
 
 integTest.usesSamples.set(true)

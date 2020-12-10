@@ -21,7 +21,6 @@ import gradlebuild.integrationtests.tasks.DistributionTest
 plugins {
     java
     id("gradlebuild.module-identity")
-    id("gradlebuild.available-java-installations")
 }
 
 val docsProjectLocation = "subprojects/docs" // TODO instead of reaching directly into the project we should use dependency management
@@ -90,7 +89,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
 
 fun DistributionTest.setJvmArgsOfTestJvm() {
     jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
-    project.buildJvms.whenTestingWithEarlierThan(JavaVersion.VERSION_1_8) {
+    if (!javaLauncher.get().metadata.languageVersion.canCompileOrRun(8)) {
         jvmArgs("-XX:MaxPermSize=768m")
     }
 }

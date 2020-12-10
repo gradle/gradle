@@ -17,26 +17,32 @@
 package gradlebuild.jvm.extension
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.kotlin.dsl.*
 
 
-abstract class UnitTestAndCompileExtension(private val java: JavaPluginExtension) {
+abstract class UnitTestAndCompileExtension(private val tasks: TaskContainer) {
 
     fun usedInWorkers() {
-        java.targetCompatibility = JavaVersion.VERSION_1_6
-        java.sourceCompatibility = JavaVersion.VERSION_1_6
-        java.disableAutoTargetJvm()
+        enforceJava6Compatibility()
     }
 
     fun usedForStartup() {
-        java.targetCompatibility = JavaVersion.VERSION_1_6
-        java.sourceCompatibility = JavaVersion.VERSION_1_6
-        java.disableAutoTargetJvm()
+        enforceJava6Compatibility()
     }
 
     fun usedInToolingApi() {
-        java.targetCompatibility = JavaVersion.VERSION_1_6
-        java.sourceCompatibility = JavaVersion.VERSION_1_6
-        java.disableAutoTargetJvm()
+        enforceJava6Compatibility()
+    }
+
+    fun enforceJava6Compatibility() {
+        tasks.withType<JavaCompile>().configureEach {
+            options.release.set(null as? Int)
+            sourceCompatibility = "6"
+            targetCompatibility = "6"
+        }
     }
 }
