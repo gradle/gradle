@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.repoRoot
 import gradlebuild.modules.extension.ExternalModulesExtension
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -86,20 +87,8 @@ fun applyAutomaticUpgradeOfCapabilities() {
 }
 
 fun readCapabilitiesFromJson() {
-    val extra = gradle.rootProject.extra
-    val capabilities: List<CapabilitySpec>
-    if (extra.has("capabilities")) {
-        @Suppress("unchecked_cast")
-        capabilities = extra["capabilities"] as List<CapabilitySpec>
-    } else {
-        val capabilitiesFile = gradle.rootProject.layout.projectDirectory.file("gradle/dependency-management/capabilities.json").asFile
-        capabilities = if (capabilitiesFile.exists()) {
-            readCapabilities(capabilitiesFile)
-        } else {
-            emptyList()
-        }
-        extra["capabilities"] = capabilities
-    }
+    val capabilitiesFile = repoRoot().file("gradle/dependency-management/capabilities.json").asFile
+    val capabilities: List<CapabilitySpec> = readCapabilities(capabilitiesFile)
     capabilities.forEach {
         it.configure(dependencies.components, configurations)
     }

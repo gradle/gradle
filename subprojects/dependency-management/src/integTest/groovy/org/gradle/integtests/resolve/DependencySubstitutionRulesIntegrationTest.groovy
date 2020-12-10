@@ -1032,7 +1032,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails "checkDeps"
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':conf'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not find org.utils:api:1.123.15")
     }
 

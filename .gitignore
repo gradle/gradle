@@ -2,6 +2,8 @@
 # ------
 .gradle
 /build
+/buildSrc/build
+/buildSrc/**/build
 /build-logic-commons/build
 /build-logic-commons/*/build
 /build-logic/build

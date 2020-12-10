@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +31,8 @@ public class Jdk7Symlink implements Symlink {
 
     private final boolean symlinkCreationSupported;
 
-    public Jdk7Symlink() {
-        this(doesSystemSupportSymlinks());
+    public Jdk7Symlink(TemporaryFileProvider temporaryFileProvider) {
+        this(doesSystemSupportSymlinks(temporaryFileProvider));
     }
 
     protected Jdk7Symlink(boolean symlinkCreationSupported) {
@@ -54,12 +55,12 @@ public class Jdk7Symlink implements Symlink {
         return Files.isSymbolicLink(suspect.toPath());
     }
 
-    private static boolean doesSystemSupportSymlinks() {
+    private static boolean doesSystemSupportSymlinks(TemporaryFileProvider temporaryFileProvider) {
         Path sourceFile = null;
         Path linkFile = null;
         try {
-            sourceFile = Files.createTempFile("symlink", "test");
-            linkFile = Files.createTempFile("symlink", "test_link");
+            sourceFile = temporaryFileProvider.createTemporaryFile("symlink", "test").toPath();
+            linkFile = temporaryFileProvider.createTemporaryFile("symlink", "test_link").toPath();
 
             Files.delete(linkFile);
             Files.createSymbolicLink(linkFile, sourceFile);

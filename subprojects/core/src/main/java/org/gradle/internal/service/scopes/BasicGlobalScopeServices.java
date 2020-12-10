@@ -22,6 +22,8 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -88,16 +90,16 @@ public class BasicGlobalScopeServices {
         return new DocumentationRegistry();
     }
 
-    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
-        return new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory));
+    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
+        return new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider));
     }
 
     JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
         return new DefaultJvmVersionDetector(detector);
     }
 
-    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
-        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory);
+    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, TmpDirTemporaryFileProvider temporaryFileProvider) {
+        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory, temporaryFileProvider);
     }
 
     FileResolver createFileResolver(FileLookup lookup) {

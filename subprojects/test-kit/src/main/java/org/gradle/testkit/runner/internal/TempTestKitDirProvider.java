@@ -22,6 +22,7 @@ import java.io.File;
 
 public class TempTestKitDirProvider extends ConstantTestKitDirProvider {
 
+    @SuppressWarnings("deprecation")
     public TempTestKitDirProvider(SystemProperties systemProperties) {
         super(new File(systemProperties.getJavaIoTmpDir(), ".gradle-test-kit-".concat(systemProperties.getUserName())));
     }

@@ -320,9 +320,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(
-        because = "broken file collection"
-    )
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
@@ -358,8 +355,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
 
             task resolve {
-                inputs.files(configurations.compileClasspath)
-                inputs.files(configurations.testRuntimeClasspath)
                 doLast {
                     println "First resolution"
                     println $firstResolution

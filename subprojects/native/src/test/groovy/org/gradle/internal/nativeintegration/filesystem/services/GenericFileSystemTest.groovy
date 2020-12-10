@@ -16,21 +16,27 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileException
 import org.gradle.internal.file.StatStatistics
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator
 import org.gradle.internal.nativeintegration.filesystem.Symlink
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class GenericFileSystemTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def fileModeMutator = Stub(FileModeMutator)
     def fileModeAccessor = Stub(FileModeAccessor)
     def symlink = Stub(Symlink)
     def fileMetadataAccessor = Stub(FileMetadataAccessor)
     def statistics = Mock(StatStatistics.Collector)
-    def fileSystem = new GenericFileSystem(fileModeMutator, fileModeAccessor, symlink, fileMetadataAccessor, statistics)
+    def fileSystemFactory = new GenericFileSystem.Factory(fileMetadataAccessor, statistics, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root))
+    def fileSystem = fileSystemFactory.create(fileModeMutator, fileModeAccessor, symlink)
 
     def "wraps failure to set file mode"() {
         def failure = new RuntimeException()

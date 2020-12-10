@@ -16,14 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store
 
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.internal.BinaryStore
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class ResolutionResultsStoreFactoryTest extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider())
+    @AutoCleanup
+    ResolutionResultsStoreFactory f = new ResolutionResultsStoreFactory(TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory))
 
     def "provides binary stores"() {
         def stores = f.createStoreSet()
@@ -36,7 +42,7 @@ class ResolutionResultsStoreFactoryTest extends Specification {
     }
 
     def "rolls the file"() {
-        f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider(), 2)
+        f = new ResolutionResultsStoreFactory(TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory), 2)
 
         when:
         def store = f.createStoreSet().nextBinaryStore()
@@ -56,7 +62,7 @@ class ResolutionResultsStoreFactoryTest extends Specification {
     }
 
     def "cleans up binary files"() {
-        f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider(), 1);
+        f = new ResolutionResultsStoreFactory(TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory), 1);
         def stores1 = f.createStoreSet()
 
         when:

@@ -280,6 +280,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "file-temp",
+    "name": "file-temp",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "file-watching",
     "name": "file-watching",
     "unitTests": true,

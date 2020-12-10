@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -62,14 +64,24 @@ public class DefaultExecActionFactory implements ExecFactory {
     protected final Executor executor;
     protected final FileCollectionFactory fileCollectionFactory;
     protected final ObjectFactory objectFactory;
+    protected final TemporaryFileProvider temporaryFileProvider;
     @Nullable
     protected final JavaModuleDetector javaModuleDetector;
     protected final BuildCancellationToken buildCancellationToken;
 
-    private DefaultExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Executor executor, @Nullable JavaModuleDetector javaModuleDetector, BuildCancellationToken buildCancellationToken) {
+    private DefaultExecActionFactory(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        ObjectFactory objectFactory,
+        Executor executor,
+        TemporaryFileProvider temporaryFileProvider,
+        @Nullable JavaModuleDetector javaModuleDetector,
+        BuildCancellationToken buildCancellationToken
+    ) {
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
         this.objectFactory = objectFactory;
+        this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
@@ -81,30 +93,43 @@ public class DefaultExecActionFactory implements ExecFactory {
         Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
         FileResolver resolver = new DefaultFileLookup().getFileResolver();
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        return of(resolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        TmpDirTemporaryFileProvider temporaryFileProvider = TmpDirTemporaryFileProvider.createLegacy();
+        return of(resolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), new DefaultExecutorFactory(), new DefaultBuildCancellationToken(), temporaryFileProvider);
     }
 
-    public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
-        return of(fileResolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), executorFactory, new DefaultBuildCancellationToken());
+    public static DefaultExecActionFactory of(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        ExecutorFactory executorFactory,
+        TmpDirTemporaryFileProvider temporaryFileProvider
+    ) {
+        return of(fileResolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), executorFactory, new DefaultBuildCancellationToken(), temporaryFileProvider);
     }
 
-    public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
-        return new RootExecFactory(fileResolver, fileCollectionFactory, objectFactory, executorFactory, buildCancellationToken);
+    private static DefaultExecActionFactory of(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        ObjectFactory objectFactory,
+        ExecutorFactory executorFactory,
+        BuildCancellationToken buildCancellationToken,
+        TmpDirTemporaryFileProvider tmpDirTemporaryFileProvider
+    ) {
+        return new RootExecFactory(fileResolver, fileCollectionFactory, objectFactory, executorFactory, buildCancellationToken, tmpDirTemporaryFileProvider);
     }
 
     @Override
     public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
-        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken, objectFactory, javaModuleDetector);
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, temporaryFileProvider, buildCancellationToken, objectFactory, javaModuleDetector);
     }
 
     @Override
     public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken, objectFactory, javaModuleDetector);
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, temporaryFileProvider, buildCancellationToken, objectFactory, javaModuleDetector);
     }
 
     @Override
     public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken, objectFactory, javaModuleDetector);
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, temporaryFileProvider, buildCancellationToken, objectFactory, javaModuleDetector);
     }
 
     public ExecAction newDecoratedExecAction() {
@@ -148,7 +173,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, javaModuleDetector, newJavaForkOptions());
+        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, newJavaForkOptions());
     }
 
     @Override
@@ -158,7 +183,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, javaModuleDetector, newJavaForkOptions());
+        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, newJavaForkOptions());
     }
 
     @Override
@@ -176,8 +201,15 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     private static class RootExecFactory extends DefaultExecActionFactory implements Stoppable {
-        public RootExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
-            super(fileResolver, fileCollectionFactory, objectFactory, executorFactory.create("Exec process"), null, buildCancellationToken);
+        public RootExecFactory(
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            ObjectFactory objectFactory,
+            ExecutorFactory executorFactory,
+            BuildCancellationToken buildCancellationToken,
+            TmpDirTemporaryFileProvider temporaryFileProvider
+        ) {
+            super(fileResolver, fileCollectionFactory, objectFactory, executorFactory.create("Exec process"), temporaryFileProvider, null, buildCancellationToken);
         }
 
         @Override
@@ -190,8 +222,17 @@ public class DefaultExecActionFactory implements ExecFactory {
         private final Instantiator instantiator;
         private final ObjectFactory objectFactory;
 
-        DecoratingExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-            super(fileResolver, fileCollectionFactory, objectFactory, executor, javaModuleDetector, buildCancellationToken);
+        DecoratingExecActionFactory(
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            Instantiator instantiator,
+            Executor executor,
+            TemporaryFileProvider temporaryFileProvider,
+            BuildCancellationToken buildCancellationToken,
+            ObjectFactory objectFactory,
+            JavaModuleDetector javaModuleDetector
+        ) {
+            super(fileResolver, fileCollectionFactory, objectFactory, executor, temporaryFileProvider, javaModuleDetector, buildCancellationToken);
             this.instantiator = instantiator;
             this.objectFactory = objectFactory;
         }
@@ -205,7 +246,17 @@ public class DefaultExecActionFactory implements ExecFactory {
         public JavaExecAction newDecoratedJavaExecAction() {
             final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
-            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, javaModuleDetector, forkOptions);
+            return instantiator.newInstance(
+                DefaultJavaExecAction.class,
+                fileResolver,
+                fileCollectionFactory,
+                objectFactory,
+                executor,
+                buildCancellationToken,
+                temporaryFileProvider,
+                javaModuleDetector,
+                forkOptions
+            );
         }
 
         @Override

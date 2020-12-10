@@ -113,6 +113,15 @@ public abstract class TaskNode extends Node {
     }
 
     @Override
+    public Iterable<Node> getHardSuccessors() {
+        return Iterables.concat(
+            finalizingSuccessors,
+            mustSuccessors,
+            super.getHardSuccessors()
+        );
+    }
+
+    @Override
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
         return Iterables.concat(
             super.getAllSuccessorsInReverseOrder(),

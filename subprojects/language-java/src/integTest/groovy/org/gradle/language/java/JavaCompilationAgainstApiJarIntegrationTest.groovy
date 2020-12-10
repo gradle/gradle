@@ -63,7 +63,7 @@ public class TestApp {
     void updateFile(String path, String contents) {
         // add a small delay in order to avoid FS synchronization issues
         // the errors often look like this:
-        // bad class file: /home/cchampeau/DEV/PROJECTS/GITHUB/gradle/subprojects/language-java/build/tmp/test files/JavaCompilationAgainstApiJarIntegrationTest/consuming_source_is...s_changes/qgrf/build/jars/myLibApiJar/myLib.jar(com/acme/Person.class)
+        // bad class file: language-java/build/tmp/test files/JavaCompilationAgainstApiJarIntegrationTest/consuming_source_is...s_changes/qgrf/build/jars/myLibApiJar/myLib.jar(com/acme/Person.class)
         // unable to access file: corrupted zip file
         // and the reason is unclear now.
         // TODO: investigate this issue

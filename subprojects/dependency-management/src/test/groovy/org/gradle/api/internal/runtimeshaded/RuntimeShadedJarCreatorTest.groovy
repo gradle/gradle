@@ -55,7 +55,12 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
 
     def setup() {
-        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new ClasspathWalker(TestFiles.fileSystem()), new ClasspathBuilder())
+        relocatedJarCreator = new RuntimeShadedJarCreator(
+            progressLoggerFactory,
+            new ImplementationDependencyRelocator(RuntimeShadedJarType.API),
+            new ClasspathWalker(TestFiles.fileSystem()),
+            new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.root))
+        )
     }
 
     def "creates JAR file for input directory"() {

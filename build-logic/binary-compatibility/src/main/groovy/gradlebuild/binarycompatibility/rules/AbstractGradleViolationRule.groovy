@@ -152,7 +152,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#accept-${changeId}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="accept-${changeId}">
                   <div class="well">
-                      In order to accept this change add the following to <code>subprojects/architecture-test/src/changes/accepted-public-api-changes.json</code>:
+                      In order to accept this change add the following to <code>architecture-test/src/changes/accepted-public-api-changes.json</code>:
                     <pre>${prettyPrintJson(acceptanceJson)}</pre>
                   </div>
                 </div>

@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":worker-processes"))
     implementation(project(":file-collections"))
+    implementation(project(":file-temp"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))

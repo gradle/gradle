@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.repoRoot
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
@@ -43,19 +44,21 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 }
 
-tasks.idea.configure {
+tasks.idea {
     doFirst { throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij") }
 }
 
-idea {
-    module {
-        excludeDirs = setOf(layout.projectDirectory.file("intTestHomeDir").asFile)
-    }
-    project {
-        settings {
-            configureCopyright()
-            configureRunConfigurations()
-            doNotDetectFrameworks("android", "web")
+if (idea.project != null) { // may be null during script compilation
+    idea {
+        module {
+            excludeDirs = setOf(repoRoot().dir("intTestHomeDir").asFile)
+        }
+        project {
+            settings {
+                configureCopyright()
+                configureRunConfigurations()
+                doNotDetectFrameworks("android", "web", "12wq")
+            }
         }
     }
 }

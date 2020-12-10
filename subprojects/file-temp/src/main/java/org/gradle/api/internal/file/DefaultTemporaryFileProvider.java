@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ package org.gradle.api.internal.file;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.file.TempFiles;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -44,20 +46,20 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
         GFileUtils.mkdirs(dir);
         try {
-            return File.createTempFile(prefix, suffix, dir);
+            return TempFiles.createTempFile(prefix, suffix, dir);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     @Override
-    public File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
+    public File createTemporaryDirectory(@Nullable @Nonnull String prefix, @Nullable String suffix, String... path) {
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
         GFileUtils.mkdirs(dir);
         try {
             // TODO: This is not a great paradigm for creating a temporary directory.
             // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
-            File tmpDir = File.createTempFile("gradle", "projectDir", dir);
+            File tmpDir = TempFiles.createTempFile(prefix, suffix, dir);
             tmpDir.delete();
             tmpDir.mkdir();
             return tmpDir;

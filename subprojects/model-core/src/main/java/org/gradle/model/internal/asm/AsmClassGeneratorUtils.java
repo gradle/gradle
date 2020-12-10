@@ -93,8 +93,18 @@ public class AsmClassGeneratorUtils {
      * Generates the signature for the given constructor
      */
     public static String signature(Constructor<?> constructor) {
+        return signature(constructor, false);
+    }
+
+    /**
+     * Generates the signature for the given constructor, optionally adding a `name` parameter before all other parameters.
+     */
+    public static String signature(Constructor<?> constructor, boolean addNameParameter) {
         StringBuilder builder = new StringBuilder();
         visitFormalTypeParameters(builder, constructor.getTypeParameters());
+        if (addNameParameter) {
+            visitType(String.class, builder);
+        }
         visitParameters(builder, constructor.getGenericParameterTypes());
         builder.append("V");
         visitExceptions(builder, constructor.getGenericExceptionTypes());

@@ -17,9 +17,13 @@
 package gradlebuild.integrationtests
 
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.kotlindsl.stringPropertyOrEmpty
+import gradlebuild.basics.repoRoot
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
+import gradlebuild.testing.TestType
+import gradlebuild.testing.services.BuildBucketProvider
 
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -36,12 +40,6 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
-
-
-enum class TestType(val prefix: String, val executers: List<String>) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache", "watchFs")),
-    CROSSVERSION("crossVersion", listOf("embedded", "forking"))
-}
 
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
@@ -128,7 +126,13 @@ internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register<IntegrationTest>(name) {
         val integTest = project.the<IntegrationTestExtension>()
-        project.bucketProvider().configureTest(this, sourceSet, testType)
+        val buildBucketProvider = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
+            parameters.includeTestClasses.set(project.stringPropertyOrEmpty("includeTestClasses"))
+            parameters.excludeTestClasses.set(project.stringPropertyOrEmpty("excludeTestClasses"))
+            parameters.onlyTestGradleVersion.set(project.stringPropertyOrEmpty("onlyTestGradleVersion"))
+            parameters.repoRoot.set(repoRoot())
+        }
+        buildBucketProvider.get().bucketProvider.configureTest(this, sourceSet, testType)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -138,7 +142,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         if (integTest.usesSamples.get()) {
             val samplesDir = layout.projectDirectory.dir("src/main")
             systemProperty("declaredSampleInputs", samplesDir.asFile.toString())
-            inputs.files(rootProject.files(samplesDir))
+            inputs.files(samplesDir)
                 .withPropertyName("autoTestedSamples")
                 .withPathSensitivity(PathSensitivity.RELATIVE)
         }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// dot -Tpng subprojects/docs/src/docs/userguide/img/swift-sourcesets-compilation.dot > subprojects/docs/src/docs/userguide/img/swift-sourcesets-compilation.png
+// dot -Tpng src/docs/userguide/img/swift-sourcesets-compilation.dot > src/docs/userguide/img/swift-sourcesets-compilation.png
 digraph swiftSourcesetsCompilation {
   graph [ dpi = 100, fontname="Sans"];
   node [fontname = "Sans"];
