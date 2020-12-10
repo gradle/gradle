@@ -45,7 +45,10 @@ fun location(path: String): String = when {
 
 dependencyResolutionManagement {
     repositories {
-        repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS) // Cannot use 'FAIL_ON_PROJECT_REPOS' because the gradle-guides-plugin adds a repo (which it should not do)
+        // Cannot use 'FAIL_ON_PROJECT_REPOS' because
+        // - the 'gradle-guides-plugin' adds a repo (which it should not do)
+        // - the 'kotlin-gradle-plugin' adds a repo (and removes it afterwards) to download NodeJS
+        repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
 
         listOf("distributions", "distributions-snapshots").forEach { distUrl ->
             ivy {
@@ -76,6 +79,21 @@ dependencyResolutionManagement {
                 includeModule("jquery", "jquery.min")
                 includeModule("com.drewwilson.code", "jquery.tipTip")
                 includeModule("flot", "flot")
+                includeModule("org.nodejs", "node")
+            }
+        }
+        ivy {
+            // See: https://github.com/JetBrains/kotlin/blob/master/libraries/tools/kotlin-gradle-plugin/src/main/kotlin/org/jetbrains/kotlin/gradle/targets/js/nodejs/NodeJsSetupTask.kt
+            name = "NodeJS"
+            url = uri("https://nodejs.org/dist")
+            patternLayout {
+                artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]")
+                ivy("v[revision]/ivy.xml")
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
                 includeModule("org.nodejs", "node")
             }
         }
