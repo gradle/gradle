@@ -1,4 +1,5 @@
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.repoRoot
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
@@ -60,7 +61,7 @@ tasks {
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
-        remoteUri.set(rootDir.absolutePath)
+        remoteUri.set(repoRoot().asFile.absolutePath)
         ref.set(moduleIdentity.gradleBuildCommitId)
     }
 
