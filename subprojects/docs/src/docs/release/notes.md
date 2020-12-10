@@ -23,6 +23,38 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Plugin development improvements
+
+### Included plugin builds
+
+Developing plugins as part of a composite build was so far only possible for project plugins.
+Settings plugins always had to be developed in isolation and published to a binary repository.
+
+This release introduces a new DSL construct in the settings file for including plugin builds.
+Build included like that can provide both project and settings plugins.
+```
+pluginManagement {
+    includeBuild("../my-settings-plugin")
+}
+plugins {
+    id("my.settings-plugin") 
+}
+```
+The above example assumes that the included build defines a settings plugin with the id `my.settings-plugin`.
+
+Library components produced by builds included though the `pluginManagement` block are not automatically visible to the including build.
+However, the same build can be included as plugin build and normal library build:
+```
+pluginManagement {
+    // contributes plugins
+    includeBuild("../project-with-plugin-and-library") 
+}
+// contributes libraries
+includeBuild("../project-with-plugin-and-library") 
+```
+This distinction reflects what Gradle offers for repository declarations - 
+repositories are specified separately for plugin dependencies and for production dependencies.
+
 <!-- 
 
 ================== TEMPLATE ==============================

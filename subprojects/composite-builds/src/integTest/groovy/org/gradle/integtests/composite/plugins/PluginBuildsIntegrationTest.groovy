@@ -521,7 +521,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         """)
         file("${settingsPluginBuild.buildName}/src/main/kotlin/${settingsPluginBuild.settingsPluginId}.settings.gradle.kts") << """
             pluginManagement {
-                (this as org.gradle.plugin.management.internal.PluginManagementSpecInternal).includeBuild("../${projectPluginBuild.buildName}")
+                includeBuild("../${projectPluginBuild.buildName}")
             }
             println("${settingsPluginBuild.settingsPluginId} applied")
         """
