@@ -25,7 +25,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
@@ -44,6 +43,8 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSch
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 import java.io.File
 import java.util.function.Consumer
