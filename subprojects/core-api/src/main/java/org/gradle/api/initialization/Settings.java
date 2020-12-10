@@ -302,4 +302,12 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @Incubating
     void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
+
+    /**
+     * Returns the dependency resolution management handler.
+     *
+     * @since 6.8
+     */
+    @Incubating
+    DependencyResolutionManagement getDependencyResolutionManagement();
 }
