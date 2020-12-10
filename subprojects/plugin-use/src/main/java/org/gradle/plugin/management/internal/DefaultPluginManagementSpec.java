@@ -18,6 +18,7 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -85,13 +86,13 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
     }
 
     @Override
-    public void includeBuild(String projectPath) {
-        includeBuild(projectPath, Actions.doNothing());
+    public void includeBuild(String rootProject) {
+        includeBuild(rootProject, Actions.doNothing());
     }
 
     @Override
-    public void includeBuild(String projectPath, Action<ConfigurableIncludedPluginBuild> configuration) {
-        File projectDir = fileResolver.resolve(projectPath);
+    public void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration) {
+        File projectDir = fileResolver.resolve(rootProject);
         IncludedBuildSpec buildSpec = IncludedBuildSpec.includedPluginBuild(projectDir, configuration);
         buildIncluder.registerPluginBuild(buildSpec, gradle);
         includedBuildSpecs.add(buildSpec);

@@ -25,7 +25,7 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.DefaultConfigurableIncludedBuild;
 import org.gradle.internal.composite.DefaultConfigurableIncludedPluginBuild;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.management.internal.ConfigurableIncludedPluginBuild;
+import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.io.File;

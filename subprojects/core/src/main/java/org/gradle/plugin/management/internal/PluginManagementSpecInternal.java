@@ -17,6 +17,7 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.plugin.management.PluginManagementSpec;
 
@@ -27,9 +28,9 @@ public interface PluginManagementSpecInternal extends PluginManagementSpec {
     @Override
     PluginResolutionStrategyInternal getResolutionStrategy();
 
-    void includeBuild(String projectPath);
+    void includeBuild(String rootProject);
 
-    void includeBuild(String projectPath, Action<ConfigurableIncludedPluginBuild> configuration);
+    void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);
 
     List<IncludedBuildSpec> getIncludedBuilds();
 }
