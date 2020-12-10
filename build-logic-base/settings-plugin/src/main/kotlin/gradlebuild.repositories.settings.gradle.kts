@@ -62,6 +62,23 @@ dependencyResolutionManagement {
                 }
             }
         }
+        ivy {
+            name = "googleApisJs"
+            url = uri("https://ajax.googleapis.com/ajax/libs")
+            patternLayout {
+                artifact("[organization]/[revision]/[module].[ext]")
+                ivy("[organization]/[revision]/[module].xml")
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeModule("jquery", "jquery.min")
+                includeModule("com.drewwilson.code", "jquery.tipTip")
+                includeModule("flot", "flot")
+                includeModule("org.nodejs", "node")
+            }
+        }
 
         maven {
             name = "Gradle libs"
@@ -97,17 +114,6 @@ dependencyResolutionManagement {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
         }
         google()
-        ivy {
-            name = "googleApisJs"
-            url = uri("https://ajax.googleapis.com/ajax/libs")
-            patternLayout {
-                artifact("[organization]/[revision]/[module].[ext]")
-                ivy("[organization]/[revision]/[module].xml")
-            }
-            metadataSources {
-                artifact()
-            }
-        }
     }
 }
 
