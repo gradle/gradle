@@ -129,7 +129,6 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         val buildBucketProvider = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
             parameters.includeTestClasses.set(project.stringPropertyOrEmpty("includeTestClasses"))
             parameters.excludeTestClasses.set(project.stringPropertyOrEmpty("excludeTestClasses"))
-            parameters.readTestClasses.set(project.stringPropertyOrEmpty("readTestClasses"))
             parameters.onlyTestGradleVersion.set(project.stringPropertyOrEmpty("onlyTestGradleVersion"))
             parameters.repoRoot.set(repoRoot())
         }
