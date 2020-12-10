@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.internal.os.OperatingSystem
-import java.lang.IllegalStateException
 
 
 fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
@@ -33,9 +32,12 @@ private
 fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
     this
 } else {
-    dir("..").also {
-        if (it == it.dir("..")) throw IllegalStateException("Cannot find 'version.txt' file in root of repository")
-    }.parentOrRoot()
+    val parent = dir("..")
+    when {
+        parent.file("version.txt").asFile.exists() -> parent
+        this == parent -> throw IllegalStateException("Cannot find 'version.txt' file in root of repository")
+        else -> parent.parentOrRoot()
+    }
 }
 
 
