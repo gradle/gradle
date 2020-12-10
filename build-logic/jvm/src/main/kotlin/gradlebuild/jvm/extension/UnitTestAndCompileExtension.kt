@@ -40,7 +40,7 @@ abstract class UnitTestAndCompileExtension(private val tasks: TaskContainer) {
 
     fun enforceJava6Compatibility() {
         tasks.withType<JavaCompile>().configureEach {
-            options.release.set(null as? Int)
+            options.release.set(null)
             sourceCompatibility = "6"
             targetCompatibility = "6"
         }
