@@ -123,7 +123,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::name)
+                    val fileNames = configurations.compileClasspath.files.map(File::getName)
                     assert(fileNames == listOf("test-1.0.jar"))
                 }
             }
@@ -201,7 +201,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
         """
 
         withCheckDeps()
-        
+
         buildKotlinFile << """
             plugins {
                 `java-library`
@@ -244,7 +244,7 @@ class KotlinDslDependenciesExtensionIntegrationTest extends AbstractHttpDependen
 
                 @TaskAction
                 fun verify() {
-                    val fileNames = files.files.map(File::name)
+                    val fileNames = files.files.map(File::getName)
                     assert(fileNames == expected.get()) { "Expected \${expected.get()} but got \$fileNames" }
                 }
             }
