@@ -50,7 +50,7 @@ dependencyResolutionManagement {
 
         listOf("distributions", "distributions-snapshots").forEach { distUrl ->
             ivy {
-                name = "Gradle distributions"
+                name = "Gradle $distUrl"
                 url = uri("https://services.gradle.org")
                 patternLayout {
                     artifact("/${distUrl}/[module]-[revision]-bin(.[ext])")
@@ -64,11 +64,10 @@ dependencyResolutionManagement {
             }
         }
         ivy {
-            name = "googleApisJs"
+            name = "Google Apis Js"
             url = uri("https://ajax.googleapis.com/ajax/libs")
             patternLayout {
                 artifact("[organization]/[revision]/[module].[ext]")
-                ivy("[organization]/[revision]/[module].xml")
             }
             metadataSources {
                 artifact()
