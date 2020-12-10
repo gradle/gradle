@@ -44,9 +44,9 @@ public interface ArchiveOperations {
 
     /**
      * Creates resource that points to a bzip2 compressed file at the given path.
-     * The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     * The path is evaluated as per {@link Project#file(Object)}.
      *
-     * @param path The path evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     * @param path The path evaluated as per {@link Project#file(Object)}.
      * @since 6.9
      */
     ReadableResource bzip2(Object path);
