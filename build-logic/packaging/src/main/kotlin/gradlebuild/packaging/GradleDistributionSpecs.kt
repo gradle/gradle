@@ -97,15 +97,15 @@ object GradleDistributionSpecs {
                 "build-logic-commons", "build-logic-commons/*",
                 "build-logic", "build-logic/*",
                 "build-logic-settings", "build-logic-settings/*",
-                "subprojects/*"
+                "subprojects", "subprojects/*"
             ).forEach {
                 include("$it/*.gradle")
                 include("$it/*.gradle.kts")
+                include("$it/gradle.properties")
                 include("$it/src/")
             }
             include("*.gradle.kts")
             include("gradle.properties")
-            include("build-logic/gradle.properties")
             include("gradle/")
             include("wrapper/")
             include("gradlew.bat")
