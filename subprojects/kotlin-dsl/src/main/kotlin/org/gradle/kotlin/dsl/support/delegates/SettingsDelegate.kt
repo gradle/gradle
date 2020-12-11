@@ -135,4 +135,7 @@ abstract class SettingsDelegate : Settings {
 
     override fun dependencyResolutionManagement(dependencyResolutionConfiguration: Action<in DependencyResolutionManagement>) =
         delegate.dependencyResolutionManagement(dependencyResolutionConfiguration)
+
+    override fun getDependencyResolutionManagement(): DependencyResolutionManagement =
+        delegate.dependencyResolutionManagement
 }

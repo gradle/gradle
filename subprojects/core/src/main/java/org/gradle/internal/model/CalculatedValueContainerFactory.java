@@ -16,7 +16,7 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
@@ -65,7 +65,7 @@ public class CalculatedValueContainerFactory {
         }
 
         @Override
-        public Project getOwningProject() {
+        public ProjectInternal getOwningProject() {
             return null;
         }
 

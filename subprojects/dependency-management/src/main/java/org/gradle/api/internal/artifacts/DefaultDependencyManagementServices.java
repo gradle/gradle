@@ -554,10 +554,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 DependencyResolutionManagementInternal.RepositoriesModeInternal mode = drm.getConfiguredRepositoriesMode();
                 if (mode.useProjectRepositories()) {
                     if (repositories.isEmpty()) {
-                        repositories = collectRepositories(drm.getRepositoryHandler());
+                        repositories = collectRepositories(drm.getRepositories());
                     }
                 } else {
-                    repositories = collectRepositories(drm.getRepositoryHandler());
+                    repositories = collectRepositories(drm.getRepositories());
                 }
                 return repositories;
             };

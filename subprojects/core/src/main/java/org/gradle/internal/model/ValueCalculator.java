@@ -16,7 +16,7 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -33,7 +33,7 @@ public interface ValueCalculator<T> extends TaskDependencyContainer {
     /**
      * See {@link WorkNodeAction#getOwningProject()}.
      */
-    Project getOwningProject();
+    ProjectInternal getOwningProject();
 
     T calculateValue(NodeExecutionContext context);
 }

@@ -784,7 +784,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 
         public class RepoConventionPlugin implements Plugin<Settings> {
             public void apply(Settings settings) {
-                settings.dependencyResolutionManagement(dm -> dm.repositories(repos -> repos.maven(mvn -> mvn.setUrl(\"${mavenHttpRepo.uri}\"))));
+                settings.getDependencyResolutionManagement().getRepositories().maven(mvn -> mvn.setUrl(\"${mavenHttpRepo.uri}\"));
             }
         }
         """

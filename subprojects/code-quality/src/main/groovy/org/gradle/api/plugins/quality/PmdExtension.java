@@ -138,7 +138,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 6.8
      */
-    @Incubating
     public Property<Integer> getRulesMinimumPriority() {
         return rulesMinimumPriority;
     }

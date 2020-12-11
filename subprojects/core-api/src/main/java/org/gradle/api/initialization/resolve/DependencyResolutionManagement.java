@@ -37,6 +37,11 @@ public interface DependencyResolutionManagement {
      */
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
 
+    /**
+     * Returns the shared repository handler
+     */
+    RepositoryHandler getRepositories();
+
     Property<RepositoriesMode> getRepositoriesMode();
 
     /**
