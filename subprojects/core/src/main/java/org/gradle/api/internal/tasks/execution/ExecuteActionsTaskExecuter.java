@@ -177,7 +177,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
-        ExecutionEngine.Builder request = executionEngine.createRequest(work);
+        ExecutionEngine.DirectExecutionRequestBuilder request = executionEngine.createRequest(work);
         context.getTaskExecutionMode().getRebuildReason().ifPresent(request::forceRebuild);
         Result result = request.execute();
         result.getExecutionResult().ifSuccessfulOrElse(

@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface ExecutionEngine {
-    Builder createRequest(UnitOfWork work);
+    DirectExecutionRequestBuilder createRequest(UnitOfWork work);
 
     interface Builder {
         /**
@@ -38,6 +38,11 @@ public interface ExecutionEngine {
          * like up-to-date checks, build cache and incremental execution.
          */
         Builder forceRebuild(String rebuildReason);
+    }
+
+    interface DirectExecutionRequestBuilder extends Builder {
+        @Override
+        DirectExecutionRequestBuilder forceRebuild(String rebuildReason);
 
         /**
          * Execute the unit of work using available optimizations like
@@ -46,13 +51,23 @@ public interface ExecutionEngine {
         Result execute();
 
         /**
+         * Use an identity cache to store execution results.
+         */
+        <O> DeferredExecutionRequestBuilder<O> withIdentityCache(Cache<Identity, Try<O>> cache);
+    }
+
+    interface DeferredExecutionRequestBuilder<O> extends Builder {
+        @Override
+        DeferredExecutionRequestBuilder<O> forceRebuild(String rebuildReason);
+
+        /**
          * Load the unit of work from the given cache, or defer its execution.
          *
          * If the cache already contains the outputs for the given work, it is passed directly to {@link DeferredExecutionHandler#processCachedOutput(Try)}.
          * Otherwise the execution is wrapped in deferred via {@link DeferredExecutionHandler#processDeferredOutput(Supplier)}.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T, O> T getFromIdentityCacheOrDeferExecution(Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler);
+        <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler);
     }
 
     interface Result {

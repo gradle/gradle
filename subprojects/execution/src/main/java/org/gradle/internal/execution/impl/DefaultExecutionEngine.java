@@ -37,16 +37,25 @@ public class DefaultExecutionEngine implements ExecutionEngine {
     }
 
     @Override
-    public Builder createRequest(UnitOfWork work) {
-        return new BuilderImpl(work);
+    public DirectExecutionRequestBuilder createRequest(UnitOfWork work) {
+        return new DirectBuilder(work);
     }
 
-    private class BuilderImpl implements Builder {
-        private final UnitOfWork work;
-        private String rebuildReason;
+    private static abstract class AbstractBuilder implements Builder {
+        protected final UnitOfWork work;
+        protected String rebuildReason;
 
-        public BuilderImpl(UnitOfWork work) {
+        public AbstractBuilder(UnitOfWork work) {
+            this(work, null);
+        }
+
+        public AbstractBuilder(AbstractBuilder original) {
+            this(original.work, original.rebuildReason);
+        }
+
+        private AbstractBuilder(UnitOfWork work, @Nullable String rebuildReason) {
             this.work = work;
+            this.rebuildReason = rebuildReason;
         }
 
         @Override
@@ -54,14 +63,46 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             this.rebuildReason = rebuildReason;
             return this;
         }
+    }
+
+    private class DirectBuilder extends AbstractBuilder implements DirectExecutionRequestBuilder {
+        public DirectBuilder(UnitOfWork work) {
+            super(work);
+        }
 
         @Override
-        public CachingResult execute() {
+        public DirectExecutionRequestBuilder forceRebuild(String rebuildReason) {
+            super.forceRebuild(rebuildReason);
+            return this;
+        }
+
+        @Override
+        public Result execute() {
             return executeStep.execute(work, new Request(rebuildReason));
         }
 
         @Override
-        public <T, O> T getFromIdentityCacheOrDeferExecution(Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
+        public <O> DeferredExecutionRequestBuilder<O> withIdentityCache(Cache<Identity, Try<O>> cache) {
+            return new CachedBuilder<>(cache, this);
+        }
+    }
+
+    private class CachedBuilder<O> extends AbstractBuilder implements DeferredExecutionRequestBuilder<O> {
+        private final Cache<Identity, Try<O>> cache;
+
+        public CachedBuilder(Cache<Identity, Try<O>> cache, AbstractBuilder original) {
+            super(original);
+            this.cache = cache;
+        }
+
+        @Override
+        public DeferredExecutionRequestBuilder<O> forceRebuild(String rebuildReason) {
+            super.forceRebuild(rebuildReason);
+            return this;
+        }
+
+        @Override
+        public <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler) {
             return executeStep.executeDeferred(work, new Request(rebuildReason), cache, handler);
         }
     }
