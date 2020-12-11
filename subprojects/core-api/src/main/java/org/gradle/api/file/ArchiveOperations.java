@@ -38,7 +38,7 @@ public interface ArchiveOperations {
      * The path is evaluated as per {@link Project#file(Object)}.
      *
      * @param path The path evaluated as per {@link Project#file(Object)}.
-     * @since 6.9
+     * @since 7.0
      */
     ReadableResource gzip(Object path);
 
@@ -47,7 +47,7 @@ public interface ArchiveOperations {
      * The path is evaluated as per {@link Project#file(Object)}.
      *
      * @param path The path evaluated as per {@link Project#file(Object)}.
-     * @since 6.9
+     * @since 7.0
      */
     ReadableResource bzip2(Object path);
 

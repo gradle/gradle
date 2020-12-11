@@ -70,7 +70,7 @@ public interface PluginManagementSpec {
      * Included plugin builds can contribute settings and project plugins.
      * @param rootProject The path to the root project directory for the build.
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     void includeBuild(String rootProject);
@@ -81,7 +81,7 @@ public interface PluginManagementSpec {
      * @param rootProject The path to the root project directory for the build.
      * @param configuration An action to configure the included build.
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);

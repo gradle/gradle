@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A plugin build that is to be included in the composite.
  *
- * @since 6.9
+ * @since 7.0
  */
 @Incubating
 public interface ConfigurableIncludedPluginBuild extends IncludedBuild {
@@ -30,7 +30,7 @@ public interface ConfigurableIncludedPluginBuild extends IncludedBuild {
      * Sets the name of the included plugin build.
      *
      * @param name the name of the build
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     void setName(String name);

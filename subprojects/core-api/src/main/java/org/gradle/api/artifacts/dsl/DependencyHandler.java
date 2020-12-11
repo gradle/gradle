@@ -308,7 +308,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency provider notation, in one of the notations described above.
      *
-     * @since 6.9
+     * @since 7.0
      */
     @Incubating
     <T> void addProvider(String configurationName, Provider<T> dependencyNotation);

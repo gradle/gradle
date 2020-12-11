@@ -28,7 +28,7 @@ import java.util.Optional;
  * aliases exist so you must check existence on the returned optional
  * values.
  *
- * @since 6.9
+ * @since 7.0
  */
 @Incubating
 @NonNullApi
