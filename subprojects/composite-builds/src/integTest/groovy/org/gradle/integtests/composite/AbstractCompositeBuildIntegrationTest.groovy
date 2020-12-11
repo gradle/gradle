@@ -73,7 +73,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         if (mappings == "") {
             buildA.settingsFile << """
                 includeBuild('${build.toURI()}')
-"""
+            """
         } else {
             buildA.settingsFile << """
                 includeBuild('${build.toURI()}') {
@@ -81,9 +81,18 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
                         $mappings
                     }
                 }
-"""
+            """
 
         }
+    }
+
+    def includePluginBuild(File build) {
+            buildA.settingsFile.setText("""
+                pluginManagement {
+                    includeBuild('${build.toURI()}')
+                }
+                ${buildA.settingsFile.text}
+            """)
     }
 
     protected void execute(BuildTestFile build, String[] tasks, Iterable<String> arguments = []) {

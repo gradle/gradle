@@ -138,6 +138,9 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         }
         createDir("included") {
             file("settings.gradle") << """
+                pluginManagement {
+                    includeBuild '../probe-plugin'
+                }
                 include 'classloader1', 'boundary:classloader2'
             """
             file("classloader1/build.gradle") << """
@@ -152,7 +155,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         }
         createDir("root") {
             file("settings.gradle") << """
-                includeBuild '../probe-plugin'
                 includeBuild '../included'
             """
         }

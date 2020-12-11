@@ -81,7 +81,9 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
         def fixture = fixtureSpec.fixtureForProjectDir(file('build-logic'))
         fixture.setup()
         settingsFile << """
-            includeBuild 'build-logic'
+            pluginManagement {
+                includeBuild 'build-logic'
+            }
         """
         buildFile << """
             plugins { id('$fixture.pluginId') }
@@ -159,7 +161,9 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
             }
         """
         settingsFile << """
-            includeBuild 'build-logic'
+            pluginManagement {
+                includeBuild 'build-logic'
+            }
         """
         buildFile << """
             plugins { id('$fixture.pluginId') }

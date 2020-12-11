@@ -157,10 +157,10 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
                 }
             """
         }
-        includeBuild(buildB)
 
         buildA.settingsFile.text = """
             pluginManagement {
+                includeBuild("${buildB.toURI()}")
                 resolutionStrategy.eachPlugin { details ->
                     if (details.requested.id.name == 'b') {
                         details.useModule('org.test:buildB:1.2')
