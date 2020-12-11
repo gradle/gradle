@@ -26,6 +26,11 @@
 /*/*/*.iml
 /*/*/*/*.iml
 /*/*/*/*/*.iml
+/out
+/*/out
+/*/*/out
+/*/*/*/out
+/*/*/*/*/out
 /.teamcity/target
 
 # Eclipse

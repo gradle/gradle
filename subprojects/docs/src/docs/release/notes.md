@@ -10,6 +10,7 @@ Include only their name, impactful features should be called out separately belo
 
 [Martin d'Anjou](https://github.com/martinda)
 [Till Krullmann](https://github.com/tkrullmann)
+[Andreas Axelsson](https://github.com/judgeaxl)
 
 ## Upgrade Instructions
 

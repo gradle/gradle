@@ -36,17 +36,20 @@ public class S3ConnectionProperties {
     //The maximum number of times to retry a request when S3 responds with a http 5xx error
     public static final String S3_MAX_ERROR_RETRY = "org.gradle.s3.maxErrorRetry";
     private static final Set<String> SUPPORTED_SCHEMES = Sets.newHashSet("HTTP", "HTTPS");
+    private static final long DEFAULT_PART_SIZE = 50 * 1024 * 1024;
 
     private final Optional<URI> endpoint;
     private final HttpProxySettings proxySettings;
     private final HttpProxySettings secureProxySettings;
     private final Optional<Integer> maxErrorRetryCount;
+    private final long partSize;
 
     public S3ConnectionProperties() {
         endpoint = configureEndpoint(getProperty(S3_ENDPOINT_PROPERTY));
         proxySettings = new JavaSystemPropertiesHttpProxySettings();
         secureProxySettings = new JavaSystemPropertiesSecureHttpProxySettings();
         maxErrorRetryCount = configureErrorRetryCount(getProperty(S3_MAX_ERROR_RETRY));
+        partSize = DEFAULT_PART_SIZE;
     }
 
     public S3ConnectionProperties(HttpProxySettings proxySettings, HttpProxySettings secureProxySettings, URI endpoint, Integer maxErrorRetryCount) {
@@ -54,6 +57,7 @@ public class S3ConnectionProperties {
         this.proxySettings = proxySettings;
         this.secureProxySettings = secureProxySettings;
         this.maxErrorRetryCount = Optional.fromNullable(maxErrorRetryCount);
+        this.partSize = DEFAULT_PART_SIZE;
     }
 
     private Optional<URI> configureEndpoint(String property) {
@@ -101,5 +105,13 @@ public class S3ConnectionProperties {
 
     public Optional<Integer> getMaxErrorRetryCount() {
         return maxErrorRetryCount;
+    }
+
+    public long getPartSize() {
+        return partSize;
+    }
+
+    public long getMultipartThreshold() {
+        return partSize * 2;
     }
 }

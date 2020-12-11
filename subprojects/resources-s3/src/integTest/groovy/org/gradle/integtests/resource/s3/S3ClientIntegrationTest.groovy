@@ -81,6 +81,8 @@ class S3ClientIntegrationTest extends Specification {
             getEndpoint() >> Optional.of(server.uri)
             getProxy() >> Optional.fromNullable(null)
             getMaxErrorRetryCount() >> Optional.absent()
+            getPartSize() >> 512
+            getMultipartThreshold() >> 1024
         }
 
         S3Client s3Client = new S3Client(authenticationImpl, s3SystemProperties)
