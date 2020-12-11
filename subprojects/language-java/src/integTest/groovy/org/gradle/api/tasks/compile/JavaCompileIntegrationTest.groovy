@@ -525,7 +525,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled().withStackTraceChecksDisabled()
+        executer.withStackTraceChecksDisabled()
         run 'compileJava'
 
         then:
