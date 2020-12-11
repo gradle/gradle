@@ -22,7 +22,6 @@ import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
@@ -30,9 +29,9 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
-    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep;
+    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
 
-    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep) {
+    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep) {
         this.executeStep = executeStep;
     }
 

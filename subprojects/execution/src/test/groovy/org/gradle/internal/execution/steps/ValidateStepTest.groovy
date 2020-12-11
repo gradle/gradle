@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.UnitOfWork.WorkValidationContext
+import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.vfs.VirtualFileSystem
 

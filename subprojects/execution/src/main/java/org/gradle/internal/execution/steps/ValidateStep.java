@@ -25,9 +25,8 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext.Severity;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -149,32 +148,5 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
 
     public interface ValidationWarningRecorder {
         void recordValidationWarnings(UnitOfWork work, Collection<String> warnings);
-    }
-
-    private static class DefaultWorkValidationContext implements UnitOfWork.WorkValidationContext {
-        private final ImmutableMultimap.Builder<Severity, String> problems = ImmutableMultimap.builder();
-        private final ImmutableList.Builder<Class<?>> types = ImmutableList.builder();
-
-        @Override
-        public TypeValidationContext createContextFor(Class<?> type, boolean cacheable) {
-            types.add(type);
-            return new MessageFormattingTypeValidationContext(null) {
-                @Override
-                protected void recordProblem(Severity severity, String message) {
-                    if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
-                        return;
-                    }
-                    problems.put(severity.toReportableSeverity(), message);
-                }
-            };
-        }
-
-        public ImmutableMultimap<Severity, String> getProblems() {
-            return problems.build();
-        }
-
-        public ImmutableList<Class<?>> getTypes() {
-            return types.build();
-        }
     }
 }

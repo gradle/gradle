@@ -731,7 +731,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private Map<String, ? extends File> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private Consumer<UnitOfWork.WorkValidationContext> validator
+        private Consumer<WorkValidationContext> validator
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -792,7 +792,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
-        UnitOfWorkBuilder withValidator(Consumer<UnitOfWork.WorkValidationContext> validator) {
+        UnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
             this.validator = validator
             return this
         }
@@ -882,7 +882,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void validate(UnitOfWork.WorkValidationContext validationContext) {
+                void validate(WorkValidationContext validationContext) {
                     validator?.accept(validationContext)
                 }
 
