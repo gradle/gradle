@@ -17,11 +17,16 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 
+@Issue("https://github.com/gradle/gradle-private/issues/3247")
+@IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
 class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
