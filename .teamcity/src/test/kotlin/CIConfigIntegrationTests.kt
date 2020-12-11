@@ -13,7 +13,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import model.CIBuildModel
-import model.GradleSubproject
 import model.Stage
 import model.StageNames
 import model.TestCoverage
@@ -136,7 +135,7 @@ class CIConfigIntegrationTests {
         }
 
         fun assertCorrectParameters(subProjectName: String, functionalTests: List<FunctionalTest>) {
-            functionalTests.forEach { assertTrue(it.getGradleTasks().startsWith("clean $subProjectName")) }
+            functionalTests.forEach { assertTrue(it.getGradleTasks().contains(":$subProjectName")) }
             if (functionalTests.size == 1) {
                 assertFalse(functionalTests[0].getGradleParams().contains("-PincludeTestClasses"))
                 assertFalse(functionalTests[0].getGradleParams().contains("-PexcludeTestClasses"))
@@ -162,7 +161,7 @@ class CIConfigIntegrationTests {
         fun assertProjectAreSplitByGradleVersionCorrectly(testType: TestType, functionalTests: List<FunctionalTest>) {
             CROSS_VERSION_BUCKETS.forEachIndexed { index: Int, startEndVersion: List<String> ->
                 assertTrue(functionalTests[index].name.contains("(${startEndVersion[0]} <= gradle <${startEndVersion[1]})"))
-                assertEquals("clean ${testType}Test", functionalTests[index].getGradleTasks())
+                assertEquals(":clean :${testType}Test", functionalTests[index].getGradleTasks())
                 assertTrue(functionalTests[index].getGradleParams().contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}"))
             }
         }
@@ -188,9 +187,9 @@ class CIConfigIntegrationTests {
     fun onlyReadyForNightlyTriggerHasUpdateBranchStatus() {
         val triggerNameToTasks = rootProject.buildTypes.map { it.id.toString() to ((it as StagePasses).steps.items[0] as GradleBuildStep).tasks }.toMap()
         val readyForNightlyId = toTriggerId("ReadyforNightly")
-        assertEquals(":base-services:createBuildReceipt updateBranchStatus", triggerNameToTasks[readyForNightlyId])
+        assertEquals(":distribution-core:base-services:createBuildReceipt updateBranchStatus", triggerNameToTasks[readyForNightlyId])
         val otherTaskNames = triggerNameToTasks.filterKeys { it != readyForNightlyId }.values.toSet()
-        assertEquals(setOf(":base-services:createBuildReceipt"), otherTaskNames)
+        assertEquals(setOf(":distribution-core:base-services:createBuildReceipt"), otherTaskNames)
     }
 
     @Test
@@ -204,100 +203,11 @@ class CIConfigIntegrationTests {
     }
 
     private fun toTriggerId(id: String) = "Gradle_Check_Stage_${id}_Trigger"
-    private fun subProjectFolderList(): List<File> {
-        val subProjectFolders = File("../subprojects").listFiles()!!.filter { it.isDirectory }
-        assertFalse(subProjectFolders.isEmpty())
-        return subProjectFolders
-    }
-
-    @Test
-    fun allSubprojectsAreListed() {
-        val knownSubProjectNames = model.subprojects.subprojects.map { it.name }
-        subProjectFolderList().forEach {
-            assertTrue(
-                it.name in knownSubProjectNames,
-                "Not defined: $it"
-            )
-        }
-    }
 
     @Test
     fun uuidsAreUnique() {
         val uuidList = model.stages.flatMap { it.functionalTests.map { ft -> ft.uuid } }
         assertEquals(uuidList.distinct(), uuidList)
-    }
-
-    private fun getSubProjectFolder(subProject: GradleSubproject): File = File("../${subProject.path.replace(":", "/")}")
-
-    @Test
-    fun testsAreCorrectlyConfiguredForAllSubProjects() {
-        model.subprojects.subprojects.filter {
-            !ignoredSubprojects.contains(it.name)
-        }.forEach {
-            val dir = getSubProjectFolder(it)
-            assertEquals(it.unitTests, File(dir, "src/test").isDirectory, "${it.name}'s unitTests is wrong!")
-            assertEquals(it.functionalTests, File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
-            assertEquals(it.crossVersionTests, File(dir, "src/crossVersionTest").isDirectory, "${it.name}'s crossVersionTests is wrong!")
-        }
-    }
-
-    @Test
-    fun allSubprojectsDefineTheirUnitTestPropertyCorrectly() {
-        val projectsWithUnitTests = model.subprojects.subprojects.filter { it.unitTests }
-        val projectFoldersWithUnitTests = subProjectFolderList().filter {
-            File(it, "src/test").exists() &&
-                it.name != "architecture-test" // architecture-test:test is part of Sanity Check
-        }
-        assertFalse(projectFoldersWithUnitTests.isEmpty())
-        projectFoldersWithUnitTests.forEach {
-            assertTrue(projectsWithUnitTests.map { it.name }.contains(it.name), "Contains unit tests: $it")
-        }
-    }
-
-    private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {
-        srcRoot.walkTopDown().forEach {
-            if (it.extension == "groovy" || it.extension == "java") {
-                val text = it.readText()
-                if (text.contains(content) && exceptions.all { !text.contains(it) }) {
-                    println("Found suspicious test file: $it")
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    @Test
-    fun allSubprojectsDefineTheirFunctionTestPropertyCorrectly() {
-        val projectsWithFunctionalTests = model.subprojects.subprojects.filter { it.functionalTests }
-        val projectFoldersWithFunctionalTests = subProjectFolderList().filter {
-            File(it, "src/integTest").exists() &&
-                it.name != "distributions-integ-tests" && // distributions:integTest is part of Build Distributions
-                it.name != "soak" // soak tests have their own test category
-        }
-        assertFalse(projectFoldersWithFunctionalTests.isEmpty())
-        projectFoldersWithFunctionalTests.forEach {
-            assertTrue(projectsWithFunctionalTests.map { it.name }.contains(it.name), "Contains functional tests: $it")
-        }
-    }
-
-    @Test
-    fun allSubprojectsDefineTheirCrossVersionTestPropertyCorrectly() {
-        val projectsWithCrossVersionTests = model.subprojects.subprojects.filter { it.crossVersionTests }
-        val projectFoldersWithCrossVersionTests = subProjectFolderList().filter { File(it, "src/crossVersionTest").exists() }
-        assertFalse(projectFoldersWithCrossVersionTests.isEmpty())
-        projectFoldersWithCrossVersionTests.forEach {
-            assertTrue(projectsWithCrossVersionTests.map { it.name }.contains(it.name), "Contains cross-version tests: $it")
-        }
-    }
-
-    @Test
-    fun integTestFolderDoesNotContainCrossVersionTests() {
-        val projectFoldersWithFunctionalTests = subProjectFolderList().filter { File(it, "src/integTest").exists() }
-        assertFalse(projectFoldersWithFunctionalTests.isEmpty())
-        projectFoldersWithFunctionalTests.forEach {
-            assertFalse(containsSrcFileWithString(File(it, "src/integTest"), "CrossVersion", listOf("package org.gradle.testkit", "CrossVersionPerformanceTest")))
-        }
     }
 
     @Test
@@ -321,16 +231,6 @@ class CIConfigIntegrationTests {
 
         (1 until CROSS_VERSION_BUCKETS.size).forEach {
             assertEquals(CROSS_VERSION_BUCKETS[it - 1][1], CROSS_VERSION_BUCKETS[it][0])
-        }
-    }
-
-    private fun printTree(project: Project, indent: String = "") {
-        println(indent + project.id + " (Project)")
-        project.buildTypes.forEach { bt ->
-            println("$indent+- ${bt.id} (Config)")
-        }
-        project.subProjects.forEach { subProject ->
-            printTree(subProject, "$indent   ")
         }
     }
 }
