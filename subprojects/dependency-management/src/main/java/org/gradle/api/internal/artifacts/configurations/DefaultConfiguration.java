@@ -692,7 +692,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         projectPathString,
                         isVisible(),
                         isTransitive(),
-                        resolver::getRepositories
+                        resolver.getRepositories()
                     ));
             }
         });
