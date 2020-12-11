@@ -29,8 +29,6 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         buildFile << """
             tasks.register("run", MyTask)
         """
-
-        executer.withFullDeprecationStackTraceDisabled()
     }
 
     final String iterableSymbol = '.$0'
@@ -62,7 +60,6 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             .keySet()
             .collect { removeTypeForProperties(it) }
 
-        executer.withFullDeprecationStackTraceDisabled()
         expectedWarnings.forEach { warning ->
             executer.expectDocumentedDeprecationWarning(warning + " " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
