@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import gradlebuild.lifecycle.GradlePropertiesCheck
+
 plugins {
     id("lifecycle-base") // Make sure the basic lifecycle tasks are added through 'lifecycle-base'. Other plugins might sneakily apply that to the root project.
 }
@@ -101,7 +103,7 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
 }
 
 fun TaskContainer.expandSanityCheck() {
-    named("sanityCheck") {
+    val sanityCheck = named("sanityCheck") {
         dependsOn(
             gradle.includedBuild("build-logic-commons").task(":check"),
             gradle.includedBuild("build-logic").task(":check"),
@@ -114,6 +116,15 @@ fun TaskContainer.expandSanityCheck() {
             gradle.includedBuild("end-to-end-tests").task(":performance:verifyPerformanceScenarioDefinitions"),
             ":checkSubprojectsInfo"
         )
+    }
+    val checkGradleProperties = gradle.includedBuilds.map { build ->
+        tasks.register<GradlePropertiesCheck>("check${build.name.capitalize()}GradleProperties") {
+            rootPropertiesFile.set(layout.projectDirectory.file("gradle.properties"))
+            buildPropertiesFile.set(File(build.projectDir, "gradle.properties"))
+        }
+    }
+    sanityCheck {
+        dependsOn(checkGradleProperties)
     }
 }
 
