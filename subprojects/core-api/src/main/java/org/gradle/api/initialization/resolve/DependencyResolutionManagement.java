@@ -66,6 +66,13 @@ public interface DependencyResolutionManagement {
     void versionCatalogs(Action<? super MutableVersionCatalogContainer> spec);
 
     /**
+     * Returns the configurable version catalogs.
+     *
+     * @since 7.0
+     */
+    MutableVersionCatalogContainer getVersionCatalogs();
+
+    /**
      * Returns the name of the extension generated for type-safe project accessors.
      * Defaults to "projects"
      *

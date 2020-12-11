@@ -130,6 +130,40 @@ class DependenciesExtensionIntegrationTest extends AbstractCentralDependenciesIn
         }
     }
 
+    def "can use the version catalog getter to register catalogs"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs.create('libs') {
+                    alias("myLib").to("org.gradle.test", "lib").version {
+                        require "1.0"
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.myLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
     def "can use the generated extension to declare a dependency constraint"() {
         settingsFile << """
             dependencyResolutionManagement {

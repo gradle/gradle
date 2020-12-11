@@ -134,6 +134,11 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
+    public MutableVersionCatalogContainer getVersionCatalogs() {
+        return versionCatalogs;
+    }
+
+    @Override
     public RulesModeInternal getConfiguredRulesMode() {
         rulesMode.finalizeValue();
         return RulesModeInternal.of(rulesMode.get());
