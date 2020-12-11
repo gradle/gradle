@@ -139,7 +139,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             workspaceServices
         );
 
-        return executionEngine.getFromIdentityCacheOrDeferExecution(execution, workspaceServices.getIdentityCache(), new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
+        return executionEngine.createRequest(execution).getFromIdentityCacheOrDeferExecution(workspaceServices.getIdentityCache(), new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
             @Override
             public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
                 return CacheableInvocation.cached(mapResult(cachedOutput));

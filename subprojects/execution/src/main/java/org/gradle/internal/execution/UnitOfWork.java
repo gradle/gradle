@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
@@ -199,6 +201,10 @@ public interface UnitOfWork extends Describable {
 
     interface WorkValidationContext {
         TypeValidationContext createContextFor(Class<?> type, boolean cacheable);
+
+        ImmutableMultimap<TypeValidationContext.Severity, String> getProblems();
+
+        ImmutableList<Class<?>> getTypes();
     }
 
     /**

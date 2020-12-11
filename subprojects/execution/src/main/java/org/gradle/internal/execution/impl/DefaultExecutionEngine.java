@@ -37,18 +37,33 @@ public class DefaultExecutionEngine implements ExecutionEngine {
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work) {
-        return executeStep.execute(work, new Request(null));
+    public Builder createRequest(UnitOfWork work) {
+        return new BuilderImpl(work);
     }
 
-    @Override
-    public CachingResult rebuild(UnitOfWork work, String reason) {
-        return executeStep.execute(work, new Request(reason));
-    }
+    private class BuilderImpl implements Builder {
+        private final UnitOfWork work;
+        private String rebuildReason;
 
-    @Override
-    public <T, O> T getFromIdentityCacheOrDeferExecution(UnitOfWork work, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
-        return executeStep.executeDeferred(work, new Request(null), cache, handler);
+        public BuilderImpl(UnitOfWork work) {
+            this.work = work;
+        }
+
+        @Override
+        public Builder forceRebuild(String rebuildReason) {
+            this.rebuildReason = rebuildReason;
+            return this;
+        }
+
+        @Override
+        public CachingResult execute() {
+            return executeStep.execute(work, new Request(rebuildReason));
+        }
+
+        @Override
+        public <T, O> T getFromIdentityCacheOrDeferExecution(Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
+            return executeStep.executeDeferred(work, new Request(rebuildReason), cache, handler);
+        }
     }
 
     private static class Request implements ExecutionRequestContext {

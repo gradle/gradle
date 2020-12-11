@@ -238,7 +238,7 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost).execute(
+            executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
                     templateId,
                     sourceHash,
@@ -249,7 +249,7 @@ class StandardKotlinScriptEvaluator(
                     workspaceProvider,
                     fileCollectionFactory
                 )
-            ).executionResult.get().output as File
+            ).execute().executionResult.get().output as File
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
