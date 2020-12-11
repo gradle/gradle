@@ -288,10 +288,14 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
-    fun `can explicitly disable experimental Kotlin compiler features warning`() {
+    fun `nags user about experimentalWarning deprecation`() {
 
         withBuildExercisingSamConversionForKotlinFunctions(
             "kotlinDslPluginOptions.experimentalWarning.set(false)"
+        )
+
+        executer.expectDeprecationWarning(
+            "kotlinDslPluginOptions.experimentalWarning has been deprecated. This is scheduled to be removed in Gradle 8.0."
         )
 
         build("test").apply {
