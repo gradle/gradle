@@ -36,6 +36,8 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_7.0]]
 == Upgrading from 6.8
 
+The `org.gradle.api.file.UnableToDeleteFileException` class was removed. All usages should be replaced with `RuntimeException`.
+
 === Potential breaking changes
 
 ==== Configuring the layout of an Ivy repository
