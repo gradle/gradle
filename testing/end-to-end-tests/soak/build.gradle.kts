@@ -3,23 +3,23 @@ plugins {
 }
 
 dependencies {
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":jvm-services"))
+    testFixturesImplementation("org.gradle:base-services")
+    testFixturesImplementation("org.gradle:core")
+    testFixturesImplementation("org.gradle:internal-integ-testing")
+    testFixturesImplementation("org.gradle:jvm-services")
 
-    testImplementation(testFixtures(project(":kotlin-dsl")))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures("org.gradle:kotlin-dsl"))
+    testImplementation(testFixtures("org.gradle:core"))
 
-    integTestImplementation(project(":file-watching"))
-    integTestImplementation(project(":jvm-services"))
-    integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":logging"))
-    integTestImplementation(project(":persistent-cache"))
+    integTestImplementation("org.gradle:file-watching")
+    integTestImplementation("org.gradle:jvm-services")
+    integTestImplementation("org.gradle:launcher")
+    integTestImplementation("org.gradle:logging")
+    integTestImplementation("org.gradle:persistent-cache")
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-full")
 }
 
 tasks.register("soakTest") {

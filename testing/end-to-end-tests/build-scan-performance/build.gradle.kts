@@ -4,14 +4,14 @@ plugins {
 }
 
 dependencies {
-    testFixturesApi(project(":internal-performance-testing"))
+    testFixturesApi("org.gradle:internal-performance-testing")
     testFixturesApi(libs.commonsIo)
-    testFixturesApi(project(":base-services"))
-    testFixturesImplementation(project(":internal-testing"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesApi("org.gradle:base-services")
+    testFixturesImplementation("org.gradle:internal-testing")
+    testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.groovyJson)
 
-    performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
+    performanceTestDistributionRuntimeOnly("org.gradle:distributions-full") {
         because("so that all Gradle features are available")
     }
 }

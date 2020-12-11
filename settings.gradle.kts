@@ -20,6 +20,7 @@ includeBuild("distribution-plugins/publishing")
 includeBuild("distribution-plugins/full")
 
 includeBuild("testing/fixtures")
+includeBuild("testing/end-to-end-tests")
 includeBuild("testing/reports")
 
 includeBuild("documentation")

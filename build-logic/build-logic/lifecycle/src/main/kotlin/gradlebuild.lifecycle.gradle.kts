@@ -92,7 +92,7 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         dependsOn(
             gradle.includedBuild("full").task(":distributions-full:verifyIsProductionBuildEnvironment"),
             gradle.includedBuild("full").task(":distributions-full:buildDists"),
-            // gradle.includedBuild("end-to-end-tests").task(":distributions-integ-tests:forkingIntegTest"),
+            gradle.includedBuild("end-to-end-tests").task(":distributions-integ-tests:forkingIntegTest"),
             gradle.includedBuild("documentation").task(":docs:releaseNotes"),
             gradle.includedBuild("documentation").task(":docs:incubationReport"),
             gradle.includedBuild("documentation").task(":docs:checkDeadInternalLinks")
@@ -110,8 +110,8 @@ fun TaskContainer.expandSanityCheck() {
             gradle.includedBuild("reports").task(":internal-build-reports:allIncubationReportsZip"),
             gradle.includedBuild("reports").task(":architecture-test:checkBinaryCompatibility"),
             gradle.includedBuild("reports").task(":architecture-test:test"),
-            gradle.includedBuild("distribution-core").task(":tooling-api:toolingApiShadedJar")
-            // gradle.includedBuild("end-to-end-tests").task(":performance:verifyPerformanceScenarioDefinitions"),
+            gradle.includedBuild("distribution-core").task(":tooling-api:toolingApiShadedJar"),
+            gradle.includedBuild("end-to-end-tests").task(":performance:verifyPerformanceScenarioDefinitions")
             // ":checkSubprojectsInfo"
         )
     }

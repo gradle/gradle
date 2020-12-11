@@ -3,20 +3,20 @@ plugins {
 }
 
 dependencies {
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(project(":base-services"))
-    integTestImplementation(project(":logging"))
-    integTestImplementation(project(":core-api"))
+    integTestImplementation("org.gradle:internal-testing")
+    integTestImplementation("org.gradle:base-services")
+    integTestImplementation("org.gradle:logging")
+    integTestImplementation("org.gradle:core-api")
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.ant)
 
-    integTestBinDistribution(project(":distributions-full"))
-    integTestAllDistribution(project(":distributions-full"))
-    integTestDocsDistribution(project(":distributions-full"))
-    integTestSrcDistribution(project(":distributions-full"))
+    integTestBinDistribution("org.gradle:distributions-full")
+    integTestAllDistribution("org.gradle:distributions-full")
+    integTestDocsDistribution("org.gradle:distributions-full")
+    integTestSrcDistribution("org.gradle:distributions-full")
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-full")
 }
 
 tasks.forkingIntegTest {

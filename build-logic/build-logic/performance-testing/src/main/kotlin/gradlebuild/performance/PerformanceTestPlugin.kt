@@ -131,7 +131,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         val junit by configurations.creating
         dependencies {
-            "performanceTestImplementation"(project(":internal-performance-testing"))
+            "performanceTestImplementation"("org.gradle:internal-performance-testing")
             junit("junit:junit:4.13")
         }
     }
@@ -154,7 +154,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         tasks.withType<TemplateProjectGeneratorTask>().configureEach {
-            sharedTemplateDirectory = project(":internal-performance-testing").file("src/templates")
+            // TODO use dependency management to find these
+            sharedTemplateDirectory = repoRoot().file("testing/fixtures/internal-performance-testing/src/templates").asFile
         }
     }
 

@@ -20,14 +20,14 @@ val smokeTestImplementation: Configuration by configurations.getting
 val smokeTestDistributionRuntimeOnly: Configuration by configurations.getting
 
 dependencies {
-    smokeTestImplementation(project(":base-services"))
-    smokeTestImplementation(project(":core-api"))
-    smokeTestImplementation(project(":test-kit"))
-    smokeTestImplementation(project(":launcher"))
-    smokeTestImplementation(project(":persistent-cache"))
-    smokeTestImplementation(project(":jvm-services"))
-    smokeTestImplementation(project(":build-option"))
-    smokeTestImplementation(project(":process-services"))
+    smokeTestImplementation("org.gradle:base-services")
+    smokeTestImplementation("org.gradle:core-api")
+    smokeTestImplementation("org.gradle:test-kit")
+    smokeTestImplementation("org.gradle:launcher")
+    smokeTestImplementation("org.gradle:persistent-cache")
+    smokeTestImplementation("org.gradle:jvm-services")
+    smokeTestImplementation("org.gradle:build-option")
+    smokeTestImplementation("org.gradle:process-services")
     smokeTestImplementation(libs.commonsIo)
     smokeTestImplementation(libs.groovyAnt)
     smokeTestImplementation(libs.groovyJson)
@@ -36,12 +36,12 @@ dependencies {
     smokeTestImplementation(libs.spock)
     smokeTestImplementation(libs.junitPlatform)
 
-    smokeTestImplementation(testFixtures(project(":core")))
-    smokeTestImplementation(testFixtures(project(":plugin-development")))
-    smokeTestImplementation(testFixtures(project(":version-control")))
-    smokeTestImplementation(testFixtures(project(":model-core")))
+    smokeTestImplementation(testFixtures("org.gradle:core"))
+    smokeTestImplementation(testFixtures("org.gradle:plugin-development"))
+    smokeTestImplementation(testFixtures("org.gradle:version-control"))
+    smokeTestImplementation(testFixtures("org.gradle:model-core"))
 
-    smokeTestDistributionRuntimeOnly(project(":distributions-full"))
+    smokeTestDistributionRuntimeOnly("org.gradle:distributions-full")
 }
 
 tasks {
