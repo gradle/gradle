@@ -93,6 +93,3 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         )
     }
 }
-
-
-
