@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
+import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
@@ -31,7 +32,10 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
     @Override
     protected AfterPreviousExecutionContext createContext() {
-        return Stub(AfterPreviousExecutionContext)
+        def validationContext = new DefaultWorkValidationContext()
+        return Stub(AfterPreviousExecutionContext) {
+            getValidationContext() >> validationContext
+        }
     }
 
     def "executes work when there are no violations"() {

@@ -22,10 +22,10 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.TypeValidationContext.Severity;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -58,7 +58,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
 
     @Override
     public R execute(UnitOfWork work, AfterPreviousExecutionContext context) {
-        DefaultWorkValidationContext validationContext = new DefaultWorkValidationContext();
+        WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
 
         ImmutableMultimap<Severity, String> problems = validationContext.getProblems();
@@ -132,6 +132,11 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
+            }
+
+            @Override
+            public WorkValidationContext getValidationContext() {
+                return context.getValidationContext();
             }
         });
     }

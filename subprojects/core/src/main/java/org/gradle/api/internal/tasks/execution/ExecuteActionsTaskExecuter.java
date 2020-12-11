@@ -180,6 +180,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
         ExecutionEngine.DirectExecutionRequestBuilder request = executionEngine.createRequest(work);
         context.getTaskExecutionMode().getRebuildReason().ifPresent(request::forceRebuild);
+        request.withValidationContext(context.getValidationContext());
         Result result = request.execute();
         result.getExecutionResult().ifSuccessfulOrElse(
             executionResult -> state.setOutcome(TaskExecutionOutcome.valueOf(executionResult.getOutcome())),

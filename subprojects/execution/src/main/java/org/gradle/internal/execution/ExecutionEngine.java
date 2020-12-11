@@ -38,11 +38,19 @@ public interface ExecutionEngine {
          * like up-to-date checks, build cache and incremental execution.
          */
         Builder forceRebuild(String rebuildReason);
+
+        /**
+         * Set the validation context to use during execution.
+         */
+        Builder withValidationContext(WorkValidationContext validationContext);
     }
 
     interface DirectExecutionRequestBuilder extends Builder {
         @Override
         DirectExecutionRequestBuilder forceRebuild(String rebuildReason);
+
+        @Override
+        DirectExecutionRequestBuilder withValidationContext(WorkValidationContext validationContext);
 
         /**
          * Execute the unit of work using available optimizations like
@@ -59,6 +67,9 @@ public interface ExecutionEngine {
     interface DeferredExecutionRequestBuilder<O> extends Builder {
         @Override
         DeferredExecutionRequestBuilder<O> forceRebuild(String rebuildReason);
+
+        @Override
+        DeferredExecutionRequestBuilder<O> withValidationContext(WorkValidationContext validationContext);
 
         /**
          * Load the unit of work from the given cache, or defer its execution.

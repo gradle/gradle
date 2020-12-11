@@ -22,6 +22,7 @@ import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
@@ -42,25 +43,40 @@ public class DefaultExecutionEngine implements ExecutionEngine {
 
     private static abstract class AbstractBuilder implements Builder {
         protected final UnitOfWork work;
-        protected String rebuildReason;
+        private String rebuildReason;
+        private WorkValidationContext validationContext;
 
         public AbstractBuilder(UnitOfWork work) {
-            this(work, null);
+            this(work, null, null);
         }
 
         public AbstractBuilder(AbstractBuilder original) {
-            this(original.work, original.rebuildReason);
+            this(original.work, original.rebuildReason, original.validationContext);
         }
 
-        private AbstractBuilder(UnitOfWork work, @Nullable String rebuildReason) {
+        private AbstractBuilder(UnitOfWork work, @Nullable String rebuildReason, @Nullable WorkValidationContext validationContext) {
             this.work = work;
             this.rebuildReason = rebuildReason;
+            this.validationContext = validationContext;
         }
 
         @Override
         public Builder forceRebuild(String rebuildReason) {
             this.rebuildReason = rebuildReason;
             return this;
+        }
+
+        @Override
+        public Builder withValidationContext(WorkValidationContext validationContext) {
+            this.validationContext = validationContext;
+            return this;
+        }
+
+        protected Request createRequest() {
+            WorkValidationContext validationContext = this.validationContext != null
+                ? this.validationContext
+                : new DefaultWorkValidationContext();
+            return new Request(rebuildReason, validationContext);
         }
     }
 
@@ -76,8 +92,14 @@ public class DefaultExecutionEngine implements ExecutionEngine {
         }
 
         @Override
+        public DirectExecutionRequestBuilder withValidationContext(WorkValidationContext validationContext) {
+            super.withValidationContext(validationContext);
+            return this;
+        }
+
+        @Override
         public Result execute() {
-            return executeStep.execute(work, new Request(rebuildReason));
+            return executeStep.execute(work, createRequest());
         }
 
         @Override
@@ -101,21 +123,34 @@ public class DefaultExecutionEngine implements ExecutionEngine {
         }
 
         @Override
+        public DeferredExecutionRequestBuilder<O> withValidationContext(WorkValidationContext validationContext) {
+            super.withValidationContext(validationContext);
+            return this;
+        }
+
+        @Override
         public <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler) {
-            return executeStep.executeDeferred(work, new Request(rebuildReason), cache, handler);
+            return executeStep.executeDeferred(work, createRequest(), cache, handler);
         }
     }
 
     private static class Request implements ExecutionRequestContext {
         private final String rebuildReason;
+        private final WorkValidationContext validationContext;
 
-        public Request(@Nullable String rebuildReason) {
+        public Request(@Nullable String rebuildReason, WorkValidationContext validationContext) {
             this.rebuildReason = rebuildReason;
+            this.validationContext = validationContext;
         }
 
         @Override
         public Optional<String> getRebuildReason() {
             return Optional.ofNullable(rebuildReason);
+        }
+
+        @Override
+        public WorkValidationContext getValidationContext() {
+            return validationContext;
         }
     }
 }
