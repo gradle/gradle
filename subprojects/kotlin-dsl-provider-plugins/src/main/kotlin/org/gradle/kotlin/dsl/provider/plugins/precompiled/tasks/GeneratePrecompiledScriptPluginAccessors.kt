@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
@@ -71,7 +70,6 @@ import java.nio.file.Files
 import javax.inject.Inject
 
 
-@CacheableTask
 abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constructor(
 
     private
