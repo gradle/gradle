@@ -491,7 +491,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "cacheable warnings do not prevent a task from running in parallel"() {
+    def "cacheability warnings do not prevent a task from running in parallel"() {
         given:
         withParallelThreads(3)
 
