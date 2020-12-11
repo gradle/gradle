@@ -200,16 +200,16 @@ Have a look at the <<variant_model.adoc#sec:variant-select-errors,dedicated sect
 
 Configurations need to be resolved safely when crossing project boundaries because resolving a configuration can have side effects on Gradle's project model.
 Gradle can manage this safe access, but the configuration needs to be accessed in a way that enables Gradle to do so.
-There are a number of ways a configuration might be resolved unsafely and Gradle will produce a deprecation warning for each unsafe access.
+There are a number of ways a configuration might be resolved unsafely and Gradle will fail with an exception for each unsafe access.
 
 For example:
 
 * A task from one project directly resolves a configuration in another project.
 * A task specifies a configuration from another project as an input file collection.
 * A build script for a project resolves a configuration in another project during evaluation.
+* Project configurations are resolved from project settings
 
-If your build has an unsafe access deprecation warning, it needs to be fixed.
-It's a symptom of these bad practices and can cause strange and indeterminate errors.
 
-In most cases, this issue can be resolved by creating a cross-project dependency on the other project.  See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
-If you find a use case that can't be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.
+In most cases, this issue can be resolved by creating a cross-project dependency on the other project.
+See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
+If you find a use case that cannot be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.
