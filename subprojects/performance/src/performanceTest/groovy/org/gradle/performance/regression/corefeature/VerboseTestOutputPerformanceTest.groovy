@@ -32,7 +32,7 @@ class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
-        runner.targetVersions = ["6.8-20201028230040+0000"]
+        runner.targetVersions = ["6.9-20201210230047+0000"]
 
         when:
         def result = runner.run()

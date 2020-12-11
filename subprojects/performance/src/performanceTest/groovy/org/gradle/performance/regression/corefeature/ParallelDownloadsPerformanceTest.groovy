@@ -49,7 +49,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def setup() {
-        runner.targetVersions = ["6.8-20201028230040+0000"]
+        runner.targetVersions = ["6.9-20201210230047+0000"]
         // Example project requires TaskContainer.register
         runner.minimumBaseVersion = "4.9"
         runner.warmUpRuns = 5
