@@ -87,10 +87,8 @@ class CIConfigIntegrationTests {
                     }
                 }
 
-                // hacky way to consider deferred tests
-                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 5 else 0
                 assertEquals(
-                    stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
+                    stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
                     it.dependencies.items.size, stage.stageName.stageName)
             } else {
                 assertEquals(2, it.dependencies.items.size) // Individual Performance Worker
@@ -101,8 +99,6 @@ class CIConfigIntegrationTests {
     class SubProjectBucketProvider(private val model: CIBuildModel) : FunctionalTestBucketProvider {
         override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage) =
             model.subprojects.subprojects.map { it.createFunctionalTestsFor(model, stage, testCoverage, Int.MAX_VALUE) }
-
-        override fun createDeferredFunctionalTestsFor(stage: Stage) = emptyList<FunctionalTest>()
     }
 
     private
@@ -184,20 +180,6 @@ class CIConfigIntegrationTests {
                 }
             }
         }
-    }
-
-    @Test
-    fun canDeferSlowTestsToLaterStage() {
-        val slowSubProjects = model.subprojects.subprojects.filter { it.containsSlowTests }.map { it.name }
-
-        fun FunctionalTest.isSlow(): Boolean = slowSubProjects.any { name.contains(it) }
-        fun Project.subProjectContainsSlowTests(id: String): Boolean = searchBuildProject(id).functionalTests.any(FunctionalTest::isSlow)
-
-        assertTrue(!rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_QuickFeedbackLinuxOnly"))
-        assertTrue(!rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_QuickFeedback"))
-        assertTrue(!rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_ReadyforMerge"))
-        assertTrue(rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_ReadyforNightly"))
-        assertTrue(rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_ReadyforRelease"))
     }
 
     @Test

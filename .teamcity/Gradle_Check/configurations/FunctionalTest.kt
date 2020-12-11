@@ -1,6 +1,5 @@
 package configurations
 
-import Gradle_Check.model.slowSubprojects
 import common.Os
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -41,7 +40,7 @@ class FunctionalTest(
         }
     }
 
-    val enableTestDistribution = testCoverage.testDistribution && subprojects.intersect(slowSubprojects).isEmpty()
+    val enableTestDistribution = testCoverage.testDistribution
 
     applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
@@ -85,13 +84,15 @@ fun enableExperimentalTestDistribution(testCoverage: TestCoverage, subprojects: 
 
 fun getTestTaskName(testCoverage: TestCoverage, stage: Stage, subprojects: List<String>): String {
     val testTaskName = "${testCoverage.testType.name}Test"
-    return if (subprojects.intersect(slowSubprojects).isNotEmpty()) {
-        subprojects.joinToString(" ") { "$it:$testTaskName" }
-    } else if (testCoverage.testDistribution && stage.omitsSlowProjects) {
-        return "$testTaskName ${slowSubprojects.joinToString(" ") { "-x $it:$testTaskName" }}"
-    } else if (subprojects.isEmpty()) {
-        testTaskName
-    } else {
-        subprojects.joinToString(" ") { "$it:$testTaskName" }
+    return when {
+        testCoverage.testDistribution -> {
+            return testTaskName
+        }
+        subprojects.isEmpty() -> {
+            testTaskName
+        }
+        else -> {
+            subprojects.joinToString(" ") { "$it:$testTaskName" }
+        }
     }
 }
