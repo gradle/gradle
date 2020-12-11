@@ -29,12 +29,19 @@ public class DefaultNodeValidator implements NodeValidator {
             TypeValidationContext context = new TypeValidationContext() {
                 @Override
                 public void visitTypeProblem(Severity severity, Class<?> type, String message) {
-                    foundProblem.set(true);
+                    recordNonCacheabilityProblem(severity);
                 }
 
                 @Override
                 public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-                    foundProblem.set(true);
+                    recordNonCacheabilityProblem(severity);
+                }
+
+                private void recordNonCacheabilityProblem(Severity severity) {
+                    // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
+                    if (severity != Severity.CACHEABILITY_WARNING) {
+                        foundProblem.set(true);
+                    }
                 }
             };
             ((LocalTaskNode) node).getTaskProperties().validateType(context);

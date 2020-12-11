@@ -82,6 +82,10 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 @Optional @Input File invalidInput
             }
 
+            abstract class PingWithCacheableWarnings extends Ping {
+                @Optional @InputFile File invalidInput
+            }
+
             class FailingPing extends DefaultTask {
 
                 FailingPing() { outputs.upToDateWhen { false } }
@@ -107,6 +111,11 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 tasks.addRule("<>InvalidPing") { String name ->
                     if (name.endsWith("InvalidPing")) {
                         tasks.create(name, InvalidPing)
+                    }
+                }
+                tasks.addRule("<>PingWithCacheableWarnings") { String name ->
+                    if (name.endsWith("PingWithCacheableWarnings")) {
+                        tasks.create(name, PingWithCacheableWarnings)
                     }
                 }
                 tasks.addRule("<>SerialPing") { String name ->
@@ -479,6 +488,15 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             blockingServer.expectConcurrent(":bPing", ":cPing")
             run ":aInvalidPing", ":bPing", ":cPing"
         }
+    }
+
+    def "cacheability warnings do not prevent a task from running in parallel"() {
+        given:
+        withParallelThreads(3)
+
+        expect:
+        blockingServer.expectConcurrent(":aPingWithCacheableWarnings", ":bPing", ":cPing")
+        run ":aPingWithCacheableWarnings", ":bPing", ":cPing"
     }
 
     def "invalid task is not executed in parallel with other task"() {
