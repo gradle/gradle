@@ -5,13 +5,12 @@ plugins {
 }
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform("org.gradle:core-platform"))
 
-    pluginsRuntimeOnly(platform(project(":distributions-publishing")))
-    pluginsRuntimeOnly(platform(project(":distributions-jvm")))
-    pluginsRuntimeOnly(platform(project(":distributions-native")))
+    pluginsRuntimeOnly(platform("org.gradle:distributions-publishing"))
+    pluginsRuntimeOnly(platform("org.gradle:distributions-jvm"))
+    pluginsRuntimeOnly(platform("org.gradle:distributions-native"))
 
-    pluginsRuntimeOnly(project(":plugin-development"))
     pluginsRuntimeOnly(project(":build-init"))
     pluginsRuntimeOnly(project(":build-profile"))
     pluginsRuntimeOnly(project(":antlr"))

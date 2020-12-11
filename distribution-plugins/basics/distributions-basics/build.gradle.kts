@@ -3,18 +3,15 @@ plugins {
 }
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform("org.gradle:core-platform"))
 
-    pluginsRuntimeOnly(platform(project(":distributions-core")))
+    pluginsRuntimeOnly(platform("org.gradle:distributions-core"))
 
-    pluginsRuntimeOnly(project(":resources-http"))
     pluginsRuntimeOnly(project(":resources-sftp"))
     pluginsRuntimeOnly(project(":resources-s3"))
     pluginsRuntimeOnly(project(":resources-gcs"))
-    pluginsRuntimeOnly(project(":resources-http"))
     pluginsRuntimeOnly(project(":build-cache-http"))
 
-    pluginsRuntimeOnly(project(":tooling-api-builders"))
     pluginsRuntimeOnly(project(":kotlin-dsl-tooling-builders"))
 
     pluginsRuntimeOnly(project(":test-kit"))

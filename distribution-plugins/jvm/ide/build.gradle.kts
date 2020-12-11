@@ -3,23 +3,24 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":dependency-management"))
-    implementation(project(":plugins"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":scala"))
-    implementation(project(":ear"))
-    implementation(project(":tooling-api"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:base-services-groovy")
+    implementation("org.gradle:tooling-api")
+
+    implementation("org.gradle:dependency-management")
+    implementation("org.gradle:plugins")
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:platform-jvm")
+    implementation("org.gradle:language-jvm")
+    implementation("org.gradle:language-java")
+    implementation("org.gradle:scala")
+    implementation("org.gradle:ear")
 
     implementation(libs.groovy)
     implementation(libs.groovyXml)
@@ -29,22 +30,22 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
 
-    testFixturesApi(project(":base-services")) {
+    testFixturesApi("org.gradle:base-services") {
         because("test fixtures export the Action class")
     }
-    testFixturesApi(project(":logging")) {
+    testFixturesApi("org.gradle:logging") {
         because("test fixtures export the ConsoleOutput class")
     }
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.groovyXml)
 
-    testImplementation(project(":dependency-management"))
+    testImplementation("org.gradle:dependency-management")
     testImplementation(libs.xmlunit)
     testImplementation(libs.equalsverifier)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:dependency-management"))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))

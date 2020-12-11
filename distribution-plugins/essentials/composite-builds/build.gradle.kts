@@ -3,12 +3,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+
     implementation(project(":dependency-management"))
     implementation(project(":plugin-use"))
 
@@ -18,10 +19,10 @@ dependencies {
     testImplementation(project(":file-watching"))
     testImplementation(testFixtures(project(":dependency-management")))
 
-    integTestImplementation(project(":build-option"))
-    integTestImplementation(project(":launcher"))
+    integTestImplementation("org.gradle:build-option")
+    integTestImplementation("org.gradle:launcher")
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-basics") {
         because("Requires test-kit: 'java-gradle-plugin' is used in some integration tests which always adds the test-kit dependency.")
     }
 }

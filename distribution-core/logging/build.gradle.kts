@@ -26,7 +26,7 @@ dependencies {
     runtimeOnly(libs.jclToSlf4j)
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":testing-jvm")))
+    testImplementation(testFixtures("org.gradle:testing-jvm"))
     testImplementation(libs.groovyDatetime)
     testImplementation(libs.groovyDateUtil)
 
@@ -36,7 +36,7 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }
 
 classycle {

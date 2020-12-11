@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.guava)
 
-    testImplementation(project(":internal-testing"))
+    testImplementation("org.gradle:internal-testing")
     testImplementation(project(":model-core"))
 
     integTestImplementation(project(":logging")) {
@@ -21,7 +21,7 @@ dependencies {
     }
     integTestImplementation(project(":build-option"))
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))  {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-basics")  {
         because("Requires ':toolingApiBuilders': Event handlers are in the wrong place, and should live in this project")
     }
 }

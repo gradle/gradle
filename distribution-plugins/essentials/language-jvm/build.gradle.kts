@@ -3,14 +3,14 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":files"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:files")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
     implementation(project(":workers"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
@@ -19,15 +19,15 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation("org.gradle:native")
+    testImplementation("org.gradle:resources")
+    testImplementation("org.gradle:snapshots")
+    testImplementation(testFixtures("org.gradle:core"))
 
     testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation("org.gradle:internal-integ-testing")
+    testFixturesImplementation(testFixtures("org.gradle:core"))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("AbstractOptionsTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

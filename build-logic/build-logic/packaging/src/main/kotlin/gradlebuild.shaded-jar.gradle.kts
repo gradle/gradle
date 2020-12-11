@@ -89,7 +89,7 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
     isCanBeConsumed = false
     withDependencies {
         this.add(project.dependencies.create(project))
-        this.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
+        this.add(project.dependencies.create(project.dependencies.platform("org.gradle:distributions-dependencies")))
     }
 }
 

@@ -5,12 +5,12 @@ plugins {
 val implementationResources: Configuration by configurations.creating
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -19,15 +19,15 @@ dependencies {
 
     implementationResources("jquery:jquery.min:3.5.1@js")
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":base-services-groovy"))
+    testImplementation("org.gradle:process-services")
+    testImplementation("org.gradle:base-services-groovy")
     testImplementation(libs.jsoup)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures("org.gradle:core"))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-jvm") {
         because("BuildDashboard has specific support for JVM plugins (CodeNarc, JaCoCo)")
     }
 }

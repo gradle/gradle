@@ -4,18 +4,19 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":dependency-management"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-native"))
-    implementation(project(":plugins"))
-    implementation(project(":workers"))
-    implementation(project(":wrapper"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:file-collections")
+
+    implementation("org.gradle:dependency-management")
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:platform-native")
+    implementation("org.gradle:plugins")
+    implementation("org.gradle:workers")
+    implementation("org.gradle:wrapper")
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -29,20 +30,20 @@ dependencies {
     testRuntimeOnly(libs.maven3Compat)
     testRuntimeOnly(libs.maven3PluginApi)
 
-    testImplementation(project(":cli"))
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":native"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":process-services"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platform-native")))
+    testImplementation("org.gradle:cli")
+    testImplementation("org.gradle:base-services-groovy")
+    testImplementation("org.gradle:native")
+    testImplementation("org.gradle:snapshots")
+    testImplementation("org.gradle:process-services")
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:platform-native"))
 
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation("org.gradle:base-services")
 
-    integTestImplementation(project(":native"))
+    integTestImplementation("org.gradle:native")
     integTestImplementation(libs.jetty)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))

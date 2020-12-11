@@ -3,11 +3,12 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":resources"))
-    implementation(project(":resources-http"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:resources")
+    implementation("org.gradle:core")
+
+    implementation("org.gradle:resources-http")
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -17,13 +18,13 @@ dependencies {
     implementation(libs.gcs)
 
     testImplementation(libs.groovy)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":ivy")))
-    testImplementation(testFixtures(project(":maven")))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:dependency-management"))
+    testImplementation(testFixtures("org.gradle:ivy"))
+    testImplementation(testFixtures("org.gradle:maven"))
 
-    integTestImplementation(project(":core-api"))
-    integTestImplementation(project(":model-core"))
+    integTestImplementation("org.gradle:core-api")
+    integTestImplementation("org.gradle:model-core")
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.joda)

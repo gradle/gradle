@@ -3,16 +3,17 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":native"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":plugins"))
-    implementation(project(":workers"))
-    implementation(project(":reporting"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:native")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+
+    implementation("org.gradle:plugins")
+    implementation("org.gradle:workers")
+    implementation("org.gradle:reporting")
 
     implementation(libs.groovy)
     implementation(libs.groovyXml)
@@ -20,18 +21,18 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.ant)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":model-core")))
+    testImplementation("org.gradle:file-collections")
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:model-core"))
 
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation("org.gradle:core")
+    testFixturesImplementation("org.gradle:core-api")
+    testFixturesImplementation("org.gradle:base-services")
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-full")
 }
 
 classycle {

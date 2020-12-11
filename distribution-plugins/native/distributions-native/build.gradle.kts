@@ -3,12 +3,12 @@ plugins {
 }
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform("org.gradle:core-platform"))
 
-    pluginsRuntimeOnly(platform(project(":distributions-jvm"))) {
+    pluginsRuntimeOnly(platform("org.gradle:distributions-jvm")) {
         because("the project dependency 'toolingNative -> ide' currently links this to the JVM ecosystem")
     }
-    pluginsRuntimeOnly(platform(project(":distributions-publishing"))) {
+    pluginsRuntimeOnly(platform("org.gradle:distributions-publishing")) {
         because("configuring publishing is part of the 'language native' support")
     }
 

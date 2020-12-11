@@ -3,19 +3,21 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":platform-base"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:tooling-api")
+
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:ide") {
+        because("To pick up various builders (which should live somewhere else)")
+    }
+
     implementation(project(":platform-native"))
     implementation(project(":language-native"))
     implementation(project(":testing-native"))
-    implementation(project(":tooling-api"))
-    implementation(project(":ide")) {
-        because("To pick up various builders (which should live somewhere else)")
-    }
 
     implementation(libs.guava)
 

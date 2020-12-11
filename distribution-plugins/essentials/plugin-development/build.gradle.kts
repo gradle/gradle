@@ -3,14 +3,17 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":files"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":execution"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:files")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:execution")
+    implementation("org.gradle:core")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:model-groovy")
+    implementation("org.gradle:resources")
     implementation(project(":dependency-management"))
     implementation(project(":maven"))
     implementation(project(":ivy"))
@@ -21,36 +24,31 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":plugin-use"))
     implementation(project(":publish"))
-    implementation(project(":messaging"))
     implementation(project(":workers"))
-    implementation(project(":model-groovy"))
-    implementation(project(":resources"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":logging")))
+    testImplementation("org.gradle:file-collections")
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:logging"))
 
-    integTestImplementation(project(":base-services-groovy"))
+    integTestImplementation("org.gradle:base-services-groovy")
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testFixtures(project(":model-core")))
     integTestImplementation(libs.groovyTest)
 
-    integTestLocalRepository(project(":tooling-api")) {
+    integTestLocalRepository("org.gradle:tooling-api") {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
     }
 
-    testRuntimeOnly(project(":distributions-basics")) {
+    testRuntimeOnly("org.gradle:distributions-basics") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
-
-    testFixturesImplementation(project(":model-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-basics")
+    crossVersionTestDistributionRuntimeOnly("org.gradle:distributions-basics")
 }
 
 integTest.usesSamples.set(true)

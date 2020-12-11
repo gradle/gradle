@@ -3,25 +3,27 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":worker-processes"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":workers"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":plugins"))
-    implementation(project(":reporting"))
-    implementation(project(":dependency-management"))
-    implementation(project(":process-services"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:worker-processes")
+    implementation("org.gradle:persistent-cache")
+    implementation("org.gradle:files")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:file-temp")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:process-services")
+
+    implementation("org.gradle:workers")
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:platform-jvm")
+    implementation("org.gradle:language-jvm")
+    implementation("org.gradle:language-java")
+    implementation("org.gradle:language-scala")
+    implementation("org.gradle:plugins")
+    implementation("org.gradle:reporting")
+    implementation("org.gradle:dependency-management")
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -29,21 +31,20 @@ dependencies {
 
     compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
 
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":files"))
-    testImplementation(project(":resources"))
+    testImplementation("org.gradle:base-services-groovy")
+    testImplementation("org.gradle:files")
+    testImplementation("org.gradle:resources")
     testImplementation(libs.slf4jApi)
     testImplementation(libs.commonsIo)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":plugins")))
-    testImplementation(testFixtures(project(":language-jvm")))
-    testImplementation(testFixtures(project(":language-java")))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:plugins"))
+    testImplementation(testFixtures("org.gradle:language-jvm"))
+    testImplementation(testFixtures("org.gradle:language-java"))
 
-    integTestImplementation(project(":jvm-services"))
+    integTestImplementation("org.gradle:jvm-services")
+    integTestImplementation(testFixtures(project(":language-jvm")))
 
-    testFixturesImplementation(testFixtures(project(":language-jvm")))
-
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))

@@ -30,10 +30,10 @@ dependencies {
 
     testFixturesImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }
 
 strictCompile {

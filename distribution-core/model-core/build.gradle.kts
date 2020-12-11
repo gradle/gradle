@@ -21,9 +21,9 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.asm)
 
-    testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))
-    testFixturesApi(project(":internal-integ-testing"))
+    testFixturesApi(testFixtures("org.gradle:diagnostics"))
+    testFixturesApi("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.groovyDatetime)
@@ -35,12 +35,12 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core-api")))
 
-    integTestImplementation(project(":platform-base"))
+    integTestImplementation("org.gradle:platform-base")
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native")) {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-native") {
         because("ModelRuleCachingIntegrationTest requires a rules implementation")
     }
 }

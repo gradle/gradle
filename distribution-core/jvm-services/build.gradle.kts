@@ -22,5 +22,5 @@ dependencies {
     testImplementation(libs.slf4jApi)
     testImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }

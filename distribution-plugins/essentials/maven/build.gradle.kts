@@ -3,14 +3,14 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":resources"))
-    implementation(project(":base-services-groovy"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:resources")
+    implementation("org.gradle:base-services-groovy")
     implementation(project(":dependency-management"))
     implementation(project(":plugins"))
     implementation(project(":plugin-use"))
@@ -28,28 +28,28 @@ dependencies {
         because("We use the metadata model classes to create repository metadata files")
     }
 
-    testImplementation(project(":native"))
-    testImplementation(project(":process-services"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":resources-http"))
+    testImplementation("org.gradle:native")
+    testImplementation("org.gradle:process-services")
+    testImplementation("org.gradle:snapshots")
+    testImplementation("org.gradle:resources-http")
     testImplementation(libs.xmlunit)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":model-core")))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:model-core"))
     testImplementation(testFixtures(project(":dependency-management")))
 
-    integTestImplementation(project(":ear"))
+    integTestImplementation("org.gradle:ear")
 
-    testFixturesApi(project(":base-services")) {
+    testFixturesApi("org.gradle:base-services") {
         because("Test fixtures export the Action class")
     }
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation("org.gradle:core-api")
     testFixturesImplementation(project(":dependency-management"))
+    testFixturesImplementation("org.gradle:internal-integ-testing")
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-jvm")
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 

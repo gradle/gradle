@@ -3,15 +3,15 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":resources"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:files")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:persistent-cache")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:core")
+    implementation("org.gradle:resources")
     implementation(project(":dependency-management"))
 
     implementation(libs.guava)
@@ -19,13 +19,13 @@ dependencies {
     implementation(libs.jgit)
     implementation(libs.jsch)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":process-services"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation("org.gradle:native")
+    testImplementation("org.gradle:snapshots")
+    testImplementation("org.gradle:process-services")
+    testImplementation(testFixtures("org.gradle:core"))
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation("org.gradle:base-services")
+    testFixturesImplementation("org.gradle:internal-integ-testing")
 
     testFixturesImplementation(libs.jgit)
     testFixturesImplementation(libs.commonsIo)
@@ -33,6 +33,6 @@ dependencies {
     testFixturesImplementation(libs.jsch)
     testFixturesImplementation(libs.guava)
 
-    integTestImplementation(project(":launcher"))
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestImplementation("org.gradle:launcher")
+    integTestDistributionRuntimeOnly("org.gradle:distributions-basics")
 }

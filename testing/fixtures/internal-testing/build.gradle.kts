@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":native"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:native")
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)

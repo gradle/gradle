@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform("org.gradle:core-platform"))
 
-    pluginsRuntimeOnly(platform(project(":distributions-basics")))
+    pluginsRuntimeOnly(platform("org.gradle:distributions-basics"))
 
     pluginsRuntimeOnly(project(":signing"))
 }

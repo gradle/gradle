@@ -23,35 +23,35 @@ tasks.configCacheIntegTest {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":composite-builds"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:base-services-groovy")
+    implementation("org.gradle:build-events")
+    implementation("org.gradle:build-option")
+    implementation("org.gradle:core")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:execution")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:file-watching")
+    implementation("org.gradle:launcher")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:native")
+    implementation("org.gradle:persistent-cache")
+    implementation("org.gradle:resources")
+    implementation("org.gradle:snapshots")
+
     implementation(project(":dependency-management"))
-    implementation(project(":execution"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-watching"))
-    implementation(project(":launcher"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":native"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":plugin-use"))
+    implementation(project(":composite-builds"))
     implementation(project(":plugins"))
+    implementation(project(":plugin-use"))
     implementation(project(":publish"))
-    implementation(project(":resources"))
-    implementation(project(":snapshots"))
 
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
-    implementation(project(":tooling-api"))
-    implementation(project(":build-events"))
-    implementation(project(":native"))
-    implementation(project(":build-option"))
+    implementation("org.gradle:tooling-api")
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)
@@ -61,30 +61,30 @@ dependencies {
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("reflect"))
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures("org.gradle:core"))
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
-    integTestImplementation(project(":jvm-services"))
-    integTestImplementation(project(":tooling-api"))
+    integTestImplementation("org.gradle:jvm-services")
+    integTestImplementation("org.gradle:tooling-api")
+    integTestImplementation("org.gradle:launcher")
     integTestImplementation(project(":platform-jvm"))
-    integTestImplementation(project(":test-kit"))
-    integTestImplementation(project(":launcher"))
+    integTestImplementation("org.gradle:test-kit")
 
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
 
-    integTestImplementation(testFixtures(project(":dependency-management")))
-    integTestImplementation(testFixtures(project(":jacoco")))
     integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(project(":dependency-management")))
+    integTestImplementation(testFixtures("org.gradle:jacoco"))
 
-    crossVersionTestImplementation(project(":cli"))
+    crossVersionTestImplementation("org.gradle:cli")
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-jvm") {
         because("Includes tests for builds with TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))

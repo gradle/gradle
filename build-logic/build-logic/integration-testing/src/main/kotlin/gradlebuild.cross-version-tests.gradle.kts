@@ -37,7 +37,7 @@ fun configureTestFixturesForCrossVersionTests() {
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
-            "crossVersionTestImplementation"(testFixtures(project(":tooling-api")))
+            "crossVersionTestImplementation"(testFixtures("org.gradle:tooling-api"))
         }
     }
 }

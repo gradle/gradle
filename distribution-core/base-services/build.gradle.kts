@@ -26,7 +26,7 @@ dependencies {
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 
     jmh(platform(project(":distributions-dependencies")))
     jmh(libs.bouncycastleProvider)

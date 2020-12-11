@@ -3,18 +3,20 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":dependency-management"))
-    implementation(project(":ide"))
-    implementation(project(":platform-base"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:file-collections")
+
+    implementation("org.gradle:dependency-management")
+    implementation("org.gradle:ide")
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:testing-base")
+
     implementation(project(":platform-native"))
     implementation(project(":language-native"))
-    implementation(project(":testing-base"))
     implementation(project(":testing-native"))
 
     implementation(libs.groovy)
@@ -23,22 +25,22 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.plist)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:version-control"))
     testImplementation(testFixtures(project(":platform-native")))
     testImplementation(testFixtures(project(":language-native")))
-    testImplementation(testFixtures(project(":version-control")))
 
-    integTestImplementation(project(":native"))
+    integTestImplementation("org.gradle:native")
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jgit)
 
-    testFixturesApi(testFixtures(project(":ide")))
+    testFixturesApi(testFixtures("org.gradle:ide"))
     testFixturesImplementation(libs.plist)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyXml)
-    testFixturesImplementation(testFixtures(project(":ide")))
+    testFixturesImplementation(testFixtures("org.gradle:ide"))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-native"))

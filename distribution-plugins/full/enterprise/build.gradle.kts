@@ -3,24 +3,24 @@ plugins {
 }
 
 dependencies {
-    api(project(":base-services")) // leaks BuildOperationNotificationListener on API
+    api("org.gradle:base-services") // leaks BuildOperationNotificationListener on API
 
     implementation(libs.jsr305)
     implementation(libs.inject)
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":launcher"))
-    implementation(project(":snapshots"))
+    implementation("org.gradle:logging")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:core")
+    implementation("org.gradle:launcher")
+    implementation("org.gradle:snapshots")
 
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(project(":internal-integ-testing"))
+    integTestImplementation("org.gradle:internal-testing")
+    integTestImplementation("org.gradle:internal-integ-testing")
 
     // Dependencies of the integ test fixtures
-    integTestImplementation(project(":build-option"))
-    integTestImplementation(project(":messaging"))
-    integTestImplementation(project(":persistent-cache"))
-    integTestImplementation(project(":native"))
+    integTestImplementation("org.gradle:build-option")
+    integTestImplementation("org.gradle:messaging")
+    integTestImplementation("org.gradle:persistent-cache")
+    integTestImplementation("org.gradle:native")
     integTestImplementation(libs.guava)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))

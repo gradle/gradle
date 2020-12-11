@@ -68,9 +68,9 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
-    testImplementation(project(":plugins"))
-    testImplementation(project(":testing-base"))
-    testImplementation(project(":platform-native"))
+    testImplementation("org.gradle:plugins")
+    testImplementation("org.gradle:testing-base")
+    testImplementation("org.gradle:platform-native")
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)
     testImplementation(libs.jclToSlf4j)
@@ -121,34 +121,34 @@ dependencies {
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.groovyAnt)
 
-    testFixturesRuntimeOnly(project(":plugin-use")) {
+    testFixturesRuntimeOnly("org.gradle:plugin-use") {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    testFixturesRuntimeOnly(project(":dependency-management")) {
+    testFixturesRuntimeOnly("org.gradle:dependency-management") {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    testFixturesRuntimeOnly(project(":workers")) {
+    testFixturesRuntimeOnly("org.gradle:workers") {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    testFixturesRuntimeOnly(project(":composite-builds")) {
+    testFixturesRuntimeOnly("org.gradle:composite-builds") {
         because("We always need a BuildStateRegistry service implementation")
     }
 
-    testImplementation(project(":dependency-management"))
+    testImplementation("org.gradle:dependency-management")
 
     testImplementation(testFixtures(project(":core-api")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":model-core")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
+    testImplementation(testFixtures("org.gradle:diagnostics"))
 
-    integTestImplementation(project(":workers"))
-    integTestImplementation(project(":dependency-management"))
-    integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":plugins"))
+    integTestImplementation("org.gradle:workers")
+    integTestImplementation("org.gradle:dependency-management")
+    integTestImplementation("org.gradle:launcher")
+    integTestImplementation("org.gradle:plugins")
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
@@ -157,13 +157,13 @@ dependencies {
     integTestImplementation(testFixtures(project(":file-temp")))
 
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-basics") {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
     }
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }
 
 strictCompile {

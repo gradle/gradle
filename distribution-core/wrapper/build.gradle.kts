@@ -24,11 +24,11 @@ dependencies {
     crossVersionTestImplementation(project(":persistent-cache"))
     crossVersionTestImplementation(project(":launcher"))
 
-    integTestNormalizedDistribution(project(":distributions-full"))
-    crossVersionTestNormalizedDistribution(project(":distributions-full"))
+    integTestNormalizedDistribution("org.gradle:distributions-full")
+    crossVersionTestNormalizedDistribution("org.gradle:distributions-full")
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-full")
+    crossVersionTestDistributionRuntimeOnly("org.gradle:distributions-full")
 }
 
 val executableJar by tasks.registering(Jar::class) {

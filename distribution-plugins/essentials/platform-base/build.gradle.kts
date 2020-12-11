@@ -3,31 +3,31 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":files"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:files")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:execution")
     implementation(project(":dependency-management"))
     implementation(project(":workers"))
-    implementation(project(":execution"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsLang)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":core-api")))
-    testImplementation(project(":native"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":process-services"))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:core-api"))
+    testImplementation("org.gradle:native")
+    testImplementation("org.gradle:snapshots")
+    testImplementation("org.gradle:process-services")
 
-    testFixturesApi(project(":core"))
-    testFixturesApi(project(":file-collections"))
-    testFixturesApi(testFixtures(project(":model-core")))
+    testFixturesApi("org.gradle:core")
+    testFixturesApi("org.gradle:file-collections")
+    testFixturesApi(testFixtures("org.gradle:model-core"))
     testFixturesImplementation(libs.guava)
-    testFixturesApi(testFixtures(project(":model-core")))
+    testFixturesApi(testFixtures("org.gradle:model-core"))
     testFixturesApi(testFixtures(project(":diagnostics")))
 
     testRuntimeOnly(project(":distributions-core")) {

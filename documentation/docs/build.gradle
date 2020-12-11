@@ -29,7 +29,7 @@ configurations {
 
 dependencies {
     // generate Javadoc for the full Gradle distribution
-    runtimeOnly project(":distributions-full")
+    runtimeOnly 'org.gradle:distributions-full'
 
     userGuideTask 'xalan:xalan:2.7.1'
     userGuideTask 'xerces:xercesImpl:2.11.0'
@@ -42,22 +42,22 @@ dependencies {
     jquery "jquery:jquery.min:3.5.1@js"
     jquery "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    testImplementation project(":base-services")
-    testImplementation project(":core")
+    testImplementation 'org.gradle:base-services'
+    testImplementation 'org.gradle:core'
     testImplementation libs.jsoup
-    testImplementation "org.gebish:geb-spock:2.2"
+    testImplementation 'org.gebish:geb-spock:2.2'
     testImplementation 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2'
     testImplementation libs.commonsHttpclient
     testImplementation libs.httpmime
 
-    docsTestImplementation platform(project(":distributions-dependencies"))
-    docsTestImplementation project(":internal-integ-testing")
-    docsTestImplementation project(":base-services")
-    docsTestImplementation project(":logging")
+    docsTestImplementation platform('org.gradle:distributions-dependencies')
+    docsTestImplementation 'org.gradle:internal-integ-testing'
+    docsTestImplementation 'org.gradle:base-services'
+    docsTestImplementation 'org.gradle:logging'
     docsTestImplementation libs.junit5Vintage
     docsTestImplementation libs.junit
 
-    integTestDistributionRuntimeOnly project(":distributions-full")
+    integTestDistributionRuntimeOnly 'org.gradle:distributions-full'
 }
 
 configurations.docsTestRuntimeClasspath {

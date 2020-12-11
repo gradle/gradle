@@ -3,18 +3,18 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":reporting"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:base-services-groovy")
+    implementation("org.gradle:build-option")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:reporting")
+    implementation("org.gradle:snapshots")
     implementation(project(":platform-base"))
-    implementation(project(":snapshots"))
     implementation(project(":dependency-management"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-option"))
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)
@@ -23,23 +23,22 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.jatl)
 
-    testImplementation(project(":process-services"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation("org.gradle:process-services")
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:logging"))
     testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":logging")))
-
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
 
-    testFixturesApi(testFixtures(project(":platform-native")))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesApi(testFixtures("org.gradle:platform-native"))
+    testFixturesImplementation("org.gradle:base-services")
+    testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))  {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-full")  {
         because("There are integration tests that assert that all the tasks of a full distribution are reported (these should probably move to ':integTests').")
     }
 }

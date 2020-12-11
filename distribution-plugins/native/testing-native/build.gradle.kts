@@ -3,19 +3,21 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":diagnostics"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:native")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+
+    implementation("org.gradle:diagnostics")
+    implementation("org.gradle:reporting")
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:testing-base")
+
     implementation(project(":platform-native"))
     implementation(project(":language-native"))
-    implementation(project(":testing-base"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -23,16 +25,16 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation("org.gradle:file-collections")
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:diagnostics"))
+    testImplementation(testFixtures("org.gradle:platform-base"))
+    testImplementation(testFixtures("org.gradle:testing-base"))
+    testImplementation(testFixtures("org.gradle:ide"))
     testImplementation(testFixtures(project(":platform-native")))
-    testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":testing-base")))
     testImplementation(testFixtures(project(":language-native")))
-    testImplementation(testFixtures(project(":ide")))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-native"))

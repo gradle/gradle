@@ -18,7 +18,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }
 
 classycle {

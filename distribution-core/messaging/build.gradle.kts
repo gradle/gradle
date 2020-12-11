@@ -17,5 +17,5 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }

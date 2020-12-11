@@ -3,14 +3,18 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:persistent-cache")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:snapshots")
+    implementation("org.gradle:execution") {
+        because("We need it for BuildOutputCleanupRegistry")
+    }
     implementation(project(":workers"))
     implementation(project(":dependency-management"))
     implementation(project(":reporting"))
@@ -22,10 +26,6 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
-    implementation(project(":snapshots"))
-    implementation(project(":execution")) {
-        because("We need it for BuildOutputCleanupRegistry")
-    }
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -34,31 +34,31 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.inject)
 
-    testImplementation(project(":messaging"))
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
+    testImplementation("org.gradle:messaging")
+    testImplementation("org.gradle:native")
+    testImplementation("org.gradle:resources")
     testImplementation(libs.gson) {
         because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
     }
     testImplementation(libs.jsoup)
     testImplementation(libs.commonsIo)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:jvm-services"))
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":resources-http")))
-    testImplementation(testFixtures(project(":platform-native")))
-    testImplementation(testFixtures(project(":jvm-services")))
     testImplementation(testFixtures(project(":language-jvm")))
     testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":language-groovy")))
     testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures("org.gradle:platform-native"))
 
-    testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":base-services-groovy"))
-    testFixturesImplementation(project(":file-collections"))
+    testFixturesImplementation(testFixtures("org.gradle:core"))
+    testFixturesImplementation("org.gradle:base-services-groovy")
+    testFixturesImplementation("org.gradle:file-collections")
+    testFixturesImplementation("org.gradle:process-services")
+    testFixturesImplementation("org.gradle:resources")
     testFixturesImplementation(project(":language-jvm"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":process-services"))
-    testFixturesImplementation(project(":resources"))
+    testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.guava)
 
     integTestImplementation(testFixtures(project(":model-core")))
@@ -66,7 +66,7 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-jvm")
 }
 
 strictCompile {

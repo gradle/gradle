@@ -3,28 +3,28 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":worker-processes"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":jvm-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:worker-processes")
+    implementation("org.gradle:files")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:file-temp")
+    implementation("org.gradle:persistent-cache")
+    implementation("org.gradle:jvm-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:snapshots")
+    implementation("org.gradle:execution")
+    implementation("org.gradle:build-events")
+    implementation("org.gradle:tooling-api")
     implementation(project(":workers"))
-    implementation(project(":snapshots"))
-    implementation(project(":execution"))
     implementation(project(":dependency-management"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":language-jvm"))
-    implementation(project(":build-events"))
-    implementation(project(":tooling-api"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -38,19 +38,19 @@ dependencies {
 
     runtimeOnly(project(":java-compiler-plugin"))
 
-    testImplementation(project(":base-services-groovy"))
+    testImplementation("org.gradle:base-services-groovy")
     testImplementation(libs.commonsIo)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures("org.gradle:core"))
     testImplementation(testFixtures(project(":platform-base")))
 
     testFixturesApi(testFixtures(project(":language-jvm")))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":model-core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation("org.gradle:base-services")
+    testFixturesImplementation("org.gradle:core")
+    testFixturesImplementation("org.gradle:core-api")
+    testFixturesImplementation("org.gradle:model-core")
+    testFixturesImplementation("org.gradle:persistent-cache")
     testFixturesImplementation(project(":platform-base"))
-    testFixturesImplementation(project(":persistent-cache"))
+    testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.slf4jApi)
 
     testRuntimeOnly(project(":distributions-core")) {
@@ -58,7 +58,7 @@ dependencies {
     }
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+    crossVersionTestDistributionRuntimeOnly("org.gradle:distributions-basics")
 }
 
 tasks.withType<Test>().configureEach {

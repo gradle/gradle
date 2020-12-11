@@ -90,12 +90,12 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         description = "Build production distros and smoke test them"
         group = "build"
         dependsOn(
-            gradle.includedBuild("subprojects").task(":distributions-full:verifyIsProductionBuildEnvironment"),
-            gradle.includedBuild("subprojects").task(":distributions-full:buildDists"),
-            gradle.includedBuild("subprojects").task(":distributions-integ-tests:forkingIntegTest"),
-            gradle.includedBuild("subprojects").task(":docs:releaseNotes"),
-            gradle.includedBuild("subprojects").task(":docs:incubationReport"),
-            gradle.includedBuild("subprojects").task(":docs:checkDeadInternalLinks")
+            gradle.includedBuild("full").task(":distributions-full:verifyIsProductionBuildEnvironment"),
+            gradle.includedBuild("full").task(":distributions-full:buildDists"),
+            // gradle.includedBuild("end-to-end-tests").task(":distributions-integ-tests:forkingIntegTest"),
+            gradle.includedBuild("documentation").task(":docs:releaseNotes"),
+            gradle.includedBuild("documentation").task(":docs:incubationReport"),
+            gradle.includedBuild("documentation").task(":docs:checkDeadInternalLinks")
         )
     }
 }
@@ -105,14 +105,14 @@ fun TaskContainer.expandSanityCheck() {
         dependsOn(
             gradle.includedBuild("build-logic-commons").task(":check"),
             gradle.includedBuild("build-logic").task(":check"),
-            gradle.includedBuild("subprojects").task(":docs:checkstyleApi"),
-            gradle.includedBuild("subprojects").task(":internal-build-reports:allIncubationReportsZip"),
-            gradle.includedBuild("subprojects").task(":architecture-test:checkBinaryCompatibility"),
-            gradle.includedBuild("subprojects").task(":docs:javadocAll"),
-            gradle.includedBuild("subprojects").task(":architecture-test:test"),
-            gradle.includedBuild("subprojects").task(":tooling-api:toolingApiShadedJar"),
-            gradle.includedBuild("subprojects").task(":performance:verifyPerformanceScenarioDefinitions"),
-            ":checkSubprojectsInfo"
+            gradle.includedBuild("documentation").task(":docs:checkstyleApi"),
+            gradle.includedBuild("documentation").task(":docs:javadocAll"),
+            // gradle.includedBuild("reports").task(":internal-build-reports:allIncubationReportsZip"),
+            // gradle.includedBuild("reports").task(":architecture-test:checkBinaryCompatibility"),
+            // gradle.includedBuild("reports").task(":architecture-test:test"),
+            gradle.includedBuild("distribution-core").task(":tooling-api:toolingApiShadedJar")
+            // gradle.includedBuild("end-to-end-tests").task(":performance:verifyPerformanceScenarioDefinitions"),
+            // ":checkSubprojectsInfo"
         )
     }
 }

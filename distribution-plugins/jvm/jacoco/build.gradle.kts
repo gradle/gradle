@@ -3,37 +3,38 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":platform-base"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":plugins"))
-    implementation(project(":reporting"))
-    implementation(project(":file-collections"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:file-collections")
+
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:testing-base")
+    implementation("org.gradle:testing-jvm")
+    implementation("org.gradle:plugins")
+    implementation("org.gradle:reporting")
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation("org.gradle:base-services")
+    testFixturesImplementation("org.gradle:core-api")
+    testFixturesImplementation("org.gradle:core")
+    testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.jsoup)
 
-    testImplementation(project(":internal-testing"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":internal-integ-testing"))
-    testImplementation(project(":language-java"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation("org.gradle:resources")
+    testImplementation("org.gradle:language-java")
+    testImplementation("org.gradle:internal-testing")
+    testImplementation("org.gradle:internal-integ-testing")
+    testImplementation(testFixtures("org.gradle:core"))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))

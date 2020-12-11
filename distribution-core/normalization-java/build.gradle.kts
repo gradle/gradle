@@ -17,5 +17,5 @@ dependencies {
     implementation(libs.commonsIo)
 
     testImplementation(project(":base-services"))
-    testImplementation(project(":internal-testing"))
+    testImplementation("org.gradle:internal-testing")
 }

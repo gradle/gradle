@@ -5,23 +5,24 @@ plugins {
 description = "Kotlin DSL Tooling Builders for IDEs"
 
 dependencies {
-    implementation(project(":kotlin-dsl"))
+    implementation("org.gradle:kotlin-dsl")
 
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":resources"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins"))
-    implementation(project(":tooling-api"))
-    implementation(project(":logging"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:resources")
+    implementation("org.gradle:tooling-api")
+    implementation("org.gradle:logging")
 
-    testImplementation(testFixtures(project(":kotlin-dsl")))
-    integTestImplementation(project(":internal-testing"))
+    implementation("org.gradle:platform-base")
+    implementation("org.gradle:platform-jvm")
+    implementation("org.gradle:plugins")
 
-    crossVersionTestImplementation(project(":persistent-cache"))
+    testImplementation(testFixtures("org.gradle:kotlin-dsl"))
+    integTestImplementation("org.gradle:internal-testing")
+
+    crossVersionTestImplementation("org.gradle:persistent-cache")
     crossVersionTestImplementation(libs.slf4jApi)
     crossVersionTestImplementation(libs.guava)
     crossVersionTestImplementation(libs.ant)

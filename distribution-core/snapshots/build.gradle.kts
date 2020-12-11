@@ -31,5 +31,5 @@ dependencies {
     testFixturesImplementation(project(":file-collections"))
     testFixturesImplementation(libs.commonsIo)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }

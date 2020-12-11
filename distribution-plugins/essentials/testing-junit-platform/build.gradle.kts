@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:messaging")
     implementation(project(":platform-jvm"))
     implementation(project(":language-java"))
     implementation(project(":testing-base"))

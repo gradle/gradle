@@ -5,27 +5,27 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":wrapper"))
-    implementation(project(":tooling-api"))
-    implementation(project(":file-temp"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:core")
+    implementation("org.gradle:file-temp"))
+    implementation("org.gradle:wrapper")
+    implementation("org.gradle:tooling-api")
     implementation(libs.commonsIo)
     api(libs.groovyTest)
 
     testImplementation(libs.guava)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures("org.gradle:core"))
 
-    integTestImplementation(project(":native"))
-    integTestImplementation(project(":logging"))
-    integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":build-option"))
-    integTestImplementation(project(":jvm-services"))
+    integTestImplementation("org.gradle:native")
+    integTestImplementation("org.gradle:logging")
+    integTestImplementation("org.gradle:launcher")
+    integTestImplementation("org.gradle:build-option")
+    integTestImplementation("org.gradle:jvm-services")
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-basics"))

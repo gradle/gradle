@@ -10,30 +10,30 @@ dependencies {
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")
     }
-    api(project(":jvm-services")) {
+    api("org.gradle:jvm-services") {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }
 
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":cli"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
-    implementation(project(":resources"))
-    implementation(project(":build-cache"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":dependency-management"))
-    implementation(project(":configuration-cache"))
-    implementation(project(":launcher"))
-    implementation(project(":internal-testing"))
-    implementation(project(":build-events"))
-    implementation(project(":build-option"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:native")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:cli")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:base-services-groovy")
+    implementation("org.gradle:files")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:resources")
+    implementation("org.gradle:build-cache")
+    implementation("org.gradle:persistent-cache")
+    implementation("org.gradle:dependency-management")
+    implementation("org.gradle:configuration-cache")
+    implementation("org.gradle:launcher")
+    implementation("org.gradle:internal-testing")
+    implementation("org.gradle:build-events")
+    implementation("org.gradle:build-option")
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -84,12 +84,12 @@ dependencies {
         exclude(module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
-    implementation(testFixtures(project(":core")))
+    implementation(testFixtures("org.gradle:core"))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-core")
 }
 
 classycle {

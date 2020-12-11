@@ -3,23 +3,24 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":files"))
-    implementation(project(":file-temp"))
-    implementation(project(":file-collections"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-cache"))
-    implementation(project(":core"))
-    implementation(project(":resources"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:native")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:files")
+    implementation("org.gradle:file-temp")
+    implementation("org.gradle:file-collections")
+    implementation("org.gradle:persistent-cache")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:base-services-groovy")
+    implementation("org.gradle:build-cache")
+    implementation("org.gradle:core")
+    implementation("org.gradle:resources")
+    implementation("org.gradle:snapshots")
+    implementation("org.gradle:execution")
+
     implementation(project(":resources-http"))
-    implementation(project(":snapshots"))
-    implementation(project(":execution"))
     implementation(project(":security"))
 
     implementation(libs.slf4jApi)
@@ -36,43 +37,43 @@ dependencies {
     implementation(libs.ivy)
     implementation(libs.maven3SettingsBuilder)
 
-    testImplementation(project(":process-services"))
+    testImplementation("org.gradle:process-services")
+    testImplementation("org.gradle:build-cache-packaging")
     testImplementation(project(":diagnostics"))
-    testImplementation(project(":build-cache-packaging"))
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.nekohtml)
     testImplementation(libs.groovyXml)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":core-api")))
+    testImplementation(testFixtures("org.gradle:base-services"))
+    testImplementation(testFixtures("org.gradle:core"))
+    testImplementation(testFixtures("org.gradle:messaging"))
+    testImplementation(testFixtures("org.gradle:core-api"))
+    testImplementation(testFixtures("org.gradle:snapshots"))
+    testImplementation(testFixtures("org.gradle:execution"))
     testImplementation(testFixtures(project(":version-control")))
     testImplementation(testFixtures(project(":resources-http")))
-    testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":snapshots")))
-    testImplementation(testFixtures(project(":execution")))
 
-    integTestImplementation(project(":build-option"))
+    integTestImplementation("org.gradle:build-option")
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
-    integTestImplementation(testFixtures(project(":security")))
-    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures("org.gradle:model-core"))
+    integTestImplementation(testFixtures("org.gradle:security"))
 
-    testFixturesApi(project(":base-services")) {
+    testFixturesApi("org.gradle:base-services") {
         because("Test fixtures export the Action class")
     }
-    testFixturesApi(project(":persistent-cache")) {
+    testFixturesApi("org.gradle:persistent-cache") {
         because("Test fixtures export the CacheAccess class")
     }
 
     testFixturesApi(libs.jetty)
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation("org.gradle:core")
+    testFixturesImplementation(testFixtures("org.gradle:core"))
     testFixturesImplementation(testFixtures(project(":resources-http")))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":messaging"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation("org.gradle:core-api")
+    testFixturesImplementation("org.gradle:messaging")
+    testFixturesImplementation("org.gradle:internal-integ-testing")
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)
@@ -83,7 +84,7 @@ dependencies {
     testFixturesApi(libs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }
-    testFixturesImplementation(project(":jvm-services")) {
+    testFixturesImplementation("org.gradle:jvm-services") {
         because("Groovy compiler bug leaks internals")
     }
     testFixturesImplementation(libs.jettyWebApp) {
@@ -93,7 +94,7 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly("org.gradle:distributions-basics")
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestImplementation(libs.jettyWebApp)
 }

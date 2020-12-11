@@ -42,7 +42,7 @@ dependencies {
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))
 
-    testImplementation(project(":internal-integ-testing"))
+    testImplementation("org.gradle:internal-integ-testing")
     testImplementation(project(":native"))
     testImplementation(project(":cli"))
     testImplementation(project(":process-services"))
@@ -53,10 +53,10 @@ dependencies {
     testImplementation(project(":base-services-groovy")) // for 'Specs'
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":tooling-api")))
+    testImplementation(testFixtures("org.gradle:tooling-api"))
+    testImplementation(testFixtures("org.gradle:language-java"))
 
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(libs.slf4jApi)
@@ -64,11 +64,11 @@ dependencies {
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native")) {
-        because("'native' distribution requried for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
+    integTestDistributionRuntimeOnly("org.gradle:distributions-native") {
+        because("'native' distribution required for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
 }
 

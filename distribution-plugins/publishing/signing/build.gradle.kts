@@ -3,27 +3,28 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":plugins"))
-    implementation(project(":dependency-management"))
-    implementation(project(":publish"))
-    implementation(project(":maven"))
-    implementation(project(":security"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:file-collections")
+
+    implementation("org.gradle:plugins")
+    implementation("org.gradle:dependency-management")
+    implementation("org.gradle:publish")
+    implementation("org.gradle:maven")
+    implementation("org.gradle:security")
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
 
-    testImplementation(project(":ivy"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation("org.gradle:ivy")
+    testImplementation(testFixtures("org.gradle:core"))
 
-    testRuntimeOnly(testFixtures(project(":security")))
+    testRuntimeOnly(testFixtures("org.gradle:security"))
     testRuntimeOnly(project(":distributions-publishing")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }

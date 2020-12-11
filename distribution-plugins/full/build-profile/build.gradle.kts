@@ -5,16 +5,16 @@ plugins {
 description = "Provides high-level insights into a Gradle build (--profile)"
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":build-option"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:messaging")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:core")
+    implementation("org.gradle:build-option")
 
     implementation(libs.guava)
 
-    testImplementation(project(":internal-testing"))
+    testImplementation("org.gradle:internal-testing")
 
     integTestImplementation(libs.jsoup)
 

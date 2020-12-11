@@ -3,15 +3,16 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":plugins"))
-    implementation(project(":workers"))
-    implementation(project(":files"))
+    implementation("org.gradle:base-services")
+    implementation("org.gradle:logging")
+    implementation("org.gradle:process-services")
+    implementation("org.gradle:core-api")
+    implementation("org.gradle:model-core")
+    implementation("org.gradle:core")
+    implementation("org.gradle:files")
+
+    implementation("org.gradle:plugins")
+    implementation("org.gradle:workers")
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -22,11 +23,11 @@ dependencies {
         because("this dependency is downloaded by the antlr plugin")
     }
 
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":file-collections"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation("org.gradle:base-services-groovy")
+    testImplementation("org.gradle:file-collections")
+    testImplementation(testFixtures("org.gradle:core"))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))

@@ -19,3 +19,5 @@ plugins {
     id("java-platform")
     id("gradlebuild.dependency-modules")
 }
+
+group = "org.gradle"
