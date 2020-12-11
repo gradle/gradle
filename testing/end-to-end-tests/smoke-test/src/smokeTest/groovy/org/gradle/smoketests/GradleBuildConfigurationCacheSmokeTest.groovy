@@ -40,7 +40,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         def supportedTasks = [
             // todo broken by kotlin upgrade
             // ":distributions-full:binDistributionZip",
-            ":subprojects:tooling-api:publishLocalPublicationToLocalRepository",
+            ":distribution-core:tooling-api:publishLocalPublicationToLocalRepository",
             // ":configuration-cache:embeddedIntegTest", "--tests=org.gradle.configurationcache.ConfigurationCacheIntegrationTest"
         ]
 
@@ -56,7 +56,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         then:
         result.output.count("Reusing configuration cache") == 1
         // result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
-        result.task(":subprojects:tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
+        result.task(":distribution-core:tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
         // result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
 
         when:

@@ -76,7 +76,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot
         build/report-* => $failedTestArtifactDestination
         build/tmp/test files/** => $failedTestArtifactDestination/test-files
         build/errorLogs/** => $failedTestArtifactDestination/errorLogs
-        subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
+        testing/reports/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 

@@ -32,7 +32,7 @@ fun setupTimeoutMonitorOnCI() {
                     exec {
                         commandLine(
                             "${System.getProperty("java.home")}/bin/java",
-                            project.layout.projectDirectory.file("subprojects/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").asFile
+                            project.layout.projectDirectory.file("testing/fixtures/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").asFile
                         )
                     }
                 },

@@ -28,10 +28,10 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     val buildScanTagForType = buildScanTag("Gradleception")
     val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
-    applyDefaults(model, this, ":subprojects:distributions-full:install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first $buildScanTagForType", extraSteps = {
+    applyDefaults(model, this, ":full:distributions-full:install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first $buildScanTagForType", extraSteps = {
         localGradle {
             name = "BUILD_WITH_BUILT_GRADLE"
-            tasks = ":clean :subprojects:distributions-full:install"
+            tasks = ":clean :full:distributions-full:install"
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
             gradleParams = "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true $defaultParameters"
         }

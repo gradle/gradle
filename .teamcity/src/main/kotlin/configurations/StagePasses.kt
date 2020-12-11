@@ -27,7 +27,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     name = stage.stageName.stageName + " (Trigger)"
 
     applyDefaultSettings()
-    artifactRules = "subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties"
+    artifactRules = "distribution-core/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties"
 
     features {
         publishBuildStatusToGithub(model)
@@ -74,7 +74,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     steps {
         gradleWrapper {
             name = "GRADLE_RUNNER"
-            tasks = ":subprojects:base-services:createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus" else ""
+            tasks = ":distribution-core:base-services:createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus" else ""
             gradleParams = defaultGradleParameters
         }
         script {

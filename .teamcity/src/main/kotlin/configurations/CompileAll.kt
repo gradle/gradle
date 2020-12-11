@@ -25,7 +25,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
     )
 
     artifactRules = """$artifactRules
-        subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+        distribution-core/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     """.trimIndent()
 }) {
     companion object {

@@ -54,12 +54,12 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
         "performanceTestReport"
 
     artifactRules = """
-subprojects/$performanceProjectName/build/performance-test-results.zip
+end-to-end-tests/$performanceProjectName/build/performance-test-results.zip
 """
     if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
         gradleRunnerStep(
             model,
-            ":subprojects:$performanceProjectName:$taskName --channel %performance.channel%",
+            ":end-to-end-tests:$performanceProjectName:$taskName --channel %performance.channel%",
             extraParameters = listOf(
                 "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",

@@ -23,7 +23,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
     applyTestDefaults(
         model,
         this,
-        ":subprojects:smoke-test:$task",
+        ":end-to-end-tests:smoke-test:$task",
         timeout = 120,
         notQuick = true,
         extraParameters = buildScanTag("SmokeTests") +

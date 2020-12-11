@@ -35,7 +35,7 @@ abstract class PublishGradleDistribution(
     init {
         artifactRules = """
         incoming-build-receipt/build-receipt.properties => incoming-build-receipt
-        **/build/git-checkout/subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+        **/build/git-checkout/distribution-core/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
         **/build/distributions/*.zip => promote-build-distributions
         **/build/website-checkout/data/releases.xml
         **/build/git-checkout/build/reports/integTest/** => distribution-tests

@@ -57,7 +57,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         executer.with {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
-            withTasks(':subprojects:distributions-full:binDistributionZip')
+            withTasks(':full:distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             withArgument("-Porg.gradle.java.installations.paths=${Jvm.current().javaHome.absolutePath}")
             withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])

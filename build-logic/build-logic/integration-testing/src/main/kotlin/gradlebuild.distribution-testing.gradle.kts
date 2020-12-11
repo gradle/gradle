@@ -23,7 +23,7 @@ plugins {
     id("gradlebuild.module-identity")
 }
 
-val docsProjectLocation = "subprojects/docs" // TODO instead of reaching directly into the project we should use dependency management
+val docsProjectLocation = "documentation/docs" // TODO instead of reaching directly into the project we should use dependency management
 
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 

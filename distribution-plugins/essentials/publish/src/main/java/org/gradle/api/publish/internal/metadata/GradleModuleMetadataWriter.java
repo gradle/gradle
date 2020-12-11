@@ -37,7 +37,7 @@ import java.util.List;
  *
  * <ul>
  * <li>Update the corresponding {@link GradleModuleMetadataParser module metadata parser}</li>
- * <li>Update the module metadata specification (subprojects/docs/src/docs/design/gradle-module-metadata-specification.md)</li>
+ * <li>Update the module metadata specification (documentation/docs/src/docs/design/gradle-module-metadata-specification.md)</li>
  * <li>Update {@link org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer the module metadata serializer} </li>
  * <li>Add a sample for the module metadata serializer test, to make sure that serialized metadata is idempotent</li>
  * </ul>

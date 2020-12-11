@@ -30,7 +30,7 @@ Start a build on one shell:
 
 Start `browser-sync` on another:
 
-    $ browser-sync start -s subprojects/configuration-cache-report/build/stageDevReport --startPath configuration-cache-report.html -w
+    $ browser-sync start -s distribution-plugins/essentials/configuration-cache-report/build/stageDevReport --startPath configuration-cache-report.html -w
     
 Then make some changes and start the build again:
 

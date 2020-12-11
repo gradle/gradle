@@ -47,7 +47,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             listOf(
                 "-PperformanceBaselines=force-defaults",
                 ":clean",
-                ":subprojects:performance:${testProject}PerformanceAdHocTest",
+                ":end-to-end-tests:performance:${testProject}PerformanceAdHocTest",
                 tests.map { """--tests "$it"""" }.joinToString(" "),
                 """--warmups 2 --runs 2 --checks none""",
                 "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
