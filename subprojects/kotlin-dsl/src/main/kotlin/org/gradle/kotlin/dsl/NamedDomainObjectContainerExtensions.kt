@@ -54,10 +54,10 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
 inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
     configuration: NamedDomainObjectContainerScope<T>.() -> Unit
 ): C = apply {
-    DeprecationLogger.deprecateInvocation("NamedDomainObjectContainer<T>.invoke(kotlinLambda)")
+    DeprecationLogger.deprecateInvocation("NamedDomainObjectContainer<T>.invoke(kotlin.Function1)")
         .withAdvice("Recompile your plugin against Gradle >= 6.8")
         .willBeRemovedInGradle8()
-        .undocumented()
+        .withUpgradeGuideSection(6, "using_NamedDomainObjectContainer_invoke_kotlin_Function1")
         .nagUser()
     configuration(NamedDomainObjectContainerScope.of(this))
 }

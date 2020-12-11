@@ -600,7 +600,13 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(":generateProto").outcome == SUCCESS
         result.task(":compileJava").outcome == SUCCESS
 
-        expectNoDeprecationWarnings(result)
+        expectDeprecationWarnings(
+            result,
+            "Using method NamedDomainObjectContainer<T>.invoke(kotlin.Function1) has been deprecated." +
+                " This is scheduled to be removed in Gradle 8.0." +
+                " Recompile your plugin against Gradle >= 6.8" +
+                " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#using_NamedDomainObjectContainer_invoke_kotlin_Function1"
+        )
 
         when:
         result = runner('compileJava').forwardOutput().build()
