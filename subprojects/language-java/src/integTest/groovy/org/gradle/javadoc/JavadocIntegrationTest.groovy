@@ -237,9 +237,9 @@ Joe!""")
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption
-'a'
--addMultilineMultiValueOption
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
+'a' 
+-addMultilineMultiValueOption 
 'b' 'c' """))
     }
 
