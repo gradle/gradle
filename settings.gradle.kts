@@ -19,6 +19,8 @@ includeBuild("distribution-plugins/native")
 includeBuild("distribution-plugins/publishing")
 includeBuild("distribution-plugins/full")
 
+includeBuild("portal-plugins")
+
 includeBuild("testing/fixtures")
 includeBuild("testing/end-to-end-tests")
 includeBuild("testing/reports")

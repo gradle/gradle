@@ -8,3 +8,4 @@ plugins {
 }
 
 includeBuild("../../distribution-plugins/full")
+includeBuild("../../portal-plugins")

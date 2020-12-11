@@ -11,16 +11,16 @@ version = "2.1.5"
 base.archivesBaseName = "plugins"
 
 dependencies {
-    compileOnly(project(":base-services"))
-    compileOnly(project(":logging"))
-    compileOnly(project(":core-api"))
-    compileOnly(project(":model-core"))
-    compileOnly(project(":core"))
-    compileOnly(project(":language-jvm"))
-    compileOnly(project(":language-java"))
-    compileOnly(project(":plugins"))
-    compileOnly(project(":plugin-development"))
-    compileOnly(project(":kotlin-dsl"))
+    compileOnly("org.gradle:base-services")
+    compileOnly("org.gradle:logging")
+    compileOnly("org.gradle:core-api")
+    compileOnly("org.gradle:model-core")
+    compileOnly("org.gradle:core")
+    compileOnly("org.gradle:language-jvm")
+    compileOnly("org.gradle:language-java")
+    compileOnly("org.gradle:plugins")
+    compileOnly("org.gradle:plugin-development")
+    compileOnly("org.gradle:kotlin-dsl")
 
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
@@ -29,22 +29,22 @@ dependencies {
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
 
-    integTestImplementation(project(":base-services"))
-    integTestImplementation(project(":logging"))
-    integTestImplementation(project(":core-api"))
-    integTestImplementation(project(":model-core"))
-    integTestImplementation(project(":core"))
-    integTestImplementation(project(":plugins"))
+    integTestImplementation("org.gradle:base-services")
+    integTestImplementation("org.gradle:logging")
+    integTestImplementation("org.gradle:core-api")
+    integTestImplementation("org.gradle:model-core")
+    integTestImplementation("org.gradle:core")
+    integTestImplementation("org.gradle:plugins")
 
-    integTestImplementation(project(":platform-jvm"))
-    integTestImplementation(project(":kotlin-dsl"))
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(testFixtures(project(":kotlin-dsl")))
+    integTestImplementation("org.gradle:platform-jvm")
+    integTestImplementation("org.gradle:kotlin-dsl")
+    integTestImplementation("org.gradle:internal-testing")
+    integTestImplementation(testFixtures("org.gradle:kotlin-dsl"))
 
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.mockitoKotlin)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
+    integTestDistributionRuntimeOnly("org.gradle:distributions-basics") {
         because("KotlinDslPluginTest tests against TestKit")
     }
     integTestLocalRepository(project)

@@ -13,13 +13,13 @@ dependencies {
     integTestImplementation("org.gradle:internal-testing")
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 
-    integTestRuntimeOnly("org.gradle:kotlin-dsl-plugins") {
+    integTestRuntimeOnly("org.gradle.kotlin:kotlin-dsl-plugins") {
         because("Tests require 'future-plugin-versions.properties' on the test classpath")
     }
 
     integTestDistributionRuntimeOnly("org.gradle:distributions-full")
 
-    integTestLocalRepository("org.gradle:kotlin-dsl-plugins")
+    integTestLocalRepository("org.gradle.kotlin:kotlin-dsl-plugins")
 }
 
 testFilesCleanup.reportOnly.set(true)
