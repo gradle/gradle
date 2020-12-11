@@ -419,8 +419,7 @@ task someTask {
         when:
         run "invalid", "--info"
         then:
-        executedAndNotSkipped(":invalid")
-        outputContains("Invalidating VFS because task ':invalid' failed validation")
+        skipped(":invalid")
     }
 
     @Unroll

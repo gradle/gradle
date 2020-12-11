@@ -27,8 +27,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 
 import java.io.File;
@@ -57,8 +55,12 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
                 return true;
             }
-            WorkValidationContext validationContext = new DefaultWorkValidationContext();
-            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode, localTaskNode.getTaskProperties(), validationContext, typeValidationContext -> detectMissingDependencies(localTaskNode, typeValidationContext));
+            TaskExecutionContext ctx = new DefaultTaskExecutionContext(
+                localTaskNode,
+                localTaskNode.getTaskProperties(),
+                localTaskNode.getValidationContext(),
+                typeValidationContext -> detectMissingDependencies(localTaskNode, typeValidationContext)
+            );
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
             localTaskNode.getPostAction().execute(task);
