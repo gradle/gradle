@@ -17,6 +17,7 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
@@ -27,8 +28,9 @@ public class DefaultNodeValidator implements NodeValidator {
         if (node instanceof LocalTaskNode) {
             LocalTaskNode taskNode = (LocalTaskNode) node;
             WorkValidationContext validationContext = taskNode.getValidationContext();
+            Class<?> taskType = GeneratedSubclasses.unpackType(taskNode.getTask());
             // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
-            TypeValidationContext taskValidationContext = validationContext.createContextFor(taskNode.getTask().getClass(), false);
+            TypeValidationContext taskValidationContext = validationContext.createContextFor(taskType, false);
             taskNode.getTaskProperties().validateType(taskValidationContext);
             ImmutableCollection<String> problems = validationContext.getProblems().values();
             problems.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
