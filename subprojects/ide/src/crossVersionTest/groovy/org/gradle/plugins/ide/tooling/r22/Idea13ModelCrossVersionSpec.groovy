@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.tooling.r22
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaProject
 
