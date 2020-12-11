@@ -297,7 +297,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
+        e.message == "You must specify a base url or at least one artifact pattern for the Ivy repository 'null'."
     }
 
     def "can set a custom metadata rule"() {

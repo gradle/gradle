@@ -214,7 +214,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private void validate(Set<String> schemes) {
         if (schemes.isEmpty()) {
-            throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
+            throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for the Ivy repository '" + getDisplayName() + "'.");
         }
     }
 
