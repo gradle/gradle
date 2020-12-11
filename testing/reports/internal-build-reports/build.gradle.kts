@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    reports(platform(project(":distributions-full")))
+    reports(platform("org.gradle:distributions-full"))
 }

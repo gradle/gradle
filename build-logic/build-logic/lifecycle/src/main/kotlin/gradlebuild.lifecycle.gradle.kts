@@ -107,9 +107,9 @@ fun TaskContainer.expandSanityCheck() {
             gradle.includedBuild("build-logic").task(":check"),
             gradle.includedBuild("documentation").task(":docs:checkstyleApi"),
             gradle.includedBuild("documentation").task(":docs:javadocAll"),
-            // gradle.includedBuild("reports").task(":internal-build-reports:allIncubationReportsZip"),
-            // gradle.includedBuild("reports").task(":architecture-test:checkBinaryCompatibility"),
-            // gradle.includedBuild("reports").task(":architecture-test:test"),
+            gradle.includedBuild("reports").task(":internal-build-reports:allIncubationReportsZip"),
+            gradle.includedBuild("reports").task(":architecture-test:checkBinaryCompatibility"),
+            gradle.includedBuild("reports").task(":architecture-test:test"),
             gradle.includedBuild("distribution-core").task(":tooling-api:toolingApiShadedJar")
             // gradle.includedBuild("end-to-end-tests").task(":performance:verifyPerformanceScenarioDefinitions"),
             // ":checkSubprojectsInfo"
