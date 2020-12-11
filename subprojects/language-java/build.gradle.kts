@@ -63,8 +63,7 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     if (!javaVersion.isJava9Compatible) {
-        val tools = javaLauncher.get().metadata.installationPath.file("lib/tools.jar")
-        classpath.plus(tools)
+        classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
     }
 }
 
