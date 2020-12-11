@@ -35,7 +35,9 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     private resolutionResult = Mock(ResolutionResult)
     private projectConfigResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactSet = Mock(VisitedArtifactSet)
-    private context = Mock(ConfigurationInternal.class)
+    private context = Mock(ConfigurationInternal) {
+        maybeAddContext(_) >> { args -> args[0] }
+    }
     private results = new DefaultResolverResults()
     private resolver = new ErrorHandlingConfigurationResolver(delegate);
 
