@@ -101,6 +101,10 @@ public abstract class Node implements Comparable<Node> {
         return state == ExecutionState.EXECUTED;
     }
 
+    public boolean isExecuting() {
+        return state == ExecutionState.EXECUTING;
+    }
+
     /**
      * Returns any error that happened during the execution of the node itself,
      * i.e. a task action has thrown an exception.

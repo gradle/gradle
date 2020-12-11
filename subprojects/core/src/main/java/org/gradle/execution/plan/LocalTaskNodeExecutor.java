@@ -69,7 +69,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             consumedLocations.getNodesRelatedTo(outputPath).stream()
                 .filter(consumerNode -> missesDependency(node, consumerNode))
-                .forEach(consumerWithoutDependency -> collectValidationWarning(node, consumerWithoutDependency, validationContext));
+                .forEach(consumerWithoutDependency -> collectValidationWarningOrError(node, consumerWithoutDependency, validationContext));
         }
         Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
@@ -98,7 +98,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
             producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
                 .filter(producerNode -> missesDependency(producerNode, node))
-                .forEach(producerWithoutDependency -> collectValidationWarning(producerWithoutDependency, node, validationContext));
+                .forEach(producerWithoutDependency -> collectValidationWarningOrError(producerWithoutDependency, node, validationContext));
         }
     }
 
@@ -124,9 +124,12 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         return true;
     }
 
-    private void collectValidationWarning(Node producer, Node consumer, TypeValidationContext validationContext) {
+    private void collectValidationWarningOrError(Node producer, Node consumer, TypeValidationContext validationContext) {
+        TypeValidationContext.Severity severity = producer.isExecuting() && consumer.isExecuting()
+            ? TypeValidationContext.Severity.ERROR
+            : TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
-            TypeValidationContext.Severity.WARNING,
+            severity,
             String.format("%s consumes the output of %s, but does not declare a dependency", consumer, producer)
         );
     }
