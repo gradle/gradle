@@ -16,7 +16,8 @@
 
 package org.gradle.internal.model
 
-import org.gradle.api.Project
+
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
@@ -188,7 +189,7 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
         }
 
         @Override
-        Project getOwningProject() {
+        ProjectInternal getOwningProject() {
             return null
         }
 

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.Transformation;
@@ -32,6 +33,9 @@ import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -44,15 +48,16 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * Contains zero or more variants of a particular component.
@@ -127,7 +132,14 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
             ResolvableArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
             if (resolvedArtifact == null) {
-                CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), new LazyArtifactSource(artifact, moduleSources, artifactResolver));
+                ValueCalculator<File> artifactCalculator;
+                if (artifactResolver instanceof ProjectArtifactResolver) {
+                    artifactCalculator = ((ProjectArtifactResolver) artifactResolver).resolveArtifactLater(artifact);
+                } else {
+                    // TODO - push this up to all ArtifactResolver implementations
+                    artifactCalculator = new LazyArtifactSupplier(artifact, moduleSources, artifactResolver);
+                }
+                CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), artifactCalculator);
                 resolvedArtifact = new DefaultResolvableArtifact(ownerId, artifactName, artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
                 allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
             }
@@ -229,19 +241,34 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         }
     }
 
-    private static class LazyArtifactSource implements Supplier<File> {
+    private static class LazyArtifactSupplier implements ValueCalculator<File> {
         private final ArtifactResolver artifactResolver;
         private final ModuleSources moduleSources;
         private final ComponentArtifactMetadata artifact;
 
-        private LazyArtifactSource(ComponentArtifactMetadata artifact, ModuleSources moduleSources, ArtifactResolver artifactResolver) {
+        private LazyArtifactSupplier(ComponentArtifactMetadata artifact, ModuleSources moduleSources, ArtifactResolver artifactResolver) {
             this.artifact = artifact;
             this.artifactResolver = artifactResolver;
             this.moduleSources = moduleSources;
         }
 
         @Override
-        public File get() {
+        public boolean usesMutableProjectState() {
+            return false;
+        }
+
+        @Override
+        @Nullable
+        public ProjectInternal getOwningProject() {
+            return null;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+        }
+
+        @Override
+        public File calculateValue(NodeExecutionContext context) {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifact, moduleSources, result);
             return result.getResult();

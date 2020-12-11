@@ -57,4 +57,9 @@ public interface CalculatedValue<T> {
      * Blocks until the value is finalized, either by this thread or some other thread.
      */
     void finalizeIfNotAlready();
+
+    /**
+     * Returns the resource that will be required to calculate this value.
+     */
+    ModelContainer<?> getResourceToLock();
 }

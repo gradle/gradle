@@ -17,6 +17,7 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -54,7 +55,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     /**
      * Creates a container for a value that is yet to be produced.
      *
-     * Note: this is package protected. Using {@link CalculatedValueContainerFactory} instead.
+     * Note: this is package protected. Use {@link CalculatedValueContainerFactory} instead.
      */
     CalculatedValueContainer(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
         this.displayName = displayName;
@@ -64,7 +65,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     /**
      * Creates a container for a value that has already been produced. For example, the value might have been restored from the configuration cache.
      *
-     * Note: this is package protected. Using {@link CalculatedValueContainerFactory} instead.
+     * Note: this is package protected. Use {@link CalculatedValueContainerFactory} instead.
      */
     CalculatedValueContainer(DisplayName displayName, T value) {
         this.displayName = displayName;
@@ -137,6 +138,16 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         } else {
             // Value has already been calculated, so no longer needs project state
             return null;
+        }
+    }
+
+    @Override
+    public ModelContainer<?> getResourceToLock() {
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null && calculationState.supplier.usesMutableProjectState()) {
+            return calculationState.supplier.getOwningProject().getMutationState();
+        } else {
+            return RootScriptDomainObjectContext.INSTANCE.getModel();
         }
     }
 
