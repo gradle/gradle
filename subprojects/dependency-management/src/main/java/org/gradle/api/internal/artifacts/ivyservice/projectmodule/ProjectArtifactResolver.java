@@ -18,11 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -53,6 +58,42 @@ public class ProjectArtifactResolver implements ArtifactResolver {
             result.resolved(localArtifactFile);
         } else {
             result.notFound(projectArtifact.getId());
+        }
+    }
+
+    public ValueCalculator<File> resolveArtifactLater(ComponentArtifactMetadata artifact) {
+        LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
+        ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
+        ProjectState projectState = projectStateRegistry.stateFor(projectId);
+        return new ResolvingCalculator(projectState, projectArtifact);
+    }
+
+    private static class ResolvingCalculator implements ValueCalculator<File> {
+        private final ProjectState projectState;
+        private final LocalComponentArtifactMetadata projectArtifact;
+
+        public ResolvingCalculator(ProjectState projectState, LocalComponentArtifactMetadata projectArtifact) {
+            this.projectState = projectState;
+            this.projectArtifact = projectArtifact;
+        }
+
+        @Override
+        public boolean usesMutableProjectState() {
+            return true;
+        }
+
+        @Override
+        public ProjectInternal getOwningProject() {
+            return projectState.getMutableModel();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+        }
+
+        @Override
+        public File calculateValue(NodeExecutionContext context) {
+            return projectState.fromMutableState(p -> projectArtifact.getFile());
         }
     }
 }

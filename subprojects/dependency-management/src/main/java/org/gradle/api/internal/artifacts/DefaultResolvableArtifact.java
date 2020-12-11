@@ -61,7 +61,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
                 // Eagerly calculate the file if this will be used as a dependency of some task
                 // This is to avoid having to lock the project when a consuming task in another project runs
                 if (isResolveSynchronously()) {
-                    fileSource.finalizeIfNotAlready();
+                    fileSource.getResourceToLock().applyToMutableState(o -> fileSource.finalizeIfNotAlready());
                 }
             }
         };
@@ -114,7 +114,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     public ResolvableArtifact transformedTo(File file) {
         IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, artifact.getClassifier());
         ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), artifactName);
-        return new PreResolvedResolvableArtifact(owner, artifactName, newId, calculatedValueContainerFactory.create(Describables.of(newId), file), buildDependencies, calculatedValueContainerFactory);
+        return new PreResolvedResolvableArtifact(owner, artifactName, newId, calculatedValueContainerFactory.create(Describables.of(newId), file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory);
     }
 
     @Override

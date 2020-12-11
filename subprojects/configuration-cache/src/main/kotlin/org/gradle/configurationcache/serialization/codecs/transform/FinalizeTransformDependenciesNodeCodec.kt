@@ -16,10 +16,10 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
-import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -43,7 +43,7 @@ class FinalizeTransformDependenciesNodeCodec : Codec<DefaultTransformUpstreamDep
                 return false
             }
 
-            override fun getOwningProject(): Project? {
+            override fun getOwningProject(): ProjectInternal? {
                 return null
             }
 

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -204,7 +203,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
             @Nullable
             @Override
-            public Project getOwningProject() {
+            public ProjectInternal getOwningProject() {
                 return null;
             }
 
@@ -286,7 +285,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
             @Nullable
             @Override
-            public Project getOwningProject() {
+            public ProjectInternal getOwningProject() {
                 return null;
             }
 
