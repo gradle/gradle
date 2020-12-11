@@ -295,7 +295,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         )
 
         executer.expectDeprecationWarning(
-            "kotlinDslPluginOptions.experimentalWarning has been deprecated. This is scheduled to be removed in Gradle 8.0."
+            "The KotlinDslPluginOptions.experimentalWarning property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. " +
+                "Flag has no effect since `kotlin-dsl` no longer relies on experimental features."
         )
 
         build("test").apply {
