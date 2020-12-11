@@ -111,7 +111,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
     @Issue("https://github.com/gradle/gradle/issues/13334")
     @Unroll
-    def "absent #operator with convention used as task input"() {
+    def "task input property with convention set to absent #operator is reported correctly"() {
 
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -132,17 +132,17 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        configurationCacheRun "printString"
+        configurationCacheFails "printString"
 
         then:
-        output.count("The string is absent") == 1
+        failureCauseContains "No value has been specified for property 'string'."
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "printString"
+        configurationCacheFails "printString"
 
         then:
-        output.count("The string is absent") == 1
+        failureCauseContains "No value has been specified for property 'string'."
         configurationCache.assertStateLoaded()
 
         where:
