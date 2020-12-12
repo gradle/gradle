@@ -27,7 +27,7 @@ public interface ExecutionRequestContext extends Context {
     Optional<String> getRebuildReason();
 
     /**
-     * The validatoin context to use during the execution of the work.
+     * The validation context to use during the execution of the work.
      */
     WorkValidationContext getValidationContext();
 }
