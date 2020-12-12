@@ -22,6 +22,7 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,6 +49,6 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     }
 
     public ImmutableSortedSet<Class<?>> getValidatedTypes() {
-        return ImmutableSortedSet.copyOf(types);
+        return ImmutableSortedSet.copyOf(Comparator.comparing(Class::getName), types);
     }
 }
