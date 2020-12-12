@@ -72,11 +72,21 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             return this;
         }
 
-        protected Request createRequest() {
+        protected ExecutionRequestContext createExecutionRequestContext() {
             WorkValidationContext validationContext = this.validationContext != null
                 ? this.validationContext
                 : new DefaultWorkValidationContext();
-            return new Request(rebuildReason, validationContext);
+            return new ExecutionRequestContext() {
+                @Override
+                public Optional<String> getRebuildReason() {
+                    return Optional.ofNullable(rebuildReason);
+                }
+
+                @Override
+                public WorkValidationContext getValidationContext() {
+                    return validationContext;
+                }
+            };
         }
     }
 
@@ -99,7 +109,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
 
         @Override
         public Result execute() {
-            return executeStep.execute(work, createRequest());
+            return executeStep.execute(work, createExecutionRequestContext());
         }
 
         @Override
@@ -130,27 +140,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
 
         @Override
         public <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler) {
-            return executeStep.executeDeferred(work, createRequest(), cache, handler);
-        }
-    }
-
-    private static class Request implements ExecutionRequestContext {
-        private final String rebuildReason;
-        private final WorkValidationContext validationContext;
-
-        public Request(@Nullable String rebuildReason, WorkValidationContext validationContext) {
-            this.rebuildReason = rebuildReason;
-            this.validationContext = validationContext;
-        }
-
-        @Override
-        public Optional<String> getRebuildReason() {
-            return Optional.ofNullable(rebuildReason);
-        }
-
-        @Override
-        public WorkValidationContext getValidationContext() {
-            return validationContext;
+            return executeStep.executeDeferred(work, createExecutionRequestContext(), cache, handler);
         }
     }
 }
