@@ -16,14 +16,14 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.reflect.TypeValidationContext;
 
 public interface WorkValidationContext {
-    TypeValidationContext createContextFor(Class<?> type, boolean cacheable);
+    TypeValidationContext forType(Class<?> type, boolean cacheable);
 
     ImmutableMultimap<TypeValidationContext.Severity, String> getProblems();
 
-    ImmutableList<Class<?>> getTypes();
+    ImmutableSet<Class<?>> getValidatedTypes();
 }

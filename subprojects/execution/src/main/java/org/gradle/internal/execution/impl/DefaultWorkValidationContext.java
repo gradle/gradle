@@ -16,18 +16,21 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class DefaultWorkValidationContext implements WorkValidationContext {
+    private final Set<Class<?>> types = new HashSet<>();
     private final ImmutableMultimap.Builder<TypeValidationContext.Severity, String> problems = ImmutableMultimap.builder();
-    private final ImmutableList.Builder<Class<?>> types = ImmutableList.builder();
 
     @Override
-    public TypeValidationContext createContextFor(Class<?> type, boolean cacheable) {
+    public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
         return new MessageFormattingTypeValidationContext(null) {
             @Override
@@ -44,7 +47,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         return problems.build();
     }
 
-    public ImmutableList<Class<?>> getTypes() {
-        return types.build();
+    public ImmutableSortedSet<Class<?>> getValidatedTypes() {
+        return ImmutableSortedSet.copyOf(types);
     }
 }

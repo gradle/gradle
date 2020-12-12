@@ -30,7 +30,7 @@ public class DefaultNodeValidator implements NodeValidator {
             WorkValidationContext validationContext = taskNode.getValidationContext();
             Class<?> taskType = GeneratedSubclasses.unpackType(taskNode.getTask());
             // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
-            TypeValidationContext taskValidationContext = validationContext.createContextFor(taskType, false);
+            TypeValidationContext taskValidationContext = validationContext.forType(taskType, false);
             taskNode.getTaskProperties().validateType(taskValidationContext);
             ImmutableCollection<String> problems = validationContext.getProblems().values();
             problems.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)

@@ -278,7 +278,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         def invalidWork = builder
             .withValidator {context -> context
-                .createContextFor(UnitOfWork, false)
+                .forType(UnitOfWork, false)
                 .visitPropertyProblem(WARNING, "Validation problem")
             }
             .build()
@@ -581,7 +581,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.createContextFor(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
+                validationContext.forType(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()

@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
@@ -76,7 +75,7 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
                         ? "A problem was"
                         : "Some problems were",
                     work.getDisplayName(),
-                    describeTypesChecked(validationContext.getTypes())
+                    describeTypesChecked(validationContext.getValidatedTypes())
                 ),
                 errors.stream()
                     .limit(5)
@@ -141,9 +140,9 @@ public class ValidateStep<R extends Result> implements Step<AfterPreviousExecuti
         });
     }
 
-    private static String describeTypesChecked(ImmutableList<Class<?>> types) {
+    private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {
         return types.size() == 1
-            ? "type '" + getTypeDisplayName(types.get(0)) + "'"
+            ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
             : "types '" + types.stream().map(ValidateStep::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
     }
 

@@ -424,7 +424,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             Class<?> taskType = GeneratedSubclasses.unpackType(task);
             // TODO This should probably use the task class info store
             boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
-            TypeValidationContext typeValidationContext = validationContext.createContextFor(taskType, cacheable);
+            TypeValidationContext typeValidationContext = validationContext.forType(taskType, cacheable);
             context.getTaskProperties().validateType(typeValidationContext);
             context.getTaskProperties().validate(new DefaultTaskValidationContext(
                 fileOperations,
