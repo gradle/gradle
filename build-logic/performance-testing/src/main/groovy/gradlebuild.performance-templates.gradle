@@ -513,7 +513,7 @@ performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "e9fdc0afef15efc082f1712865e92312125ba6d0"
+    ref = "f93d2e6d7057f4cdf379a817bdf036e85e97429a"
     subdirectory = 'parallel-downloads'
 }
 
