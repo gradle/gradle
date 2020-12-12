@@ -26,7 +26,6 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
@@ -37,110 +36,52 @@ public class DefaultExecutionEngine implements ExecutionEngine {
     }
 
     @Override
-    public DirectExecutionRequestBuilder createRequest(UnitOfWork work) {
-        return new DirectBuilder(work);
-    }
+    public Request createRequest(UnitOfWork work) {
+        return new Request() {
+            private String rebuildReason;
+            private WorkValidationContext validationContext;
 
-    private static abstract class AbstractBuilder implements Builder {
-        protected final UnitOfWork work;
-        private String rebuildReason;
-        private WorkValidationContext validationContext;
+            private ExecutionRequestContext createExecutionRequestContext() {
+                WorkValidationContext validationContext = this.validationContext != null
+                    ? this.validationContext
+                    : new DefaultWorkValidationContext();
+                return new ExecutionRequestContext() {
+                    @Override
+                    public Optional<String> getRebuildReason() {
+                        return Optional.ofNullable(rebuildReason);
+                    }
 
-        public AbstractBuilder(UnitOfWork work) {
-            this(work, null, null);
-        }
+                    @Override
+                    public WorkValidationContext getValidationContext() {
+                        return validationContext;
+                    }
+                };
+            }
 
-        public AbstractBuilder(AbstractBuilder original) {
-            this(original.work, original.rebuildReason, original.validationContext);
-        }
+            @Override
+            public void forceRebuild(String rebuildReason) {
+                this.rebuildReason = rebuildReason;
+            }
 
-        private AbstractBuilder(UnitOfWork work, @Nullable String rebuildReason, @Nullable WorkValidationContext validationContext) {
-            this.work = work;
-            this.rebuildReason = rebuildReason;
-            this.validationContext = validationContext;
-        }
+            @Override
+            public void withValidationContext(WorkValidationContext validationContext) {
+                this.validationContext = validationContext;
+            }
 
-        @Override
-        public Builder forceRebuild(String rebuildReason) {
-            this.rebuildReason = rebuildReason;
-            return this;
-        }
+            @Override
+            public Result execute() {
+                return executeStep.execute(work, createExecutionRequestContext());
+            }
 
-        @Override
-        public Builder withValidationContext(WorkValidationContext validationContext) {
-            this.validationContext = validationContext;
-            return this;
-        }
-
-        protected ExecutionRequestContext createExecutionRequestContext() {
-            WorkValidationContext validationContext = this.validationContext != null
-                ? this.validationContext
-                : new DefaultWorkValidationContext();
-            return new ExecutionRequestContext() {
-                @Override
-                public Optional<String> getRebuildReason() {
-                    return Optional.ofNullable(rebuildReason);
-                }
-
-                @Override
-                public WorkValidationContext getValidationContext() {
-                    return validationContext;
-                }
-            };
-        }
-    }
-
-    private class DirectBuilder extends AbstractBuilder implements DirectExecutionRequestBuilder {
-        public DirectBuilder(UnitOfWork work) {
-            super(work);
-        }
-
-        @Override
-        public DirectExecutionRequestBuilder forceRebuild(String rebuildReason) {
-            super.forceRebuild(rebuildReason);
-            return this;
-        }
-
-        @Override
-        public DirectExecutionRequestBuilder withValidationContext(WorkValidationContext validationContext) {
-            super.withValidationContext(validationContext);
-            return this;
-        }
-
-        @Override
-        public Result execute() {
-            return executeStep.execute(work, createExecutionRequestContext());
-        }
-
-        @Override
-        public <O> DeferredExecutionRequestBuilder<O> withIdentityCache(Cache<Identity, Try<O>> cache) {
-            return new CachedBuilder<>(cache, this);
-        }
-    }
-
-    private class CachedBuilder<O> extends AbstractBuilder implements DeferredExecutionRequestBuilder<O> {
-        private final Cache<Identity, Try<O>> cache;
-
-        public CachedBuilder(Cache<Identity, Try<O>> cache, AbstractBuilder original) {
-            super(original);
-            this.cache = cache;
-        }
-
-        @Override
-        public DeferredExecutionRequestBuilder<O> forceRebuild(String rebuildReason) {
-            super.forceRebuild(rebuildReason);
-            return this;
-        }
-
-        @Override
-        public DeferredExecutionRequestBuilder<O> withValidationContext(WorkValidationContext validationContext) {
-            super.withValidationContext(validationContext);
-            return this;
-        }
-
-        @Override
-        public <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler) {
-            return executeStep.executeDeferred(work, createExecutionRequestContext(), cache, handler);
-        }
+            @Override
+            public <O> CachedRequest<O> withIdentityCache(Cache<Identity, Try<O>> cache) {
+                return new CachedRequest<O>() {
+                    @Override
+                    public <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler) {
+                        return executeStep.executeDeferred(work, createExecutionRequestContext(), cache, handler);
+                    }
+                };
+            }
+        };
     }
 }

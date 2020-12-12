@@ -30,27 +30,19 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface ExecutionEngine {
-    DirectExecutionRequestBuilder createRequest(UnitOfWork work);
+    Request createRequest(UnitOfWork work);
 
-    interface Builder {
+    interface Request {
         /**
          * Force the re-execution of the unit of work, disabling optimizations
          * like up-to-date checks, build cache and incremental execution.
          */
-        Builder forceRebuild(String rebuildReason);
+        void forceRebuild(String rebuildReason);
 
         /**
          * Set the validation context to use during execution.
          */
-        Builder withValidationContext(WorkValidationContext validationContext);
-    }
-
-    interface DirectExecutionRequestBuilder extends Builder {
-        @Override
-        DirectExecutionRequestBuilder forceRebuild(String rebuildReason);
-
-        @Override
-        DirectExecutionRequestBuilder withValidationContext(WorkValidationContext validationContext);
+        void withValidationContext(WorkValidationContext validationContext);
 
         /**
          * Execute the unit of work using available optimizations like
@@ -61,16 +53,10 @@ public interface ExecutionEngine {
         /**
          * Use an identity cache to store execution results.
          */
-        <O> DeferredExecutionRequestBuilder<O> withIdentityCache(Cache<Identity, Try<O>> cache);
+        <O> CachedRequest<O> withIdentityCache(Cache<Identity, Try<O>> cache);
     }
 
-    interface DeferredExecutionRequestBuilder<O> extends Builder {
-        @Override
-        DeferredExecutionRequestBuilder<O> forceRebuild(String rebuildReason);
-
-        @Override
-        DeferredExecutionRequestBuilder<O> withValidationContext(WorkValidationContext validationContext);
-
+    interface CachedRequest<O> {
         /**
          * Load the unit of work from the given cache, or defer its execution.
          *
