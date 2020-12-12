@@ -766,6 +766,19 @@ It tries to identify problems where e.g. annotations are used on incompatible ty
 Any getter not annotated with an input/output annotation is also flagged.
 These problems are then turned into deprecation warnings when the task is executed.
 
+[NOTE]
+====
+Tasks that fail validation are executed without any optimizations.
+Specifically, they never be:
+
+* <<##sec:up_to_date_checks,up-to-date>>,
+* loaded from or stored in the <<build_cache.adoc#build_cache,build cache>>,
+* executed in parallel with other tasks, even if <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel execution>> is enabled,
+* executed incrementally.
+
+The in-memory representation of the file system state (aka _Virtual File System)_ is also invalidated before an invalid task is executed.
+====
+
 [[sec:task_input_output_runtime_api]]
 ==== Runtime API
 
