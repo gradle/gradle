@@ -417,7 +417,7 @@ task someTask {
             "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
 
         when:
-        run "invalid", "--info"
+        run "invalid"
         then:
         skipped(":invalid")
     }
