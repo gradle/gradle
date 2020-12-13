@@ -41,7 +41,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             class NestedBeanWithInput {
                 @Input${kind}
                 @PathSensitive(PathSensitivity.NONE)
-                ${type.name} input
+                final ${type.name} input
+
+                NestedBeanWithInput(${type.name} input) {
+                    this.input = input
+                }
             }
 
             class GeneratorTask extends DefaultTask {
@@ -59,7 +63,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
 
             task consumer(type: TaskWithNestedProperty) {
-                bean = new NestedBeanWithInput(input: project.objects.${factory}())
+                bean = new NestedBeanWithInput(project.objects.${factory}())
                 bean.input.set(generator.output)
             }
         """
