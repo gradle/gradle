@@ -138,7 +138,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 assert 'value' == it.description
             }
             task all(dependsOn: ["withDescription", "asMethod", "asStatement", "dynamic", "asExpression", "postConfigure"])
-            class TestTask extends DefaultTask { String property }
+            class TestTask extends DefaultTask { @Input String property }
         """
 
         expect:
