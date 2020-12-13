@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.InputArtifact;
@@ -306,8 +307,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         ImmutableMap<String, TypeValidationContext.Severity> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of the artifact transform parameter %s." : "Some problems were found with the configuration of the artifact transform parameter %s.", getParameterObjectDisplayName(parameterObject)),
-                validationMessages.keySet().stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList())
+                String.format(validationMessages.size() == 1
+                        ? "A problem was found with the configuration of the artifact transform parameter %s."
+                        : "Some problems were found with the configuration of the artifact transform parameter %s.",
+                    getParameterObjectDisplayName(parameterObject)),
+                validationMessages.keySet().stream()
+                    .sorted()
+                    .distinct()
+                    .map(InvalidUserDataException::new)
+                    .collect(Collectors.toList())
             );
         }
 
