@@ -126,7 +126,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
             class NestedBeanWithInput {
                 @InputFile
-                RegularFileProperty file
+                final RegularFileProperty file
+
+                NestedBeanWithInput(RegularFileProperty file) {
+                    this.file = file
+                }
             }
 
             class GeneratorTask extends DefaultTask {
@@ -144,7 +148,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
 
             task consumer(type: TaskWithNestedProperty) {
-                bean = new NestedBeanWithInput(file: generator.outputFile)
+                bean = new NestedBeanWithInput(generator.outputFile)
             }
         """
 
