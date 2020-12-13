@@ -447,6 +447,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public String getDisplayName() {
             return task.toString();
         }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
+        }
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
