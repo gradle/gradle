@@ -50,31 +50,31 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     }
 
     @Override
-    void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages) {
-        def expectedWarnings = messages
-            .findAll { message, severity -> severity == WARNING }
+    void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, TypeValidationContext.Severity> messages) {
+        def expectedDeprecations = messages
+            .findAll { message, severity -> expectDeprecationsForErrors || severity == WARNING }
             .keySet()
             .collect { removeTypeForProperties(it) }
-        def expectedErrors = messages
+        def expectedFailures = messages
             .findAll { message, severity -> severity == ERROR }
             .keySet()
             .collect { removeTypeForProperties(it) }
 
-        expectedWarnings.forEach { warning ->
+        expectedDeprecations.forEach { warning ->
             executer.expectDocumentedDeprecationWarning(warning + " " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled due to the failed validation. " +
                 "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
             )
         }
-        if (expectedErrors) {
+        if (expectedFailures) {
             fails "run"
         } else {
             succeeds "run"
         }
         result.assertTaskNotSkipped(":run")
 
-        switch (expectedErrors.size()) {
+        switch (expectedFailures.size()) {
             case 0:
                 break
             case 1:
@@ -84,7 +84,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
                 failure.assertHasDescription("Some problems were found with the configuration of task ':run' (type 'MyTask').")
                 break
         }
-        expectedErrors.forEach { error ->
+        expectedFailures.forEach { error ->
             failureHasCause(error)
         }
     }

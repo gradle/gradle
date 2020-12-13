@@ -233,11 +233,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
 
         expect:
-        assertValidationFailsWith(
+        assertValidationFailsWith(true, [
             "Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
             "Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.": ERROR,
             "Type 'MyTask.Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
-        )
+        ])
     }
 
     def "detects missing annotation on Groovy properties"() {
@@ -786,7 +786,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract void assertValidationSucceeds()
 
-    abstract void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages)
+    abstract void assertValidationFailsWith(boolean expectDeprecationsForErrors = false, Map<String, TypeValidationContext.Severity> messages)
 
     abstract TestFile source(String path)
 

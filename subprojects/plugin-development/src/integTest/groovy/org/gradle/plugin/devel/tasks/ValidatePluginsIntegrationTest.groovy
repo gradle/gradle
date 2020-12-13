@@ -52,7 +52,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Override
-    void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages) {
+    void assertValidationFailsWith(boolean expectDeprecationsForErrors, Map<String, TypeValidationContext.Severity> messages) {
         fails "validatePlugins"
 
         def expectedReportContents = messages
