@@ -114,7 +114,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             ":extractPrecompiledScriptPluginPlugins",
             ":generateExternalPluginSpecBuilders",
             ":compilePluginsBlocks",
-            ":generatePrecompiledScriptPluginAccessors",
             ":generateScriptPluginAdapters"
         )
         val configurationTask = ":configurePrecompiledScriptDependenciesResolver"
