@@ -73,17 +73,6 @@ class DefaultJavaPluginConventionTest extends Specification {
 
     }
 
-    @Test
-    void canConfigureSourceSets() {
-        File dir = new File('classes-dir')
-        convention.sourceSets {
-            main {
-                output.classesDir = dir
-            }
-        }
-        assertThat(convention.sourceSets.main.output.classesDir, equalTo(project.file(dir)))
-    }
-
     def defaultDirs() {
         expect:
         checkDirs()
