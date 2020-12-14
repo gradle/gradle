@@ -79,6 +79,10 @@ public abstract class Node implements Comparable<Node> {
         return state != ExecutionState.UNKNOWN;
     }
 
+    public boolean isExecuting() {
+        return state == ExecutionState.EXECUTING;
+    }
+
     public boolean isComplete() {
         return state == ExecutionState.EXECUTED
             || state == ExecutionState.SKIPPED
@@ -99,10 +103,6 @@ public abstract class Node implements Comparable<Node> {
 
     public boolean isExecuted() {
         return state == ExecutionState.EXECUTED;
-    }
-
-    public boolean isExecuting() {
-        return state == ExecutionState.EXECUTING;
     }
 
     /**
