@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -195,6 +196,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         type << ["dir", "file"]
     }
 
+    @ToBeFixedForConfigurationCache(because = "The cache fix plugin hackery doesn't work with configuration caching")
     @Issue("https://github.com/gradle/gradle/issues/15397")
     def "can add a file input in a task execution listener"() {
         buildFile << """
