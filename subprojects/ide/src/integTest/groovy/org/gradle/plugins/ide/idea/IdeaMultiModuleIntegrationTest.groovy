@@ -51,7 +51,7 @@ project(':api') {
 
 project(':shared:model') {
     configurations {
-        utilities { extendsFrom testCompile }
+        utilities { extendsFrom testImplementation }
     }
     dependencies {
         utilities project(':util')

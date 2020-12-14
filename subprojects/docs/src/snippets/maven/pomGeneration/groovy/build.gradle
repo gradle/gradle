@@ -19,24 +19,24 @@ repositories {
 }
 
 configurations {
-    runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
+    runtimeOnly.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
 }
 
 dependencies {
-    compile("group1:compile:1.0") {
+    implementation("group1:compile:1.0") {
         exclude(group: 'excludeGroup', module: 'excludeArtifact')
     }
     // NOTE: explicit artifact reference makes a dependency non-transitive
     providedCompile "group2:providedCompile:1.0@jar"
-    runtime "group3:runtime:1.0"
+    runtimeOnly "group3:runtime:1.0"
     providedRuntime("group4:providedRuntime:1.0@zip") {
         artifact {
             name = 'providedRuntime-util'
             type = 'war'
         }
     }
-    testCompile "group5:testCompile:1.0"
-    testRuntime "group6:testRuntime:1.0"
+    testImplementation "group5:testCompile:1.0"
+    testRuntimeOnly "group6:testRuntime:1.0"
 }
 
 // Include a javadoc zip

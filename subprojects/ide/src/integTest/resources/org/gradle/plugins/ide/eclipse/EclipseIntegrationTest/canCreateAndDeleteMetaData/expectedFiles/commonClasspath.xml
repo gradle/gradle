@@ -23,14 +23,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7/"/>
 	<classpathentry kind="src" path="/api">
 		<attributes>
-			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 			<attribute name="without_test_code" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-javadoc.jar!/"/>
-			<attribute name="gradle_used_by_scope" value="main,test"/>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>

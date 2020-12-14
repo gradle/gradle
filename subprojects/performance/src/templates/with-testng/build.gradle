@@ -1,7 +1,7 @@
 ${original}
 
 dependencies {
-    testCompile 'org.testng:testng:6.4'
+    testImplementation 'org.testng:testng:6.4'
 }
 
 test {

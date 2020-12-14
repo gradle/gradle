@@ -74,33 +74,6 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
     }
 
     @ToBeFixedForConfigurationCache
-    def "can resolve static dependency published by UploadArchives task in another project in the same build"() {
-        settingsFile << """
-            include ':child'
-        """
-
-        given:
-        buildFile << """
-            uploadArchives {
-                repositories {
-                    ivy {
-                        url '${ivyRepo.uri}'
-                    }
-                }
-            }
-            project(':child') {
-                ${taskWhichResolves('root', '1.9')}
-                ${resolveTask}.dependsOn ":uploadArchives"
-            }
-        """
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds ":child:${resolveTask}"
-        versionIsCopiedAndExists("root", "1.9", "child/")
-    }
-
-    @ToBeFixedForConfigurationCache
     def "can resolve dynamic dependency published by a dependent task"() {
         ivyRepo.module('org.gradle.test', 'api', '1.0').publish()
 

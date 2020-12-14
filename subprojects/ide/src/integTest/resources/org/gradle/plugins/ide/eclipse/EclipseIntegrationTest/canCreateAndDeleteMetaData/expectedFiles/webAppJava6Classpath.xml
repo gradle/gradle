@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="output" path="bin/default"/>
 	<classpathentry kind="src" output="bin/main" path="src/main/java">
@@ -10,35 +11,28 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="src" path="/common">
 		<attributes>
-			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 			<attribute name="without_test_code" value="true"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="/api" >
+	<classpathentry kind="src" path="/api">
 		<attributes>
-			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 			<attribute name="without_test_code" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry sourcepath="@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-sources.jar" kind="lib" path="@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-			<attribute name="gradle_used_by_scope" value="main,test"/>
-			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-javadoc.jar!/"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="@CACHE_DIR@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5-sources.jar" kind="lib" path="@CACHE_DIR@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5.jar">
 		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-			<attribute name="gradle_used_by_scope" value="main,test"/>
 			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5-javadoc.jar!/"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="@CACHE_DIR@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2-sources.jar" kind="lib" path="@CACHE_DIR@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2.jar">
 		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
-			<attribute name="gradle_used_by_scope" value="main,test"/>
 			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2-javadoc.jar!/"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
 </classpath>

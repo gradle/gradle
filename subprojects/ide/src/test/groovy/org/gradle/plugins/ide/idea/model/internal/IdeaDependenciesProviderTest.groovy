@@ -60,8 +60,8 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('compile', project.layout.files('lib/guava.jar'))
-        project.dependencies.add('testCompile', project.layout.files('lib/mockito.jar'))
+        project.dependencies.add('implementation', project.layout.files('lib/guava.jar'))
+        project.dependencies.add('testImplementation', project.layout.files('lib/mockito.jar'))
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -79,7 +79,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('testRuntime', project.layout.files('lib/guava.jar'))
+        project.dependencies.add('testRuntimeOnly', project.layout.files('lib/guava.jar'))
         project.dependencies.add('excluded', project.layout.files('lib/guava.jar'))
         module.scopes.TEST.minus << project.configurations.getByName('excluded')
         def result = dependenciesProvider.provide(module)
@@ -98,8 +98,8 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('testRuntime', project.layout.files('lib/guava.jar'))
-        project.dependencies.add('testRuntime', project.layout.files('lib/slf4j-api.jar'))
+        project.dependencies.add('testRuntimeOnly', project.layout.files('lib/guava.jar'))
+        project.dependencies.add('testRuntimeOnly', project.layout.files('lib/slf4j-api.jar'))
         project.dependencies.add('excluded1', project.layout.files('lib/guava.jar'))
         project.dependencies.add('excluded2', project.layout.files('lib/slf4j-api.jar'))
         module.scopes.TEST.minus << project.configurations.getByName('excluded1')
@@ -137,7 +137,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('compile', childProject)
+        project.dependencies.add('implementation', childProject)
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -154,7 +154,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('testCompile', project)
+        project.dependencies.add('testImplementation', project)
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -169,8 +169,8 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('testCompile', project.layout.files('lib/foo-impl.jar'))
-        project.dependencies.add('runtime', project.layout.files('lib/foo-impl.jar'))
+        project.dependencies.add('testImplementation', project.layout.files('lib/foo-impl.jar'))
+        project.dependencies.add('runtimeOnly', project.layout.files('lib/foo-impl.jar'))
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -188,7 +188,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
         when:
         project.dependencies.add('compileOnly', project.layout.files('lib/foo-api.jar'))
-        project.dependencies.add('testRuntime', project.layout.files('lib/foo-impl.jar'))
+        project.dependencies.add('testRuntimeOnly', project.layout.files('lib/foo-impl.jar'))
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -207,8 +207,8 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         when:
         project.dependencies.add('compileOnly', project.layout.files('lib/foo-runtime.jar'))
         project.dependencies.add('compileOnly', project.layout.files('lib/foo-testRuntime.jar'))
-        project.dependencies.add('runtime', project.layout.files('lib/foo-runtime.jar'))
-        project.dependencies.add('testRuntime', project.layout.files('lib/foo-testRuntime.jar'))
+        project.dependencies.add('runtimeOnly', project.layout.files('lib/foo-runtime.jar'))
+        project.dependencies.add('testRuntimeOnly', project.layout.files('lib/foo-testRuntime.jar'))
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -226,7 +226,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def extraConfiguration = project.configurations.create('extraConfiguration')
 
         when:
-        project.dependencies.add('testCompile', project.layout.files('lib/mockito.jar'))
+        project.dependencies.add('testImplementation', project.layout.files('lib/mockito.jar'))
         def result = dependenciesProvider.provide(module)
 
         then:

@@ -17,10 +17,11 @@
 package org.gradle.plugins.ide.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 
-class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification {
+class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     @Issue("GRADLE-1621")
     def "can get Eclipse model for project with flatDir repo and external dependency without source Jar"() {
@@ -35,7 +36,7 @@ repositories {
 }
 
 dependencies {
-	compile "some:lib:1.0"
+	${implementationConfiguration} "some:lib:1.0"
 }
         """
 

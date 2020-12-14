@@ -18,7 +18,6 @@ package org.gradle.api.publication.maven.internal.pom
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.plugins.MavenPlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
@@ -43,20 +42,6 @@ class ProjectDependencyArtifactIdExtractorHackTest extends AbstractProjectBuilde
         extractor.extract() == "changed"
     }
 
-    def "artifact ID honors mavenDeployer.pom.artifactId over archivesBaseName"() {
-        project.pluginManager.apply(MavenPlugin)
-
-        project.archivesBaseName = "changed"
-        project.uploadArchives {
-            repositories.mavenDeployer {
-                pom.artifactId = "changed2"
-            }
-        }
-
-        expect:
-        extractor.extract() == "changed2"
-    }
-
     def "artifact ID defaults to project name if Ivy repository is configured"() {
         project.pluginManager.apply(BasePlugin)
         project.archivesBaseName = "changed"
@@ -71,22 +56,4 @@ class ProjectDependencyArtifactIdExtractorHackTest extends AbstractProjectBuilde
         extractor.extract() == project.name
     }
 
-    def "artifact ID defaults to project name if different mavenDeployer.pom.artifactId's are configured"() {
-        project.pluginManager.apply(MavenPlugin)
-
-        project.configurations { other }
-        project.uploadArchives {
-            repositories.mavenDeployer {
-                pom.artifactId = "changed"
-            }
-        }
-        project.uploadOther {
-            repositories.mavenDeployer {
-                pom.artifactId = "changed2"
-            }
-        }
-
-        expect:
-        extractor.extract() == project.name
-    }
 }

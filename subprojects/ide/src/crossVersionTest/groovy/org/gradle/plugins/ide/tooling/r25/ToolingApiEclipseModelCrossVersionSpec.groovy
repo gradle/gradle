@@ -17,10 +17,11 @@
 package org.gradle.plugins.ide.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "export classpath entry option is reflected in eclipse model"() {
 
@@ -41,8 +42,8 @@ configurations {
 }
 
 dependencies {
-    compile project(':a')
-    compile 'com.google.guava:guava:17.0'
+    ${implementationConfiguration} project(':a')
+    ${implementationConfiguration} 'com.google.guava:guava:17.0'
     provided 'org.slf4j:slf4j-log4j12:1.7.12'
 }
 
@@ -89,21 +90,21 @@ subprojects {
 
 configure(project(':a')) {
     dependencies {
-        compile 'someGroup:someArtifact:17.0'
-        compile project(':b')
+        ${implementationConfiguration} 'someGroup:someArtifact:17.0'
+        ${implementationConfiguration} project(':b')
     }
 }
 
 
 configure(project(':b')) {
     dependencies {
-        compile project(':c')
+        ${implementationConfiguration} project(':c')
     }
 }
 
 configure(project(':c')) {
     dependencies {
-        compile 'someGroup:someArtifact:16.0.1'
+        ${implementationConfiguration} 'someGroup:someArtifact:16.0.1'
     }
 }
 """

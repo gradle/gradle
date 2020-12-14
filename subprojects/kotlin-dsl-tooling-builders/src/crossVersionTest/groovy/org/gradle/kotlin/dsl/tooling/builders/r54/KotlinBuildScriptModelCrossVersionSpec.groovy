@@ -349,7 +349,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
             withEmptyJar("buildSrc-dependency.jar")
 
         withFile("buildSrc/build.gradle", """
-            dependencies { compile(files("../${buildSrcDependency.name}")) }
+            dependencies { implementation(files("../${buildSrcDependency.name}")) }
         """)
 
         def rootProjectDependency = withEmptyJar("rootProject-dependency.jar")

@@ -20,6 +20,7 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
@@ -32,7 +33,7 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
+class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def "receive task progress events when requesting a model"() {
@@ -148,7 +149,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.13' }
+            dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 
