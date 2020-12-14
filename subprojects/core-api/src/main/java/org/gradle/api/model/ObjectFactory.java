@@ -107,7 +107,6 @@ public interface ObjectFactory {
      *
      * @since 5.3
      */
-    @Incubating
     ConfigurableFileCollection fileCollection();
 
     /**
