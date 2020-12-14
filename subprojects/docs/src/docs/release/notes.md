@@ -131,6 +131,8 @@ In Gradle 7.0 we moved the following classes out of incubation phase.
 - org.gradle.api.model.ObjectFactory.fileProperty
 - org.gradle.api.model.ObjectFactory.sourceDirectorySet
 
+- org.gradle.api.distribution.Distribution.getDistributionBaseName()
+
 <!--
 ### Example promoted
 -->

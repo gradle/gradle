@@ -17,7 +17,6 @@
 package org.gradle.api.distribution;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.provider.Property;
@@ -41,7 +40,6 @@ public interface Distribution extends Named {
      *
      * @since 6.0
      */
-    @Incubating
     Property<String> getDistributionBaseName();
 
     /**
