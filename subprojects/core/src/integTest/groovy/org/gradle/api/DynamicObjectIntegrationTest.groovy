@@ -345,6 +345,7 @@ assert 'overridden value' == global
 
         file('build.gradle') << '''
             class GroovyTask extends DefaultTask {
+                @Input
                 def String prop
                 void doStuff(Action<Task> action) { action.execute(this) }
             }

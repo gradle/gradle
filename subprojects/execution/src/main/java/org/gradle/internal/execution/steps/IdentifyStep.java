@@ -23,6 +23,7 @@ import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -69,6 +70,11 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
+            }
+
+            @Override
+            public WorkValidationContext getValidationContext() {
+                return context.getValidationContext();
             }
 
             @Override

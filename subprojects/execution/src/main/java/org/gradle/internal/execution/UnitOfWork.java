@@ -26,7 +26,6 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -196,10 +195,6 @@ public interface UnitOfWork extends Describable {
      * Validate the work definition and configuration.
      */
     default void validate(WorkValidationContext validationContext) {}
-
-    interface WorkValidationContext {
-        TypeValidationContext createContextFor(Class<?> type, boolean cacheable);
-    }
 
     /**
      * Return a reason to disable caching for this work.

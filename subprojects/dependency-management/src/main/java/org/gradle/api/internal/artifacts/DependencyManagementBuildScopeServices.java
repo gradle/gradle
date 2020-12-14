@@ -161,6 +161,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -818,6 +819,11 @@ class DependencyManagementBuildScopeServices {
                 @Override
                 public Optional<String> getRebuildReason() {
                     return context.getRebuildReason();
+                }
+
+                @Override
+                public WorkValidationContext getValidationContext() {
+                    return context.getValidationContext();
                 }
 
                 @Override

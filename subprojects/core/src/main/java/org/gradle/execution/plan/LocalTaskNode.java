@@ -27,6 +27,8 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
@@ -41,6 +43,7 @@ import java.util.Set;
  */
 public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
+    private final WorkValidationContext validationContext;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
@@ -48,6 +51,7 @@ public class LocalTaskNode extends TaskNode {
 
     public LocalTaskNode(TaskInternal task) {
         this.task = task;
+        this.validationContext = new DefaultWorkValidationContext();
     }
 
     /**
@@ -55,6 +59,10 @@ public class LocalTaskNode extends TaskNode {
      */
     public void isolated() {
         isolated = true;
+    }
+
+    public WorkValidationContext getValidationContext() {
+        return validationContext;
     }
 
     @Nullable
