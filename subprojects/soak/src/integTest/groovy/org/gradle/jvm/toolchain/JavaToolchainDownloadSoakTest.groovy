@@ -17,9 +17,7 @@
 package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
-@Ignore("api.adoptopenjdk.net seems to be down")
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def "can download missing jdk automatically"() {
