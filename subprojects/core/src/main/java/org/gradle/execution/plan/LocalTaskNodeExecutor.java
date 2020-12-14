@@ -69,7 +69,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             consumedLocations.getNodesRelatedTo(outputPath).stream()
                 .filter(consumerNode -> missesDependency(node, consumerNode))
-                .forEach(consumerWithoutDependency -> collectValidationWarningOrError(node, consumerWithoutDependency, validationContext));
+                .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
         }
         Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
@@ -98,7 +98,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
             producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
                 .filter(producerNode -> missesDependency(producerNode, node))
-                .forEach(producerWithoutDependency -> collectValidationWarningOrError(producerWithoutDependency, node, validationContext));
+                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }
     }
 
@@ -124,7 +124,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         return true;
     }
 
-    private void collectValidationWarningOrError(Node producer, Node consumer, TypeValidationContext validationContext) {
+    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext) {
         TypeValidationContext.Severity severity = producer.isExecuting() && consumer.isExecuting()
             ? TypeValidationContext.Severity.ERROR
             : TypeValidationContext.Severity.WARNING;
