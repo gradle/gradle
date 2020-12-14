@@ -222,15 +222,16 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
             tasks.withType(TaskMissingPathSensitivity).configureEach { TaskMissingPathSensitivity task ->
                 ConfigurableFileCollection newInputs = files()
                 FileCollection originalPropertyValue
+                task.inputs.files(newInputs)
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+                    .withPropertyName("inputFiles.workaround")
+                    .optional()
                 // Create a synthetic input with the original property value and RELATIVE path sensitivity
                 project.gradle.taskGraph.beforeTask {
                     if (it == task) {
                         originalPropertyValue = task.inputFiles
                         task.inputFiles = project.files()
-                        task.inputs.files(originalPropertyValue)
-                            .withPathSensitivity(PathSensitivity.RELATIVE)
-                            .withPropertyName("inputFiles.workaround")
-                            .optional()
+                        newInputs.from(originalPropertyValue)
                     }
                 }
                 // Set the task property back to its original value
