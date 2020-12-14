@@ -37,7 +37,6 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         this(gradleProperty, (V[]) null);
     }
 
-    @SuppressWarnings("varargs")
     public AbstractBuildOption(String gradleProperty, V... commandLineOptionConfiguration) {
         this.gradleProperty = gradleProperty;
         this.commandLineOptionConfigurations = commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList();
