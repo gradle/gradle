@@ -30,7 +30,7 @@ class PluginBuildsOrderingIntegrationTest extends AbstractPluginBuildIntegration
         """
     }
 
-    def "two included plugin builds can contribute plugins to including build"() {
+    def "two included plugin builds can contribute project plugins to including build"() {
         when:
         buildFile << """
             plugins {
@@ -45,7 +45,7 @@ class PluginBuildsOrderingIntegrationTest extends AbstractPluginBuildIntegration
         build2.assertProjectPluginApplied()
     }
 
-    def "first included build can not see plugins contributed to root by second included build"() {
+    def "first included build can not see project plugins contributed to root by second included build"() {
         when:
         buildFile << """
             plugins {
@@ -65,7 +65,7 @@ class PluginBuildsOrderingIntegrationTest extends AbstractPluginBuildIntegration
         failureDescriptionContains("Plugin [id: '${build2.projectPluginId}'] was not found in any of the following sources:")
     }
 
-    def "first included build can include the build it needs plugins from explicitly"() {
+    def "first included build can include the build it needs project plugins from explicitly"() {
         when:
         buildFile << """
             plugins {
@@ -92,7 +92,7 @@ class PluginBuildsOrderingIntegrationTest extends AbstractPluginBuildIntegration
         build1.assertProjectPluginApplied()
     }
 
-    def "second included build can not see plugins contributed to root by first included build"() {
+    def "second included build can not see project plugins contributed to root by first included build"() {
         when:
         buildFile << """
             plugins {
@@ -112,7 +112,7 @@ class PluginBuildsOrderingIntegrationTest extends AbstractPluginBuildIntegration
         failureDescriptionContains("Plugin [id: '${build1.projectPluginId}'] was not found in any of the following sources:")
     }
 
-    def "second included build can include the build it needs plugins from explicitly"() {
+    def "second included build can include the build it needs project plugins from explicitly"() {
         when:
         buildFile << """
             plugins {
@@ -138,5 +138,108 @@ class PluginBuildsOrderingIntegrationTest extends AbstractPluginBuildIntegration
         succeeds()
         build1.assertProjectPluginApplied()
         build2.assertProjectPluginApplied()
+    }
+
+    def "two included plugin builds can contribute settings plugins to including build"() {
+        when:
+        settingsFile << """
+            plugins {
+                id("${build1.settingsPluginId}")
+                id("${build2.settingsPluginId}")
+            }
+        """
+
+        then:
+        succeeds()
+        build1.assertSettingsPluginApplied()
+        build2.assertSettingsPluginApplied()
+    }
+
+    def "first included build can not see settings plugins contributed to root by second included build"() {
+        when:
+        settingsFile << """
+            plugins {
+                id("${build1.settingsPluginId}")
+            }
+        """
+
+        build1.settingsFile.setText("""
+            plugins {
+                id("${build2.settingsPluginId}")
+            }
+            rootProject.name = "${build1.buildName}"
+        """)
+
+        then:
+        fails()
+        failureDescriptionContains("Plugin [id: '${build2.settingsPluginId}'] was not found in any of the following sources:")
+    }
+
+    def "first included build can include the build it needs settings plugins from explicitly"() {
+        when:
+        settingsFile << """
+            plugins {
+                id("${build1.settingsPluginId}")
+            }
+        """
+
+        build1.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build2.buildName}")
+            }
+            plugins {
+                id("${build2.settingsPluginId}")
+            }
+            rootProject.name = "${build1.buildName}"
+        """)
+
+        then:
+        succeeds()
+        build2.assertSettingsPluginApplied()
+        build1.assertSettingsPluginApplied()
+    }
+
+    def "second included build can not see settings plugins contributed to root by first included build"() {
+        when:
+        settingsFile << """
+            plugins {
+                id("${build2.settingsPluginId}")
+            }
+        """
+
+        build2.settingsFile.setText("""
+            plugins {
+                id("${build1.settingsPluginId}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+
+        then:
+        fails()
+        failureDescriptionContains("Plugin [id: '${build1.settingsPluginId}'] was not found in any of the following sources:")
+    }
+
+    def "second included build can include the build it needs settings plugins from explicitly"() {
+        when:
+        settingsFile << """
+            plugins {
+                id("${build2.settingsPluginId}")
+            }
+        """
+
+        build2.settingsFile.setText("""
+            pluginManagement {
+                includeBuild("../${build1.buildName}")
+            }
+            plugins {
+                id("${build1.settingsPluginId}")
+            }
+            rootProject.name = "${build2.buildName}"
+        """)
+
+        then:
+        succeeds()
+        build1.assertSettingsPluginApplied()
+        build2.assertSettingsPluginApplied()
     }
 }
