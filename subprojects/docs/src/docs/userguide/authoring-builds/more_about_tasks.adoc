@@ -769,7 +769,7 @@ These problems are then turned into deprecation warnings when the task is execut
 [NOTE]
 ====
 Tasks that fail validation are executed without any optimizations.
-Specifically, they never be:
+Specifically, they never can be:
 
 * <<##sec:up_to_date_checks,up-to-date>>,
 * loaded from or stored in the <<build_cache.adoc#build_cache,build cache>>,
