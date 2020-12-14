@@ -36,6 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+import static org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor.getAllStackTracesByJstack;
+
 class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     private final int timeoutMs;
     private final AtomicInteger counter;
@@ -137,7 +139,9 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
                 } else {
                     Throwable failure = responseProducer.getFailure();
                     requestFailed(outcome, failure);
-                    System.out.printf("[%d] handling failed with exception %s%n", id, ExceptionUtils.getStackTrace(failure));
+                    String stacktrace = ExceptionUtils.getStackTrace(failure);
+                    dumpThreadsUponTimeout(stacktrace);
+                    System.out.printf("[%d] handling failed with exception %s%n", id, stacktrace);
                     sendFailure(httpExchange, 400, outcome);
                 }
             } catch (Throwable t) {
@@ -153,6 +157,13 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
             }
         } finally {
             httpExchange.close();
+        }
+    }
+
+    // Dump all JVMs' threads on the machine to troubleshoot deadlock issues
+    private void dumpThreadsUponTimeout(String stacktrace) {
+        if (stacktrace.contains("due to a timeout waiting for other requests")) {
+            System.out.println(getAllStackTracesByJstack());
         }
     }
 
