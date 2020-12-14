@@ -125,6 +125,8 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
     }
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext) {
+        // If the consumer and producer are running at the same time, then something is very wrong in the current build.
+        // So we fail the build in that case to expose the problem.
         TypeValidationContext.Severity severity = producer.isExecuting() && consumer.isExecuting()
             ? TypeValidationContext.Severity.ERROR
             : TypeValidationContext.Severity.WARNING;
