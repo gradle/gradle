@@ -1,6 +1,5 @@
 package configurations
 
-import common.Os.LINUX
 import common.buildToolGradleParameters
 import common.customGradle
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId

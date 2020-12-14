@@ -1,7 +1,6 @@
 package configurations
 
 import Gradle_Check.model.slowSubprojects
-import common.JvmVendor
 import common.Os
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
