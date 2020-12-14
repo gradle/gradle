@@ -37,7 +37,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         def distributions = project.extensions.getByType(DistributionContainer.class)
         def dist = distributions.main
         dist.name == 'main'
-        dist.baseName == 'test-project'
+        dist.distributionBaseName.get() == 'test-project'
     }
 
     def "provides default values for additional distributions"() {
@@ -48,7 +48,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         def distributions = project.extensions.getByType(DistributionContainer.class)
         def dist = distributions.create('custom')
         dist.name == 'custom'
-        dist.baseName == 'test-project-custom'
+        dist.distributionBaseName.get() == 'test-project-custom'
     }
 
     def "adds distZip task for main distribution"() {
