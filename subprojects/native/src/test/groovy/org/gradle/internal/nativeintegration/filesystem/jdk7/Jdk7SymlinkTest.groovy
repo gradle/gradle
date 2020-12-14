@@ -47,7 +47,7 @@ class Jdk7SymlinkTest extends Specification {
     }
 
     @Unroll
-    def 'deletes test files after symlink support test with #implementationClass'() {
+    def 'deletes test files after symlink support test with #create'() {
         expect:
         listSymlinkTestFiles().findAll { !it.delete() }.empty
         create(temporaryFolder.root)
