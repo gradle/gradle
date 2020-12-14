@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
@@ -80,7 +81,12 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
         }
         if (agpBaseVersion >= threeDotSixBaseVersion) {
-            expectNoDeprecationWarnings(result)
+            expectDeprecationWarnings(
+                result,
+                "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_gradle_types.html#domainobjectset for more details."
+            )
         }
 
         and:
