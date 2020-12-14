@@ -74,6 +74,10 @@ Use the `configDirectory` property instead.
 * The `rulePriority` getter and setter have been removed from the Pmd task and extension.
 Use the `rulesMinimumPriority` property instead.
 
+==== Removal of `baseName` property in `distribution` plugin
+
+The `getBaseName()` and `setBaseName()` methods were removed from the `Distribution` class. Clients should replace the usages with the `distributionBaseName` property.
+
 ==== Using `AbstractTask`
 
 Registering a task with the `AbstractTask` type or with a type extending `AbstractTask` was deprecated in Gradle 6.5 and is now an error in Gradle 7.0.
