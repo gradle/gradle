@@ -40,7 +40,6 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
@@ -118,7 +117,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         ListenerManager listenerManager,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
-        PropertyWalker propertyWalker,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
@@ -158,7 +156,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             executer
         );
         executer = new FinalizePropertiesTaskExecuter(executer);
-        executer = new ResolveTaskExecutionModeExecuter(repository, fileCollectionFactory, propertyWalker, executer);
+        executer = new ResolveTaskExecutionModeExecuter(repository, executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);

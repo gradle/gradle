@@ -51,8 +51,6 @@ public interface TaskExecutionContext {
      */
     long markExecutionTime();
 
-    void setTaskProperties(TaskProperties properties);
-
     TaskProperties getTaskProperties();
 
     /**

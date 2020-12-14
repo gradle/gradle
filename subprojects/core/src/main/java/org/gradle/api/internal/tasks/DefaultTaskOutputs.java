@@ -139,7 +139,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
-        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileCollectionFactory);
+        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileCollectionFactory, false);
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.getFileProperties();
     }

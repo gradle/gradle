@@ -20,14 +20,10 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
@@ -37,14 +33,10 @@ import org.slf4j.LoggerFactory;
 public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskExecutionModeExecuter.class);
 
-    private final PropertyWalker propertyWalker;
     private final TaskExecuter executer;
     private final TaskExecutionModeResolver executionModeResolver;
-    private final FileCollectionFactory fileCollectionFactory;
 
-    public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, FileCollectionFactory fileCollectionFactory, PropertyWalker propertyWalker, TaskExecuter executer) {
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.propertyWalker = propertyWalker;
+    public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, TaskExecuter executer) {
         this.executer = executer;
         this.executionModeResolver = executionModeResolver;
     }
@@ -52,17 +44,13 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         Timer clock = Time.startTimer();
-        TaskProperties properties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
-        context.setTaskProperties(properties);
-        TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, properties);
-
+        TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, context.getTaskProperties());
         context.setTaskExecutionMode(taskExecutionMode);
         LOGGER.debug("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
         try {
             return executer.execute(task, state, context);
         } finally {
             context.setTaskExecutionMode(null);
-            context.setTaskProperties(null);
             LOGGER.debug("Removed task artifact state for {} from context.", task);
         }
     }
