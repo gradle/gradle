@@ -36,7 +36,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 // This should move earlier in task scheduling, so that a worker thread does not even bother trying to run this task
                 return true;
             }
-            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode, localTaskNode.getTaskProperties());
+            TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode);
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
             localTaskNode.getPostAction().execute(task);
