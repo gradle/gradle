@@ -28,7 +28,7 @@ import static SimulatedSingleMessageLogger.INDIRECT_CALL_2
 class FeatureUsageTest extends Specification {
 
     @Unroll
-    def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedMessage."() {
+    def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedSummary. #expectedMethod. #usage."() {
         expect:
         !usage.stack.empty
         usage.summary == expectedSummary
