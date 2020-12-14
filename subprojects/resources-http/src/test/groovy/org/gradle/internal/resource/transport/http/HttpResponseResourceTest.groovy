@@ -45,10 +45,10 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         setup:
         1 * response.entity >> Mock(HttpEntity)
         when:
-        def resource = resource();
-        resource.openStream();
+        def r = resource()
+        r.openStream()
         and:
-        resource.openStream()
+        r.openStream()
         then:
         def ex = thrown(IOException);
         ex.message == "Unable to open Stream as it was opened before."
