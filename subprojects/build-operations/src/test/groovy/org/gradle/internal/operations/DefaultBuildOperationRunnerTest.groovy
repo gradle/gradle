@@ -182,8 +182,8 @@ class DefaultBuildOperationRunnerTest extends Specification {
 
         where:
         description        | expectedException             | fail
-        "thrown exception" | new RuntimeException("Error") | { BuildOperationContext context, Exception expectedException -> throw expectedException }
-        "context"          | null                          | { BuildOperationContext context, Exception expectedException -> context.failed(new RuntimeException("Error")) }
+        "thrown exception" | new RuntimeException("Error") | { BuildOperationContext context, Exception e -> throw e }
+        "context"          | null                          | { BuildOperationContext context, Exception e -> context.failed(new RuntimeException("Error")) }
     }
 
     def "fires events when non-wrap-around start operation starts and fails"() {
