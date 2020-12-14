@@ -31,6 +31,8 @@ import org.gradle.tooling.internal.protocol.events.InternalSuccessResult
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor
 import spock.lang.Specification
 
+import static org.junit.Assert.assertTrue
+
 class BuildProgressListenerAdapterForTransformOperationsTest extends Specification {
 
     def "adapter is only subscribing to transform progress events if at least one transform progress listener is attached"() {
@@ -71,11 +73,11 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
 
         then:
         1 * listener.statusChanged(_ as TransformStartEvent) >> { TransformStartEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "Transform started"
-            assert event.descriptor.displayName == 'Transform'
-            assert event.descriptor.transformer.displayName == 'SomeTransform'
-            assert event.descriptor.subject.displayName == 'artifact "foo.jar"'
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "Transform started"
+            assertTrue event.descriptor.displayName == 'Transform'
+            assertTrue event.descriptor.transformer.displayName == 'SomeTransform'
+            assertTrue event.descriptor.subject.displayName == 'artifact "foo.jar"'
         }
     }
 
@@ -113,15 +115,15 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
 
         then:
         1 * listener.statusChanged(_ as TransformFinishEvent) >> { TransformFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "Transform succeeded"
-            assert event.descriptor.displayName == 'Transform'
-            assert event.descriptor.transformer.displayName == 'SomeTransform'
-            assert event.descriptor.subject.displayName == 'artifact "foo.jar"'
-            assert event.descriptor.parent == null
-            assert event.result instanceof TransformSuccessResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "Transform succeeded"
+            assertTrue event.descriptor.displayName == 'Transform'
+            assertTrue event.descriptor.transformer.displayName == 'SomeTransform'
+            assertTrue event.descriptor.subject.displayName == 'artifact "foo.jar"'
+            assertTrue event.descriptor.parent == null
+            assertTrue event.result instanceof TransformSuccessResult
+            assertTrue event.result.startTime == 1
+            assertTrue event.result.endTime == 2
         }
     }
 
@@ -160,15 +162,15 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
 
         then:
         1 * listener.statusChanged(_ as TransformFinishEvent) >> { TransformFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "Transform failed"
-            assert event.descriptor.displayName == 'Transform'
-            assert event.descriptor.transformer.displayName == 'SomeTransform'
-            assert event.descriptor.subject.displayName == 'artifact "foo.jar"'
-            assert event.result instanceof TransformFailureResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.failures.size() == 1
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "Transform failed"
+            assertTrue event.descriptor.displayName == 'Transform'
+            assertTrue event.descriptor.transformer.displayName == 'SomeTransform'
+            assertTrue event.descriptor.subject.displayName == 'artifact "foo.jar"'
+            assertTrue event.result instanceof TransformFailureResult
+            assertTrue event.result.startTime == 1
+            assertTrue event.result.endTime == 2
+            assertTrue event.result.failures.size() == 1
         }
     }
 
@@ -221,15 +223,15 @@ class BuildProgressListenerAdapterForTransformOperationsTest extends Specificati
 
         then:
         1 * listener.statusChanged(_ as TransformStartEvent) >> { TransformStartEvent event ->
-            assert event.eventTime == 1000
-            assert event.displayName == "transform started"
-            assert event.descriptor.name == 'some transform'
-            assert event.descriptor.parent == null
-            assert event.descriptor.dependencies.size() == 1
+            assertTrue event.eventTime == 1000
+            assertTrue event.displayName == "transform started"
+            assertTrue event.descriptor.name == 'some transform'
+            assertTrue event.descriptor.parent == null
+            assertTrue event.descriptor.dependencies.size() == 1
             with(event.descriptor.dependencies[0]) {
-                assert it.name == 'dependency transform'
-                assert it.parent == null
-                assert it.dependencies.empty
+                assertTrue it.name == 'dependency transform'
+                assertTrue it.parent == null
+                assertTrue it.dependencies.empty
             }
         }
     }

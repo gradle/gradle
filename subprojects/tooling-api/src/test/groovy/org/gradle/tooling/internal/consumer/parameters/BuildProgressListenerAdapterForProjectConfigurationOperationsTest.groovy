@@ -39,6 +39,8 @@ import org.gradle.tooling.internal.protocol.events.InternalSuccessResult
 
 import java.time.Duration
 
+import static org.junit.Assert.assertTrue
+
 class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends Specification {
 
     def "adapter is only subscribing to test progress events if at least one test progress listener is attached"() {
@@ -79,11 +81,11 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
 
         then:
         1 * listener.statusChanged(_ as ProjectConfigurationStartEvent) >> { ProjectConfigurationStartEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "Project configuration started"
-            assert event.descriptor.displayName == 'Project configuration'
-            assert event.descriptor.project.buildIdentifier.rootDir == rootDir
-            assert event.descriptor.project.projectPath == ":some:project"
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "Project configuration started"
+            assertTrue event.descriptor.displayName == 'Project configuration'
+            assertTrue event.descriptor.project.buildIdentifier.rootDir == rootDir
+            assertTrue event.descriptor.project.projectPath == ":some:project"
         }
     }
 
@@ -135,24 +137,24 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
 
         then:
         1 * listener.statusChanged(_ as ProjectConfigurationFinishEvent) >> { ProjectConfigurationFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "Project configuration succeeded"
-            assert event.descriptor.displayName == 'Project configuration'
-            assert event.descriptor.project.buildIdentifier.rootDir == rootDir
-            assert event.descriptor.project.projectPath == ":some:project"
-            assert event.descriptor.parent == null
-            assert event.result instanceof ProjectConfigurationSuccessResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "Project configuration succeeded"
+            assertTrue event.descriptor.displayName == 'Project configuration'
+            assertTrue event.descriptor.project.buildIdentifier.rootDir == rootDir
+            assertTrue event.descriptor.project.projectPath == ":some:project"
+            assertTrue event.descriptor.parent == null
+            assertTrue event.result instanceof ProjectConfigurationSuccessResult
+            assertTrue event.result.startTime == 1
+            assertTrue event.result.endTime == 2
             with((ProjectConfigurationSuccessResult) event.result) {
-                assert pluginApplicationResults.size() == 2
-                assert pluginApplicationResults[0].plugin instanceof BinaryPluginIdentifier
-                assert pluginApplicationResults[0].plugin.className == 'com.acme.SomePlugin'
-                assert pluginApplicationResults[0].plugin.pluginId == 'com.acme.some'
-                assert pluginApplicationResults[0].totalConfigurationTime == Duration.ofMillis(23)
-                assert pluginApplicationResults[1].plugin instanceof ScriptPluginIdentifier
-                assert pluginApplicationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
-                assert pluginApplicationResults[1].totalConfigurationTime == Duration.ofMillis(42)
+                assertTrue pluginApplicationResults.size() == 2
+                assertTrue pluginApplicationResults[0].plugin instanceof BinaryPluginIdentifier
+                assertTrue pluginApplicationResults[0].plugin.className == 'com.acme.SomePlugin'
+                assertTrue pluginApplicationResults[0].plugin.pluginId == 'com.acme.some'
+                assertTrue pluginApplicationResults[0].totalConfigurationTime == Duration.ofMillis(23)
+                assertTrue pluginApplicationResults[1].plugin instanceof ScriptPluginIdentifier
+                assertTrue pluginApplicationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
+                assertTrue pluginApplicationResults[1].totalConfigurationTime == Duration.ofMillis(42)
             }
         }
     }
@@ -206,24 +208,24 @@ class BuildProgressListenerAdapterForProjectConfigurationOperationsTest extends 
 
         then:
         1 * listener.statusChanged(_ as ProjectConfigurationFinishEvent) >> { ProjectConfigurationFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "Project configuration failed"
-            assert event.descriptor.displayName == 'Project configuration'
-            assert event.descriptor.project.buildIdentifier.rootDir == rootDir
-            assert event.descriptor.project.projectPath == ":some:project"
-            assert event.result instanceof ProjectConfigurationFailureResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.failures.size() == 1
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "Project configuration failed"
+            assertTrue event.descriptor.displayName == 'Project configuration'
+            assertTrue event.descriptor.project.buildIdentifier.rootDir == rootDir
+            assertTrue event.descriptor.project.projectPath == ":some:project"
+            assertTrue event.result instanceof ProjectConfigurationFailureResult
+            assertTrue event.result.startTime == 1
+            assertTrue event.result.endTime == 2
+            assertTrue event.result.failures.size() == 1
             with((ProjectConfigurationFailureResult) event.result) {
-                assert pluginApplicationResults.size() == 2
-                assert pluginApplicationResults[0].plugin instanceof BinaryPluginIdentifier
-                assert pluginApplicationResults[0].plugin.className == 'com.acme.SomePlugin'
-                assert pluginApplicationResults[0].plugin.pluginId == 'com.acme.some'
-                assert pluginApplicationResults[0].totalConfigurationTime == Duration.ofMillis(23)
-                assert pluginApplicationResults[1].plugin instanceof ScriptPluginIdentifier
-                assert pluginApplicationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
-                assert pluginApplicationResults[1].totalConfigurationTime == Duration.ofMillis(42)
+                assertTrue pluginApplicationResults.size() == 2
+                assertTrue pluginApplicationResults[0].plugin instanceof BinaryPluginIdentifier
+                assertTrue pluginApplicationResults[0].plugin.className == 'com.acme.SomePlugin'
+                assertTrue pluginApplicationResults[0].plugin.pluginId == 'com.acme.some'
+                assertTrue pluginApplicationResults[0].totalConfigurationTime == Duration.ofMillis(23)
+                assertTrue pluginApplicationResults[1].plugin instanceof ScriptPluginIdentifier
+                assertTrue pluginApplicationResults[1].plugin.uri == new File(rootDir, "build.gradle").toURI()
+                assertTrue pluginApplicationResults[1].totalConfigurationTime == Duration.ofMillis(42)
             }
         }
     }
