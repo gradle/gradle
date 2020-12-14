@@ -20,7 +20,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
