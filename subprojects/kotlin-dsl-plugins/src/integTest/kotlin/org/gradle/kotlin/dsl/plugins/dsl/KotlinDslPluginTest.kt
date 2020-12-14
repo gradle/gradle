@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -263,7 +262,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
-    fun `by default experimental Kotlin compiler features are enabled and a warning is issued`() {
+    fun `can use SAM conversions for Kotlin functions without warnings`() {
 
         withBuildExercisingSamConversionForKotlinFunctions()
 
@@ -282,22 +281,23 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             assertThat(
                 output,
-                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
-            )
-
-            assertThat(
-                output,
-                containsString(experimentalWarningFor(":buildSrc"))
+                not(containsString(samConversionForKotlinFunctions))
             )
         }
     }
 
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
-    fun `can explicitly disable experimental Kotlin compiler features warning`() {
+    fun `nags user about experimentalWarning deprecation`() {
 
         withBuildExercisingSamConversionForKotlinFunctions(
             "kotlinDslPluginOptions.experimentalWarning.set(false)"
+        )
+
+        executer.expectDeprecationWarning(
+            "The KotlinDslPluginOptions.experimentalWarning property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. " +
+                "Flag has no effect since `kotlin-dsl` no longer relies on experimental features."
         )
 
         build("test").apply {
@@ -315,23 +315,10 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             assertThat(
                 output,
-                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
-            )
-
-            assertThat(
-                output,
-                not(containsString(experimentalWarningFor(":buildSrc")))
+                not(containsString(samConversionForKotlinFunctions))
             )
         }
     }
-
-    private
-    fun experimentalWarningFor(projectPath: String) =
-        kotlinDslPluginExperimentalWarning(
-            "project '$projectPath'",
-            DocumentationRegistry().getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
-                .substringBefore("docs.gradle.org") // Dropping the Gradle Version
-        )
 
     private
     fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {
@@ -358,7 +345,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             package my
 
             // Action<T> is a SAM with receiver
-            fun <T> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
+            fun <T : Any> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
 
             // NamedDomainObjectFactory<T> is a regular SAM
             fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
@@ -394,3 +381,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     fun outputOf(vararg arguments: String) =
         build(*arguments).output
 }
+
+
+private
+const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
