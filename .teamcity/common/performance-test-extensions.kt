@@ -17,7 +17,6 @@
 package common
 
 import configurations.buildScanTag
-import configurations.explicitToolchains
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -34,7 +33,6 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     }
     params {
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", os.buildJavaHome())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.JPROFILER_HOME", os.jprofilerHome)
         param("performance.db.username", "tcagent")
@@ -44,9 +42,9 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
 fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters" }",
     "-PperformanceBaselines=$baselines",
-    """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}"""",
-    """"-PtestJavaVersion=${os.perfTestJavaVersion.major}""""
-) + (explicitToolchains("${os.buildJavaHome()},${os.individualPerformanceTestJavaHome()}")
+    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
+    "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-Porg.gradle.java.installations.auto-download=false"
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",

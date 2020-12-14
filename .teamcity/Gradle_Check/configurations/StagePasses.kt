@@ -74,7 +74,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         buildToolGradleParameters() +
             baseBuildType.buildCache.gradleParameters(LINUX) +
             buildScanTags.map(::buildScanTag)
-        ).joinToString(" ")
+        ).joinToString(" ") + " -Porg.gradle.java.installations.auto-download=false"
     steps {
         gradleWrapper {
             name = "GRADLE_RUNNER"

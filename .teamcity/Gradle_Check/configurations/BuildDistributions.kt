@@ -16,9 +16,8 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
         this,
         "packageBuild",
         extraParameters = buildScanTag("BuildDistributions") +
-            " -PtestJavaHome=${LINUX.buildJavaHome()}" +
-            " -PtestJavaVersion=${LINUX.buildJavaVersion.major} " +
-            explicitToolchains(LINUX.buildJavaHome()).joinToString(separator = " ")
+            " -PtestJavaVersion=${LINUX.buildJavaVersion.major}" +
+            " -Porg.gradle.java.installations.auto-download=false"
     )
 
     features {
@@ -29,8 +28,4 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
         subprojects/distributions-full/build/distributions/*.zip => distributions
         subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     """.trimIndent()
-
-    params {
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
-    }
 })

@@ -40,6 +40,7 @@ enum class Os(
     val jprofilerHome: String,
     val killAllGradleProcesses: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
+    val perfTestJavaVendor: String = "oracle",
     val buildJavaVersion: JvmVersion = JvmVersion.java11,
     val perfTestJavaVersion: JvmVersion = JvmVersion.java8
 ) {
@@ -63,10 +64,4 @@ enum class Os(
     fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
 
     fun asName() = name.toLowerCase().capitalize()
-
-    fun buildJavaHome() = javaHome(buildJavaVersion, JvmVendor.openjdk)
-
-    fun individualPerformanceTestJavaHome() = javaHome(perfTestJavaVersion, JvmVendor.oracle)
-
-    fun javaHome(jvmVersion: JvmVersion, vendor: JvmVendor) = "%${name.toLowerCase()}.$jvmVersion.$vendor.64bit%"
 }

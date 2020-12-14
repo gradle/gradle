@@ -15,10 +15,6 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
-    params {
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
-    }
-
     features {
         publishBuildStatusToGithub(model)
     }
@@ -28,7 +24,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     }
 
     val buildScanTagForType = buildScanTag("Gradleception")
-    val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + explicitToolchains(LINUX.buildJavaHome())).joinToString(separator = " ")
+    val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
     applyDefaults(model, this, ":distributions-full:install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first $buildScanTagForType", extraSteps = {
         localGradle {

@@ -20,7 +20,6 @@ import Gradle_Check.model.PerformanceTestProjectSpec
 import common.Os
 import common.applyDefaultSettings
 import configurations.BaseGradleBuildType
-import configurations.explicitToolchains
 import configurations.gradleRunnerStep
 import configurations.publishBuildStatusToGithub
 import configurations.snapshotDependencies
@@ -42,7 +41,6 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
     applyDefaultSettings(os)
     params {
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", os.buildJavaHome())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
         param("performance.db.username", "tcagent")
@@ -73,7 +71,7 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                 "-Porg.gradle.performance.db.username" to "%performance.db.username%"
             ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) } +
-                " " + explicitToolchains(os.buildJavaHome()).joinToString(" ")
+                "-Porg.gradle.java.installations.auto-download=false"
         )
     }
 

@@ -170,6 +170,12 @@ fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion.set(jvmVersionForTest())
+        getPropertyFromAnySource("testJavaVendor").map {
+            when(it.toLowerCase()) {
+                "oracle" -> vendor.set(JvmVendorSpec.ORACLE)
+                "openjdk" -> vendor.set(JvmVendorSpec.ADOPTOPENJDK)
+            }
+        }.get()
     }
     javaLauncher.set(launcher)
     if (jvmVersionForTest().canCompileOrRun(9)) {

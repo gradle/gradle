@@ -116,7 +116,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(BuildStep.ExecutionMode.DEFAULT, getGradleStep("GRADLE_RUNNER").executionMode)
 
         assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters), getGradleStep("GRADLE_RUNNER").gradleParams)
-        assertEquals("clean javaToolchains myTask", getGradleStep("GRADLE_RUNNER").tasks)
+        assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
     }
 
     private

@@ -44,13 +44,11 @@ class FunctionalTest(
 
     val enableTestDistribution = testCoverage.testDistribution
 
-    val buildJavaHome = testCoverage.os.javaHome(testCoverage.buildJvmVersion, JvmVendor.openjdk)
-    val testJavaHome = testCoverage.os.javaHome(testCoverage.testJvmVersion, testCoverage.vendor)
-
     applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
-            listOf(""""-PtestJavaHome=$testJavaHome"""", """"-PbuildJavaVersion=${testCoverage.buildJvmVersion.major}"""", """"-PtestJavaVersion=${testCoverage.testJvmVersion.major}"""") +
-                explicitToolchains("$testJavaHome,$buildJavaHome") +
+            listOf(
+                "-PtestJavaVersion=${testCoverage.testJvmVersion.major}",
+                "-PtestJavaVendor=${testCoverage.vendor.name}") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
                 if (enableExperimentalTestDistribution(testCoverage, subprojects)) "-DenableTestDistribution=%enableTestDistribution%" else "" +
@@ -65,7 +63,6 @@ class FunctionalTest(
             param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%e.grdev.net.access.key%")
         }
 
-        param("env.JAVA_HOME", buildJavaHome)
         param("env.ANDROID_HOME", testCoverage.os.androidHome)
         if (testCoverage.os == Os.MACOS) {
             // Use fewer parallel forks on macOs, since the agents are not very powerful.
