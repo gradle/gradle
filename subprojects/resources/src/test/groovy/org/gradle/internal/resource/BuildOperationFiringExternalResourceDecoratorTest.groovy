@@ -28,6 +28,8 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.junit.Assert.assertTrue
+
 class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
 
     @Unroll
@@ -141,7 +143,7 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
                 1 * setResult(_) >> { ExternalResourceReadBuildOperationType.Result result ->
-                    assert result.bytesRead == TestExternalResource.READ_CONTENT_LENGTH
+                    assertTrue result.bytesRead == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
 
