@@ -272,6 +272,5 @@ public interface ObjectFactory {
      *
      * @since 5.0
      */
-    @Incubating
     RegularFileProperty fileProperty();
 }
