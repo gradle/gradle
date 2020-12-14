@@ -202,8 +202,12 @@ public class Javadoc extends SourceTask {
     }
 
     private Provider<JavadocTool> getJavadocToolForCurrentJvm() {
-        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
-        return service.javadocToolFor(new CurrentJvmToolchainSpec(getProject().getObjects()));
+        return getJavaToolchainService().javadocToolFor(new CurrentJvmToolchainSpec(getProject().getObjects()));
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
     }
 
     /**

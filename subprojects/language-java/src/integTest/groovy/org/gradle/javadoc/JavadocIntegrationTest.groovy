@@ -121,10 +121,27 @@ Joe! -->
 Joe!""")
     }
 
+    @Issue("GRADLE-3152")
+    def "can use the task without applying java-base plugin"() {
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+            }
+        """
+
+        writeSourceFile()
+
+        when:
+        run("javadoc")
+
+        then:
+        file("build/javadoc/Foo.html").exists()
+    }
+
     def "changing standard doclet options makes task out-of-date"() {
         buildFile << """
-            apply plugin: "java"
-            javadoc {
+            task javadoc(type: Javadoc) {
                 destinationDir = file("build/javadoc")
                 source "src/main/java"
                 options {
@@ -147,8 +164,7 @@ Joe!""")
 
         when:
         buildFile.text = """
-            apply plugin: "java"
-            javadoc {
+            task javadoc(type: Javadoc) {
                 destinationDir = file("build/javadoc")
                 source "src/main/java"
                 options {
@@ -237,9 +253,9 @@ Joe!""")
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
-'a' 
--addMultilineMultiValueOption 
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption
+'a'
+-addMultilineMultiValueOption
 'b' 'c' """))
     }
 
