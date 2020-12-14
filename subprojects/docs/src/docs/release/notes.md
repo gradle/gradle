@@ -28,6 +28,7 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 Gradle employs a number of optimizations to ensure that builds are executed as fast as possible.
 These optimizations rely on the inputs and outputs of tasks to be well-defined.
+Gradle already applies some validation to tasks to check whether they are well defined.
 If a task is found to be invalid, Gradle will now execute it without the benefit of parallel execution, up-to-date checks and the build cache.
 For more information See the [user manual on runtime validation](userguide/more_about_tasks.html#sec:task_input_validation).
 
