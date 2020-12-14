@@ -33,7 +33,7 @@ class BuildLayoutFactoryTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @Unroll
-    def "returns current directory when it contains a #settingsFilename file when script languages #extensions"() {
+    def "returns current directory when it contains a #settingsFilename file when script languages"() {
         given:
         def locator = buildLayoutFactoryFor()
 

@@ -208,7 +208,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         interaction {
             0 * action1._
             0 * action2._
-            0 * executionContext._
             0 * standardOutputCapture._
         }
     }
