@@ -180,15 +180,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         buildFile << """
             allprojects { apply plugin: 'java' }
             dependencies {
-                ${implementationConfiguration} project(':a')
+                compile project(':a')
             }
-            configurations.compileClasspath.each { println it }
+            configurations.compile.each { println it }
 """
         file("a/build.gradle") << """
             dependencies {
-                ${implementationConfiguration} project(':b')
+                compile project(':b')
             }
-            configurations.compileClasspath.each { println it }
+            configurations.compile.each { println it }
 """
 
         when:
