@@ -41,12 +41,12 @@ Some plugins will break with this new version of Gradle, for example because the
 ==== Removal of `compile` and `runtime` configurations
 
 Since its inception, Gradle provided the `compile` and `runtime` configurations to declare dependencies.
-Alternatives were introduced in Gradle 3.4:
+These however did not support a fine grained scoping of dependencies. Hence, better replacements were introduced in Gradle 3.4:
 
-- the `implementation` configuration should be used to declare dependencies which are _implementation details_ of a library: they will not leak to consumers when themselves are built
-- the `api` configuration, available only if you apply the `java-library` plugin, should be used to declare dependencies which are part of the API of a component, that is to say exposed to consumers
+- The `implementation` configuration should be used to declare dependencies which are _implementation details_ of a library: they are not visible to consumers of the library during compilation time.
+- The `api` configuration, available only if you apply the `java-library` plugin, should be used to declare dependencies which are part of the API of a library, that need to be exposed to consumers at compilation time.
 
-In Gradle 7, both the `compile` and `runtime` configurations were removed.
+In Gradle 7, both the `compile` and `runtime` configurations are removed.
 Therefore, you have to migrate to the `implementation` and `api` configurations above.
 If you are still using the `java` plugin for a Java library, you will need to apply the `java-library` plugin instead.
 
