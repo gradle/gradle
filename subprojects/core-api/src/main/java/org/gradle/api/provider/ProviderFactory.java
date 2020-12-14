@@ -88,7 +88,6 @@ public interface ProviderFactory {
      * @return the provider for the system property, never returns null
      * @since 6.1
      */
-    @Incubating
     Provider<String> systemProperty(String propertyName);
 
     /**
@@ -101,7 +100,6 @@ public interface ProviderFactory {
      * @return the provider for the system property, never returns null
      * @since 6.1
      */
-    @Incubating
     Provider<String> systemProperty(Provider<String> propertyName);
 
     /**
