@@ -312,7 +312,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     getParameterObjectDisplayName(parameterObject)),
                 validationMessages.keySet().stream()
                     .sorted()
-                    .distinct()
                     .map(InvalidUserDataException::new)
                     .collect(Collectors.toList())
             );

@@ -144,7 +144,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 String.format(formatString, ModelType.of(implementation).getDisplayName()),
                 validationMessages.keySet().stream()
                     .sorted()
-                    .distinct()
                     .map(InvalidUserDataException::new)
                     .collect(Collectors.toList())
             );
