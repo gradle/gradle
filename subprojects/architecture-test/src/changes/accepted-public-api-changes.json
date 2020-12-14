@@ -1182,6 +1182,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getJavaToolChain()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getJavaToolChainFactory()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
