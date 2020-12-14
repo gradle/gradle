@@ -112,7 +112,6 @@ public interface ProviderFactory {
      * @return the provider for the Gradle property, never returns null
      * @since 6.2
      */
-    @Incubating
     Provider<String> gradleProperty(String propertyName);
 
     /**
@@ -125,7 +124,6 @@ public interface ProviderFactory {
      * @return the provider for the Gradle property, never returns null
      * @since 6.2
      */
-    @Incubating
     Provider<String> gradleProperty(Provider<String> propertyName);
 
     /**
