@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 /**
  * A tooling model that instructs Gradle to run tasks to build artifacts for closed projects.
  *
@@ -30,6 +28,5 @@ import org.gradle.api.Incubating;
  *
  * @since 5.6
  */
-@Incubating
 public interface RunClosedProjectBuildDependencies {
 }

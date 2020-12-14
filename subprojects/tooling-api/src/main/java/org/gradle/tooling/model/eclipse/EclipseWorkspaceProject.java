@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
@@ -25,14 +23,12 @@ import java.io.File;
  *
  * @since 5.5
  */
-@Incubating
 public interface EclipseWorkspaceProject {
     /**
      * The name of the eclipse project
      *
      * @return the name of the project, never null
      */
-    @Incubating
     String getName();
 
     /**
@@ -40,7 +36,6 @@ public interface EclipseWorkspaceProject {
      *
      * @return the location of the eclipse project, may be null in case of remote projects
      */
-    @Incubating
     File getLocation();
 
     /**
@@ -48,6 +43,5 @@ public interface EclipseWorkspaceProject {
      *
      * @since 5.6
      */
-    @Incubating
     boolean isOpen();
 }
