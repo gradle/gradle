@@ -270,7 +270,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
                 registry.blocking {
                     assertTrue !state.hasMutableState()
                 }
-                state.hasMutableState()
+                assert state.hasMutableState()
             }
         }
 
