@@ -126,8 +126,9 @@ In Gradle 7.0 we moved the following classes out of incubation phase.
 
 - org.gradle.process.ExecOperations
 
-- org.gradle.api.model.ObjectFactory.fileProperty
 - org.gradle.api.model.ObjectFactory.directoryProperty
+- org.gradle.api.model.ObjectFactory.fileProperty
+- org.gradle.api.model.ObjectFactory.sourceDirectorySet
 
 <!--
 ### Example promoted

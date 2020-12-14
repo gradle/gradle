@@ -100,7 +100,6 @@ public interface ObjectFactory {
      * @param displayName A human consumable display name for the set.
      * @since 5.0
      */
-    @Incubating
     SourceDirectorySet sourceDirectorySet(String name, String displayName);
 
     /**
