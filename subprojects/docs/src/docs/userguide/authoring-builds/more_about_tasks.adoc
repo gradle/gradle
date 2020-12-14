@@ -771,7 +771,7 @@ These problems are then turned into deprecation warnings when the task is execut
 Tasks that fail validation are executed without any optimizations.
 Specifically, they never can be:
 
-* <<##sec:up_to_date_checks,up-to-date>>,
+* <<#sec:up_to_date_checks,up-to-date>>,
 * loaded from or stored in the <<build_cache.adoc#build_cache,build cache>>,
 * executed in parallel with other tasks, even if <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel execution>> is enabled,
 * executed incrementally.
