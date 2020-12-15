@@ -33,22 +33,22 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         addHeader(HttpHeaders.ETAG, "abc")
 
         expect:
-        resource().metaData.etag == "abc"
+        makeResource().metaData.etag == "abc"
     }
 
     def "handles no etag"() {
         expect:
-        resource().metaData.etag == null
+        makeResource().metaData.etag == null
     }
 
     def "is not openable more than once"() {
         setup:
         1 * response.entity >> Mock(HttpEntity)
         when:
-        def r = resource()
-        r.openStream()
+        def resource = makeResource()
+        resource.openStream()
         and:
-        r.openStream()
+        resource.openStream()
         then:
         def ex = thrown(IOException);
         ex.message == "Unable to open Stream as it was opened before."
@@ -59,7 +59,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         addHeader(name, value)
 
         expect:
-        resource().getHeaderValue(name) == value
+        makeResource().getHeaderValue(name) == value
 
         where:
         name = "X-Client-Deprecation-Message"
@@ -68,7 +68,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
 
     def "returns null when accessing value of a non existing header"() {
         expect:
-        resource().getHeaderValue("X-No-Such-Header") == null
+        makeResource().getHeaderValue("X-No-Such-Header") == null
     }
 
     def "close closes the response"() {
@@ -76,7 +76,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         def mockedHttpResponse = mockedHttpResponse(response)
 
         when:
-        resource().close()
+        makeResource().close()
 
         then:
         interaction {
@@ -84,7 +84,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         }
     }
 
-    HttpResponseResource resource() {
+    HttpResponseResource makeResource() {
         new HttpResponseResource(method, sourceUrl, new HttpClientResponse("GET", sourceUrl, response))
     }
 
