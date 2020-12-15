@@ -46,8 +46,8 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         def child = metadata.getConfiguration('child')
 
         then:
-        conf.dependencies.size() == 1
-        child.dependencies.size() == 0
+        conf.syntheticDependencies.size() == 1
+        child.syntheticDependencies.size() == 0
     }
 
     def 'locking constraints are not transitive'() {
@@ -60,8 +60,8 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         def conf = metadata.getConfiguration('conf')
 
         then:
-        conf.dependencies.size() == 1
-        conf.dependencies.each {
+        conf.syntheticDependencies.size() == 1
+        conf.syntheticDependencies.each {
             assert !it.transitive
         }
     }
@@ -77,8 +77,8 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         def conf = metadata.getConfiguration('conf')
 
         then:
-        conf.dependencies.size() == 1
-        conf.dependencies.each { DependencyMetadata dep ->
+        conf.syntheticDependencies.size() == 1
+        conf.syntheticDependencies.each { DependencyMetadata dep ->
             assert dep.reason == reason
         }
 

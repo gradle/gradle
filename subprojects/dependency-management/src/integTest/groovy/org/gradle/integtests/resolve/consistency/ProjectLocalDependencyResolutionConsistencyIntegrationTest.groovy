@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Issue
 
 // Limit the combinations of tests since we're only interested in the consistency
 // behavior, not actual metadata
@@ -224,6 +225,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
+    @ToBeFixedForConfigurationCache(because="exception doesn't seem to be recognized by configuration cache")
     def "detects cycles in consistency"() {
         repository {
             'org:foo:1.0'()
@@ -296,4 +298,57 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/15588")
+    def "shouldn't resolve source configuration during task dependency resolution phase"() {
+        repository {
+            'org:foo:1.1'()
+        }
+
+        buildFile << """
+            configurations {
+                other
+                conf.shouldResolveConsistentlyWith(other)
+            }
+
+            dependencies {
+                conf 'org:foo:1.0'
+                other 'org:foo:1.1'
+            }
+        """
+        withEagerResolutionPrevention()
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.1' {
+                expectResolve()
+            }
+        }
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:1.0', 'org:foo:1.1') {
+                    byConsistentResolution('other')
+                }
+                constraint("org:foo:{strictly 1.1}", "org:foo:1.1")
+            }
+        }
+    }
+
+    void withEagerResolutionPrevention() {
+        buildFile << """
+            def beforeTaskExecutionPhase = true
+            gradle.taskGraph.whenReady {
+                beforeTaskExecutionPhase = false
+            }
+            project.configurations.all {
+                it.incoming.beforeResolve { configuration ->
+                    if (beforeTaskExecutionPhase) {
+                        throw new RuntimeException("Configuration \${configuration.name} is being resolved before task execution phase.")
+                    }
+                }
+            }
+        """
+    }
 }
