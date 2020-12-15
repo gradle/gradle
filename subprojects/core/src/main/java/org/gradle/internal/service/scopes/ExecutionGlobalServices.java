@@ -123,8 +123,6 @@ public class ExecutionGlobalServices {
     );
 
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
-        @SuppressWarnings("deprecation")
-        Class<?> deprecatedAbstractTask = org.gradle.api.internal.AbstractTask.class;
         return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
@@ -137,7 +135,6 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
-                deprecatedAbstractTask,
                 ClosureBackedAction.class,
                 ConfigureUtil.WrappedConfigureAction.class,
                 ConventionTask.class,
