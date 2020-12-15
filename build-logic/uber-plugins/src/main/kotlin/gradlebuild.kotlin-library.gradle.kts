@@ -49,7 +49,7 @@ tasks {
         dependsOn(ktlintCheckTasks)
     }
 
-    tasks.named<KtlintCheckTask>("ktlintKotlinScriptCheck") {
+    ktlintKotlinScriptCheck {
         // Only check the build files, not all *.kts files in the project
         setSource(files("build.gradle.kts", "settings.gradle.kts"))
     }

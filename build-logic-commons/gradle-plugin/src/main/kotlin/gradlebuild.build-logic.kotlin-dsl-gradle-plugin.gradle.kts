@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -49,7 +48,7 @@ ktlint {
     }
 }
 
-tasks.named<KtlintCheckTask>("ktlintKotlinScriptCheck") {
+tasks.ktlintKotlinScriptCheck {
     // Only check the build files, not all *.kts files in the project
     setSource(files("build.gradle.kts", "settings.gradle.kts"))
 }
