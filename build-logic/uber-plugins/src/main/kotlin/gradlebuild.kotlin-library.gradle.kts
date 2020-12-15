@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.initialization.DefaultClassLoaderScope
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
-
 import gradlebuild.basics.accessors.kotlin
+import org.gradle.api.internal.initialization.DefaultClassLoaderScope
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
 
 
 plugins {
@@ -50,6 +47,11 @@ tasks {
 
     named("codeQuality") {
         dependsOn(ktlintCheckTasks)
+    }
+
+    tasks.named<KtlintCheckTask>("ktlintKotlinScriptCheck") {
+        // Only check the build files, not all *.kts files in the project
+        setSource(files("build.gradle.kts", "settings.gradle.kts"))
     }
 
     withType<Test>().configureEach {

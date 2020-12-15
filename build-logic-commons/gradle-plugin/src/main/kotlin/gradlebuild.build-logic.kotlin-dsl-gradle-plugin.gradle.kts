@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -46,6 +47,11 @@ ktlint {
     filter {
         exclude("gradle/kotlin/dsl/accessors/_*/**")
     }
+}
+
+tasks.named<KtlintCheckTask>("ktlintKotlinScriptCheck") {
+    // Only check the build files, not all *.kts files in the project
+    setSource(files("build.gradle.kts", "settings.gradle.kts"))
 }
 
 tasks.validatePlugins {
