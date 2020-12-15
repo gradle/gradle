@@ -183,7 +183,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archivePath]
+        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archiveFile.asFile.get()]
     }
 
     def "adds java library component"() {
@@ -196,7 +196,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
-        runtime.artifacts.collect {it.file} == [jarTask.archivePath]
+        runtime.artifacts.collect {it.file} == [jarTask.archiveFile.asFile.get()]
         runtime.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
     }
 
@@ -332,7 +332,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof Jar
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-        task.destinationDir == project.libsDirectory.get().asFile
+        task.destinationDirectory.asFile.get() == project.libsDirectory.get().asFile
         task.mainSpec.sourcePaths == [project.sourceSets.main.output] as Set
         task.manifest != null
         task.manifest.mergeSpecs.size() == 0
@@ -521,7 +521,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set
     }
 
-    void "source and target compatibility of compile tasks default to release if set"() {
+    def "source and target compatibility of compile tasks default to release if set"() {
         given:
         project.pluginManager.apply(JavaPlugin)
         def compileJava = project.tasks.named("compileJava", JavaCompile).get()

@@ -332,7 +332,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         assert wtp.libConfigurations == [project.configurations.runtimeClasspath] as Set
         assert wtp.minusConfigurations == [project.configurations.providedRuntime] as Set
         assert wtp.deployName == project.name
-        assert wtp.contextPath == project.war.baseName
+        assert wtp.contextPath == project.war.archiveBaseName.get()
         assert wtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
         assert wtp.classesDeployPath == "/WEB-INF/classes"
         assert wtp.libDeployPath == "/WEB-INF/lib"

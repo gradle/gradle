@@ -34,7 +34,7 @@ class ZipTest extends AbstractArchiveTaskTest {
         zip = createTask(Zip)
 
         expect:
-        zip.extension == Zip.ZIP_EXTENSION
+        zip.archiveExtension.get() == Zip.ZIP_EXTENSION
         checkConstructor()
     }
 }

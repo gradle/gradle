@@ -279,7 +279,7 @@ include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="
 include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/kotlin",files="build.gradle.kts[tags=using-api]"]
 ====
 
-Note that since Kotlin is a statically typed language, it is necessary to specify the type of the task explicitly. Otherwise, the script will not compile because the inferred type will be `Task`, not `Jar`, and the `archiveName` property is specific to the `Jar` task type.
+Note that since Kotlin is a statically typed language, it is necessary to specify the type of the task explicitly. Otherwise, the script will not compile because the inferred type will be `Task`, not `Jar`, and the `archiveFileName` property is specific to the `Jar` task type.
 
 If configuration avoidance is getting in your way migrating and you want to eagerly configure a task just like Groovy you can do so by using the eager configuration API on the `tasks` container:
 

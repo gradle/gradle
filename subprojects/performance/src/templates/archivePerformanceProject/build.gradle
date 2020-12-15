@@ -25,7 +25,7 @@ task zip(type: Zip) {
 task visitZip(dependsOn: zip) {
     doLast {
         (1..4).each {
-            zipTree(zip.archivePath).each {
+            zipTree(zip.archiveFile).each {
                 logger.info it.path
             }
         }
@@ -39,7 +39,7 @@ task tar(type: Tar) {
 task visitTar(dependsOn: tar) {
     doLast {
         (1..4).each {
-            tarTree(tar.archivePath).each {
+            tarTree(tar.archiveFile).each {
                 logger.info it.path
             }
         }
@@ -62,5 +62,5 @@ task visitTarGz(dependsOn: tarGz) {
 }
 
 tasks.withType(AbstractArchiveTask) {
-    destinationDir = projectDir
+    destinationDirectory = projectDir
 }

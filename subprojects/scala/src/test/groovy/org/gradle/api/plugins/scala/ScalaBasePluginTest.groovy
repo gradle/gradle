@@ -98,7 +98,7 @@ class ScalaBasePluginTest {
 
         assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.analysis")))
         assertThat(task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/classfileBackup/compileCustomScala.bak")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(project.tasks['customJar'].archivePath))
+        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(project.tasks['customJar'].archiveFile.asFile.get()))
         assertThat(task.analysisMappingFile.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.mapping")))
     }
 
