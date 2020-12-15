@@ -27,7 +27,7 @@ val docsProjectLocation = "documentation/docs" // TODO instead of reaching direc
 
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
-val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
+gradle.rootBuild().sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
     parameters.gradleVersion.set(moduleIdentity.version.map { it.version })
     parameters.homeDir.set(intTestHomeDir)
 }
@@ -50,7 +50,9 @@ fun executerRequiresFullDistribution(taskName: String) =
     taskName.startsWith("noDaemon")
 
 fun DistributionTest.addSetUpAndTearDownActions() {
-    cachesCleaner.set(cachesCleanerService)
+    gradle.rootBuild().sharedServices.registrations.findByName("cachesCleaner")?.let {
+        cachesCleaner.set(it.service)
+    }
     gradle.rootBuild().sharedServices.registrations.findByName("daemonTracker")?.let {
         tracker.set(it.service)
     }
