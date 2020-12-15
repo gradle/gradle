@@ -51,7 +51,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.destinationDirectory.isPresent()
         archiveTask.archiveFile.isPresent()
         archiveTask.destinationDir.isDirectory()
-        archiveTask.archivePath.isFile()
+        archiveTask.archiveFile.get().getAsFile().isFile()
     }
 
     def "archiveName with empty extension"() {
@@ -142,7 +142,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
 
     def "correct archive path"() {
         expect:
-        archiveTask.archivePath == new File(archiveTask.destinationDir, archiveTask.archiveFileName.get())
+        archiveTask.archiveFile.get().getAsFile() == new File(archiveTask.destinationDir, archiveTask.archiveFileName.get())
     }
 
     def "does not accept unset destinationDir"() {

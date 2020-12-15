@@ -110,20 +110,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * The path where the archive is constructed. The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
-     *
-     * @return a File object with the path to the archive
-     * @deprecated Use {@link #getArchiveFile()}
-     */
-    @Deprecated
-    @ReplacedBy("archiveFile")
-    public File getArchivePath() {
-        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
-        // DeprecationLogger.nagUserWith(DeprecationMessage.replacedProperty("archivePath", "archiveFile"));
-        return getArchiveFile().get().getAsFile();
-    }
-
-    /**
      * The {@link RegularFile} where the archive is constructed.
      * The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
      *
@@ -133,12 +119,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @OutputFile
     @SuppressWarnings("DanglingJavadoc")
     public Provider<RegularFile> getArchiveFile() {
+        // TODO since we only have properties now, should we deprecate this API? Either way, AbstractArchiveTask#getArchivePath()} no longer exists.
         // TODO: Turn this into an `@implSpec` annotation on the comment above:
         // https://github.com/gradle/gradle/issues/7486
         /**
          * This returns a provider of {@link RegularFile} instead of {@link RegularFileProperty} in order to
          * prevent users calling {@link org.gradle.api.provider.Property#set} and causing a plugin or users using
-         * {@link AbstractArchiveTask#getArchivePath()} to break or have strange behaviour.
+         * {@code AbstractArchiveTask#getArchivePath()} to break or have strange behaviour.
          * An example can be found
          * <a href="https://github.com/gradle/gradle-native/issues/893#issuecomment-430776251">here</a>.
          */

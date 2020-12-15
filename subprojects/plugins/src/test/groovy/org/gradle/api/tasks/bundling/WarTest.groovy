@@ -48,6 +48,6 @@ class WarTest extends AbstractArchiveTaskTest {
         execute(war)
 
         then:
-        new JarTestFixture(war.archivePath).assertContainsFile('WEB-INF/file.txt')
+        new JarTestFixture(war.archiveFile.get().getAsFile()).assertContainsFile('WEB-INF/file.txt')
     }
 }

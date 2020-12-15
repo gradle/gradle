@@ -86,6 +86,6 @@ class JarTest extends AbstractArchiveTaskTest {
         execute(jar)
 
         then:
-        new JarTestFixture(jar.archivePath).assertContainsFile('META-INF/file.txt')
+        new JarTestFixture(jar.archiveFile.get().getAsFile()).assertContainsFile('META-INF/file.txt')
     }
 }

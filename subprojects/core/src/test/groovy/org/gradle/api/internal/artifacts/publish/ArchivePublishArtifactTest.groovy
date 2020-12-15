@@ -39,9 +39,9 @@ class ArchivePublishArtifactTest extends Specification {
         then:
         a.archiveTask == quiteEmptyJar
         a.classifier == ""
-        a.date.time == quiteEmptyJar.archivePath.lastModified()
+        a.date.time == quiteEmptyJar.archiveFile.get().getAsFile().lastModified()
         a.extension == "jar"
-        a.file == quiteEmptyJar.archivePath
+        a.file == quiteEmptyJar.archiveFile.get().getAsFile()
         a.type == "jar"
     }
 

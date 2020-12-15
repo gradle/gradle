@@ -74,7 +74,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
     def createArtifactFromArchiveTask() {
         AbstractArchiveTask archiveTask = Mock()
-        archiveTask.getArchivePath() >> new File("")
+        archiveTask.archiveFile.get().getAsFile() >> new File("") // TODO
 
         when:
         def publishArtifact = publishArtifactNotationParser.parseNotation(archiveTask)
