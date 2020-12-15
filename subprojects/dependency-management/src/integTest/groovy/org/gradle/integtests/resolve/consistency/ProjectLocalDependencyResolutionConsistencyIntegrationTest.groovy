@@ -225,6 +225,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
+    @ToBeFixedForConfigurationCache(because="exception doesn't seem to be recognized by configuration cache")
     def "detects cycles in consistency"() {
         repository {
             'org:foo:1.0'()
