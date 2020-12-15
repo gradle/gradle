@@ -46,6 +46,30 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.file.UnableToDeleteFileException",
+            "member": "Class org.gradle.api.file.UnableToDeleteFileException",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.UnableToDeleteFileException",
+            "member": "Method org.gradle.api.file.UnableToDeleteFileException.getFile()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.UnableToDeleteFileException",
+            "member": "Constructor org.gradle.api.file.UnableToDeleteFileException(java.io.File)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
