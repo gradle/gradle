@@ -65,7 +65,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         }.run()
 
         then:
-        File binZip = contentsDir.file("subprojects/distributions-full/build/distributions").listFiles().find() { it.name.endsWith("-bin.zip") }
+        File binZip = contentsDir.file("distribution-plugins/full/distributions-full/build/distributions").listFiles().find() { it.name.endsWith("-bin.zip") }
         binZip.exists()
 
         when:
