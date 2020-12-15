@@ -17,7 +17,6 @@
 package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Information about the eclipse instance.
@@ -29,7 +28,6 @@ import org.gradle.api.Incubating;
  * @see org.gradle.tooling.BuildController#getModel(Class, Class, Action)
  * @since 5.5
  */
-@Incubating
 public interface EclipseRuntime {
     EclipseWorkspace getWorkspace();
 

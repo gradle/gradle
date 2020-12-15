@@ -16,9 +16,10 @@
 package org.gradle.plugins.ide.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "should honour reconfigured project names"() {
 
@@ -106,8 +107,8 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 ${mavenCentralRepository()}
 dependencies {
-    compile 'commons-lang:commons-lang:2.5'
-    runtime 'commons-io:commons-io:1.4'
+    ${implementationConfiguration} 'commons-lang:commons-lang:2.5'
+    ${runtimeConfiguration} 'commons-io:commons-io:1.4'
 }
 eclipse { classpath { downloadJavadoc = true } }
 """

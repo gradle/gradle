@@ -100,8 +100,8 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
 
             configurations {
-                functionalTestCompile.extendsFrom testImplementation
-                functionalTestRuntime.extendsFrom testRuntime
+                functionalTestImplementation.extendsFrom testImplementation
+                functionalTestRuntimeOnly.extendsFrom testRuntimeOnly
             }
 
             task functionalTest(type: Test) {

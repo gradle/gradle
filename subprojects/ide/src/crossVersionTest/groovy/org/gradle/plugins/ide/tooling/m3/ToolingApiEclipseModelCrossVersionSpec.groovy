@@ -16,11 +16,12 @@
 package org.gradle.plugins.ide.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "can build the eclipse model for a java project"() {
 
@@ -150,9 +151,9 @@ rootProject.name = 'root'
 allprojects { apply plugin: 'java' }
 ${mavenCentralRepository()}
 dependencies {
-    compile 'commons-lang:commons-lang:2.5'
-    compile project(':a')
-    runtime 'commons-io:commons-io:1.4'
+    ${implementationConfiguration} 'commons-lang:commons-lang:2.5'
+    ${implementationConfiguration} project(':a')
+    ${runtimeConfiguration} 'commons-io:commons-io:1.4'
 }
 """
 
@@ -171,14 +172,14 @@ dependencies {
 
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
 
-        projectDir.file('build.gradle').text = '''
+        projectDir.file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'idea'
 
 dependencies {
-    compile files { throw new RuntimeException('should not be resolving this') }
+    ${implementationConfiguration} files { throw new RuntimeException('should not be resolving this') }
 }
-'''
+"""
 
         when:
         HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
@@ -193,17 +194,17 @@ dependencies {
 include "a", "a:b"
 rootProject.name = 'root'
 '''
-        projectDir.file('build.gradle').text = '''
+        projectDir.file('build.gradle').text = """
 allprojects {
     apply plugin: 'java'
 }
 project(':a') {
     dependencies {
-        compile project(':')
-        compile project(':a:b')
+        ${implementationConfiguration} project(':')
+        ${implementationConfiguration} project(':a:b')
     }
 }
-'''
+"""
 
         when:
         HierarchicalEclipseProject minimalModel = loadToolingModel(HierarchicalEclipseProject)
@@ -234,23 +235,23 @@ project(':a') {
 include "c", "a", "a:b"
 rootProject.name = 'root'
 '''
-        projectDir.file('build.gradle').text = '''
+        projectDir.file('build.gradle').text = """
 allprojects {
     apply plugin: 'java'
 }
 project(':a') {
     dependencies {
-        compile project(':')
-        compile project(':a:b')
-        compile project(':c')
+        ${implementationConfiguration} project(':')
+        ${implementationConfiguration} project(':a:b')
+        ${implementationConfiguration} project(':c')
     }
 }
 project(':c') {
     dependencies {
-        compile project(':a:b')
+        ${implementationConfiguration} project(':a:b')
     }
 }
-'''
+"""
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

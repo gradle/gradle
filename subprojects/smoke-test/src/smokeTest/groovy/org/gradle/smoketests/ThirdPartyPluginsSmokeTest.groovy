@@ -52,7 +52,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             ${jcenterRepository()}
 
             dependencies {
-                compile 'commons-collections:commons-collections:3.2.2'
+                implementation 'commons-collections:commons-collections:3.2.2'
             }
 
             shadowJar {

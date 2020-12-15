@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.WorkValidationContext;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.reflect.TypeValidationContext;
 
-import java.util.Optional;
+public interface WorkValidationContext {
+    TypeValidationContext forType(Class<?> type, boolean cacheable);
 
-public interface ExecutionRequestContext extends Context {
-    /**
-     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
-     */
-    Optional<String> getRebuildReason();
+    ImmutableMultimap<TypeValidationContext.Severity, String> getProblems();
 
-    /**
-     * The validation context to use during the execution of the work.
-     */
-    WorkValidationContext getValidationContext();
+    ImmutableSet<Class<?>> getValidatedTypes();
 }

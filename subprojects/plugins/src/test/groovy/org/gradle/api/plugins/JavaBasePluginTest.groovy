@@ -323,26 +323,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def sourceSet = project.sourceSets.create('custom')
 
         then:
-        def compile = project.configurations.customCompile
-        compile.transitive
-        !compile.visible
-        compile.extendsFrom == [] as Set
-        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation' instead)."
-
-        then:
         def implementation = project.configurations.customImplementation
         !implementation.visible
-        implementation.extendsFrom == [compile] as Set
+        implementation.extendsFrom == [] as Set
         implementation.description == "Implementation only dependencies for source set 'custom'."
         !implementation.canBeConsumed
         !implementation.canBeResolved
-
-        and:
-        def runtime = project.configurations.customRuntime
-        runtime.transitive
-        !runtime.visible
-        runtime.extendsFrom == [compile] as Set
-        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly' instead)."
 
         and:
         def runtimeOnly = project.configurations.customRuntimeOnly
@@ -359,7 +345,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
-        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
+        runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
         runtimeClasspath.description == "Runtime classpath of source set 'custom'."
 
         and:

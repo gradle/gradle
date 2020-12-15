@@ -729,18 +729,6 @@ This is the basic configuration you need to use the plugin:
 include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
 ====
 
-Be aware that the Kotlin DSL Plugin turns on experimental Kotlin compiler features.
-See the <<#sec:kotlin_compiler_arguments>> section below for more information.
-
-By default, the plugin warns about using experimental features of the Kotlin compiler.
-You can silence the warning by setting the `experimentalWarning` property of the `kotlinDslPluginOptions` extension to `false` as follows:
-
-.Disabling the warning about the use of experimental Kotlin compiler features
-====
-include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin/kotlin",files="buildSrc/build.gradle.kts[tags=disable-experimental-warning]"]
-====
-
-
 [[sec:kotlin]]
 == The embedded Kotlin
 
@@ -773,37 +761,6 @@ Sets the target version of the generated JVM bytecode to `1.8`.
 `-Xjsr305=strict`::
 Sets up Kotlin's Java interoperability to strictly follow JSR-305 annotations for increased null safety.
 See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-configuration[Calling Java code from Kotlin] in the Kotlin documentation for more information.
-
-`-XX:SamConversionForKotlinFunctions`::
-Enables SAM (Single Abstract Method) conversion for Kotlin functions in order to allow Kotlin build logic to expose and consume `org.gradle.api.Action<T>` based APIs. Such APIs can then be used uniformly from both the Kotlin and Groovy DSLs.
-+
-As an example, given the following hypothetical Kotlin function with a Java SAM parameter type:
-+
-[source,kotlin]
-----
-fun kotlinFunctionWithJavaSam(action: org.gradle.api.Action<Any>) = TODO()
-----
-+
-SAM conversion for Kotlin functions enables the following usage of the function:
-+
-[source,kotlin]
-----
-kotlinFunctionWithJavaSam {
-    // ...
-}
-----
-+
-Without SAM conversion for Kotlin functions one would have to explicitly convert the passed lambda:
-+
-[source,kotlin]
-----
-kotlinFunctionWithJavaSam(Action {
-    // ...
-})
-----
-
-`-XX:ReferencesToSyntheticJavaProperties`::
-Enables method references to synthetic Java Bean properties.
 
 [[sec:interoperability]]
 == Interoperability

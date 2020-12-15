@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.kotlin.dsl.provider
 
-import org.gradle.internal.execution.WorkValidationContext;
 
-import java.util.Optional;
+object KotlinDslPluginSupport {
 
-public interface ExecutionRequestContext extends Context {
-    /**
-     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
-     */
-    Optional<String> getRebuildReason();
-
-    /**
-     * The validation context to use during the execution of the work.
-     */
-    WorkValidationContext getValidationContext();
+    val kotlinCompilerArgs: List<String>
+        get() = listOf(
+            "-java-parameters",
+            "-Xjsr305=strict",
+        )
 }

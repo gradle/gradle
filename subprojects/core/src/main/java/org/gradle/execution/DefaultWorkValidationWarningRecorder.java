@@ -16,6 +16,7 @@
 
 package org.gradle.execution;
 
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -34,10 +36,13 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     @Override
     public void recordValidationWarnings(UnitOfWork work, Collection<String> warnings) {
         workWithFailuresCount.incrementAndGet();
+        Set<String> uniqueSortedWarnings = ImmutableSortedSet.copyOf(warnings);
         LOGGER.warn("Validation failed for {}, disabling optimizations:{}",
             work.getDisplayName(),
-            warnings.stream().map(warning -> "\n  - " + warning).collect(Collectors.joining()));
-        warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
+            uniqueSortedWarnings.stream()
+                .map(warning -> "\n  - " + warning)
+                .collect(Collectors.joining()));
+        uniqueSortedWarnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
             .withContext("Execution optimizations are disabled due to the failed validation.")
             .willBeRemovedInGradle7()
             .withUserManual("more_about_tasks", "sec:up_to_date_checks")

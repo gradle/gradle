@@ -31,6 +31,57 @@
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
         },
+
+
+        {
+            "type": "org.gradle.api.tasks.SourceSet",
+            "member": "Method org.gradle.api.tasks.SourceSet.getCompileConfigurationName()",
+            "acceptation": "Configuration 'compile' was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.SourceSet",
+            "member": "Method org.gradle.api.tasks.SourceSet.getRuntimeConfigurationName()",
+            "acceptation": "Configuration 'runtime' was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field COMPILE_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'compile' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field RUNTIME_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'runtime' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field TEST_COMPILE_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'test compile' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field TEST_RUNTIME_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'test runtime' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+
         {
             "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "member": "Method org.gradle.api.artifacts.repositories.IvyArtifactRepository.layout(java.lang.String,org.gradle.api.Action)",

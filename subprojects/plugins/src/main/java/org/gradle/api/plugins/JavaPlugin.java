@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.LibraryElements;
@@ -139,15 +138,6 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
 
     /**
-     * The name of the configuration that is used to declare API or implementation dependencies. This configuration
-     * is deprecated.
-     *
-     * @deprecated Users should prefer {@link #API_CONFIGURATION_NAME} or {@link #IMPLEMENTATION_CONFIGURATION_NAME}.
-     */
-    @Deprecated
-    public static final String COMPILE_CONFIGURATION_NAME = "compile";
-
-    /**
      * The name of the configuration that is used to declare dependencies which are only required to compile a component,
      * but not at runtime.
      */
@@ -161,15 +151,6 @@ public class JavaPlugin implements Plugin<Project> {
      */
     @Incubating
     public static final String COMPILE_ONLY_API_CONFIGURATION_NAME = "compileOnlyApi";
-
-    /**
-     * The name of the "runtime" configuration. This configuration is deprecated and doesn't represent a correct view of
-     * the runtime dependencies of a component.
-     *
-     * @deprecated Consumers should use {@link #RUNTIME_ELEMENTS_CONFIGURATION_NAME} instead.
-     */
-    @Deprecated
-    public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
 
     /**
      * The name of the runtime only dependencies configuration, used to declare dependencies
@@ -225,14 +206,6 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "annotationProcessor";
 
     /**
-     * The name of the test compile dependencies configuration.
-     *
-     * @deprecated Use {@link #TEST_IMPLEMENTATION_CONFIGURATION_NAME} instead.
-     */
-    @Deprecated
-    public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
-
-    /**
      * The name of the test implementation dependencies configuration.
      *
      * @since 3.4
@@ -244,15 +217,6 @@ public class JavaPlugin implements Plugin<Project> {
      * to compile the tests, but not when running them.
      */
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
-
-    /**
-     * The name of the configuration that represents the component runtime classpath. This configuration doesn't
-     * represent the exact runtime dependencies and therefore is deprecated.
-     *
-     * @deprecated Use {@link #TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME} instead.
-     */
-    @Deprecated
-    public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
 
     /**
      * The name of the test runtime only dependencies configuration.
@@ -338,15 +302,12 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
         PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginConvention));
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
         Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
-
         addJar(apiElementConfiguration, jarArtifact);
-        addJar(runtimeConfiguration, jarArtifact);
         addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginConvention), processResources);
 
         registerSoftwareComponents(project);
@@ -435,19 +396,12 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureConfigurations(Project project, JavaPluginConvention convention) {
         ConfigurationContainer configurations = project.getConfigurations();
 
-        Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
-        Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
-        Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
-        Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
         Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
-        Configuration testRuntimeConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
         Configuration testRuntimeOnlyConfiguration = configurations.getByName(TEST_RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        compileTestsConfiguration.extendsFrom(compileConfiguration);
         testImplementationConfiguration.extendsFrom(implementationConfiguration);
-        testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -455,15 +409,13 @@ public class JavaPlugin implements Plugin<Project> {
         final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesApi()
-                .withDescription("API elements for main.")
-                .extendsFrom(runtimeConfiguration));
+                .withDescription("API elements for main."));
 
         final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
-                .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration));
-        defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
+                .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
 
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);

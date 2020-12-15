@@ -24,6 +24,14 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Build reliability improvements
+
+Gradle employs a number of optimizations to ensure that builds are executed as fast as possible.
+These optimizations rely on the inputs and outputs of tasks to be well-defined.
+Gradle already applies some validation to tasks to check whether they are well-defined.
+If a task is found to be invalid, Gradle will now execute it without the benefit of parallel execution, up-to-date checks and the build cache.
+For more information See the [user manual on runtime validation](userguide/more_about_tasks.html#sec:task_input_validation).
+
 ## Plugin development improvements
 
 ### Included plugin builds
@@ -94,7 +102,12 @@ ADD RELEASE FEATURES ABOVE
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-The following are the features that have been promoted in this Gradle release.
+In Gradle 7.0 we moved the following classes out of incubation phase.
+
+- org.gradle.tooling.model.eclipse.EclipseRuntime
+- org.gradle.tooling.model.eclipse.EclipseWorkspace
+- org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
+- org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
 
 <!--
 ### Example promoted

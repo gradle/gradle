@@ -16,27 +16,28 @@
 package org.gradle.plugins.ide.tooling.m4
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
 
         file('settings.gradle').text = 'include "child"'
-        file('build.gradle').text = '''
+        file('build.gradle').text = """
 apply plugin: 'java'
 dependencies {
-    compile project(':child')
-    compile files { throw new RuntimeException() }
-    compile 'this.lib.surely.does.not.exist:indeed:1.0'
+    ${implementationConfiguration} project(':child')
+    ${implementationConfiguration} files { throw new RuntimeException() }
+    ${implementationConfiguration} 'this.lib.surely.does.not.exist:indeed:1.0'
 }
 project(':child') {
     apply plugin: 'java'
     dependencies {
-        compile files { throw new RuntimeException() }
-        compile 'this.lib.surely.does.not.exist:indeed:2.0'
+        ${implementationConfiguration} files { throw new RuntimeException() }
+        ${implementationConfiguration} 'this.lib.surely.does.not.exist:indeed:2.0'
     }
 }
-'''
+"""
 
         when:
         HierarchicalEclipseProject project = loadToolingModel(HierarchicalEclipseProject)

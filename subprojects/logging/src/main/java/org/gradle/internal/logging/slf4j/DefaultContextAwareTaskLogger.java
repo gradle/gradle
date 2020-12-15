@@ -29,16 +29,16 @@ import static org.gradle.internal.logging.slf4j.BuildOperationAwareLogger.toLogL
 
 public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
-    private BuildOperationAwareLogger delegate;
+    private final BuildOperationAwareLogger delegate;
     private OperationIdentifier fallbackOperationIdentifier = null;
 
     public DefaultContextAwareTaskLogger(Logger delegate) {
         this.delegate = Cast.cast(BuildOperationAwareLogger.class, delegate);
     }
 
+    @Deprecated
     @Override
     public void setMessageRewriter(MessageRewriter messageRewriter) {
-        delegate = new MessageRewritingBuildOperationAwareLogger(delegate, messageRewriter);
     }
 
     @Override

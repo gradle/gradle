@@ -38,19 +38,11 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaLibraryPlugin)
 
         when:
-        def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
-
-        then:
-        compile.extendsFrom == [] as Set
-        !compile.visible
-        compile.transitive
-
-        when:
         def api = project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
 
         then:
         !api.visible
-        api.extendsFrom == [compile] as Set
+        api.extendsFrom == [] as Set
         !api.canBeConsumed
         !api.canBeResolved
 
@@ -59,17 +51,9 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         !implementation.visible
-        implementation.extendsFrom == [api, compile] as Set
+        implementation.extendsFrom == [api] as Set
         !implementation.canBeConsumed
         !implementation.canBeResolved
-
-        when:
-        def runtime = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
-
-        then:
-        runtime.extendsFrom == toSet(compile)
-        !runtime.visible
-        runtime.transitive
 
         when:
         def runtimeOnly = project.configurations.getByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME)
@@ -89,7 +73,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !runtimeElements.visible
         runtimeElements.canBeConsumed
         !runtimeElements.canBeResolved
-        runtimeElements.extendsFrom == [implementation, runtimeOnly, runtime] as Set
+        runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
 
         when:
         def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
@@ -99,7 +83,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
-        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
+        runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
 
         when:
         def compileOnlyApi = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME)
@@ -132,34 +116,18 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         !apiElements.visible
-        apiElements.extendsFrom == [api, runtime, compileOnlyApi] as Set
+        apiElements.extendsFrom == [api, compileOnlyApi] as Set
         apiElements.canBeConsumed
         !apiElements.canBeResolved
-
-        when:
-        def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
-
-        then:
-        testCompile.extendsFrom == toSet(compile)
-        !testCompile.visible
-        testCompile.transitive
 
         when:
         def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
-        testImplementation.extendsFrom == toSet(testCompile, implementation)
+        testImplementation.extendsFrom == toSet(implementation)
         !testImplementation.visible
         !testImplementation.canBeConsumed
         !testImplementation.canBeResolved
-
-        when:
-        def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
-
-        then:
-        testRuntime.extendsFrom == toSet(runtime, testCompile)
-        !testRuntime.visible
-        testRuntime.transitive
 
         when:
         def testRuntimeOnly = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
@@ -191,7 +159,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
 
         then:
-        defaultConfig.extendsFrom == toSet(runtimeElements)
+        defaultConfig.extendsFrom == toSet()
     }
 
     @Unroll
@@ -212,7 +180,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         project.dependencies {
-            compile commonProject
+            implementation commonProject
         }
         commonProject.dependencies {
             api toolsProject

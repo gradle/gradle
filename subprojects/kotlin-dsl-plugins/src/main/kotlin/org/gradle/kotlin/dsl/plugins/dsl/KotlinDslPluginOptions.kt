@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.internal.deprecation.DeprecationLogger.deprecateProperty
 
 import org.gradle.kotlin.dsl.*
 
@@ -41,12 +43,31 @@ class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
     }
 
     /**
-     * Set to `false` to silence the warning about the `kotlin-dsl` plugin enabling Kotlin compiler experimental features.
+     * Flag has no effect since `kotlin-dsl` no longer relies on experimental features.
      */
-    val experimentalWarning = objects.property<Boolean>().apply {
-        set(true)
+    @Deprecated(deprecationMessage)
+    val experimentalWarning: Property<Boolean>
+        get() {
+            nagUserAboutExperimentalWarning()
+            return experimentalWarningProperty
+        }
+
+    private
+    val experimentalWarningProperty = objects.property<Boolean>()
+
+    private
+    fun nagUserAboutExperimentalWarning() {
+        deprecateProperty(KotlinDslPluginOptions::class.java, "experimentalWarning")
+            .withContext(deprecationMessage)
+            .willBeRemovedInGradle8()
+            .undocumented()
+            .nagUser()
     }
 }
+
+
+private
+const val deprecationMessage = "Flag has no effect since `kotlin-dsl` no longer relies on experimental features."
 
 
 internal

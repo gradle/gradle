@@ -149,7 +149,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private void executeWork(UnitOfWork work) {
-        ExecutionEngine.Result result = engine.execute(work);
+        ExecutionEngine.Result result = engine.createRequest(work).execute();
         ExecutionResult er = result.getExecutionResult().get();
         GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);

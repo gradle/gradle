@@ -19,9 +19,10 @@ package org.gradle.integtests.tooling.r32
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import spock.lang.Issue
 
-class ResolutionExceptionSerializableCrossVersionSpec extends ToolingApiSpecification {
+class ResolutionExceptionSerializableCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def setup() {
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -44,7 +45,7 @@ class CustomBuilder implements ToolingModelBuilder {
     }
     Object buildAll(String modelName, Project project) {
         try {
-            List<File> compileDependencies = project.configurations.getByName('compile').resolvedConfiguration.resolvedArtifacts.collect { it.file }
+            List<File> compileDependencies = project.configurations.getByName('compileClasspath').resolvedConfiguration.resolvedArtifacts.collect { it.file }
             return new CustomArtifactModel(files: compileDependencies)
         } catch (e) {
             return new CustomArtifactModel(failure: e)
@@ -72,7 +73,7 @@ class CustomPlugin implements Plugin<Project> {
         when:
         file('build.gradle') << """
 dependencies {
-    compile 'commons-lang:commons-lang:10.0-NOTEXISTS'
+    ${implementationConfiguration} 'commons-lang:commons-lang:10.0-NOTEXISTS'
 }
 """
         def customModel = withConnection { connection ->

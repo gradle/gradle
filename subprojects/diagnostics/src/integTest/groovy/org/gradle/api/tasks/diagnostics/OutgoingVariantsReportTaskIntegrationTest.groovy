@@ -297,7 +297,7 @@ Secondary variants (*)
         then:
         outputContains("""> Task :outgoingVariants
 There is no variant named 'nope' defined on this project.
-Here are the available outgoing variants: apiElements, archives, compile, compileOnly, default, runtime, runtimeElements, testCompile, testCompileOnly, testRuntime
+Here are the available outgoing variants: apiElements, archives, compileOnly, default, runtimeElements, testCompileOnly
 """)
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -356,11 +356,6 @@ Artifacts
     - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
 
 --------------------------------------------------
-Variant compile (l)
---------------------------------------------------
-Description = Dependencies for source set 'main' (deprecated, use 'implementation' instead).
-
---------------------------------------------------
 Variant compileOnly (l)
 --------------------------------------------------
 Description = Compile only dependencies for source set 'main'.
@@ -369,17 +364,6 @@ Description = Compile only dependencies for source set 'main'.
 Variant default (l)
 --------------------------------------------------
 Description = Configuration for default artifacts.
-
-Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
-
---------------------------------------------------
-Variant runtime (l)
---------------------------------------------------
-Description = Runtime dependencies for source set 'main' (deprecated, use 'runtimeOnly' instead).
-
-Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -419,50 +403,14 @@ Secondary variants (*)
           - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
 
 --------------------------------------------------
-Variant testCompile (l)
---------------------------------------------------
-Description = Dependencies for source set 'test' (deprecated, use 'testImplementation' instead).
-
---------------------------------------------------
 Variant testCompileOnly (l)
 --------------------------------------------------
 Description = Compile only dependencies for source set 'test'.
-
---------------------------------------------------
-Variant testRuntime (l)
---------------------------------------------------
-Description = Runtime dependencies for source set 'test' (deprecated, use 'testRuntimeOnly' instead).
-
-Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
 """
 
         and:
         hasLegacyVariantsLegend()
         hasSecondaryVariantsLegend()
-    }
-
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "can show a legacy variant only"() {
-        buildFile << """
-            plugins { id 'java-library' }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run ':outgoingVariants', '--variant', 'compile'
-
-        then:
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
-Variant compile (l)
---------------------------------------------------
-Description = Dependencies for source set 'main' (deprecated, use 'implementation' instead).
-"""
-
-        and:
-        hasLegacyVariantsLegend()
-        doesNotHaveSecondaryVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")

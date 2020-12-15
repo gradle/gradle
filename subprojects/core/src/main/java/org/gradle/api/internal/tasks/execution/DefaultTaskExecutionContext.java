@@ -19,6 +19,7 @@ import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.time.Time;
@@ -31,6 +32,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
     private final TaskProperties properties;
+    private final WorkValidationContext validationContext;
     private final Consumer<TypeValidationContext> validationAction;
     private TaskExecutionMode taskExecutionMode;
     private Long executionTime;
@@ -38,9 +40,10 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final Timer executionTimer;
 
-    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, Consumer<TypeValidationContext> validationAction) {
+    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, WorkValidationContext validationContext, Consumer<TypeValidationContext> validationAction) {
         this.localTaskNode = localTaskNode;
         this.properties = taskProperties;
+        this.validationContext = validationContext;
         this.validationAction = validationAction;
         this.executionTimer = Time.startTimer();
     }
@@ -53,6 +56,11 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public TaskExecutionMode getTaskExecutionMode() {
         return taskExecutionMode;
+    }
+
+    @Override
+    public WorkValidationContext getValidationContext() {
+        return validationContext;
     }
 
     @Override

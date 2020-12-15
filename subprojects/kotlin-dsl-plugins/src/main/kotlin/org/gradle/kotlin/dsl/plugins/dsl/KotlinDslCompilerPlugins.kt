@@ -19,20 +19,11 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.TaskInternal
-import org.gradle.api.logging.LogLevel
-import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
-
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
-
-import org.gradle.kotlin.dsl.*
-
-import org.gradle.kotlin.dsl.support.serviceOf
 
 
 /**
@@ -55,62 +46,10 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
                         apiVersion = "1.4"
                         languageVersion = "1.4"
-                        freeCompilerArgs += listOf(
-                            KotlinCompilerArguments.javaParameters,
-                            KotlinCompilerArguments.jsr305Strict,
-                            KotlinCompilerArguments.samConversionForKotlinFunctions,
-                            KotlinCompilerArguments.referencesToSyntheticJavaProperties
-                        )
+                        freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
                     }
-                    it.applyExperimentalWarning(experimentalWarning.get())
                 }
             }
         }
     }
 }
-
-
-object KotlinCompilerArguments {
-    const val javaParameters = "-java-parameters"
-    const val jsr305Strict = "-Xjsr305=strict"
-    const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
-    const val referencesToSyntheticJavaProperties = "-XXLanguage:+ReferencesToSyntheticJavaProperties"
-}
-
-
-private
-fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) {
-    setWarningRewriter(newLoggerMessageRewriterFor(experimentalWarning, project.toString(), project.experimentalWarningLink))
-}
-
-
-private
-fun KotlinCompile.setWarningRewriter(rewriter: ContextAwareTaskLogger.MessageRewriter) {
-    (this as TaskInternal).setLoggerMessageRewriter(rewriter)
-}
-
-
-private
-fun newLoggerMessageRewriterFor(experimentalWarning: Boolean, target: String, link: String) =
-    { logLevel: LogLevel, message: String ->
-        when {
-            logLevel != LogLevel.WARN -> message
-            !message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions) -> message
-            experimentalWarning -> kotlinDslPluginExperimentalWarning(target, link)
-            else -> null
-        }
-    }
-
-
-fun kotlinDslPluginExperimentalWarning(target: String, link: String) =
-    "The `kotlin-dsl` plugin applied to $target enables experimental Kotlin compiler features. For more information see $link"
-
-
-private
-val Project.experimentalWarningLink
-    get() = documentationRegistry.getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
-
-
-private
-val Project.documentationRegistry
-    get() = serviceOf<DocumentationRegistry>()

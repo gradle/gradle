@@ -18,12 +18,13 @@ package org.gradle.plugins.ide.tooling.r214
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def setup() {
         def mavenRepo = new MavenFileRepository(file("maven-repo"))
@@ -33,8 +34,8 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """allprojects { apply plugin: 'java' }
 repositories { maven { url '${mavenRepo.uri}' } }
 dependencies {
-    compile project(':sub')
-    compile 'org.example:example-lib:1.0'
+    ${implementationConfiguration} project(':sub')
+    ${implementationConfiguration} 'org.example:example-lib:1.0'
 }"""
 
     }

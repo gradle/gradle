@@ -51,7 +51,7 @@ class GroovyCompilerContinuousIntegrationTest extends AbstractCompilerContinuous
             apply plugin: "groovy"
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
 
             tasks.withType(${compileTaskType}) {

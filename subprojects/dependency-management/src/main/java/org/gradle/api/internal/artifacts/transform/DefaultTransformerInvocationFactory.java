@@ -139,25 +139,27 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             workspaceServices
         );
 
-        return executionEngine.getFromIdentityCacheOrDeferExecution(execution, workspaceServices.getIdentityCache(), new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
-            @Override
-            public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
-                return CacheableInvocation.cached(mapResult(cachedOutput));
-            }
+        return executionEngine.createRequest(execution)
+            .withIdentityCache(workspaceServices.getIdentityCache())
+            .getOrDeferExecution(new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
+                @Override
+                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
+                    return CacheableInvocation.cached(mapResult(cachedOutput));
+                }
 
-            @Override
-            public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
-                return CacheableInvocation.nonCached(() ->
-                    fireTransformListeners(transformer, subject, () ->
-                        mapResult(deferredExecution.get())));
-            }
+                @Override
+                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
+                    return CacheableInvocation.nonCached(() ->
+                        fireTransformListeners(transformer, subject, () ->
+                            mapResult(deferredExecution.get())));
+                }
 
-            @Nonnull
-            private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
-                return cachedOutput
-                    .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
-            }
-        });
+                @Nonnull
+                private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
+                    return cachedOutput
+                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
+                }
+            });
     }
 
     private static UnitOfWork.Identity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {

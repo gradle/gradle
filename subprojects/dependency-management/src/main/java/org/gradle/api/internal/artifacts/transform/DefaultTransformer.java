@@ -51,11 +51,11 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.impl.DefaultFileNormalizationSpec;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -306,8 +306,14 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         ImmutableMap<String, TypeValidationContext.Severity> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of the artifact transform parameter %s." : "Some problems were found with the configuration of the artifact transform parameter %s.", getParameterObjectDisplayName(parameterObject)),
-                validationMessages.keySet().stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList())
+                String.format(validationMessages.size() == 1
+                        ? "A problem was found with the configuration of the artifact transform parameter %s."
+                        : "Some problems were found with the configuration of the artifact transform parameter %s.",
+                    getParameterObjectDisplayName(parameterObject)),
+                validationMessages.keySet().stream()
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(Collectors.toList())
             );
         }
 

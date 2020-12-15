@@ -269,14 +269,14 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         beanProject.pluginManager.apply(JavaPlugin)
 
         beanProject.dependencies {
-            runtime project(path: pojoProject.path, configuration: 'default')
+            runtimeOnly project(path: pojoProject.path)
         }
 
         when:
         project.pluginManager.apply(EarPlugin)
         project.dependencies {
-            deploy project(path: beanProject.path, configuration: 'default')
-            earlib project(path: beanProject.path, configuration: 'default')
+            deploy project(path: beanProject.path)
+            earlib project(path: beanProject.path)
         }
 
         and:

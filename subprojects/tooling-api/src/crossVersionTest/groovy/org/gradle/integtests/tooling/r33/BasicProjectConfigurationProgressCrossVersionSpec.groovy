@@ -19,12 +19,13 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
 @TargetGradleVersion(">=3.3")
-class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecification {
+class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "generates project configuration events for single project build"() {
         given:
@@ -198,7 +199,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
             allprojects {
                 apply plugin: 'java'
                 ${mavenCentralRepository()}
-                dependencies { testCompile 'junit:junit:4.13' }
+                dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
@@ -216,11 +217,11 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
             allprojects {
                 apply plugin: 'java'
                 ${mavenCentralRepository()}
-                dependencies { testCompile 'junit:junit:4.13' }
+                dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             }
             dependencies {
-                compile project(':a')
-                compile project(':b')
+                ${implementationConfiguration} project(':a')
+                ${implementationConfiguration} project(':b')
             }
 """
         file("buildSrc/a/src/main/java/A.java") << "public class A {}"

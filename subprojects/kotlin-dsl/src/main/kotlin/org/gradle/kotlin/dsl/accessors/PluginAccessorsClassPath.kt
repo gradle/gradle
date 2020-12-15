@@ -102,7 +102,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                 fileCollectionFactory,
                 workspaceProvider
             )
-            val result = executionEngine.execute(work)
+            val result = executionEngine.createRequest(work).execute()
             result.executionResult.get().output as AccessorsClassPath
         }
     }
