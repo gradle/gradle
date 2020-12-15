@@ -162,7 +162,7 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
             public ArtifactTypeContainer create() {
                 throw new UnsupportedOperationException();
             }
-        });
+        }, false);
         return result;
     }
 

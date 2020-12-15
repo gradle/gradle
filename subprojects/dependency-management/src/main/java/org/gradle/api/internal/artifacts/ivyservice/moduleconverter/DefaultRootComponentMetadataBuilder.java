@@ -48,7 +48,9 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                                                ComponentIdentifierFactory componentIdentifierFactory,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                LocalComponentMetadataBuilder localComponentMetadataBuilder,
-                                               ConfigurationsProvider configurationsProvider, ProjectStateRegistry projectStateRegistry, DependencyLockingProvider dependencyLockingProvider) {
+                                               ConfigurationsProvider configurationsProvider,
+                                               ProjectStateRegistry projectStateRegistry,
+                                               DependencyLockingProvider dependencyLockingProvider) {
         this.metadataProvider = metadataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;

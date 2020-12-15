@@ -466,7 +466,7 @@ public class NodeState implements DependencyGraphNode {
             cachedDependencyStates = null;
             cachedFilteredDependencyStates = null;
         }
-        List<? extends DependencyMetadata> dependencies = metaData.getDependencies();
+        List<? extends DependencyMetadata> dependencies = getAllDependencies();
         if (transitiveEdgeCount == 0 && metaData.isExternalVariant()) {
             // there must be a single dependency state because this variant is an "available-at"
             // variant and here we are in the case the "including" component said that transitive
@@ -476,6 +476,10 @@ public class NodeState implements DependencyGraphNode {
         }
         doesNotHaveDependencies = dependencies.isEmpty();
         return dependencies;
+    }
+
+    protected List<? extends DependencyMetadata> getAllDependencies() {
+        return metaData.getDependencies();
     }
 
     private static DependencyMetadata makeNonTransitive(DependencyMetadata dependencyMetadata) {

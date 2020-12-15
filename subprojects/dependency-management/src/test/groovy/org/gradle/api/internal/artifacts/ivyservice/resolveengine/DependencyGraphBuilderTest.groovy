@@ -134,7 +134,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
         def graphVisitor = new TestGraphVisitor()
-        builder.resolve(configuration, graphVisitor)
+        builder.resolve(configuration, graphVisitor, false)
         return graphVisitor
     }
 
