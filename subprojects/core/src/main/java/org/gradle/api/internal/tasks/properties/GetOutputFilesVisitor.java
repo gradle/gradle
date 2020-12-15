@@ -28,20 +28,18 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<OutputFilePropertySpec> specs = Lists.newArrayList();
     private final String ownerDisplayName;
     private final FileCollectionFactory fileCollectionFactory;
-    private final boolean locationOnly;
     private ImmutableSortedSet<OutputFilePropertySpec> fileProperties;
     private boolean hasDeclaredOutputs;
 
-    public GetOutputFilesVisitor(String ownerDisplayName, FileCollectionFactory fileCollectionFactory, boolean locationOnly) {
+    public GetOutputFilesVisitor(String ownerDisplayName, FileCollectionFactory fileCollectionFactory) {
         this.ownerDisplayName = ownerDisplayName;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.locationOnly = locationOnly;
     }
 
     @Override
     public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         hasDeclaredOutputs = true;
-        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, locationOnly, specs::add);
+        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, false, specs::add);
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {

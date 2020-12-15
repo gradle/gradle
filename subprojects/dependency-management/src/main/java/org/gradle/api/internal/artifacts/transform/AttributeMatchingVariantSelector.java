@@ -80,6 +80,11 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     }
 
     @Override
+    public ImmutableAttributes getRequestedAttributes() {
+        return requested;
+    }
+
+    @Override
     public ResolvedArtifactSet select(ResolvedVariantSet producer, Factory factory) {
         try {
             return doSelect(producer, factory, AttributeMatchingExplanationBuilder.logging());

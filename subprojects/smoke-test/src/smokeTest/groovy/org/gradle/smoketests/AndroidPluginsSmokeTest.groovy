@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
@@ -72,15 +73,22 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         and:
-        def agpBaseVersion = VersionNumber.parse(agpVersion).baseVersion
-        def threeDotSixBaseVersion = VersionNumber.parse("3.6.0").baseVersion
+        def agpBaseVersion = baseVersionNumberOf(agpVersion)
+        def threeDotSixBaseVersion = baseVersionNumberOf("3.6.0")
         if (agpBaseVersion < threeDotSixBaseVersion) {
             assert result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
         } else {
             assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
-        }
-        if (agpBaseVersion >= threeDotSixBaseVersion) {
-            expectNoDeprecationWarnings(result)
+            if (agpBaseVersion == baseVersionNumberOf("3.6.4")) {
+                expectDeprecationWarnings(
+                    result,
+                    "Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead. " +
+                        "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_gradle_types.html#domainobjectset for more details."
+                )
+            } else {
+                expectNoDeprecationWarnings(result)
+            }
         }
 
         and:
@@ -130,6 +138,10 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             TestedVersions.androidGradle.toList(),
             [false, true]
         ].combinations()
+    }
+
+    private VersionNumber baseVersionNumberOf(String versionString) {
+        VersionNumber.parse(versionString).baseVersion
     }
 
     /**

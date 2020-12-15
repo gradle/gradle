@@ -17,8 +17,11 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import java.nio.file.Files
 
 @Unroll
 class UpToDateIntegTest extends AbstractIntegrationSpec {
@@ -191,5 +194,72 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
 
         where:
         type << ["dir", "file"]
+    }
+
+    @ToBeFixedForConfigurationCache(because = "The cache fix plugin hackery doesn't work with configuration caching")
+    @Issue("https://github.com/gradle/gradle/issues/15397")
+    def "can add a file input in a task execution listener"() {
+        buildFile << """
+            abstract class TaskMissingPathSensitivity extends DefaultTask {
+                @InputFiles
+                FileCollection inputFiles
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doWork() {
+                    outputFile.get().asFile.text = "output"
+                }
+            }
+
+            tasks.register("customTask", TaskMissingPathSensitivity) {
+                inputFiles = files("input1", "input2")
+                outputFile = layout.buildDirectory.file("output.txt")
+            }
+
+            // This is what the Android cache fix plugin is doing:
+            tasks.withType(TaskMissingPathSensitivity).configureEach { TaskMissingPathSensitivity task ->
+                ConfigurableFileCollection newInputs = files()
+                FileCollection originalPropertyValue
+                // Create a synthetic input with the original property value and RELATIVE path sensitivity
+                project.gradle.taskGraph.beforeTask {
+                    if (it == task) {
+                        originalPropertyValue = task.inputFiles
+                        task.inputFiles = project.files()
+                        task.inputs.files(originalPropertyValue)
+                            .withPathSensitivity(PathSensitivity.RELATIVE)
+                            .withPropertyName("inputFiles.workaround")
+                            .optional()
+                    }
+                }
+                // Set the task property back to its original value
+                task.doFirst {
+                    task.inputFiles = originalPropertyValue
+                }
+            }
+        """
+        def inputDir1 = file("input1").createDir()
+        def inputDir2 = file("input2").createDir()
+        def inputFileName = "inputFile.txt"
+        def inputFile = inputDir1.file(inputFileName)
+        inputFile.text = "input"
+
+        when:
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        Files.move(inputFile.toPath(), inputDir2.file(inputFileName).toPath())
+        run "customTask"
+        then:
+        skipped(":customTask")
+
+        when:
+        inputDir2.file(inputFileName).text = "changed"
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
     }
 }

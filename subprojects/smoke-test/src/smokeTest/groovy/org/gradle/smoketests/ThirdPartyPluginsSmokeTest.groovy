@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -548,6 +549,70 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(":compileJava").outcome == SUCCESS
 
         expectNoDeprecationWarnings(result)
+
+        when:
+        result = runner('compileJava').forwardOutput().build()
+
+        then:
+        result.task(":generateProto").outcome == UP_TO_DATE
+        result.task(":compileJava").outcome == UP_TO_DATE
+    }
+
+    @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
+    @ToBeFixedForConfigurationCache
+    def "protobuf plugin with kotlin DSL"() {
+        given:
+        withKotlinBuildFile()
+        buildFile << """
+            import com.google.protobuf.gradle.*
+            plugins {
+                id("java")
+                id("com.google.protobuf") version("${TestedVersions.protobufPlugin}")
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            protobuf {
+                protoc {
+                    artifact = "com.google.protobuf:protoc:${TestedVersions.protobufTools}"
+                }
+                plugins {
+                }
+            }
+            dependencies {
+                implementation("com.google.protobuf:protobuf-java:${TestedVersions.protobufTools}")
+            }
+        """
+
+        and:
+        file("src/main/proto/sample.proto") << """
+            syntax = "proto3";
+            option java_package = "my.proto";
+            option java_multiple_files = true;
+            message Msg {
+                string text = 1;
+            }
+        """
+        file("src/main/java/my/Sample.java") << """
+            package my;
+            import my.proto.Msg;
+            public class Sample {}
+        """
+
+        when:
+        def result = runner('compileJava').forwardOutput().build()
+
+        then:
+        result.task(":generateProto").outcome == SUCCESS
+        result.task(":compileJava").outcome == SUCCESS
+
+        expectDeprecationWarnings(
+            result,
+            "Using method NamedDomainObjectContainer<T>.invoke(kotlin.Function1) has been deprecated." +
+                " This is scheduled to be removed in Gradle 8.0." +
+                " Recompile your plugin against Gradle >= 6.8" +
+                " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#using_NamedDomainObjectContainer_invoke_kotlin_Function1"
+        )
 
         when:
         result = runner('compileJava').forwardOutput().build()

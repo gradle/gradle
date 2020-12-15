@@ -321,9 +321,14 @@ abstract class AbstractSmokeTest extends Specification {
                 foundDeprecations++
                 return
             }
-            assert !line.contains("has been deprecated and is scheduled to be removed in Gradle"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
+            assert !containsDeprecationWarning(line), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
         }
         assert remainingWarnings.empty, "Expected ${remainingWarnings.size()} deprecation warnings, found ${foundDeprecations} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
+    }
+
+    private static boolean containsDeprecationWarning(String line) {
+        line.contains("has been deprecated and is scheduled to be removed in Gradle") ||
+            line.contains("has been deprecated. This is scheduled to be removed in Gradle")
     }
 
     void copyRemoteProject(String remoteProject, File targetDir) {
