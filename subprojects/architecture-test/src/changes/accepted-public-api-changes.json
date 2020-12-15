@@ -105,6 +105,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "Removal of unused internal method",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.setLoggerMessageRewriter(org.gradle.internal.logging.slf4j.ContextAwareTaskLogger$MessageRewriter)"
+            ]
         }
     ]
 }
