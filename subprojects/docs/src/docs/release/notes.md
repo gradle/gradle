@@ -109,6 +109,11 @@ In Gradle 7.0 we moved the following classes out of incubation phase.
 - org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
 - org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
 
+- org.gradle.tooling.events.OperationType.TestOutput
+- org.gradle.tooling.events.test.Destination
+- org.gradle.tooling.events.test.TestOutputDescriptor
+- org.gradle.tooling.events.test.TestOutputEvent
+
 <!--
 ### Example promoted
 -->

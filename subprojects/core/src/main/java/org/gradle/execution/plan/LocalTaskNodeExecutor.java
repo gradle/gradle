@@ -74,7 +74,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             consumedLocations.getNodesRelatedTo(outputPath).stream()
                 .filter(consumerNode -> missesDependency(node, consumerNode))
-                .forEach(consumerWithoutDependency -> collectValidationWarning(node, consumerWithoutDependency, validationContext));
+                .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
         }
         Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
@@ -103,7 +103,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
             producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
                 .filter(producerNode -> missesDependency(producerNode, node))
-                .forEach(producerWithoutDependency -> collectValidationWarning(producerWithoutDependency, node, validationContext));
+                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }
     }
 
@@ -129,9 +129,14 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         return true;
     }
 
-    private void collectValidationWarning(Node producer, Node consumer, TypeValidationContext validationContext) {
+    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext) {
+        // If the consumer and producer are running at the same time, then something is very wrong in the current build.
+        // So we fail the build in that case to expose the problem.
+        TypeValidationContext.Severity severity = producer.isExecuting() && consumer.isExecuting()
+            ? TypeValidationContext.Severity.ERROR
+            : TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
-            TypeValidationContext.Severity.WARNING,
+            severity,
             String.format("%s consumes the output of %s, but does not declare a dependency", consumer, producer)
         );
     }

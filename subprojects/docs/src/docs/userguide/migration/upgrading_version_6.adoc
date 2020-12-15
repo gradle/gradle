@@ -67,6 +67,8 @@ The `layout` method taking a configuration block has been removed and is replace
 
 The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is now marked as `@NonNull`.
 
+This may impact Kotlin consumers where the return types of APIs are no longer nullable. 
+
 ==== Updates to default tool integration versions
 
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
@@ -127,6 +129,13 @@ If your build uses this feature, consider refactoring the build to have the root
 
 Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
 <<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
+
+[[using_NamedDomainObjectContainer_invoke_kotlin_Function1]]
+==== Using method `NamedDomainObjectContainer<T>.invoke(kotlin.Function1)`
+
+Gradle Kotlin DSL extensions have been changed to favor Gradle's `Action<T>` type over Kotlin function types.
+
+While the change should be transparent to Kotlin clients, Java clients calling Kotlin DSL extensions need to be updated to use the `Action<T>` APIs.
 
 [[changes_6.7]]
 == Upgrading from 6.6

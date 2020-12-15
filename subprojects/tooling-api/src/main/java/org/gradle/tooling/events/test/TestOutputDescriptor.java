@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.OperationDescriptor;
  *
  * @since 6.0
  */
-@Incubating
 public interface TestOutputDescriptor extends OperationDescriptor {
 
     /**
