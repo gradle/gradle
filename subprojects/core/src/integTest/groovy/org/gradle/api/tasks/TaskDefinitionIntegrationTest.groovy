@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
@@ -157,19 +156,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
     }
 
-    def "creating a task of type AbstractTask is not supported"() {
-        buildFile << """
-            task thing(type: ${AbstractTask.name}) { t ->
-                assert t instanceof DefaultTask
-                doFirst { println("thing") }
-            }
-        """
-
-        expect:
-        fails("thing")
-        failureHasCause("Cannot create task ':thing' of type 'AbstractTask' as this type is not supported for task registration.")
-    }
-
     def "creating a task of type TaskInternal is not supported"() {
         buildFile << """
             task thing(type: ${TaskInternal.name}) { t ->
@@ -181,20 +167,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("thing")
         failureHasCause("Cannot create task ':thing' of type 'TaskInternal' as this type is not supported for task registration.")
-    }
-
-    def "creating a task that is a subtype of AbstractTask is not supported"() {
-        buildFile << """
-            class CustomTask extends ${AbstractTask.name} {
-            }
-            task thing(type: CustomTask) { t ->
-                doFirst { println("thing") }
-            }
-        """
-
-        expect:
-        fails("thing")
-        failureHasCause("Cannot create task ':thing' of type 'CustomTask' as directly extending AbstractTask is not supported.")
     }
 
     def "does not hide local methods and variables"() {
