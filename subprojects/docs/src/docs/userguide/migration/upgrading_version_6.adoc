@@ -56,6 +56,10 @@ You can find more details about the benefits of the new configurations and which
 
 The `layout` method taking a configuration block has been removed and is replaced by link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:patternLayout(org.gradle.api.Action)[patternLayout].
 
+==== Removal of `ProjectLayout#configurableFiles`
+
+Please use `ObjectFactory#fileCollection()` instead.
+
 === Deprecations
 
 [[changes_6.8]]
