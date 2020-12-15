@@ -36,11 +36,6 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
         this.delegate = Cast.cast(BuildOperationAwareLogger.class, delegate);
     }
 
-    @Deprecated
-    @Override
-    public void setMessageRewriter(MessageRewriter messageRewriter) {
-    }
-
     @Override
     public void setFallbackBuildOperationId(OperationIdentifier operationIdentifier) {
         this.fallbackOperationIdentifier = operationIdentifier;

@@ -473,11 +473,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void setLoggerMessageRewriter(ContextAwareTaskLogger.MessageRewriter messageRewriter) {
-        logger.setMessageRewriter(messageRewriter);
-    }
-
-    @Override
     @SuppressWarnings("deprecation")
     public org.gradle.logging.StandardOutputCapture getStandardOutputCapture() {
         return getLogging();
