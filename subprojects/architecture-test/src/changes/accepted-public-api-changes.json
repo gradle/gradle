@@ -97,6 +97,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.file.ProjectLayout",
+            "member": "Method org.gradle.api.file.ProjectLayout.configurableFiles(java.lang.Object[])",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
