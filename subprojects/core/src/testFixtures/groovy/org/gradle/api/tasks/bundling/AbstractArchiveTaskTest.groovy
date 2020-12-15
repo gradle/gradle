@@ -59,7 +59,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.extension = null
 
         then:
-        archiveTask.archiveName == 'testbasename-testappendix-1.0-src'
+        archiveTask.archiveFileName.get() == 'testbasename-testappendix-1.0-src'
     }
 
     def "archiveName with empty extension in provider"() {
@@ -67,7 +67,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.archiveExtension.set(project.provider { null })
 
         then:
-        archiveTask.archiveName == 'testbasename-testappendix-1.0-src'
+        archiveTask.archiveFileName.get() == 'testbasename-testappendix-1.0-src'
     }
 
     def "archiveName with empty basename"() {
@@ -75,7 +75,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.baseName = null
 
         then:
-        archiveTask.archiveName == "testappendix-1.0-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testappendix-1.0-src.${archiveTask.extension}".toString()
     }
 
     def "archiveName with empty basename and appendix"() {
@@ -84,7 +84,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.appendix = null
 
         then:
-        archiveTask.archiveName == "1.0-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "1.0-src.${archiveTask.extension}".toString()
     }
 
     def "archiveName with empty basename, appendix, and version" () {
@@ -94,7 +94,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.version = null
 
         then:
-        archiveTask.archiveName == "src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "src.${archiveTask.extension}".toString()
     }
 
     def "archiveName with empty basename, appendix, version, and classifier"() {
@@ -105,7 +105,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.classifier = null
 
         then:
-        archiveTask.archiveName == ".${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == ".${archiveTask.extension}".toString()
     }
 
     def "archiveName with empty classifier"() {
@@ -113,7 +113,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.classifier = null
 
         then:
-        archiveTask.archiveName == "testbasename-testappendix-1.0.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testbasename-testappendix-1.0.${archiveTask.extension}".toString()
     }
 
     def "archiveName with empty appendix"() {
@@ -121,7 +121,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.appendix = null
 
         then:
-        archiveTask.archiveName == "testbasename-1.0-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testbasename-1.0-src.${archiveTask.extension}".toString()
     }
 
     def "archiveName with empty version"() {
@@ -129,20 +129,20 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.version = null
 
         then:
-        archiveTask.archiveName == "testbasename-testappendix-src.${archiveTask.extension}".toString()
+        archiveTask.archiveFileName.get() == "testbasename-testappendix-src.${archiveTask.extension}".toString()
     }
 
     def "uses custom archive name when set"() {
         when:
-        archiveTask.archiveName = 'somefile.out'
+        archiveTask.archiveFileName = 'somefile.out'
 
         then:
-        archiveTask.archiveName == 'somefile.out'
+        archiveTask.archiveFileName.get() == 'somefile.out'
     }
 
     def "correct archive path"() {
         expect:
-        archiveTask.archivePath == new File(archiveTask.destinationDir, archiveTask.archiveName)
+        archiveTask.archivePath == new File(archiveTask.destinationDir, archiveTask.archiveFileName.get())
     }
 
     def "does not accept unset destinationDir"() {

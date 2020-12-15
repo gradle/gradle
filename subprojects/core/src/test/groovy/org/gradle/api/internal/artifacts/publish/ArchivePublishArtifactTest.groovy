@@ -48,7 +48,7 @@ class ArchivePublishArtifactTest extends Specification {
     def "configures name correctly"() {
         def noName = testUtil.task(DummyJar)
         def withArchiveName = testUtil.task(DummyJar)
-        withArchiveName.archiveName = "hey"
+        withArchiveName.archiveFileName = "hey"
         def withBaseName = testUtil.task(DummyJar)
         withBaseName.baseName = "foo"
         def withAppendix = testUtil.task(DummyJar)

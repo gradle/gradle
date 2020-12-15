@@ -102,37 +102,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>
      *
      * @return the archive name.
-     * @deprecated Use {@link #getArchiveFileName()}
-     */
-    @Deprecated
-    @ReplacedBy("archiveFileName")
-    public String getArchiveName() {
-        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
-        // DeprecationLogger.deprecateProperty("archiveName").replaceWith("archiveFileName").willBeRemovedInNextMajorVersion().withDslReference(AbstractArchiveTask.class).nagUser();
-        return archiveName.get();
-    }
-
-    /**
-     * Sets the archive name.
-     *
-     * @param name the archive name.
-     * @deprecated Use {@link #getArchiveFileName()}
-     */
-    @Deprecated
-    public void setArchiveName(String name) {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archiveName").replaceWith("archiveFileName")
-            .willBeRemovedInGradle7()
-            .withDslReference()
-            .nagUser();
-        archiveName.convention(name);
-        archiveName.set(name);
-    }
-
-    /**
-     * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
-     * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>
-     *
-     * @return the archive name.
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
