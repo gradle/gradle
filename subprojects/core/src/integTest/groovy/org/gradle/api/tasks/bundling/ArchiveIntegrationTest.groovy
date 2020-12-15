@@ -20,11 +20,13 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -35,7 +37,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
-    def canCopyFromAZip() {
+    def "can copy from a zip"() {
         given:
         createZip('test.zip') {
             subdir1 {
@@ -93,7 +95,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":copy")
     }
 
-    def cannotCreateAnEmptyTar() {
+    def "cannot create an empty tar"() {
         given:
         buildFile << """
             task tar(type: Tar) {
@@ -922,6 +924,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             task archive(type: $taskType) {
                 from("src")
                 $prop = null
+                ${prop}.convention(null)
             }
         """
         settingsFile << """
@@ -936,15 +939,57 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file(archiveFile).assertExists()
 
         where:
-        taskType | prop       | archiveFile
-        "Zip"    | "version"  | "build/distributions/archive.zip"
-        "Jar"    | "version"  | "build/libs/archive.jar"
-        "Tar"    | "version"  | "build/distributions/archive.tar"
+        taskType | prop              | archiveFile
+        "Zip"    | "archiveVersion"  | "build/distributions/archive.zip"
+        "Jar"    | "archiveVersion"  | "build/libs/archive.jar"
+        "Tar"    | "archiveVersion"  | "build/distributions/archive.tar"
 
-        "Zip"    | "baseName" | "build/distributions/1.0.zip"
-        "Jar"    | "baseName" | "build/libs/1.0.jar"
-        "Tar"    | "baseName" | "build/distributions/1.0.tar"
+        "Zip"    | "archiveBaseName" | "build/distributions/1.0.zip"
+        "Jar"    | "archiveBaseName" | "build/libs/1.0.jar"
+        "Tar"    | "archiveBaseName" | "build/distributions/1.0.tar"
 
+    }
+
+    @Unroll
+    def "plugins can configure #taskType tasks with removed APIs re-introduced by MixInLegacyTypesClassLoader"(String taskType) {
+        given:
+        Assume.assumeFalse(GradleContextualExecuter.isEmbedded())
+
+        when:
+        buildFile << """
+            apply plugin: MyPlugin
+            apply plugin: 'base'
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    p.tasks.register('archive', $taskType) {
+                        from("src")
+
+                        archiveName = 'test.jar'
+                        println archiveName
+                        destinationDir = p.buildDir
+                        println destinationDir
+                        baseName = 'test'
+                        println baseName
+                        appendix = 'custom'
+                        println appendix
+                        version = '0.1'
+                        println version
+                        extension = 'jr'
+                        println extension
+                        classifier = 'cf'
+                        println classifier
+                        println archivePath
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "archive"
+
+        where:
+        taskType << ['Jar', /*'Zip', ' Tar', 'Ear'*/] // TODO (donat) fix classloading for the other archive tasks types
     }
 
     private def createTar(String name, Closure cl) {

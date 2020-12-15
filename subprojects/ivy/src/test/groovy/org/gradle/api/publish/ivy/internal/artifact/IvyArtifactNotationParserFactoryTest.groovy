@@ -29,7 +29,7 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
-public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
+class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def fileNotationParser = Mock(NotationParser)
     def task = Mock(Task)
@@ -121,9 +121,9 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         when:
         def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         def archive = rootProject.task('foo', type: Jar, {})
-        archive.setBaseName("base-name")
-        archive.setExtension('extension')
-        archive.setDestinationDir(rootProject.buildDir)
+        archive.archiveBaseName = "base-name"
+        archive.archiveExtension = 'extension'
+        archive.destinationDirectory = rootProject.layout.buildDirectory
 
         IvyArtifact ivyArtifact = parser.parseNotation(archive)
 
@@ -131,7 +131,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.name == 'pub-name'
         ivyArtifact.extension == "extension"
         ivyArtifact.classifier == null
-        ivyArtifact.file == archive.archivePath
+        ivyArtifact.file == archive.archiveFile.asFile.get()
         ivyArtifact.buildDependencies.getDependencies(null) == [archive] as Set
     }
 

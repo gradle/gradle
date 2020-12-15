@@ -52,7 +52,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         _ * module.version >> '1.2'
     }
 
-    def createArtifactFromPublishArtifactInstance() {
+    def "create artifact from publish artifact instance"() {
         def original = Stub(PublishArtifact)
 
         when:
@@ -62,7 +62,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact instanceof DecoratingPublishArtifact
     }
 
-    def createArtifactFromConfigurablePublishArtifactInstance() {
+    def "create artifact from configurable publish artifact instance"() {
         ConfigurablePublishArtifact original = Mock()
 
         when:
@@ -72,9 +72,8 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact == original
     }
 
-    def createArtifactFromArchiveTask() {
+    def "create artifact from archive task"() {
         AbstractArchiveTask archiveTask = Mock()
-        archiveTask.getArchivePath() >> new File("")
 
         when:
         def publishArtifact = publishArtifactNotationParser.parseNotation(archiveTask)

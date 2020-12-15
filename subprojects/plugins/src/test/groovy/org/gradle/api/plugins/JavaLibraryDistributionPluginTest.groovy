@@ -43,6 +43,6 @@ class JavaLibraryDistributionPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks.distZip
         task instanceof Zip
-        task.archiveName == "test-project.zip"
+        task.archiveFileName.get() == "test-project.zip"
     }
 }

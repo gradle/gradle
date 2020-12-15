@@ -1511,6 +1511,126 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getAppendix()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveName()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchivePath()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getBaseName()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getClassifier()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getExtension()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getVersion()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setAppendix(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setArchiveName(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setBaseName(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setClassifier(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setDestinationDir(java.io.File)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setExtension(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setVersion(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

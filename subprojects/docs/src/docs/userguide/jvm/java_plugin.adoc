@@ -471,7 +471,7 @@ The name of the directory to use to cache source dependency information, relativ
 Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
 
 `String archivesBaseName`::
-The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
+The base name to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
 
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.

@@ -137,21 +137,21 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def someJar = project.tasks.create('someJar', Jar)
-        someJar.destinationDir == project.libsDirectory.get().asFile
-        someJar.version == project.version
-        someJar.baseName == project.archivesBaseName
+        someJar.destinationDirectory.asFile.get() == project.libsDirectory.get().asFile
+        someJar.archiveVersion.get() == project.version
+        someJar.archiveBaseName.get()  == project.archivesBaseName
 
         and:
         def someZip = project.tasks.create('someZip', Zip)
-        someZip.destinationDir == project.distsDirectory.get().asFile
-        someZip.version == project.version
-        someZip.baseName == project.archivesBaseName
+        someZip.destinationDirectory.asFile.get()  == project.distsDirectory.get().asFile
+        someZip.archiveVersion.get() == project.version
+        someZip.archiveBaseName.get() == project.archivesBaseName
 
         and:
         def someTar = project.tasks.create('someTar', Tar)
-        someTar.destinationDir == project.distsDirectory.get().asFile
-        someTar.version == project.version
-        someTar.baseName == project.archivesBaseName
+        someTar.destinationDirectory.asFile.get() == project.distsDirectory.get().asFile
+        someTar.archiveVersion.get() == project.version
+        someTar.archiveBaseName.get() == project.archivesBaseName
     }
 
     def "uses null version when project version not specified"() {
@@ -160,13 +160,13 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def task = project.tasks.create('someJar', Jar)
-        task.version == null
+        task.archiveVersion.getOrNull() == null
 
         when:
         project.version = '1.0'
 
         then:
-        task.version == '1.0'
+        task.archiveVersion.get() == '1.0'
     }
 
     def "adds configurations to the project"() {
