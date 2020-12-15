@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
@@ -900,7 +899,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private <T extends TaskInternal> T expectTaskCreated(final Class<T> type, final Object... params) {
         final String name = "task"
-        T task = AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<T>() {
+        T task = DefaultTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<T>() {
             T call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(type.constructors[0].newInstance(params))
