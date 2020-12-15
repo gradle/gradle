@@ -34,9 +34,9 @@ dependencies {
     implementation("example:android-library-single-variant:1.0")
     implementation("example:android-kotlin-library:1.0")
     // works when we make 'jvm' and 'androidJvm' of 'org.jetbrains.kotlin.platform.type' compatible
-    implementation("example:kotlin-multiplatform-android-library:1.0") // <- misses a pure JVM variant
+    implementation("example:kotlin-mpp-android-library:1.0") // <- misses a pure JVM variant
     // selects JVM variant because of 'usage' attribute
-    implementation("example:kotlin-multiplatform-library:1.0")
+    implementation("example:kotlin-mpp-library:1.0")
 }
 
 application {

@@ -27,6 +27,6 @@ dependencies {
     implementation("example:android-kotlin-library:1.0")
     implementation("example:android-library:1.0") // automatically selects right flavor based on own flavor
     implementation("example:android-library-single-variant:1.0")
-    implementation("example:kotlin-multiplatform-library:1.0") // selects JVM variant because of 'usage' attribute
-    implementation("example:kotlin-multiplatform-android-library:1.0")
+    implementation("example:kotlin-mpp-library:1.0") // selects JVM variant because of 'usage' attribute
+    implementation("example:kotlin-mpp-android-library:1.0")
 }

@@ -17,6 +17,6 @@ kotlin {
 
 dependencies {
     "commonMainImplementation"(kotlin("stdlib-common"))
-    "commonMainImplementation"("example:kotlin-multiplatform-library:1.0")
-    "commonMainImplementation"("example:kotlin-multiplatform-android-library:1.0")
+    "commonMainImplementation"("example:kotlin-mpp-library:1.0")
+    "commonMainImplementation"("example:kotlin-mpp-android-library:1.0")
 }
