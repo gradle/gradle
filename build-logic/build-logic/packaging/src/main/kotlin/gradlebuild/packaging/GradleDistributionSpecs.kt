@@ -97,6 +97,7 @@ object GradleDistributionSpecs {
                 include("$it/*.gradle*")
                 include("$it/gradle.properties")
                 include("$it/*/build.gradle*")
+                include("$it/*/buildship.gradle")
                 include("$it/*/src/")
             }
             include("*.gradle.kts")
