@@ -7,4 +7,4 @@ plugins {
     id("gradlebuild.repositories")
 }
 
-includeBuild("../../distribution-core")
+includeBuild("../essentials")

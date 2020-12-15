@@ -23,6 +23,5 @@ plugins {
     id("gradlebuild.repositories")
 }
 
-includeBuild("../testing/fixtures")
+// This is currently required for testing, but introduces a 'circle' between all builds
 includeBuild("../distribution-plugins/full")
-

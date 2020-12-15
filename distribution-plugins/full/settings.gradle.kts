@@ -8,4 +8,4 @@ plugins {
 }
 
 includeBuild("../publishing")
-includeBuild("../native") { name = "native-build" } // clashes with project ':native'
+includeBuild("../native")
