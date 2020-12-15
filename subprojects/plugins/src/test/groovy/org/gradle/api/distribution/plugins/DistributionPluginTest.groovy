@@ -146,10 +146,10 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         task.dependsOn.containsAll(["distTar", "distZip"])
     }
 
-    public void "distribution name is configurable"() {
+    def "distribution name is configurable"() {
         when:
         project.pluginManager.apply(DistributionPlugin)
-        project.distributions.main.baseName = "SuperApp";
+        project.distributions.main.distributionBaseName = "SuperApp";
 
         then:
         def distZipTask = project.tasks.distZip
