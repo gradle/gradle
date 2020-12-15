@@ -28,11 +28,7 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import org.junit.Test
 import spock.lang.Specification
-
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultJavaPluginConventionTest extends Specification {
     @Rule
