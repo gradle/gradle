@@ -37,7 +37,7 @@ For more information see the [user manual on runtime validation](userguide/more_
 ### Validate missing dependencies between tasks
 
 Each task declares its input and output files so Gradle can use that information for optimizing the build.
-A problematic plugin may configure tasks so that one of them consumes the output produced by another task, without declaring an [explicit or inferred task dependency](userguide/more_about_tasks.html#sec:link_output_dir_to_input_files).
+One of the potential problems now flagged is a task that consumes the output produced by another without declaring an [explicit or inferred task dependency](userguide/more_about_tasks.html#sec:link_output_dir_to_input_files).
 Gradle now detects the missing dependency between the consumer and the producer and emits a warning in that case.
 For more information see the [user manual on input and output validation](userguide/more_about_tasks.html#sec:task_input_output_validation). 
 
