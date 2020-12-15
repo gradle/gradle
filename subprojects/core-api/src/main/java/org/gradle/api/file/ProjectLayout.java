@@ -17,7 +17,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Project;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -60,22 +59,9 @@ public interface ProjectLayout {
      *
      * <p>This method can also be used to create an empty collection, but the collection may not be mutated later.</p>
      *
-     * @param  paths The paths to the files. May be empty.
+     * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
      * @since 4.8
      */
     FileCollection files(Object... paths);
-
-    /**
-     * <p>Returns a mutable {@link ConfigurableFileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
-     *
-     * <p>This method can also be used to create an empty collection, which can later be mutated to add elements.</p>
-     *
-     * @param paths The paths to the files. May be empty.
-     * @return The file collection. Never returns null.
-     * @since 4.8
-     * @deprecated Please use {@link ObjectFactory#fileCollection()} instead.
-     */
-    @Deprecated
-    ConfigurableFileCollection configurableFiles(Object... paths);
 }

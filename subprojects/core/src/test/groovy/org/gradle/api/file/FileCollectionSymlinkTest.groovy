@@ -57,7 +57,6 @@ class FileCollectionSymlinkTest extends Specification {
         desc                                    | fileCollection
         "project.files()"                       | project.files(file, symlink, symlinked)
         "project.layout.files()"                | project.getLayout().files(file, symlink, symlinked)
-        "project.layout.configurableFilesFor()" | project.getLayout().configurableFiles(file, symlink, symlinked)
         "project.fileTree()"                    | project.fileTree(baseDir)
     }
 }
