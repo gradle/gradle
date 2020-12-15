@@ -53,6 +53,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
@@ -100,14 +101,14 @@ public class JavaBasePlugin implements Plugin<Project> {
     );
 
     private final JavaInstallationRegistry javaInstallationRegistry;
-    private final JavaToolchainService javaToolchainService;
+    private final JavaToolchainQueryService toolchainQueryService;
     private final boolean javaClasspathPackaging;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(JavaInstallationRegistry javaInstallationRegistry, JavaToolchainService javaToolchainService, JvmEcosystemUtilities jvmPluginServices) {
+    public JavaBasePlugin(JavaInstallationRegistry javaInstallationRegistry, JvmEcosystemUtilities jvmPluginServices, JavaToolchainQueryService toolchainQueryService) {
         this.javaInstallationRegistry = javaInstallationRegistry;
-        this.javaToolchainService = javaToolchainService;
+        this.toolchainQueryService = toolchainQueryService;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
@@ -139,7 +140,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices, toolchainSpec);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
-        project.getExtensions().add(JavaToolchainService.class, "javaToolchains", javaToolchainService);
+        project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, toolchainQueryService);
         return javaConvention;
     }
 
@@ -371,11 +372,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
         final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
         return toolMapper.apply(service, extension.getToolchain());
-    }
-
-    @Inject
-    protected JavaToolchainQueryService getJavaToolchainQueryService() {
-        throw new UnsupportedOperationException();
     }
 
 }
