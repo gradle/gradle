@@ -41,18 +41,10 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         groovyPlugin.apply(project)
 
         when:
-        def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
-
-        then:
-        compile.extendsFrom == [] as Set
-        !compile.visible
-        compile.transitive
-
-        when:
         def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
-        implementation.extendsFrom == [compile] as Set
+        implementation.extendsFrom == [] as Set
         !implementation.visible
         !implementation.canBeConsumed
         !implementation.canBeResolved

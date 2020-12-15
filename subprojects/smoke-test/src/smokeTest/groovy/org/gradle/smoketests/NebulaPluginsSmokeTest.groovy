@@ -41,8 +41,8 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             dependencies {
-                compile 'com.google.guava:guava' // no version, version is recommended
-                compile 'commons-lang:commons-lang:2.6' // I know what I want, don't recommend
+                implementation 'com.google.guava:guava' // no version, version is recommended
+                implementation 'commons-lang:commons-lang:2.6' // I know what I want, don't recommend
             }
             """
 
@@ -93,7 +93,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             gradleLint.rules = ['dependency-parentheses']
 
             dependencies {
-                testCompile('junit:junit:4.7')
+                testImplementation('junit:junit:4.7')
             }
         """.stripIndent()
 
@@ -105,8 +105,8 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
         result.output.contains("build.gradle:$numOfRepoBlockLines")
-        result.output.contains("testCompile('junit:junit:4.7')")
-        buildFile.text.contains("testCompile('junit:junit:4.7')")
+        result.output.contains("testImplementation('junit:junit:4.7')")
+        buildFile.text.contains("testImplementation('junit:junit:4.7')")
 
         when:
         result = runner('fixGradleLint').build()
@@ -114,8 +114,8 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.output.contains("""fixed          dependency-parentheses             parentheses are unnecessary for dependencies
 build.gradle:$numOfRepoBlockLines
-testCompile('junit:junit:4.7')""")
-        buildFile.text.contains("testCompile 'junit:junit:4.7'")
+testImplementation('junit:junit:4.7')""")
+        buildFile.text.contains("testImplementation 'junit:junit:4.7'")
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')

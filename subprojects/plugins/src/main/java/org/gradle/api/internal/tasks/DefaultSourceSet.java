@@ -140,18 +140,8 @@ public abstract class DefaultSourceSet implements SourceSet {
         return baseName;
     }
 
-    @Override
-    public String getCompileConfigurationName() {
-        return configurationNameOf(JavaPlugin.COMPILE_CONFIGURATION_NAME);
-    }
-
     private String configurationNameOf(String baseName) {
         return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
-    }
-
-    @Override
-    public String getRuntimeConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
     }
 
     @Override

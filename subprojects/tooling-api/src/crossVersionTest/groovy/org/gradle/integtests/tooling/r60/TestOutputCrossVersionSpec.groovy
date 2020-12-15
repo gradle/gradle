@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r60
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.Destination
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor
@@ -27,7 +28,7 @@ import org.gradle.tooling.events.test.TestOutputEvent
 
 @ToolingApiVersion('>=6.0')
 @TargetGradleVersion('>=6.0')
-class TestOutputCrossVersionSpec extends ToolingApiSpecification {
+class TestOutputCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     @ToolingApiVersion('>=3.0 <6.0')
     def "test output not exposed to old clients"() {
@@ -69,7 +70,7 @@ class TestOutputCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies.testCompile 'junit:junit:4.13'
+            dependencies.${testImplementationConfiguration} 'junit:junit:4.13'
             test.ignoreFailures = true
         """
         file("src/test/java/example/MyTest.java") << """

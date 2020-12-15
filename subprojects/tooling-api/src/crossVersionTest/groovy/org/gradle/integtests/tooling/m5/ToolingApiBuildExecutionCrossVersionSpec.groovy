@@ -17,12 +17,13 @@ package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "can build the set of tasks for a project"() {
         file('build.gradle') << '''
 task a {
@@ -134,12 +135,12 @@ task c
     }
 
     def "does not resolve dependencies when building the set of tasks for a project"() {
-        file('build.gradle') << '''
+        file('build.gradle') << """
 apply plugin: 'java'
 dependencies {
-    compile files { throw new RuntimeException('broken') }
+    ${implementationConfiguration} files { throw new RuntimeException('broken') }
 }
-'''
+"""
 
         when:
         GradleProject project = withConnection { connection -> connection.getModel(GradleProject.class) }

@@ -278,7 +278,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         def invalidWork = builder
             .withValidator {context -> context
-                .createContextFor(UnitOfWork, false)
+                .forType(UnitOfWork, false)
                 .visitPropertyProblem(WARNING, "Validation problem")
             }
             .build()
@@ -581,7 +581,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.createContextFor(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
+                validationContext.forType(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()
@@ -671,23 +671,25 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     ExecutionEngine.Result execute(UnitOfWork unitOfWork) {
         virtualFileSystem.invalidateAll()
-        executor.execute(unitOfWork)
+        executor.createRequest(unitOfWork).execute()
     }
 
     String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
-        executor.getFromIdentityCacheOrDeferExecution(unitOfWork, cache, new DeferredExecutionHandler<Object, String>() {
-            @Override
-            String processCachedOutput(Try<Object> cachedResult) {
-                return "cached"
-            }
+        executor.createRequest(unitOfWork)
+            .withIdentityCache(cache)
+            .getOrDeferExecution(new DeferredExecutionHandler<Object, String>() {
+                @Override
+                String processCachedOutput(Try<Object> cachedResult) {
+                    return "cached"
+                }
 
-            @Override
-            String processDeferredOutput(Supplier<Try<Object>> deferredExecution) {
-                deferredExecution.get()
-                return "deferred"
-            }
-        })
+                @Override
+                String processDeferredOutput(Supplier<Try<Object>> deferredExecution) {
+                    deferredExecution.get()
+                    return "deferred"
+                }
+            })
     }
 
     private TestFile file(Object... path) {
@@ -729,7 +731,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private Map<String, ? extends File> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private Consumer<UnitOfWork.WorkValidationContext> validator
+        private Consumer<WorkValidationContext> validator
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -790,7 +792,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
-        UnitOfWorkBuilder withValidator(Consumer<UnitOfWork.WorkValidationContext> validator) {
+        UnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
             this.validator = validator
             return this
         }
@@ -880,7 +882,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void validate(UnitOfWork.WorkValidationContext validationContext) {
+                void validate(WorkValidationContext validationContext) {
                     validator?.accept(validationContext)
                 }
 

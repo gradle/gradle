@@ -16,8 +16,9 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.UnitOfWork.WorkValidationContext
+import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
+import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
@@ -31,7 +32,10 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
     @Override
     protected AfterPreviousExecutionContext createContext() {
-        return Stub(AfterPreviousExecutionContext)
+        def validationContext = new DefaultWorkValidationContext()
+        return Stub(AfterPreviousExecutionContext) {
+            getValidationContext() >> validationContext
+        }
     }
 
     def "executes work when there are no violations"() {
@@ -61,7 +65,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
         ex.causes[0].message == "Type '$Object.simpleName': Validation error."
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.createContextFor(JobType, true).visitTypeProblem(ERROR, Object, "Validation error")
+            validationContext.forType(JobType, true).visitTypeProblem(ERROR, Object, "Validation error")
         }
         0 * _
     }
@@ -78,8 +82,8 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
         ex.causes[1].message == "Type '$Object.simpleName': Validation error #2."
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.createContextFor(JobType, true).visitTypeProblem(ERROR, Object, "Validation error #1")
-            validationContext.createContextFor(SecondaryJobType, true).visitTypeProblem(ERROR, Object, "Validation error #2")
+            validationContext.forType(JobType, true).visitTypeProblem(ERROR, Object, "Validation error #1")
+            validationContext.forType(SecondaryJobType, true).visitTypeProblem(ERROR, Object, "Validation error #2")
         }
         0 * _
     }
@@ -91,7 +95,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.createContextFor(JobType, true).visitTypeProblem(WARNING, Object, "Validation warning")
+            validationContext.forType(JobType, true).visitTypeProblem(WARNING, Object, "Validation warning")
         }
 
         then:
@@ -109,7 +113,7 @@ class ValidateStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            def typeContext = validationContext.createContextFor(JobType, true)
+            def typeContext = validationContext.forType(JobType, true)
             typeContext.visitTypeProblem(ERROR, Object, "Validation error")
             typeContext.visitTypeProblem(WARNING, Object, "Validation warning")
         }

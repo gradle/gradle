@@ -49,7 +49,7 @@ tasks.register("showTestClasspath") {
     inputs.files(configurations.testCompileClasspath)
     inputs.files(configurations.testRuntimeClasspath)
     doLast {
-        println(configurations.testCompileClasspath.get().files.map(File::name))
-        println(configurations.testRuntimeClasspath.get().files.map(File::name))
+        println(configurations.testCompileClasspath.get().files.map(File::getName))
+        println(configurations.testRuntimeClasspath.get().files.map(File::getName))
     }
 }

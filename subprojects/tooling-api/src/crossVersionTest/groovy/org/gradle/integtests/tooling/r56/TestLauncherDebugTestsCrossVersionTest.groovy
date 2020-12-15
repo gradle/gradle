@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
 import org.junit.Rule
 import spock.lang.Timeout
@@ -27,7 +28,7 @@ import spock.lang.Timeout
 @ToolingApiVersion(">=5.6")
 @TargetGradleVersion(">=5.6")
 @Timeout(60)
-class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
+class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     @Rule
     JDWPUtil jdwpClient = new JDWPUtil()
 
@@ -35,7 +36,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         buildFile << """
             plugins { id 'java-library' }
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.13' }
+            dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
         """
         file('src/test/java/example/MyTest.java').text = """
             package example;

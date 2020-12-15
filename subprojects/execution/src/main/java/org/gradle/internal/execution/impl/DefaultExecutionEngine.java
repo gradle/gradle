@@ -22,45 +22,66 @@ import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.execution.steps.CachingResult;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
-    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep;
+    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
 
-    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep) {
+    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep) {
         this.executeStep = executeStep;
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work) {
-        return executeStep.execute(work, new Request(null));
-    }
+    public Request createRequest(UnitOfWork work) {
+        return new Request() {
+            private String rebuildReason;
+            private WorkValidationContext validationContext;
 
-    @Override
-    public CachingResult rebuild(UnitOfWork work, String reason) {
-        return executeStep.execute(work, new Request(reason));
-    }
+            private ExecutionRequestContext createExecutionRequestContext() {
+                WorkValidationContext validationContext = this.validationContext != null
+                    ? this.validationContext
+                    : new DefaultWorkValidationContext();
+                return new ExecutionRequestContext() {
+                    @Override
+                    public Optional<String> getRebuildReason() {
+                        return Optional.ofNullable(rebuildReason);
+                    }
 
-    @Override
-    public <T, O> T getFromIdentityCacheOrDeferExecution(UnitOfWork work, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
-        return executeStep.executeDeferred(work, new Request(null), cache, handler);
-    }
+                    @Override
+                    public WorkValidationContext getValidationContext() {
+                        return validationContext;
+                    }
+                };
+            }
 
-    private static class Request implements ExecutionRequestContext {
-        private final String rebuildReason;
+            @Override
+            public void forceRebuild(String rebuildReason) {
+                this.rebuildReason = rebuildReason;
+            }
 
-        public Request(@Nullable String rebuildReason) {
-            this.rebuildReason = rebuildReason;
-        }
+            @Override
+            public void withValidationContext(WorkValidationContext validationContext) {
+                this.validationContext = validationContext;
+            }
 
-        @Override
-        public Optional<String> getRebuildReason() {
-            return Optional.ofNullable(rebuildReason);
-        }
+            @Override
+            public Result execute() {
+                return executeStep.execute(work, createExecutionRequestContext());
+            }
+
+            @Override
+            public <O> CachedRequest<O> withIdentityCache(Cache<Identity, Try<O>> cache) {
+                return new CachedRequest<O>() {
+                    @Override
+                    public <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler) {
+                        return executeStep.executeDeferred(work, createExecutionRequestContext(), cache, handler);
+                    }
+                };
+            }
+        };
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.tooling.m5
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaContentRoot
@@ -27,7 +28,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.util.GradleVersion
 
-class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "builds the model even if idea plugin not applied"() {
 
@@ -189,8 +190,8 @@ project(':impl') {
     }
 
     dependencies {
-        compile project(':api')
-        testCompile 'foo.bar:coolLib:1.0'
+        ${implementationConfiguration} project(':api')
+        ${testImplementationConfiguration} 'foo.bar:coolLib:1.0'
     }
 
     idea.module.downloadJavadoc = true
@@ -236,13 +237,13 @@ subprojects {
 
 project(':impl') {
     dependencies {
-        compile project(':api')
+        ${implementationConfiguration} project(':api')
     }
 }
 
 project(':contrib:impl') {
     dependencies {
-        compile project(':contrib:api')
+        ${implementationConfiguration} project(':contrib:api')
     }
 }
 """
@@ -303,8 +304,8 @@ project(':impl') {
     apply plugin: 'idea'
 
     dependencies {
-        compile project(':api')
-        testCompile 'i.dont:Exist:2.4'
+        ${implementationConfiguration} project(':api')
+        ${testImplementationConfiguration} 'i.dont:Exist:2.4'
     }
 }
 """

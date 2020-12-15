@@ -167,7 +167,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
             dependencies {
                 kotlinDslProjects.forEach {
-                    "runtime"(project(it.path))
+                    "runtimeOnly"(project(it.path))
                 }
             }
 

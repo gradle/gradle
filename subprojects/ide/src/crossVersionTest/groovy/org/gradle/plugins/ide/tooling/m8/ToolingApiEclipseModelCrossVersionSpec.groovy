@@ -16,9 +16,10 @@
 package org.gradle.plugins.ide.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "can customize model late in the configuration phase"() {
         projectDir.file('build.gradle').text = """
 apply plugin: 'java'
@@ -27,7 +28,7 @@ gradle.projectsEvaluated {
     ${mavenCentralRepository()}
 }
 dependencies {
-    compile 'commons-lang:commons-lang:2.5'
+    ${implementationConfiguration} 'commons-lang:commons-lang:2.5'
 }
 """
 

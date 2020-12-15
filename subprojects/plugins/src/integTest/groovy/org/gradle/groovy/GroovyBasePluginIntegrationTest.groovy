@@ -76,8 +76,8 @@ task groovydoc(type: Groovydoc) {
 
 task verify {
     doLast {
-        assert configurations.customCompile.state.toString() == "UNRESOLVED"
-        assert configurations.customRuntime.state.toString() == "UNRESOLVED"
+        assert configurations.customCompileClasspath.state.toString() == "UNRESOLVED"
+        assert configurations.customRuntimeClasspath.state.toString() == "UNRESOLVED"
     }
 }
         """

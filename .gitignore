@@ -32,6 +32,8 @@
 /*/*/*/out
 /*/*/*/*/out
 /.teamcity/target
+/gradle.ipr
+/gradle.iws
 
 # Eclipse
 # -------

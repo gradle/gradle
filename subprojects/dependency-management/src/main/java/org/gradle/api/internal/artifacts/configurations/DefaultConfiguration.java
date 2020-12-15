@@ -1017,6 +1017,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Deprecated
     @Override
     public String getUploadTaskName() {
         return Configurations.uploadTaskName(getName());

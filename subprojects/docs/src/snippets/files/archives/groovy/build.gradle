@@ -31,7 +31,7 @@ task unpackLibsDirectory(type: Copy) {
 task zip(type: Zip) {
     from 'src/dist'
     into('libs') {
-        from configurations.runtime
+        from configurations.runtimeClasspath
     }
 }
 // end::zip[]
@@ -40,7 +40,7 @@ task zip(type: Zip) {
 task tar(type: Tar) {
     from 'src/dist'
     into('libs') {
-        from configurations.runtime
+        from configurations.runtimeClasspath
     }
 }
 // end::tar[]

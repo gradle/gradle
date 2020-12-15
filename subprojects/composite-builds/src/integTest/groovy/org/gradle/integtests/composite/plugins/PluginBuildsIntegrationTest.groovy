@@ -513,7 +513,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         // workaround to use Kotlin precompiled script plugin because Groovy version does not support pluginManagement {} in settings plugins (to be fixed)
         settingsPluginBuild.buildFile.setText("""
             plugins {
-                id("org.gradle.kotlin.kotlin-dsl") version "1.4.9"
+                id("org.gradle.kotlin.kotlin-dsl") version "2.0.0"
             }
             repositories {
                 gradlePluginPortal()

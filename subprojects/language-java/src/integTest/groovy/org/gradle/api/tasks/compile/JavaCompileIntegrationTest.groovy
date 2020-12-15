@@ -205,8 +205,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     def "implementation dependencies should not leak into compile classpath of consumer"() {
-        executer.expectDeprecationWarning() // compile configuration
-
         mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
 
@@ -214,7 +212,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         settingsFile << "include 'a', 'b'"
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 repositories {
                    maven { url '$mavenRepo.uri' }
@@ -230,7 +228,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             task checkClasspath {
                 doLast {
                     def compileClasspath = compileJava.classpath.files*.name
-                    assert compileClasspath.contains('b.jar')
+                    assert !compileClasspath.contains('b.jar')
                     assert compileClasspath.contains('other-1.0.jar')
                     assert !compileClasspath.contains('shared-1.0.jar')
                 }
@@ -238,7 +236,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         '''
         file('b/build.gradle') << '''
             dependencies {
-                compile 'org.gradle.test:other:1.0' // using the old 'compile' makes it leak into compile classpath
+                api 'org.gradle.test:other:1.0'
                 implementation 'org.gradle.test:shared:1.0' // but not using 'implementation'
             }
         '''

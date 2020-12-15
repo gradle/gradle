@@ -253,49 +253,5 @@ interface Person { }
         def result = inTestDirectory().withTasks("a:classes").run()
         result.assertTasksExecuted(":b:compileJava", ":a:compileJava", ":a:processResources", ":a:classes")
     }
-
-    @Test
-    void "can add additional jars to published runtime classpath"() {
-        // this is legacy behavior of the deprecated runtime configuration
-        executer.expectDeprecationWarning()
-
-        testFile("settings.gradle") << "include 'a', 'b'"
-        testFile("build.gradle") << """
-allprojects {
-    apply plugin: 'java'
-}
-
-project(':b') {
-    sourceSets { extra }
-
-    task additionalJar(type: Jar) {
-        archiveClassifier = 'extra'
-        from sourceSets.extra.output
-    }
-
-    artifacts {
-        runtime additionalJar
-    }
-}
-
-project(':a') {
-    dependencies { implementation project(':b') }
-    compileJava.doFirst {
-        assert classpath.collect { it.name } == ['b.jar', 'b-extra.jar']
-    }
-}
-
-"""
-        testFile("a/src/main/java/org/gradle/test/PersonImpl.java") << """
-package org.gradle.test;
-class PersonImpl implements Person { }
-"""
-
-        testFile("b/src/extra/java/org/gradle/test/Person.java") << """
-package org.gradle.test;
-interface Person { }
-"""
-
-        inTestDirectory().withTasks("a:classes").run()
-    }
+    
 }
