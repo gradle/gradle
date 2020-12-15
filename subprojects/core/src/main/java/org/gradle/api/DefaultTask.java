@@ -23,6 +23,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -103,7 +104,7 @@ import static org.gradle.util.GUtil.uncheckedCall;
  */
 @NoConventionMapping
 @SuppressWarnings("deprecation")
-public class DefaultTask extends org.gradle.api.internal.AbstractTask implements Task {
+public class DefaultTask implements TaskInternal, DynamicObjectAware {
 
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
