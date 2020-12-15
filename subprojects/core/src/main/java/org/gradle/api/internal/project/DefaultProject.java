@@ -42,7 +42,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -78,7 +77,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -150,8 +148,8 @@ import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware,
-    // These two are here to work around https://github.com/gradle/gradle/issues/6027
-    FileOperations, ProcessOperations {
+    // This is here to work around https://github.com/gradle/gradle/issues/6027
+    ProcessOperations {
 
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
@@ -957,11 +955,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public PatternSet patternSet() {
-        return getFileOperations().patternSet();
-    }
-
-    @Override
     public <T> Provider<T> provider(Callable<T> value) {
         return getProviders().provider(value);
     }
@@ -1473,20 +1466,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private void assertMutatingMethodAllowed(String methodName) {
         MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
-    }
-
-    // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
-
-    @Override
-    @Deprecated
-    public ConfigurableFileCollection configurableFiles(Object... paths) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection immutableFiles(Object... paths) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
