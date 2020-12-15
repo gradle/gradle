@@ -108,15 +108,16 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
     private final Property<JavaCompiler> javaCompiler;
+    private final ObjectFactory objectFactory;
 
     public JavaCompile() {
         Project project = getProject();
-        ObjectFactory objectFactory = project.getObjects();
+        objectFactory = project.getObjects();
         compileOptions = objectFactory.newInstance(CompileOptions.class);
-        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaCompiler = objectFactory.property(JavaCompiler.class);
         javaCompiler.finalizeValueOnRead();
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
     /**
@@ -267,6 +268,11 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
     CleaningJavaCompiler<JavaCompileSpec> createCompiler() {
         Compiler<JavaCompileSpec> javaCompiler = createToolchainCompiler();
         return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
@@ -285,12 +291,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private Provider<JavaCompiler> getCompilerToolForCurrentJvm() {
-        return getJavaToolchainService().compilerFor(new CurrentJvmToolchainSpec(getProject().getObjects()));
-    }
-
-    @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
+        return getJavaToolchainService().compilerFor(new CurrentJvmToolchainSpec(objectFactory));
     }
 
     @Nested
