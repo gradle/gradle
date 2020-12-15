@@ -427,6 +427,38 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getDistsDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getLibsDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getProject()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.setProject(org.gradle.api.internal.project.ProjectInternal)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
