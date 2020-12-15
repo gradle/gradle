@@ -26,11 +26,20 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ## Build reliability improvements
 
+### Disable optimizations for validation problems
+
 Gradle employs a number of optimizations to ensure that builds are executed as fast as possible.
 These optimizations rely on the inputs and outputs of tasks to be well-defined.
 Gradle already applies some validation to tasks to check whether they are well-defined.
 If a task is found to be invalid, Gradle will now execute it without the benefit of parallel execution, up-to-date checks and the build cache.
-For more information See the [user manual on runtime validation](userguide/more_about_tasks.html#sec:task_input_validation).
+For more information see the [user manual on runtime validation](userguide/more_about_tasks.html#sec:task_input_validation).
+
+### Validate missing dependencies between tasks
+
+Each task declares its input and output files so Gradle can use that information for optimizing the build.
+A problematic plugin may configure tasks so that one of them consumes the output produced by another task, without declaring an [explicit or inferred task dependency](userguide/more_about_tasks.html#sec:link_output_dir_to_input_files).
+Gradle now detects the missing dependency between the consumer and the producer and emits a warning in that case.
+For more information see the [user manual on input and output validation](userguide/more_about_tasks.html#sec:task_input_output_validation). 
 
 ## Plugin development improvements
 
