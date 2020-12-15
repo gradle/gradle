@@ -8,8 +8,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-kotlinDslPluginOptions.experimentalWarning.set(false)
-
 dependencies {
     implementation("com.gradle.enterprise:com.gradle.enterprise.gradle.plugin:3.5")
     implementation("com.gradle.enterprise.gradle-enterprise-conventions-plugin:com.gradle.enterprise.gradle-enterprise-conventions-plugin.gradle.plugin:0.7.1")
