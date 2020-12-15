@@ -38,6 +38,10 @@ dependencies {
     implementation("gradlebuild:code-quality")
 }
 
+kotlinDslPluginOptions {
+    experimentalWarning.set(false)
+}
+
 ktlint {
     filter {
         exclude("gradle/kotlin/dsl/accessors/_*/**")
