@@ -1,6 +1,0 @@
-<sample>
-    <para>Demonstrates how to deploy and install to a Maven repository. Also demonstrates how to deploy a javadoc JAR
-        along with the main JAR, how to customize the contents of the generated POM, and how to deploy snapshots and
-        releases to different repositories.
-    </para>
-</sample>

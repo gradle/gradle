@@ -2,7 +2,6 @@
 plugins {
 // end::use-plugin[]
     id 'java'
-    id 'maven'
 // tag::use-plugin[]
     id 'signing'
 }
@@ -22,16 +21,3 @@ signing {
     sign configurations.archives
 }
 // end::sign-archives[]
-
-// tag::sign-pom[]
-uploadArchives {
-    repositories {
-        mavenDeployer {
-// end::sign-pom[]
-            repository(url: uri("$buildDir/repo"))
-// tag::sign-pom[]
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-        }
-    }
-}
-// end::sign-pom[]

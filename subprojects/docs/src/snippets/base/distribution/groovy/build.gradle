@@ -3,13 +3,8 @@
 plugins {
 // end::publish-distribution[]
     id 'distribution'
-// end::use-plugin[]
-// tag::publish-distribution[]
-    id 'maven'
-// tag::use-plugin[]
 }
 // end::use-plugin[]
-// end::publish-distribution[]
 
 // tag::configure-distribution[]
 distributions {
@@ -21,17 +16,6 @@ distributions {
     }
 }
 // end::configure-distribution[]
-
-// tag::publish-distribution[]
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://some/repo")
-        }
-    }
-}
-// end::publish-distribution[]
 
 // tag::custom-distribution[]
 distributions {

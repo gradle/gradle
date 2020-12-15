@@ -52,6 +52,13 @@ If you are still using the `java` plugin for a Java library, you will need to ap
 
 You can find more details about the benefits of the new configurations and which one to use in place of `compile` and `runtime` by reading the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> documentation.
 
+==== Removal of the legacy `maven` plugin
+
+The `maven` plugin has been removed.
+You should use the `maven-publish` plugin instead.
+
+Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for more details.
+
 ==== Configuring the layout of an Ivy repository
 
 The `layout` method taking a configuration block has been removed and is replaced by link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:patternLayout(org.gradle.api.Action)[patternLayout].
