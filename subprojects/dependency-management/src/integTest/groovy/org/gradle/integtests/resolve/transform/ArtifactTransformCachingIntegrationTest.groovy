@@ -21,15 +21,18 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.SECONDS
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
@@ -74,6 +77,97 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt]") == 2
 
         output.count("Transformed") == 0
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15604")
+    def "transforms of file dependencies are not kept in the in-memory cache between builds"() {
+        given:
+        def projectDir1 = file("project1")
+        def projectDir2 = file("project2")
+        setupProjectInDir(projectDir1)
+        setupProjectInDir(projectDir2)
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
+
+        when:
+        executer.inDirectory(projectDir1)
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib1.jar]") == 2
+        output.count("ids: [lib1.jar.txt (lib1.jar), lib1.jar (lib1.jar)]") == 2
+        output.count("components: [lib1.jar, lib1.jar]") == 2
+
+        output.count("Transformed") == 1
+        isTransformed("lib1.jar", "lib1.jar")
+
+        when:
+        projectDir1.deleteDir()
+        executer.inDirectory(projectDir2)
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib1.jar]") == 2
+
+        output.count("Transformed") == 1
+    }
+
+    private void setupProjectInDir(TestFile projectDir) {
+        projectDir.file("build.gradle") << resolveTask << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+        """ << declareAttributes() << """
+            abstract class FileSizer implements TransformAction<TransformParameters.None> {
+                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                private File getInput() {
+                    inputArtifact.get().asFile
+                }
+
+                void transform(TransformOutputs outputs) {
+                    def output = outputs.file(input.name + ".txt")
+                    println "Transformed \$input.name to \$input.name into \${output.parentFile}"
+                    outputs.file(inputArtifact)
+                    output.text = String.valueOf(input.length())
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform(FileSizer) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                    }
+                }
+                tasks.register("resolve", Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                }
+            }
+
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """ << withLibJarDependency("lib1.jar", projectDir)
+        projectDir.file("settings.gradle") << """
+            rootProject.name = 'root'
+            include 'lib'
+            include 'util'
+            include 'app'
+        """
     }
 
     def "task cannot write into transform directory"() {
@@ -1568,6 +1662,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     ArtifactCollection artifacts = this.artifacts.get()
                     String postfix = identifier.map { it -> " " + it }.getOrElse("")
                     println "files\${postfix}: " + artifacts.artifactFiles.collect { it.name }
+                    artifacts.artifactFiles.each { assert it.exists() }
                     println "ids\${postfix}: " + artifacts.collect { it.id.displayName }
                     println "components\${postfix}: " + artifacts.collect { it.id.componentIdentifier }
                 }
@@ -1738,8 +1833,8 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
         """
     }
 
-    def withLibJarDependency(name = "lib1.jar") {
-        file("lib/${name}").text = name
+    def withLibJarDependency(name = "lib1.jar", projectDir = testDirectory) {
+        projectDir.file("lib/${name}").text = name
         """
             project(':lib') {
                 dependencies {
