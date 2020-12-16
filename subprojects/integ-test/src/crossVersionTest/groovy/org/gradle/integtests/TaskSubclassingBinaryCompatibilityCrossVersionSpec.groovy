@@ -131,7 +131,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         // GRADLE-3185
         project.logger.lifecycle('task created')
         // GRADLE-3207
-        super.getServices()
+        // super.getServices()
     }
 }"""
             }.join("\n")
