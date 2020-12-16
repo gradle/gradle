@@ -101,14 +101,12 @@ public class JavaBasePlugin implements Plugin<Project> {
     );
 
     private final JavaInstallationRegistry javaInstallationRegistry;
-    private final JavaToolchainQueryService toolchainQueryService;
     private final boolean javaClasspathPackaging;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(JavaInstallationRegistry javaInstallationRegistry, JvmEcosystemUtilities jvmPluginServices, JavaToolchainQueryService toolchainQueryService) {
+    public JavaBasePlugin(JavaInstallationRegistry javaInstallationRegistry, JvmEcosystemUtilities jvmPluginServices) {
         this.javaInstallationRegistry = javaInstallationRegistry;
-        this.toolchainQueryService = toolchainQueryService;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
@@ -140,7 +138,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices, toolchainSpec);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
-        project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, toolchainQueryService);
+        project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaConvention;
     }
 
@@ -372,6 +370,12 @@ public class JavaBasePlugin implements Plugin<Project> {
         final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
         final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
         return toolMapper.apply(service, extension.getToolchain());
+    }
+
+    @Deprecated
+    @Inject
+    protected JavaToolchainQueryService getJavaToolchainQueryService() {
+        throw new UnsupportedOperationException();
     }
 
 }
