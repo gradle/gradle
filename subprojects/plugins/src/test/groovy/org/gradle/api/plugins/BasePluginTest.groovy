@@ -33,7 +33,7 @@ import static org.hamcrest.CoreMatchers.instanceOf
 
 class BasePluginTest extends AbstractProjectBuilderSpec {
 
-    public void addsConventionObjects() {
+    def "adds convention objects"() {
         when:
         project.pluginManager.apply(BasePlugin)
 
@@ -42,7 +42,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         project.extensions.findByType(DefaultArtifactPublicationSet) != null
     }
 
-    public void createsTasksAndAppliesMappings() {
+    def "creates tasks and applies mappings"() {
         when:
         project.pluginManager.apply(BasePlugin)
 
@@ -57,7 +57,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         assemble instanceOf(DefaultTask)
     }
 
-    public void assembleTaskBuildsThePublishedArtifacts() {
+    def "assemble task builds the published artifacts"() {
         given:
         def someJar = project.tasks.create('someJar', Jar)
 
@@ -70,7 +70,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         assemble dependsOn('someJar')
     }
 
-    public void addsRulesWhenAConfigurationIsAdded() {
+    def "adds rules when a configuration isa dded"() {
         when:
         project.pluginManager.apply(BasePlugin)
 
@@ -78,7 +78,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         !project.tasks.rules.empty
     }
 
-    public void addsImplicitTasksForConfiguration() {
+    def "adds implicit tasks for configuration"() {
         given:
         def someJar = project.tasks.create('someJar', Jar)
 
@@ -112,7 +112,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         uploadConf.configuration == project.configurations.conf
     }
 
-    public void addsACleanRule() {
+    def "adds a clean rule"() {
         given:
         Task test = project.task('test')
         test.outputs.dir(project.buildDir)
@@ -126,7 +126,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         cleanTest.delete == [test.outputs.files] as Set
     }
 
-    public void cleanRuleIsCaseSensitive() {
+    def "clean rule is case sensitive"() {
         given:
         project.task('testTask')
         project.task('12')
@@ -141,7 +141,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName('clean12') instanceof Delete
     }
 
-    public void appliesMappingsForArchiveTasks() {
+    def "applies mappings for archive tasks"() {
         when:
         project.pluginManager.apply(BasePlugin)
         project.version = '1.0'
@@ -150,22 +150,22 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         def someJar = project.tasks.create('someJar', Jar)
         someJar.destinationDirectory.getAsFile().get() == project.libsDir
         someJar.version == project.version
-        someJar.baseName == project.archivesBaseName
+        someJar.archiveBaseName.get() == project.archivesBaseName
 
         and:
-        def someZip = destinationDirectory.getAsFile().get().tasks.create('someZip', Zip)
-        someZip.destinationDir == project.distsDir
+        def someZip =  project.tasks.create('someZip', Zip)
+        someZip.destinationDirectory.asFile.get() == project.distsDir
         someZip.version == project.version
-        someZip.baseName == project.archivesBaseName
+        someZip.archiveBaseName.get() == project.archivesBaseName
 
         and:
         def someTar = project.tasks.create('someTar', Tar)
         someTar.destinationDirectory.getAsFile().get() == project.distsDir
         someTar.version == project.version
-        someTar.baseName == project.archivesBaseName
+        someTar.archiveBaseName.get() == project.archivesBaseName
     }
 
-    public void usesNullVersionWhenProjectVersionNotSpecified() {
+    def "uses null version when project version not specified"() {
         when:
         project.pluginManager.apply(BasePlugin)
 
@@ -180,7 +180,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         task.version == '1.0'
     }
 
-    public void addsConfigurationsToTheProject() {
+    def "adds configurations to the project"() {
         when:
         project.pluginManager.apply(BasePlugin)
 
@@ -197,7 +197,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         archives.transitive
     }
 
-    public void addsEveryPublishedArtifactToTheArchivesConfiguration() {
+    def "adds every published artifact to the archives configuration"() {
         PublishArtifact artifact = Mock()
 
         when:

@@ -154,20 +154,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Returns the base name of the archive.
-     *
-     * @return the base name. May be null.
-     * @deprecated Use {@link #getArchiveBaseName()}
-     */
-    @Nullable
-    @Deprecated
-    @ReplacedBy("archiveBaseName")
-    public String getBaseName() {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "baseName").replaceWith("archiveBaseName").willBeRemovedInGradle7().withDslReference().nagUser();
-        return archiveBaseName.getOrNull();
-    }
-
-    /**
      * Sets the base name.
      *
      * @deprecated Use {@link #getArchiveBaseName()}
