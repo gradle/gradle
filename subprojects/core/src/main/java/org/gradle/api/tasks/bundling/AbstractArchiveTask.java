@@ -114,18 +114,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @OutputFile
-    @SuppressWarnings("DanglingJavadoc")
     public Provider<RegularFile> getArchiveFile() {
-        // TODO since we only have properties now, should we deprecate this API? Either way, AbstractArchiveTask#getArchivePath()} no longer exists.
-        // TODO: Turn this into an `@implSpec` annotation on the comment above:
-        // https://github.com/gradle/gradle/issues/7486
-        /**
-         * This returns a provider of {@link RegularFile} instead of {@link RegularFileProperty} in order to
-         * prevent users calling {@link org.gradle.api.provider.Property#set} and causing a plugin or users using
-         * {@code AbstractArchiveTask#getArchivePath()} to break or have strange behaviour.
-         * An example can be found
-         * <a href="https://github.com/gradle/gradle-native/issues/893#issuecomment-430776251">here</a>.
-         */
         return archiveFile;
     }
 
