@@ -79,6 +79,18 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         task instanceof TestDefaultTask
     }
 
+    void testCreateTaskForUnsupportedTaskType() {
+        when:
+        taskFactory.create(new TaskIdentity(taskType, 'task', null, Path.path(':task'), null, 12))
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "Cannot create task ':task' of type '${taskType.simpleName}' as it does not extend DefaultTask."
+
+        where:
+        taskType << [TaskInternal]
+    }
+
     void testCreateTaskForTypeWhichDoesNotImplementTask() {
         when:
         taskFactory.create(new TaskIdentity(NotATask, 'task', null, Path.path(':task'), null, 12))
