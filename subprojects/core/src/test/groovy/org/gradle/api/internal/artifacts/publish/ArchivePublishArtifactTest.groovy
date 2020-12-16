@@ -31,7 +31,7 @@ class ArchivePublishArtifactTest extends Specification {
 
     def "provides sensible default values for quite empty archive tasks"() {
         def quiteEmptyJar = testUtil.task(DummyJar)
-        quiteEmptyJar.destinationDir = temporaryFolder.testDirectory
+        quiteEmptyJar.destinationDirectory = temporaryFolder.testDirectory
 
         when:
         def a = new ArchivePublishArtifact(quiteEmptyJar)
@@ -50,12 +50,12 @@ class ArchivePublishArtifactTest extends Specification {
         def withArchiveName = testUtil.task(DummyJar)
         withArchiveName.archiveFileName = "hey"
         def withBaseName = testUtil.task(DummyJar)
-        withBaseName.baseName = "foo"
+        withBaseName.archiveBaseName = "foo"
         def withAppendix = testUtil.task(DummyJar)
-        withAppendix.baseName = "foo"
-        withAppendix.appendix = "javadoc"
+        withAppendix.archiveBaseName = "foo"
+        withAppendix.archiveAppendix = "javadoc"
         def withAppendixOnly = testUtil.task(DummyJar)
-        withAppendixOnly.appendix = "javadoc"
+        withAppendixOnly.archiveAppendix = "javadoc"
 
         expect:
         new ArchivePublishArtifact(noName).name == null
@@ -70,7 +70,7 @@ class ArchivePublishArtifactTest extends Specification {
 
     static class DummyJar extends AbstractArchiveTask {
         DummyJar() {
-            extension = "jar"
+            archiveExtension.set("jar")
         }
 
         protected CopyAction createCopyAction() {

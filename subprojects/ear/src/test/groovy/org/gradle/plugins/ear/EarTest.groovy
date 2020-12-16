@@ -42,7 +42,7 @@ class EarTest extends AbstractArchiveTaskTest {
 
     def "test Ear"() {
         expect:
-        ear.extension == Ear.EAR_EXTENSION
+        ear.archiveExtension.get() == Ear.EAR_EXTENSION
     }
 
     def "correct default deployment descriptor"() {

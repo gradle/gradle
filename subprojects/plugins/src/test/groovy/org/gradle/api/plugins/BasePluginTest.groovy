@@ -149,19 +149,19 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def someJar = project.tasks.create('someJar', Jar)
         someJar.destinationDirectory.getAsFile().get() == project.libsDir
-        someJar.version == project.version
+        someJar.archiveVersion.get() == project.version
         someJar.archiveBaseName.get() == project.archivesBaseName
 
         and:
         def someZip =  project.tasks.create('someZip', Zip)
         someZip.destinationDirectory.asFile.get() == project.distsDir
-        someZip.version == project.version
+        someZip.archiveVersion.get() == project.version
         someZip.archiveBaseName.get() == project.archivesBaseName
 
         and:
         def someTar = project.tasks.create('someTar', Tar)
         someTar.destinationDirectory.getAsFile().get() == project.distsDir
-        someTar.version == project.version
+        someTar.archiveVersion.get() == project.version
         someTar.archiveBaseName.get() == project.archivesBaseName
     }
 
@@ -171,13 +171,13 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def task = project.tasks.create('someJar', Jar)
-        task.version == null
+        task.archiveVersion.getOrNull() == null
 
         when:
         project.version = '1.0'
 
         then:
-        task.version == '1.0'
+        task.archiveVersion.get() == '1.0'
     }
 
     def "adds configurations to the project"() {

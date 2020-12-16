@@ -39,7 +39,7 @@ class JarTest extends AbstractArchiveTaskTest {
 
     def "test Jar"() {
         expect:
-        jar.extension == Jar.DEFAULT_EXTENSION
+        jar.archiveExtension.get() == Jar.DEFAULT_EXTENSION
         jar.manifest != null
         jar.metaInf != null
     }
