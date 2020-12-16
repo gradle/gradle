@@ -100,7 +100,6 @@ public interface ObjectFactory {
      * @param displayName A human consumable display name for the set.
      * @since 5.0
      */
-    @Incubating
     SourceDirectorySet sourceDirectorySet(String name, String displayName);
 
     /**
@@ -108,7 +107,6 @@ public interface ObjectFactory {
      *
      * @since 5.3
      */
-    @Incubating
     ConfigurableFileCollection fileCollection();
 
     /**
@@ -264,7 +262,6 @@ public interface ObjectFactory {
      *
      * @since 5.0
      */
-    @Incubating
     DirectoryProperty directoryProperty();
 
     /**
@@ -272,6 +269,5 @@ public interface ObjectFactory {
      *
      * @since 5.0
      */
-    @Incubating
     RegularFileProperty fileProperty();
 }
