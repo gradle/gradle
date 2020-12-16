@@ -31,7 +31,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputChangesContext;
@@ -199,7 +199,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         ComponentIdentifier componentIdentifier = subject.getInitialComponentIdentifier();
         if (componentIdentifier instanceof ProjectComponentIdentifier) {
             return projectStateRegistry.stateFor((ProjectComponentIdentifier) componentIdentifier).getMutableModel();
-        } else if (componentIdentifier instanceof OpaqueComponentIdentifier) {
+        } else if (componentIdentifier instanceof OpaqueComponentArtifactIdentifier) {
             return projectStateRegistry.stateFor(DefaultBuildIdentifier.ROOT, org.gradle.util.Path.ROOT).getMutableModel();
         } else {
             return null;
