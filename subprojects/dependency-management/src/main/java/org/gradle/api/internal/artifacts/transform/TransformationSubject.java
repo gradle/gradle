@@ -19,11 +19,9 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
 import java.io.File;
-import java.util.Optional;
 
 /**
  * Subject which is transformed or the result of a transformation.
@@ -40,11 +38,9 @@ public abstract class TransformationSubject implements Describable {
     public abstract ImmutableList<File> getFiles();
 
     /**
-     * Component producing this subject.
-     *
-     * {@link Optional#empty()} if the subject is not produced by a project.
+     * Component identifier of the initial subject.
      */
-    public abstract Optional<ProjectComponentIdentifier> getProducer();
+    public abstract ComponentIdentifier getInitialComponentIdentifier();
 
     /**
      * Creates a subsequent subject by having transformed this subject.
@@ -93,12 +89,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public Optional<ProjectComponentIdentifier> getProducer() {
-            ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
-            if (componentIdentifier instanceof ProjectComponentIdentifier) {
-                return Optional.of((ProjectComponentIdentifier) componentIdentifier);
-            }
-            return Optional.empty();
+        public ComponentIdentifier getInitialComponentIdentifier() {
+            return artifact.getId().getComponentIdentifier();
         }
     }
 
@@ -117,8 +109,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public Optional<ProjectComponentIdentifier> getProducer() {
-            return previous.getProducer();
+        public ComponentIdentifier getInitialComponentIdentifier() {
+            return previous.getInitialComponentIdentifier();
         }
 
         @Override
