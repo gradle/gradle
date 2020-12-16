@@ -70,6 +70,7 @@ import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -463,18 +464,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public org.gradle.api.logging.LoggingManager getLogging() {
+        return loggingManager();
+    }
+
+    @Override
+    public StandardOutputCapture getStandardOutputCapture() {
+        return loggingManager();
+    }
+
+    private LoggingManagerInternal loggingManager() {
         if (loggingManager == null) {
             loggingManager = services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create();
         }
         return loggingManager;
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public org.gradle.logging.StandardOutputCapture getStandardOutputCapture() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

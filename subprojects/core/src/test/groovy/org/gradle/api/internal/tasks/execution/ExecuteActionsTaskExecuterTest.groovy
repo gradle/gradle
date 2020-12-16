@@ -79,7 +79,7 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
-import org.gradle.logging.StandardOutputCapture
+
 import spock.lang.Specification
 
 import java.util.function.Consumer
