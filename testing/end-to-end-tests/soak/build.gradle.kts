@@ -25,5 +25,5 @@ dependencies {
 tasks.register("soakTest") {
     description = "Run all soak tests defined in the :soak subproject"
     group = "CI Lifecycle"
-    dependsOn(":soak:forkingIntegTest")
+    dependsOn(tasks.forkingIntegTest)
 }
