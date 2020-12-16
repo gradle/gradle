@@ -359,7 +359,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.manifest.mainAttributes.getValue('attr') == null
     }
 
-    def "create parallel dirs with services"() {
+    def createParallelDirsWithServices() {
         createDir('dir1') {
             'META-INF' {
                 services {
@@ -387,7 +387,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         file('dir2/test.txt').write('Content of second file')
     }
 
-    def "confirm duplicate services preserved"() {
+    def confirmDuplicateServicesPreserved() {
         def jar = new JarTestFixture(file('test.jar'))
 
         assert 2 == jar.countFiles('META-INF/services/org.gradle.Service')
