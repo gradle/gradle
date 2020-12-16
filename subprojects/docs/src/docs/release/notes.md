@@ -124,6 +124,8 @@ In Gradle 7.0 we moved the following classes out of incubation phase.
 - org.gradle.tooling.events.test.TestOutputDescriptor
 - org.gradle.tooling.events.test.TestOutputEvent
 
+- org.gradle.process.ExecOperations
+
 <!--
 ### Example promoted
 -->
