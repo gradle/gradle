@@ -7,5 +7,5 @@ plugins {
     id("gradlebuild.repositories")
 }
 
-includeBuild("../publishing")
 includeBuild("../native")
+includeBuild("../publishing")

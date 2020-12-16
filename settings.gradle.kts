@@ -11,11 +11,11 @@ plugins {
 
 rootProject.name = "gradle"
 
+includeBuild("distribution-plugins/native")
 includeBuild("distribution-core")
 includeBuild("distribution-plugins/essentials")
 includeBuild("distribution-plugins/basics")
 includeBuild("distribution-plugins/jvm")
-includeBuild("distribution-plugins/native")
 includeBuild("distribution-plugins/publishing")
 includeBuild("distribution-plugins/full")
 
