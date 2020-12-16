@@ -105,7 +105,6 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
     @Unroll
     def "should report the changes when files are modified #changesCount"(changesCount) {
         given:
