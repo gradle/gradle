@@ -34,7 +34,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
     public final S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
-        executer.withArgument('-i')
+        executer.withArgument('-d')
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }
 
@@ -79,6 +79,45 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         failure.assertHasCause("Failed to publish publication 'pub' to repository 'maven'")
         failure.assertHasCause("Could not write to resource '${module.artifact.uri}'.")
         failure.assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "should fail without complaining about aws-java-sdk-sts not being in the class path"() {
+        setup:
+        settingsFile << "rootProject.name = '${projectName}'"
+
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+
+            group = "org.gradle"
+            version = '${mavenVersion}'
+
+            publishing {
+                repositories {
+                    maven {
+                        url "${mavenS3Repo.uri}"
+                        authentication {
+                           awsIm(AwsImAuthentication)
+                        }
+                    }
+                }
+                publications {
+                    pub(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        def module = mavenS3Repo.module("org.gradle", "publishS3Test", "1.45")
+        module.artifact.expectPutAuthenticationError()
+
+        then:
+        fails 'publish'
+
+        failure.assertNotOutput('To use assume role profiles the aws-java-sdk-sts module must be on the class path.')
     }
 
     MavenS3Repository getMavenS3Repo() {

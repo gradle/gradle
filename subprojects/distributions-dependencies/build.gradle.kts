@@ -46,6 +46,7 @@ dependencies {
         api(libs.awsS3Core)             { version { strictly(awsS3Version) }}
         api(libs.awsS3Kms)              { version { strictly(awsS3Version) }}
         api(libs.awsS3S3)               { version { strictly(awsS3Version) }}
+        api(libs.awsS3Sts)              { version { strictly(awsS3Version) }}
         api(libs.bouncycastlePgp)       { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
