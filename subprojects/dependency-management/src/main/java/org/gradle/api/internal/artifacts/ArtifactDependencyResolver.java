@@ -33,5 +33,6 @@ public interface ArtifactDependencyResolver {
                  DependencyGraphVisitor graphVisitor,
                  DependencyArtifactsVisitor artifactsVisitor,
                  AttributesSchemaInternal consumerSchema,
-                 ArtifactTypeRegistry artifactTypeRegistry);
+                 ArtifactTypeRegistry artifactTypeRegistry,
+                 boolean includeSyntheticDependencies);
 }

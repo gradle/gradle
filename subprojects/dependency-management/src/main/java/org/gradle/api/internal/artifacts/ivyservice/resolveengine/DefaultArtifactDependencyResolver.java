@@ -131,7 +131,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     @Override
-    public void resolve(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, Spec<? super DependencyMetadata> edgeFilter, DependencyGraphVisitor graphVisitor, DependencyArtifactsVisitor artifactsVisitor, AttributesSchemaInternal consumerSchema, ArtifactTypeRegistry artifactTypeRegistry) {
+    public void resolve(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, Spec<? super DependencyMetadata> edgeFilter, DependencyGraphVisitor graphVisitor, DependencyArtifactsVisitor artifactsVisitor, AttributesSchemaInternal consumerSchema, ArtifactTypeRegistry artifactTypeRegistry, boolean includeSyntheticDependencies) {
         LOGGER.debug("Resolving {}", resolveContext);
 
         validateResolutionStrategy(resolveContext.getResolutionStrategy());
@@ -142,7 +142,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, resolvers.getArtifactSelector());
 
         // Resolve the dependency graph
-        builder.resolve(resolveContext, new CompositeDependencyGraphVisitor(graphVisitor, artifactsGraphVisitor));
+        builder.resolve(resolveContext, new CompositeDependencyGraphVisitor(graphVisitor, artifactsGraphVisitor), includeSyntheticDependencies);
     }
 
     private static void validateResolutionStrategy(ResolutionStrategyInternal resolutionStrategy) {

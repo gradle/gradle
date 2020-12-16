@@ -133,7 +133,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
         CompositeDependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(failureCollector, resolutionResultBuilder);
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
-        resolver.resolve(configuration, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry);
+        resolver.resolve(configuration, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, false);
         result.graphResolved(resolutionResultBuilder.getResolutionResult(), new ResolvedLocalComponentsResultGraphVisitor(currentBuild), new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), artifactTransforms, configuration.getDependenciesResolver()));
     }
 
@@ -175,7 +175,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ImmutableList<DependencyArtifactsVisitor> allVisitors = visitors.build();
         CompositeDependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(allVisitors);
 
-        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry);
+        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, true);
 
         VisitedArtifactsResults artifactsResults = artifactsBuilder.complete();
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();

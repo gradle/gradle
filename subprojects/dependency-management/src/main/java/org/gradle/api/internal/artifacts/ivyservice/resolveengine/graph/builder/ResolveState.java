@@ -55,6 +55,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -86,6 +87,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ResolveOptimizations resolveOptimizations;
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
     private final AttributeDesugaring attributeDesugaring;
+    private final List<? extends DependencyMetadata> generatedRootDependencies;
 
     public ResolveState(IdGenerator<Long> idGenerator,
                         ComponentResolveResult rootResult,
@@ -103,7 +105,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
                         VersionParser versionParser,
                         ModuleConflictResolver<ComponentState> conflictResolver,
                         int graphSize,
-                        ConflictResolution conflictResolution) {
+                        ConflictResolution conflictResolution,
+                        List<? extends DependencyMetadata> generatedRootDependencies) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -121,6 +124,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
         this.queue = new ArrayDeque<>(graphSize);
         this.conflictResolution = conflictResolution;
+        this.generatedRootDependencies = generatedRootDependencies;
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
         // Create root module
@@ -154,6 +158,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {
         return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
+    }
+
+    List<? extends DependencyMetadata> getGeneratedRootDependencies() {
+        return generatedRootDependencies;
     }
 
     @Override

@@ -51,6 +51,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -130,7 +131,7 @@ public class DependencyGraphBuilder {
         this.versionParser = versionParser;
     }
 
-    public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor) {
+    public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor, boolean includeSyntheticDependencies) {
 
         IdGenerator<Long> idGenerator = new LongIdGenerator();
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
@@ -139,7 +140,9 @@ public class DependencyGraphBuilder {
         int graphSize = estimateSize(resolveContext);
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution());
+        List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ? syntheticDependenciesOf(rootModule, resolveContext.getName()) : Collections.emptyList();
+
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies);
 
         Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMapWithExpectedSize(graphSize / 2);
         traverseGraph(resolveState, componentIdentifierCache);
@@ -148,6 +151,14 @@ public class DependencyGraphBuilder {
 
         assembleResult(resolveState, modelVisitor);
 
+    }
+
+    private static List<? extends DependencyMetadata> syntheticDependenciesOf(DefaultBuildableComponentResolveResult rootModule, String name) {
+        ComponentResolveMetadata metadata = rootModule.getMetadata();
+        if (metadata instanceof RootLocalComponentMetadata) {
+            return ((RootLocalComponentMetadata)metadata).getSyntheticDependencies(name);
+        }
+        return Collections.emptyList();
     }
 
     /**
