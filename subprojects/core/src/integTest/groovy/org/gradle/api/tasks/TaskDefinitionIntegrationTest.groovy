@@ -166,7 +166,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("thing")
-        failureHasCause("Cannot create task ':thing' of type 'TaskInternal' as this type is not supported for task registration.")
+        failureHasCause("Cannot create task ':thing' of type 'TaskInternal' as it does not extend DefaultTask.")
     }
 
     def "does not hide local methods and variables"() {
