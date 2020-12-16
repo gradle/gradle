@@ -49,28 +49,6 @@ public abstract class TransformationSubject implements Describable {
         return new SubsequentTransformationSubject(this, result);
     }
 
-    private static abstract class AbstractInitialTransformationSubject extends TransformationSubject {
-        private final File file;
-
-        public AbstractInitialTransformationSubject(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public ImmutableList<File> getFiles() {
-            return ImmutableList.of(file);
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        @Override
-        public String toString() {
-            return getDisplayName();
-        }
-    }
-
     private static class InitialArtifactTransformationSubject extends TransformationSubject {
         private final ResolvableArtifact artifact;
 
