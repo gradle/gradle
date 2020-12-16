@@ -6,7 +6,6 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -44,14 +43,13 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    @Ignore
     @Test
     @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
         withBuildScript(
             """
             plugins {
-                kotlin("jvm") version "1.3.31"
+                kotlin("jvm") version "1.4.21"
             }
             """
         )
@@ -59,7 +57,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
         val result = build("buildEnvironment")
 
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.3.31 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.4.21 -> $embeddedKotlinVersion"))
         }
     }
 
