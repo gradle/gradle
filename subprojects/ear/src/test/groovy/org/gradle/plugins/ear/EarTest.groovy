@@ -83,8 +83,8 @@ class EarTest extends AbstractArchiveTaskTest {
         execute(ear)
 
         then:
-        ear.archiveFile.get().getAsFile().isFile()
-        new JarTestFixture(ear.archiveFile.get().getAsFile()).assertContainsFile('lib/file.txt')
+        ear.archiveFile.asFile.get().file
+        new JarTestFixture(ear.archiveFile.asFile.get()).assertContainsFile('lib/file.txt')
     }
 
     private static DeploymentDescriptor makeDeploymentDescriptor(Ear e) {

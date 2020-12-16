@@ -156,7 +156,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task.destinationDirectory.asFile.get() == project.libsDir
     }
 
-     def "applies mappings to archive tasks for java project"() {
+    def "applies mappings to archive tasks for java project"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(JavaPlugin.class)
@@ -169,7 +169,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME))
     }
 
-     def "adds ear as publication"() {
+    def "adds ear as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -181,7 +181,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
-     def "replaces war as publication"() {
+    def "replaces war as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(WarPlugin)
@@ -194,7 +194,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
-     def "replaces jar as publication"() {
+    def "replaces jar as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(JavaPlugin)
@@ -207,7 +207,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
-     def "supports app dir"() {
+    def "supports app dir"() {
         given:
         project.file("src/main/application/META-INF").mkdirs()
         project.file("src/main/application/META-INF/test.txt").createNewFile()
@@ -224,7 +224,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "META-INF/test.txt"
     }
 
-     def "supports renamed app dir"() {
+    def "supports renamed app dir"() {
         given:
         project.file("src/main/myapp").mkdirs()
         project.file("src/main/myapp/test.txt").createNewFile()
@@ -240,7 +240,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "test.txt"
     }
 
-     def "supports renaming lib dir"() {
+    def "supports renaming lib dir"() {
         given:
         def childProject = TestUtil.createChildProject(project, 'child')
         childProject.file("src/main/resources").mkdirs()
@@ -261,7 +261,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "APP-INF/lib/child.jar"
     }
 
-     def "supports duplicate dependencies"() {
+    def "supports duplicate dependencies"() {
         given:
         def pojoProject = TestUtil.createChildProject(project, 'pojo')
         pojoProject.pluginManager.apply(JavaPlugin)
@@ -288,7 +288,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         notInEar "lib/bean.jar"
     }
 
-     def "supports generating deployment descriptor"() {
+    def "supports generating deployment descriptor"() {
         when:
         project.pluginManager.apply(EarPlugin)
         executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
@@ -297,7 +297,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "META-INF/application.xml"
     }
 
-     def "supports skipping deployment descriptor creation"() {
+    def "supports skipping deployment descriptor creation"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.convention.plugins.ear.generateDeploymentDescriptor = false
@@ -307,7 +307,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         notInEar "META-INF/application.xml"
     }
 
-     def "avoids overwriting deployment descriptor"() {
+    def "avoids overwriting deployment descriptor"() {
         given:
         project.file("src/main/application/META-INF").mkdirs()
         project.file("src/main/application/META-INF/application.xml").text = TEST_APP_XML
@@ -320,7 +320,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar("META-INF/application.xml").text == TEST_APP_XML
     }
 
-     def "supports renaming deployment descriptor"() {
+    def "supports renaming deployment descriptor"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.convention.plugins.ear.deploymentDescriptor {
@@ -332,7 +332,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "META-INF/myapp.xml"
     }
 
-     def "avoids overwriting renamed deployment descriptor"() {
+    def "avoids overwriting renamed deployment descriptor"() {
         given:
         project.file("src/main/application/META-INF").mkdirs()
         project.file("src/main/application/META-INF/myapp.xml").text = TEST_APP_XML

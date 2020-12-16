@@ -28,7 +28,7 @@ import java.util.jar.Manifest
 @TestReproducibleArchives
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
-     def "can create an empty jar"() {
+    def "can create an empty jar"() {
         given:
         buildFile << """
         task jar(type: Jar) {
@@ -104,7 +104,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('META-INF/AAA.META')
     }
 
-     def "meta inf specs are independent of other spec"() {
+    def "meta inf specs are independent of other spec"() {
         given:
         createDir('test') {
             dir1 {
@@ -152,7 +152,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('dir1/file1.txt')
     }
 
-     def "uses manifest from jar task when merging jars"() {
+    def "uses manifest from jar task when merging jars"() {
         given:
         createDir('src1') {
             dir1 { file 'file1.txt' }
@@ -196,7 +196,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jarFixture.assertContainsFile('dir2/file2.txt')
     }
 
-     def "exclude duplicates use manifest over meta inf"() {
+    def "exclude duplicates use manifest over meta inf"() {
         createDir('meta-inf') {
             file 'MANIFEST.MF'
         }
@@ -224,7 +224,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         manifest.mainAttributes.getValue('attr') == 'from manifest'
     }
 
-     def "exclude duplicates use meta inf over regular files"() {
+    def "exclude duplicates use meta inf over regular files"() {
         createDir('meta-inf1') {
             file 'file.txt'
         }
@@ -261,7 +261,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertFileContent('META-INF/file.txt', 'good')
     }
 
-     def "duplicate services included others excluded"() {
+    def "duplicate services included others excluded"() {
         createParallelDirsWithServices()
 
         given:
@@ -284,7 +284,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
-     def "duplicates excluded by default with exception for services"() {
+    def "duplicates excluded by default with exception for services"() {
         createParallelDirsWithServices()
 
         given:

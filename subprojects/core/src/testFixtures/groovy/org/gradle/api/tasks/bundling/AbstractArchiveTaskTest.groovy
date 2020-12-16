@@ -50,7 +50,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.destinationDirectory.present
         archiveTask.archiveFile.present
         archiveTask.destinationDirectory.asFile.get().directory
-        archiveTask.archiveFile.get().asFile.file
+        archiveTask.archiveFile.asFile.get().file
     }
 
     def "archiveName with empty extension"() {
@@ -141,6 +141,6 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
 
     def "correct archive path"() {
         expect:
-        archiveTask.archiveFile.get().getAsFile() == new File(archiveTask.destinationDirectory.getAsFile().get(), archiveTask.archiveFileName.get())
+        archiveTask.archiveFile.asFile.get() == new File(archiveTask.destinationDirectory.asFile.get(), archiveTask.archiveFileName.get())
     }
 }

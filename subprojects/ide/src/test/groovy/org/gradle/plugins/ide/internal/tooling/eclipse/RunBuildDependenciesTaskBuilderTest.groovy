@@ -47,7 +47,7 @@ class RunBuildDependenciesTaskBuilderTest extends AbstractProjectBuilderSpec {
 
         child1.configurations.create("testArtifacts")
         def task = child1.tasks.create("testJar", Jar) {
-            archiveClassifier.set("tests")
+            archiveClassifier = "tests"
             from(project.sourceSets.test.output)
         }
         child1.artifacts.add("testArtifacts", task)
