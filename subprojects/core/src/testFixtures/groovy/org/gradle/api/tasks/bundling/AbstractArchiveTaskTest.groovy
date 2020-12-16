@@ -16,8 +16,7 @@
 
 package org.gradle.api.tasks.bundling
 
-import groovy.transform.CompileStatic
-import org.gradle.api.provider.Property
+
 import org.gradle.api.tasks.AbstractCopyTaskContractTest
 
 abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
