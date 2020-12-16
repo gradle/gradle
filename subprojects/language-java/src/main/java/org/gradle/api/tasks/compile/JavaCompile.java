@@ -72,7 +72,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
-import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;

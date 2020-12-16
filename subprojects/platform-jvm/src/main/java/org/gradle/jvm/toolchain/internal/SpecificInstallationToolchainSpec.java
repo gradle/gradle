@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.internal;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import java.io.File;
 
