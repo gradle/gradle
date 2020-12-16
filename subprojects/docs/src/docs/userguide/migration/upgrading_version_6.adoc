@@ -58,6 +58,12 @@ The `layout` method taking a configuration block has been removed and is replace
 
 === Deprecations
 
+[[missing_dependencies]]
+==== Missing dependencies between tasks
+
+Having a task which produces an output in a location and another task consuming that location by referring to it as an input without the consumer task depending on the producer task has been deprecated.
+A fix for this problem is to <<more_about_tasks.adoc#sec:link_output_dir_to_input_files,add a dependency from the consumer to the producer>>.
+
 [[changes_6.8]]
 == Upgrading from 6.7
 
@@ -67,7 +73,7 @@ The `layout` method taking a configuration block has been removed and is replace
 
 The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is now marked as `@NonNull`.
 
-This may impact Kotlin consumers where the return types of APIs are no longer nullable. 
+This may impact Kotlin consumers where the return types of APIs are no longer nullable.
 
 ==== Updates to default tool integration versions
 
