@@ -222,13 +222,13 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def apiUsage = javaLibrary.usages.find { it.name == 'apiElements' }
 
         then:
-        runtimeUsage.artifacts.collect {it.file} == [jarTask.archivePath]
+        runtimeUsage.artifacts.collect {it.file} == [jarTask.archiveFile.get().getAsFile()]
         runtimeUsage.dependencies.size() == 2
         runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeUsage.dependencyConstraints.size() == 2
         runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
 
-        apiUsage.artifacts.collect {it.file} == [jarTask.archivePath]
+        apiUsage.artifacts.collect {it.file} == [jarTask.archiveFile.get().getAsFile()]
         apiUsage.dependencies.size() == 1
         apiUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiUsage.dependencyConstraints.size() == 1

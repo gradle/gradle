@@ -35,7 +35,7 @@ import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 
 class JavaPluginTest extends AbstractProjectBuilderSpec {
-    def addsConfigurationsToTheProject() {
+    def "adds configurations to the project"() {
         given:
         project.pluginManager.apply(JavaPlugin)
 
@@ -175,7 +175,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         defaultConfig.extendsFrom == toSet()
     }
 
-    def addsJarAsPublication() {
+    def "adds jar as publication"() {
         given:
         project.pluginManager.apply(JavaPlugin)
 
@@ -183,10 +183,10 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archivePath]
+        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archiveFile.asFile.get()]
     }
 
-    def addsJavaLibraryComponent() {
+    def "adds java library component"() {
         given:
         project.pluginManager.apply(JavaPlugin)
 
@@ -196,11 +196,11 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
-        runtime.artifacts.collect {it.file} == [jarTask.archivePath]
+        runtime.artifacts.collect {it.file} == [jarTask.archiveFile.asFile.get()]
         runtime.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
     }
 
-    def createsStandardSourceSetsAndAppliesMappings() {
+    def "creates standard source sets and applies mappings"() {
         given:
         project.pluginManager.apply(JavaPlugin)
 
@@ -239,7 +239,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
     }
 
-    def createsMappingsForCustomSourceSets() {
+    def "creates mappings for custom source sets"() {
         given:
         project.pluginManager.apply(JavaPlugin)
 
@@ -258,7 +258,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 
-    def createsStandardTasksAndAppliesMappings() {
+    def "creates standard tasks and applies mappings"() {
         given:
         project.pluginManager.apply(JavaPlugin)
         new TestFile(project.file("src/main/java/File.java")) << "foo"
@@ -332,7 +332,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof Jar
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-        task.destinationDir == project.libsDir
+        task.destinationDirectory.asFile.get() == project.libsDir
         task.mainSpec.sourcePaths == [project.sourceSets.main.output] as Set
         task.manifest != null
         task.manifest.mergeSpecs.size() == 0
@@ -407,7 +407,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.workingDir == project.projectDir
     }
 
-    def appliesMappingsToTasksAddedByTheBuildScript() {
+    def "applies mappings to tasks added by the build script"() {
         given:
         project.pluginManager.apply(JavaPlugin)
 
@@ -422,7 +422,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.reports.html.destination == new File(project.testReportDir, 'customTest')
     }
 
-    def buildOtherProjects() {
+    def "build other projects"() {
         given:
         def commonProject = TestUtil.createChildProject(project, "common")
         def middleProject = TestUtil.createChildProject(project, "middle")
@@ -454,7 +454,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set
     }
 
-    def buildOtherProjectsWithCyclicDependencies() {
+    def "build other projects with cyclic dependencies"() {
         given:
         def commonProject = TestUtil.createChildProject(project, "common")
         def middleProject = TestUtil.createChildProject(project, "middle")
@@ -521,7 +521,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set
     }
 
-    void "source and target compatibility of compile tasks default to release if set"() {
+    def "source and target compatibility of compile tasks default to release if set"() {
         given:
         project.pluginManager.apply(JavaPlugin)
         def compileJava = project.tasks.named("compileJava", JavaCompile).get()

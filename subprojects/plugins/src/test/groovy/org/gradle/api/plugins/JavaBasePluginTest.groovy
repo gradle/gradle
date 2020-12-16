@@ -396,7 +396,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskDependencyMatchers.dependsOn().matches(task)
-        task.destinationDir == project.libsDir
+        task.destinationDirectory.asFile.get() == project.libsDir
     }
 
     void createsLifecycleBuildTasks() {

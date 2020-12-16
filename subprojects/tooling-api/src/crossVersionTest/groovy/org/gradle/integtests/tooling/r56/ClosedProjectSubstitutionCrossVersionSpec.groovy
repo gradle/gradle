@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
@@ -46,7 +47,7 @@ class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification 
                     testArtifacts
                 }
                 task testJar(type: Jar) {
-                    classifier = "tests"
+                    archiveClassifier = "tests"
                 }
                 artifacts {
                     testArtifacts testJar
@@ -240,7 +241,7 @@ class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification 
                     from tasks.javadoc
                     archiveClassifier = "javadoc"
                 }
-            }            
+            }
             project(":child2") {
                 dependencies {
                     implementation project(":child1");

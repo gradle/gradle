@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
-    def canCopyFromAZip() {
+    def "can copy from a zip"() {
         given:
         createZip('test.zip') {
             subdir1 {
@@ -90,7 +90,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":copy")
     }
 
-    def cannotCreateAnEmptyTar() {
+    def "cannot create an empty tar"() {
         given:
         buildFile << """
             task tar(type: Tar) {
@@ -919,6 +919,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             task archive(type: $taskType) {
                 from("src")
                 $prop = null
+                ${prop}.convention(null)
             }
         """
         settingsFile << """
@@ -933,14 +934,14 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file(archiveFile).assertExists()
 
         where:
-        taskType | prop       | archiveFile
-        "Zip"    | "version"  | "build/distributions/archive.zip"
-        "Jar"    | "version"  | "build/libs/archive.jar"
-        "Tar"    | "version"  | "build/distributions/archive.tar"
+        taskType | prop              | archiveFile
+        "Zip"    | "archiveVersion"  | "build/distributions/archive.zip"
+        "Jar"    | "archiveVersion"  | "build/libs/archive.jar"
+        "Tar"    | "archiveVersion"  | "build/distributions/archive.tar"
 
-        "Zip"    | "baseName" | "build/distributions/1.0.zip"
-        "Jar"    | "baseName" | "build/libs/1.0.jar"
-        "Tar"    | "baseName" | "build/distributions/1.0.tar"
+        "Zip"    | "archiveBaseName" | "build/distributions/1.0.zip"
+        "Jar"    | "archiveBaseName" | "build/libs/1.0.jar"
+        "Tar"    | "archiveBaseName" | "build/distributions/1.0.tar"
 
     }
 

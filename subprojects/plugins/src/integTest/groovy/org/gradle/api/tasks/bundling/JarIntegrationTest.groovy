@@ -28,7 +28,7 @@ import java.util.jar.Manifest
 @TestReproducibleArchives
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
-    def canCreateAnEmptyJar() {
+     def "can create an empty jar"() {
         given:
         buildFile << """
         task jar(type: Jar) {
@@ -46,7 +46,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertFileContent('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\r\n\r\n')
     }
 
-    def canCreateAJarArchiveWithDefaultManifest() {
+    def "can create a jar archive with default manifest"() {
         given:
         createDir('test') {
             dir1 {
@@ -81,7 +81,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('dir1/file1.txt')
     }
 
-    def "manifest is the first file in the Jar"() {
+    def "manifest is the first file in the jar"() {
         given:
         createDir('meta-inf') {
             file('AAA.META') << 'Some custom metadata'
@@ -104,7 +104,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('META-INF/AAA.META')
     }
 
-    def metaInfSpecsAreIndependentOfOtherSpec() {
+     def "meta inf specs are independent of other spec"() {
         given:
         createDir('test') {
             dir1 {
@@ -152,7 +152,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('dir1/file1.txt')
     }
 
-    def usesManifestFromJarTaskWhenMergingJars() {
+     def "uses manifest from jar task when merging jars"() {
         given:
         createDir('src1') {
             dir1 { file 'file1.txt' }
@@ -175,7 +175,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             }
             task jar(type: Jar) {
                 dependsOn jar1, jar2
-                from zipTree(jar1.archivePath), zipTree(jar2.archivePath)
+                from zipTree(jar1.archiveFile), zipTree(jar2.archiveFile)
                 manifest { attributes(attr: 'value') }
                 destinationDirectory = buildDir
                 archiveFileName = 'test.jar'
@@ -196,7 +196,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jarFixture.assertContainsFile('dir2/file2.txt')
     }
 
-    def excludeDuplicatesUseManifestOverMetaInf() {
+     def "exclude duplicates use manifest over meta inf"() {
         createDir('meta-inf') {
             file 'MANIFEST.MF'
         }
@@ -224,7 +224,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         manifest.mainAttributes.getValue('attr') == 'from manifest'
     }
 
-    def excludeDuplicatesUseMetaInfOverRegularFiles() {
+     def "exclude duplicates use meta inf over regular files"() {
         createDir('meta-inf1') {
             file 'file.txt'
         }
@@ -261,7 +261,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertFileContent('META-INF/file.txt', 'good')
     }
 
-    def duplicateServicesIncludedOthersExcluded() {
+     def "duplicate services included others excluded"() {
         createParallelDirsWithServices()
 
         given:
@@ -284,7 +284,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
-    def duplicatesExcludedByDefaultWithExceptionForServices() {
+     def "duplicates excluded by default with exception for services"() {
         createParallelDirsWithServices()
 
         given:
@@ -359,7 +359,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.manifest.mainAttributes.getValue('attr') == null
     }
 
-    private def createParallelDirsWithServices() {
+    def "create parallel dirs with services"() {
         createDir('dir1') {
             'META-INF' {
                 services {
@@ -387,7 +387,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         file('dir2/test.txt').write('Content of second file')
     }
 
-    private def confirmDuplicateServicesPreserved() {
+    def "confirm duplicate services preserved"() {
         def jar = new JarTestFixture(file('test.jar'))
 
         assert 2 == jar.countFiles('META-INF/services/org.gradle.Service')
