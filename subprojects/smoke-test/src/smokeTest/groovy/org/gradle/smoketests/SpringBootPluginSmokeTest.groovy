@@ -16,12 +16,13 @@
 
 package org.gradle.smoketests
 
-
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
+@Ignore("Ignored until we have a 7.0 compatible plugin")
 class SpringBootPluginSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')

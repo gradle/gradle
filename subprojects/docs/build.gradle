@@ -509,6 +509,14 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-cross-compilation_*.sample' // fails to find javadoc
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample' // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample' // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
+
+        // TODO re-enable those tests once a version of the Spring Boot plugin is compatible with 7.0
+        excludeTestsMatching 'org.gradle.docs.samples.*.spring-boot-web-applications*.sample'
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-applying-plugins-*.sample'
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-configuring-tasks-spring-boot*.sample'
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-multi-project-build_kotlin*.sample'
+        excludeTestsMatching 'org.gradle.docs.samples.*.structuring-software-projects_*.sample'
+        excludeTestsMatching 'org.gradle.docs.samples.*.building-spring-boot-web-applications*.sample'
     }
 }
 

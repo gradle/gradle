@@ -17,11 +17,13 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore("Ignored until we have a 7.0 compatible plugin")
 class ShadowPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
