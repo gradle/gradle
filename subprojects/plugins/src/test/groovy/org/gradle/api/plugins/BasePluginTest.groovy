@@ -148,19 +148,19 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def someJar = project.tasks.create('someJar', Jar)
-        someJar.destinationDir == project.libsDir
+        someJar.destinationDirectory.getAsFile().get() == project.libsDir
         someJar.version == project.version
         someJar.baseName == project.archivesBaseName
 
         and:
-        def someZip = project.tasks.create('someZip', Zip)
+        def someZip = destinationDirectory.getAsFile().get().tasks.create('someZip', Zip)
         someZip.destinationDir == project.distsDir
         someZip.version == project.version
         someZip.baseName == project.archivesBaseName
 
         and:
         def someTar = project.tasks.create('someTar', Tar)
-        someTar.destinationDir == project.distsDir
+        someTar.destinationDirectory.getAsFile().get() == project.distsDir
         someTar.version == project.version
         someTar.baseName == project.archivesBaseName
     }

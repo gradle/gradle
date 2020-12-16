@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.transform.CompileStatic
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.AbstractCopyTaskContractTest
 
 abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
@@ -48,10 +49,10 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         execute(archiveTask)
 
         then:
-        archiveTask.destinationDirectory.isPresent()
-        archiveTask.archiveFile.isPresent()
-        archiveTask.destinationDir.isDirectory()
-        archiveTask.archiveFile.get().getAsFile().isFile()
+        archiveTask.destinationDirectory.present
+        archiveTask.archiveFile.present
+        archiveTask.destinationDirectory.asFile.get().directory
+        archiveTask.archiveFile.get().asFile.file
     }
 
     def "archiveName with empty extension"() {
@@ -142,7 +143,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
 
     def "correct archive path"() {
         expect:
-        archiveTask.archiveFile.get().getAsFile() == new File(archiveTask.destinationDir, archiveTask.archiveFileName.get())
+        archiveTask.archiveFile.get().getAsFile() == new File(archiveTask.destinationDirectory.getAsFile().get(), archiveTask.archiveFileName.get())
     }
 
     def "does not accept unset destinationDir"() {

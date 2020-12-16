@@ -133,19 +133,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Returns the directory where the archive is generated into.
-     *
-     * @return the directory
-     * @deprecated Use {@link #getDestinationDirectory()}
-     */
-    @Deprecated
-    @ReplacedBy("destinationDirectory")
-    public File getDestinationDir() {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "destinationDir").replaceWith("destinationDirectory").willBeRemovedInGradle7().withDslReference().nagUser();
-        return archiveDestinationDirectory.getAsFile().get();
-    }
-
-    /**
      * Sets the destination dir.
      *
      * @deprecated Use {@link #getDestinationDirectory()}
