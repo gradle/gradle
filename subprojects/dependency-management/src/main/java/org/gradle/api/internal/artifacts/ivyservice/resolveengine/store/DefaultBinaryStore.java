@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.serialize.Decoder;
@@ -26,11 +29,13 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 class DefaultBinaryStore implements BinaryStore, Closeable {
+    private static final Logger LOGGER = Logging.getLogger(DefaultBinaryStore.class);
     private File file;
     private StringDeduplicatingKryoBackedEncoder encoder;
     private long offset = -1;
@@ -91,7 +96,13 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
             }
         } finally {
             if (file != null) {
-                file.delete();
+                if (!file.delete()) {
+                    try {
+                        LOGGER.warn("Failed to delete file {}", file.getCanonicalPath());
+                    } catch (IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
             }
             encoder = null;
             file = null;

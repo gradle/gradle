@@ -17,7 +17,7 @@
 package org.gradle.api.internal.resources
 
 import com.google.common.base.Charsets
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 
 class FileCollectionBackedTextResourceTest extends AbstractTextResourceTest {
     def setup() {

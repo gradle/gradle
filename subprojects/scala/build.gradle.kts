@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
+    implementation(project(":file-temp"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))

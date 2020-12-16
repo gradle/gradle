@@ -20,7 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;

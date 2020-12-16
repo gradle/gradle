@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.resources
 
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.resource.TextUriResourceLoader

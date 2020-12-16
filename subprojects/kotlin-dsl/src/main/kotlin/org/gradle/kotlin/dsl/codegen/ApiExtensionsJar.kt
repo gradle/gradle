@@ -21,7 +21,7 @@ import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 
 import com.google.common.annotations.VisibleForTesting
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 
 import java.io.File
 

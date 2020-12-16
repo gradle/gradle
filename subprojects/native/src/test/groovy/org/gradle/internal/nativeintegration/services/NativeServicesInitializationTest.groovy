@@ -17,7 +17,7 @@
 package org.gradle.internal.nativeintegration.services
 
 import net.rubygrapefruit.platform.Native
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
 import org.gradle.internal.service.ServiceRegistry

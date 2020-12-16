@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file;
-
-import com.google.common.base.Preconditions;
+package org.gradle.api.internal.file.temp;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
@@ -38,7 +36,10 @@ public final class TempFiles {
      */
     @CheckReturnValue
     public static File createTempFile(String prefix, String suffix, File directory) throws IOException {
-        Preconditions.checkNotNull(directory, "The `directory` argument must not be null as this will default to the system temporary directory");
+        //noinspection ConstantConditions
+        if (directory == null) {
+            throw new NullPointerException("The `directory` argument must not be null as this will default to the system temporary directory");
+        }
         return File.createTempFile(prefix, suffix, directory);
     }
 

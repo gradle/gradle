@@ -61,7 +61,7 @@ apply plugin: 'checkstyle'
 ${mavenCentralRepository()}
 
 dependencies {
-    testImplementation 'junit:junit:4.11'
+    testImplementation 'junit:junit:4.13'
 }
 '''
         javaFile()

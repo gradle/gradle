@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import java.io.File
 
 

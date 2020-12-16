@@ -42,6 +42,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
+import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -242,6 +243,14 @@ class AbstractIntegrationSpec extends Specification {
 
     TestFile generatedSourceFile(String language, String sourceSet, String fqcn) {
         file("build/generated/sources/annotationProcessor/", language, sourceSet, fqcn)
+    }
+
+    TestFile groovyTestSourceFile(@Language("groovy") String source) {
+        file("src/test/groovy/Test.groovy") << source
+    }
+
+    TestFile javaTestSourceFile(@Language("java") String source) {
+        file("src/test/java/Test.java") << source
     }
 
     protected GradleExecuter sample(Sample sample) {

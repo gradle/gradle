@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.file.TempFiles;
+import org.gradle.api.internal.file.temp.TempFiles;
 
 import java.io.File;
 import java.io.FileOutputStream;

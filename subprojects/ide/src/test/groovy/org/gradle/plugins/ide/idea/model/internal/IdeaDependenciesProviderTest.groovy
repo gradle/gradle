@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
@@ -27,12 +28,15 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
-    private final project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-    private final childProject = TestUtil.createChildProject(project, "child", temporaryFolder.testDirectory.file("child"))
-    private final artifactRegistry = Stub(IdeArtifactRegistry)
-    private final dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, project.services.get(ProjectStateRegistry), NullGradleApiSourcesResolver.INSTANCE)
+    private ProjectInternal childProject
+    private IdeArtifactRegistry artifactRegistry
+    private IdeaDependenciesProvider dependenciesProvider
 
     def setup() {
+        childProject = TestUtil.createChildProject(project, "child", temporaryFolder.testDirectory.file("child"))
+        artifactRegistry = Stub(IdeArtifactRegistry)
+        dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, project.services.get(ProjectStateRegistry), NullGradleApiSourcesResolver.INSTANCE)
+
         _ * artifactRegistry.getIdeProject(_, _) >> { Class c, def m ->
             return Stub(c)
         }

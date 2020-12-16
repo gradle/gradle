@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource

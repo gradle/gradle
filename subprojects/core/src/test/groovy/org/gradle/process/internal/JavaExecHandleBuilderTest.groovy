@@ -18,7 +18,7 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.internal.file.temp.TmpDirTemporaryFileProvider
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm

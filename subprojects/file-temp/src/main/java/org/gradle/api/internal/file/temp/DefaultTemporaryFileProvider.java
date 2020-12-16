@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.temp;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.file.TempFiles;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -53,15 +51,19 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
     }
 
     @Override
-    public File createTemporaryDirectory(@Nullable @Nonnull String prefix, @Nullable String suffix, String... path) {
+    public File createTemporaryDirectory(String prefix, @Nullable String suffix, String... path) {
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
         GFileUtils.mkdirs(dir);
         try {
             // TODO: This is not a great paradigm for creating a temporary directory.
             // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
             File tmpDir = TempFiles.createTempFile(prefix, suffix, dir);
-            tmpDir.delete();
-            tmpDir.mkdir();
+            if (!tmpDir.delete()) {
+                throw new UncheckedIOException("Failed to delete file: " + tmpDir);
+            }
+            if (!tmpDir.mkdir()) {
+                throw new UncheckedIOException("Failed to make directory: " + tmpDir);
+            }
             return tmpDir;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

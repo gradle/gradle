@@ -19,7 +19,7 @@ package org.gradle.caching.local.internal;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.file.TempFiles;
+import org.gradle.api.internal.file.temp.TempFiles;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
