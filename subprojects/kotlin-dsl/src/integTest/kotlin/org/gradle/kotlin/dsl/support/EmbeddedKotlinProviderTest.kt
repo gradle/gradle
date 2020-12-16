@@ -1,15 +1,12 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
-
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Ignore
-
 import org.junit.Test
 
 
@@ -47,7 +44,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-
+    @Ignore
     @Test
     @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
