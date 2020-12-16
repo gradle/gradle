@@ -929,7 +929,7 @@ The incremental build annotations provide enough information for Gradle to perfo
 * `@OutputDirectory` - verifies that the path doesn’t match a file and also creates the directory if it doesn’t already exist.
 
 If one task produces an output location and another task consumes that location by declaring it as an input, then Gradle validates that the consumer task depends on the consumer task.
-When the producer and the consumer task are executing at the same time, the build fails to avoid capturing an incorrect state.
+When the producer and the consumer tasks are executing at the same time, the build fails to avoid capturing an incorrect state.
 
 Such validation improves the robustness of the build, allowing you to identify issues related to inputs and outputs quickly.
 
