@@ -31,7 +31,7 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
             assert file('foo').exists()
             assert file('bar').exists()
             assert file('baz').exists()
-            
+
             task clean(type: Delete) {
                 delete 'foo'
                 delete file('bar')
@@ -53,12 +53,12 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.PropertyVisitor
             import org.gradle.api.internal.tasks.properties.PropertyWalker
             import org.gradle.api.internal.tasks.TaskPropertyUtils
-            
+
             task clean(type: Delete) {
                 delete 'foo'
                 delete file('bar')
                 delete files('baz')
-                
+
 
                 doLast {
                     def destroyablePaths = []
@@ -68,11 +68,11 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                             destroyablePaths << value
                         }
                     })
-                    def destroyableFiles = files(destroyablePaths).files 
+                    def destroyableFiles = files(destroyablePaths).files
                     assert destroyableFiles.size() == 3 &&
                         destroyableFiles.containsAll([
-                            file('foo'), 
-                            file('bar'), 
+                            file('foo'),
+                            file('bar'),
                             file('baz')
                         ])
                 }
@@ -121,5 +121,35 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
             exact(':a:compileJava', ':b:compileJava'),
             any(':a:clean', ':b:clean')
         )
+    }
+
+    /**
+     * If this test is failing, it's likely because some component is using the
+     * {@link org.gradle.internal.service.scopes.ProjectScopeServices#createTemporaryFileProvider}
+     * instead of the versions from
+     * {@link org.gradle.internal.service.scopes.GradleUserHomeScopeServices} or
+     * {@link org.gradle.internal.nativeintegration.services.NativeServices}.
+     */
+    def "clean is still marked as up to date after build script changes"() {
+        given: "A simple Gradle Kotlin Script"
+        buildKotlinFile << """
+            plugins {
+                `base`
+            }
+            assert(file("build.gradle.kts").exists())
+        """
+        when: "clean is executed"
+        succeeds "clean"
+        then: "clean is marked as UP-TO-DATE"
+        result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
+        when: "clean is executed again without any changes"
+        succeeds "clean"
+        then: "clean is still marked UP-TO-DATE"
+        result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
+        when: "the kotlin script compiler is invoked due to a script change"
+        buildKotlinFile << "\n"
+        succeeds "clean"
+        then: "clean is still marked as UP-TO-DATE"
+        result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
     }
 }
