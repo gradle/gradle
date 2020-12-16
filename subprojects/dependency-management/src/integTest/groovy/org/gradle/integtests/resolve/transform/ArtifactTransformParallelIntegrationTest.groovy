@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
@@ -415,6 +416,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
+    @Ignore("TODO wolfs: use artifact from repository")
     def "only one process can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->
