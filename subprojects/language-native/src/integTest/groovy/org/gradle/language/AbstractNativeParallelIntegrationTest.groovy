@@ -93,8 +93,6 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
         setupParallelTaskAndExpectations(taskName)
 
         buildFile << """
-            import org.gradle.api.internal.AbstractTask
-
             ${callbackWorkerLeaseService}
 
             tasks.matching { it.name == '${taskName}' }.all { task ->
