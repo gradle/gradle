@@ -25,8 +25,8 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -103,7 +103,7 @@ class InterpreterTest : TestWithTempFiles() {
         val stage2CacheDir = root.resolve("stage2").apply { mkdir() }
 
         val mockServiceRegistry = mock<ServiceRegistry> {
-            on { get(TemporaryFileProvider::class.java) } doReturn TestFiles.tmpDirTemporaryFileProvider(tempFolder.root)
+            on { get(TmpDirTemporaryFileProvider::class.java) } doReturn TestFiles.tmpDirTemporaryFileProvider(tempFolder.root)
         }
 
         val host = mock<Interpreter.Host> {
