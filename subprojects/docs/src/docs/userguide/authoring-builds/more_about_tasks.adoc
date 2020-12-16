@@ -928,6 +928,9 @@ The incremental build annotations provide enough information for Gradle to perfo
 * `@InputDirectory` - same as for `@InputFile`, except the path must correspond to a directory.
 * `@OutputDirectory` - verifies that the path doesn’t match a file and also creates the directory if it doesn’t already exist.
 
+If one task produces an output in a location and another task consumes that location by referring to it as an input, then Gradle checks that the consumer task depends on the producer task.
+When the producer and the consumer tasks are executing at the same time, the build fails to avoid capturing an incorrect state.
+
 Such validation improves the robustness of the build, allowing you to identify issues related to inputs and outputs quickly.
 
 You will occasionally want to disable some of this validation, specifically when an input file may validly not exist. That’s why Gradle provides the `@Optional` annotation: you use it to tell Gradle that a particular input is optional and therefore the build should not fail if the corresponding file or directory doesn’t exist.
