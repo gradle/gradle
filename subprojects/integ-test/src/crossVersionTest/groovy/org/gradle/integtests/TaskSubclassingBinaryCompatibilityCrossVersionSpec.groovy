@@ -191,9 +191,9 @@ apply plugin: SomePlugin
                     // Note: not all of these specialise at time of writing, but may do in the future
                     getTaskDependencies();
                     getState();
-                    getLogging();
-                    getLogging().captureStandardOutput(LogLevel.INFO);
-                    getStandardOutputCapture();
+//                    getLogging();
+//                    getLogging().captureStandardOutput(LogLevel.INFO);
+//                    getStandardOutputCapture();
                     getInputs();
                     getOutputs();
                 }
