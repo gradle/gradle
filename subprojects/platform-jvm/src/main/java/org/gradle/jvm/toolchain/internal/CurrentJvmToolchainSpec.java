@@ -27,4 +27,8 @@ public class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
         getLanguageVersion().set(JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion()));
     }
 
+    @Override
+    public String getDisplayName() {
+        return "CurrentJVM" + super.getDisplayName();
+    }
 }

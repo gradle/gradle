@@ -70,6 +70,9 @@ public class JavaToolchainQueryService {
         if (filter instanceof CurrentJvmToolchainSpec) {
             return asToolchain(Jvm.current().getJavaHome(), filter).get();
         }
+        if (filter instanceof SpecificInstallationToolchainSpec) {
+            return asToolchain(((SpecificInstallationToolchainSpec) filter).getJavaHome(), filter).get();
+        }
         return registry.listInstallations().stream()
             .map(InstallationLocation::getLocation)
             .map(javaHome -> asToolchain(javaHome, filter))

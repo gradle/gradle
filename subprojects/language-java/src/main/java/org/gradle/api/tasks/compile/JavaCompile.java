@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -71,8 +70,11 @@ import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
+import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
+import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
@@ -111,8 +113,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final ObjectFactory objectFactory;
 
     public JavaCompile() {
-        Project project = getProject();
-        objectFactory = project.getObjects();
+        objectFactory = getProject().getObjects();
         compileOptions = objectFactory.newInstance(CompileOptions.class);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaCompiler = objectFactory.property(JavaCompiler.class);
@@ -278,7 +279,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
     }
 
-    private Compiler<JavaCompileSpec> createToolchainCompiler() {
+    private <T extends CompileSpec> Compiler<T> createToolchainCompiler() {
         return spec -> {
             final Provider<JavaCompiler> compilerProvider = getCompilerTool();
             final DefaultToolchainJavaCompiler compiler = (DefaultToolchainJavaCompiler) compilerProvider.get();
@@ -287,11 +288,29 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private Provider<JavaCompiler> getCompilerTool() {
-        return this.javaCompiler.orElse(getCompilerToolForCurrentJvm());
+        final JavaToolchainSpec explicitToolchain = determineExplicitToolchain();
+        if(explicitToolchain == null) {
+            return this.javaCompiler;
+        } else {
+            return getJavaToolchainService().compilerFor(explicitToolchain);
+        }
     }
 
-    private Provider<JavaCompiler> getCompilerToolForCurrentJvm() {
-        return getJavaToolchainService().compilerFor(new CurrentJvmToolchainSpec(objectFactory));
+    @Nullable
+    private JavaToolchainSpec determineExplicitToolchain() {
+        final File customJavaHome = getOptions().getForkOptions().getJavaHome();
+        if (customJavaHome != null) {
+            return new SpecificInstallationToolchainSpec(objectFactory, customJavaHome);
+        } else {
+            final String customExecutable = getOptions().getForkOptions().getExecutable();
+            if (customExecutable != null) {
+                final File executable = new File(customExecutable);
+                if(executable.exists()) {
+                    return new SpecificInstallationToolchainSpec(objectFactory, executable.getParentFile().getParentFile());
+                }
+            }
+        }
+        return null;
     }
 
     @Nested
@@ -327,6 +346,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
+        boolean toolchainCompatibleWithJava8 = isToolchainCompatibleWithJava8();
 
         final DefaultJavaCompileSpec spec = createBaseSpec();
 
@@ -341,7 +361,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         configureCompatibilityOptions(spec);
         spec.setSourcesRoots(sourcesRoots);
-        if (!isToolchainCompatibleWithJava8()) {
+
+        if (!toolchainCompatibleWithJava8) {
             spec.getCompileOptions().setHeaderOutputDirectory(null);
         }
         return spec;
