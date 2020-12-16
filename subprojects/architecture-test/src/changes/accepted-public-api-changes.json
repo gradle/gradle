@@ -323,6 +323,22 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.SigningExtension",
+            "member": "Method org.gradle.plugins.signing.SigningExtension.signPom(org.gradle.api.artifacts.maven.MavenDeployment,groovy.lang.Closure)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.SigningExtension",
+            "member": "Method org.gradle.plugins.signing.SigningExtension.signPom(org.gradle.api.artifacts.maven.MavenDeployment)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
