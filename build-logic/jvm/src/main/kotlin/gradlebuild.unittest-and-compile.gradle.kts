@@ -220,10 +220,14 @@ fun configureTests() {
             useJUnitPlatform()
             distribution {
                 enabled.set(true)
-                when {
-                    OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
-                    OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows", "gbt-dogfooding"))
-                    OperatingSystem.current().isMacOsX -> requirements.set(listOf("os=macos", "gbt-dogfooding"))
+                if (BuildEnvironment.isCiServer) {
+                    when {
+                        OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
+                        OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows", "gbt-dogfooding"))
+                        OperatingSystem.current().isMacOsX -> requirements.set(listOf("os=macos", "gbt-dogfooding"))
+                    }
+                } else {
+                    requirements.set(listOf("gbt-dogfooding"))
                 }
             }
         }
