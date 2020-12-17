@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
@@ -416,18 +415,22 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
-    @Ignore("TODO wolfs: use artifact from repository")
     def "only one process can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->
+            def lib = mavenRepo.module("org.test.foo", "build${idx}").publish()
             def build = new BuildTestFile(file("build${idx}"), "build${idx}")
             setupBuild(build)
             build.with {
                 def toBeTransformed = file(build.rootProjectName + ".jar")
                 toBeTransformed.text = '1234'
                 buildFile << """
+                    repositories {
+                        maven { url '${mavenRepo.uri}' }
+                    }
+
                     dependencies {
-                        compile files(name + ".jar")
+                        compile '${lib.groupId}:${lib.artifactId}:${lib.version}'
                     }
                     task resolve {
                         def artifacts = configurations.compile.incoming.artifactView {
@@ -438,7 +441,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         def projectName = project.name
                         doLast {
                             ${server.callFromBuildUsingExpression('"resolveStarted_" + projectName')}
-                            assert artifacts.artifactFiles.collect { it.name } == [projectName + '.jar.txt']
+                            assert artifacts.artifactFiles.collect { it.name } == [projectName + '-1.0.jar.txt']
                         }
                     }
                 """
@@ -449,7 +452,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         expect:
         server.expectConcurrent(buildNames.collect { "resolveStarted_" + it })
-        def transformations = server.expectConcurrentAndBlock(1, buildNames.collect { it + ".jar" } as String[])
+        def transformations = server.expectConcurrentAndBlock(1, buildNames.collect { it + "-1.0.jar" } as String[])
         def buildHandles = builds.collect {
             executer.inDirectory(it).withTasks("resolve").start()
         }
