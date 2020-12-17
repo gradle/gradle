@@ -33,6 +33,27 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
     }
 
+    def 'can configure ext extension'() {
+        given:
+        buildFile << """
+            ext {
+                set("prop", "it works!")
+            }
+
+            task("build") {
+                doLast {
+                    println(project.ext["prop"])
+                }
+            }
+        """
+
+        when:
+        run 'build'
+
+        then:
+        outputContains('it works!')
+    }
+
     def 'can run a simple task'() {
         given:
         buildFile << """

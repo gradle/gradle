@@ -22,6 +22,7 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
 
 import org.gradle.kotlin.dsl.support.uncheckedCast
+import java.util.concurrent.Callable
 
 import kotlin.reflect.KProperty
 
@@ -80,18 +81,19 @@ class NullableExtraPropertyDelegate(
  * Returns a property delegate provider that will initialize the extra property to the value provided
  * by [initialValueProvider].
  *
- * Usage: `val answer by extra { 42 }`
+ * Usage: `val answer by extra.creating { 42 }`
  */
-inline operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): InitialValueExtraPropertyDelegateProvider<T> =
-    invoke(initialValueProvider())
+@Suppress("nothing_to_inline")
+inline fun <T> ExtraPropertiesExtension.creating(initialValueProvider: Callable<T>): InitialValueExtraPropertyDelegateProvider<T> =
+    creating(initialValueProvider())
 
 
 /**
  * Returns a property delegate provider that will initialize the extra property to the given [initialValue].
  *
- * Usage: `val answer by extra(42)`
+ * Usage: `val answer by extra.creating(42)`
  */
-operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): InitialValueExtraPropertyDelegateProvider<T> =
+fun <T> ExtraPropertiesExtension.creating(initialValue: T): InitialValueExtraPropertyDelegateProvider<T> =
     InitialValueExtraPropertyDelegateProvider.of(this, initialValue)
 
 
