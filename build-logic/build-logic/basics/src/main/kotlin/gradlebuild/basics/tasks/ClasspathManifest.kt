@@ -40,13 +40,13 @@ abstract class ClasspathManifest : DefaultTask() {
     abstract val runtimeClasspath: ConfigurableFileCollection
 
     @Input
-    val runtime = externalDependencies.elements.map { it.map { it.asFile.name }.sorted() }
+    val runtime = externalDependencies.elements.map { it.map { file -> file.asFile.name }.sorted() }
 
     @get:Internal
     abstract val externalDependencies: ConfigurableFileCollection
 
     @Input
-    val projects = runtimeClasspath.elements.map { it.mapNotNull { it.toGradleModuleName() }.sorted() }
+    val projects = runtimeClasspath.elements.map { it.mapNotNull { file -> file.toGradleModuleName() }.sorted() }
 
     @get:OutputFile
     abstract val manifestFile: RegularFileProperty

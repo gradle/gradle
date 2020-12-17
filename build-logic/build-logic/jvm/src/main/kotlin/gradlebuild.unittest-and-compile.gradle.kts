@@ -98,9 +98,9 @@ fun configureCompileTask(options: CompileOptions) {
 
 fun configureClasspathManifestGeneration() {
     val runtimeClasspath by configurations
-    val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
+    val classpathManifest = tasks.register<ClasspathManifest>("classpathManifest") {
         this.runtimeClasspath.from(runtimeClasspath)
-        this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency })
+        this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency && it.group != "org.gradle" })
         this.manifestFile.set(moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() })
     }
     sourceSets.main.get().output.dir(
