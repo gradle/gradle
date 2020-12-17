@@ -49,6 +49,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
@@ -71,6 +72,7 @@ import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -287,12 +289,15 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private Provider<JavaCompiler> getCompilerTool() {
-        final JavaToolchainSpec explicitToolchain = determineExplicitToolchain();
+        JavaToolchainSpec explicitToolchain = determineExplicitToolchain();
         if(explicitToolchain == null) {
-            return this.javaCompiler;
-        } else {
-            return getJavaToolchainService().compilerFor(explicitToolchain);
+            if(javaCompiler.isPresent()) {
+                return this.javaCompiler;
+            } else {
+                explicitToolchain = new CurrentJvmToolchainSpec(objectFactory);
+            }
         }
+        return getJavaToolchainService().compilerFor(explicitToolchain);
     }
 
     @Nullable
@@ -369,6 +374,11 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private boolean isToolchainCompatibleWithJava8() {
         return getCompilerTool().get().getMetadata().getLanguageVersion().canCompileOrRun(8);
+    }
+
+    @Input
+    JavaVersion getJavaVersion() {
+        return JavaVersion.toVersion(getCompilerTool().get().getMetadata().getLanguageVersion().asInt());
     }
 
     private DefaultJavaCompileSpec createBaseSpec() {

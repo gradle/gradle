@@ -148,26 +148,4 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/${current.name}Jar/myLib.jar").javaVersion == current.targetCompatibility
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "too high JDK target should produce reasonable error message"() {
-        when:
-        app.sources*.writeToDir(file("src/myLib/java"))
-
-        and:
-        buildFile << """
-            model {
-                components {
-                    myLib(JvmLibrarySpec) {
-                        targetPlatform "java9"
-                    }
-                }
-            }
-        """
-        then:
-        fails "myLibJar"
-
-        and:
-        failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: " +
-            "'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
-    }
 }
