@@ -101,7 +101,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                     try {
                         net.rubygrapefruit.platform.Native.init(nativeBaseDir);
                     } catch (NativeIntegrationUnavailableException ex) {
-                        LOGGER.debug("Native-platform is not available.");
+                        LOGGER.debug("Native-platform is not available.", ex);
                         useNativeIntegrations = false;
                     } catch (NativeException ex) {
                         if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
