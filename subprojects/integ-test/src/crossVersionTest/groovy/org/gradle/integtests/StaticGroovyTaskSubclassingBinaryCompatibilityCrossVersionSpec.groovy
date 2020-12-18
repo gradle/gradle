@@ -19,17 +19,21 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import spock.lang.Ignore
 import spock.lang.Issue
+
 /**
  * Tests that task classes compiled against earlier versions of Gradle using the static Groovy compiler are still compatible.
  *
  * <p>Note: Groovy introduced static compilation ({@link groovy.transform.CompileStatic}) in Groovy 2.0.0.
  * We switched to using Groovy 2.3.3 from 1.8.6 in Gradle 2.0. However, Groovy 2.3.3 shipped with Gradle 2.0 had a bug that prevents the test to be compiled.
  * Thus the first version we test with is Gradle 2.1 that shipped with Groovy 2.3.6 which fixed that issue.
+ *
+ * <b>Update for 7.0:</b> the FileOperations interface was finally removed from `DefaultProject`. Unfortunately that
+ * broke compatibility with plugins compiled with Gradle 4.0.2. And that's why the first version we test with now is
+ * Gradle 4.1.
  */
-@TargetVersions("2.1+")
+@TargetVersions("4.1+")
 class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
 
-    @Ignore("wip")
     @Issue("https://github.com/gradle/gradle/issues/6027")
     def "task can use project.file() from statically typed Groovy"() {
         when:
