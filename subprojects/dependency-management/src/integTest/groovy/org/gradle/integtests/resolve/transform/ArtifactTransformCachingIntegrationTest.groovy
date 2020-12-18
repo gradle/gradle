@@ -92,6 +92,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         def projectDir2 = file("project2")
         setupProjectInDir(projectDir1)
         setupProjectInDir(projectDir2)
+        executer.requireIsolatedDaemons()
         executer.beforeExecute {
             if (!GradleContextualExecuter.embedded) {
                 executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
