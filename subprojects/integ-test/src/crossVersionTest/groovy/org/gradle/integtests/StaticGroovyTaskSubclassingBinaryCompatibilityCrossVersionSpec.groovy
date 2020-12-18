@@ -27,10 +27,10 @@ import spock.lang.Issue
  * Thus the first version we test with is Gradle 2.1 that shipped with Groovy 2.3.6 which fixed that issue.
  *
  * <b>Update for 7.0:</b> the FileOperations interface was finally removed from `DefaultProject`. Unfortunately that
- * broke compatibility with plugins compiled with Gradle 4.0.2. And that's why the first version we test with now is
- * Gradle 4.1.
+ * broke compatibility with plugins compiled with Gradle 4.x. And that's why the first version we test with now is
+ * Gradle 5.0.
  */
-@TargetVersions("4.1+")
+@TargetVersions("5.0+")
 class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/6027")
