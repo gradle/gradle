@@ -17,7 +17,6 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import spock.lang.Ignore
 import spock.lang.Issue
 
 /**
