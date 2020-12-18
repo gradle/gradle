@@ -30,6 +30,9 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class IncludedBuildDependencySubstitutionsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(IncludedBuildDependencySubstitutionsBuilder.class);
 
@@ -39,6 +42,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     private final ImmutableAttributesFactory attributesFactory;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, Capability> capabilitiesParser;
+    private final Set<IncludedBuildState> processed = new HashSet<>();
 
     public IncludedBuildDependencySubstitutionsBuilder(CompositeBuildContext context,
                                                        Instantiator instantiator,
@@ -55,6 +59,14 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     }
 
     public void build(IncludedBuildState build) {
+        if (processed.contains(build)) {
+            // This may happen during early resolution, where we iterate through all builds to find only
+            // the ones for which we need to register substitutions early so that they are available
+            // during plugin application from plugin builds.
+            // See: DefaultIncludedBuildRegistry.ensureConfigured()
+            return;
+        }
+        processed.add(build);
         DependencySubstitutionsInternal substitutions = resolveDependencySubstitutions(build);
         if (!substitutions.rulesMayAddProjectDependency()) {
             // Configure the included build to discover available modules
