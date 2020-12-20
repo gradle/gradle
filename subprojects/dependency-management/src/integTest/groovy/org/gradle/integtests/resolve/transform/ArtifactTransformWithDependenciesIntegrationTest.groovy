@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -164,6 +165,65 @@ allprojects {
     }
 }
 """
+    }
+
+    void setupBuildWithMultipleGraphsPerProject() {
+        setupBuildWithColorAttributes()
+        setupTransformerTypes()
+
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven {
+                        url = '${mavenHttpRepo.uri}'
+                        metadataSources { gradleMetadata() }
+                    }
+                }
+                configurations {
+                    testImplementation {
+                        extendsFrom implementation
+                        canBeResolved = true
+                        canBeConsumed = false
+                        attributes.attribute(color, 'blue')
+                    }
+                }
+                task resolveTest(type: ShowFileCollection) {
+                    def view = configurations.testImplementation.incoming.artifactView {
+                        attributes.attribute(color, 'green')
+                    }.files
+                    files.from(view)
+                }
+            }
+        """
+    }
+
+    void setupSingleStepTransform() {
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(TestTransform) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                        parameters {
+                            transformName = 'Single step transform'
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    void setupTransformWithNoDependencies() {
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(SimpleTransform) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                    }
+                }
+            }
+        """
     }
 
     void setupBuildWithFirstStepThatDoesNotUseDependencies() {
@@ -1002,7 +1062,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         classpathAnnotation << [Classpath, CompileClasspath]
     }
 
-    def "transforms with different dependencies in multiple dependency graphs are executed"() {
+    def "transforms with different dependencies in multiple dependency graphs in different projects are executed"() {
         given:
         withColorVariants(mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.26")).publish().allowAll()
         settingsFile << "include('app2')"
@@ -1058,6 +1118,131 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         // scheduled transformations, executed before the resolve task
         assert libTransformWithOldSlf4j < app1Resolve
         assert libTransformWithNewSlf4j < app2Resolve
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15536") @Ignore
+    def "transform of project dependency with different upstream dependencies in multiple dependency graphs in the same project are executed"() {
+        given:
+        setupBuildWithMultipleGraphsPerProject()
+        setupSingleStepTransform()
+
+        buildFile << """
+            project(':app') {
+                dependencies {
+                    implementation project(':lib')
+                    testImplementation 'org.slf4j:slf4j-api:1.7.25'
+                }
+            }
+            project(':lib') {
+                dependencies {
+                    implementation 'org.slf4j:slf4j-api:1.7.24'
+                }
+            }
+        """
+
+        when:
+        run ":app:resolve", ":app:resolveTest"
+
+        then:
+        output.count('Transforming') == 4
+        output.contains("result = [lib.jar.txt, slf4j-api-1.7.24.jar.txt]")
+        output.contains("result = [lib.jar.txt, slf4j-api-1.7.25.jar.txt]")
+        output.count('Single step transform received dependencies files [] for processing slf4j-api-1.7.24.jar') == 1
+        output.count('Single step transform received dependencies files [] for processing slf4j-api-1.7.25.jar') == 1
+        output.count('Single step transform received dependencies files [slf4j-api-1.7.24.jar] for processing lib.jar') == 1
+        output.count('Single step transform received dependencies files [slf4j-api-1.7.25.jar] for processing lib.jar') == 1
+
+        when:
+        run ":app:resolve", ":app:resolveTest"
+
+        then:
+        output.count('Transforming') == 0
+        output.contains("result = [lib.jar.txt, slf4j-api-1.7.24.jar.txt]")
+        output.contains("result = [lib.jar.txt, slf4j-api-1.7.25.jar.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15536")
+    def "transform of external dependency with different upstream dependencies in multiple dependency graphs in the same project are executed"() {
+        given:
+        def lib1 = withColorVariants(mavenHttpRepo.module("test", "lib1", "1.2")).publish().allowAll()
+        withColorVariants(mavenHttpRepo.module("test", "lib1", "1.3")).publish().allowAll()
+        withColorVariants(mavenHttpRepo.module("test", "lib2", "5.6"))
+            .dependsOn(lib1)
+            .publish()
+            .allowAll()
+
+        setupBuildWithMultipleGraphsPerProject()
+        setupSingleStepTransform()
+
+        buildFile << """
+            project(':app') {
+                dependencies {
+                    implementation 'test:lib2:5.6'
+                    testImplementation 'test:lib1:1.3'
+                }
+            }
+        """
+
+        when:
+        run ":app:resolve", ":app:resolveTest"
+
+        then:
+        output.count('Transforming') == 4
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.2.jar.txt]")
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.3.jar.txt]")
+        output.count('Single step transform received dependencies files [] for processing lib1-1.2.jar') == 1
+        output.count('Single step transform received dependencies files [] for processing lib1-1.3.jar') == 1
+        output.count('Single step transform received dependencies files [lib1-1.2.jar] for processing lib2-5.6.jar') == 1
+        output.count('Single step transform received dependencies files [lib1-1.3.jar] for processing lib2-5.6.jar') == 1
+
+        when:
+        run ":app:resolve", ":app:resolveTest"
+
+        then:
+        output.count('Transforming') == 0
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.2.jar.txt]")
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.3.jar.txt]")
+    }
+
+    def "reuses result of transform of external dependency with different upstream dependencies when transform does not consume upstream dependencies"() {
+        given:
+        def lib1 = withColorVariants(mavenHttpRepo.module("test", "lib1", "1.2")).publish().allowAll()
+        withColorVariants(mavenHttpRepo.module("test", "lib1", "1.3")).publish().allowAll()
+        withColorVariants(mavenHttpRepo.module("test", "lib2", "5.6"))
+            .dependsOn(lib1)
+            .publish()
+            .allowAll()
+
+        setupBuildWithMultipleGraphsPerProject()
+        setupTransformWithNoDependencies()
+
+        buildFile << """
+            project(':app') {
+                dependencies {
+                    implementation 'test:lib2:5.6'
+                    testImplementation 'test:lib1:1.3'
+                }
+            }
+        """
+
+        when:
+        run ":app:resolve", ":app:resolveTest"
+
+        then:
+        output.count('Transforming') == 3
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.2.jar.txt]")
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.3.jar.txt]")
+        output.count('Transforming without dependencies lib2-5.6.jar to lib2-5.6.jar.txt') == 1
+        output.count('Transforming without dependencies lib1-1.2.jar to lib1-1.2.jar.txt') == 1
+        output.count('Transforming without dependencies lib1-1.3.jar to lib1-1.3.jar.txt') == 1
+
+        when:
+        run ":app:resolve", ":app:resolveTest"
+
+        then:
+        output.count('Transforming') == 0
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.2.jar.txt]")
+        output.contains("result = [lib2-5.6.jar.txt, lib1-1.3.jar.txt]")
     }
 
     @ToBeFixedForConfigurationCache(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")

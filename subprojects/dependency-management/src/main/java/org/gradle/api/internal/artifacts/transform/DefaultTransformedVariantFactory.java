@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.component.model.VariantWithOverloadAttributes;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
     private final TransformationNodeRegistry transformationNodeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final ConcurrentMap<VariantWithOverloadAttributes, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
+    private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
     private final Factory externalFactory = this::doCreateExternal;
     private final Factory projectFactory = this::doCreateProject;
 
@@ -57,7 +56,13 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             // An ad hoc variant, do not cache the result
             return factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory);
         }
-        return variants.computeIfAbsent(new VariantWithOverloadAttributes(identifier, target), key -> factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory));
+        VariantKey variantKey;
+        if (transformation.requiresDependencies()) {
+            variantKey = new VariantWithUpstreamDependenciesKey(identifier, target, dependenciesResolverFactory);
+        } else {
+            variantKey = new VariantKey(identifier, target);
+        }
+        return variants.computeIfAbsent(variantKey, key -> factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory));
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
@@ -70,5 +75,55 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
 
     private interface Factory {
         ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
+    }
+
+    private static class VariantKey {
+        private final VariantResolveMetadata.Identifier sourceVariant;
+        private final ImmutableAttributes target;
+
+        public VariantKey(VariantResolveMetadata.Identifier sourceVariant, ImmutableAttributes target) {
+            this.sourceVariant = sourceVariant;
+            this.target = target;
+        }
+
+        @Override
+        public int hashCode() {
+            return sourceVariant.hashCode() ^ target.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            VariantKey other = (VariantKey) obj;
+            return sourceVariant.equals(other.sourceVariant) && target.equals(other.target);
+        }
+    }
+
+    private static class VariantWithUpstreamDependenciesKey extends VariantKey {
+        private final ExtraExecutionGraphDependenciesResolverFactory dependencies;
+
+        public VariantWithUpstreamDependenciesKey(VariantResolveMetadata.Identifier sourceVariant, ImmutableAttributes target, ExtraExecutionGraphDependenciesResolverFactory dependencies) {
+            super(sourceVariant, target);
+            this.dependencies = dependencies;
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode() ^ dependencies.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+            VariantWithUpstreamDependenciesKey other = (VariantWithUpstreamDependenciesKey) obj;
+            return dependencies == other.dependencies;
+        }
     }
 }
