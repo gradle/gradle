@@ -459,6 +459,11 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
+    @Nullable
+    ExcludeSpec getTransitiveExclusions() {
+        return transitiveExclusions;
+    }
+
     public void markUnattached() {
         this.unattached = true;
     }
