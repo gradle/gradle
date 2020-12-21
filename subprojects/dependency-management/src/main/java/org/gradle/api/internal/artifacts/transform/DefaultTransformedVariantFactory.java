@@ -56,7 +56,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
         if (identifier == null) {
             // An ad hoc variant, do not cache the result
-            return factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory);
+            return factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
         }
         VariantKey variantKey;
         if (transformation.requiresDependencies()) {
@@ -64,19 +64,19 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         } else {
             variantKey = new VariantKey(identifier, target);
         }
-        return variants.computeIfAbsent(variantKey, key -> factory.create(componentIdentifier, sourceVariant, target, transformation, dependenciesResolverFactory));
+        return variants.computeIfAbsent(variantKey, key -> factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory));
     }
 
-    private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, calculatedValueContainerFactory);
+    private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), variantDefinition.getTransformation(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
-    private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedProjectArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
+    private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        return new TransformedProjectArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition, dependenciesResolverFactory, transformationNodeRegistry);
     }
 
     private interface Factory {
-        ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, ImmutableAttributes target, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
+        ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
     }
 
     private static class VariantKey {

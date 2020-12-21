@@ -46,13 +46,13 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     public TransformedProjectArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
-        ImmutableAttributes targetAttributes,
-        Transformation transformation,
+        VariantDefinition variantDefinition,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         TransformationNodeRegistry transformationNodeRegistry
     ) {
         this.componentIdentifier = componentIdentifier;
-        this.targetAttributes = targetAttributes;
+        this.targetAttributes = variantDefinition.getTargetAttributes();
+        Transformation transformation = variantDefinition.getTransformation();
         this.transformedArtifacts = transformationNodeRegistry.getOrCreate(delegate, transformation, dependenciesResolverFactory.create(componentIdentifier, transformation));
     }
 

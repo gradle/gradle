@@ -18,8 +18,18 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
+
+/**
+ * Defines a variant that is the result of applying a transformation chain to produce a variant with the given attributes.
+ */
 public interface VariantDefinition {
     ImmutableAttributes getTargetAttributes();
 
     Transformation getTransformation();
+
+    TransformationStep getTransformationStep();
+
+    @Nullable
+    VariantDefinition getSourceVariant();
 }

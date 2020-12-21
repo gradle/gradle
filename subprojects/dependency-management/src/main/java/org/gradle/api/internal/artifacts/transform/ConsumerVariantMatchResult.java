@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface ConsumerVariantMatchResult {
@@ -28,11 +29,20 @@ public interface ConsumerVariantMatchResult {
     class ConsumerVariant implements VariantDefinition {
         final ImmutableAttributes attributes;
         final Transformation transformation;
+        final TransformationStep transformationStep;
+        @Nullable
+        final ConsumerVariant previous;
         final int depth;
 
-        public ConsumerVariant(ImmutableAttributes attributes, Transformation transformation, int depth) {
+        public ConsumerVariant(ImmutableAttributes attributes, TransformationStep transformationStep, @Nullable ConsumerVariant previous, int depth) {
             this.attributes = attributes;
-            this.transformation = transformation;
+            if (previous == null) {
+                this.transformation = transformationStep;
+            } else {
+                this.transformation = new TransformationChain(previous.transformation, transformationStep);
+            }
+            this.transformationStep = transformationStep;
+            this.previous = previous;
             this.depth = depth;
         }
 
@@ -44,6 +54,17 @@ public interface ConsumerVariantMatchResult {
         @Override
         public Transformation getTransformation() {
             return transformation;
+        }
+
+        @Override
+        public TransformationStep getTransformationStep() {
+            return transformationStep;
+        }
+
+        @Nullable
+        @Override
+        public VariantDefinition getSourceVariant() {
+            return previous;
         }
     }
 }
