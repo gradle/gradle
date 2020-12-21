@@ -107,6 +107,23 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         cl.getSOME_CONST_WITH_GETTER() == "Other Value"
     }
 
+    def "adds legacy properties to AbstractArchiveTask to provide backwards compatibility"() {
+        given:
+        def className = "org.gradle.api.tasks.bundling.AbstractArchiveTask"
+        compileJavaToDir(className, """
+            package org.gradle.api.tasks.bundling;
+            public class AbstractArchiveTask {
+            }
+        """)
+
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
+        def cl = loader.loadClass(className)
+        cl.classLoader.is(loader)
+
+        expect:
+        cl.getMethod("getArchiveName")
+    }
+
     def "add getters for booleans"() {
         given:
         def className = "org.gradle.api.plugins.JavaPluginConvention"
