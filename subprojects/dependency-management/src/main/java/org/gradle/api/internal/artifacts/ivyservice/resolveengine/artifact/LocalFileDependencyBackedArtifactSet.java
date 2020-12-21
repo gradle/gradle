@@ -134,12 +134,15 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
-        // Artifacts are not known until the file collection is queried
+    public void visitTransformSources(TransformSourceVisitor visitor) {
+        // Should not be called
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
+        // Should not be called
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -211,11 +214,15 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+        public void visitTransformSources(TransformSourceVisitor visitor) {
+            // Should not be called
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
+            // Should not be called
+            throw new UnsupportedOperationException();
         }
 
         @Override

@@ -120,8 +120,10 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
-        throw new UnsupportedOperationException("Should not be called.");
+    public void visitTransformSources(TransformSourceVisitor visitor) {
+        for (TransformationNode transformationNode : transformedArtifacts) {
+            visitor.visitTransform(transformationNode);
+        }
     }
 
     @Override

@@ -85,7 +85,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+    public void visitTransformSources(TransformSourceVisitor visitor) {
         // Should never be called
         throw new IllegalStateException();
     }

@@ -197,7 +197,7 @@ class RecordingVariantSet(
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun visitLocalArtifacts(visitor: ResolvedArtifactSet.LocalArtifactVisitor) {
+    override fun visitTransformSources(visitor: ResolvedArtifactSet.TransformSourceVisitor) {
         throw UnsupportedOperationException("Should not be called")
     }
 

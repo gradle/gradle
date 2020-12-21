@@ -42,9 +42,17 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
     public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver) {
         final List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
-        artifactSet.visitLocalArtifacts(artifact -> {
-            TransformationNode transformationNode = getOrCreateInternal(artifact, transformationChain, dependenciesResolver);
-            builder.add(transformationNode);
+        artifactSet.visitTransformSources(new ResolvedArtifactSet.TransformSourceVisitor() {
+            @Override
+            public void visitArtifact(ResolvableArtifact artifact) {
+                TransformationNode transformationNode = getOrCreateInternal(artifact, transformationChain, dependenciesResolver);
+                builder.add(transformationNode);
+            }
+
+            @Override
+            public void visitTransform(TransformationNode source) {
+                throw new UnsupportedOperationException();
+            }
         });
         return builder.build();
     }

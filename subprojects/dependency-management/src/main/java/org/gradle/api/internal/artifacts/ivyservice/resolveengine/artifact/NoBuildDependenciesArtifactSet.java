@@ -51,8 +51,8 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
-            selectedArtifacts.visitLocalArtifacts(visitor);
+        public void visitTransformSources(TransformSourceVisitor visitor) {
+            selectedArtifacts.visitTransformSources(visitor);
         }
 
         @Override
