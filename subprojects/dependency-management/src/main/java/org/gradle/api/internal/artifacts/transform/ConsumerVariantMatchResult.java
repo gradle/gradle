@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Collection;
 
@@ -25,15 +25,25 @@ public interface ConsumerVariantMatchResult {
 
     Collection<ConsumerVariant> getMatches();
 
-    class ConsumerVariant {
-        final AttributeContainerInternal attributes;
+    class ConsumerVariant implements VariantDefinition {
+        final ImmutableAttributes attributes;
         final Transformation transformation;
         final int depth;
 
-        public ConsumerVariant(AttributeContainerInternal attributes, Transformation transformation, int depth) {
+        public ConsumerVariant(ImmutableAttributes attributes, Transformation transformation, int depth) {
             this.attributes = attributes;
             this.transformation = transformation;
             this.depth = depth;
+        }
+
+        @Override
+        public ImmutableAttributes getTargetAttributes() {
+            return attributes;
+        }
+
+        @Override
+        public Transformation getTransformation() {
+            return transformation;
         }
     }
 }
