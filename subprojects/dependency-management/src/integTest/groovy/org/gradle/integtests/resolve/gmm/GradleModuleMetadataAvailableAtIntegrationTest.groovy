@@ -160,6 +160,59 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/14017")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def "honors upstream excludes with available-at variant"() {
+        given:
+        mavenHttpRepo.module('org', 'moduleB', '1.0')
+            .dependsOn(mavenHttpRepo.module("org", "moduleA", "1.0"))
+            .publish() // no Gradle Module metadata for this one because we don't support excludes on dependencies
+        repository {
+            'org:moduleA:1.0' {
+                variants(["api", "runtime"]) {
+                    availableAt("../../external/1.0/external-1.0.module", "org", "external", "1.0")
+                }
+            }
+            'org:external:1.0' {
+                dependsOn('org:do_not_reach:1.0')
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf("org:moduleB:1.0")
+            }
+            configurations {
+                conf {
+                    exclude module: 'external'
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:moduleB:1.0' {
+                withoutGradleMetadata()
+                expectResolve()
+            }
+            'org:moduleA:1.0' {
+                expectGetMetadata()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:moduleB:1.0") {
+                    module("org:moduleA:1.0") {
+                        noArtifacts()
+                    }
+                }
+            }
+        }
+    }
+
     def "resolution result can tell if a dependency is for an available-at variant"() {
         given:
         repository {
