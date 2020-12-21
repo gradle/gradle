@@ -64,4 +64,56 @@ public class SecurityManagerTest {
         failure.assertThatCause(containsText("This problem might be caused by incorrect test process configuration."))
         failure.assertThatCause(containsText("Please refer to the test execution section in the User Manual at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:test_execution"))
     }
+
+    @IntegrationTestTimeout(120)
+    def "should not hang when running with security manager debug flag"() {
+        given:
+        buildFile << """
+apply plugin:"java"
+
+${mavenCentralRepository()}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}
+
+tasks.named('test').configure {
+  systemProperty "java.security.debug", "access,failure"
+}
+"""
+        file("src/test/resources/test.policy") << '''
+grant {
+  permission java.util.PropertyPermission "*", "read";
+  permission java.lang.RuntimePermission "queuePrintJob";
+
+  // to reset at the end of the test
+  permission java.lang.RuntimePermission "setSecurityManager";
+};
+'''
+        file('src/test/java/SecurityManagerTest.java') << '''
+import java.net.URI;
+import java.security.Policy;
+import java.security.URIParameter;
+
+public class SecurityManagerTest {
+
+  @org.junit.Test
+  public void testSecurityManager() throws Exception {
+    URI policyFile = SecurityManagerTest.class.getResource("test.policy").toURI();
+    Policy.setPolicy(Policy.getInstance("JavaPolicy",  new URIParameter(policyFile)));
+
+    SecurityManager securityManager = new SecurityManager();
+    System.setSecurityManager(securityManager);
+
+    securityManager.checkPermission(new RuntimePermission("queuePrintJob"));
+    System.setSecurityManager(null);
+  }
+}
+'''
+
+        expect:
+        // This test causes the test process to exit ungracefully without closing connections.  This can sometimes
+        // cause connection errors to show up in stderr.
+        run('test')
+    }
 }
