@@ -38,6 +38,9 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
         final TestFile settingsFile
         final TestFile buildFile
 
+        final TestFile settingsPluginFile
+        final TestFile projectPluginFile
+
         PluginBuildFixture(String buildName) {
             this.buildName = buildName
             this.settingsPluginId = "${buildName}.settings-plugin"
@@ -53,11 +56,13 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
                     id("groovy-gradle-plugin")
                 }
             """
-            file("$buildName/src/main/groovy/${projectPluginId}.gradle") << """
-                println('$projectPluginId applied')
-            """
-            file("$buildName/src/main/groovy/${settingsPluginId}.settings.gradle") << """
+            settingsPluginFile = file("$buildName/src/main/groovy/${settingsPluginId}.settings.gradle")
+            settingsPluginFile << """
                 println('$settingsPluginId applied')
+            """
+            projectPluginFile = file("$buildName/src/main/groovy/${projectPluginId}.gradle")
+            projectPluginFile << """
+                println('$projectPluginId applied')
             """
         }
 
