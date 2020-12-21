@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,15 +30,15 @@ import java.util.concurrent.ConcurrentMap;
 
 @ThreadSafe
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
-    private final TransformationNodeRegistry transformationNodeRegistry;
+    private final TransformationNodeFactory transformationNodeFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
     private final Factory externalFactory = this::doCreateExternal;
     private final Factory projectFactory = this::doCreateProject;
 
-    public DefaultTransformedVariantFactory(TransformationNodeRegistry transformationNodeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        this.transformationNodeRegistry = transformationNodeRegistry;
+    public DefaultTransformedVariantFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.transformationNodeFactory = new DefaultTransformationNodeFactory(buildOperationExecutor, calculatedValueContainerFactory);
     }
 
     @Override
@@ -64,7 +65,17 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         } else {
             variantKey = new VariantKey(identifier, target);
         }
-        return variants.computeIfAbsent(variantKey, key -> factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory));
+
+        // Can't use computeIfAbsent() as the default implementation does not allow recursive updates
+        ResolvedArtifactSet result = variants.get(variantKey);
+        if (result == null) {
+            ResolvedArtifactSet newResult = factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
+            result = variants.putIfAbsent(variantKey, newResult);
+            if (result == null) {
+                result = newResult;
+            }
+        }
+        return result;
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
@@ -72,7 +83,13 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedProjectArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition, dependenciesResolverFactory, transformationNodeRegistry);
+        ResolvedArtifactSet sourceArtifacts;
+        if (variantDefinition.getSourceVariant() != null) {
+            sourceArtifacts = transformedProjectArtifacts(componentIdentifier, sourceVariant, variantDefinition.getSourceVariant(), dependenciesResolverFactory);
+        } else {
+            sourceArtifacts = sourceVariant.getArtifacts();
+        }
+        return new TransformedProjectArtifactSet(componentIdentifier, sourceArtifacts, variantDefinition, dependenciesResolverFactory, transformationNodeFactory);
     }
 
     private interface Factory {

@@ -27,7 +27,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -1120,7 +1119,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         assert libTransformWithNewSlf4j < app2Resolve
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/15536") @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/15536")
     def "transform of project dependency with different upstream dependencies in multiple dependency graphs in the same project are executed"() {
         given:
         setupBuildWithMultipleGraphsPerProject()

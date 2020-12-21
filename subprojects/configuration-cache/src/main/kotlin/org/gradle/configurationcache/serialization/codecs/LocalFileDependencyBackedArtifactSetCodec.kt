@@ -236,6 +236,14 @@ class TransformMapping(private val targetAttributes: ImmutableAttributes, privat
     override fun getTransformation(): Transformation {
         return transformation
     }
+
+    override fun getTransformationStep(): TransformationStep {
+        throw UnsupportedOperationException()
+    }
+
+    override fun getSourceVariant(): VariantDefinition? {
+        throw UnsupportedOperationException()
+    }
 }
 
 

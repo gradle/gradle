@@ -20,10 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 
 import java.util.Collection;
 
-public interface TransformationNodeRegistry {
-    TransformationNodeRegistry EMPTY = (artifactSet, transformation, dependenciesResolver) -> {
-        throw new UnsupportedOperationException();
-    };
-
-    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, TransformUpstreamDependenciesResolver dependenciesResolver);
+public interface TransformationNodeFactory {
+    Collection<TransformationNode> create(ResolvedArtifactSet artifactSet, TransformationStep transformationStep, TransformUpstreamDependenciesResolver dependenciesResolver);
 }
