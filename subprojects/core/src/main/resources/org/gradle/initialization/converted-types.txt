@@ -48,7 +48,6 @@ org.gradle.plugins.ide.eclipse.model.Classpath
 org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 org.gradle.plugins.ide.eclipse.model.EclipseJdt
 org.gradle.plugins.ide.eclipse.model.EclipseModel
-org.gradle.plugins.ide.eclipse.model.EclipseModel
 org.gradle.plugins.ide.eclipse.model.EclipseProject
 org.gradle.plugins.ide.eclipse.model.EclipseWtp
 org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
@@ -106,4 +105,3 @@ org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 org.gradle.testing.jacoco.plugins.JacocoTaskExtension$Output
 org.gradle.testing.jacoco.tasks.JacocoBase
 org.gradle.testing.jacoco.tasks.JacocoReport
-org.gradle.jvm.tasks.Jar
