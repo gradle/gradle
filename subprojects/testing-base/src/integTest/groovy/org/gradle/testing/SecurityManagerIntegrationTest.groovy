@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.util.GradleVersion
 
@@ -110,10 +111,14 @@ public class SecurityManagerTest {
   }
 }
 '''
-
         expect:
-        // This test causes the test process to exit ungracefully without closing connections.  This can sometimes
-        // cause connection errors to show up in stderr.
-        run('test')
+        run('test',  "-Djava.security.debug=access,failure")
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('SecurityManagerTest')
+
+        def testClassExecutionResult = result.testClass('SecurityManagerTest')
+        testClassExecutionResult.testCount == 1
+        testClassExecutionResult.assertStderr(containsNormalizedString('access: access allowed ("java.lang.RuntimePermission" "queuePrintJob")'))
+        testClassExecutionResult.assertStderr(containsNormalizedString('access: access allowed ("java.lang.RuntimePermission" "setSecurityManager")'))
     }
 }

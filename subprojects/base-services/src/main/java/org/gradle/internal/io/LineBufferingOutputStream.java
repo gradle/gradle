@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.io;
 
-import org.gradle.internal.SystemProperties;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -33,21 +31,21 @@ public class LineBufferingOutputStream extends OutputStream {
     private final int lineMaxLength;
     private int counter;
 
-    public LineBufferingOutputStream(TextStream handler) {
-        this(handler, 8192);
+    public LineBufferingOutputStream(TextStream handler, String lineSeparator) {
+        this(handler, lineSeparator, 8192);
     }
 
-    public LineBufferingOutputStream(TextStream handler, int bufferLength) {
-        this(handler, bufferLength, LINE_MAX_LENGTH);
+    public LineBufferingOutputStream(TextStream handler, String lineSeparator, int bufferLength) {
+        this(handler, lineSeparator, bufferLength, LINE_MAX_LENGTH);
     }
 
-    public LineBufferingOutputStream(TextStream handler, int bufferLength, int lineMaxLength) {
+    public LineBufferingOutputStream(TextStream handler, String lineSeparator, int bufferLength, int lineMaxLength) {
         this.handler = handler;
         buffer = new StreamByteBuffer(bufferLength);
         this.lineMaxLength = lineMaxLength;
         output = buffer.getOutputStream();
-        byte[] lineSeparator = SystemProperties.getInstance().getLineSeparator().getBytes();
-        lastLineSeparatorByte = lineSeparator[lineSeparator.length - 1];
+        byte[] lineSeparatorBytes = lineSeparator.getBytes();
+        lastLineSeparatorByte = lineSeparatorBytes[lineSeparatorBytes.length - 1];
     }
 
     /**

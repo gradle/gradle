@@ -16,6 +16,8 @@
 
 package org.gradle.internal.io;
 
+import org.gradle.internal.SystemProperties;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Locale;
@@ -23,7 +25,7 @@ import java.util.Locale;
 public class LinePerThreadBufferingOutputStream extends PrintStream {
     private final TextStream handler;
     private final ThreadLocal<PrintStream> stream = new ThreadLocal<PrintStream>();
-
+    private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
     public LinePerThreadBufferingOutputStream(TextStream handler) {
         super(NullOutputStream.INSTANCE, true);
         this.handler = handler;
@@ -32,7 +34,7 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     private PrintStream getStream() {
         PrintStream printStream = stream.get();
         if (printStream == null) {
-            printStream = new PrintStream(new LineBufferingOutputStream(handler));
+            printStream = new PrintStream(new LineBufferingOutputStream(handler, lineSeparator));
             stream.set(printStream);
         }
         return printStream;
