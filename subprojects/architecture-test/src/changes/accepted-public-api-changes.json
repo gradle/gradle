@@ -185,10 +185,9 @@
             "member": "Class org.gradle.api.plugins.MavenPlugin",
             "acceptation": "Legacy 'maven' plugin was removed",
             "changes": [
-                "Class has been removed"
+                "Class is now abstract"
             ]
-        },
-        {
+        },        {
             "type": "org.gradle.api.plugins.MavenPlugin",
             "member": "Field COMPILE_PRIORITY",
             "acceptation": "Legacy 'maven' plugin was removed",
