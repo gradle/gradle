@@ -18,7 +18,9 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -48,7 +50,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure jar task with APIs that no longer exists on the source level"() {
         given:
-        executer.requireIsolatedDaemons()
+        Assume.assumeFalse(GradleContextualExecuter.isEmbedded())
+
         buildFile << """
         task jar(type: Jar) {
             from 'test'
