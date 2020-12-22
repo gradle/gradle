@@ -101,6 +101,15 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         taskType << [AbstractTask, TaskInternal]
     }
 
+    void testCreateTaskForTypeDirectlyExtendingAbstractTask() {
+        when:
+        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', null, Path.path(':task'), null, 12))
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "Cannot create task ':task' of type 'ExtendsAbstractTask' as directly extending AbstractTask is not supported."
+    }
+
     void wrapsFailureToCreateTaskInstance() {
         def failure = new RuntimeException()
 
@@ -123,5 +132,8 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     static class NotATask {
+    }
+
+    static class ExtendsAbstractTask extends AbstractTask {
     }
 }

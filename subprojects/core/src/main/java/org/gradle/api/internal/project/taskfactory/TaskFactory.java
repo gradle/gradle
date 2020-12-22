@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.util.NameValidator;
 
@@ -72,11 +71,10 @@ public class TaskFactory implements ITaskFactory {
                 identity.identityPath.toString(),
                 identity.type.getSimpleName()));
         } else {
-            DeprecationLogger.deprecate(String.format("Registering task '%s' with a type (%s) that directly extends AbstractTask", identity.identityPath.toString(), identity.type.getSimpleName()))
-                .willBecomeAnErrorInGradle7()
-                .withUpgradeGuideSection(6, "abstract_task_deprecated")
-                .nagUser();
-            implType = identity.type.asSubclass(org.gradle.api.internal.AbstractTask.class);
+            throw new InvalidUserDataException(String.format(
+                "Cannot create task '%s' of type '%s' as directly extending AbstractTask is not supported.",
+                identity.identityPath.toString(),
+                identity.type.getSimpleName()));
         }
 
         Describable displayName = Describables.withTypeAndName("task", identity.getIdentityPath());
