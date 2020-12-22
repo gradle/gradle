@@ -35,10 +35,26 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-public class LegacyMethods {
+/**
+ * This class provides runtime implementation for methods that were removed from the API.
+ * <p>
+ *     The primary goal is to provide backward compatibility for existing plugins using
+ *     deprecated APIs that are removed in a recent Gradle release.
+ * </p>
+ */
+class LegacyMethodSupport {
 
-    private static final LegacyMethods INSTANCE = new LegacyMethods();
-    private final Collection<String> classesToPatch = Arrays.asList(
+    private static final LegacyMethodSupport INSTANCE = new LegacyMethodSupport();
+
+    private static final Consumer<ClassVisitor> NOOP = new Consumer<ClassVisitor>() {
+        @Override public void accept(ClassVisitor classWriter) { }
+    };
+
+    static LegacyMethodSupport getInstance() {
+        return INSTANCE;
+    }
+
+    private final Collection<String> concreteArchiveTasks = Arrays.asList(
         "org.gradle.jvm.tasks.Jar",
         "org.gradle.api.tasks.bundling.Jar",
         "org.gradle.api.tasks.bundling.Tar",
@@ -46,22 +62,16 @@ public class LegacyMethods {
         "org.gradle.plugins.War"
     );
 
-    private LegacyMethods() {
+    private LegacyMethodSupport() {
     }
 
-    public static LegacyMethods getInstance() {
-        return INSTANCE;
+    boolean hasMissingMethods(String className) {
+        return concreteArchiveTasks.contains(className);
     }
 
-    public Collection<String> getClassesToPatch() {
-        return classesToPatch;
-    }
-
-    public Consumer<ClassVisitor> missingMethodImplementationFor(String className) {
-        if (!classesToPatch.contains(className)) {
-            return new Consumer<ClassVisitor>() {
-                @Override public void accept(ClassVisitor classWriter) { }
-            };
+    Consumer<ClassVisitor> legacyMethodImplementationFor(String className) {
+        if (!concreteArchiveTasks.contains(className)) {
+            return NOOP;
         } else {
             return new Consumer<ClassVisitor>() {
                 @Override

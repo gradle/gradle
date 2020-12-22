@@ -106,20 +106,23 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     @Override
     protected boolean shouldTransform(String className) {
-        return legacyTypesSupport.getClassesToMixInGroovyObject().contains(className) || legacyTypesSupport.getSyntheticClasses().contains(className) || LegacyMethods.getInstance().getClassesToPatch().contains(className);
+        return legacyTypesSupport.getClassesToMixInGroovyObject().contains(className) || legacyTypesSupport.getSyntheticClasses().contains(className) || LegacyMethodSupport.getInstance().hasMissingMethods(className);
     }
 
     @Override
     protected byte[] transform(String className, byte[] bytes) {
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
-        classReader.accept(new GroovyObjectTransformingAdapter(classWriter), 0);
+        Consumer<ClassVisitor> missingMethods = LegacyMethodSupport.getInstance().legacyMethodImplementationFor(className);
+        classReader.accept(new TransformingAdapter(classWriter, missingMethods), 0);
         bytes = classWriter.toByteArray();
         return bytes;
     }
 
-    private static class GroovyObjectTransformingAdapter extends ClassVisitor {
+    private static class TransformingAdapter extends ClassVisitor {
         private static final int PUBLIC_STATIC_FINAL = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
+        private final Consumer<ClassVisitor> missingMethods;
+
         private String className;
         /**
          * We only add getters for `public static final String` constants. This is because in
@@ -130,8 +133,9 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         private Set<String> booleanFields = new HashSet<String>();
         private Set<String> booleanIsGetters = new HashSet<String>();
 
-        GroovyObjectTransformingAdapter(ClassVisitor cv) {
+        TransformingAdapter(ClassVisitor cv, Consumer<ClassVisitor> missingMethods) {
             super(AsmConstants.ASM_LEVEL, cv);
+            this.missingMethods = missingMethods;
         }
 
         @Override
@@ -183,12 +187,12 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             addInvokeMethod();
             addStaticStringConstantGetters();
             addBooleanGetGetters();
-            addSomething();
+            addMissingMethods();
             cv.visitEnd();
         }
 
-        private void addSomething() {
-            LegacyMethods.getInstance().missingMethodImplementationFor(className.replace('/', '.')).accept(cv);
+        private void addMissingMethods() {
+            missingMethods.accept(cv);
         }
 
         private boolean isStatic(int access) {
@@ -347,22 +351,6 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
             mv.visitMaxs(1, 1);
             mv.visitEnd();
-        }
-    }
-
-    private static class MissingMethodTransformingAdapter extends ClassVisitor {
-
-        private final Consumer<ClassVisitor> missingMethodImplementations;
-
-        public MissingMethodTransformingAdapter(ClassVisitor cv, Consumer<ClassVisitor> missingMethodImplementations) {
-            super(AsmConstants.ASM_LEVEL, cv);
-            this.missingMethodImplementations = missingMethodImplementations;
-        }
-
-        @Override
-        public void visitEnd() {
-            missingMethodImplementations.accept(cv);
-            cv.visitEnd();
         }
     }
 
