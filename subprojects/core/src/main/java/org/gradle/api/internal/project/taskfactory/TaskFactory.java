@@ -67,12 +67,10 @@ public class TaskFactory implements ITaskFactory {
         } else if (DefaultTask.class.isAssignableFrom(identity.type)) {
             implType = identity.type.asSubclass(org.gradle.api.internal.AbstractTask.class);
         } else if (identity.type == org.gradle.api.internal.AbstractTask.class || identity.type == TaskInternal.class) {
-
-            DeprecationLogger.deprecate(String.format("Registering task '%s' with type '%s'", identity.identityPath.toString(), identity.type.getSimpleName()))
-                .willBecomeAnErrorInGradle7()
-                .withUpgradeGuideSection(6, "abstract_task_deprecated")
-                .nagUser();
-            implType = DefaultTask.class;
+            throw new InvalidUserDataException(String.format(
+                "Cannot create task '%s' of type '%s' as this type is not supported for task registration.",
+                identity.identityPath.toString(),
+                identity.type.getSimpleName()));
         } else {
             DeprecationLogger.deprecate(String.format("Registering task '%s' with a type (%s) that directly extends AbstractTask", identity.identityPath.toString(), identity.type.getSimpleName()))
                 .willBecomeAnErrorInGradle7()

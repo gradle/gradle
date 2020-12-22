@@ -68,7 +68,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         task instanceof DefaultTask
 
         where:
-        type << [Task, TaskInternal, AbstractTask, DefaultTask]
+        type << [Task, DefaultTask]
     }
 
     void testCreateTaskForDeserialization() {
@@ -87,6 +87,18 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         then:
         InvalidUserDataException e = thrown()
         e.message == "Cannot create task ':task' of type 'NotATask' as it does not implement the Task interface."
+    }
+
+    void testCreateTaskForUnsupportedType() {
+        when:
+        taskFactory.create(new TaskIdentity(taskType, 'task', null, Path.path(':task'), null, 12))
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "Cannot create task ':task' of type '$taskType.simpleName' as this type is not supported for task registration."
+
+        where:
+        taskType << [AbstractTask, TaskInternal]
     }
 
     void wrapsFailureToCreateTaskInstance() {
