@@ -60,11 +60,11 @@ public class TaskFactory implements ITaskFactory {
 
         NameValidator.validate(identity.name, "task name", "");
 
-        final Class<? extends org.gradle.api.internal.AbstractTask> implType;
+        final Class<? extends DefaultTask> implType;
         if (identity.type == Task.class) {
             implType = DefaultTask.class;
         } else if (DefaultTask.class.isAssignableFrom(identity.type)) {
-            implType = identity.type.asSubclass(org.gradle.api.internal.AbstractTask.class);
+            implType = identity.type.asSubclass(DefaultTask.class);
         } else if (identity.type == org.gradle.api.internal.AbstractTask.class || identity.type == TaskInternal.class) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as this type is not supported for task registration.",
