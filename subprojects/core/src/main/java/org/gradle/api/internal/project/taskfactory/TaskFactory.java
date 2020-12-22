@@ -54,7 +54,8 @@ public class TaskFactory implements ITaskFactory {
     public <S extends Task> S create(final TaskIdentity<S> identity, @Nullable final Object[] constructorArgs) {
         if (!Task.class.isAssignableFrom(identity.type)) {
             throw new InvalidUserDataException(String.format(
-                "Cannot create task of type '%s' as it does not implement the Task interface.",
+                "Cannot create task '%s' of type '%s' as it does not implement the Task interface.",
+                identity.identityPath.toString(),
                 identity.type.getSimpleName()));
         }
 
@@ -66,6 +67,7 @@ public class TaskFactory implements ITaskFactory {
         } else if (DefaultTask.class.isAssignableFrom(identity.type)) {
             implType = identity.type.asSubclass(org.gradle.api.internal.AbstractTask.class);
         } else if (identity.type == org.gradle.api.internal.AbstractTask.class || identity.type == TaskInternal.class) {
+
             DeprecationLogger.deprecate(String.format("Registering task '%s' with type '%s'", identity.identityPath.toString(), identity.type.getSimpleName()))
                 .willBecomeAnErrorInGradle7()
                 .withUpgradeGuideSection(6, "abstract_task_deprecated")

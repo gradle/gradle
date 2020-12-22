@@ -86,7 +86,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot create task of type 'NotATask' as it does not implement the Task interface."
+        e.message == "Cannot create task ':task' of type 'NotATask' as it does not implement the Task interface."
     }
 
     void wrapsFailureToCreateTaskInstance() {
