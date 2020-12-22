@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
 @InternalApi
-package org.gradle.api.internal.std;
+package org.gradle.internal.management;
 
 import org.gradle.api.InternalApi;
-import org.gradle.api.NonNullApi;
