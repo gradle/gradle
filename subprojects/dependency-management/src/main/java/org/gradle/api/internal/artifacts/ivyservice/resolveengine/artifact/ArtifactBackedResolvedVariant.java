@@ -136,7 +136,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+        public void visitTransformSources(TransformSourceVisitor visitor) {
             if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
                 visitor.visitArtifact(artifact);
             }
