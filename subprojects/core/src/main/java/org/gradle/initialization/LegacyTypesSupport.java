@@ -44,5 +44,4 @@ public interface LegacyTypesSupport {
      * into the given classloader.
      */
     void injectEmptyInterfacesIntoClassLoader(ClassLoader classLoader);
-
 }
