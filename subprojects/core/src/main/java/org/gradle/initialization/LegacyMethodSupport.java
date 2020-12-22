@@ -83,14 +83,12 @@ class LegacyMethodSupport {
         @Override
         public void accept(ClassVisitor cv) {
             // Generated with org.objectweb.asm.util.ASMifier
-
             MethodVisitor methodVisitor;
             AnnotationVisitor annotationVisitor0;
             Label label0;
             Label label1;
             Label label2;
             Label label3;
-            String methodName;
 
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "getArchiveName", "()Ljava/lang/String;", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljava/lang/Deprecated;", true);
@@ -186,6 +184,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("this", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
             methodVisitor.visitMaxs(1, 1);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "setDestinationDir", "(Ljava/io/File;)V", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljava/lang/Deprecated;", true);
             annotationVisitor0.visitEnd();
@@ -210,6 +209,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("destinationDir", "Ljava/io/File;", null, label0, label2, 1);
             methodVisitor.visitMaxs(3, 2);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "getBaseName", "()Ljava/lang/String;", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/annotation/Nullable;", true);
             annotationVisitor0.visitEnd();
@@ -232,6 +232,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("this", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
             methodVisitor.visitMaxs(1, 1);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "setBaseName", "(Ljava/lang/String;)V", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljava/lang/Deprecated;", true);
             annotationVisitor0.visitEnd();
@@ -264,6 +265,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("baseName", "Ljava/lang/String;", null, label0, label3, 1);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "getAppendix", "()Ljava/lang/String;", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/annotation/Nullable;", true);
             annotationVisitor0.visitEnd();
@@ -286,6 +288,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("this", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
             methodVisitor.visitMaxs(1, 1);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "setAppendix", "(Ljava/lang/String;)V", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljava/lang/Deprecated;", true);
             annotationVisitor0.visitEnd();
@@ -318,6 +321,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("appendix", "Ljava/lang/String;", null, label0, label3, 1);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "getVersion", "()Ljava/lang/String;", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/annotation/Nullable;", true);
             annotationVisitor0.visitEnd();
@@ -340,6 +344,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("this", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
             methodVisitor.visitMaxs(1, 1);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "setVersion", "(Ljava/lang/String;)V", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljava/lang/Deprecated;", true);
             annotationVisitor0.visitEnd();
@@ -372,6 +377,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("version", "Ljava/lang/String;", null, label0, label3, 1);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "getExtension", "()Ljava/lang/String;", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/annotation/Nullable;", true);
             annotationVisitor0.visitEnd();
@@ -394,6 +400,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("this", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
             methodVisitor.visitMaxs(1, 1);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "setExtension", "(Ljava/lang/String;)V", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljava/lang/Deprecated;", true);
             annotationVisitor0.visitEnd();
@@ -426,6 +433,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("extension", "Ljava/lang/String;", null, label0, label3, 1);
             methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "getClassifier", "()Ljava/lang/String;", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/annotation/Nullable;", true);
             annotationVisitor0.visitEnd();
@@ -448,6 +456,7 @@ class LegacyMethodSupport {
             methodVisitor.visitLocalVariable("this", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
             methodVisitor.visitMaxs(1, 1);
             methodVisitor.visitEnd();
+
             methodVisitor = cv.visitMethod(ACC_PUBLIC | ACC_DEPRECATED, "setClassifier", "(Ljava/lang/String;)V", null, null);
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljava/lang/Deprecated;", true);
             annotationVisitor0.visitEnd();
