@@ -18,11 +18,13 @@ package org.gradle.api.tasks.bundling
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -943,6 +945,48 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         "Jar"    | "archiveBaseName" | "build/libs/1.0.jar"
         "Tar"    | "archiveBaseName" | "build/distributions/1.0.tar"
 
+    }
+
+    @Unroll
+    def "plugins can configure #taskType tasks with removed APIs re-introduced by MixInLegacyTypesClassLoader"(String taskType) {
+        given:
+        Assume.assumeFalse(GradleContextualExecuter.isEmbedded())
+
+        when:
+        buildFile << """
+            apply plugin: MyPlugin
+            apply plugin: 'base'
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    p.tasks.register('archive', $taskType) {
+                        from("src")
+
+                        archiveName = 'test.jar'
+                        println archiveName
+                        destinationDir = p.buildDir
+                        println destinationDir
+                        baseName = 'test'
+                        println baseName
+                        appendix = 'custom'
+                        println appendix
+                        version = '0.1'
+                        println version
+                        extension = 'jr'
+                        println extension
+                        classifier = 'cf'
+                        println classifier
+                        println archivePath
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "archive"
+
+        where:
+        taskType << ['Jar', /*'Zip', ' Tar', 'Ear'*/] // TODO (donat) fix classloading for the other archive tasks types
     }
 
     private def createTar(String name, Closure cl) {

@@ -51,6 +51,10 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
             return gradleExtensionsWithout("gradle-core");
         }
 
+        else if (name.equals("GRADLE_CORE_AND_EXTENSIONS")) {
+            return gradleExtensionsWithout("gradle-core").plus(moduleRegistry.findModule("gradle-core").getClasspath());
+        }
+
         if (name.equals("GRADLE_WORKER_EXTENSIONS")) {
             return gradleExtensionsWithout("gradle-core", "gradle-workers", "gradle-dependency-management");
         }

@@ -48,26 +48,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertFileContent('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\r\n\r\n')
     }
 
-    def "can configure jar task with APIs that no longer exists on the source level"() {
-        given:
-        Assume.assumeFalse(GradleContextualExecuter.isEmbedded())
-
-        buildFile << """
-        task jar(type: Jar) {
-            from 'test'
-            destinationDir = buildDir
-            archiveName = 'test.jar'
-        }
-        """
-
-        when:
-        run 'jar'
-
-        then:
-        def jar = new JarTestFixture(file('build/test.jar'))
-        jar.assertFileContent('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\r\n\r\n')
-    }
-
     def "can create a jar archive with default manifest"() {
         given:
         createDir('test') {
