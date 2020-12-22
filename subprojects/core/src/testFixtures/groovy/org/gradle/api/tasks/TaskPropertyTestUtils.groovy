@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.CompositeFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -30,7 +30,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker
 import java.util.function.Consumer
 
 class TaskPropertyTestUtils {
-    static Map<String, Object> getProperties(AbstractTask task) {
+    static Map<String, Object> getProperties(DefaultTask task) {
         getProperties(task, task.getServices().get(PropertyWalker))
     }
 
@@ -40,7 +40,7 @@ class TaskPropertyTestUtils {
         return visitor.getProperties().collectEntries { [it.propertyName, it.value.call()] }
     }
 
-    static FileCollection getInputFiles(AbstractTask task) {
+    static FileCollection getInputFiles(DefaultTask task) {
         def fileCollectionFactory = task.getServices().get(FileCollectionFactory)
         GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString(), fileCollectionFactory)
         def walker = task.getServices().get(PropertyWalker)

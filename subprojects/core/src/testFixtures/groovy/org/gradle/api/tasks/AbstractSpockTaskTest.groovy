@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.Action
+import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -42,9 +43,9 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
     def taskFactory = new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, taskClassInfoStore, new TaskFactory())
 
-    abstract AbstractTask getTask()
+    abstract DefaultTask getTask()
 
-    def <T extends AbstractTask> T createTask(Class<T> type) {
+    def <T extends DefaultTask> T createTask(Class<T> type) {
         return createTask(type, project, TEST_TASK_NAME)
     }
 
@@ -52,7 +53,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         return createTask(getTask().getClass(), project, name)
     }
 
-    def <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
+    def <T extends DefaultTask> T createTask(Class<T> type, ProjectInternal project, String name) {
         Task task = new TaskInstantiator(taskFactory.createChild(project, TestUtil.instantiatorFactory().decoratingLenientScheme), project).create(name, type)
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task)
@@ -149,7 +150,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def canSpecifyOnlyIfPredicateUsingClosure() {
-        AbstractTask task = getTask()
+        DefaultTask task = getTask()
 
         expect:
         task.getOnlyIf().isSatisfiedBy(task)
@@ -163,7 +164,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
 
     def canSpecifyOnlyIfPredicateUsingSpec() {
         final Spec<Task> spec = Mock()
-        final AbstractTask task = getTask()
+        final DefaultTask task = getTask()
 
         expect:
         task.getOnlyIf().isSatisfiedBy(task)
@@ -180,7 +181,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         final MutableBoolean condition1 = new MutableBoolean(true)
         final MutableBoolean condition2 = new MutableBoolean(true)
 
-        AbstractTask task = getTask()
+        DefaultTask task = getTask()
         task.onlyIf {
             condition1.get()
         }
@@ -220,7 +221,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
 
     def canReplaceOnlyIfSpec() {
         final MutableBoolean condition1 = new MutableBoolean(true)
-        AbstractTask task = getTask()
+        DefaultTask task = getTask()
         task.onlyIf(Mock(Spec))
         task.setOnlyIf {
             return condition1.get()

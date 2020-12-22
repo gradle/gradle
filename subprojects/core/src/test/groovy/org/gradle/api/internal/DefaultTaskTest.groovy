@@ -51,7 +51,7 @@ class DefaultTaskTest extends AbstractTaskTest {
         Thread.currentThread().contextClassLoader = cl
     }
 
-    AbstractTask getTask() {
+    DefaultTask getTask() {
         defaultTask
     }
 

@@ -15,12 +15,10 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.api.internal.AbstractTask
-
 class SourceTaskTest extends AbstractTaskTest {
     private SourceTask task
 
-    AbstractTask getTask() {
+    SourceTask getTask() {
         return task
     }
 
