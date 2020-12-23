@@ -21,11 +21,8 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
-
 import org.intellij.lang.annotations.Language
-
 
 class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec {
 
@@ -56,11 +53,7 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
         assert System.getProperty(ConfigurationCacheOption.PROPERTY_NAME) == null
     }
 
-    void buildFile(@Language("groovy") String script) {
-        buildFile << script
-    }
-
-    void buildKotlinFile(@Language("kotlin") String script) {
+    void buildKotlinFile(@Language(value = "kotlin") String script) {
         buildKotlinFile << script
     }
 

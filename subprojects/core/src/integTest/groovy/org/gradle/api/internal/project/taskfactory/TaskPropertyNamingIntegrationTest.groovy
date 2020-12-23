@@ -34,7 +34,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         file("inputs1").createDir()
         file("inputs2").createDir()
 
-        buildFile << """
+        buildFile """
             class MyConfig {
                 @Input String inputString
                 @InputFile File inputFile
@@ -158,7 +158,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "task references another task")
     def "nested iterable properties have names"() {
         buildFile << printPropertiesTask()
-        buildFile << """
+        buildFile """
             class TaskWithNestedBean extends DefaultTask {
                 @Nested
                 List<Object> beans
@@ -328,7 +328,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "task references another task")
     def "input properties can be overridden"() {
         buildFile << classesForNestedProperties()
-        buildFile << """
+        buildFile """
             task test(type: TaskWithNestedObjectProperty) {
                 input = "someString"
                 bean = new NestedProperty(

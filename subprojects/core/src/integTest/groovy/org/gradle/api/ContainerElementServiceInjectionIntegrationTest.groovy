@@ -18,20 +18,17 @@ package org.gradle.api
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.process.ExecOperations
 import spock.lang.Unroll
 
-
 class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
     def "container element can receive services through constructor and is not annotated with @Inject"() {
-        buildFile << """
+        buildFile  """
             class Bean {
                 String name
 
@@ -56,7 +53,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
     }
 
     def "fails when container element requests unknown service"() {
-        buildFile << """
+        buildFile """
             interface Unknown { }
 
             class Bean {
@@ -79,7 +76,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
     }
 
     def "container element can receive services through getter method"() {
-        buildFile << """
+        buildFile """
             class Bean {
                 String name
 
@@ -89,8 +86,8 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
 
                     // is generated but not extensible
                     assert getClass() != Bean
-                    assert (this instanceof ${GeneratedSubclass.name})
-                    assert !(this instanceof ${ExtensionAware.name})
+                    assert (this instanceof org.gradle.api.internal.GeneratedSubclass)
+                    assert !(this instanceof org.gradle.api.plugins.ExtensionAware)
                 }
 
                 @javax.inject.Inject
@@ -109,7 +106,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
     }
 
     def "container element can receive services through abstract getter method"() {
-        buildFile << """
+        buildFile """
             abstract class Bean {
                 String name
 
@@ -119,8 +116,8 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
 
                     // is generated but not extensible
                     assert getClass() != Bean
-                    assert (this instanceof ${GeneratedSubclass.name})
-                    assert !(this instanceof ${ExtensionAware.name})
+                    assert (this instanceof org.gradle.api.internal.GeneratedSubclass)
+                    assert !(this instanceof org.gradle.api.plugins.ExtensionAware)
                 }
 
                 @javax.inject.Inject

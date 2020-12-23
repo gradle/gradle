@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileResolutionIntegrationTest extends AbstractIntegrationSpec {
     def "file conversion works with java.nio.file.Path"() {
-        buildFile << """
+        buildFile """
 java.nio.file.Path fAsPath = buildDir.toPath().resolve('testdir').toAbsolutePath()
 def f = file(fAsPath)
 assert f == fAsPath.toFile()
@@ -48,7 +48,7 @@ assert f == file("testdir")
     }
 
     def "gives reasonable error message when value cannot be converted to file"() {
-        buildFile << """
+        buildFile """
 def f = file(12)
 """
 
@@ -68,7 +68,7 @@ The following types/formats are supported:
     }
 
     def "can construct file collection using java.nio.file.Path"() {
-        buildFile << """
+        buildFile """
 java.nio.file.Path fAsPath = buildDir.toPath().resolve('testdir').toAbsolutePath()
 def f = files(fAsPath)
 assert f.files as List == [fAsPath.toFile()]
@@ -96,7 +96,7 @@ assert f.files as List == [file("testdir")]
     }
 
     def "gives reasonable error message when resolving file collection that contains unsupported element"() {
-        buildFile << """
+        buildFile """
 def f = files({[12]})
 f.files.each { println it }
 """

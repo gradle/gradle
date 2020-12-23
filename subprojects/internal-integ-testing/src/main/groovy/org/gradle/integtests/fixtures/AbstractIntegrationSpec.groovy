@@ -129,8 +129,19 @@ class AbstractIntegrationSpec extends Specification {
         }
     }
 
+    /**
+     * Want syntax highlighting inside of IntelliJ? Consider using {@link AbstractIntegrationSpec#buildFile(String)}
+     */
     TestFile getBuildFile() {
         testDirectory.file(getDefaultBuildFileName())
+    }
+
+    /**
+     * Provides best-effort groovy script syntax highlighting.
+     * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
+     */
+    void buildFile(@GroovyBuildScriptLanguage String script) {
+        buildFile << script
     }
 
     TestFile getBuildKotlinFile() {
@@ -145,7 +156,7 @@ class AbstractIntegrationSpec extends Specification {
         'build.gradle.kts'
     }
 
-    protected TestFile buildScript(String script) {
+    protected TestFile buildScript(@GroovyBuildScriptLanguage String script) {
         buildFile.text = script
         buildFile
     }

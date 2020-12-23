@@ -105,7 +105,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin manager with id is fired after the plugin is applied for imperative plugins"() {
         when:
-        buildFile << """
+        buildFile """
             pluginManager.withPlugin("java") {
               assert tasks.jar
             }
@@ -139,7 +139,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
         file("buildSrc/src/main/resources/META-INF/gradle-plugins/my.properties") << "implementation-class=MyPlugin"
 
-        buildFile << """
+        buildFile """
             import org.gradle.model.internal.core.ModelPath
 
             pluginManager.withPlugin("my") {
@@ -169,7 +169,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
         file("buildSrc/src/main/resources/META-INF/gradle-plugins/my.properties") << "implementation-class=Rules"
 
-        buildFile << """
+        buildFile """
             import org.gradle.model.internal.core.ModelPath
 
             pluginManager.withPlugin("my") {

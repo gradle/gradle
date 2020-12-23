@@ -20,19 +20,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ObjectFactoryExtensionsIntegrationTest extends AbstractIntegrationSpec {
     def "extension container of created DSL object can create type with non-annotated constructor"() {
         given:
-        buildFile << """
+        buildFile """
         class Thing {
             String value
             Thing(String value) {
                 this.value = value
             }
         }
-        
+
         class MyExtensible {}
 
         def myExtensible = project.objects.newInstance(MyExtensible)
         assert myExtensible instanceof ExtensionAware
-        
+
         myExtensible.extensions.create("thing", Thing, "bar")
         assert myExtensible.extensions.thing.value == "bar"
 """
@@ -43,20 +43,20 @@ class ObjectFactoryExtensionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "extension container of created DSL object can create type with multiple constructors not annotated"() {
         given:
-        buildFile << """
+        buildFile """
         class Thing {
             Thing() {}
             Thing(String foo) {}
         }
-        
+
         class MyExtensible {}
-        
+
         task createExtension {
             def objects = project.objects
             doLast {
                 def myExtensible = objects.newInstance(MyExtensible)
                 assert myExtensible instanceof ExtensionAware
-                
+
                 myExtensible.extensions.create("thing", Thing)
             }
         }
@@ -67,22 +67,22 @@ class ObjectFactoryExtensionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "creation via extension is lenient where injected ObjectFactory is not"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 String name
-                
+
                 Thing(String name) {
                     this.name = name
                 }
             }
-            
+
             class Outer {
                 Thing thing
 
                 @javax.inject.Inject
                 ObjectFactory getObjects() { null }
             }
-            
+
             def outer = project.objects.newInstance(Outer)
             task createExtensionThing {
                 doLast {
@@ -90,7 +90,7 @@ class ObjectFactoryExtensionsIntegrationTest extends AbstractIntegrationSpec {
                     assert outer.extensions.extensionThing.name == "foo"
                 }
             }
-                    
+
             task createNestedThing {
                 doLast {
                     outer.objects.newInstance(Thing, "bar")

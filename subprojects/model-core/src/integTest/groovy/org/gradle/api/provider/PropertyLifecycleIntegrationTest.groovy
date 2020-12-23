@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "can finalize the value of a property using API"() {
         given:
-        buildFile << """
+        buildFile """
             Integer counter = 0
             def provider = providers.provider { ++counter }
 
@@ -51,7 +51,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def "can finalize the value of a property on next read using API"() {
         given:
-        buildFile << """
+        buildFile """
             Integer counter = 0
             def provider = providers.provider { ++counter }
 
@@ -81,7 +81,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def "can disallow changes to a property using API without finalizing the value"() {
         given:
-        buildFile << """
+        buildFile """
             Integer counter = 0
             def provider = providers.provider { ++counter }
 
@@ -106,7 +106,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def "task @Input property is implicitly finalized when task starts execution"() {
         given:
-        buildFile << """
+        buildFile """
             class SomeTask extends DefaultTask {
                 @Input
                 final Property<String> prop = project.objects.property(String)
@@ -150,7 +150,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
-        buildFile << """
+        buildFile """
 
             def prop = project.objects.property(String)
 
@@ -175,7 +175,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "can write but cannot read strict project property instance before project configuration completes"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 Property<String> getProp()
             }
@@ -237,7 +237,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "can change value of strict property after project configuration completes and before the value has been read"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 Property<String> getProp()
             }
@@ -273,7 +273,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "cannot finalize a strict property during project configuration"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 Property<String> getProp()
             }
@@ -312,7 +312,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "cannot read project property instance whose value is a strict project property before project configuration completes"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 Property<String> getProp()
             }
@@ -381,7 +381,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "finalizes upstream property when strict property is read"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 Property<String> getProp()
             }

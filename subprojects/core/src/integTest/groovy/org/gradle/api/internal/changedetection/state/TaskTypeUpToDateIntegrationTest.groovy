@@ -27,7 +27,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is up-to-date after unrelated change to build script"() {
         file("input.txt") << "input"
-        buildFile << """
+        buildFile """
             task copy(type: Copy) {
                 from "input.txt"
                 destinationDir buildDir
@@ -81,7 +81,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "task with action declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
-        buildFile << """
+        buildFile """
             task copy(type: Copy) {
                 from "input.txt"
                 destinationDir buildDir
@@ -116,7 +116,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt") << "input"
 
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy") << declareSimpleCopyTaskType(false)
-        buildFile << """
+        buildFile """
             task copy(type: SimpleCopy) {
                 input = file("input.txt")
                 output = file("output.txt")
@@ -152,7 +152,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
         file("buildSrc/build.gradle") << guavaDependency("15.0")
 
-        buildFile << """
+        buildFile """
             task copy(type: SimpleCopy) {
                 input = file("input.txt")
                 output = file("output.txt")

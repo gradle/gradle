@@ -25,7 +25,7 @@ class DefaultSourceDirectorySetFactoryTest extends AbstractIntegrationSpec {
     def "shows deprecation warning when #deprecatedMethodCall is called"() {
         given:
         settingsFile << "rootProject.name = 'parent'"
-        buildFile << """
+        buildFile """
         apply plugin: org.test.TestPlugin
 
         task deprecation

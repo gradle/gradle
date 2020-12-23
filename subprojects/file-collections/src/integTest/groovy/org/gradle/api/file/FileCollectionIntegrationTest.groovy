@@ -41,7 +41,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
 
     @Issue("https://github.com/gradle/gradle/issues/10322")
     def "can construct file collection from the elements of a source directory set"() {
-        buildFile << """
+        buildFile """
             def fileCollection = objects.fileCollection()
             def sourceDirs = objects.sourceDirectorySet('main', 'main files')
             sourceDirs.srcDirs("dir1", "dir2")
@@ -60,7 +60,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     }
 
     def "can view the elements of file collection as a Provider"() {
-        buildFile << """
+        buildFile """
             def files = objects.fileCollection()
             def elements = files.elements
 
@@ -77,7 +77,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     @ToBeFixedForConfigurationCache(because = "collection closure called on cache store")
     def "task @InputFiles file collection closure is called once only when task executes"() {
         taskTypeWithInputFileCollection()
-        buildFile << """
+        buildFile """
             task merge(type: InputFilesTask) {
                 outFile = file("out.txt")
                 inFiles.from {
@@ -98,7 +98,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     @ToBeFixedForConfigurationCache(because = "collection provider called on cache store")
     def "task @InputFiles file collection provider is called once only when task executes"() {
         taskTypeWithInputFileCollection()
-        buildFile << """
+        buildFile """
             task merge(type: InputFilesTask) {
                 outFile = file("out.txt")
                 inFiles.from providers.provider {
@@ -119,7 +119,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     def "can connect the elements of a file collection to task input ListProperty"() {
         taskTypeWithOutputFileProperty()
         taskTypeWithInputFileListProperty()
-        buildFile << """
+        buildFile """
             task produce1(type: FileProducer) {
                 output = file("out1.txt")
                 content = "one"
@@ -173,7 +173,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "can compose and filter a file collection that includes the collection it replaces"() {
         taskTypeLogsInputFileCollectionContent()
-        buildFile << """
+        buildFile """
             class LegacyTask extends ShowFilesTask {
                 void setInFiles(def c) {
                     inFiles.from = c
@@ -202,7 +202,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     @Issue("https://github.com/gradle/gradle/issues/13745")
     def "can compose and filter a file collection to rearrange its elements"() {
         taskTypeLogsInputFileCollectionContent()
-        buildFile << """
+        buildFile """
             class LegacyTask extends ShowFilesTask {
                 void setInFiles(def c) {
                     inFiles.from = c
@@ -233,7 +233,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         given:
         file('files/a/one.txt').createFile()
         file('files/b/two.txt').createFile()
-        buildFile << """
+        buildFile """
             def files = files('files/a', 'files/b').minus(files('files/b'))
             task copy(type: Copy) {
                 from files
@@ -275,7 +275,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         given:
         file('files/a/one.txt').createFile()
         file('files/b/two.txt').createFile()
-        buildFile << """
+        buildFile """
             def files = files('files/a', 'files/b').filter { it.name != 'b' }
             task copy(type: Copy) {
                 from files

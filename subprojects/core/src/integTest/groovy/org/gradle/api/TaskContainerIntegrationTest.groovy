@@ -35,11 +35,11 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
     }
 
     def "chained lookup of tasks.withType.matching"() {
-        buildFile << """
+        buildFile """
             tasks.withType(Copy).matching({ it.name.endsWith("foo") }).all { task ->
                 assert task.path in [':foo']
             }
-            
+
             tasks.register("foo", Copy)
             tasks.register("bar", Copy)
             tasks.register("foobar", Delete)
@@ -51,11 +51,11 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
 
     @Issue("https://github.com/gradle/gradle/issues/9446")
     def "chained lookup of tasks.matching.withType"() {
-        buildFile << """
+        buildFile """
             tasks.matching({ it.name.endsWith("foo") }).withType(Copy).all { task ->
                 assert task.path in [':foo']
             }
-            
+
             tasks.register("foo", Copy)
             tasks.register("bar", Copy)
             tasks.register("foobar", Delete)

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireIsolatedDaemons()
-        buildFile << """
+        buildFile """
             ant.saveStreams = false
             task antTest {
                 doLast {

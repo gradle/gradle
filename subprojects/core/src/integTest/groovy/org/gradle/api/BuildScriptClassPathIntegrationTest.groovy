@@ -55,7 +55,7 @@ task show {
     @NotYetImplemented
     @Ignore("Apparently sometimes the test passes on CI")
     def "doesn't cache the metaclass from previous execution if build script changes"() {
-        buildFile << '''
+        buildFile '''
 void bar() {
    println 'Original bar'
 }
