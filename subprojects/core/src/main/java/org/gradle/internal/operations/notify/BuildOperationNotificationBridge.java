@@ -17,6 +17,7 @@
 package org.gradle.internal.operations.notify;
 
 import org.gradle.BuildListener;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
@@ -94,9 +95,9 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
     // This avoids buffering until the end of the build when no listener comes.
     private final BuildListener buildListener = new InternalBuildAdapter() {
         @Override
-        public void buildStarted(Gradle gradle) {
-            if (gradle.getParent() == null) {
-                gradle.projectsLoaded((InternalAction<Gradle>) project -> {
+        public void beforeSettings(Settings settings) {
+            if (settings.getGradle().getParent() == null) {
+                settings.getGradle().projectsLoaded((InternalAction<Gradle>) project -> {
                     State s = state;
                     if (s != null && s.notificationListener == null) {
                         valve.stop();

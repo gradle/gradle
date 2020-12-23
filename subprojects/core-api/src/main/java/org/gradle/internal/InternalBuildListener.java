@@ -17,14 +17,6 @@
 package org.gradle.internal;
 
 import org.gradle.BuildListener;
-import org.gradle.api.invocation.Gradle;
 
 public interface InternalBuildListener extends BuildListener, InternalListener {
-    /**
-     * <p>Called when the build is started.</p>
-     *
-     * @param gradle The build which is being started. Never null.
-     */
-    @SuppressWarnings("deprecation")
-    void buildStarted(Gradle gradle);
 }

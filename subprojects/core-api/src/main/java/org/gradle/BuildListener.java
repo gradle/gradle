@@ -28,13 +28,6 @@ import org.gradle.internal.service.scopes.Scopes;
  */
 @EventScope(Scopes.Build.class)
 public interface BuildListener {
-    /**
-     * <p>Called when the build is started.</p>
-     *
-     * @param gradle The build which is being started. Never null.
-     */
-    @Deprecated
-    void buildStarted(Gradle gradle);
 
     /**
      * Called when the build settings are about to be loaded and evaluated.

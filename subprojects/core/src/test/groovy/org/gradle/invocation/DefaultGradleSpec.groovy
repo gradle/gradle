@@ -145,21 +145,6 @@ class DefaultGradleSpec extends Specification {
         called
     }
 
-    def "broadcasts build started events to closures"() {
-        given:
-        def called = false
-        def closure = { called = true }
-
-        when:
-        gradle.buildStarted(closure)
-
-        and:
-        gradle.buildListenerBroadcaster.buildStarted(gradle)
-
-        then:
-        called
-    }
-
     def "broadcasts settings evaluated events to closures"() {
         given:
         def called = false
@@ -246,20 +231,6 @@ class DefaultGradleSpec extends Specification {
 
         then:
         1 * action.execute(_)
-    }
-
-    def "broadcasts build started events to actions"() {
-        given:
-        def action = Mock(Action)
-
-        when:
-        gradle.buildStarted(action)
-
-        and:
-        gradle.buildListenerBroadcaster.buildStarted(gradle)
-
-        then:
-        1 * action.execute(gradle)
     }
 
     def "broadcasts settings evaluated events to actions"() {

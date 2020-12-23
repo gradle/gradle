@@ -50,9 +50,9 @@ public class ProfileEventAdapter implements InternalBuildListener, ProjectEvalua
     }
 
     // BuildListener
+
     @Override
-    @SuppressWarnings("deprecation")
-    public void buildStarted(Gradle gradle) {
+    public void beforeSettings(Settings settings) {
         long now = clock.getCurrentTime();
         buildProfile = new BuildProfile(gradle.getStartParameter());
         buildProfile.setBuildStarted(now);
