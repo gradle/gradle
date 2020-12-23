@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -33,7 +31,6 @@ import javax.annotation.Nullable;
  *
  * @since 6.6
  */
-@Incubating
 public interface DependencyArtifactSelector {
     /**
      * Returns the type of the artifact to select

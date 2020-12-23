@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
@@ -37,7 +35,6 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      *
      * @since 6.0
      */
-    @Incubating
     void endorseStrictVersions();
 
     /**
@@ -45,7 +42,6 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      *
      * @since 6.0
      */
-    @Incubating
     void doNotEndorseStrictVersions();
 
     /**
@@ -53,7 +49,6 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      *
      * @since 6.0
      */
-    @Incubating
     boolean isEndorsingStrictVersions();
 
     /**
@@ -62,7 +57,6 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      *
      * @since 6.3
      */
-    @Incubating
     List<DependencyArtifact> getArtifactSelectors();
 
 }
