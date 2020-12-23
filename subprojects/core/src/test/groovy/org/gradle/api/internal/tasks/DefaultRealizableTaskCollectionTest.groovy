@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.AbstractTask
+import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelPath
@@ -27,7 +27,7 @@ import spock.lang.Specification
 class DefaultRealizableTaskCollectionTest extends Specification {
 
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    
+
     def "realizes a nodes link of a given type when task dependencies visited"() {
         given:
         ModelRegistryHelper registry = new ModelRegistryHelper()
@@ -94,9 +94,9 @@ class DefaultRealizableTaskCollectionTest extends Specification {
     }
 }
 
-class BasicTask extends AbstractTask {}
+class BasicTask extends DefaultTask {}
 
 class ChildTask extends BasicTask {}
 
-class RedundantTask extends AbstractTask {}
+class RedundantTask extends DefaultTask {}
 

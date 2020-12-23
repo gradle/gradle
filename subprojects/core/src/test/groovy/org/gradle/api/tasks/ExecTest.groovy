@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.api.internal.AbstractTask
-
 class ExecTest extends AbstractTaskTest {
     Exec execTask
 
@@ -24,7 +22,7 @@ class ExecTest extends AbstractTaskTest {
         execTask = createTask(Exec.class)
     }
 
-    AbstractTask getTask() {
+    Exec getTask() {
         return execTask
     }
 }
