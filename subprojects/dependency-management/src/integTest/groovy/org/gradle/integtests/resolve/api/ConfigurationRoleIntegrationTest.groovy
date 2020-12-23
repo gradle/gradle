@@ -19,10 +19,17 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
+
+    @Ignore
+    def "Spock bug workaround - do not remove or the test won't execute" () {
+        expect:
+        true
+    }
 
     @Unroll("cannot resolve a configuration with role #role at execution time")
     def "cannot resolve a configuration which is for publishing only at execution time"() {
@@ -157,7 +164,7 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         fails 'a:check'
 
         then:
-        failure.assertHasCause "Selected configuration 'internal' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause "Selected configuration 'internal' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
 
         where:
         role                    | code
@@ -196,7 +203,7 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         fails 'a:check'
 
         then:
-        failure.assertHasCause "Selected configuration 'default' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause "Selected configuration 'default' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
 
         where:
         role                    | code
