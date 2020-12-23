@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.util.NameValidator;
 
@@ -54,29 +53,28 @@ public class TaskFactory implements ITaskFactory {
     public <S extends Task> S create(final TaskIdentity<S> identity, @Nullable final Object[] constructorArgs) {
         if (!Task.class.isAssignableFrom(identity.type)) {
             throw new InvalidUserDataException(String.format(
-                "Cannot create task of type '%s' as it does not implement the Task interface.",
+                "Cannot create task '%s' of type '%s' as it does not implement the Task interface.",
+                identity.identityPath.toString(),
                 identity.type.getSimpleName()));
         }
 
         NameValidator.validate(identity.name, "task name", "");
 
-        final Class<? extends org.gradle.api.internal.AbstractTask> implType;
+        final Class<? extends DefaultTask> implType;
         if (identity.type == Task.class) {
             implType = DefaultTask.class;
         } else if (DefaultTask.class.isAssignableFrom(identity.type)) {
-            implType = identity.type.asSubclass(org.gradle.api.internal.AbstractTask.class);
+            implType = identity.type.asSubclass(DefaultTask.class);
         } else if (identity.type == org.gradle.api.internal.AbstractTask.class || identity.type == TaskInternal.class) {
-            DeprecationLogger.deprecate(String.format("Registering task '%s' with type '%s'", identity.identityPath.toString(), identity.type.getSimpleName()))
-                .willBecomeAnErrorInGradle7()
-                .withUpgradeGuideSection(6, "abstract_task_deprecated")
-                .nagUser();
-            implType = DefaultTask.class;
+            throw new InvalidUserDataException(String.format(
+                "Cannot create task '%s' of type '%s' as this type is not supported for task registration.",
+                identity.identityPath.toString(),
+                identity.type.getSimpleName()));
         } else {
-            DeprecationLogger.deprecate(String.format("Registering task '%s' with a type (%s) that directly extends AbstractTask", identity.identityPath.toString(), identity.type.getSimpleName()))
-                .willBecomeAnErrorInGradle7()
-                .withUpgradeGuideSection(6, "abstract_task_deprecated")
-                .nagUser();
-            implType = identity.type.asSubclass(org.gradle.api.internal.AbstractTask.class);
+            throw new InvalidUserDataException(String.format(
+                "Cannot create task '%s' of type '%s' as directly extending AbstractTask is not supported.",
+                identity.identityPath.toString(),
+                identity.type.getSimpleName()));
         }
 
         Describable displayName = Describables.withTypeAndName("task", identity.getIdentityPath());

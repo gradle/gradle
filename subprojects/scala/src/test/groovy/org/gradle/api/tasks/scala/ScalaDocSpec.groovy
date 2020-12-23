@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.scala
 
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.tasks.AbstractConventionTaskTest
@@ -33,7 +32,7 @@ class ScalaDocSpec extends AbstractConventionTaskTest {
     }
 
     @Override
-    AbstractTask getTask() {
+    ScalaDoc getTask() {
         return scalaDoc
     }
 

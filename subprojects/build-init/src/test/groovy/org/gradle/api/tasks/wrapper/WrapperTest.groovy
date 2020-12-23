@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.wrapper
 
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.test.fixtures.file.TestFile
@@ -45,7 +44,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.setDistributionSha256Sum("somehash")
     }
 
-    AbstractTask getTask() {
+    Wrapper getTask() {
         return wrapper
     }
 
