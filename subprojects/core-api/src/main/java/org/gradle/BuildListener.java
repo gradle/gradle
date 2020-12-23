@@ -15,7 +15,6 @@
  */
 package org.gradle;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.service.scopes.EventScope;
@@ -35,7 +34,6 @@ public interface BuildListener {
      * @param settings The settings. Never null.
      * @since 6.0
      */
-    @Incubating
     default void beforeSettings(Settings settings) {}
 
     /**
