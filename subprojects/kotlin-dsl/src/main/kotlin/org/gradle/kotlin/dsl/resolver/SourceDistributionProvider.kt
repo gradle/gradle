@@ -152,7 +152,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun previous(versionDigit: String) =
-        Integer.valueOf(versionDigit) - 1
+        Integer.parseInt(versionDigit) - 1
 
     private
     val resolver by lazy { projectInternal.newDetachedResolver() }

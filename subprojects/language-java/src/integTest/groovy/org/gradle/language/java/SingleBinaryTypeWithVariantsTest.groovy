@@ -404,6 +404,6 @@ model {
      * will not be able to compile for Java9).
      */
     private static assertAllTargetVersionsAreSupported(List<Integer> targetVersions) {
-        Assume.assumeTrue(targetVersions.max() <= Integer.valueOf(JavaVersion.current().majorVersion))
+        Assume.assumeTrue(targetVersions.max() <= Integer.parseInt(JavaVersion.current().majorVersion))
     }
 }

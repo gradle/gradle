@@ -51,7 +51,7 @@ class ActionsTest extends Specification {
         when:
         transformBefore(action, new Transformer<Integer, String>() {
             Integer transform(String original) {
-                Integer.valueOf(original, 10) * 2
+                Integer.parseInt(original, 10) * 2
             }
 
         }).execute("1")

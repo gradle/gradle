@@ -45,7 +45,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = "ToolingApiCompatibilityClient"
                 javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(Integer.valueOf(project.findProperty("clientJdk")))
+                    languageVersion = JavaLanguageVersion.of(Integer.parseInt(project.findProperty("clientJdk")))
                 }
                 enableAssertions = true
 
@@ -56,7 +56,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = "ToolingApiCompatibilityClient"
                 javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(Integer.valueOf(project.findProperty("clientJdk")))
+                    languageVersion = JavaLanguageVersion.of(Integer.parseInt(project.findProperty("clientJdk")))
                 }
                 enableAssertions = true
 

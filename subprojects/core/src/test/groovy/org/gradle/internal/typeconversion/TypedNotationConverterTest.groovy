@@ -43,7 +43,7 @@ public class TypedNotationConverterTest extends Specification {
         }
 
         Integer parseType(String notation) {
-            return Integer.valueOf(notation);
+            return Integer.parseInt(notation);
         }
     }
 }

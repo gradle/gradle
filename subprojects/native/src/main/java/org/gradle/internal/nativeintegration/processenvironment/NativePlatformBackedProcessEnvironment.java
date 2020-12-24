@@ -48,7 +48,7 @@ public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvir
 
     @Override
     public Long getPid() {
-        return Long.valueOf(process.getProcessId());
+        return (long) process.getProcessId();
     }
 
     @Override

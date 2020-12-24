@@ -56,9 +56,9 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         if (value == null) {
             return false;
         } else if (value instanceof Boolean) {
-            return ((Boolean) value).booleanValue();
+            return (Boolean) value;
         } else {
-            return Boolean.valueOf((String) value);
+            return Boolean.parseBoolean((String) value);
         }
     }
 

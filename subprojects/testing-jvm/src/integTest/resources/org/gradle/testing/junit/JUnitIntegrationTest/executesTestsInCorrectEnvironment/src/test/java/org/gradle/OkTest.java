@@ -32,7 +32,7 @@ public class OkTest {
         // check classloader and classpath
         assertSame(ClassLoader.getSystemClassLoader(), getClass().getClassLoader());
         assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
-        boolean isJava9 = Boolean.valueOf(System.getProperty("isJava9"));
+        boolean isJava9 = Boolean.parseBoolean(System.getProperty("isJava9"));
         String classPathString = System.getProperty("java.class.path");
         String expectedClassPathString = System.getProperty("expectedClassPath");
         if (isJava9) {

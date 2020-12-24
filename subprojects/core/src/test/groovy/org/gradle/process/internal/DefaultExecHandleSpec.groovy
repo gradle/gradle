@@ -480,7 +480,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             System.out.println("I'm the daemon")
             System.out.close()
             System.err.close()
-            int napTime = (args.length == 0) ? 10000L : Integer.valueOf(args[0])
+            int napTime = (args.length == 0) ? 10000L : Integer.parseInt(args[0])
             Thread.sleep(napTime)
         }
     }

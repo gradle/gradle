@@ -43,7 +43,7 @@ public class CoercingStringValueSnapshot extends StringValueSnapshot {
             return type.cast(instantiator.named(type.asSubclass(Named.class), getValue()));
         }
         if (Integer.class.equals(type)) {
-            return type.cast(Integer.valueOf(getValue()));
+            return type.cast(Integer.parseInt(getValue()));
         }
         return null;
     }

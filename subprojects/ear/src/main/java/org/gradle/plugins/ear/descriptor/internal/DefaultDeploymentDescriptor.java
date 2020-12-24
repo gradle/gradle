@@ -276,7 +276,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                         break;
                     case "initialize-in-order":
 
-                        initializeInOrder = Boolean.valueOf(child.text());
+                        initializeInOrder = Boolean.parseBoolean(child.text());
 
                         break;
                     case "description":

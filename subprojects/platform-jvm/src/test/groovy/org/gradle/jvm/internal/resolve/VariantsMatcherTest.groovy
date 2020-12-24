@@ -225,7 +225,7 @@ class VariantsMatcherTest extends Specification {
 
     static class MySelector implements VariantAxisCompatibility<MyPlatform> {
         private static int v(MyPlatform platform) {
-            Integer.valueOf(platform.name.replaceAll(/\./,''))
+            Integer.parseInt(platform.name.replaceAll(/\./,''))
         }
 
         @Override
