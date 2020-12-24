@@ -74,7 +74,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setIdleTimeout(Integer.valueOf(value));
+                settings.setIdleTimeout(Integer.parseInt(value));
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }
@@ -91,7 +91,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setPeriodicCheckInterval(Integer.valueOf(value));
+                settings.setPeriodicCheckInterval(Integer.parseInt(value));
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }
