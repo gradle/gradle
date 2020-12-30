@@ -41,7 +41,7 @@ import java.util.Collection;
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
 @HasInternalProtocol
-public interface Gradle extends PluginAware {
+public interface Gradle extends PluginAware, ExtensionAware {
     /**
      * Returns the current Gradle version.
      *
