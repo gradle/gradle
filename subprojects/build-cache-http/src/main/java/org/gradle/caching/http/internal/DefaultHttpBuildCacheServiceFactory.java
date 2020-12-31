@@ -18,13 +18,14 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.caching.http.HttpBuildCacheCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
@@ -106,11 +107,13 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .create(
                 url,
                 allowInsecureProtocol,
-                () -> DeprecationLogger.deprecate("Using insecure protocols with remote build cache, without explicit opt-in,")
-                    .withAdvice("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.")
-                    .willBeRemovedInGradle7()
-                    .withDslReference(HttpBuildCache.class, "allowInsecureProtocol")
-                    .nagUser(),
+                () -> {
+                    String message =
+                        "Using insecure protocols with remote build cache, without explicit opt-in, is unsupported. " +
+                            "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols. " +
+                            Documentation.dslReference(HttpBuildCache.class, "allowInsecureProtocol").consultDocumentationMessage();
+                    throw new InvalidUserCodeException(message);
+                },
                 redirect -> {
                     throw new IllegalStateException("Redirects are unsupported by the the build cache.");
                 });

@@ -23,6 +23,8 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Used to create instances of {@link HttpRedirectVerifier}.
  */
@@ -43,6 +45,8 @@ public class HttpRedirectVerifierFactory {
         Runnable insecureBaseHost,
         Consumer<URI> insecureRedirect
     ) {
+        requireNonNull(insecureBaseHost, "insecureBaseHost must not be null");
+        requireNonNull(insecureRedirect, "insecureRedirect must not be null");
         if (allowInsecureProtocol) {
             return NoopHttpRedirectVerifier.instance;
         } else {

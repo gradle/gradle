@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,10 @@ package org.gradle.test.fixtures.server
 import groovy.transform.CompileStatic
 
 @CompileStatic
-abstract class ExpectOne extends OneRequestServerExpectation {
+abstract class ForbidOne extends OneRequestServerExpectation {
 
-    @Override
     void assertMet() {
-        if (!run) {
+        if (run) {
             throw new AssertionError(notMetMessage as Object)
         }
     }

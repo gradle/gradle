@@ -19,7 +19,7 @@ package org.gradle.internal.deprecation;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
 
-abstract class Documentation {
+public abstract class Documentation {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
     static final Documentation NO_DOCUMENTATION = new NullDocumentation();
@@ -36,13 +36,13 @@ abstract class Documentation {
         return new UpgradeGuide(majorVersion, upgradeGuideSection);
     }
 
-    static Documentation dslReference(Class<?> targetClass, String property) {
+    public static Documentation dslReference(Class<?> targetClass, String property) {
         return new DslReference(targetClass, property);
     }
 
     abstract String documentationUrl();
 
-    String consultDocumentationMessage() {
+    public String consultDocumentationMessage() {
         return String.format("See %s for more details.", documentationUrl());
     }
 
@@ -57,7 +57,7 @@ abstract class Documentation {
         }
 
         @Override
-        String consultDocumentationMessage() {
+        public String consultDocumentationMessage() {
             return null;
         }
     }
@@ -95,7 +95,7 @@ abstract class Documentation {
         }
 
         @Override
-        String consultDocumentationMessage() {
+        public String consultDocumentationMessage() {
             return "Consult the upgrading guide for further information: " + documentationUrl();
         }
     }

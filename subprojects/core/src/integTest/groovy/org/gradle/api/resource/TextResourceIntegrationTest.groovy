@@ -15,9 +15,11 @@
  */
 package org.gradle.api.resource
 
+import org.gradle.api.resources.TextResourceFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GUtil
@@ -108,11 +110,11 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "uri backed text resource over http"() {
-        given:
+        when:
         def uuid = UUID.randomUUID()
         def resourceFile = file("web-file.txt")
         server.useHostname() // use localhost vs ip
-        server.expectGet("/myConfig-${uuid}.txt", resourceFile)
+        server.forbidGet("/myConfig-${uuid}.txt", resourceFile)
         server.start()
 
         buildFile << """
@@ -121,23 +123,15 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
                 output = project.file("output.txt")
             }
 """
-        when:
-        executer.expectDocumentedDeprecationWarning("Loading a TextResource from an insecure URI has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "The provided URI '${server.uri("/myConfig-" + uuid + ".txt")}' uses an insecure protocol (HTTP). " +
-            "Switch the URI to '${GUtil.toSecureUrl(server.uri("/myConfig-" + uuid + ".txt"))}' or try 'resources.text.fromInsecureUri(\"${server.uri("/myConfig-" + uuid + ".txt")}\")' to silence the warning. " +
-            "See https://docs.gradle.org/current/dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object) for more details.")
-        run("uriText")
-
         then:
-        result.assertTasksExecuted(":uriText")
-        file("output.txt").text == "my config\n"
+        def failure = fails("uriText")
 
-        when:
-        executer.noDeprecationChecks()
-        run("uriText")
-
-        then:
-        result.assertTasksSkipped(":uriText")
+        failure.assertHasCause(
+            "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " +
+                "The provided URI '${server.uri}/myConfig-${uuid}.txt' uses an insecure protocol (HTTP). " +
+                "Switch the URI to '${GUtil.toSecureUrl(server.uri)}/myConfig-${uuid}.txt' or try 'resources.text.fromInsecureUri(\"${server.uri}/myConfig-${uuid}.txt\")' to silence the warning. " +
+                Documentation.dslReference(TextResourceFactory, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+        )
     }
 
     def "uri backed text resource over https"() {

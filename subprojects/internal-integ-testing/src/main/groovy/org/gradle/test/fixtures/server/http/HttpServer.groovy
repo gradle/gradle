@@ -18,11 +18,14 @@ package org.gradle.test.fixtures.server.http
 import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
+import groovy.transform.CompileStatic
 import groovy.xml.MarkupBuilder
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.ExpectOne
+import org.gradle.test.fixtures.server.ForbidOne
+import org.gradle.test.fixtures.server.OneRequestServerExpectation
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
@@ -291,6 +294,15 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         expect(path, false, ['HEAD'], broken())
     }
 
+    private Action ok() {
+        new ActionSupport("return 200 ok") {
+            @Override
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.setStatus(200)
+            }
+        }
+    }
+
     private Action notFound() {
         new ActionSupport("return 404 not found") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
@@ -351,10 +363,24 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Forbids one GET request for the given URL.
+     */
+    HttpResourceInteraction forbidGet(String path) {
+        return forbid(path, false, ['GET'], ok())
+    }
+
+    /**
      * Allows one GET request for the given URL. Reads the request content from the given file.
      */
     HttpResourceInteraction expectGet(String path, File srcFile) {
         return expect(path, false, ['GET'], fileHandler(path, srcFile))
+    }
+
+    /**
+     * Forbids one GET request for the given URL. Reads the request content from the given file.
+     */
+    HttpResourceInteraction forbidGet(String path, File srcFile) {
+        return forbid(path, false, ['GET'], fileHandler(path, srcFile))
     }
 
     /**
@@ -406,6 +432,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Expects one GET request for the given URL, responding with a redirect.
+     */
+    void forbidGetRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
+        forbidRedirected('GET', path, location)
+    }
+
+    /**
      * Expects one HEAD request for the given URL, responding with a redirect.
      */
     void expectHeadRedirected(String path, String location, PasswordCredentials passwordCredentials = null) {
@@ -419,8 +452,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         expectRedirected('PUT', path, location, passwordCredentials)
     }
 
+    @CompileStatic
     private void expectRedirected(String method, String path, String location, PasswordCredentials credentials) {
         expect(path, false, [method], redirectTo(location), credentials)
+    }
+
+    @CompileStatic
+    private void forbidRedirected(String method, String path, String location) {
+        forbid(path, false, [method], redirectTo(location))
     }
 
     private HttpServer.Action redirectTo(location) {
@@ -644,6 +683,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         expect(path, false, methods, action, passwordCredentials)
     }
 
+    @CompileStatic
     HttpResourceInteraction expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
         if (credentials != null) {
             action = withAuthentication(path, credentials.username, credentials.password, action)
@@ -652,6 +692,16 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
 
         HttpExpectOne expectation = new HttpExpectOne(action, methods, path)
+        return addOneRequestExpecation(path, matchPrefix, methods, action, expectation)
+    }
+
+    @CompileStatic
+    HttpResourceInteraction forbid(String path, boolean matchPrefix, Collection<String> methods, Action action) {
+        HttpForbidOne expectation = new HttpForbidOne(action, methods, path)
+        return addOneRequestExpecation(path, matchPrefix, methods, action, expectation)
+    }
+
+    private HttpResourceInteraction addOneRequestExpecation(String path, boolean matchPrefix, Collection<String> methods, Action action, OneRequestServerExpectation expectation) {
         expectations << expectation
         add(path, matchPrefix, methods, new AbstractHandler() {
             @Override
@@ -742,6 +792,22 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
         String getNotMetMessage() {
             "Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName"
+        }
+    }
+
+    static class HttpForbidOne extends ForbidOne {
+        final Action action
+        final Collection<String> methods
+        final String path
+
+        HttpForbidOne(Action action, Collection<String> methods, String path) {
+            this.action = action
+            this.methods = methods
+            this.path = path
+        }
+
+        String getNotMetMessage() {
+            "Unexpected HTTP request received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName"
         }
     }
 
