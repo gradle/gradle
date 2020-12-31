@@ -27,6 +27,8 @@ val compileAllBuild = "compileAllBuild"
 
 val sanityCheck = "sanityCheck"
 
+val sanityFix = "sanityFix"
+
 val quickTest = "quickTest"
 
 val platformTest = "platformTest"
@@ -113,6 +115,15 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
             ":tooling-api:toolingApiShadedJar",
             ":performance:verifyPerformanceScenarioDefinitions",
             ":checkSubprojectsInfo"
+        )
+    }
+
+    register(sanityFix) {
+        description = "Run all simple fixup tasks"
+        group = "verification"
+        dependsOn(
+            gradle.includedBuild("build-logic").task(":codeQualityFix"),
+            ":generateSubprojectsInfo"
         )
     }
 }

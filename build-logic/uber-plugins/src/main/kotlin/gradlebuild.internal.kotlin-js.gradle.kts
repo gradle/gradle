@@ -16,6 +16,7 @@
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
+import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
 plugins {
     kotlin("js")
@@ -49,6 +50,7 @@ tasks {
     }
 
     val ktlintCheckTasks = withType<KtlintCheckTask>()
+    val ktlintFormatTasks = withType<KtlintFormatTask>()
 
     withType<Test>().configureEach {
         shouldRunAfter(ktlintCheckTasks)
@@ -56,6 +58,10 @@ tasks {
 
     named("codeQuality") {
         dependsOn(ktlintCheckTasks)
+    }
+
+    named("codeQualityFix") {
+        dependsOn(ktlintFormatTasks)
     }
 
     register("quickTest") {

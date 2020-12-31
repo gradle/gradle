@@ -41,6 +41,12 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
         group = "verification"
         dependsOn("compileAll", "codeQuality")
     }
+
+    register("sanityFix") {
+        description = "Run all simple fixup tasks"
+        group = "verification"
+        dependsOn("codeQualityFix")
+    }
 }
 
 fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {

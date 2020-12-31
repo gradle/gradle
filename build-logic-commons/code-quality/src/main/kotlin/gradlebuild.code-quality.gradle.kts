@@ -31,6 +31,7 @@ tasks.withType<Test>().configureEach {
 tasks.check {
     dependsOn(codeQuality)
 }
+tasks.register("codeQualityFix")
 
 val rules by configurations.creating {
     isVisible = false

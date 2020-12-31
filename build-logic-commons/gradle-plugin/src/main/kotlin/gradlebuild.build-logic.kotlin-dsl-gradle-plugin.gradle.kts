@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -43,17 +44,24 @@ ktlint {
         exclude("gradle/kotlin/dsl/accessors/_*/**")
     }
 }
-
+// Only check the build files, not all *.kts files in the project
+val ktlintScriptSourceSets = files("build.gradle.kts", "settings.gradle.kts")
 tasks.ktlintKotlinScriptCheck {
-    // Only check the build files, not all *.kts files in the project
-    setSource(files("build.gradle.kts", "settings.gradle.kts"))
+    setSource(ktlintScriptSourceSets)
+}
+
+tasks.ktlintKotlinScriptFormat {
+    setSource(ktlintScriptSourceSets)
+}
+
+tasks.named("codeQualityFix") {
+    dependsOn(tasks.withType<KtlintFormatTask>())
 }
 
 tasks.validatePlugins {
     failOnWarning.set(true)
     enableStricterValidation.set(true)
 }
-
 
 val isCiServer = "CI" in System.getenv()
 

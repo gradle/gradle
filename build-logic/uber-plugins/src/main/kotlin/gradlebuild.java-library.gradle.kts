@@ -32,3 +32,7 @@ plugins {
     id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
     id("gradlebuild.spotless")
 }
+
+tasks.named("codeQualityFix") {
+    dependsOn(tasks.named("spotlessApply"))
+}

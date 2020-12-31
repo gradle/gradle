@@ -18,6 +18,7 @@ import gradlebuild.basics.accessors.kotlin
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
+import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
 
 plugins {
@@ -44,14 +45,24 @@ tasks {
     }
 
     val ktlintCheckTasks = withType<KtlintCheckTask>()
+    val ktlintFormatTasks = withType<KtlintFormatTask>()
 
     named("codeQuality") {
         dependsOn(ktlintCheckTasks)
     }
 
+    named("codeQualityFix") {
+        dependsOn(ktlintFormatTasks)
+    }
+
+    // Only check the build files, not all *.kts files in the project
+    val ktlintScriptSourceSets = files("build.gradle.kts", "settings.gradle.kts")
     ktlintKotlinScriptCheck {
-        // Only check the build files, not all *.kts files in the project
-        setSource(files("build.gradle.kts", "settings.gradle.kts"))
+        setSource(ktlintScriptSourceSets)
+    }
+
+    ktlintKotlinScriptFormat {
+        setSource(ktlintScriptSourceSets)
     }
 
     withType<Test>().configureEach {

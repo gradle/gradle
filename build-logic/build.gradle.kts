@@ -2,6 +2,10 @@ tasks.register("check") {
     dependsOn(subprojects.map { "${it.name}:check" })
 }
 
+tasks.register("codeQualityFix") {
+    dependsOn(subprojects.flatMap { project -> project.tasks.matching { it.name == "codeQualityFix" }})
+}
+
 val clean by tasks.registering {
     val buildSrcPropertiesFile = layout.projectDirectory.file("gradle.properties")
     val rootPropertiesFile = layout.projectDirectory.file("../gradle.properties")
