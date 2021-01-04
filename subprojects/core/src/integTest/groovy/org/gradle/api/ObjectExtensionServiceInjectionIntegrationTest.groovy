@@ -47,8 +47,6 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
 
     def "can inject service using getter"() {
         buildFile """
-            import javax.inject.Inject
-
             class Thing {
                 Thing(String a) {
                 }
@@ -67,8 +65,6 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
 
     def "can inject service using abstract getter"() {
         buildFile """
-            import javax.inject.Inject
-
             abstract class Thing {
                 Thing(String a) {
                 }
@@ -87,8 +83,6 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
 
     def "can use getter injected services from constructor"() {
         buildFile """
-            import javax.inject.Inject
-
             class Thing {
                 Thing(String a) {
                     objects.property(String).set(a)
@@ -108,9 +102,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
 
     def "can inject service using getter on interface"() {
         buildFile """
-            import javax.inject.Inject
-
-            interface Thing {
+           interface Thing {
                 @Inject
                 ObjectFactory getObjects()
             }

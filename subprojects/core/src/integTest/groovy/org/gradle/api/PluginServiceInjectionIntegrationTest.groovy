@@ -31,8 +31,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can apply a plugin with @Inject services constructor arg"() {
         buildFile """
-            import javax.inject.Inject
-
             class CustomPlugin implements Plugin<Project> {
                 private final WorkerExecutor executor
 
@@ -59,8 +57,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when plugin constructor is not annotated with @Inject"() {
         buildFile """
-            import javax.inject.Inject
-
             class CustomPlugin implements Plugin<Project> {
                 CustomPlugin(WorkerExecutor executor) {
                 }
@@ -81,8 +77,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when plugin constructor requests unknown service"() {
         buildFile """
-            import javax.inject.Inject
-
             interface Unknown { }
 
             class CustomPlugin implements Plugin<Project> {
@@ -106,8 +100,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject service using getter method"() {
         buildFile """
-            import javax.inject.Inject
-
             class CustomPlugin implements Plugin<Project> {
                 @Inject
                 WorkerExecutor getExecutor() { }
@@ -132,8 +124,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject service using abstract getter method"() {
         buildFile """
-            import javax.inject.Inject
-
             abstract class CustomPlugin implements Plugin<Project> {
                 @Inject
                 abstract WorkerExecutor getExecutor()

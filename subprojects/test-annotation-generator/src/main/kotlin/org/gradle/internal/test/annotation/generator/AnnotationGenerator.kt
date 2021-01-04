@@ -47,8 +47,10 @@ fun main(arg: Array<String>) {
     }
 }
 
-private object AnnotationGenerator {
-    internal val ADDITIONAL_DEFAULT_IMPORTS = listOf(
+
+private
+object AnnotationGenerator {
+    val ADDITIONAL_DEFAULT_IMPORTS = listOf(
         "javax.inject.Inject",
         "java.math.BigInteger",
         "java.math.BigDecimal"
