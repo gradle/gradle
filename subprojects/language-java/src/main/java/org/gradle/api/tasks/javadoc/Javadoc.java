@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -39,6 +38,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
@@ -47,8 +47,10 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -194,15 +196,19 @@ public class Javadoc extends SourceTask {
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setOptionsFile(getOptionsFile());
 
-        getJavadocToolAdapter().execute(spec);
+        if (spec.getExecutable() != null) {
+            new JavadocGenerator(getExecActionFactory()).execute(spec);
+        } else {
+            getJavadocToolAdapter().execute(spec);
+        }
     }
 
     private JavadocToolAdapter getJavadocToolAdapter() {
-        return (JavadocToolAdapter) this.javadocTool.orElse(getJavadocToolForCurrentJvm()).get();
-    }
-
-    private Provider<JavadocTool> getJavadocToolForCurrentJvm() {
-        return getJavaToolchainService().javadocToolFor(new CurrentJvmToolchainSpec(getProject().getObjects()));
+        if (javadocTool.isPresent()) {
+            return (JavadocToolAdapter) this.javadocTool.get();
+        }
+        JavaToolchainSpec explicitToolchain = new CurrentJvmToolchainSpec(getObjectFactory());
+        return (JavadocToolAdapter) getJavaToolchainService().javadocToolFor(explicitToolchain).get();
     }
 
     @Inject
@@ -428,6 +434,11 @@ public class Javadoc extends SourceTask {
 
     @Inject
     protected JavaModuleDetector getJavaModuleDetector() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ExecActionFactory getExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 }
