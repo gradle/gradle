@@ -23,6 +23,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import javax.inject.Inject;
 
 /**
@@ -92,6 +93,23 @@ public class JacocoAgentJar {
         });
         return !pre076;
     }
+
+    /** JVMs' above Java 8 need to have jdk.internal excluded, see https://github.com/gradle/gradle/issues/5184 */
+    public boolean includeNoLocationClassesNeedsJdkInternalExcluded() {
+        String jvmSpec = ManagementFactory.getRuntimeMXBean().getSpecVersion();
+        int majorSeparator = jvmSpec.indexOf('.');
+        if (majorSeparator != -1) {
+            jvmSpec = jvmSpec.substring(0, majorSeparator);
+        }
+        try {
+            int majorVersionNumber = Integer.parseInt(jvmSpec);
+            return majorVersionNumber > 8;
+        } catch(NumberFormatException e) {
+            // If the spec version is unparsable we shouldn't alter the excludes list
+            return false;
+        }
+    }
+
 
     public static VersionNumber extractVersion(String jarName) {
         // jarName format: org.jacoco.agent-<version>.jar

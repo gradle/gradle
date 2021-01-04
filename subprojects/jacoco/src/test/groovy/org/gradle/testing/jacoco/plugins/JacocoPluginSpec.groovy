@@ -70,6 +70,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
             port = 100
             classDumpDir = project.file('build/jacoco-dump')
             jmx = true
+            jdkInternalAutomaticallyAddedAboveJDK8 = false
         }
 
         def expected = new StringBuilder().with { builder ->

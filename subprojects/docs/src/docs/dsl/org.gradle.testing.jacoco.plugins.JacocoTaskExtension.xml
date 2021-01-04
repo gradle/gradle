@@ -56,6 +56,9 @@
             <tr>
                 <td>jmx</td>
             </tr>
+            <tr>
+                <td>jdkInternalAutomaticallyAddedAboveJDK8</td>
+            </tr>
         </table>
     </section>
     <section>

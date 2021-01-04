@@ -35,6 +35,7 @@ class JacocoTaskExtensionSpec extends Specification {
         setup:
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
+        agent.includeNoLocationClassesNeedsJdkInternalExcluded() >> false
         agent.jar >> temporaryFolder.file('fakeagent.jar')
         task.getWorkingDir() >> temporaryFolder.file(".")
         expect:
@@ -115,6 +116,35 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg
         then:
         thrown Exception
+    }
+
+    def 'excludes jdk.internal when its not needed'() {
+        given:
+        agent.supportsInclNoLocationClasses() >> true
+        agent.includeNoLocationClassesNeedsJdkInternalExcluded() >> false
+        agent.jar >> temporaryFolder.file('fakeagent.jar')
+        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+        extension.with {
+            includeNoLocationClasses = true
+            jdkInternalAutomaticallyAddedAboveJDK8 = false
+        }
+
+        expect:
+        extension.asJvmArg == "-javaagent:../fakeagent.jar=append=true,inclnolocationclasses=true,dumponexit=true,output=file"
+    }
+
+    def 'includes jdk.internal when needed'() {
+        given:
+        agent.supportsInclNoLocationClasses() >> true
+        agent.includeNoLocationClassesNeedsJdkInternalExcluded() >> true
+        agent.jar >> temporaryFolder.file('fakeagent.jar')
+        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+        extension.with {
+            includeNoLocationClasses = true
+        }
+
+        expect:
+        extension.asJvmArg == "-javaagent:../fakeagent.jar=append=true,excludes=jdk.internal.*,inclnolocationclasses=true,dumponexit=true,output=file"
     }
 
 }

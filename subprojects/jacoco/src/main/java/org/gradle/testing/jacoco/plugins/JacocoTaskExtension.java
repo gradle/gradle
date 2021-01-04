@@ -77,6 +77,7 @@ public class JacocoTaskExtension {
     private int port;
     private File classDumpDir;
     private boolean jmx;
+    private boolean jdkInternalAutomaticallyAddedAboveJDK8 = true;
 
     /**
      * Creates a Jacoco task extension.
@@ -285,6 +286,27 @@ public class JacocoTaskExtension {
     }
 
     /**
+     * Allow the JDK 9+ behaviour of automatically adding jdk.internal to the excluded class list if includeNoLocationClasses is true
+     *
+     * @since 7.0
+     */
+    @Input
+    @Incubating
+    public boolean isJdkInternalAutomaticallyAddedAboveJDK8() {
+        return jdkInternalAutomaticallyAddedAboveJDK8;
+    }
+
+    /**
+     * Allow the JDK 9+ behaviour of automatically adding jdk.internal to the excluded class list if includeNoLocationClasses is true
+     *
+     * @since 7.0
+     */
+    @Incubating
+    public void setJdkInternalAutomaticallyAddedAboveJDK8(boolean jdkInternalAutomaticallyAddedAboveJDK8) {
+        this.jdkInternalAutomaticallyAddedAboveJDK8 = jdkInternalAutomaticallyAddedAboveJDK8;
+    }
+
+    /**
      * The Jacoco agent classpath.
      *
      * This contains only one file - the agent jar.
@@ -311,7 +333,17 @@ public class JacocoTaskExtension {
         argument.append("destfile", getDestinationFile());
         argument.append("append", true);
         argument.append("includes", getIncludes());
-        argument.append("excludes", getExcludes());
+        List<String> finalExcludes = getExcludes();
+        if (agent.supportsInclNoLocationClasses()
+            && isIncludeNoLocationClasses()
+            && jdkInternalAutomaticallyAddedAboveJDK8
+            && agent.includeNoLocationClassesNeedsJdkInternalExcluded()) {
+                // Create a copy of the List in case we were given an immutable version
+                List<String> newExcludes = new ArrayList<>(finalExcludes);
+                newExcludes.add("jdk.internal.*");
+                finalExcludes = newExcludes;
+        }
+        argument.append("excludes", finalExcludes);
         argument.append("exclclassloader", getExcludeClassLoaders());
         if (agent.supportsInclNoLocationClasses()) {
             argument.append("inclnolocationclasses", isIncludeNoLocationClasses());
