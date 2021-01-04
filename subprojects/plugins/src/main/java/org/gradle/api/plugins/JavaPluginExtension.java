@@ -125,7 +125,6 @@ public interface JavaPluginExtension {
      *
      * @since 6.4
      */
-    @Incubating
     ModularitySpec getModularity();
 
     /**

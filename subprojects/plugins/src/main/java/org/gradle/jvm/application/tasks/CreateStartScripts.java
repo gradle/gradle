@@ -18,7 +18,6 @@ package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -228,7 +227,6 @@ public class CreateStartScripts extends ConventionTask {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMainModule() {
@@ -242,7 +240,6 @@ public class CreateStartScripts extends ConventionTask {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMainClass() {
@@ -312,7 +309,6 @@ public class CreateStartScripts extends ConventionTask {
      *
      * @since 6.4
      */
-    @Incubating
     @Nested
     public ModularitySpec getModularity() {
         return modularity;
