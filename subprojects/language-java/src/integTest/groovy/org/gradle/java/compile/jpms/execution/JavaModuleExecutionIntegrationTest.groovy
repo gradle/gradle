@@ -227,4 +227,25 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         outputContains("Module Version: 1.0-beta2")
     }
 
+    def "does not run as module if module path inference is turned off"() {
+        given:
+        buildFile.text = buildFile.text.replace('java-library', 'application')
+        buildFile << """
+            tasks.run.modularity.inferModulePath = false
+            application {
+                mainClass.set('consumer.MainModule')
+                mainModule.set('consumer')
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo()
+        consumingModuleClass()
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: null")
+        outputContains("Module Version: null")
+    }
 }

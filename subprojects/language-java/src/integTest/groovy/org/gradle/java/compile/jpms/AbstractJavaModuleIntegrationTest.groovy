@@ -73,7 +73,7 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
                 public static void main(String[] args) throws Exception {
                     new MainModule().run();
                     System.out.println("Module Name: " + MainModule.class.getModule().getName());
-                    System.out.println("Module Version: " + MainModule.class.getModule().getDescriptor().version().get());
+                    System.out.println("Module Version: " + (MainModule.class.getModule().getDescriptor() == null ? "null" : MainModule.class.getModule().getDescriptor().version().get()));
                 }
             }
         """
