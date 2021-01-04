@@ -558,12 +558,6 @@ application {
 application {
     mainModule.set('org.gradle.test.main')
 }
-compileJava {
-    modularity.inferModulePath.set(true)
-}
-startScripts {
-    modularity.inferModulePath.set(true)
-}
 """
     }
 

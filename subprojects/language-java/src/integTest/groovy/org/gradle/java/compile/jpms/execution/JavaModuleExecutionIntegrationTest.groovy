@@ -123,7 +123,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
             }
@@ -147,7 +146,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
                 mainClass.set('consumer.MainModule')
@@ -177,7 +175,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 def execOperations = project.objects.newInstance(Services).exec
                 doLast {
                     execOperations.javaexec { action ->
-                        action.modularity.inferModulePath.set(true)
                         action.classpath = files(jar) + configurations.runtimeClasspath
                         action.mainModule.set('consumer')
                     }
@@ -211,7 +208,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 def execOperations = project.objects.newInstance(Services).exec
                 doLast {
                     execOperations.javaexec { action ->
-                        action.modularity.inferModulePath.set(true)
                         action.classpath = files(jar) + configurations.runtimeClasspath
                         action.mainModule.set('consumer')
                         action.mainClass.set('consumer.MainModule')

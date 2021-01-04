@@ -10,10 +10,6 @@ repositories {
     mavenCentral()
 }
 
-java {
-    modularity.inferModulePath.set(true)
-}
-
 tasks.compileJava {
     options.javaModuleVersion.set(provider({ project.version as String }))
 }

@@ -12,5 +12,3 @@ dependencies {
 
     testImplementation 'junit:junit:4.13'
 }
-
-java.modularity.inferModulePath = true

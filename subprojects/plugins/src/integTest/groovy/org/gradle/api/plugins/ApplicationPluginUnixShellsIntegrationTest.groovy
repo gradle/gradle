@@ -246,12 +246,6 @@ task execStartScript(type: Exec) {
 application {
     mainModule.set('main.test')
 }
-compileJava {
-    modularity.inferModulePath.set(true)
-}
-startScripts {
-    modularity.inferModulePath.set(true)
-}
 """
     }
 
