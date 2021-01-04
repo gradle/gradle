@@ -93,6 +93,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     // This is final - override {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
     @Override
     public final TaskDependency getBuildDependencies() {
+        assertCanCarryBuildDependencies();
         return new AbstractTaskDependency() {
             @Override
             public String toString() {
@@ -104,6 +105,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                 context.add(AbstractFileCollection.this);
             }
         };
+    }
+
+    protected void assertCanCarryBuildDependencies() {
     }
 
     @Override
