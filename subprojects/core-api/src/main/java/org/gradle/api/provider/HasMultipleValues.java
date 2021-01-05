@@ -55,7 +55,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this
      * @since 5.6
      */
-    @Incubating
     HasMultipleValues<T> value(@Nullable Iterable<? extends T> elements);
 
     /**
@@ -67,7 +66,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this
      * @since 5.6
      */
-    @Incubating
     HasMultipleValues<T> value(Provider<? extends Iterable<? extends T>> provider);
 
     /**
