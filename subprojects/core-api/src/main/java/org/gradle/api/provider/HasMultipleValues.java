@@ -16,8 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -148,6 +146,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      *
      * @since 5.0
      */
-    @Incubating @Override
+    @Override
     void finalizeValue();
 }

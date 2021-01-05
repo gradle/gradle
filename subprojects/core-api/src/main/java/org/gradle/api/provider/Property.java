@@ -16,8 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -105,7 +103,6 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      *
      * @since 5.0
      */
-    @Incubating
     @Override
     void finalizeValue();
 }
