@@ -225,6 +225,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
 
+- org.gradle.api.distribution.Distribution.getDistributionBaseName()
+
 <!--
 ### Example promoted
 -->
