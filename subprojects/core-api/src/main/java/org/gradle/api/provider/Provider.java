@@ -133,7 +133,6 @@ public interface Provider<T> {
      * @param value The default value to use when this provider has no value.
      * @since 5.6
      */
-    @Incubating
     Provider<T> orElse(T value);
 
     /**
@@ -142,7 +141,6 @@ public interface Provider<T> {
      * @param provider The provider whose value should be used when this provider has no value.
      * @since 5.6
      */
-    @Incubating
     Provider<T> orElse(Provider<? extends T> provider);
 
     /**
