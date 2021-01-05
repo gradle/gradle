@@ -15,7 +15,6 @@
  */
 package org.gradle.api.initialization.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -111,7 +110,6 @@ public interface ScriptHandler {
      * @param configureClosure the configuration action
      * @since 6.1
      */
-    @Incubating
     void dependencyLocking(Closure configureClosure);
 
     /**
@@ -121,7 +119,6 @@ public interface ScriptHandler {
      *
      * @since 6.1
      */
-    @Incubating
     DependencyLockingHandler getDependencyLocking();
 
     /**

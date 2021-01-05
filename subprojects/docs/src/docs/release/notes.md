@@ -143,12 +143,23 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getLockFile
         - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getIgnoredDependencies
         - org.gradle.api.artifacts.dsl.LockMode
+        - org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking
+        - org.gradle.api.initialization.dsl.ScriptHandler.getDependencyLocking
     - [Dependency verification](userguide/dependency_verification.html#verifying-dependencies)
         - org.gradle.api.artifacts.ResolutionStrategy.enableDependencyVerification
         - org.gradle.api.artifacts.ResolutionStrategy.disableDependencyVerification
+        - org.gradle.StartParameter.getWriteDependencyVerifications
+        - org.gradle.StartParameter.setWriteDependencyVerifications
+        - org.gradle.StartParameter.setDependencyVerificationMode
+        - org.gradle.StartParameter.getDependencyVerificationMode
+        - org.gradle.StartParameter.setRefreshKeys
+        - org.gradle.StartParameter.isRefreshKeys
+        - org.gradle.StartParameter.isExportKeys
+        - org.gradle.StartParameter.setExportKeys
     - [Dependency constraints improvements](userguide/dependency_constraints.html#dependency-constraints)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.DependencyConstraint>)
+        - org.gradle.api.artifacts.result.ComponentSelectionCause.BY_ANCESTOR
     - [Component metadata rules improvements](userguide/component_metadata_rules.html#sec:component_metadata_rules)
         - org.gradle.api.artifacts.DirectDependencyMetadata.endorseStrictVersions
         - org.gradle.api.artifacts.DirectDependencyMetadata.doNotEndorseStrictVersions
@@ -181,10 +192,16 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.DependencySubstitutions.Substitution.withoutArtifactSelectors
         - org.gradle.api.artifacts.DependencySubstitutions.Substitution.using
         - org.gradle.api.artifacts.VariantSelectionDetails
+    - [Publishing](publishing_setup.html#publishing_components)
+        - org.gradle.api.publish.Publication.withoutBuildIdentifier
+        - org.gradle.api.publish.Publication.withBuildIdentifier
     - Miscellaneous changes
         - org.gradle.api.artifacts.result.ResolutionResult.getRequestedAttributes
         - org.gradle.api.artifacts.result.ResolvedComponentResult.getDependenciesForVariant
         - org.gradle.api.artifacts.result.ResolvedDependencyResult.getResolvedVariant
+        - org.gradle.api.artifacts.ComponentVariantIdentifier
+        - org.gradle.api.artifacts.maven.PomModuleDescriptor
+        - org.gradle.api.artifacts.repositories.AuthenticationSupported.credentials(java.lang.Class<? extends org.gradle.api.credentials.Credentials>)
 - Tooling API
     - Eclipse models
         - org.gradle.tooling.model.eclipse.EclipseRuntime

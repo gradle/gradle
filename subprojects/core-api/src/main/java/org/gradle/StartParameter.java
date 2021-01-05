@@ -880,7 +880,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 6.1
      */
-    @Incubating
     public List<String> getWriteDependencyVerifications() {
         return writeDependencyVerifications;
     }
@@ -892,7 +891,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @param checksums the list of checksums to generate
      * @since 6.1
      */
-    @Incubating
     public void setWriteDependencyVerifications(List<String> checksums) {
         this.writeDependencyVerifications = checksums;
     }
@@ -919,7 +917,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @param verificationMode if true, enables lenient dependency verification
      * @since 6.2
      */
-    @Incubating
     public void setDependencyVerificationMode(DependencyVerificationMode verificationMode) {
         this.verificationMode = verificationMode;
     }
@@ -929,7 +926,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 6.2
      */
-    @Incubating
     public DependencyVerificationMode getDependencyVerificationMode() {
         return verificationMode;
     }
@@ -940,7 +936,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @param refresh If set to true, missing keys will be checked again. By default missing keys are cached for 24 hours.
      * @since 6.2
      */
-    @Incubating
     public void setRefreshKeys(boolean refresh) {
         isRefreshKeys = refresh;
     }
@@ -950,7 +945,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 6.2
      */
-    @Incubating
     public boolean isRefreshKeys() {
         return isRefreshKeys;
     }
@@ -965,7 +959,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return true if keys should be exported
      * @since 6.2
      */
-    @Incubating
     public boolean isExportKeys() {
         return isExportKeys;
     }
@@ -980,7 +973,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @param exportKeys set to true if keys should be exported
      * @since 6.2
      */
-    @Incubating
     public void setExportKeys(boolean exportKeys) {
         isExportKeys = exportKeys;
     }

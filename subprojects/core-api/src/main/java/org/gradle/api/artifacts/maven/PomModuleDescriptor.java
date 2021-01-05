@@ -16,14 +16,11 @@
 
 package org.gradle.api.artifacts.maven;
 
-import org.gradle.api.Incubating;
-
 /**
  * The metadata about a Maven POM that acts as an input to a component metadata rule.
  *
  * @since 6.3
  */
-@Incubating
 public interface PomModuleDescriptor {
 
     /**

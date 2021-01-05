@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
@@ -57,7 +56,6 @@ import java.util.stream.Stream;
  *
  * @since 6.0
  */
-@Incubating
 public class OutgoingVariantsReportTask extends DefaultTask {
     private final Property<String> variantSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
