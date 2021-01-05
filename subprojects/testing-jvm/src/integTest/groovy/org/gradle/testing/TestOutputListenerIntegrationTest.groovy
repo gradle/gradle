@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
@@ -33,11 +32,10 @@ class TestOutputListenerIntegrationTest extends JUnitMultiVersionIntegrationSpec
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     @Before
-    public void before() {
+    void before() {
         executer.noExtraLogging()
     }
 
-    @Test
     def "can use standard output listener for tests"() {
         given:
         def test = file("src/test/java/SomeTest.java")
@@ -98,7 +96,6 @@ class RemoveMeListener implements TestOutputListener {
         !failure.output.contains("remove me!")
     }
 
-    @Test
     @UnsupportedWithConfigurationCache
     def "can register output listener at gradle level and using onOutput method"() {
         given:
@@ -142,7 +139,6 @@ class VerboseOutputListener implements TestOutputListener {
         outputContains('second: message from foo')
     }
 
-    @Test
     def "shows standard streams configured via closure"() {
         given:
         def test = file("src/test/java/SomeTest.java")
@@ -174,7 +170,6 @@ test.testLogging {
         outputContains('message from foo')
     }
 
-    @Test
     def "shows standard stream also for testNG"() {
         given:
         ignoreWhenJUnitPlatform()
