@@ -315,7 +315,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
-    def "throws if worker used from a thread with no current build operation in #isolationMode"() {
+    def "throws if worker used from a thread with no current build operation in #workerMethod"() {
         given:
         fixture.withWorkActionClassInBuildSrc()
 
