@@ -558,7 +558,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.0
      */
-    @Incubating
     Dependency enforcedPlatform(Object notation);
 
     /**
@@ -572,7 +571,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.0
      */
-    @Incubating
     Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction);
 
     /**
@@ -581,7 +579,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.6
      */
-    @Incubating
     Dependency testFixtures(Object notation);
 
     /**
@@ -591,7 +588,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.6
      */
-    @Incubating
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
 
     /**

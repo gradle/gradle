@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -47,7 +46,6 @@ public interface DependencyLockingHandler {
      *
      * @since 6.0
      */
-    @Incubating
     void unlockAllConfigurations();
 
     /**
@@ -55,7 +53,6 @@ public interface DependencyLockingHandler {
      *
      * @since 6.1
      */
-    @Incubating
     Property<LockMode> getLockMode();
 
     /**
@@ -67,7 +64,6 @@ public interface DependencyLockingHandler {
      *
      * @since 6.4
      */
-    @Incubating
     RegularFileProperty getLockFile();
 
     /**
@@ -81,7 +77,6 @@ public interface DependencyLockingHandler {
      *
      * @since 6.7
      */
-    @Incubating
     ListProperty<String> getIgnoredDependencies();
 
 }
