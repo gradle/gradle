@@ -24,7 +24,7 @@ We recommend new projects looking to build C++ applications and libraries use th
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
 
-The native software plugins make use of the Gradle <<software_model.adoc#software_model,software model>>.
+The native software plugins make use of the Gradle software model.
 
 
 [[sec:native_features]]
@@ -151,7 +151,7 @@ To build on Linux, install a compatible version of GCC or Clang. The native plug
 [[sec:native_software_model]]
 == Native software model
 
-The native software model builds on the base Gradle <<software_model_concepts.adoc#software_model_concepts,software model>>.
+The native software model builds on the base Gradle software model.
 
 To build native software using Gradle, your project should define one or more _native components_. Each component represents either an executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
 
