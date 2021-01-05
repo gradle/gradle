@@ -1427,6 +1427,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    protected void assertCanCarryBuildDependencies() {
+        assertIsResolvable();
+    }
+
+    @Override
     public AttributeContainerInternal getAttributes() {
         return configurationAttributes;
     }
@@ -1672,6 +1677,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public FileCollection getFiles() {
+            assertIsResolvable();
             return intrinsicFiles;
         }
 
@@ -1709,6 +1715,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ResolutionResult getResolutionResult() {
+            assertIsResolvable();
             return new LenientResolutionResult(DEFAULT_ERROR_HANDLER);
         }
 
