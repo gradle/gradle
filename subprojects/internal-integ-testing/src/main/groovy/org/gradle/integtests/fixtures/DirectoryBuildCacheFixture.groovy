@@ -31,19 +31,31 @@ trait DirectoryBuildCacheFixture {
         settingsFile << buildCache.localCacheConfiguration()
     }
 
+    // Spock 2 executes @Before after the setup() methods
+    // this is a workaround for tests that use this fixture from their setup() methods
+    private void initIfNeeded() {
+        if (buildCache == null) {
+            setupCacheDirectory()
+        }
+    }
+
     def localCacheConfiguration() {
+        initIfNeeded()
         buildCache.localCacheConfiguration()
     }
 
     TestFile getCacheDir() {
+        initIfNeeded()
         buildCache.cacheDir
     }
 
     TestFile gcFile() {
+        initIfNeeded()
         buildCache.gcFile()
     }
 
     List<TestFile> listCacheFiles() {
+        initIfNeeded()
         buildCache.listCacheFiles()
     }
 }
