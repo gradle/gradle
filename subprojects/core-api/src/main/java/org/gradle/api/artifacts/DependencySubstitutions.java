@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -79,7 +78,6 @@ public interface DependencySubstitutions {
      * @param detailsAction the variant selection details configuration
      * @since 6.6
      */
-    @Incubating
     ComponentSelector variant(ComponentSelector selector, Action<? super VariantSelectionDetails> detailsAction);
 
     /**
@@ -88,7 +86,6 @@ public interface DependencySubstitutions {
      * @param selector the original selector
      * @since 6.6
      */
-    @Incubating
     ComponentSelector platform(ComponentSelector selector);
 
     /**
@@ -129,7 +126,6 @@ public interface DependencySubstitutions {
          *
          * @since 6.6
          */
-        @Incubating
         Substitution withClassifier(String classifier);
 
         /**
@@ -141,7 +137,6 @@ public interface DependencySubstitutions {
          *
          * @since 6.6
          */
-        @Incubating
         Substitution withoutClassifier();
 
         /**
@@ -149,7 +144,6 @@ public interface DependencySubstitutions {
          *
          * @since 6.6
          */
-        @Incubating
         Substitution withoutArtifactSelectors();
 
         /**
@@ -164,7 +158,6 @@ public interface DependencySubstitutions {
          *
          * @since 6.6
          */
-        @Incubating
         Substitution using(ComponentSelector notation);
     }
 }

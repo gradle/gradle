@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -35,6 +34,5 @@ public interface ResolvedDependencyResult extends DependencyResult {
      *
      * @since 5.6
      */
-    @Incubating
     ResolvedVariantResult getResolvedVariant();
 }

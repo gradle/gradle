@@ -38,11 +38,6 @@ This feature can be used for:
 - detecting compromised plugins
 - detecting tampered dependencies in the local dependency caches
 
-[NOTE]
-====
-Dependency verification is an incubating feature: details are subject to change.
-====
-
 [[sub:enabling-verification]]
 == Enabling dependency verification
 

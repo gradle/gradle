@@ -47,7 +47,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
         taskName << ["check", "clean", "build", "assemble"]
     }
 
-    def "can attach custom task as dependency to lifecycle task - #task"() {
+    def "can attach custom task as dependency to lifecycle task - #taskName"() {
         when:
         buildFile << """
             task myTask {}
