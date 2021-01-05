@@ -9,7 +9,7 @@ repositories {
 // tag::declareVersion[]
 version = '1.2'
 
-tasks.compileJava {
+tasks.named('compileJava') {
     // use the project's version or define one directly
     options.javaModuleVersion = provider { project.version }
 }
@@ -24,7 +24,7 @@ dependencies {
 // end::dependencies[]
 
 // tag::automaticModuleName[]
-tasks.jar {
+tasks.named('jar') {
     manifest {
         attributes('Automatic-Module-Name': 'org.gradle.sample')
     }

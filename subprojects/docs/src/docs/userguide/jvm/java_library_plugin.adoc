@@ -361,6 +361,21 @@ Another way to deal with non-modules is to enrich existing Jars with module desc
 link:../samples/sample_java_modules_with_transform.html[This sample] contains a small _buildSrc_ plugin registering such a transform which you may use and adjust to your needs.
 This can be interesting if you want to build a fully <<application_plugin.adoc#sec:application_modular,modular application>> and want the java runtime to treat everything as a real module.
 
+=== Disabling Java Module support
+
+In rare cases, you might want to disable the built-in Java Module support and define the module path by other means.
+To achieve this, you can disable the functionality to automatically put any Jar on the module path.
+Then Gradle puts Jars with module information on the classpath, even if you have a `module-info.java` in your source set.
+This corresponds to the behaviour of Gradle versions <7.0.
+
+To make this work, you need to set `modularity.inferModulePath = false` on the Java extension (for all tasks) or on individual tasks.
+
+.Disable Gradle's module path inference
+====
+include::sample[dir="snippets/java-library/module-disabled/groovy",files="build.gradle[tags=disableModulePath]"]
+include::sample[dir="snippets/java-library/module-disabled/kotlin",files="build.gradle.kts[tags=disableModulePath]"]
+====
+
 [[sec:java_library_modular_auto]]
 === Building an automatic module
 
