@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import spock.lang.Ignore
@@ -85,6 +86,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
         'build'    | _
     }
 
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "#task triggers expected tasks only"() {
         when:
