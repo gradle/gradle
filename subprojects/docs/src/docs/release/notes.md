@@ -117,11 +117,12 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 - Core
     - Services
         - org.gradle.process.ExecOperations
-    - Provider API
+    - [Lazy configuration](userguide/lazy_configuration.html)
         - org.gradle.api.model.ObjectFactory.directoryProperty
         - org.gradle.api.model.ObjectFactory.fileCollection
         - org.gradle.api.model.ObjectFactory.fileProperty
         - org.gradle.api.model.ObjectFactory.sourceDirectorySet
+        - org.gradle.api.file.FileCollection.getElements
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
