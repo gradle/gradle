@@ -19,12 +19,13 @@ package org.gradle.plugins.ide.tooling.r30
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion(">=3.0")
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     String localMaven
 
@@ -44,7 +45,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
            apply plugin: 'eclipse'
 
            repositories { $localMaven }
-           dependencies { compile 'org.example:example-lib:1.0' }
+           dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
 
            eclipse {
                classpath {

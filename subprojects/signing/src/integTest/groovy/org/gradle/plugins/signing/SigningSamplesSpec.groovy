@@ -34,27 +34,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample('signing/maven')
-    @ToBeFixedForConfigurationCache
-    def "upload attaches signatures with dsl #dsl"() {
-        given:
-        inDirectory(sample.dir.file(dsl))
-
-        when:
-        executer.expectDeprecationWarnings(2)
-        run "uploadArchives"
-
-        then:
-        repoFor(dsl)
-            .module('gradle', 'maven', '1.0')
-            .withoutExtraChecksums()
-            .assertArtifactsPublished('maven-1.0.pom', 'maven-1.0.pom.asc', 'maven-1.0.jar', 'maven-1.0.jar.asc')
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
     @UsesSample('signing/conditional')
     @ToBeFixedForConfigurationCache
     def "conditional signing with dsl #dsl"() {

@@ -60,7 +60,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
-    def "supports fallback when configDirectory does not exist"() {
+    def "does not support fallback when configDirectory does not exist"() {
         goodCode()
         buildFile << """
             checkstyle {
@@ -81,7 +81,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         """
 
         expect:
-        succeeds('check')
+        fails('check')
+        failureCauseContains('specified for property \'configDirectory\' does not exist.')
     }
 
     @ToBeImplemented

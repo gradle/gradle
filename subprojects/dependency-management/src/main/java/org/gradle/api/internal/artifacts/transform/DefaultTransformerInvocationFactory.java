@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,6 +31,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
@@ -139,25 +142,27 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             workspaceServices
         );
 
-        return executionEngine.getFromIdentityCacheOrDeferExecution(execution, workspaceServices.getIdentityCache(), new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
-            @Override
-            public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
-                return CacheableInvocation.cached(mapResult(cachedOutput));
-            }
+        return executionEngine.createRequest(execution)
+            .withIdentityCache(workspaceServices.getIdentityCache())
+            .getOrDeferExecution(new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
+                @Override
+                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
+                    return CacheableInvocation.cached(mapResult(cachedOutput));
+                }
 
-            @Override
-            public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
-                return CacheableInvocation.nonCached(() ->
-                    fireTransformListeners(transformer, subject, () ->
-                        mapResult(deferredExecution.get())));
-            }
+                @Override
+                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
+                    return CacheableInvocation.nonCached(() ->
+                        fireTransformListeners(transformer, subject, () ->
+                            mapResult(deferredExecution.get())));
+                }
 
-            @Nonnull
-            private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
-                return cachedOutput
-                    .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
-            }
-        });
+                @Nonnull
+                private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
+                    return cachedOutput
+                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
+                }
+            });
     }
 
     private static UnitOfWork.Identity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
@@ -192,11 +197,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
     @Nullable
     private ProjectInternal determineProducerProject(TransformationSubject subject) {
-        if (!subject.getProducer().isPresent()) {
+        ComponentIdentifier componentIdentifier = subject.getInitialComponentIdentifier();
+        if (componentIdentifier instanceof ProjectComponentIdentifier) {
+            return projectStateRegistry.stateFor((ProjectComponentIdentifier) componentIdentifier).getMutableModel();
+        } else if (componentIdentifier instanceof OpaqueComponentArtifactIdentifier) {
+            return projectStateRegistry.stateFor(DefaultBuildIdentifier.ROOT, org.gradle.util.Path.ROOT).getMutableModel();
+        } else {
             return null;
         }
-        ProjectComponentIdentifier projectComponentIdentifier = subject.getProducer().get();
-        return projectStateRegistry.stateFor(projectComponentIdentifier).getMutableModel();
     }
 
     private <T> T fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<T> execution) {

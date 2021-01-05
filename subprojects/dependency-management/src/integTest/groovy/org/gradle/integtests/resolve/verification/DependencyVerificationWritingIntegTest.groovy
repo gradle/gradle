@@ -41,8 +41,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         assertMetadataExists()
         hasNoModules()
 
-        and:
-        output.contains("Dependency verification is an incubating feature.")
     }
 
     @Unroll

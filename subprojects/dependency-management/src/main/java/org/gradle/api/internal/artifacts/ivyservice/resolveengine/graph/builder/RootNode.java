@@ -16,21 +16,26 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 
+import java.util.List;
 import java.util.Set;
 
 class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
+    private final List<? extends DependencyMetadata> generatedRootDependencies;
 
     RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, ConfigurationMetadata configuration) {
         super(resultId, id, moduleRevision, resolveState, configuration);
         moduleRevision.setRoot();
         this.resolveOptimizations = resolveState.getResolveOptimizations();
+        this.generatedRootDependencies = resolveState.getGeneratedRootDependencies();
     }
 
     @Override
@@ -60,5 +65,18 @@ class RootNode extends NodeState implements RootGraphNode {
     @Override
     public ResolveOptimizations getResolveOptimizations() {
         return resolveOptimizations;
+    }
+
+    @Override
+    protected List<? extends DependencyMetadata> getAllDependencies() {
+        List<? extends DependencyMetadata> superDependencies = super.getAllDependencies();
+        if (generatedRootDependencies.isEmpty()) {
+            return superDependencies;
+        }
+        int expectedSize = superDependencies.size() + generatedRootDependencies.size();
+        ImmutableList.Builder<DependencyMetadata> allDependencies = ImmutableList.builderWithExpectedSize(expectedSize);
+        allDependencies.addAll(superDependencies);
+        allDependencies.addAll(generatedRootDependencies);
+        return allDependencies.build();
     }
 }

@@ -19,13 +19,14 @@ package org.gradle.plugins.ide.tooling.r31
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.util.GradleVersion
 
-class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     @ToolingApiVersion(">=3.1")
     @TargetGradleVersion(">=2.6")
     def "Provides target module name for module dependencies"() {
@@ -40,7 +41,7 @@ project(':impl') {
     apply plugin: 'idea'
 
     dependencies {
-        compile project(':api')
+        ${implementationConfiguration} project(':api')
     }
 }
 """
@@ -79,8 +80,8 @@ project(':impl') {
     }
 
     dependencies {
-        compile project(':api')
-        testCompile 'foo.bar:coolLib:1.0'
+        ${implementationConfiguration} project(':api')
+        ${testImplementationConfiguration} 'foo.bar:coolLib:1.0'
     }
 
     idea.module.downloadJavadoc = true

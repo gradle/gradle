@@ -235,6 +235,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
+    private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
                                 String name,
@@ -818,8 +819,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), owner, calculatedValueContainerFactory,
-            (attributes, filter) -> new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), attributes, filter, false, false, new DefaultResolutionHost()));
+        if (dependenciesResolverFactory == null) {
+            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), owner, calculatedValueContainerFactory,
+                (attributes, filter) -> new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), attributes, filter, false, false, new DefaultResolutionHost()));
+        }
+        return dependenciesResolverFactory;
     }
 
     private ResolverResults getResultsForBuildDependencies() {
@@ -1017,6 +1021,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Deprecated
     @Override
     public String getUploadTaskName() {
         return Configurations.uploadTaskName(getName());
@@ -1422,6 +1427,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    protected void assertCanCarryBuildDependencies() {
+        assertIsResolvable();
+    }
+
+    @Override
     public AttributeContainerInternal getAttributes() {
         return configurationAttributes;
     }
@@ -1667,6 +1677,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public FileCollection getFiles() {
+            assertIsResolvable();
             return intrinsicFiles;
         }
 
@@ -1704,6 +1715,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ResolutionResult getResolutionResult() {
+            assertIsResolvable();
             return new LenientResolutionResult(DEFAULT_ERROR_HANDLER);
         }
 

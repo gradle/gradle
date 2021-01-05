@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
-import org.junit.Test
 
 class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
     BaseRepositoryFactory repositoryFactory = Mock()
@@ -110,8 +109,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.ivy(action).is repository
     }
 
-    @Test
-    public void providesADefaultNameForIvyRepository() {
+    void providesADefaultNameForIvyRepository() {
         given:
         def repo1 = Mock(TestIvyArtifactRepository)
         def repo1Name = "ivy"

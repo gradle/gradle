@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -56,12 +56,11 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         file("unzip/TestProject-custom/someFile").assertIsFile()
     }
 
-    @UnsupportedWithConfigurationCache(because = "uploadArchives")
     def "can publish distribution"() {
         when:
         buildFile << """
             apply plugin:'distribution'
-            apply plugin:'maven'
+            apply plugin:'maven-publish'
             group = "org.acme"
             version = "1.0"
 
@@ -73,22 +72,38 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 }
             }
 
-            uploadArchives {
+            configurations {
+                distribution {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "distribution"))
+                    }
+                    outgoing.artifact(distZip)
+                }
+            }
+
+            interface MyServices {
+                @Inject
+                SoftwareComponentFactory getSoftwareComponentFactory()
+            }
+            def factory = objects.newInstance(MyServices).softwareComponentFactory
+            def distributionComponent = factory.adhoc("distribution")
+            distributionComponent.addVariantsFromConfiguration(configurations.distribution) {}
+
+
+            publishing {
                 repositories {
-                    mavenDeployer {
-                        repository(url: "${file("repo").toURI()}")
+                    maven { url "${file("repo").toURI()}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                       from distributionComponent
                     }
                 }
             }
+
             """
         then:
-        executer.expectDocumentedDeprecationWarning("The maven plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Please use the maven-publish plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
-        executer.expectDocumentedDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Use the 'maven-publish' plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
-        succeeds("uploadArchives")
+        succeeds("publishMavenPublicationToMavenRepository")
         file("repo/org/acme/TestProject/1.0/TestProject-1.0.zip").assertIsFile()
 
         and:

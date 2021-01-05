@@ -47,6 +47,7 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
@@ -81,6 +82,7 @@ import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 import static java.util.Collections.emptyList
@@ -107,9 +109,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         getInputFileProperties() >> ImmutableSortedMap.of()
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
-    def executionContext = Stub(TaskExecutionContext) {
-        getTaskProperties() >> taskProperties
-    }
+    def validationContext = new DefaultWorkValidationContext()
+    def executionContext = Mock(TaskExecutionContext)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
     def buildOperationExecutorForTaskExecution = Mock(BuildOperationExecutor)
@@ -200,6 +201,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getTaskProperties() >> taskProperties
+        executionContext.getValidationContext() >> validationContext
+        executionContext.getValidationAction() >> { { c -> } as Consumer }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }

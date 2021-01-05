@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality;
 
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
@@ -55,8 +56,18 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
-        extension.getConfigDirectory().convention(project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME));
-        extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")));
+        Directory directory = project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
+        extension.getConfigDirectory().convention(project.provider(() -> {
+            // This provider becoming an input needs either a valid value or no value at all
+            if (directory.getAsFile().exists()) {
+                return directory;
+            } else {
+                return null;
+            }
+        }));
+        extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
+            // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
+            .orElse(directory.file("checkstyle.xml"))));
         return extension;
     }
 

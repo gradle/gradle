@@ -22,7 +22,7 @@ val jacksonVersion = "2.10.2"
 val jettyVersion = "9.4.31.v20200723"
 val mavenVersion = "3.0.5"
 val mavenWagonVersion = "3.0.0"
-val nativePlatformVersion = "0.22-milestone-9"
+val nativePlatformVersion = "0.22-milestone-10"
 val pmavenVersion = "0.8-20100325"
 val slf4jVersion = "1.7.28"
 val sshdVersion = "2.0.0"
@@ -46,6 +46,7 @@ dependencies {
         api(libs.awsS3Core)             { version { strictly(awsS3Version) }}
         api(libs.awsS3Kms)              { version { strictly(awsS3Version) }}
         api(libs.awsS3S3)               { version { strictly(awsS3Version) }}
+        api(libs.awsS3Sts)              { version { strictly(awsS3Version) }}
         api(libs.bouncycastlePgp)       { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}

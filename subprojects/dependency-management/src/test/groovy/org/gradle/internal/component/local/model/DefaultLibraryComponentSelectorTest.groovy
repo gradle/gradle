@@ -77,7 +77,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     }
 
     @Unroll
-    def "can compare (#projectPath1,#libraryName1,#variant1) with other instance (#projectPath2,#libraryName2, #variant2)"() {
+    def "can compare (#projectPath1,#libraryName1) with other instance (#projectPath2,#libraryName2)"() {
         expect:
         LibraryComponentSelector defaultBuildComponentSelector1 = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
         LibraryComponentSelector defaultBuildComponentSelector2 = new DefaultLibraryComponentSelector(projectPath2, libraryName2)

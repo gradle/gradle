@@ -64,7 +64,7 @@ repositories {
     ivy { url "${repo.uri}" }
 }
 dependencies {
-    compile "org.gradle:test-project:1.2"
+    implementation "org.gradle:test-project:1.2"
 }
 publishing {
     repositories {

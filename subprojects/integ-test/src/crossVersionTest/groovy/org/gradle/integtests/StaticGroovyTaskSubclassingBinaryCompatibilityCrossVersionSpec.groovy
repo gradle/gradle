@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import spock.lang.Ignore
 import spock.lang.Issue
 /**
  * Tests that task classes compiled against earlier versions of Gradle using the static Groovy compiler are still compatible.
@@ -28,6 +29,7 @@ import spock.lang.Issue
 @TargetVersions("2.1+")
 class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
 
+    @Ignore("wip")
     @Issue("https://github.com/gradle/gradle/issues/6027")
     def "task can use project.file() from statically typed Groovy"() {
         when:

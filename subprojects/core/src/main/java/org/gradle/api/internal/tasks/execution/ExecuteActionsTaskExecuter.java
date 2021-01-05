@@ -58,6 +58,7 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.Result;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -177,9 +178,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
-        Result result = context.getTaskExecutionMode().getRebuildReason()
-            .map(rebuildReason -> executionEngine.rebuild(work, rebuildReason))
-            .orElseGet(() -> executionEngine.execute(work));
+        ExecutionEngine.Request request = executionEngine.createRequest(work);
+        context.getTaskExecutionMode().getRebuildReason().ifPresent(request::forceRebuild);
+        request.withValidationContext(context.getValidationContext());
+        Result result = request.execute();
         result.getExecutionResult().ifSuccessfulOrElse(
             executionResult -> state.setOutcome(TaskExecutionOutcome.valueOf(executionResult.getOutcome())),
             failure -> state.setOutcome(new TaskExecutionException(task, failure))
@@ -422,7 +424,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             Class<?> taskType = GeneratedSubclasses.unpackType(task);
             // TODO This should probably use the task class info store
             boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
-            TypeValidationContext typeValidationContext = validationContext.createContextFor(taskType, cacheable);
+            TypeValidationContext typeValidationContext = validationContext.forType(taskType, cacheable);
             context.getTaskProperties().validateType(typeValidationContext);
             context.getTaskProperties().validate(new DefaultTaskValidationContext(
                 fileOperations,
@@ -444,6 +446,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public String getDisplayName() {
             return task.toString();
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
         }
     }
 

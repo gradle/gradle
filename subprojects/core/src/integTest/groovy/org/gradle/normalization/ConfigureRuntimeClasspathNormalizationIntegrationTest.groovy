@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
-    def "can ignore files on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
+    def "can ignore files on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withFilesIgnored()
 
         def ignoredResource = project[ignoredResourceName]
@@ -186,7 +186,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     }
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
-    def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
+    def "can configure ignore rules per project (using runtime API: #api)"() {
         def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', api).withFilesIgnored()
         def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', api)
         def allProjects = [projectWithoutIgnores, projectWithIgnores]
@@ -210,7 +210,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     }
 
     @UnsupportedWithConfigurationCache(because = "Task.getProject() during execution")
-    def "runtime classpath normalization to #change cannot be changed after first usage (using runtime API: #useRuntimeApi)"() {
+    def "runtime classpath normalization to #change cannot be changed after first usage (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         project.buildFile << """
             task configureNormalization() {
@@ -242,7 +242,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     }
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
-    def "can ignore properties on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
+    def "can ignore properties on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withPropertiesIgnored()
 
         def ignoredResource = project[ignoredResourceName]

@@ -100,7 +100,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.factory;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 /**
- * @deprecated This class will be removed in Gradle 7.0. Please use {@link org.gradle.api.DefaultTask} instead.
+ * @deprecated This class will be removed in Gradle 8.0. Please use {@link org.gradle.api.DefaultTask} instead.
  */
 @Deprecated
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
@@ -470,11 +470,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
         return loggingManager;
-    }
-
-    @Override
-    public void setLoggerMessageRewriter(ContextAwareTaskLogger.MessageRewriter messageRewriter) {
-        logger.setMessageRewriter(messageRewriter);
     }
 
     @Override

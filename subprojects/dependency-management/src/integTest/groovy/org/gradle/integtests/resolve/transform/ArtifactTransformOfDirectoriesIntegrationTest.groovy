@@ -24,19 +24,65 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
     def "can transform a file dependency that contains a directory"() {
         taskTypeWithOutputDirectoryProperty()
         taskTypeLogsInputFileCollectionContent()
+        transformDirectoryDependency()
+
+        when:
+        run("resolve")
+
+        then:
+        result.assertTaskExecuted(":producer")
+        output.count("transforming [dir1]") == 1
+        outputContains("result = [dir1.size]")
+
+        when:
+        run("resolve")
+
+        then:
+        result.assertTaskExecuted(":producer")
+        output.count("transforming") == 0
+        outputContains("result = [dir1.size]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15351")
+    def "can transform a file dependency that contains a missing directory"() {
+        taskTypeWithOutputDirectoryProperty()
+        taskTypeLogsInputFileCollectionContent()
+        transformDirectoryDependency()
+        buildFile << """
+            producer.content = "" // generate missing directory
+        """
+
+        when:
+        run("resolve")
+
+        then:
+        result.assertTaskExecuted(":producer")
+        output.count("transforming") == 0
+        outputContains("result = []")
+
+        when:
+        run("resolve")
+
+        then:
+        result.assertTaskExecuted(":producer")
+        output.count("transforming") == 0
+        outputContains("result = []")
+    }
+
+    def transformDirectoryDependency() {
         buildFile << """
             import org.gradle.api.artifacts.transform.TransformParameters.None
 
             def artifactType = Attribute.of('artifactType', String)
 
-            task producer1(type: DirProducer) {
+            task producer(type: DirProducer) {
                 output = project.layout.projectDirectory.dir('dir1')
             }
             configurations {
                 compile
             }
             dependencies {
-                compile files(producer1.output)
+                compile files(producer.output)
 
                 registerTransform(MakeSize) {
                     from.attribute(artifactType, 'directory')
@@ -62,19 +108,5 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
                 }
             }
         """
-
-        when:
-        run("resolve")
-
-        then:
-        output.count("transforming [dir1]") == 1
-        outputContains("result = [dir1.size]")
-
-        when:
-        run("resolve")
-
-        then:
-        output.count("transforming") == 0
-        outputContains("result = [dir1.size]")
     }
 }

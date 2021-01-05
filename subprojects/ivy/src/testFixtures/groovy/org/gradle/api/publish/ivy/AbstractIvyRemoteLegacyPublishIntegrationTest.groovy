@@ -49,13 +49,6 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
         because = "IvyGcsUploadArchivesIntegrationTest leaks test files"
     )
     void "can publish using uploadArchives"() {
-        // We expect 'The compile/runtime configuration has been deprecated for removal.' for using this legacy mechanism in the traditional way.
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
-            "Please use the implementation configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        executer.expectDocumentedDeprecationWarning("The runtime configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
-            "Please use the runtimeOnly configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         executer.expectDocumentedDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Use the 'ivy-publish' plugin instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
@@ -68,21 +61,21 @@ version = '2'
 group = 'org.gradle'
 
 dependencies {
-    compile "commons-collections:commons-collections:3.2.1"
-    compile ("commons-beanutils:commons-beanutils:1.8.3") {
+    implementation "commons-collections:commons-collections:3.2.1"
+    implementation ("commons-beanutils:commons-beanutils:1.8.3") {
         exclude group: 'commons-logging'
     }
-    compile ("commons-dbcp:commons-dbcp:1.4") {
+    implementation ("commons-dbcp:commons-dbcp:1.4") {
        transitive = false
     }
-    compile ("org.apache.camel:camel-jackson:2.15.3") {
+    implementation ("org.apache.camel:camel-jackson:2.15.3") {
         exclude module: 'camel-core'
     }
-    runtime ("com.fasterxml.jackson.core:jackson-databind:2.2.3") {
+    runtimeOnly ("com.fasterxml.jackson.core:jackson-databind:2.2.3") {
         exclude group: 'com.fasterxml.jackson.core', module:'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module:'jackson-core'
     }
-    runtime "commons-io:commons-io:1.4"
+    runtimeOnly "commons-io:commons-io:1.4"
 }
 
 uploadArchives {
@@ -119,15 +112,15 @@ uploadArchives {
         then:
         module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-        module.parsedIvy.expectArtifact("publish", "jar").hasAttributes("jar", "jar", ["apiElements", "archives", "runtime", "runtimeElements"], null)
+        module.parsedIvy.expectArtifact("publish", "jar").hasAttributes("jar", "jar", ["apiElements", "archives", "runtimeElements"], null)
 
         with(module.parsedIvy) {
             dependencies.size() == 6
-            dependencies["commons-collections:commons-collections:3.2.1"].hasConf("compile->default")
-            dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->default")
-            dependencies["commons-dbcp:commons-dbcp:1.4"].hasConf("compile->default")
-            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasConf("runtime->default")
-            dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
+            dependencies["commons-collections:commons-collections:3.2.1"].hasConf("implementation->default")
+            dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("implementation->default")
+            dependencies["commons-dbcp:commons-dbcp:1.4"].hasConf("implementation->default")
+            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasConf("runtimeOnly->default")
+            dependencies["commons-io:commons-io:1.4"].hasConf("runtimeOnly->default")
 
             dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasExclude(new IvyDescriptorDependencyExclusion(org: 'commons-logging', module: '*'))
             dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude(new IvyDescriptorDependencyExclusion(org: 'com.fasterxml.jackson.core', module: 'jackson-annotations'))

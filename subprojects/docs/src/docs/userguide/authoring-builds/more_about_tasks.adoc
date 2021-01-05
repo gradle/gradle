@@ -766,6 +766,19 @@ It tries to identify problems where e.g. annotations are used on incompatible ty
 Any getter not annotated with an input/output annotation is also flagged.
 These problems are then turned into deprecation warnings when the task is executed.
 
+[NOTE]
+====
+Tasks that fail validation are executed without any optimizations.
+Specifically, they never can be:
+
+* <<#sec:up_to_date_checks,up-to-date>>,
+* loaded from or stored in the <<build_cache.adoc#build_cache,build cache>>,
+* executed in parallel with other tasks, even if <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel execution>> is enabled,
+* executed incrementally.
+
+The in-memory representation of the file system state (aka _<<gradle_daemon.adoc#sec:daemon_watch_fs,Virtual File System>>)_ is also invalidated before an invalid task is executed.
+====
+
 [[sec:task_input_output_runtime_api]]
 ==== Runtime API
 
@@ -914,6 +927,9 @@ The incremental build annotations provide enough information for Gradle to perfo
 * `@InputFile` - verifies that the property has a value and that the path corresponds to a file (not a directory) that exists.
 * `@InputDirectory` - same as for `@InputFile`, except the path must correspond to a directory.
 * `@OutputDirectory` - verifies that the path doesn’t match a file and also creates the directory if it doesn’t already exist.
+
+If one task produces an output in a location and another task consumes that location by referring to it as an input, then Gradle checks that the consumer task depends on the producer task.
+When the producer and the consumer tasks are executing at the same time, the build fails to avoid capturing an incorrect state.
 
 Such validation improves the robustness of the build, allowing you to identify issues related to inputs and outputs quickly.
 

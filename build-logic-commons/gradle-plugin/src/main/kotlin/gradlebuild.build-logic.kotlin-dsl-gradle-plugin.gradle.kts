@@ -38,14 +38,15 @@ dependencies {
     implementation("gradlebuild:code-quality")
 }
 
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
-}
-
 ktlint {
     filter {
         exclude("gradle/kotlin/dsl/accessors/_*/**")
     }
+}
+
+tasks.ktlintKotlinScriptCheck {
+    // Only check the build files, not all *.kts files in the project
+    setSource(files("build.gradle.kts", "settings.gradle.kts"))
 }
 
 tasks.validatePlugins {

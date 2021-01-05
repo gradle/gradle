@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.kotlindsl
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.junit.Ignore
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Ignore

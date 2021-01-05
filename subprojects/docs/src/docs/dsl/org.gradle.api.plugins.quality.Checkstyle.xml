@@ -21,8 +21,8 @@
                 <td><literal>project.checkstyle.configFile</literal></td>
             </tr>
             <tr>
-                <td>configDir</td>
-                <td><literal>project.checkstyle.configDir</literal></td>
+                <td>configDirectory</td>
+                <td><literal>project.checkstyle.configDirectory</literal></td>
             </tr>
             <tr>
                 <td>ignoreFailures</td>

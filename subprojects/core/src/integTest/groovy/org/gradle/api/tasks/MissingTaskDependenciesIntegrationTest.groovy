@@ -17,11 +17,17 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 @Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
+    @Rule
+    public final BlockingHttpServer server = new BlockingHttpServer()
 
     private static final String DEPRECATION_WARNING = ":consumer consumes the output of :producer, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
 
@@ -186,6 +192,51 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDocumentedDeprecationWarning(DEPRECATION_WARNING)
         succeeds("producer", "consumer")
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    // no point, always runs in parallel
+    def "fails when consumer and producer run in parallel"() {
+        server.start()
+        settingsFile << """
+            include ':a', ':b'
+        """
+        file('a/build.gradle') << """
+            task producer {
+                def outputFile = file("output.txt")
+                outputs.file(outputFile)
+                outputs.upToDateWhen { false }
+                doLast {
+                    ${server.callFromTaskAction("taskAction")}
+                    outputFile.text = "produced"
+                }
+            }
+        """
+        file("b/build.gradle") << """
+            task consumer {
+                def inputFile = file("../a/output.txt")
+                inputs.files(inputFile)
+                doLast {
+                    ${server.callFromTaskAction("taskAction")}
+                    println "Hello " + inputFile.text
+                }
+            }
+        """
+        executer.beforeExecute {
+            withArgument("--max-workers=2")
+        }
+
+        when:
+        // Make sure the input file exists
+        server.expect("taskAction")
+        then:
+        succeeds("producer")
+
+        when:
+        server.expect("taskAction")
+        def result = fails(":b:consumer", ":a:producer")
+        then:
+        result.assertHasCause(":b:consumer consumes the output of :a:producer, but does not declare a dependency.")
     }
 
 }

@@ -44,7 +44,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     ProgressEvents events = ProgressEvents.create()
 
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
+    public BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         file("buildSrc/settings.gradle") << """
@@ -77,10 +77,9 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         with(events.operation("Configure project $displayName")) {
             assert successful
             assert projectConfiguration
-            with((ProjectConfigurationOperationDescriptor) descriptor) {
-                assert project.projectPath == projectPath
-                assert project.buildIdentifier.rootDir == rootDir
-            }
+            def projectConfigurationDescriptor = (ProjectConfigurationOperationDescriptor) descriptor
+            assert projectConfigurationDescriptor.project.projectPath == projectPath
+            assert projectConfigurationDescriptor.project.buildIdentifier.rootDir == rootDir
         }
     }
 

@@ -31,6 +31,57 @@
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
         },
+
+
+        {
+            "type": "org.gradle.api.tasks.SourceSet",
+            "member": "Method org.gradle.api.tasks.SourceSet.getCompileConfigurationName()",
+            "acceptation": "Configuration 'compile' was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.SourceSet",
+            "member": "Method org.gradle.api.tasks.SourceSet.getRuntimeConfigurationName()",
+            "acceptation": "Configuration 'runtime' was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field COMPILE_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'compile' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field RUNTIME_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'runtime' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field TEST_COMPILE_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'test compile' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPlugin",
+            "member": "Field TEST_RUNTIME_CONFIGURATION_NAME",
+            "acceptation": "Configuration 'test runtime' was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+
         {
             "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "member": "Method org.gradle.api.artifacts.repositories.IvyArtifactRepository.layout(java.lang.String,org.gradle.api.Action)",
@@ -43,6 +94,247 @@
             "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "member": "Method org.gradle.api.artifacts.repositories.IvyArtifactRepository.layout(java.lang.String,groovy.lang.Closure)",
             "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.ProjectLayout",
+            "member": "Method org.gradle.api.file.ProjectLayout.configurableFiles(java.lang.Object[])",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "Removal of unused internal method",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.setLoggerMessageRewriter(org.gradle.internal.logging.slf4j.ContextAwareTaskLogger$MessageRewriter)"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getRulePriority()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.setRulePriority(int)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.getRulePriority()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.setRulePriority(int)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getConfigDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.setConfigDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleExtension",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleExtension.getConfigDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleExtension",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleExtension.setConfigDir(java.io.File)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+
+
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Class org.gradle.api.plugins.MavenPlugin",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Field COMPILE_PRIORITY",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Field TEST_RUNTIME_PRIORITY",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Field INSTALL_TASK_NAME",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Field TEST_COMPILE_PRIORITY",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Field PROVIDED_COMPILE_PRIORITY",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Field RUNTIME_PRIORITY",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Field PROVIDED_RUNTIME_PRIORITY",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Method org.gradle.api.plugins.MavenPlugin.apply(org.gradle.api.internal.project.ProjectInternal)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Class org.gradle.api.plugins.MavenPluginConvention",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.getConf2ScopeMappings()",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.pom()",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.pom(groovy.lang.Closure)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.pom(org.gradle.api.Action)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.setConf2ScopeMappings(org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.setMavenPomDir(java.io.File)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Method org.gradle.api.plugins.MavenPluginConvention.setMavenPomDir(java.lang.Object)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.MavenPluginConvention(org.gradle.api.internal.project.ProjectInternal,org.gradle.api.publication.maven.internal.MavenFactory)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.SigningExtension",
+            "member": "Method org.gradle.plugins.signing.SigningExtension.signPom(org.gradle.api.artifacts.maven.MavenDeployment,groovy.lang.Closure)",
+            "acceptation": "Legacy 'maven' plugin was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.SigningExtension",
+            "member": "Method org.gradle.plugins.signing.SigningExtension.signPom(org.gradle.api.artifacts.maven.MavenDeployment)",
+            "acceptation": "Legacy 'maven' plugin was removed",
             "changes": [
                 "Method has been removed"
             ]

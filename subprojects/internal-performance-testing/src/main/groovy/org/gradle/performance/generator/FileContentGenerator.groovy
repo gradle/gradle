@@ -437,14 +437,8 @@ abstract class FileContentGenerator {
         """
         return """
             ${addJavaLibraryConfigurationsIfNecessary(hasParent)}
-            if (hasProperty("compileConfiguration")) {
-                dependencies {
-                    ${block.replace(api, 'compile').replace(implementation, 'compile').replace(testImplementation, 'testCompile')}
-                }
-            } else {
-                dependencies {
-                    $block
-                }
+            dependencies {
+                $block
             }
         """
     }

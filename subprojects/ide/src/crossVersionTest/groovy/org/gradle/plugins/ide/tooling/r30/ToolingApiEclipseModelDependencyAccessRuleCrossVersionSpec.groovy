@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.tooling.r30
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
@@ -27,7 +28,7 @@ import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion(">=3.0")
-class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def setup() {
         def mavenRepo = new MavenFileRepository(file("maven-repo"))
@@ -47,8 +48,8 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
            }
 
            dependencies {
-               compile project(':sub')
-               compile 'org.example:example-lib:1.0'
+               ${implementationConfiguration} project(':sub')
+               ${implementationConfiguration} 'org.example:example-lib:1.0'
            }
 
            project(':sub') {

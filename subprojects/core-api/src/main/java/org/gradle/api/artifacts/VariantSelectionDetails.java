@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.api.attributes.AttributeContainer;
  *
  * @since 6.6
  */
-@Incubating
 public interface VariantSelectionDetails {
     /**
      * Selects the platform variant of a component

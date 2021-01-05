@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  *         implementation "org.scala-lang:scala-library:2.10.1"
  *     }
  *
- *     def scalaClasspath = scalaRuntime.inferScalaClasspath(configurations.compile)
+ *     def scalaClasspath = scalaRuntime.inferScalaClasspath(configurations.compileClasspath)
  *     // The returned class path can be used to configure the 'scalaClasspath' property of tasks
  *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
  * </pre>

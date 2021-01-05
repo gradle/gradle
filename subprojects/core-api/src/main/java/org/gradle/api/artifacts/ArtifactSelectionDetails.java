@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -30,7 +28,6 @@ import java.util.List;
  *
  * @since 6.6
  */
-@Incubating
 public interface ArtifactSelectionDetails {
     /**
      * Returns true if the dependency has requested a special artifact (either classifier, type or extension)

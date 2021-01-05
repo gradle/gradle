@@ -37,12 +37,12 @@ class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
             }
             project(":sub1") {
                 dependencies {
-                    compile group: 'log4j', name: 'log4j', version: '1.2.14'
+                    implementation group: 'log4j', name: 'log4j', version: '1.2.14'
                 }
             }
             project(":sub2") {
                 dependencies {
-                    compile group: 'junit', name: 'junit', version: '4.10'
+                    implementation group: 'junit', name: 'junit', version: '4.10'
                 }
             }
         """

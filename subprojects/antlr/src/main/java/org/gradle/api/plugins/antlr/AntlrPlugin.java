@@ -21,10 +21,10 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl;
@@ -32,7 +32,6 @@ import org.gradle.api.tasks.SourceSet;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * A plugin for adding Antlr support to {@link JavaPlugin java projects}.
@@ -48,7 +47,7 @@ public class AntlrPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(JavaLibraryPlugin.class);
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
@@ -56,29 +55,13 @@ public class AntlrPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Antlr libraries to be used for this project.");
 
-        antlrConfiguration.defaultDependencies(new Action<DependencySet>() {
-            @Override
-            public void execute(DependencySet dependencies) {
-                dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar"));
-            }
-        });
+        antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
 
-        @SuppressWarnings("deprecation")
-        Configuration compileConfiguration = project.getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
-        compileConfiguration.extendsFrom(antlrConfiguration);
+        Configuration apiConfiguration = project.getConfigurations().getByName(JavaPlugin.API_CONFIGURATION_NAME);
+        apiConfiguration.extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
-        project.getTasks().withType(AntlrTask.class).configureEach(new Action<AntlrTask>() {
-            @Override
-            public void execute(AntlrTask antlrTask) {
-                antlrTask.getConventionMapping().map("antlrClasspath", new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME);
-                    }
-                });
-            }
-        });
+        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
 
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(
                 new Action<SourceSet>() {

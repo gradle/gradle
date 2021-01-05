@@ -334,16 +334,16 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(DEBUG).eventExpected(eventExpected)
 
         when:
-        logger().debug("message", throwable)
+        logger().debug("message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().log(DEBUG, "message", throwable)
+        logger().log(DEBUG, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).throwable(t).eventExpected(eventExpected)
 
         when:
         logger().debug((Marker) null, "message")
@@ -370,16 +370,16 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(DEBUG).eventExpected(eventExpected)
 
         when:
-        logger().debug((Marker) null, "message", throwable)
+        logger().debug((Marker) null, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().debug("There was a {} error", "bad", throwable)
+        logger().debug("There was a {} error", "bad", t)
 
         then:
-        singleLogEvent().message("There was a bad error").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("There was a bad error").logLevel(DEBUG).throwable(t).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -390,7 +390,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
@@ -437,16 +437,16 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(INFO).eventExpected(eventExpected)
 
         when:
-        logger().info("message", throwable)
+        logger().info("message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().log(INFO, "message", throwable)
+        logger().log(INFO, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).throwable(t).eventExpected(eventExpected)
 
         when:
         logger().info((Marker) null, "message")
@@ -473,16 +473,16 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(INFO).eventExpected(eventExpected)
 
         when:
-        logger().info((Marker) null, "message", throwable)
+        logger().info((Marker) null, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().info("There was a {} error", "bad", throwable)
+        logger().info("There was a {} error", "bad", t)
 
         then:
-        singleLogEvent().message("There was a bad error").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("There was a bad error").logLevel(INFO).throwable(t).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -493,7 +493,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
@@ -528,10 +528,10 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(LIFECYCLE).eventExpected(eventExpected)
 
         when:
-        logger().info(Logging.LIFECYCLE, "message", throwable)
+        logger().info(Logging.LIFECYCLE, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(t).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -542,7 +542,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
@@ -589,22 +589,22 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(LIFECYCLE).eventExpected(eventExpected)
 
         when:
-        logger().lifecycle("message", throwable)
+        logger().lifecycle("message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().log(LIFECYCLE, "message", throwable)
+        logger().log(LIFECYCLE, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().lifecycle("There was a {} error", "bad", throwable)
+        logger().lifecycle("There was a {} error", "bad", t)
 
         then:
-        singleLogEvent().message("There was a bad error").logLevel(LIFECYCLE).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("There was a bad error").logLevel(LIFECYCLE).throwable(t).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -615,7 +615,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
@@ -650,10 +650,10 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(QUIET).eventExpected(eventExpected)
 
         when:
-        logger().info(Logging.QUIET, "message", throwable)
+        logger().info(Logging.QUIET, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).throwable(t).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -664,7 +664,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | true
         ERROR     | false
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
@@ -711,22 +711,22 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(QUIET).eventExpected(eventExpected)
 
         when:
-        logger().quiet("message", throwable)
+        logger().quiet("message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().log(QUIET, "message", throwable)
+        logger().log(QUIET, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().quiet("There was a {} error", "bad", throwable)
+        logger().quiet("There was a {} error", "bad", t)
 
         then:
-        singleLogEvent().message("There was a bad error").logLevel(QUIET).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("There was a bad error").logLevel(QUIET).throwable(t).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -737,7 +737,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | true
         ERROR     | false
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
@@ -784,16 +784,16 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(WARN).eventExpected(eventExpected)
 
         when:
-        logger().warn("message", throwable)
+        logger().warn("message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().log(WARN, "message", throwable)
+        logger().log(WARN, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).throwable(t).eventExpected(eventExpected)
 
         when:
         logger().warn((Marker) null, "message")
@@ -820,16 +820,16 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(WARN).eventExpected(eventExpected)
 
         when:
-        logger().warn((Marker) null, "message", throwable)
+        logger().warn((Marker) null, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).throwable(t).eventExpected(eventExpected)
 
         when:
-        logger().warn("There was a {} error", "bad", throwable)
+        logger().warn("There was a {} error", "bad", t)
 
         then:
-        singleLogEvent().message("There was a bad error").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
+        singleLogEvent().message("There was a bad error").logLevel(WARN).throwable(t).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -840,7 +840,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
@@ -887,16 +887,16 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(ERROR)
 
         when:
-        logger().error("message", throwable)
+        logger().error("message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).throwable(throwable)
+        singleLogEvent().message("message").logLevel(ERROR).throwable(t)
 
         when:
-        logger().log(ERROR, "message", throwable)
+        logger().log(ERROR, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).throwable(throwable)
+        singleLogEvent().message("message").logLevel(ERROR).throwable(t)
 
         when:
         logger().error((Marker) null, "message")
@@ -923,21 +923,21 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("arg1 arg2 arg3").logLevel(ERROR)
 
         when:
-        logger().error((Marker) null, "message", throwable)
+        logger().error((Marker) null, "message", t)
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).throwable(throwable)
+        singleLogEvent().message("message").logLevel(ERROR).throwable(t)
 
         when:
-        logger().error("There was a {} error", "bad", throwable)
+        logger().error("There was a {} error", "bad", t)
 
         then:
-        singleLogEvent().message("There was a bad error").logLevel(ERROR).throwable(throwable)
+        singleLogEvent().message("There was a bad error").logLevel(ERROR).throwable(t)
 
         where:
         level << LogLevel.values()
 
-        throwable = new Throwable()
+        t = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"

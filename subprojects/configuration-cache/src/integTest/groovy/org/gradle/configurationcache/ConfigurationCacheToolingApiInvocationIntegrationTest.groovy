@@ -31,7 +31,9 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/3252")
 class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     @Override
     GradleExecuter createExecuter() {

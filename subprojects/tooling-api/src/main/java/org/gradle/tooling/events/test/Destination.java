@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
-
 import java.io.Serializable;
 
 /**
@@ -25,7 +23,6 @@ import java.io.Serializable;
  *
  * @since 6.0
  */
-@Incubating
 public enum Destination implements Serializable {
 
     StdOut(0),

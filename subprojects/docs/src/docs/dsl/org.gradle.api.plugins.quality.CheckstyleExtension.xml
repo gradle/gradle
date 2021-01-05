@@ -18,15 +18,11 @@
             </tr>
             <tr>
                 <td>config</td>
-                <td><literal><replaceable>${configDir}</replaceable>/checkstyle.xml</literal></td>
+                <td><literal><replaceable>${configDirectory}</replaceable>/checkstyle.xml</literal></td>
             </tr>
             <tr>
                 <td>configFile</td>
-                <td><literal><replaceable>${configDir}</replaceable>/checkstyle.xml</literal></td>
-            </tr>
-            <tr>
-                <td>configDir</td>
-                <td><literal><replaceable>${rootProject.projectDir}</replaceable>/config/checkstyle</literal></td>
+                <td><literal><replaceable>${configDirectory}</replaceable>/checkstyle.xml</literal></td>
             </tr>
             <tr>
                 <td>configDirectory</td>

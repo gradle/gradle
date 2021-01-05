@@ -68,7 +68,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -466,7 +468,7 @@ public class NodeState implements DependencyGraphNode {
             cachedDependencyStates = null;
             cachedFilteredDependencyStates = null;
         }
-        List<? extends DependencyMetadata> dependencies = metaData.getDependencies();
+        List<? extends DependencyMetadata> dependencies = getAllDependencies();
         if (transitiveEdgeCount == 0 && metaData.isExternalVariant()) {
             // there must be a single dependency state because this variant is an "available-at"
             // variant and here we are in the case the "including" component said that transitive
@@ -476,6 +478,10 @@ public class NodeState implements DependencyGraphNode {
         }
         doesNotHaveDependencies = dependencies.isEmpty();
         return dependencies;
+    }
+
+    protected List<? extends DependencyMetadata> getAllDependencies() {
+        return metaData.getDependencies();
     }
 
     private static DependencyMetadata makeNonTransitive(DependencyMetadata dependencyMetadata) {
@@ -680,7 +686,12 @@ public class NodeState implements DependencyGraphNode {
         if (metaData.isExternalVariant()) {
             // If the current node represents an external variant, we must not consider its excludes
             // because it's some form of "delegation"
-            return moduleExclusions.nothing();
+            return moduleExclusions.excludeAny(
+                incomingEdges.stream()
+                    .map(EdgeState::getTransitiveExclusions)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet())
+            );
         }
         if (incomingEdges.size() == 1) {
             // At the same time if the current node _comes from_ a delegated variant (available-at)
@@ -1248,7 +1259,9 @@ public class NodeState implements DependencyGraphNode {
         }
         // An external variant must have exactly one outgoing edge
         // corresponding to the dependency to the external module
-        assert outgoingEdges.size() == 1;
+        // can be 0 if the selected variant also happens to be excluded
+        // for example via configuration excludes
+        assert outgoingEdges.size() <= 1;
         for (EdgeState outgoingEdge : outgoingEdges) {
             //noinspection ConstantConditions
             return outgoingEdge.getSelectedVariant();

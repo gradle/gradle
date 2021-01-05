@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.CancellationToken
@@ -31,7 +32,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-abstract class TestLauncherSpec extends ToolingApiSpecification {
+abstract class TestLauncherSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     ProgressEvents events = ProgressEvents.create()
 
     @Rule
@@ -262,7 +263,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         allprojects{
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.13' }
+            dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
         }
         """
     }

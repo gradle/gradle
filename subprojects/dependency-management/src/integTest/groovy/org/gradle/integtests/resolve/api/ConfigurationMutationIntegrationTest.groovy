@@ -262,7 +262,7 @@ project(":consumer") {
 
 subprojects {
     task resolve {
-        dependsOn configurations.compile
+        inputs.files(configurations.runtimeClasspath)
 
         doLast {
             def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }

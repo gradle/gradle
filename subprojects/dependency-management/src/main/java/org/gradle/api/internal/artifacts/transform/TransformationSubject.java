@@ -19,11 +19,9 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
 import java.io.File;
-import java.util.Optional;
 
 /**
  * Subject which is transformed or the result of a transformation.
@@ -40,39 +38,15 @@ public abstract class TransformationSubject implements Describable {
     public abstract ImmutableList<File> getFiles();
 
     /**
-     * Component producing this subject.
-     *
-     * {@link Optional#empty()} if the subject is not produced by a project.
+     * Component identifier of the initial subject.
      */
-    public abstract Optional<ProjectComponentIdentifier> getProducer();
+    public abstract ComponentIdentifier getInitialComponentIdentifier();
 
     /**
      * Creates a subsequent subject by having transformed this subject.
      */
     public TransformationSubject createSubjectFromResult(ImmutableList<File> result) {
         return new SubsequentTransformationSubject(this, result);
-    }
-
-    private static abstract class AbstractInitialTransformationSubject extends TransformationSubject {
-        private final File file;
-
-        public AbstractInitialTransformationSubject(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public ImmutableList<File> getFiles() {
-            return ImmutableList.of(file);
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        @Override
-        public String toString() {
-            return getDisplayName();
-        }
     }
 
     private static class InitialArtifactTransformationSubject extends TransformationSubject {
@@ -93,12 +67,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public Optional<ProjectComponentIdentifier> getProducer() {
-            ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
-            if (componentIdentifier instanceof ProjectComponentIdentifier) {
-                return Optional.of((ProjectComponentIdentifier) componentIdentifier);
-            }
-            return Optional.empty();
+        public ComponentIdentifier getInitialComponentIdentifier() {
+            return artifact.getId().getComponentIdentifier();
         }
     }
 
@@ -117,8 +87,8 @@ public abstract class TransformationSubject implements Describable {
         }
 
         @Override
-        public Optional<ProjectComponentIdentifier> getProducer() {
-            return previous.getProducer();
+        public ComponentIdentifier getInitialComponentIdentifier() {
+            return previous.getInitialComponentIdentifier();
         }
 
         @Override

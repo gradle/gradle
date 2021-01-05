@@ -138,7 +138,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 assert 'value' == it.description
             }
             task all(dependsOn: ["withDescription", "asMethod", "asStatement", "dynamic", "asExpression", "postConfigure"])
-            class TestTask extends DefaultTask { String property }
+            class TestTask extends DefaultTask { @Input String property }
         """
 
         expect:
@@ -157,7 +157,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
     }
 
-    def "creating a task of type AbstractTask is deprecated"() {
+    def "creating a task of type AbstractTask is not supported"() {
         buildFile << """
             task thing(type: ${AbstractTask.name}) { t ->
                 assert t instanceof DefaultTask
@@ -166,11 +166,11 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Registering task ':thing' with type 'AbstractTask' has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
-        succeeds("thing")
+        fails("thing")
+        failureHasCause("Cannot create task ':thing' of type 'AbstractTask' as this type is not supported for task registration.")
     }
 
-    def "creating a task of type TaskInternal is deprecated"() {
+    def "creating a task of type TaskInternal is not supported"() {
         buildFile << """
             task thing(type: ${TaskInternal.name}) { t ->
                 assert t instanceof DefaultTask
@@ -179,11 +179,11 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Registering task ':thing' with type 'TaskInternal' has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
-        succeeds("thing")
+        fails("thing")
+        failureHasCause("Cannot create task ':thing' of type 'TaskInternal' as this type is not supported for task registration.")
     }
 
-    def "creating a task that is a subtype of AbstractTask is deprecated"() {
+    def "creating a task that is a subtype of AbstractTask is not supported"() {
         buildFile << """
             class CustomTask extends ${AbstractTask.name} {
             }
@@ -193,8 +193,8 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Registering task ':thing' with a type (CustomTask) that directly extends AbstractTask has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
-        succeeds("thing")
+        fails("thing")
+        failureHasCause("Cannot create task ':thing' of type 'CustomTask' as directly extending AbstractTask is not supported.")
     }
 
     def "does not hide local methods and variables"() {

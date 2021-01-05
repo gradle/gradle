@@ -421,7 +421,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                         configuration.addDefinedDependencies(result);
                     }
                 }
-                maybeAddGeneratedDependencies(result);
                 AttributeValue<Category> attributeValue = this.getAttributes().findEntry(Category.CATEGORY_ATTRIBUTE);
                 if (attributeValue.isPresent() && attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
                     // need to wrap all dependencies to force them
@@ -436,8 +435,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return configurationDependencies;
         }
 
-        void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
-            // No-op
+        List<LocalOriginDependencyMetadata> getSyntheticDependencies() {
+            return Collections.emptyList();
         }
 
         void addDefinedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {

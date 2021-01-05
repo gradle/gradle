@@ -56,7 +56,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        maybeDeprecated(code)
         run()
 
         then:
@@ -67,7 +66,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         "project.files()"                    | "project.files(file, symlink, symlinked)"
         "project.fileTree()"                 | "project.fileTree(baseDir)"
         "project.layout.files()"             | "project.layout.files(file, symlink, symlinked)"
-        "project.layout.configurableFiles()" | "project.layout.configurableFiles(file, symlink, symlinked)"
         "project.objects.fileCollection()"   | "project.objects.fileCollection().from(file, symlink, symlinked)"
     }
 
@@ -464,11 +462,5 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         fails 'brokenDirectoryWithSkipWhenEmpty'
         then:
         failure.assertHasCause("Couldn't follow symbolic link '${brokenInputFile}'.")
-    }
-
-    void maybeDeprecated(String expression) {
-        if (expression.contains("configurableFiles")) {
-            executer.expectDocumentedDeprecationWarning("The ProjectLayout.configurableFiles() method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the ObjectFactory.fileCollection() method instead. See https://docs.gradle.org/current/userguide/lazy_configuration.html#property_files_api_reference for more details.")
-        }
     }
 }

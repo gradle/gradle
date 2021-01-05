@@ -16,36 +16,29 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.internal.MutableBoolean;
+import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
-
-import javax.annotation.Nullable;
 
 public class DefaultNodeValidator implements NodeValidator {
     @Override
     public boolean hasValidationProblems(Node node) {
         if (node instanceof LocalTaskNode) {
-            MutableBoolean foundProblem = new MutableBoolean();
-            TypeValidationContext context = new TypeValidationContext() {
-                @Override
-                public void visitTypeProblem(Severity severity, Class<?> type, String message) {
-                    recordNonCacheabilityProblem(severity);
-                }
-
-                @Override
-                public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-                    recordNonCacheabilityProblem(severity);
-                }
-
-                private void recordNonCacheabilityProblem(Severity severity) {
-                    // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
-                    if (severity != Severity.CACHEABILITY_WARNING) {
-                        foundProblem.set(true);
-                    }
-                }
-            };
-            ((LocalTaskNode) node).getTaskProperties().validateType(context);
-            return foundProblem.get();
+            LocalTaskNode taskNode = (LocalTaskNode) node;
+            WorkValidationContext validationContext = taskNode.getValidationContext();
+            Class<?> taskType = GeneratedSubclasses.unpackType(taskNode.getTask());
+            // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
+            TypeValidationContext taskValidationContext = validationContext.forType(taskType, false);
+            taskNode.getTaskProperties().validateType(taskValidationContext);
+            ImmutableCollection<String> problems = validationContext.getProblems().values();
+            problems.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
+                .withContext("Execution optimizations are disabled due to the failed validation.")
+                .willBeRemovedInGradle7()
+                .withUserManual("more_about_tasks", "sec:up_to_date_checks")
+                .nagUser());
+            return !problems.isEmpty();
         } else {
             return false;
         }

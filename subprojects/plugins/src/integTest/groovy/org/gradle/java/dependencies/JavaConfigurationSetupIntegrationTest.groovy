@@ -69,8 +69,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         where:
         plugin         | configuration                  | alternatives
 
-        'java'         | 'compile'                      | "implementation"
-        'java'         | 'runtime'                      | "runtimeOnly"
         'java'         | 'compileOnly'                  | VALID
         'java'         | 'runtimeOnly'                  | VALID
         'java'         | 'implementation'               | VALID
@@ -82,8 +80,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
 
-        'java-library' | 'compile'                      | "implementation or api"
-        'java-library' | 'runtime'                      | "runtimeOnly"
         'java-library' | 'compileOnly'                  | VALID
         'java-library' | 'runtimeOnly'                  | VALID
         'java-library' | 'implementation'               | VALID
@@ -130,8 +126,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         where:
         plugin         | configuration                  | alternatives
 
-        'java'         | 'compile'                      | "apiElements"
-        'java'         | 'runtime'                      | "runtimeElements"
         'java'         | 'compileOnly'                  | "apiElements"
         'java'         | 'runtimeOnly'                  | FORBIDDEN
         'java'         | 'implementation'               | FORBIDDEN
@@ -143,8 +137,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
 
-        'java-library' | 'compile'                      | "apiElements"
-        'java-library' | 'runtime'                      | "runtimeElements"
         'java-library' | 'compileOnly'                  | "apiElements"
         'java-library' | 'runtimeOnly'                  | FORBIDDEN
         'java-library' | 'implementation'               | FORBIDDEN
@@ -188,8 +180,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         where:
         plugin         | configuration                  | alternatives
 
-        'java'         | 'compile'                      | "compileClasspath"
-        'java'         | 'runtime'                      | "runtimeClasspath"
         'java'         | 'compileOnly'                  | "compileClasspath"
         'java'         | 'runtimeOnly'                  | FORBIDDEN
         'java'         | 'implementation'               | FORBIDDEN
@@ -201,8 +191,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
 
-        'java-library' | 'compile'                      | "compileClasspath"
-        'java-library' | 'runtime'                      | "runtimeClasspath"
         'java-library' | 'compileOnly'                  | "compileClasspath"
         'java-library' | 'runtimeOnly'                  | FORBIDDEN
         'java-library' | 'implementation'               | FORBIDDEN
