@@ -65,8 +65,6 @@ class JavadocTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        1 * tool.metadata >> toolMetadata
-        1 * toolMetadata.languageVersion >> JavaLanguageVersion.of(11)
         1 * tool.execute(!null)
     }
 

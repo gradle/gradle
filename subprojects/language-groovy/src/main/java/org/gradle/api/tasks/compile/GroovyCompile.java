@@ -62,6 +62,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -368,6 +370,10 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     protected String getGroovyCompilerJvmVersion() {
         if (javaLauncher.isPresent()) {
             return javaLauncher.get().getMetadata().getLanguageVersion().toString();
+        }
+        final File customHome = getOptions().getForkOptions().getJavaHome();
+        if(customHome != null) {
+            return getServices().get(JvmMetadataDetector.class).getMetadata(customHome).getLanguageVersion().getMajorVersion();
         }
         return JavaVersion.current().getMajorVersion();
     }
