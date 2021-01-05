@@ -2,5 +2,5 @@ plugins {
     java
     jacoco
     `maven-publish`
-    id("org.springframework.boot") version "2.0.2.RELEASE"
+    id("org.springframework.boot") version "2.4.1"
 }

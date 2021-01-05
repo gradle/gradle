@@ -1,9 +1,13 @@
 // tag::all[]
+// tag::use-plugin[]
 plugins {
+// end::use-plugin[]
     `java-library`
     `maven-publish`
+// tag::use-plugin[]
     signing
 }
+// end::use-plugin[]
 
 group = "com.example"
 version = "1.0"
