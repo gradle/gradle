@@ -272,7 +272,7 @@ interface Managed${typeName} {
     }
 
     @Unroll
-    def "throws an error if we use unsupported type #collectionType.simpleName as element type of a scalar collection"() {
+    def "throws an error if we use unsupported type #innerType.simpleName as element type of a scalar collection"() {
         when:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
             import org.gradle.model.Managed

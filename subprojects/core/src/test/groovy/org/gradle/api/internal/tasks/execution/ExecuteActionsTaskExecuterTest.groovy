@@ -82,6 +82,7 @@ import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 import static java.util.Collections.emptyList
@@ -109,7 +110,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
     def validationContext = new DefaultWorkValidationContext()
-    def executionContext = Stub(TaskExecutionContext)
+    def executionContext = Mock(TaskExecutionContext)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
     def buildOperationExecutorForTaskExecution = Mock(BuildOperationExecutor)
@@ -201,6 +202,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
+        executionContext.getValidationAction() >> { { c -> } as Consumer }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }

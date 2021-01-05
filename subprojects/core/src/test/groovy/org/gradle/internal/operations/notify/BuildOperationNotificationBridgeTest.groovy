@@ -43,7 +43,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         buildOperationListenerManager = Mock(BuildOperationListenerManager)
 
         when:
-        def bridge = bridge()
+        def bridge = getOrCreateBridge()
         bridge.valve.start()
 
         then:
@@ -62,7 +62,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "does not allow duplicate registration"() {
         when:
-        def bridge = bridge()
+        def bridge = getOrCreateBridge()
         bridge.valve.start()
         bridge.register(listener)
         bridge.register(listener)
@@ -73,7 +73,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "can register again after resetting valve"() {
         when:
-        def bridge = bridge()
+        def bridge = getOrCreateBridge()
         bridge.valve.start()
         bridge.register(listener)
         bridge.valve.stop()
@@ -94,7 +94,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "passes recorded events to listeners registering"() {
         def d1 = d(1, null, 1)
-        def bridge = bridge()
+        def bridge = getOrCreateBridge()
         bridge.valve.start()
 
         when:
@@ -115,7 +115,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         def d2 = d(2, null, null)
         def d3 = d(3, null, 3)
         def e1 = new Exception()
-        bridge().valve.start()
+        getOrCreateBridge().valve.start()
         register(listener)
 
         // operation with details and non null result
@@ -208,7 +208,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "parentId is of last parent that a notification was sent for"() {
         given:
-        bridge().valve.start()
+        getOrCreateBridge().valve.start()
         register(listener)
         def d1 = d(1, null, 1)
         def d2 = d(2, 1, null)
@@ -295,7 +295,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "emits progress events"() {
         given:
-        bridge().valve.start()
+        getOrCreateBridge().valve.start()
         register(listener)
         def d1 = d(1, null, 1)
         def d2 = d(2, 1, null)
@@ -358,10 +358,10 @@ class BuildOperationNotificationBridgeTest extends Specification {
     }
 
     void register(BuildOperationNotificationListener listener) {
-        bridge().register(listener)
+        getOrCreateBridge().register(listener)
     }
 
-    BuildOperationNotificationBridge bridge() {
+    BuildOperationNotificationBridge getOrCreateBridge() {
         if (bridgeInstance == null) {
             bridgeInstance = new BuildOperationNotificationBridge(buildOperationListenerManager, listenerManager)
         } else {

@@ -388,16 +388,12 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         currentBuildOperationRef.set(new DefaultBuildOperationRef(new OperationIdentifier(1), null))
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
-        then:
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature1') }
 
-        when:
         handler.featureUsed(deprecatedFeatureUsage('feature2'))
 
-        then:
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
 
-        when:
         handler.featureUsed(deprecatedFeatureUsage('feature2'))
 
         then:

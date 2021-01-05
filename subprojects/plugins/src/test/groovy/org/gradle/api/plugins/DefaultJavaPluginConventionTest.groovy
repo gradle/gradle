@@ -28,11 +28,7 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import org.junit.Test
 import spock.lang.Specification
-
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultJavaPluginConventionTest extends Specification {
     @Rule
@@ -71,17 +67,6 @@ class DefaultJavaPluginConventionTest extends Specification {
         convention.sourceCompatibility == JavaVersion.VERSION_14
         convention.targetCompatibility == JavaVersion.VERSION_14
 
-    }
-
-    @Test
-    void canConfigureSourceSets() {
-        File dir = new File('classes-dir')
-        convention.sourceSets {
-            main {
-                output.classesDir = dir
-            }
-        }
-        assertThat(convention.sourceSets.main.output.classesDir, equalTo(project.file(dir)))
     }
 
     def defaultDirs() {
