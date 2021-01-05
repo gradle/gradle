@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencyConstraint;
 
 /**
@@ -68,7 +67,6 @@ public interface DependencyConstraintHandler {
      *
      * @since 5.0
      */
-    @Incubating
     DependencyConstraint enforcedPlatform(Object notation);
 
     /**
@@ -82,6 +80,5 @@ public interface DependencyConstraintHandler {
      *
      * @since 5.0
      */
-    @Incubating
     DependencyConstraint enforcedPlatform(Object notation, Action<? super DependencyConstraint> configureAction);
 }

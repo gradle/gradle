@@ -120,21 +120,3 @@ Similarly, to publish a distribution to a Maven repository using the <<publishin
 include::sample[dir="snippets/maven-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
 include::sample[dir="snippets/maven-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
 ====
-
-[[sec:publishing_distributions_upload]]
-=== Using the `uploadArchives` task
-
-[CAUTION]
-====
-The `uploadArchives` and `maven` plugin are deprecated.
-You should use the `ivy-publish` or `maven-publish` plugin instead.
-====
-
-The Distribution Plugin adds the distribution archives as default publishing artifact candidates.
-With the <<maven_plugin.adoc#maven_plugin, Maven Plugin>> applied, the distribution ZIP file will be published when running `uploadArchives` if no other default artifact is configured.
-
-.Publishing the distribution ZIP with the Maven Plugin
-====
-include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=publish-distribution]"]
-include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=publish-distribution]"]
-====

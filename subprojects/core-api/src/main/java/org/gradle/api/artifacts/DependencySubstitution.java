@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -83,6 +82,5 @@ public interface DependencySubstitution {
      *
      * @since 6.6
      */
-    @Incubating
     void artifactSelection(Action<? super ArtifactSelectionDetails> action);
 }

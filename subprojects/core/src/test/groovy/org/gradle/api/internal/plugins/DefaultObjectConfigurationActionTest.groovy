@@ -22,7 +22,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.internal.resource.TextUriResourceLoader
-import org.junit.Test
 import spock.lang.Specification
 
 class DefaultObjectConfigurationActionTest extends Specification {
@@ -49,8 +48,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         action.execute()
     }
 
-    @Test
-    public void appliesScriptsToDefaultTargetObject() {
+    void appliesScriptsToDefaultTargetObject() {
         given:
         1 * resolver.resolveUri('script') >> file
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
@@ -64,8 +62,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         action.execute()
     }
 
-    @Test
-    public void appliesScriptsToTargetObjects() {
+    void appliesScriptsToTargetObjects() {
         when:
         Object target1 = new Object()
         Object target2 = new Object()
@@ -83,8 +80,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         action.execute()
     }
 
-    @Test
-    public void flattensCollections() {
+    void flattensCollections() {
         when:
         Object target1 = new Object()
         Object target2 = new Object()

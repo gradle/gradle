@@ -15,8 +15,7 @@
  */
 package org.gradle.util
 
-import spock.lang.*
-import java.util.concurrent.Callable
+import spock.lang.Specification
 
 class StdinSwapperTest extends Specification {
 
@@ -25,7 +24,7 @@ class StdinSwapperTest extends Specification {
         def text = "abc"
 
         expect:
-        new StdinSwapper().swap(new ByteArrayInputStream("abc".bytes), { System.in.text } as Callable)  == text
+        new StdinSwapper().swap(new ByteArrayInputStream("abc".bytes), { System.in.text })  == text
     }
 
 

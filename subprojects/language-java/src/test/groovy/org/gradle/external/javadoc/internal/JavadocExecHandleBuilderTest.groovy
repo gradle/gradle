@@ -20,12 +20,11 @@ import org.gradle.external.javadoc.MinimalJavadocOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
-import org.junit.Test
 import spock.lang.Specification
 
 import static org.junit.Assert.assertTrue
 
-public class JavadocExecHandleBuilderTest extends Specification {
+class JavadocExecHandleBuilderTest extends Specification {
 
     private ExecActionFactory execActionFactory = Mock(ExecActionFactory)
     private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder(execActionFactory)
@@ -89,8 +88,7 @@ public class JavadocExecHandleBuilderTest extends Specification {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testSetNullOptions() {
+    void testSetNullOptions() {
         when:
         javadocExecHandleBuilder.options(null);
 
@@ -98,8 +96,7 @@ public class JavadocExecHandleBuilderTest extends Specification {
         thrown(java.lang.IllegalArgumentException)
     }
 
-    @Test
-    public void testSetNotNullOptions() {
+    void testSetNotNullOptions() {
         MinimalJavadocOptions options = Mock()
 
         when:

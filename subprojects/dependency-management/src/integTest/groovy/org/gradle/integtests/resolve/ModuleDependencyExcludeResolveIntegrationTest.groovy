@@ -333,7 +333,7 @@ task check(type: Sync) {
      * Dependency graph:
      * a -> b -> c -> d
      */
-    def "when a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path (#name)"() {
+    def "when a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path (#condition)"() {
         given:
         repository {
             'a:a:1.0' {

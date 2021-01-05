@@ -207,9 +207,9 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         when:
         def acceptor = incomingConnector.accept({ ConnectCompletion event ->
-            def connection = event.create(serializer)
-            connection.dispatch("bye")
-            connection.stop()
+            def conn = event.create(serializer)
+            conn.dispatch("bye")
+            conn.stop()
             instant.closed
         } as Action, false)
 
@@ -231,9 +231,9 @@ class TcpConnectorTest extends ConcurrentSpec {
             encoder.writeInt(value.length())
         } as Serializer
         def action = { ConnectCompletion completion ->
-            def connection = completion.create(Serializers.stateful(incomingSerializer))
-            connection.dispatch("string")
-            connection.stop()
+            def conn = completion.create(Serializers.stateful(incomingSerializer))
+            conn.dispatch("string")
+            conn.stop()
         } as Action
         def outgoingSerializer = { Decoder decoder ->
             decoder.readInt()
@@ -259,9 +259,9 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         given:
         def action = { ConnectCompletion completion ->
-            def connection = completion.create(serializer)
-            connection.dispatch("string")
-            connection.stop()
+            def conn = completion.create(serializer)
+            conn.dispatch("string")
+            conn.stop()
         } as Action
         outgoingSerializer.read(_) >> { Decoder decoder ->
             throw failure

@@ -17,10 +17,8 @@ package org.gradle.api.reporting
 
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Test
 
 class GenerateBuildDashboardSpec extends AbstractProjectBuilderSpec {
-    @Test
     def "does no work if html report is disabled"() {
         setup:
         GenerateBuildDashboard task = TestUtil.create(temporaryFolder).task(GenerateBuildDashboard)

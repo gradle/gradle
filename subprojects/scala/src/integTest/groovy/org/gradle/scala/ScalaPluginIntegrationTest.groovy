@@ -192,32 +192,6 @@ task someTask
         file("ear/build/tmp/ear/application.xml").assertContents(not(containsString("implementationScala.mapping")))
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/6849")
-    @ToBeFixedForConfigurationCache
-    def "can publish test-only projects"() {
-        using m2
-        settingsFile << """
-            rootProject.name = "scala"
-        """
-        buildFile << """
-            apply plugin: 'scala'
-            apply plugin: 'maven'
-
-            repositories {
-                ${jcenterRepository()}
-            }
-            dependencies {
-                implementation("org.scala-lang:scala-library:2.12.6")
-            }
-        """
-        file("src/test/scala/Foo.scala") << """
-            class Foo
-        """
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds("install")
-    }
-
     @ToBeFixedForConfigurationCache
     def "forcing an incompatible version of Scala fails with a clear error message"() {
         settingsFile << """

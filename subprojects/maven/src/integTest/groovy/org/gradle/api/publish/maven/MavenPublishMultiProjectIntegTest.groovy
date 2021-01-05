@@ -17,13 +17,9 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
-
-import java.util.concurrent.atomic.AtomicInteger
 
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "project1", "1.0"))
@@ -177,30 +173,6 @@ project(":project2") {
         projectsCorrectlyPublished()
     }
 
-    def "maven-publish plugin does not take mavenDeployer.pom.artifactId into account when publishing"() {
-        executer.expectDeprecationWarning()
-
-        createBuildScripts("""
-project(":project2") {
-    apply plugin: 'maven'
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                repository(url: "${mavenRepo.uri}")
-                pom.artifactId = "changed"
-            }
-        }
-    }
-}
-        """)
-
-        when:
-        run "publish"
-
-        then:
-        projectsCorrectlyPublished()
-    }
-
     private def projectsCorrectlyPublished() {
         project1.assertPublished()
         project1.assertApiDependencies("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0")
@@ -214,111 +186,6 @@ project(":project2") {
         resolveArtifacts(project1) { expectFiles "project1-1.0.jar", "project2-2.0.jar", "project3-3.0.jar" }
 
         return true
-    }
-
-    def "maven-publish plugin uses target project name for project dependency when target project does not have maven-publish plugin applied"() {
-        executer.expectDeprecationWarning()
-
-        given:
-        settingsFile << """
-include "project1", "project2"
-        """
-
-        buildFile << """
-allprojects {
-    group = "org.gradle.test"
-}
-
-project(":project1") {
-    apply plugin: "java-library"
-    apply plugin: "maven-publish"
-
-    version = "1.0"
-
-    dependencies {
-        api project(":project2")
-    }
-
-    publishing {
-        repositories {
-            maven { url "${mavenRepo.uri}" }
-        }
-        publications {
-            maven(MavenPublication) {
-                from components.java
-            }
-        }
-    }
-}
-project(":project2") {
-    apply plugin: 'maven'
-    version = "2.0"
-    archivesBaseName = "changed"
-}
-        """
-
-        when:
-        run "publish"
-
-        then:
-        project1.assertPublished()
-        project1.assertApiDependencies("org.gradle.test:project2:2.0")
-    }
-
-    @Issue("https://github.com/gradle/gradle-native/issues/867")
-    @IgnoreIf({ GradleContextualExecuter.parallel })
-    @ToBeFixedForConfigurationCache
-    def "can resolve non-build dependencies while projects are configured in parallel"() {
-        def parallelProjectCount = 20
-        using m2
-        executer.expectDeprecationWarning()
-
-        given:
-        settingsFile << """
-            (0..${parallelProjectCount}).each {
-                include "producer" + it
-                include "consumer" + it
-            }
-        """
-
-        buildFile << """
-            def resolutionCount = [:].withDefault { new ${AtomicInteger.canonicalName}(0) }.asSynchronized()
-
-            subprojects {
-                apply plugin: 'java'
-                apply plugin: 'maven'
-
-                group = "org.gradle.test"
-                version = "1.0"
-
-                tasks.named("jar") {
-                    resolutionCount[project.name].incrementAndGet()
-                    println project.name + " RESOLUTION"
-                }
-            }
-
-            subprojects {
-                if (name.startsWith("consumer")) {
-                    dependencies {
-                        (0..${parallelProjectCount}).each {
-                            testImplementation project(":producer" + it)
-                        }
-                    }
-                }
-            }
-
-            def verify = tasks.register("verify") {
-                dependsOn ((0..${parallelProjectCount}).collect { ":consumer" + it + ":install" })
-                doLast {
-                    println resolutionCount
-                    assert !resolutionCount.empty
-                    assert !resolutionCount.values().any { it > 1 }
-                }
-            }
-        """
-
-        expect:
-        succeeds "verify", "--parallel"
     }
 
     @Issue("GRADLE-3366")

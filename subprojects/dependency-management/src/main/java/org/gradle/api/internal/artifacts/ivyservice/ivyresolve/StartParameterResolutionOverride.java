@@ -58,7 +58,6 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.IncubationLogger;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -99,7 +98,6 @@ public class StartParameterResolutionOverride {
                                                                          Factory<GradleProperties> gradlePropertiesFactory) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
-            IncubationLogger.incubatingFeatureUsed("Dependency verification");
             return DisablingVerificationOverride.of(
                 new WriteDependencyVerificationFile(gradleDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
             );
@@ -110,7 +108,6 @@ public class StartParameterResolutionOverride {
                 if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
                     return DependencyVerificationOverride.NO_VERIFICATION;
                 }
-                IncubationLogger.incubatingFeatureUsed("Dependency verification");
                 try {
                     File sessionReportDir = computeReportDirectory(timeProvider);
                     return DisablingVerificationOverride.of(

@@ -54,10 +54,9 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
 
         when:
         serveValidKey()
-        succeeds ":compileJava"
 
         then:
-        outputContains("Dependency verification is an incubating feature.")
+        succeeds ":compileJava"
     }
 
     def "doesn't need checksums if signature is verified and trust using long id"() {
@@ -83,10 +82,9 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
 
         when:
         serveValidKey()
-        succeeds ":compileJava"
 
         then:
-        outputContains("Dependency verification is an incubating feature.")
+        succeeds ":compileJava"
     }
 
     @Unroll
@@ -196,11 +194,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
         """
 
-        when:
+        expect:
         succeeds ":compileJava"
-
-        then:
-        outputDoesNotContain "Dependency verification is an incubating feature."
 
         when:
         createMetadataFile {
@@ -247,11 +242,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
         """
 
-        when:
+        expect:
         succeeds ":compileJava"
-
-        then:
-        outputDoesNotContain "Dependency verification is an incubating feature."
 
         when:
         createMetadataFile {
@@ -598,11 +590,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
         """
 
-        when:
+        expect:
         succeeds ":compileJava"
-
-        then:
-        outputContains("Dependency verification is an incubating feature.")
 
         cleanup:
         secondServer.stop()
@@ -1249,10 +1238,10 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
         when:
         serveValidKey()
-        succeeds ":compileJava"
 
         then:
-        outputContains("Dependency verification is an incubating feature.")
+        succeeds ":compileJava"
+
     }
 
     @Unroll
@@ -1294,9 +1283,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         }
 
         then:
-        if (addLocalKey) {
-            outputContains("Dependency verification is an incubating feature.")
-        } else {
+        if (!addLocalKey) {
             failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
@@ -1334,11 +1321,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
             }
         """
 
-        when:
+        expect:
         succeeds ":compileJava"
-
-        then:
-        outputContains("Dependency verification is an incubating feature.")
 
     }
 

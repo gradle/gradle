@@ -269,7 +269,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def '#methodName enforces build dependencies when given Task as input'() {
+    def '#expression enforces build dependencies when given Task as input'() {
         buildFile << """
             task producer {
                 def outputFile = file('build/resource/file.txt')

@@ -40,6 +40,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult
 import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor
 
+import static org.junit.Assert.assertTrue
+
 class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "adapter is only subscribing to task progress events if at least one task progress listener is attached"() {
@@ -202,12 +204,12 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "task started"
-            assert event.descriptor.name == 'some task'
-            assert event.descriptor.displayName == 'some task in human readable form'
-            assert event.descriptor.taskPath == ':some:path'
-            assert event.descriptor.parent == null
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "task started"
+            assertTrue event.descriptor.name == 'some task'
+            assertTrue event.descriptor.displayName == 'some task in human readable form'
+            assertTrue event.descriptor.taskPath == ':some:path'
+            assertTrue event.descriptor.parent == null
         }
     }
 
@@ -232,11 +234,11 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "task started"
-            assert event.descriptor.name == 'some task'
-            assert event.descriptor.taskPath == ':some:path'
-            assert event.descriptor.parent == null
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "task started"
+            assertTrue event.descriptor.name == 'some task'
+            assertTrue event.descriptor.taskPath == ':some:path'
+            assertTrue event.descriptor.parent == null
         }
     }
 
@@ -272,15 +274,15 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskFinishEvent) >> { TaskFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "task skipped"
-            assert event.descriptor.name == 'some task'
-            assert event.descriptor.taskPath == ':some:path'
-            assert event.descriptor.parent == null
-            assert event.result instanceof TaskSkippedResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.skipMessage == 'SKIPPED'
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "task skipped"
+            assertTrue event.descriptor.name == 'some task'
+            assertTrue event.descriptor.taskPath == ':some:path'
+            assertTrue event.descriptor.parent == null
+            assertTrue event.result instanceof TaskSkippedResult
+            assertTrue event.result.startTime == 1
+            assertTrue event.result.endTime == 2
+            assertTrue event.result.skipMessage == 'SKIPPED'
         }
     }
 
@@ -316,15 +318,15 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskFinishEvent) >> { TaskFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "task succeeded"
-            assert event.descriptor.name == 'some task'
-            assert event.descriptor.taskPath == ':some:path'
-            assert event.descriptor.parent == null
-            assert event.result instanceof TaskSuccessResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.isUpToDate()
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "task succeeded"
+            assertTrue event.descriptor.name == 'some task'
+            assertTrue event.descriptor.taskPath == ':some:path'
+            assertTrue event.descriptor.parent == null
+            assertTrue event.result instanceof TaskSuccessResult
+            assertTrue event.result.startTime == 1
+            assertTrue event.result.endTime == 2
+            assertTrue event.result.isUpToDate()
         }
     }
 
@@ -360,15 +362,15 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskFinishEvent) >> { TaskFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "task failed"
-            assert event.descriptor.name == 'some task'
-            assert event.descriptor.taskPath == ':some:path'
-            assert event.descriptor.parent == null
-            assert event.result instanceof TaskFailureResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.failures.size() == 1
+            assertTrue event.eventTime == 999
+            assertTrue event.displayName == "task failed"
+            assertTrue event.descriptor.name == 'some task'
+            assertTrue event.descriptor.taskPath == ':some:path'
+            assertTrue event.descriptor.parent == null
+            assertTrue event.result instanceof TaskFailureResult
+            assertTrue event.result.startTime == 1
+            assertTrue event.result.endTime == 2
+            assertTrue event.result.failures.size() == 1
         }
     }
 
@@ -424,18 +426,18 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
-            assert event.eventTime == 1000
-            assert event.displayName == "task started"
-            assert event.descriptor.name == 'some task'
-            assert event.descriptor.taskPath == ':some:path'
-            assert event.descriptor.parent == null
-            assert event.descriptor.dependencies.size() == 1
-            assert event.descriptor.originPlugin == null
+            assertTrue event.eventTime == 1000
+            assertTrue event.displayName == "task started"
+            assertTrue event.descriptor.name == 'some task'
+            assertTrue event.descriptor.taskPath == ':some:path'
+            assertTrue event.descriptor.parent == null
+            assertTrue event.descriptor.dependencies.size() == 1
+            assertTrue event.descriptor.originPlugin == null
             with(event.descriptor.dependencies[0]) {
-                assert it.name == 'dependency task'
-                assert it.taskPath == ':dependency:path'
-                assert it.parent == null
-                assert it.dependencies.empty
+                assertTrue it.name == 'dependency task'
+                assertTrue it.taskPath == ':dependency:path'
+                assertTrue it.parent == null
+                assertTrue it.dependencies.empty
             }
         }
     }
@@ -461,9 +463,9 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
-            assert event.descriptor.originPlugin instanceof ScriptPluginIdentifier
-            assert event.descriptor.originPlugin.displayName == 'build.gradle'
-            assert event.descriptor.originPlugin.uri == URI.create("http://example.com/build.gradle")
+            assertTrue event.descriptor.originPlugin instanceof ScriptPluginIdentifier
+            assertTrue event.descriptor.originPlugin.displayName == 'build.gradle'
+            assertTrue event.descriptor.originPlugin.uri == URI.create("http://example.com/build.gradle")
         }
     }
 
@@ -489,10 +491,10 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
-            assert event.descriptor.originPlugin instanceof BinaryPluginIdentifier
-            assert event.descriptor.originPlugin.displayName == 'org.example'
-            assert event.descriptor.originPlugin.className == 'org.example.MyPlugin'
-            assert event.descriptor.originPlugin.pluginId == 'org.example'
+            assertTrue event.descriptor.originPlugin instanceof BinaryPluginIdentifier
+            assertTrue event.descriptor.originPlugin.displayName == 'org.example'
+            assertTrue event.descriptor.originPlugin.className == 'org.example.MyPlugin'
+            assertTrue event.descriptor.originPlugin.pluginId == 'org.example'
         }
     }
 
@@ -518,12 +520,12 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
         then:
         1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
-            assert event.eventTime == 1000
-            assert event.displayName == "task started"
-            assert event.descriptor.name == 'some task'
-            assert event.descriptor.taskPath == ':some:path'
-            assert event.descriptor.parent == null
-            assert event.descriptor.dependencies.empty
+            assertTrue event.eventTime == 1000
+            assertTrue event.displayName == "task started"
+            assertTrue event.descriptor.name == 'some task'
+            assertTrue event.descriptor.taskPath == ':some:path'
+            assertTrue event.descriptor.parent == null
+            assertTrue event.descriptor.dependencies.empty
         }
     }
 

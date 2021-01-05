@@ -20,7 +20,6 @@ import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.junit.Test
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -29,7 +28,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
     def listener = Mock(TestListenerInternal.class)
     def adapter = new StateTrackingTestResultProcessor(listener)
 
-    public void notifiesBefore() {
+    void notifiesBefore() {
         given:
         def test = new DefaultTestDescriptor("id", "Foo", "bar");
         def startEvent = new TestStartEvent(100L)
@@ -42,7 +41,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    public void notifiesAfter() {
+    void notifiesAfter() {
         given:
         def test = new DefaultTestDescriptor("id", "Foo", "bar");
         def startEvent = new TestStartEvent(100L)
@@ -62,7 +61,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    public void createsAResultForATestWithFailure() {
+    void createsAResultForATestWithFailure() {
         given:
         def failure = new RuntimeException()
         def test = new DefaultTestDescriptor("15", "Foo", "bar");
@@ -83,7 +82,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    public void createsAResultForATestWithMultipleFailures() {
+    void createsAResultForATestWithMultipleFailures() {
         given:
         def failure1 = new RuntimeException()
         def failure2 = new RuntimeException()
@@ -104,7 +103,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         )
     }
 
-    public void createsAnAggregateResultForEmptyTestSuite() {
+    void createsAnAggregateResultForEmptyTestSuite() {
         given:
         def suite = new DefaultTestSuiteDescriptor("15", "FastTests");
         def startEvent = new TestStartEvent(100L)
@@ -124,7 +123,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    public void createsAnAggregateResultForTestSuiteWithPassedTest() {
+    void createsAnAggregateResultForTestSuiteWithPassedTest() {
         given:
         def suite = new DefaultTestSuiteDescriptor("suiteId", "FastTests");
         def test = new DefaultTestDescriptor("testId", "DogTest", "shouldBarkAtStrangers");
@@ -147,7 +146,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    public void createsAnAggregateResultForTestSuiteWithFailedTest() {
+    void createsAnAggregateResultForTestSuiteWithFailedTest() {
         given:
         def suite = new DefaultTestSuiteDescriptor("suiteId", "FastTests");
         def ok = new DefaultTestDescriptor("okId", "DogTest", "shouldBarkAtStrangers");
@@ -172,7 +171,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    public void createsAnAggregateResultForTestSuiteWithSkippedTest() {
+    void createsAnAggregateResultForTestSuiteWithSkippedTest() {
         given:
         def suite = new DefaultTestSuiteDescriptor("suiteId", "FastTests");
         def test = new DefaultTestDescriptor("testId", "DogTest", "shouldBarkAtStrangers");
@@ -194,8 +193,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    @Test
-    public void createsAnAggregateResultForTestSuiteWithNestedSuites() {
+    void createsAnAggregateResultForTestSuiteWithNestedSuites() {
         given:
         def root = new DefaultTestSuiteDescriptor("root", "AllTests");
         def suite1 = new DefaultTestSuiteDescriptor("suite1", "FastTests");
@@ -235,7 +233,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         0 * _
     }
 
-    public void createsAnAggregateResultForTestSuiteWithFailure() {
+    void createsAnAggregateResultForTestSuiteWithFailure() {
         given:
         def suite = new DefaultTestSuiteDescriptor("id", "FastTests");
         def test = new DefaultTestDescriptor("testid", "DogTest", "shouldBarkAtStrangers");

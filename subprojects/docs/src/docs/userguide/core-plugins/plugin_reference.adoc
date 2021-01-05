@@ -75,9 +75,6 @@ Provides support for <<publishing_setup.adoc#,publishing artifacts>> to Maven-co
 <<publishing_ivy.adoc#,Ivy Publish>>::
 Provides support for <<publishing_setup.adoc#,publishing artifacts>> to Ivy-compatible repositories.
 
-<<maven_plugin.adoc#,Legacy Maven Plugin>>::
-Provides support for publishing artifacts using the <<artifact_management.adoc#,legacy mechanism>> to Maven-compatible repositories.
-
 <<distribution_plugin.adoc#,Distribution>>::
 Makes it easy to create ZIP and tarball distributions of your project.
 
