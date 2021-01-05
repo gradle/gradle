@@ -18,6 +18,7 @@ package org.gradle.nativeplatform
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
@@ -53,6 +54,14 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
         '''.stripIndent()
 
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
+    }
+
+    @Ignore
+    def "spock workaround - remove when upgrading to Spock2"() {
+        when:
+        true
+        then:
+        true
     }
 
     @Unroll
@@ -97,7 +106,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
         'assembleDependentsGreetings'              | _
     }
 
-    private static List<String> getExpectedTasks(String task) {
+    private static String[] getExpectedTasks(String task) {
         switch(task) {
             case 'assembleDependentsMainExecutable':
                 return [':mainExecutable']
@@ -120,7 +129,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
         }
     }
 
-    private static List<String> getUnexpectedTasks(String task) {
+    private static String[] getUnexpectedTasks(String task) {
         switch(task) {
             case 'assembleDependentsHelloStaticLibrary':
                 return [':mainExecutable']
