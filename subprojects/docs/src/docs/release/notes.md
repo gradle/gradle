@@ -115,7 +115,7 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
 - Core
-    - Services
+    - [Services](userguide/custom_gradle_types.html#service_injection)
         - org.gradle.api.file.ArchiveOperations
         - org.gradle.api.file.FileSystemOperations
         - org.gradle.process.ExecOperations
