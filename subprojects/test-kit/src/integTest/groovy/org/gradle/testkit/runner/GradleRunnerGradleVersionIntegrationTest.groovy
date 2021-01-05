@@ -61,7 +61,7 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         """
 
         when:
-        def runner = runner('writeVersion')
+        def runner = this.runner('writeVersion')
         configurer.execute(runner)
         runner.build()
 
