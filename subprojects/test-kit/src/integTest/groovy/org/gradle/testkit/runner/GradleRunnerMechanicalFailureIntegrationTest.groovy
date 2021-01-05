@@ -158,7 +158,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         """
 
         when:
-        def runner = runner('helloWorld')
+        def runner = this.runner('helloWorld')
         runner.build()
 
         then:
