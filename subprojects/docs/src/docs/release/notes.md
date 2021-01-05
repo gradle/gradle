@@ -116,6 +116,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
 - Core
     - Services
+        - org.gradle.api.file.ArchiveOperations
         - org.gradle.api.file.FileSystemOperations
         - org.gradle.process.ExecOperations
     - Provider API
