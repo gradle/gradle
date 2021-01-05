@@ -85,7 +85,6 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @return this
      * @since 5.1
      */
-    @Incubating
     Property<T> convention(@Nullable T value);
 
     /**
@@ -95,7 +94,6 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @return this
      * @since 5.1
      */
-    @Incubating
     Property<T> convention(Provider<? extends T> valueProvider);
 
     /**
