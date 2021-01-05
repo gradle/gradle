@@ -29,7 +29,7 @@ import java.util.List;
 
 public class TestFileContentCacheFactory implements FileContentCacheFactory {
 
-    private List<File> calculationLog = Lists.newArrayList();
+    private final List<File> calculationLog = Lists.newArrayList();
 
     public List<File> getCalculationLog() {
         return calculationLog;
@@ -38,7 +38,7 @@ public class TestFileContentCacheFactory implements FileContentCacheFactory {
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         return new FileContentCache<V>() {
-            LoadingCache<File, V> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, V>() {
+            final LoadingCache<File, V> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, V>() {
                 @Override
                 public V load(File file) {
                     calculationLog.add(file);
@@ -51,7 +51,8 @@ public class TestFileContentCacheFactory implements FileContentCacheFactory {
                 try {
                     return cache.getUnchecked(file);
                 } catch (UncheckedExecutionException e) {
-                    throw Throwables.propagate(e.getCause());
+                    Throwables.throwIfUnchecked(e.getCause());
+                    throw new RuntimeException(e.getCause());
                 }
             }
         };

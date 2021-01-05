@@ -112,6 +112,15 @@ ADD RELEASE FEATURES ABOVE
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
+### Java Module Support
+
+[Compiling](userguide/java_library_plugin.html#sec:java_library_modular),
+[testing](userguide/java_testing.html#sec:java_testing_modular) and
+[executing](userguide/application_plugin.html#sec:application_modular)
+Java modules is now a stable feature.
+It is no longer required to activate the functionality using `java.modularity.inferModulePath.set(true)`.
+
+### Promoted APIs
 In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
 - Core
@@ -196,7 +205,25 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.Destination
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
-
+- Java Ecosystem
+    - Java Module System
+        - org.gradle.api.jvm.ModularitySpec
+        - org.gradle.api.plugins.JavaApplication.getMainModule()
+        - org.gradle.api.plugins.JavaPluginExtension.getModularity()
+        - org.gradle.api.tasks.compile.JavaCompile.getModularity()
+        - org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()
+        - org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()
+        - org.gradle.api.tasks.javadoc.Javadoc.getModularity()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.getModulePath()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.setModulePath()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.modulePath()
+        - org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails.getModulePath()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getModularity()
+        - org.gradle.process.JavaExecSpec.getMainClass()
+        - org.gradle.process.JavaExecSpec.getMainModule()
+        - org.gradle.process.JavaExecSpec.getModularity()
 
 <!--
 ### Example promoted
