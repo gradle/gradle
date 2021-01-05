@@ -131,6 +131,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.provider.Property.value(org.gradle.api.provider.Provider<? extends T>)
         - org.gradle.api.provider.Property.convention(T)
         - org.gradle.api.provider.Property.convention(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.empty
         - org.gradle.api.file.FileSystemLocationProperty.getLocationOnly
         - org.gradle.api.file.FileSystemLocationProperty.fileValue
         - org.gradle.api.file.FileSystemLocationProperty.fileProvider

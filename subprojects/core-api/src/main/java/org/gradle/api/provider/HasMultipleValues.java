@@ -76,7 +76,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this property.
      * @since 5.0
      */
-    @Incubating
     HasMultipleValues<T> empty();
 
     /**
