@@ -259,18 +259,27 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private boolean fixMethodInsnForBackwardCompatibility(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            // Fix abstract Task method calls involving renamed types
-            final String newOwner = owner
-                .replace("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager")
-                .replace("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture");
-            final String newDescriptor = descriptor
-                .replace("Lorg/gradle/logging/LoggingManagerInternal;", "Lorg/gradle/api/logging/LoggingManager;")
-                .replace("Lorg/gradle/logging/StandardOutputCapture;", "Lorg/gradle/internal/logging/StandardOutputCapture;");
+            final String newOwner = fixMethodOwnerForBackwardCompatibility(owner);
+            final String newDescriptor = fixMethodDescriptorForBackwardCompatibility(descriptor);
             if (newOwner.equals(owner) && newDescriptor.equals(descriptor)) {
                 return false;
             }
             super.visitMethodInsn(opcode, newOwner, name, newDescriptor, isInterface);
             return true;
+        }
+
+        private String fixMethodOwnerForBackwardCompatibility(String typeName) {
+            // Fix renamed type references
+            return typeName
+                .replace("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager")
+                .replace("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture");
+        }
+
+        private String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
+            // Fix abstract Task method calls involving renamed types
+            return descriptor
+                .replace("Lorg/gradle/logging/LoggingManagerInternal;", "Lorg/gradle/api/logging/LoggingManager;")
+                .replace("Lorg/gradle/logging/StandardOutputCapture;", "Lorg/gradle/internal/logging/StandardOutputCapture;");
         }
 
         private boolean visitINVOKESTATIC(String owner, String name, String descriptor) {
