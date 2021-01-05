@@ -14,6 +14,6 @@ labels: 'a:chore, from:member'
 - [ ] Check User Manual (it might mention that the API is still incubating)
   - Think about updating snippets and samples to use this API
 - [ ] Deprecate existing API that is replaced by the new one
-  - If it's not immediately possible, create a follow-up issue with a milestone (e.g. `7.1 RC1` or `8.0 RC1`)
+  - If it's not immediately possible, create a follow-up issue with a milestone (e.g. `7.1 RC1` or `8.0 RC1`); you may expand to this list for 7.1: https://github.com/gradle/gradle/issues/15681
 - [ ] Check Incubation Report on TeamCity ([example](https://builds.gradle.org/viewLog.html?buildId=40024670&buildTypeId=Gradle_Check_SanityCheck&tab=report_project951_Incubating_APIs_Report)) 
 - [ ] Mark the story as done in the [overview spreadsheet](https://docs.google.com/spreadsheets/d/19J1nR_dFKpfKdu5KDFMVZGfjR0ysT9DthsBUPwf8mkM/edit?ts=5fcfefb8#gid=0).  
