@@ -54,7 +54,7 @@ public class ProfileEventAdapter implements InternalBuildListener, ProjectEvalua
     @Override
     public void beforeSettings(Settings settings) {
         long now = clock.getCurrentTime();
-        buildProfile = new BuildProfile(gradle.getStartParameter());
+        buildProfile = new BuildProfile(settings.getStartParameter());
         buildProfile.setBuildStarted(now);
         buildProfile.setProfilingStarted(buildStartedTime.getStartTime());
     }
