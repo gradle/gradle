@@ -118,7 +118,6 @@ public interface Provider<T> {
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 5.0
      */
-    @Incubating
     <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer);
 
     /**
