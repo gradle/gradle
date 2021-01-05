@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -36,7 +37,7 @@ public abstract class MavenPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {
-        throw new UnsupportedOperationException(
+        throw new InvalidUserCodeException(
             "The legacy `maven` plugin was removed in Gradle 7. Please use the `maven-publish` plugin instead. See " +
             documentationRegistry.getDocumentationFor("publishing_maven", "publishing_maven") + " for details");
     }
