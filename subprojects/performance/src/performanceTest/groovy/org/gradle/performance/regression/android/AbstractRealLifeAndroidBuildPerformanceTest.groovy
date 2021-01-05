@@ -28,7 +28,7 @@ class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPe
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        runner.targetVersions = ["6.8-20201223103229+0000"]
+        runner.targetVersions = ["6.8-20201116230039+0000"]
         // AGP 3.6 requires 5.6.1+
         // forUseAtConfigurationTime API used in this senario
         runner.minimumBaseVersion = "6.5"
