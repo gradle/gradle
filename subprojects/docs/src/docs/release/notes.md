@@ -134,6 +134,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.provider.HasMultipleValues.empty
         - org.gradle.api.provider.HasMultipleValues.value(java.lang.Iterable<? extends T>)
         - org.gradle.api.provider.HasMultipleValues.value(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
+        - org.gradle.api.provider.HasMultipleValues.convention(java.lang.Iterable<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.convention(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
         - org.gradle.api.file.FileSystemLocationProperty.getLocationOnly
         - org.gradle.api.file.FileSystemLocationProperty.fileValue
         - org.gradle.api.file.FileSystemLocationProperty.fileProvider
