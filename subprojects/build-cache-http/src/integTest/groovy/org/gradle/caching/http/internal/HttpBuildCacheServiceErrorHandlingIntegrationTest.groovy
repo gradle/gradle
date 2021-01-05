@@ -17,13 +17,12 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.caching.internal.services.BuildCacheControllerFactory
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
-class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
+class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFixture {
     def setup() {
         buildFile << """
             import org.gradle.api.*
