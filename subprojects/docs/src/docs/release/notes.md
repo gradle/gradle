@@ -264,6 +264,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
 - [Kotlin DSL](userguide/kotlin_dsl.html)
+    - org.gradle.kotlin.dsl.KotlinScript
     - org.gradle.kotlin.dsl.ExtensionContainer.add(name: String, extension: T): Unit
     - org.gradle.kotlin.dsl.ExtensionContainer.create(name: String, vararg constructionArguments: Any): T
     - org.gradle.kotlin.dsl.ExtensionContainer.getByType(): T
