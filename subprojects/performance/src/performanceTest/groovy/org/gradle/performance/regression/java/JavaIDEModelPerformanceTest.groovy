@@ -112,8 +112,8 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
                     it.compilerOutput.testOutputDir
                     it.contentRoots.each {
                         it.excludeDirectories
-                        withIdeaSources(it.generatedSourceDirectories)
-                        withIdeaSources(it.generatedTestDirectories)
+                        withIdeaSources(it.sourceDirectories.findAll { it.generated })
+                        withIdeaSources(it.testDirectories.findAll { it.generated })
                         withIdeaSources(it.sourceDirectories)
                         withIdeaSources(it.testDirectories)
                     }

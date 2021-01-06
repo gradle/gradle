@@ -354,6 +354,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.tooling.model.idea.IdeaContentRoot",
+            "member": "Method org.gradle.tooling.model.idea.IdeaContentRoot.getGeneratedSourceDirectories()",
+            "acceptation": "Deprecated API marked for removal in Gradle 7.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.model.idea.IdeaContentRoot",
+            "member": "Method org.gradle.tooling.model.idea.IdeaContentRoot.getGeneratedTestDirectories()",
+            "acceptation": "Deprecated API marked for removal in Gradle 7.0",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
