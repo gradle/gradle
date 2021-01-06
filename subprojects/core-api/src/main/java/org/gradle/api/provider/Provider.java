@@ -118,7 +118,6 @@ public interface Provider<T> {
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 5.0
      */
-    @Incubating
     <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer);
 
     /**
@@ -134,7 +133,6 @@ public interface Provider<T> {
      * @param value The default value to use when this provider has no value.
      * @since 5.6
      */
-    @Incubating
     Provider<T> orElse(T value);
 
     /**
@@ -143,7 +141,6 @@ public interface Provider<T> {
      * @param provider The provider whose value should be used when this provider has no value.
      * @since 5.6
      */
-    @Incubating
     Provider<T> orElse(Provider<? extends T> provider);
 
     /**

@@ -17,7 +17,6 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.AntBuilderAware;
@@ -146,7 +145,6 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      *
      * @since 5.6
      */
-    @Incubating
     Provider<Set<FileSystemLocation>> getElements();
 
     /**
