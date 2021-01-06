@@ -124,13 +124,35 @@ It is no longer required to activate the functionality using `java.modularity.in
 In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
 - Core
-    - Services
+    - [Services](userguide/custom_gradle_types.html#service_injection)
+        - org.gradle.api.file.ArchiveOperations
+        - org.gradle.api.file.FileSystemOperations
         - org.gradle.process.ExecOperations
-    - Provider API
+    - [Lazy configuration](userguide/lazy_configuration.html)
         - org.gradle.api.model.ObjectFactory.directoryProperty
         - org.gradle.api.model.ObjectFactory.fileCollection
         - org.gradle.api.model.ObjectFactory.fileProperty
         - org.gradle.api.model.ObjectFactory.sourceDirectorySet
+        - org.gradle.api.file.FileCollection.getElements
+        - org.gradle.api.provider.Provider.flatMap
+        - org.gradle.api.provider.Provider.orElse(T)
+        - org.gradle.api.provider.Provider.orElse(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.HasConfigurableValue
+        - org.gradle.api.provider.Property.value(T)
+        - org.gradle.api.provider.Property.value(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.Property.convention(T)
+        - org.gradle.api.provider.Property.convention(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.empty
+        - org.gradle.api.provider.HasMultipleValues.value(java.lang.Iterable<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.value(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
+        - org.gradle.api.provider.HasMultipleValues.convention(java.lang.Iterable<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.convention(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
+        - org.gradle.api.provider.MapProperty
+        - org.gradle.api.file.FileSystemLocationProperty.getLocationOnly
+        - org.gradle.api.file.FileSystemLocationProperty.fileValue
+        - org.gradle.api.file.FileSystemLocationProperty.fileProvider
+        - org.gradle.api.file.Directory.files
+        - org.gradle.api.file.DirectoryProperty.files
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)

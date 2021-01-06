@@ -16,8 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents an object that holds a value that is configurable, meaning that the value or some source for the value, such as a {@link Provider},
  * can be specified directly on the object.
@@ -32,7 +30,6 @@ import org.gradle.api.Incubating;
  *
  * @since 5.6
  */
-@Incubating
 public interface HasConfigurableValue {
     /**
      * Calculates the final value of this object and disallows further changes to this object.
