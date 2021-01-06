@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures;
+package org.gradle.integtests.fixtures.compatibility;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.specs.Spec;
+import org.gradle.integtests.fixtures.VersionedTool;
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
@@ -45,7 +47,7 @@ import static com.google.common.collect.Iterators.getLast;
  *
  * @param <T>
  */
-public abstract class AbstractContextualMultiVersionSpecRunner<T extends AbstractContextualMultiVersionSpecRunner.VersionedTool> extends AbstractMultiTestRunner {
+public abstract class AbstractContextualMultiVersionTestInterceptor<T extends VersionedTool> extends AbstractMultiTestInterceptor {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
     protected abstract Collection<T> getAllVersions();
@@ -109,7 +111,7 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
 
     protected abstract Collection<Execution> createExecutionsFor(T versionedTool);
 
-    public AbstractContextualMultiVersionSpecRunner(Class<?> target) {
+    public AbstractContextualMultiVersionTestInterceptor(Class<?> target) {
         super(target);
     }
 
@@ -189,9 +191,5 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
             }
             return UNKNOWN;
         }
-    }
-
-    public interface VersionedTool {
-        boolean matches(String criteria);
     }
 }

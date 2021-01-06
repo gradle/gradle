@@ -37,8 +37,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import org.junit.rules.RuleChain
-import org.junit.runner.RunWith
 import spock.lang.Retry
 import spock.lang.Specification
 
@@ -56,10 +54,10 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
  */
+@ToolingApiTest
 @CleanupTestDirectory
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=2.6')
-@RunWith(ToolingApiCompatibilitySuiteRunner)
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification {
     /**
@@ -75,34 +73,32 @@ abstract class ToolingApiSpecification extends Specification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
-    String getReleasedGradleVersion() {
-        return targetDist.version.baseVersion.version
-    }
-
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
 
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
-    final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
+    ToolingApi toolingApi
 
-    @Rule
-    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
-
-    // reflectively invoked by ToolingApiCompatibilitySuiteRunner
+    // reflectively invoked by ToolingApiExecution
     static void selectTargetDist(GradleDistribution version) {
         VERSION.set(version)
     }
 
     static GradleDistribution getTargetDist() {
-        VERSION.get()
+        def targetDist = VERSION.get()
+        if (targetDist == null)  {
+            throw new IllegalStateException("targetDist is not yet set by the testing framework")
+        }
+        return targetDist
     }
 
     def setup() {
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        this.toolingApi = new ToolingApi(targetDist, temporaryFolder)
     }
 
     DaemonsFixture getDaemonsFixture() {

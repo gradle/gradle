@@ -18,23 +18,23 @@ package org.gradle.java.compile.jpms
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.JavaCompileMultiTestRunner
+import org.gradle.integtests.fixtures.jvm.JavaCompileMultiTestInterceptor
+import org.gradle.integtests.fixtures.jvm.JavaCompileTest
 import org.gradle.util.TextUtil
-import org.junit.runner.RunWith
 
-@RunWith(JavaCompileMultiTestRunner.class)
+@JavaCompileTest
 abstract class AbstractJavaModuleCompileIntegrationTest extends AbstractJavaModuleIntegrationTest {
 
     def setup() {
-        switch (JavaCompileMultiTestRunner.compiler) {
-            case JavaCompileMultiTestRunner.Compiler.WORKER_JDK_COMPILER:
+        switch (JavaCompileMultiTestInterceptor.compiler) {
+            case JavaCompileMultiTestInterceptor.Compiler.WORKER_JDK_COMPILER:
                 buildFile << """
                     tasks.withType(JavaCompile) {
                         options.fork = true
                     }
                 """
                 break
-            case JavaCompileMultiTestRunner.Compiler.WORKER_COMMAND_LINE_COMPILER:
+            case JavaCompileMultiTestInterceptor.Compiler.WORKER_COMMAND_LINE_COMPILER:
                 def javaHome = TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javaHome.absolutePath)
                 buildFile << """
                     tasks.withType(JavaCompile) {

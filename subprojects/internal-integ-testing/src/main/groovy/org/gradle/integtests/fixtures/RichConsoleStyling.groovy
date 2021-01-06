@@ -25,11 +25,11 @@ import org.gradle.integtests.fixtures.executer.LogContent
  * <b>Note:</b> The console output contains formatting characters.
  */
 trait RichConsoleStyling {
-    static String workInProgressLine(String plainText) {
+    String workInProgressLine(String plainText) {
         return "{bold-on}" + plainText + "{bold-off}"
     }
 
-    static void assertHasWorkInProgress(GradleHandle handle, String plainText) {
+    void assertHasWorkInProgress(GradleHandle handle, String plainText) {
         assert LogContent.of(handle.standardOutput).ansiCharsToColorText().withNormalizedEol().contains(workInProgressLine(plainText))
     }
 }

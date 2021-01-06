@@ -60,7 +60,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 class AbstractIntegrationSpec extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
@@ -106,7 +106,7 @@ class AbstractIntegrationSpec extends Specification {
         executer.cleanup()
     }
 
-    private void recreateExecuter() {
+    void recreateExecuter() {
         if (executor != null) {
             executor.cleanup()
         }

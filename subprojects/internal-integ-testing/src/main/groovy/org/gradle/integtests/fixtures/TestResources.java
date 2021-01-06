@@ -70,6 +70,11 @@ public class TestResources implements MethodRule {
      * Copies the given resource to the test directory.
      */
     public void maybeCopy(String resource) {
+        // Multi version tests append to the method name, making it miss the resources
+        // Below is a dirty way to strip the added content
+        if (resource.contains(" ")) {
+            resource = resource.substring(0, resource.indexOf(' '));
+        }
         TestFile dir = resources.findResource(resource);
         if (dir != null) {
             logger.debug("Copying test resource '{}' from {} to test directory.", resource, dir);

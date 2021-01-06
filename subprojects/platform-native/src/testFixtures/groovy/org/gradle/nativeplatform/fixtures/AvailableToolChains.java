@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
-import org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner;
+import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
@@ -312,7 +312,7 @@ public class AvailableToolChains {
         }
     }
 
-    public static abstract class ToolChainCandidate implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
+    public static abstract class ToolChainCandidate implements VersionedTool {
         @Override
         public String toString() {
             return getDisplayName();

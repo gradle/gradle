@@ -16,11 +16,14 @@
 
 package org.gradle.integtests.fixtures.console
 
-import org.gradle.integtests.fixtures.AbstractMultiTestRunner
-import org.gradle.integtests.fixtures.executer.ConsoleAttachment
 
-class ConsoleAttachmentTestRunner extends AbstractMultiTestRunner {
-    ConsoleAttachmentTestRunner(Class<? extends AbstractConsoleGroupedTaskFunctionalTest> target) {
+import org.gradle.integtests.fixtures.executer.ConsoleAttachment
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor.Execution
+import org.spockframework.runtime.extension.IMethodInvocation
+
+class ConsoleAttachmentTestInterceptor extends AbstractMultiTestInterceptor {
+    ConsoleAttachmentTestInterceptor(Class<? extends AbstractConsoleGroupedTaskFunctionalTest> target) {
         super(target)
     }
 
@@ -31,7 +34,7 @@ class ConsoleAttachmentTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    private static class ConsoleAttachmentExecution extends AbstractMultiTestRunner.Execution {
+    private static class ConsoleAttachmentExecution extends Execution {
         private final ConsoleAttachment attachment
 
         ConsoleAttachmentExecution(ConsoleAttachment attachment) {
@@ -44,7 +47,12 @@ class ConsoleAttachmentTestRunner extends AbstractMultiTestRunner {
         }
 
         @Override
-        protected void before() {
+        String toString() {
+            return getDisplayName()
+        }
+
+        @Override
+        protected void before(IMethodInvocation invocation) {
             AbstractConsoleGroupedTaskFunctionalTest.consoleAttachment = attachment
         }
     }

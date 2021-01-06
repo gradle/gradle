@@ -17,16 +17,15 @@
 package org.gradle.play.integtest.fixtures.external
 
 import org.gradle.integtests.fixtures.ContextualMultiVersionTest
-import org.gradle.integtests.fixtures.MultiVersionSpecRunner
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.util.VersionNumber
 import org.junit.experimental.categories.Category
-import org.junit.runner.RunWith
 
-@RunWith(MultiVersionSpecRunner)
 @Category(ContextualMultiVersionTest.class)
 @TargetCoverage({ PlayCoverage.DEFAULT })
+@MultiVersionTest
 abstract class AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest extends AbstractPlayExternalContinuousBuildIntegrationTest {
     static def version
 

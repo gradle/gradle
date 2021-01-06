@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
+import org.gradle.integtests.fixtures.compatibility.AbstractCompatibilityTestInterceptor
 import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.util.GradleVersion
 
-/**
- * See {@link org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner} for information on running these tests.
- */
-class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
-    private static final GradleVersion MINIMAL_VERSION = GradleVersion.version("2.6")
+class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestInterceptor {
 
-    private static ToolingApiDistributionResolver resolver
+    private static final GradleVersion MINIMAL_VERSION = GradleVersion.version("2.6");
+    private static final ToolingApiDistributionResolver RESOLVER = new ToolingApiDistributionResolver().withDefaultRepository();
 
-    private static ToolingApiDistributionResolver getResolver() {
-        if (resolver == null) {
-            resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-        }
-        return resolver
-    }
-
-    ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
+    protected ToolingApiCompatibilityTestInterceptor(Class<?> target) {
         super(target)
     }
 
@@ -49,14 +40,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     }
 
     @Override
-    protected void createExecutionsForContext(CoverageContext coverageContext) {
-        // current vs. current
-        add(new ToolingApiExecution(getResolver().resolve(current.version.baseVersion.version), current))
-        super.createExecutionsForContext(coverageContext)
-    }
-
-    @Override
-    protected Collection<ToolingApiExecution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
+    protected Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
         def executions = []
 
         def distribution = versionedTool.distribution
@@ -64,16 +48,23 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             // current vs. target
             def currentVersion = current.version
             if (currentVersion >= MINIMAL_VERSION) {
-                executions.add(new ToolingApiExecution(getResolver().resolve(currentVersion.baseVersion.version), distribution))
+                executions.add(new ToolingApiExecution(RESOLVER.resolve(currentVersion.baseVersion.version), distribution))
             }
             // target vs. current
             def distribVersion = distribution.version
             if (distribVersion >= MINIMAL_VERSION) {
-                executions.add(new ToolingApiExecution(getResolver().resolve(distribVersion.version), current))
+                executions.add(new ToolingApiExecution(RESOLVER.resolve(distribVersion.version), current))
             }
         }
 
         return executions
+    }
+
+    @Override
+    protected void createExecutionsForContext(CoverageContext coverageContext) {
+        // current vs. current
+        add(new ToolingApiExecution(RESOLVER.resolve(current.version.baseVersion.version), current))
+        super.createExecutionsForContext(coverageContext)
     }
 
     @Override

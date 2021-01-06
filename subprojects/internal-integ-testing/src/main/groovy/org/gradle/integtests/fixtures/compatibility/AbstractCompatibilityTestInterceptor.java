@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures;
+
+package org.gradle.integtests.fixtures.compatibility;
 
 import org.gradle.api.Transformer;
+import org.gradle.integtests.fixtures.GradleDistributionTool;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
@@ -32,17 +34,12 @@ import java.util.List;
 
 import static org.gradle.util.CollectionUtils.sort;
 
-/**
- * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
- * <p>
- * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
- */
-public abstract class AbstractCompatibilityTestRunner extends AbstractContextualMultiVersionSpecRunner<GradleDistributionTool> {
+public abstract class AbstractCompatibilityTestInterceptor extends AbstractContextualMultiVersionTestInterceptor<GradleDistributionTool> {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
     final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
 
-    protected AbstractCompatibilityTestRunner(Class<?> target) {
+    protected AbstractCompatibilityTestInterceptor(Class<?> target) {
         super(target);
         validateTestName(target);
 
@@ -112,9 +109,9 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
     private void validateTestName(Class<?> target) {
         if (!target.getSimpleName().contains("CrossVersion")) {
             throw new RuntimeException("The tests that use " + this.getClass().getSimpleName()
-                    + " must follow a certain naming convention, e.g. name must contain 'CrossVersion' substring.\n"
-                    + "This way we can include/exclude those test nicely and it is easier to configure the CI.\n"
-                    + "Please include 'CrossVersion' in the name of the test: '" + target.getSimpleName() + "'");
+                + " must follow a certain naming convention, e.g. name must contain 'CrossVersion' substring.\n"
+                + "This way we can include/exclude those test nicely and it is easier to configure the CI.\n"
+                + "Please include 'CrossVersion' in the name of the test: '" + target.getSimpleName() + "'");
         }
     }
 
@@ -128,13 +125,18 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
         }
 
         @Override
-        protected boolean isTestEnabled(TestDetails testDetails) {
+        public boolean isTestEnabled(TestDetails testDetails) {
             return false;
         }
 
         @Override
         protected String getDisplayName() {
             return String.format("%s %s", distribution.getVersion(), why);
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
         }
     }
 }

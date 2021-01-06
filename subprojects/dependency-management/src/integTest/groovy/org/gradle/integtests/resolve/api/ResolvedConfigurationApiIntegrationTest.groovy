@@ -17,10 +17,9 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
@@ -28,7 +27,7 @@ rootProject.name = 'test'
 """
         buildFile << """
 allprojects {
-    configurations { 
+    configurations {
         compile
         "default" {
             extendsFrom compile
@@ -89,7 +88,7 @@ task show {
                 compile 'test:test2:1.2'
                 compile 'test:test3:1.2'
             }
-            
+
             task show {
                 doLast {
                     configurations.compile.resolvedConfiguration.resolvedArtifacts
@@ -122,7 +121,7 @@ task show {
                 compile 'test:test2:1.2'
                 compile 'test:test3:1.2'
             }
-            
+
             task show {
                 doLast {
                     configurations.compile.resolvedConfiguration.resolvedArtifacts.each { it.file }

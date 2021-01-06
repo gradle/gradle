@@ -19,8 +19,9 @@ package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.specs.Spec;
-import org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner;
+import org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor;
 import org.gradle.util.CollectionUtils;
+import org.spockframework.runtime.extension.IMethodInvocation;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,11 +29,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
+ * See {@link AbstractContextualMultiVersionTestInterceptor} for information on running these tests.
  */
-public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner<AvailableToolChains.ToolChainCandidate> {
+public class NativeToolChainTestInterceptor extends AbstractContextualMultiVersionTestInterceptor<AvailableToolChains.ToolChainCandidate> {
 
-    public NativeToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
+    public NativeToolChainTestInterceptor(Class<?> target) {
         super(target);
     }
 
@@ -107,7 +108,12 @@ public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpe
         }
 
         @Override
-        protected boolean isTestEnabled(TestDetails testDetails) {
+        public String toString() {
+            return getDisplayName();
+        }
+
+        @Override
+        public boolean isTestEnabled(TestDetails testDetails) {
             RequiresInstalledToolChain toolChainRestriction = testDetails.getAnnotation(RequiresInstalledToolChain.class);
             return toolChainRestriction == null || toolChain.meets(toolChainRestriction.value());
         }
@@ -118,7 +124,7 @@ public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpe
         }
 
         @Override
-        protected void before() {
+        protected void before(IMethodInvocation invocation) {
             System.out.println(String.format("Using tool chain %s", toolChain.getDisplayName()));
             AbstractInstalledToolChainIntegrationSpec.setToolChain((AvailableToolChains.InstalledToolChain) toolChain);
         }

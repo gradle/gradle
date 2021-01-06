@@ -17,6 +17,8 @@
 package org.gradle.integtests.fixtures.archives
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.spockframework.lang.SpecInternals
+import org.spockframework.mock.runtime.MockController
 import org.spockframework.runtime.extension.AbstractMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.IterationInfo
@@ -30,6 +32,7 @@ class ReproducibleArchivesInterceptor extends AbstractMethodInterceptor {
     void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
         reproducibleArchives = false
         invocation.proceed()
+        ((MockController)((SpecInternals)invocation.getInstance()).getSpecificationContext().getMockController()).enterScope()
         reproducibleArchives = true
         invocation.proceed()
     }
@@ -39,6 +42,9 @@ class ReproducibleArchivesInterceptor extends AbstractMethodInterceptor {
         // Allow tests to check at runtime if reproducible archives is switched on or not
         invocation.instance.metaClass.reproducibleArchives = reproducibleArchives
         if (reproducibleArchives) {
+            println("********************************")
+            println("Will rerun test iteration with reprodocible archives configuration")
+            println("********************************")
             AbstractIntegrationSpec instance = invocation.instance as AbstractIntegrationSpec
             def initScript = instance.testDirectory.file('reproducible-archives-init.gradle')
             initScript.text = """

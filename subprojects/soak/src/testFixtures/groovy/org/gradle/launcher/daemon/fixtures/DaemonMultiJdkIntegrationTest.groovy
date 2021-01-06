@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.fixtures
 
 
 import org.gradle.api.specs.Spec
-import org.gradle.integtests.fixtures.MultiVersionSpecRunner
+import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -27,12 +27,11 @@ import org.gradle.util.VersionNumber
 import org.junit.Rule
 import org.junit.rules.TestRule
 import org.junit.runner.Description
-import org.junit.runner.RunWith
 import org.junit.runners.model.Statement
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getAvailableJdk
 
-@RunWith(MultiVersionSpecRunner)
+@MultiVersionTest
 class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
     static def version
     @Rule IgnoreIfJdkNotFound ignoreRule = new IgnoreIfJdkNotFound()

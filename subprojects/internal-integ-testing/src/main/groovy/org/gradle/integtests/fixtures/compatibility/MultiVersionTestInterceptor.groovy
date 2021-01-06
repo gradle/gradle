@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.compatibility
+
+import org.gradle.integtests.fixtures.DefaultVersionedTool
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.TargetVersions
+import org.spockframework.runtime.extension.IMethodInvocation
+
 /**
- * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}.
+ * Runs the target test class against the versions specified in a {@link org.gradle.integtests.fixtures.TargetVersions} or {@link org.gradle.integtests.fixtures.TargetCoverage}.
  * <p>
- * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
+ * See {@link AbstractContextualMultiVersionTestInterceptor} for information on running these tests.
  */
-class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<DefaultVersionedTool> {
+class MultiVersionTestInterceptor extends AbstractContextualMultiVersionTestInterceptor<DefaultVersionedTool> {
     def versions
     def coverage
 
-    MultiVersionSpecRunner(Class<?> target) {
+    MultiVersionTestInterceptor(Class<?> target) {
         super(target)
         versions = target.getAnnotation(TargetVersions)
         coverage = target.getAnnotation(TargetCoverage)
@@ -55,7 +61,7 @@ class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<De
         return versions.collect { new DefaultVersionedTool(it) }
     }
 
-    private static class VersionExecution extends AbstractMultiTestRunner.Execution {
+    private static class VersionExecution extends org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor.Execution {
         final def version
 
         VersionExecution(def version) {
@@ -68,7 +74,12 @@ class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<De
         }
 
         @Override
-        protected void before() {
+        String toString() {
+            return getDisplayName()
+        }
+
+        @Override
+        protected void before(IMethodInvocation invocation) {
             target.version = version
         }
     }

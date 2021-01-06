@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.junit.Assume
+import spock.lang.Requires
 import spock.lang.Unroll
 
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
@@ -55,6 +55,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Requires({ getAvailableToolchains().size() >= 2 } )
     @Unroll
     @ToBeFixedForConfigurationCache
     def "recompiles binary when toolchain changes from #toolChainBefore to #toolChainAfter"() {
@@ -124,15 +125,18 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static List<List<InstalledToolChain>> getToolChainPairs() {
-        def availableToolChains = AvailableToolChains.toolChains.findAll {
-            it.available && !(it instanceof AvailableToolChains.InstalledSwiftc)
-        }
+        def availableToolChains = getAvailableToolchains()
         int numberOfToolChains = availableToolChains.size()
-        Assume.assumeTrue('2 or more tool chains are required for this test', numberOfToolChains >= 2)
         (0..<(numberOfToolChains - 1)).collectMany { first ->
             ((first+1)..<numberOfToolChains).collect { second ->
                 [availableToolChains[first], availableToolChains[second]]
             }
+        }
+    }
+
+    private static List<AvailableToolChains.ToolChainCandidate> getAvailableToolchains() {
+        return AvailableToolChains.toolChains.findAll {
+            it.available && !(it instanceof AvailableToolChains.InstalledSwiftc)
         }
     }
 

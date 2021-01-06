@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.extensions
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
+import org.spockframework.runtime.extension.IMethodInvocation
 
 import java.lang.annotation.Annotation
 
 /**
- * A base runner for features hidden behind a flag, convenient for executing tests with the flag on or off.
+ * A base interceptor for features hidden behind a flag, convenient for executing tests with the flag on or off.
  * If a test only makes sense if the feature is enabled, then it needs to be annotated with {@link RequiredFeatures}.
  */
 @CompileStatic
-abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
+abstract class BehindFlagFeatureInterceptor extends AbstractMultiTestInterceptor {
     final Map<String, Feature> features
 
-    BehindFlagFeatureRunner(Class<?> target, Map<String, Feature> features, boolean executeAllPermutations) {
+    BehindFlagFeatureInterceptor(Class<?> target, Map<String, Feature> features, boolean executeAllPermutations) {
         super(target, executeAllPermutations)
         this.features = features
     }
 
-    BehindFlagFeatureRunner(Class<?> target, Map<String, Feature> features) {
+    BehindFlagFeatureInterceptor(Class<?> target, Map<String, Feature> features) {
         this(target, features, true)
     }
 
@@ -80,7 +83,7 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         }
     }
 
-    private static class FeatureExecution extends AbstractMultiTestRunner.Execution {
+    private static class FeatureExecution extends AbstractMultiTestInterceptor.Execution {
         final Map<String, Feature> features
         final Map<String, String> featureValues
 
@@ -97,7 +100,12 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         }
 
         @Override
-        protected void before() {
+        String toString() {
+            return "[" + getDisplayName() + "]"
+        }
+
+        @Override
+        protected void before(IMethodInvocation invocation) {
             featureValues.each { sysProp, value ->
                 // Ensure that the system property is propagated to forked Gradle executions
                 AbstractGradleExecuter.propagateSystemProperty(sysProp)
@@ -115,7 +123,7 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         }
 
         @Override
-        protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+        boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
             def requiredFeatures = requiredFeatures(testDetails.annotations)
             def enabled = true
             requiredFeatures.each { sysProp, value ->
