@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest implements RichConsoleStyling {
+class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -87,7 +87,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar")
         }
 
         when:
@@ -96,7 +96,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar.sha1")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar.sha1")
         }
 
         when:
@@ -105,7 +105,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom")
         }
 
         when:
@@ -114,7 +114,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom.sha1")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom.sha1")
         }
 
         when:
@@ -123,7 +123,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.module > 1.8 KiB/1.8 KiB uploaded")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.module > 1.8 KiB/1.8 KiB uploaded")
         }
 
         when:
@@ -133,7 +133,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         then:
         ConcurrentTestUtil.poll {
             // TODO - where did this one go?
-//            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
+//            RichConsoleStyling.assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
         }
 
         when:
@@ -142,7 +142,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
         }
 
         putMetaData.releaseAll()

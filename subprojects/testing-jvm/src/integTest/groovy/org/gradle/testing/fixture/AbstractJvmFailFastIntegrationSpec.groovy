@@ -30,7 +30,7 @@ import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
-abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec implements RichConsoleStyling {
+abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator
@@ -158,8 +158,8 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(gradleHandle, '> :test > Executing test pkg.FailedTest')
-            assertHasWorkInProgress(gradleHandle, '> :test > Executing test pkg.OtherTest')
+            RichConsoleStyling.assertHasWorkInProgress(gradleHandle, '> :test > Executing test pkg.FailedTest')
+            RichConsoleStyling.assertHasWorkInProgress(gradleHandle, '> :test > Executing test pkg.OtherTest')
         }
 
         testExecution.release(FAILED_RESOURCE)

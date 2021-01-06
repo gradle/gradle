@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-abstract class AbstractConsoleConfigurationProgressFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
+abstract class AbstractConsoleConfigurationProgressFunctionalTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     GradleHandle gradle
@@ -156,7 +156,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
 
     void assertHasWorkInProgress(String message) {
         ConcurrentTestUtil.poll {
-            assertHasWorkInProgress(gradle, "> " + message)
+            RichConsoleStyling.assertHasWorkInProgress(gradle, "> " + message)
         }
     }
 }
