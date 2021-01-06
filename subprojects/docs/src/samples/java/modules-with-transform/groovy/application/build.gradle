@@ -29,10 +29,6 @@ extraJavaModuleInfo {
 }
 // end::extraModuleInfo[]
 
-java {
-    modularity.inferModulePath = true
-}
-
 tasks.named('compileJava') {
     options.javaModuleVersion = provider { project.version }
 }

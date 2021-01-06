@@ -18,7 +18,6 @@ package org.gradle.api.artifacts.result;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -99,6 +98,5 @@ public interface ResolutionResult {
      *
      * @since 5.6
      */
-    @Incubating
     AttributeContainer getRequestedAttributes();
 }

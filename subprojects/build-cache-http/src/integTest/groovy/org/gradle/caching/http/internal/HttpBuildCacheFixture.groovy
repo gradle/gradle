@@ -16,34 +16,23 @@
 
 package org.gradle.caching.http.internal
 
-import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
-import org.junit.Before
 import org.junit.Rule
 
-@SelfType(AbstractIntegrationSpec)
-trait HttpBuildCacheFixture {
-    private HttpBuildCacheServer httpBuildCacheServer
+class HttpBuildCacheFixture extends AbstractIntegrationSpec {
 
     @Rule
-    HttpBuildCacheServer getHttpBuildCacheServer() {
-        return httpBuildCacheServer
-    }
-
-    @Before
-    void createBuildCache() {
-        httpBuildCacheServer = new HttpBuildCacheServer(temporaryFolder)
-    }
+    HttpBuildCacheServer httpBuildCacheServer = new HttpBuildCacheServer(temporaryFolder)
 
     String withHttpBuildCacheServer() {
         httpBuildCacheServer.start()
         return useHttpBuildCache(httpBuildCacheServer.uri)
     }
 
-    String useHttpBuildCache(URI uri) {
+    static String useHttpBuildCache(URI uri) {
         """
-            buildCache {  
+            buildCache {
                 local {
                     enabled = false
                 }

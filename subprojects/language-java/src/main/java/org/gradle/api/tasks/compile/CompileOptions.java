@@ -501,7 +501,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getJavaModuleVersion() {
@@ -513,7 +512,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getJavaModuleMainClass() {

@@ -198,4 +198,18 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
         }
     }
 
+    def "a required module cannot be found if module path inference is turned off"() {
+        given:
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        buildFile << """
+            java.modularity.inferModulePath = false
+        """
+
+        when:
+        fails ':compileJava'
+
+        then:
+        failure.assertHasErrorOutput 'module-info.java:1: error: module not found: moda'
+    }
 }

@@ -4,9 +4,6 @@ plugins {
 repositories {
     mavenCentral()
 }
-java {
-    modularity.inferModulePath.set(true)
-}
 
 // tag::patchArgs[]
 val moduleName = "org.gradle.sample"

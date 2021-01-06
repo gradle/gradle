@@ -18,7 +18,6 @@ package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -26,6 +25,7 @@ import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -228,7 +228,6 @@ public class CreateStartScripts extends ConventionTask {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMainModule() {
@@ -242,7 +241,6 @@ public class CreateStartScripts extends ConventionTask {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMainClass() {
@@ -252,7 +250,7 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The main class name used to start the Java application.
      */
-    @Internal
+    @ReplacedBy("mainClass")
     @Nullable
     public String getMainClassName() {
         return mainClass.getOrNull();
@@ -312,7 +310,6 @@ public class CreateStartScripts extends ConventionTask {
      *
      * @since 6.4
      */
-    @Incubating
     @Nested
     public ModularitySpec getModularity() {
         return modularity;

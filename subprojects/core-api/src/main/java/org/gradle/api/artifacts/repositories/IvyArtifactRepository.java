@@ -17,7 +17,6 @@ package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 
 import java.net.URI;
@@ -203,7 +202,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *
      * @since 6.4
      */
-    @Incubating
     MetadataSources getMetadataSources();
 
     /**
@@ -245,7 +243,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          *
          * @since 6.4
          */
-        @Incubating
         boolean isGradleMetadataEnabled();
 
         /**
@@ -253,7 +250,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          *
          * @since 6.4
          */
-        @Incubating
         boolean isIvyDescriptorEnabled();
 
         /**
@@ -261,7 +257,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          *
          * @since 6.4
          */
-        @Incubating
         boolean isArtifactEnabled();
 
         /**
@@ -269,7 +264,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          *
          * @since 6.4
          */
-        @Incubating
         boolean isIgnoreGradleMetadataRedirectionEnabled();
     }
 

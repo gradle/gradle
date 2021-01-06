@@ -340,6 +340,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.distribution.Distribution",
+            "member": "Method org.gradle.api.distribution.Distribution.getBaseName()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.distribution.Distribution",
+            "member": "Method org.gradle.api.distribution.Distribution.setBaseName(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.tooling.model.idea.IdeaContentRoot",
             "member": "Method org.gradle.tooling.model.idea.IdeaContentRoot.getGeneratedSourceDirectories()",
             "acceptation": "Deprecated API marked for removal in Gradle 7.0",

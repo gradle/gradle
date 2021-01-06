@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.application.scripts;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -55,7 +53,6 @@ public interface JavaAppStartScriptGenerationDetails {
      *
      * @since 6.4
      */
-    @Incubating
     List<String> getModulePath();
 
     /**
