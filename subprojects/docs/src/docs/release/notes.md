@@ -270,6 +270,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - org.gradle.kotlin.dsl.ExtensionContainer.findByType(): T?
     - org.gradle.kotlin.dsl.ExtensionContainer.configure(noinline action: T.() -> Unit)
     - org.gradle.kotlin.dsl.ArtifactHandler.invoke(configuration: ArtifactHandlerScope.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.ScriptHandler.dependencyLocking(configuration: DependencyLockingHandler.() -> Unit): Unit
 
 - org.gradle.api.distribution.Distribution.getDistributionBaseName()
 
