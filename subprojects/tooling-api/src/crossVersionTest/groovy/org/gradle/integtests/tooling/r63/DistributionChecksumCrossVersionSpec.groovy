@@ -36,7 +36,7 @@ class DistributionChecksumCrossVersionSpec extends ToolingApiSpecification {
         file('gradle/wrapper/gradle-wrapper.properties') << 'distributionSha256Sum=bad'
 
         when:
-        def connector = connector()
+        def connector = this.connector()
         connector.useBuildDistribution()
         withConnection(connector) { ProjectConnection connection ->
             connection.newBuild().forTasks("help").run()
