@@ -39,7 +39,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     TestFile rootSingle
     TestFile rootMulti
 
-    void setup() {
+    def setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
