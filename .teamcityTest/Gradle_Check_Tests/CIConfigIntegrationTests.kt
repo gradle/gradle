@@ -134,7 +134,7 @@ class CIConfigIntegrationTests {
         }
 
         fun assertCorrectParameters(subProjectName: String, functionalTests: List<FunctionalTest>) {
-            functionalTests.forEach { assertTrue(it.getGradleTasks().startsWith("clean $subProjectName")) }
+            functionalTests.forEach { assertTrue(it.getGradleTasks().startsWith("clean javaToolchains $subProjectName")) }
             if (functionalTests.size == 1) {
                 assertFalse(functionalTests[0].getGradleParams().contains("-PincludeTestClasses"))
                 assertFalse(functionalTests[0].getGradleParams().contains("-PexcludeTestClasses"))
@@ -160,7 +160,7 @@ class CIConfigIntegrationTests {
         fun assertProjectAreSplitByGradleVersionCorrectly(testType: TestType, functionalTests: List<FunctionalTest>) {
             CROSS_VERSION_BUCKETS.forEachIndexed { index: Int, startEndVersion: List<String> ->
                 assertTrue(functionalTests[index].name.contains("(${startEndVersion[0]} <= gradle <${startEndVersion[1]})"))
-                assertEquals("clean ${testType}Test", functionalTests[index].getGradleTasks())
+                assertEquals("clean javaToolchains ${testType}Test", functionalTests[index].getGradleTasks())
                 assertTrue(functionalTests[index].getGradleParams().contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}"))
             }
         }
