@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar
@@ -41,7 +40,6 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
     def "Marks modules on classpath as such"() {
         given:
         publishJavaModule('jmodule')
@@ -55,9 +53,6 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
             }
             repositories {
                 maven { url "${mavenRepo.uri}" }
-            }
-            $configLocation {
-                modularity.inferModulePath.set(true)
             }
 
             dependencies {
@@ -86,8 +81,5 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
         libraries[1].assertHasAttribute('module', 'true')
         libraries[2].jarName == 'jlib-1.0.jar'
         libraries[2].assertHasNoAttribute('module', 'true')
-
-        where:
-        configLocation << ['java', 'tasks.compileJava']
     }
 }

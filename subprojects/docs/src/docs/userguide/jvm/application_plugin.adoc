@@ -88,17 +88,6 @@ If you run the modular application directly using the `java` command, it is then
 
 You can also look at a link:../samples/sample_java_modules_multi_project.html[ready made example] that includes a modular application as part of a multi-project.
 
-[NOTE]
-====
-Java Module System support is an incubating feature and therefore you need to turn on _module path inference_ explicitly as shown below.
-====
-
-.Activate module path inference
-====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=inferModulePath]"]
-include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=inferModulePath]"]
-====
-
 [[sec:the_distribution]]
 == Building a distribution
 

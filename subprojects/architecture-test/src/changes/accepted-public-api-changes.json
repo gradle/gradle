@@ -340,6 +340,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.distribution.Distribution",
+            "member": "Method org.gradle.api.distribution.Distribution.getBaseName()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.distribution.Distribution",
+            "member": "Method org.gradle.api.distribution.Distribution.setBaseName(java.lang.String)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.invocation.Gradle",
             "member": "Method org.gradle.api.invocation.Gradle.buildStarted(groovy.lang.Closure)",
             "acceptation": "Removal of deprecated method",

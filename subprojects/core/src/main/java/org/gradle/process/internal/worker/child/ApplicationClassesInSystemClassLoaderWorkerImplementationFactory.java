@@ -91,7 +91,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
         List<File> workerMainClassPath = classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles();
 
-        execSpec.getMainModule().set("gradle.worker");
+        if (implementationModulePath != null) {
+            execSpec.getMainModule().set("gradle.worker");
+        }
         execSpec.getMainClass().set("worker." + GradleWorkerMain.class.getName());
 
         boolean useOptionsFile = shouldUseOptionsFile(execSpec);

@@ -17,7 +17,6 @@ package org.gradle.api.internal.std;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -147,19 +146,16 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
-    @Incubating
     public void endorseStrictVersions() {
         delegate.endorseStrictVersions();
     }
 
     @Override
-    @Incubating
     public void doNotEndorseStrictVersions() {
         delegate.doNotEndorseStrictVersions();
     }
 
     @Override
-    @Incubating
     public boolean isEndorsingStrictVersions() {
         return delegate.isEndorsingStrictVersions();
     }

@@ -186,7 +186,6 @@ object UserGuideLink {
             // "language-base" to "language_base_plugin.html",
             // "lifecycle-base" to "lifecycle_base_plugin.html",
 
-            "maven" to "maven_plugin.html",
             "maven-publish" to "publishing_maven.html",
 
             "microsoft-visual-cpp-compiler" to "native_software.html#native_binaries:tool_chain",
