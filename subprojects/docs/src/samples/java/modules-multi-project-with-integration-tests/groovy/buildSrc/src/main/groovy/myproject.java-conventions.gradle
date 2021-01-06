@@ -9,12 +9,6 @@ repositories {
     jcenter()
 }
 
-// tag::inferModulePath[]
-java {
-    modularity.inferModulePath = true
-}
-// end::inferModulePath[]
-
 def integrationTest = sourceSets.create('integrationTest')
 
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation)

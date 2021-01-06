@@ -437,7 +437,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      *
      * @since 6.4
      */
-    @Incubating
     @Nested
     public ModularitySpec getModularity() {
         return modularity;

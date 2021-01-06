@@ -130,11 +130,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
                 requires api;
             }
         """
-        file("impl/build.gradle") << """
-            compileJava {
-                modularity.inferModulePath.set(true)
-            }
-        """
         succeeds "impl:${language.compileTaskName}"
 
         when:

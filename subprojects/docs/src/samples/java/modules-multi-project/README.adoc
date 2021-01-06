@@ -31,14 +31,6 @@ In test execution, the modules are then treated as standard Java libraries with 
 Blackbox (e.g. integration) tests, which should also follow the encapsulation rules during test execution, can be written by turning the corresponding test sources set itself into a module by adding a `module-info.java`.
 This is shown in link:sample_java_modules_multi_project_with_integration_tests.html[this extended sample].
 
-As of Gradle 6.4, module support needs to be explicitly activated, which we do for all subprojects through a _convention plugin_ doing this:
-
-====
-
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=inferModulePath]"]
-include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=inferModulePath]"]
-====
-
 For more information, see link:{userManualPath}/java_library_plugin.html#sec:java_library_modular[Java Module support in the Java Library Plugin],
 link:{userManualPath}/application_plugin.html#sec:application_modular[Java Module support in the Application Plugin] and
 link:{userManualPath}/java_testing.html#sec:java_testing_modular[testing Java Modules].

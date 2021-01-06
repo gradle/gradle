@@ -6,14 +6,8 @@ plugins {
 
 version = '1.0.2'
 
-// tag::inferModulePath[]
-java {
-    modularity.inferModulePath = true
-}
-// end::inferModulePath[]
-
 // tag::applicationName-conf[]
-applicationName = 'my-app'
+application.applicationName = 'my-app'
 // end::applicationName-conf[]
 
 // tag::mainClass-conf[]

@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
+import spock.lang.Ignore
 
 import java.util.concurrent.TimeUnit
 
+@Ignore("https://github.com/gradle/gradle-private/issues/3255")
 class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
     PlayApp playApp = new BasicPlayApp(versionNumber)
 

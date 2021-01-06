@@ -11,9 +11,6 @@
                 <td>name</td>
             </tr>
             <tr>
-                <td>baseName</td>
-            </tr>
-            <tr>
                 <td>distributionBaseName</td>
             </tr>
             <tr>

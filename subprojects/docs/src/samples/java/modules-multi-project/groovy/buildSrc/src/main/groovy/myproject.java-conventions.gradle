@@ -9,12 +9,6 @@ repositories {
     jcenter()
 }
 
-// tag::inferModulePath[]
-java {
-    modularity.inferModulePath = true
-}
-// end::inferModulePath[]
-
 tasks.named("test") {
     useJUnitPlatform()
 }

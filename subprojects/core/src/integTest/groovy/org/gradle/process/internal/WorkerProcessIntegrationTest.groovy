@@ -85,7 +85,6 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         "ERROR"  | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.ERROR, "error log statement")  | "error log statement"
     }
 
-    @Unroll
     def "worker process respects log level setting"() {
         given:
         LoggingProcess loggingProcess = new LoggingProcess(new LogSerializableLogAction(LogLevel.INFO, "info log statement"))
