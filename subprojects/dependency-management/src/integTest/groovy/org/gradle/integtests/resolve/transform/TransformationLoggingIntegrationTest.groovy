@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -223,8 +224,8 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         then:
         block.waitForAllPendingCalls()
         poll {
-            assertHasWorkInProgress(build, "> Transforming lib1.jar (project :lib) with Red > Red lib1.jar")
-            assertHasWorkInProgress(build, "> Transforming lib2.jar (project :lib) with Red > Red lib2.jar")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> Transforming lib1.jar (project :lib) with Red > Red lib1.jar")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> Transforming lib2.jar (project :lib) with Red > Red lib2.jar")
         }
 
         block.releaseAll()
