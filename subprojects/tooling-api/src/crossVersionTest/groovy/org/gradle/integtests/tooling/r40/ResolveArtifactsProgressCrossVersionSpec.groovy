@@ -25,15 +25,19 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
-import org.junit.Rule
 
 @TargetGradleVersion(">=4.0")
 class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
-    @Rule
-    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
+    private RepositoryHttpServer server
 
     def setup() {
+        server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
+        server.before()
         toolingApi.requireIsolatedUserHome()
+    }
+
+    def cleanup() {
+        server.after()
     }
 
     private static String expectedDisplayName(String name, String extension, String version) {
@@ -285,7 +289,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
                 configurationWithDependency
                 configurationWithoutDependency
             }
-            
+
             dependencies {
                 configurationWithDependency "test:provider:1.0"
                 artifactTypes {
@@ -293,7 +297,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
                     jar { attributes.attribute(kind, "jar") }
                 }
             }
-            
+
             task resolve {
                 doLast {
                     configurations.${configuration}${artifactsAccessor}.each { }
