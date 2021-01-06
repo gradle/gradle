@@ -233,6 +233,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.ComponentVariantIdentifier
         - org.gradle.api.artifacts.maven.PomModuleDescriptor
         - org.gradle.api.artifacts.repositories.AuthenticationSupported.credentials(java.lang.Class<? extends org.gradle.api.credentials.Credentials>)
+        - org.gradle.jvm.JvmLibrary
+        - org.gradle.language.base.artifact.SourcesArtifact
+        - org.gradle.language.java.artifact.JavadocArtifact
 - Tooling API
     - Eclipse models
         - org.gradle.tooling.model.eclipse.EclipseRuntime
