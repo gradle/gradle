@@ -1312,6 +1312,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                          line.contains("java.nio.channels.CancelledKeyException")) {
                         i++;
                         i = skipStackTrace(lines, i);
+                    } else if (line.contains("com.amazonaws.http.IdleConnectionReaper")) {
+                        /*
+                        2021-01-05T08:15:51.329+0100 [DEBUG] [com.amazonaws.http.IdleConnectionReaper] Reaper thread:
+                        java.lang.InterruptedException: sleep interrupted
+	                        at java.base/java.lang.Thread.sleep(Native Method)
+	                        at com.amazonaws.http.IdleConnectionReaper.run(IdleConnectionReaper.java:188)
+                         */
+                        i++;
+                        i = skipStackTrace(lines, i);
                     } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
