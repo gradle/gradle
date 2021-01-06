@@ -153,6 +153,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileSystemLocationProperty.fileProvider
         - org.gradle.api.file.Directory.files
         - org.gradle.api.file.DirectoryProperty.files
+    - Miscellaneous
+        - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -226,7 +228,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - [Publishing](publishing_setup.html#publishing_components)
         - org.gradle.api.publish.Publication.withoutBuildIdentifier
         - org.gradle.api.publish.Publication.withBuildIdentifier
-    - Miscellaneous changes
+    - Miscellaneous
         - org.gradle.api.artifacts.result.ResolutionResult.getRequestedAttributes
         - org.gradle.api.artifacts.result.ResolvedComponentResult.getDependenciesForVariant
         - org.gradle.api.artifacts.result.ResolvedDependencyResult.getResolvedVariant
