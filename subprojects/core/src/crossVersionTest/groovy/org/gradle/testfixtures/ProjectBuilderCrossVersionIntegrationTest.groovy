@@ -26,14 +26,14 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
-import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
+import static org.gradle.util.TestPrecondition.JDK11_OR_EARLIER
 
 @Issue("GRADLE-3558")
-@TargetVersions(['2.0', '2.7']) // Pick first incompatible version and oldest version of Gradle 2.x. Avoid testing version range in favor of better coverage build performance.
-@Requires(JDK8_OR_EARLIER) // Versions < 2.10 fail to compile the plugin with Java 9 (Could not determine java version from '9-ea')
+@Requires(JDK11_OR_EARLIER)
+// Avoid testing version range in favor of better coverage build performance.
+@TargetVersions(['5.0', '6.8'])
 class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
-    public static final List<String> BROKEN_GRADLE_VERSIONS = ['3.0', '3.1']
     public static final String TEST_TASK_NAME = 'test'
 
     private final List<GradleExecuter> executers = []
@@ -42,27 +42,18 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         executers.each { it.cleanup() }
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
-        writeSourceFiles(false)
+        writeSourceFiles()
         expect:
-        run(TEST_TASK_NAME)
+        run TEST_TASK_NAME
     }
 
-    def "cannot apply plugin using ProjectBuilder in a test running with broken Gradle versions"() {
-        writeSourceFiles(true)
-        expect:
-        BROKEN_GRADLE_VERSIONS.each {
-            def executionFailure = createGradleExecutor(it, TEST_TASK_NAME).runWithFailure()
-            executionFailure.assertTestsFailed()
-            executionFailure.assertOutputContains('Caused by: java.lang.ClassNotFoundException at PluginTest.java:21')
-        }
-    }
-
-    private void writeSourceFiles(boolean forOldGradle) {
+    private void writeSourceFiles() {
         File repoDir = file('repo')
         publishHelloWorldPluginWithOldGradleVersion(repoDir)
-        writeConsumingProject(repoDir, forOldGradle)
+        writeConsumingProject(repoDir)
     }
 
     private void publishHelloWorldPluginWithOldGradleVersion(File repoDir) {
@@ -91,7 +82,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                 class HelloWorld extends DefaultTask {
                     @TaskAction
                     void printHelloWorld() {
-                        println 'Hello world!'
+                        System.out.println 'Hello world!'
                     }
                 }
             """
@@ -125,7 +116,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
     }
 
-    private void writeConsumingProject(File repoDir, boolean forOldGradle) {
+    private void writeConsumingProject(File repoDir) {
         file('src/test/java/org/gradle/consumer/PluginTest.java') << """
             package org.gradle.consumer;
 
@@ -158,9 +149,9 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             version = '1.0'
 
             dependencies {
-                ${forOldGradle? 'compile' : 'implementation'} gradleApi()
-                ${forOldGradle? 'compile' : 'implementation'} 'org.gradle:hello:1.0'
-                ${forOldGradle? 'testCompile' : 'testImplementation'} 'junit:junit:4.13'
+                'implementation' gradleApi()
+                'implementation' 'org.gradle:hello:1.0'
+                'testImplementation' 'junit:junit:4.13'
             }
 
             repositories {
