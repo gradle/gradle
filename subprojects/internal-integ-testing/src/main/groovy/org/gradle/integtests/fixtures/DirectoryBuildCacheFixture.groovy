@@ -26,24 +26,32 @@ trait DirectoryBuildCacheFixture {
 
     @Before
     void setupCacheDirectory() {
-        // Make sure cache dir is empty for every test execution
-        buildCache = new TestBuildCache(temporaryFolder.file("cache-dir").deleteDir().createDir())
-        settingsFile << buildCache.localCacheConfiguration()
+        // Spock 2 executes @Before after the setup() methods
+        // this is a workaround for tests that use this fixture from their setup() methods
+        if (buildCache == null) {
+            // Make sure cache dir is empty for every test execution
+            buildCache = new TestBuildCache(temporaryFolder.file("cache-dir").deleteDir().createDir())
+            settingsFile << buildCache.localCacheConfiguration()
+        }
     }
 
     def localCacheConfiguration() {
+        setupCacheDirectory()
         buildCache.localCacheConfiguration()
     }
 
     TestFile getCacheDir() {
+        setupCacheDirectory()
         buildCache.cacheDir
     }
 
     TestFile gcFile() {
+        setupCacheDirectory()
         buildCache.gcFile()
     }
 
     List<TestFile> listCacheFiles() {
+        setupCacheDirectory()
         buildCache.listCacheFiles()
     }
 }
