@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console.jvm
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -26,7 +25,7 @@ import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testC
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testableJavaProject
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.useTestNG
 
-class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
+class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrationSpec {
 
     private static final int MAX_WORKERS = 2
     private static final String SERVER_RESOURCE_1 = 'test-1'
