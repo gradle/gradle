@@ -64,4 +64,16 @@ enum class Os(
     fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
 
     fun asName() = name.toLowerCase().capitalize()
+
+    fun javaInstallationLocations(): String {
+        return escapeKeyValuePair("-Porg.gradle.java.installations.paths", enumValues<JvmVersion>().flatMap { version ->
+            enumValues<JvmVendor>().map { vendor ->
+                asPlaceholder(version, vendor)
+            }
+        }.joinToString(","))
+    }
+
+    fun asPlaceholder(jvmVersion: JvmVersion, vendor: JvmVendor): String {
+        return "%${name.toLowerCase()}.$jvmVersion.$vendor.64bit%"
+    }
 }
