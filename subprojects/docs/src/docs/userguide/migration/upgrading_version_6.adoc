@@ -36,6 +36,13 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_7.0]]
 == Upgrading from 6.8
 
+=== Changes in the IDE integration
+
+===== Changes in the IDEA model
+
+The `getGeneratedSourceDirectories()` and `getGeneratedTestDirectories()` methods are removed from the `IdeaContentRoot` interface.
+Clients should replace these invocations with `getSourceDirectories()` and `getTestDirectories()` and use the `isGenerated()` method on the returned instances.
+
 === Potential breaking changes
 
 ==== Removal of `compile` and `runtime` configurations

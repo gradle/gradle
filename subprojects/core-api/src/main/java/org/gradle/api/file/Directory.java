@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
@@ -90,6 +89,5 @@ public interface Directory extends FileSystemLocation {
      * @return The file collection.
      * @since 6.0
      */
-    @Incubating
     FileCollection files(Object... paths);
 }

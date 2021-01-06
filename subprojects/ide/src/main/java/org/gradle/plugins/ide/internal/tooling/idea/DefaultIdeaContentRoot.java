@@ -48,20 +48,6 @@ public class DefaultIdeaContentRoot implements Serializable {
         return this;
     }
 
-    public Set<DefaultIdeaSourceDirectory> getGeneratedSourceDirectories() {
-        return generated(sourceDirectories);
-    }
-
-    private Set<DefaultIdeaSourceDirectory> generated(Set<DefaultIdeaSourceDirectory> directories) {
-        Set<DefaultIdeaSourceDirectory> generated = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-        for (DefaultIdeaSourceDirectory sourceDirectory : directories) {
-            if (sourceDirectory.isGenerated()) {
-                generated.add(sourceDirectory);
-            }
-        }
-        return generated;
-    }
-
     public Set<DefaultIdeaSourceDirectory> getTestDirectories() {
         return testDirectories;
     }
@@ -71,9 +57,6 @@ public class DefaultIdeaContentRoot implements Serializable {
         return this;
     }
 
-    public Set<DefaultIdeaSourceDirectory> getGeneratedTestDirectories() {
-        return generated(testDirectories);
-    }
     public Set<DefaultIdeaSourceDirectory> getResourceDirectories() {
         return resourceDirectories;
     }
