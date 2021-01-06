@@ -90,6 +90,11 @@ The `getBaseName()` and `setBaseName()` methods were removed from the `Distribut
 Registering a task with the `AbstractTask` type or with a type extending `AbstractTask` was deprecated in Gradle 6.5 and is now an error in Gradle 7.0.
 You can use link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask] instead.
 
+==== Removal of `BuildListener.buildStarted(Gradle)`
+
+`BuildListener.buildStarted(Gradle)` was deprecated in Gradle 6.0 and is now removed in Gradle 7.0.
+Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings-org.gradle.api.initialization.Settings-[BuildListener.beforeSettings(Settings)] instead.
+
 ==== `modularity.inferModulePath` defaults to 'true'
 
 <<java_library_plugin.adoc#sec:java_library_modular,Compiling>>,

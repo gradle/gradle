@@ -50,7 +50,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     // we don't decorate everything in BuildListener, just projectsLoaded/projectsEvaluated
     private static final ImmutableSet<String> UNDECORATED_METHOD_NAMES = ImmutableSet.of(
-        "buildStarted",
         "beforeSettings",
         "settingsEvaluated",
         "buildFinished"

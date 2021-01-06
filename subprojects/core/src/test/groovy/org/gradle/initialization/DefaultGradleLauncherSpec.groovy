@@ -75,7 +75,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
-        expectBuildListenerCallbacks()
         DefaultGradleLauncher gradleLauncher = launcher()
         GradleInternal result = gradleLauncher.executeTasks()
 
@@ -90,7 +89,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
-        expectBuildListenerCallbacks()
         DefaultGradleLauncher gradleLauncher = launcher()
         GradleInternal result = gradleLauncher.executeTasks()
 
@@ -102,7 +100,6 @@ class DefaultGradleLauncherSpec extends Specification {
         when:
         isRootBuild()
         expectSettingsBuilt()
-        expectBuildListenerCallbacks()
 
         and:
         1 * buildConfigurerMock.prepareProjects(gradleMock)
@@ -118,7 +115,6 @@ class DefaultGradleLauncherSpec extends Specification {
         when:
         isRootBuild()
         expectSettingsBuilt()
-        expectBuildListenerCallbacks()
 
         and:
         1 * buildConfigurerMock.prepareProjects(gradleMock)
@@ -134,26 +130,10 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
-        expectBuildListenerCallbacks()
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()
         gradleLauncher.executeTasks()
-    }
-
-    void testNotifiesListenerOnBuildListenerFailure() {
-        given:
-        isRootBuild()
-        1 * buildBroadcaster.buildStarted(gradleMock) >> { throw failure }
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
-
-        when:
-        DefaultGradleLauncher gradleLauncher = launcher()
-        gradleLauncher.executeTasks()
-
-        then:
-        def t = thrown RuntimeException
-        t == transformedException
     }
 
     void testNotifiesListenerOnSettingsInitWithFailure() {
@@ -161,7 +141,6 @@ class DefaultGradleLauncherSpec extends Specification {
         isRootBuild()
 
         and:
-        1 * buildBroadcaster.buildStarted(gradleMock)
         1 * settingsPreparerMock.prepareSettings(gradleMock) >> { throw failure }
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
@@ -182,7 +161,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectTasksRunWithFailure(failure)
 
         and:
-        1 * buildBroadcaster.buildStarted(gradleMock)
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
@@ -205,7 +183,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectTasksRunWithFailure(failure, failure2)
 
         and:
-        1 * buildBroadcaster.buildStarted(gradleMock)
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
@@ -226,7 +203,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectTasksRun()
 
         and:
-        1 * buildBroadcaster.buildStarted(gradleMock)
         1 * buildBroadcaster.buildFinished({ it.failure == null }) >> { throw failure }
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
 
@@ -254,7 +230,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectTasksRunWithFailure(failure, failure2)
 
         and:
-        1 * buildBroadcaster.buildStarted(gradleMock)
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
         1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2, failure3] }) >> finalException
@@ -294,10 +269,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void expectSettingsBuilt() {
         1 * settingsPreparerMock.prepareSettings(gradleMock)
-    }
-
-    private void expectBuildListenerCallbacks() {
-        1 * buildBroadcaster.buildStarted(gradleMock)
     }
 
     private void expectTaskGraphBuilt() {
