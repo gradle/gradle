@@ -245,6 +245,17 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
 - Java Ecosystem
+    - Java plugins
+        - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
+        - org.gradle.api.plugins.FeatureSpec.withSourcesJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withJavadocJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withSourcesJar()
+        - org.gradle.api.tasks.SourceSet.getCompileOnlyApiConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocJarTaskName()
+        - org.gradle.api.tasks.SourceSet.getJavadocTaskName()
+        - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
     - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
