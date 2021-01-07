@@ -279,6 +279,24 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainClass()
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
+- [Kotlin DSL](userguide/kotlin_dsl.html)
+    - org.gradle.kotlin.dsl.KotlinScript
+    - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.KotlinSettingsScript.pluginManagement(block: PluginManagementSpec.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.ExtensionContainer.add(name: String, extension: T): Unit
+    - org.gradle.kotlin.dsl.ExtensionContainer.create(name: String, vararg constructionArguments: Any): T
+    - org.gradle.kotlin.dsl.ExtensionContainer.getByType(): T
+    - org.gradle.kotlin.dsl.ExtensionContainer.findByType(): T?
+    - org.gradle.kotlin.dsl.ExtensionContainer.configure(noinline action: T.() -> Unit)
+    - org.gradle.kotlin.dsl.ArtifactHandler.invoke(configuration: ArtifactHandlerScope.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.ScriptHandler.dependencyLocking(configuration: DependencyLockingHandler.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
+    - org.gradle.tooling.model.kotlin.dsl.EditorPosition
+    - org.gradle.tooling.model.kotlin.dsl.EditorReport
+    - org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 - org.gradle.api.distribution.Distribution.getDistributionBaseName()
 

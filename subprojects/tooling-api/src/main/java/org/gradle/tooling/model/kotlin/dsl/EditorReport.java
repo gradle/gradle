@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 
@@ -26,7 +24,6 @@ import javax.annotation.Nullable;
  *
  * @since 6.0
  */
-@Incubating
 public interface EditorReport {
 
     EditorReportSeverity getSeverity();
