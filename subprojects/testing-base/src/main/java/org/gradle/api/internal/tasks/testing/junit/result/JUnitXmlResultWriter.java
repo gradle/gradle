@@ -352,6 +352,10 @@ public class JUnitXmlResultWriter {
 
     private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {
         List<TestFailure> failures = methodResult.getFailures();
+        if (failures.isEmpty()) {
+            // This can happen with a failing engine. For now we just ignore this.
+            return Collections.emptyList();
+        }
         final TestFailure firstFailure = failures.get(0);
         return Iterables.transform(failures, new Function<TestFailure, TestCaseExecution>() {
             @Override

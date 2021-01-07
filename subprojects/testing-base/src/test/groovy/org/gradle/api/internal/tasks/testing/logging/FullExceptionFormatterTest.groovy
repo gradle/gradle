@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
 import spock.lang.Specification
 import org.gradle.api.tasks.testing.logging.TestLogging
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
@@ -180,7 +181,7 @@ class FullExceptionFormatterTest extends Specification {
     def "retains stacktrace for inherited test classes"() {
         testLogging.getShowStackTraces() >> true
         testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY)
-        testDescriptor.className = "UnknownClass"
+        testDescriptor.className = JUnitSupport.UNKNOWN_CLASS
 
         def exception = new Exception("ouch")
         exception.stackTrace = createGroovyTrace()

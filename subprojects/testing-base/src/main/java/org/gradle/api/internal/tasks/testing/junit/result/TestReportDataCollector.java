@@ -131,7 +131,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     @Override
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
-        String className = testDescriptor.getClassName();
+        String className = findEnclosingClassName(testDescriptor);
         if (className == null) {
             pendingOutputEvents.put(((TestDescriptorInternal) testDescriptor).getId(), outputEvent);
             return;
@@ -151,5 +151,16 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         } else {
             outputWriter.onOutput(classResult.getId(), methodResult.getId(), outputEvent);
         }
+    }
+
+    private static String findEnclosingClassName(TestDescriptor testDescriptor) {
+        if (testDescriptor == null) {
+            return null;
+        }
+        String className = testDescriptor.getClassName();
+        if (className != null) {
+            return className;
+        }
+        return findEnclosingClassName(testDescriptor.getParent());
     }
 }

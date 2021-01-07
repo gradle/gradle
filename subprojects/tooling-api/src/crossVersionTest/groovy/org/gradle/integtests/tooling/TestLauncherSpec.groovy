@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -26,8 +27,11 @@ import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.TestLauncher
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
+import org.gradle.tooling.events.test.JvmTestKind
+import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -113,7 +117,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         true
     }
 
-    private static boolean optionalMatch(String actual, String requested) {
+    private static boolean matchIfPresent(String actual, String requested) {
         if (requested == null) {
             return true
         }
@@ -129,7 +133,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         def descriptorByClassAndMethod = descriptors.findAll {
             it.className == className &&
                 it.methodName == methodName &&
-                optionalMatch(it.displayName, displayName)
+                matchIfPresent(it.displayName, displayName)
         }
         if (taskpath == null) {
             return descriptorByClassAndMethod
@@ -268,4 +272,165 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         """
     }
 
+    void jvmTestEvents(@DelegatesTo(value = TestEventsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> assertionSpec) {
+        DefaultTestEventsSpec spec = new DefaultTestEventsSpec()
+        assertionSpec.delegate = spec
+        assertionSpec.resolveStrategy = Closure.DELEGATE_FIRST
+        assertionSpec()
+        def remainingEvents = spec.testEvents - spec.verifiedEvents
+        if (remainingEvents) {
+            ErrorMessageBuilder err = new ErrorMessageBuilder()
+            err.title("The following test events were received but not verified")
+            remainingEvents.each { err.candidate("${it} : Kind=${it.jvmTestKind} suiteName=${it.suiteName} className=${it.className} methodName=${it.methodName} displayName=${it.displayName}") }
+            throw err.build()
+        }
+    }
+
+    interface TestEventsSpec {
+        void task(String path, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec)
+    }
+
+    interface TestEventSpec {
+        void displayName(String displayName)
+
+        void suite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
+
+        void testClass(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
+
+        void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
+    }
+
+    class DefaultTestEventsSpec implements TestEventsSpec {
+        final List<JvmTestOperationDescriptor> testEvents = events.tests.collect { (JvmTestOperationDescriptor) it.descriptor }
+        final Set<OperationDescriptor> verifiedEvents = []
+
+        @Override
+        void task(String path, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec) {
+            def task = testEvents.find {
+                it.jvmTestKind == JvmTestKind.SUITE &&
+                    (it.parent instanceof TaskOperationDescriptor) &&
+                    it.parent.taskPath == path
+            }
+            if (task == null) {
+                throw new AssertionError("Expected to find a test task $path but none was found")
+            }
+            DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, rootSpec)
+        }
+    }
+
+    @CompileStatic
+    static class DefaultTestEventSpec implements TestEventSpec {
+        private final List<JvmTestOperationDescriptor> testEvents
+        private final Set<OperationDescriptor> verifiedEvents
+        private final OperationDescriptor parent
+        private String displayName
+
+        static void assertSpec(OperationDescriptor descriptor, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            verifiedEvents.add(descriptor)
+            DefaultTestEventSpec childSpec = new DefaultTestEventSpec(descriptor, testEvents, verifiedEvents)
+            spec.delegate = childSpec
+            spec.resolveStrategy = Closure.DELEGATE_FIRST
+            spec()
+            childSpec.validate()
+        }
+
+        DefaultTestEventSpec(OperationDescriptor parent, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents) {
+            this.parent = parent
+            this.testEvents = testEvents
+            this.verifiedEvents = verifiedEvents
+        }
+
+        @Override
+        void displayName(String displayName) {
+            this.displayName = displayName
+        }
+
+        private static String normalizeExecutor(String name) {
+            if (name.startsWith("Gradle Test Executor")) {
+                return "Gradle Test Executor"
+            }
+            return name
+        }
+
+        @Override
+        void suite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def child = testEvents.find { it.parent == parent && it.jvmTestKind == JvmTestKind.SUITE && normalizeExecutor(it.suiteName) == name }
+            if (child == null) {
+                failWith("test suite", name)
+            }
+            assertSpec(child, testEvents, verifiedEvents, spec)
+        }
+
+        @Override
+        void testClass(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def child = testEvents.find {
+                it.parent == parent &&
+                    it.jvmTestKind == JvmTestKind.SUITE &&
+                    it.suiteName == null &&
+                    it.className == name
+            }
+            if (child == null) {
+                failWith("test class", name)
+            }
+            assertSpec(child, testEvents, verifiedEvents, spec)
+        }
+
+        @Override
+        void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def child = testEvents.find {
+                it.parent == parent &&
+                    it.jvmTestKind == JvmTestKind.ATOMIC &&
+                    it.suiteName == null &&
+                    it.name == name
+            }
+            if (child == null) {
+                failWith("test", name)
+            }
+            assertSpec(child, testEvents, verifiedEvents, spec)
+        }
+
+        private void failWith(String what, String name) {
+            ErrorMessageBuilder err = new ErrorMessageBuilder()
+            def remaining = testEvents.findAll { it.parent == parent && !verifiedEvents.contains(it) }
+            if (remaining) {
+                err.title("Expected to find a $what named $name under ${parent.displayName} and none was found. Possible events are:")
+                remaining.each {
+                    err.candidate("${it} : Kind=${it.jvmTestKind} suiteName=${it.suiteName} className=${it.className} methodName=${it.methodName} displayName=${it.displayName}")
+                }
+            } else {
+                err.title("Expected to find a $what named $name under ${parent.displayName} and none was found. There are no more events available for this parent.")
+            }
+            throw err.build()
+        }
+
+        void validate() {
+            if (displayName != null) {
+                assert displayName == parent.displayName
+            }
+        }
+    }
+
+    @CompileStatic
+    static class ErrorMessageBuilder {
+        private final StringBuilder builder = new StringBuilder()
+        boolean inCandidates = false
+
+
+        void title(String title) {
+            builder.append(title)
+        }
+
+        void candidate(String candidate) {
+            if (!inCandidates) {
+                builder.append(":\n")
+            }
+            inCandidates = true
+            builder.append("   - ").append(candidate).append("\n")
+        }
+
+        AssertionError build() {
+            new AssertionError(builder)
+        }
+
+    }
 }
