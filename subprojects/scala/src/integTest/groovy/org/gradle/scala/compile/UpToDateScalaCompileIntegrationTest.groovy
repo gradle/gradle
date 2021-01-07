@@ -16,10 +16,10 @@
 
 package org.gradle.scala.compile
 
+import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -63,7 +63,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         '2.11.12'       | '1.2.0'
         '2.12.6'        | '1.2.5'
         defaultScalaVersion = '2.11.12'
-        defaultZincVersion = DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
+        defaultZincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
         changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'
     }
 
@@ -73,7 +73,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
 
-        buildScript(scalaProjectBuildScript(DefaultScalaToolProvider.DEFAULT_ZINC_VERSION, '2.12.6'))
+        buildScript(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, '2.12.6'))
         when:
         executer.withJavaHome(jdk8.javaHome)
         run 'compileScala'

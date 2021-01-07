@@ -459,6 +459,363 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getScalaPlatform()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setScalaPlatform(org.gradle.language.scala.ScalaPlatform)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+
+
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Class org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Class org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Class org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getAnalysisFile()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getPublishedCode()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaForkOptions",
+            "member": "Class org.gradle.api.tasks.scala.ScalaForkOptions",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaForkOptions",
+            "member": "Constructor org.gradle.api.tasks.scala.ScalaForkOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Field LOGGER",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.compile()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.createSpec()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisFiles()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisMappingFile()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getCompiler(org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getJvmVersion()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getScalaCompileOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },{
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Constructor org.gradle.language.scala.tasks.AbstractScalaCompile(org.gradle.language.scala.tasks.BaseScalaCompileOptions)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getAdditionalParameters()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getDebugLevel()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getEncoding()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getForkOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getIncrementalOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getLoggingLevel()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getLoggingPhases()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isDeprecation()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isFailOnError()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isForce()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isListFiles()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isOptimize()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isUnchecked()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setAdditionalParameters(java.util.List)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setDebugLevel(java.lang.String)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setDeprecation(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setEncoding(java.lang.String)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setFailOnError(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForce(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForkOptions(org.gradle.api.tasks.scala.ScalaForkOptions)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setIncrementalOptions(org.gradle.api.tasks.scala.IncrementalCompileOptions)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setListFiles(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setLoggingLevel(java.lang.String)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setLoggingPhases(java.util.List)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setOptimize(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setUnchecked(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Constructor org.gradle.language.scala.tasks.BaseScalaCompileOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
         }
     ]
 }

@@ -18,12 +18,10 @@ package org.gradle.language.fixtures
 
 import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
-import org.gradle.language.java.JavaSourceSet
 import org.gradle.test.fixtures.file.TestFile
 
 class TestJavaComponent extends IncrementalTestJvmComponent{
     String languageName = "java"
-    String sourceSetTypeName = JavaSourceSet.class.name
 
     List<JvmSourceFile> sources = [
         new JvmSourceFile("compile/test", "Person.java", '''

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.provider.Property;
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
 import javax.inject.Inject;
 
@@ -28,7 +28,7 @@ public class DefaultScalaPluginExtension implements ScalaPluginExtension {
 
     @Inject
     public DefaultScalaPluginExtension(ObjectFactory objectFactory) {
-        this.zincVersion = objectFactory.property(String.class).value(DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+        this.zincVersion = objectFactory.property(String.class).value(ScalaBasePlugin.DEFAULT_ZINC_VERSION);
     }
 
     @Override
