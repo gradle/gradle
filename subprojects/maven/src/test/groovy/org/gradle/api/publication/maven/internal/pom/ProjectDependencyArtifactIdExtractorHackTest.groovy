@@ -42,18 +42,4 @@ class ProjectDependencyArtifactIdExtractorHackTest extends AbstractProjectBuilde
         extractor.extract() == "changed"
     }
 
-    def "artifact ID defaults to project name if Ivy repository is configured"() {
-        project.pluginManager.apply(BasePlugin)
-        project.archivesBaseName = "changed"
-
-        project.uploadArchives {
-            repositories {
-                ivy {}
-            }
-        }
-
-        expect:
-        extractor.extract() == project.name
-    }
-
 }

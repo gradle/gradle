@@ -16,20 +16,11 @@
 
 package org.gradle.api.publication.maven.internal.pom;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.apache.maven.project.MavenProject;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.maven.MavenDeployer;
-import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.plugins.BasePluginConvention;
-import org.gradle.api.tasks.Upload;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * Given a project dependency, determines the artifact ID that the depended-on project
@@ -50,57 +41,8 @@ class ProjectDependencyArtifactIdExtractorHack {
     }
 
     public String extract() {
-        Collection<Upload> tasks = project.getTasks().withType(Upload.class);
-        Collection<ArtifactRepository> repositories = getRepositories(tasks);
-        if (!onlyContainsMavenResolvers(repositories)) {
-            return project.getName();
-        }
-
-        Collection<MavenDeployer> deployers = getMavenDeployers(repositories);
-        Set<String> artifactIds = getArtifactIds(deployers);
-        if (artifactIds.size() == 1) {
-            String artifactId = artifactIds.iterator().next();
-            if (artifactId != null && !artifactId.equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID)) {
-                return artifactId;
-            }
-        }
         String baseName = getArchivesBaseName();
         return baseName != null ? baseName : project.getName();
-    }
-
-    private Collection<ArtifactRepository> getRepositories(Collection<Upload> tasks) {
-        Collection<ArtifactRepository> result = Lists.newArrayList();
-        for (Upload task : tasks) {
-            result.addAll(task.getRepositories());
-        }
-        return result;
-    }
-
-    private boolean onlyContainsMavenResolvers(Collection<ArtifactRepository> repositories) {
-        for (ArtifactRepository repository : repositories) {
-            if (!(repository instanceof MavenResolver)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private Collection<MavenDeployer> getMavenDeployers(Collection<ArtifactRepository> repositories) {
-        Collection<MavenDeployer> result = Lists.newArrayList();
-        for (ArtifactRepository repository : repositories) {
-            if (repository instanceof MavenDeployer) {
-                result.add((MavenDeployer) repository);
-            }
-        }
-        return result;
-    }
-
-    private Set<String> getArtifactIds(Collection<MavenDeployer> deployers) {
-        Set<String> result = Sets.newHashSet();
-        for (MavenDeployer deployer : deployers) {
-            result.add(deployer.getPom().getArtifactId());
-        }
-        return result;
     }
 
     @Nullable
