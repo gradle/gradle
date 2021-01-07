@@ -155,6 +155,12 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.DirectoryProperty.files
     - Miscellaneous
         - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
+        - org.gradle.api.JavaVersion.VERSION_15
+        - org.gradle.api.JavaVersion.VERSION_16
+        - org.gradle.api.JavaVersion.VERSION_17
+        - org.gradle.api.JavaVersion.isJava12
+        - org.gradle.api.JavaVersion.isJava12Compatible
+        - org.gradle.api.JavaVersion.isCompatibleWith
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
