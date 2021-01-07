@@ -74,6 +74,10 @@ abstract class ToolingApiSpecification extends Specification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
+    String getReleasedGradleVersion() {
+        return targetDist.version.baseVersion.version
+    }
+
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
