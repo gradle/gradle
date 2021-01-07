@@ -693,13 +693,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "test-annotation-generator",
-    "name": "test-annotation-generator",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "test-kit",
     "name": "test-kit",
     "unitTests": true,

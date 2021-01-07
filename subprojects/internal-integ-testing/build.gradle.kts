@@ -1,11 +1,10 @@
-import java.util.Properties
+import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.tasks.GenerateLanguageAnnotations
+import java.util.Properties
 
 plugins {
     id("gradlebuild.internal.java")
 }
-
-val generatorRuntime by configurations.creating
 
 dependencies {
     api(libs.jettyWebApp) {
@@ -87,8 +86,6 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-core"))
-
-    (generatorRuntime)(project(":test-annotation-generator"))
 }
 
 classycle {
@@ -110,17 +107,13 @@ val copyAgpVersionsInfo by tasks.registering(Copy::class) {
 }
 
 val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations::class) {
-    classpath.setFrom(generatorRuntime)
+    classpath.from(configurations.integTestDistributionRuntimeClasspath)
     packageName.set("org.gradle.integtests.fixtures")
     destDir.set(layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main"))
 }
 
 sourceSets.main {
-    withConvention(GroovySourceSet::class) {
-        groovy {
-            srcDir(generateLanguageAnnotations.flatMap { it.destDir })
-        }
-    }
+    groovy.srcDir(generateLanguageAnnotations.flatMap { it.destDir })
     output.dir(prepareVersionsInfo.map { it.destFile.get().asFile.parentFile })
     output.dir(copyAgpVersionsInfo)
 }

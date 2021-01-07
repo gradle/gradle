@@ -141,7 +141,6 @@ include("smoke-test")
 include("performance")
 include("build-scan-performance")
 include("configuration-cache-report")
-include("test-annotation-generator")
 
 rootProject.name = "gradle"
 

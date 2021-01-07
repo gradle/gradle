@@ -16,6 +16,7 @@
 
 package gradlebuild.integrationtests.tasks
 
+import gradlebuild.integrationtests.action.AnnotationGeneratorWorkAction
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -25,16 +26,11 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.process.ExecOperations
-import org.gradle.workers.WorkAction
-import org.gradle.workers.WorkParameters
+import org.gradle.kotlin.dsl.submit
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
 
-/**
- * Executes the annotation generation logic from the `:test-annotation-generator` project.
- */
 @CacheableTask
 abstract class GenerateLanguageAnnotations : DefaultTask() {
     @get:Inject
@@ -52,34 +48,10 @@ abstract class GenerateLanguageAnnotations : DefaultTask() {
     @TaskAction
     fun generateAnnotations() {
         val queue = workerExecutor.noIsolation()
-        queue.submit(AnnotationGeneratorWorkAction::class.java) {
-            generatorClasspath.setFrom(classpath)
+        queue.submit(AnnotationGeneratorWorkAction::class) {
+            generatorClasspath.from(classpath)
             packageName.set(this@GenerateLanguageAnnotations.packageName)
             destDir.set(this@GenerateLanguageAnnotations.destDir)
-        }
-    }
-}
-
-
-internal
-interface AnnotationGeneratorParameters : WorkParameters {
-    val generatorClasspath: ConfigurableFileCollection
-    val packageName: Property<String>
-    val destDir: DirectoryProperty
-}
-
-
-internal
-abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorParameters> {
-    @get:Inject
-    abstract val execOperations: ExecOperations
-
-    override fun execute() {
-        execOperations.javaexec {
-            classpath = parameters.generatorClasspath
-            main = "org.gradle.internal.test.annotation.generator.AnnotationGeneratorKt"
-            isIgnoreExitValue = false
-            args(parameters.packageName.get(), parameters.destDir.get().asFile.absolutePath)
         }
     }
 }
