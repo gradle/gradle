@@ -6,6 +6,8 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":worker-processes"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))
@@ -15,7 +17,6 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
-    implementation(project(":language-scala"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
     implementation(project(":dependency-management"))
@@ -24,6 +25,8 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
+
+    compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
 
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":files"))
@@ -36,7 +39,8 @@ dependencies {
     testImplementation(testFixtures(project(":language-java")))
 
     integTestImplementation(project(":jvm-services"))
-    integTestImplementation(testFixtures(project(":language-scala")))
+
+    testFixturesImplementation(testFixtures(project(":language-jvm")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
@@ -46,7 +50,8 @@ dependencies {
 
 classycle {
     excludePatterns.add("org/gradle/api/internal/tasks/scala/**")
-    excludePatterns.add("org/gradle/api/tasks/ScalaRuntime*")
+    excludePatterns.add("org/gradle/api/tasks/*")
+    excludePatterns.add("org/gradle/language/scala/tasks/*")
 }
 
 integTest.usesSamples.set(true)

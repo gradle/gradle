@@ -483,13 +483,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "language-scala",
-    "name": "language-scala",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "launcher",
     "name": "launcher",
     "unitTests": true,

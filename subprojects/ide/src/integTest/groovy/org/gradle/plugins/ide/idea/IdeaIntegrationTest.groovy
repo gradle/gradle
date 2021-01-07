@@ -427,20 +427,6 @@ idea.project {
         hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"], [])
     }
 
-    // We don't currently support generating an IDEA project from a software model component
-    @Test
-    @ToBeFixedForConfigurationCache
-    void "does not explode if only ScalaLanguagePlugin is applied"() {
-        executer.expectDocumentedDeprecationWarning("The scala-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        runTask("idea", """
-apply plugin: 'idea'
-apply plugin: 'org.gradle.scala-lang'
-""")
-    }
-
     private void assertHasExpectedContents(String path) {
         TestFile actualFile = testDirectory.file(path).assertIsFile()
         TestFile expectedFile = testDirectory.file("expectedFiles/${path}.xml").assertIsFile()

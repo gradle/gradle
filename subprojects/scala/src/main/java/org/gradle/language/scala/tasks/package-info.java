@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
-
-import static org.gradle.api.plugins.scala.ScalaBasePlugin.DEFAULT_ZINC_VERSION
-
-
-class ZincCoverage {
-    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.2.0", "1.2.3", "1.2.5"]
-}
+/**
+ * Tasks that add support for Scala language.
+ */
+package org.gradle.language.scala.tasks;

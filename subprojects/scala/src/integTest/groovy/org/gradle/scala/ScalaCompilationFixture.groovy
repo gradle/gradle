@@ -16,8 +16,8 @@
 
 package org.gradle.scala
 
+import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.ScalaCoverage
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
@@ -40,7 +40,7 @@ class ScalaCompilationFixture {
         this.sourceSet = 'main'
         this.sourceDir = 'src/main/scala'
         this.scalaVersion = ScalaCoverage.NEWEST
-        this.zincVersion = DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
+        this.zincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
         this.sourceCompatibility = '1.7'
         basicClassSource = new ScalaClass(
             'Person',
@@ -51,7 +51,7 @@ class ScalaCompilationFixture {
                  * Has a name and an age.
                  */
                 class Person(val name: String, val age: Int)'''.stripIndent(),
-            '''                 
+            '''
                 /**
                  * A person.
                  * Can live in a house.
@@ -73,17 +73,17 @@ class ScalaCompilationFixture {
     def buildScript() {
         return """
             apply plugin: 'scala'
-                        
+
             ${mavenCentralRepository()}
 
             scala {
                 zincVersion = "${zincVersion}"
             }
-            
+
             dependencies {
-                implementation "org.scala-lang:scala-library:${scalaVersion}" 
+                implementation "org.scala-lang:scala-library:${scalaVersion}"
             }
-            
+
             sourceSets {
                 main {
                     scala {
