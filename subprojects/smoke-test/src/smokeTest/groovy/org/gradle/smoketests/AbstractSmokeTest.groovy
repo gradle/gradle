@@ -52,6 +52,7 @@ abstract class AbstractSmokeTest extends Specification {
     protected static final String AGP_4_0_ITERATION_MATCHER = ".*agp=4\\.0\\..*"
     protected static final String AGP_4_1_ITERATION_MATCHER = ".*agp=4\\.1\\..*"
     protected static final String AGP_4_2_ITERATION_MATCHER = ".*agp=4\\.2\\..*"
+    protected static final String AGP_7_ITERATION_MATCHER = ".*agp=7\\..*"
 
     static class TestedVersions {
         /**
