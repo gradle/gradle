@@ -134,6 +134,11 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.model.ObjectFactory.fileProperty
         - org.gradle.api.model.ObjectFactory.sourceDirectorySet
         - org.gradle.api.file.FileCollection.getElements
+        - org.gradle.api.file.FileContents
+        - org.gradle.api.provider.ProviderFactory.environmentVariable
+        - org.gradle.api.provider.ProviderFactory.fileContents
+        - org.gradle.api.provider.ProviderFactory.gradleProperty
+        - org.gradle.api.provider.ProviderFactory.systemProperty
         - org.gradle.api.provider.Provider.flatMap
         - org.gradle.api.provider.Provider.orElse(T)
         - org.gradle.api.provider.Provider.orElse(org.gradle.api.provider.Provider<? extends T>)
