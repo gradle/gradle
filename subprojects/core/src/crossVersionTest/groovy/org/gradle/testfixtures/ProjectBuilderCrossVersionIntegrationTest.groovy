@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -30,8 +29,10 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRep
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
 @Issue("GRADLE-3558")
-@TargetVersions(['2.0', '2.7']) // Pick first incompatible version and oldest version of Gradle 2.x. Avoid testing version range in favor of better coverage build performance.
-@Requires(JDK8_OR_EARLIER) // Versions < 2.10 fail to compile the plugin with Java 9 (Could not determine java version from '9-ea')
+// Pick first incompatible version and oldest version of Gradle 2.x. Avoid testing version range in favor of better coverage build performance.
+@TargetVersions(['2.0', '2.7'])
+// Versions < 2.10 fail to compile the plugin with Java 9 (Could not determine java version from '9-ea')
+@Requires(JDK8_OR_EARLIER)
 class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     public static final List<String> BROKEN_GRADLE_VERSIONS = ['3.0', '3.1']
@@ -43,14 +44,14 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         executers.each { it.cleanup() }
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
         writeSourceFiles(false)
         expect:
         run(TEST_TASK_NAME)
     }
 
-    @Ignore("wip")
     def "cannot apply plugin using ProjectBuilder in a test running with broken Gradle versions"() {
         writeSourceFiles(true)
         expect:
@@ -93,7 +94,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                 class HelloWorld extends DefaultTask {
                     @TaskAction
                     void printHelloWorld() {
-                        println 'Hello world!'
+                        System.out.println 'Hello world!'
                     }
                 }
             """
@@ -160,9 +161,9 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             version = '1.0'
 
             dependencies {
-                ${forOldGradle? 'compile' : 'implementation'} gradleApi()
-                ${forOldGradle? 'compile' : 'implementation'} 'org.gradle:hello:1.0'
-                ${forOldGradle? 'testCompile' : 'testImplementation'} 'junit:junit:4.13'
+                ${forOldGradle ? 'compile' : 'implementation'} gradleApi()
+                ${forOldGradle ? 'compile' : 'implementation'} 'org.gradle:hello:1.0'
+                ${forOldGradle ? 'testCompile' : 'testImplementation'} 'junit:junit:4.13'
             }
 
             repositories {
