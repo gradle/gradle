@@ -15,10 +15,9 @@
  */
 package org.gradle.api.tasks.testing;
 
-import java.util.Set;
-
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
+
+import java.util.Set;
 
 /**
  * Allows filtering tests for execution. Some examples:
@@ -80,7 +79,6 @@ public interface TestFilter {
      * @return this filter object
      * @since 5.0
      */
-    @Incubating
     TestFilter excludeTestsMatching(String testNamePattern);
 
     /**
@@ -101,7 +99,6 @@ public interface TestFilter {
      * @since 5.0
      */
     @Input
-    @Incubating
     Set<String> getExcludePatterns();
 
     /**
@@ -119,7 +116,6 @@ public interface TestFilter {
      * @return this filter object
      * @since 5.0
      */
-    @Incubating
     TestFilter setExcludePatterns(String... testNamePatterns);
 
     /**
@@ -139,7 +135,6 @@ public interface TestFilter {
      * @return this filter object
      * @since 5.0
      */
-    @Incubating
     TestFilter excludeTest(String className, String methodName);
 
     /**
