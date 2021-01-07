@@ -16,15 +16,12 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-import org.gradle.api.Incubating;
-
 
 /**
  * Parameters for Kotlin DSL models.
  *
  * @since 6.0
  */
-@Incubating
 public final class KotlinDslModelsParameters {
 
     public static final String PREPARATION_TASK_NAME = "prepareKotlinBuildScriptModel";

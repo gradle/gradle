@@ -15,7 +15,6 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -32,7 +31,6 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * @since 6.0
  */
-@get:Incubating
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
     get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
 

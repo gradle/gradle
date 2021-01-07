@@ -52,7 +52,7 @@ enum class Os(
         killAllGradleProcesses = killAllGradleProcessesWindows,
         perfTestWorkingDir = "P:/"),
     MACOS("Mac",
-        listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "platform-play", "tooling-native"),
+        listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "tooling-native"),
         androidHome = "/opt/android/sdk",
         jprofilerHome = "/Applications/JProfiler11.1.4.app",
         killAllGradleProcesses = killAllGradleProcessesUnixLike

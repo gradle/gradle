@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 
 
@@ -25,6 +24,5 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
  *
  * @since 5.1
  */
-@Incubating
 operator fun ArtifactHandler.invoke(configuration: ArtifactHandlerScope.() -> Unit): Unit =
     configuration(ArtifactHandlerScope.of(this))

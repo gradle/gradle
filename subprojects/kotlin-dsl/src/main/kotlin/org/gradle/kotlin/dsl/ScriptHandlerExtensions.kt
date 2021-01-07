@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 
@@ -26,6 +25,5 @@ import org.gradle.api.initialization.dsl.ScriptHandler
  *
  * @since 6.1
  */
-@Incubating
 fun ScriptHandler.dependencyLocking(configuration: DependencyLockingHandler.() -> Unit) =
     dependencyLocking.configuration()
