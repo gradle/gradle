@@ -140,7 +140,6 @@ public interface ProviderFactory {
      *
      * @since 6.1
      */
-    @Incubating
     FileContents fileContents(RegularFile file);
 
     /**
@@ -157,7 +156,6 @@ public interface ProviderFactory {
      *
      * @since 6.1
      */
-    @Incubating
     FileContents fileContents(Provider<RegularFile> file);
 
     /**
