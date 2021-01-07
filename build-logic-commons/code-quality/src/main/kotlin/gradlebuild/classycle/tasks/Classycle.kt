@@ -97,7 +97,7 @@ abstract class Classycle : DefaultTask() {
                     try {
                         "classycleDependencyCheck"(
                             mapOf(
-                                "reportFile" to reportFile,
+                                "reportFile" to reportFile.get().asFile,
                                 "failOnUnwantedDependencies" to true,
                                 "mergeInnerClasses" to true
                             ),
@@ -113,10 +113,10 @@ abstract class Classycle : DefaultTask() {
                         try {
                             "unzip"(
                                 "src" to reportResourcesZip.asFileTree.filter { it.name == "classycle_report_resources.zip" }.singleFile,
-                                "dest" to reportDir
+                                "dest" to reportDir.get().asFile,
                             )
                             "classycleReport"(
-                                "reportFile" to analysisFile,
+                                "reportFile" to analysisFile.get().asFile,
                                 "reportType" to "xml",
                                 "mergeInnerClasses" to true,
                                 "title" to "$name $reportName ($path)"
