@@ -35,7 +35,6 @@ Some plugins will break with this new version of Gradle, for example because the
 
 [[changes_7.0]]
 == Upgrading from 6.8
-
 === Changes in the IDE integration
 
 ===== Changes in the IDEA model
@@ -73,6 +72,10 @@ The `layout` method taking a configuration block has been removed and is replace
 ==== Removal of `ProjectLayout#configurableFiles`
 
 Please use `ObjectFactory#fileCollection()` instead.
+
+==== Removal of `UnableToDeleteFileException`
+
+Existing usages should be replaced with `RuntimeException`.
 
 ==== Properties removed in Checkstyle and PMD plugins
 
