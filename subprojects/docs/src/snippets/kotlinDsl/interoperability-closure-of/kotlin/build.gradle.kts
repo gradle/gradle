@@ -1,7 +1,7 @@
 import com.jfrog.bintray.gradle.BintrayExtension.PackageConfig
 
 plugins {
-    id("com.jfrog.bintray") version "1.8.0"
+    id("com.jfrog.bintray") version "1.8.5"
 }
 
 // tag::closureOf[]
