@@ -31,40 +31,39 @@ class DefaultBasePluginConventionTest {
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     private ProjectInternal project = TestUtil.create(temporaryFolder).rootProject()
-    private File testDir = project.projectDir
     private BasePluginConvention convention
 
-    @Before public void setUp() {
+    @Before void setUp() {
         convention = new DefaultBasePluginConvention(project)
     }
 
-    @Test public void defaultValues() {
+    @Test void defaultValues() {
         assertEquals(project.name, convention.archivesBaseName)
         assertEquals('distributions', convention.distsDirName)
-        assertEquals(new File(project.buildDir, 'distributions'), convention.distsDir)
+        assertEquals(new File(project.buildDir, 'distributions'), convention.distsDirectory.getAsFile().get())
         assertEquals('libs', convention.libsDirName)
-        assertEquals(new File(project.buildDir, 'libs'), convention.libsDir)
+        assertEquals(new File(project.buildDir, 'libs'), convention.libsDirectory.getAsFile().get())
     }
 
-    @Test public void dirsRelativeToBuildDir() {
+    @Test void dirsRelativeToBuildDir() {
         project.buildDir = project.file('mybuild')
         convention.distsDirName = 'mydists'
-        assertEquals(project.file('mybuild/mydists'), convention.distsDir)
+        assertEquals(project.file('mybuild/mydists'), convention.distsDirectory.getAsFile().get())
         convention.libsDirName = 'mylibs'
-        assertEquals(project.file('mybuild/mylibs'), convention.libsDir)
+        assertEquals(project.file('mybuild/mylibs'), convention.libsDirectory.getAsFile().get())
     }
 
-    @Test public void dirsAreCachedProperly() {
+    @Test void dirsAreCachedProperly() {
         project.buildDir = project.file('mybuild')
         convention.distsDirName = 'mydists'
-        assertEquals(project.file('mybuild/mydists'), convention.distsDir)
+        assertEquals(project.file('mybuild/mydists'), convention.distsDirectory.getAsFile().get())
         convention.libsDirName = 'mylibs'
-        assertEquals(project.file('mybuild/mylibs'), convention.libsDir)
+        assertEquals(project.file('mybuild/mylibs'), convention.libsDirectory.getAsFile().get())
         convention.distsDirName = 'mydists2'
-        assertEquals(project.file('mybuild/mydists2'), convention.distsDir)
+        assertEquals(project.file('mybuild/mydists2'), convention.distsDirectory.getAsFile().get())
         convention.libsDirName = 'mylibs2'
-        assertEquals(project.file('mybuild/mylibs2'), convention.libsDir)
+        assertEquals(project.file('mybuild/mylibs2'), convention.libsDirectory.getAsFile().get())
         project.buildDir = project.file('mybuild2')
-        assertEquals(project.file('mybuild2/mylibs2'), convention.libsDir)
+        assertEquals(project.file('mybuild2/mylibs2'), convention.libsDirectory.getAsFile().get())
     }
 }

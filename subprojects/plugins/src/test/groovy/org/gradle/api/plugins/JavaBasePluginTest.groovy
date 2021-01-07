@@ -58,7 +58,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
 
-    void "applies base plugins and adds convention and extensions"() {
+    def "applies base plugins and adds convention and extensions"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -72,7 +72,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.extensions.javaInstalls instanceof JavaInstallationRegistry
     }
 
-    void "sourceSets extension is exposed as SourceSetContainer"() {
+    def "sourceSets extension is exposed as SourceSetContainer"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -80,7 +80,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.extensions.extensionsSchema.find { it.name == "sourceSets" }.publicType == typeOf(SourceSetContainer)
     }
 
-    void "properties on convention and extension are synchronized"() {
+    def "properties on convention and extension are synchronized"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -128,7 +128,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ext.targetCompatibility == JavaVersion.VERSION_1_6
     }
 
-    void "creates tasks and applies mappings for source set"() {
+    def "creates tasks and applies mappings for source set"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
@@ -168,7 +168,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.builtBy('customClasses').matches(project.sourceSets.custom.output)
     }
 
-    void "creates tasks and applies mappings for main source set"() {
+    def "creates tasks and applies mappings for main source set"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('main')
@@ -194,7 +194,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.dependsOn('processResources', 'compileJava').matches(classes)
     }
 
-    void "wires generated resources task into classes task for sourceset"() {
+    def "wires generated resources task into classes task for sourceset"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
@@ -208,7 +208,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.dependsOn('someTask', 'processCustomResources', 'compileCustomJava').matches(customClasses)
     }
 
-    void "wires toolchain for sourceset if toolchain is configured"() {
+    def "wires toolchain for sourceset if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
@@ -222,7 +222,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredToolchain.displayName.contains(someJdk.javaVersion.getMajorVersion())
     }
 
-    void "source and target compatibility are configured if toolchain is configured"() {
+    def "source and target compatibility are configured if toolchain is configured"() {
         given:
         setupProjectWithToolchain(Jvm.current().javaVersion)
 
@@ -236,7 +236,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
     }
 
-    void "wires toolchain for test if toolchain is configured"() {
+    def "wires toolchain for test if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
@@ -249,7 +249,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavaLauncher.executablePath.toString().contains(someJdk.javaVersion.getMajorVersion())
     }
 
-    void "wires toolchain for javadoc if toolchain is configured"() {
+    def "wires toolchain for javadoc if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
@@ -262,7 +262,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
-    void 'cannot set java compile source compatibility if toolchain is configured'() {
+    def 'cannot set java compile source compatibility if toolchain is configured'() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
@@ -286,7 +286,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }
 
-    void tasksReflectChangesToSourceSetConfiguration() {
+    def "tasks reflect changes to source set configuration"() {
         def classesDir = project.file('target/classes')
         def resourcesDir = project.file('target/resources')
 
@@ -304,7 +304,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava.destinationDir == classesDir
     }
 
-    void sourceSetReflectChangesToTasksConfiguration() {
+    def "sourceSet reflect changes to tasks configuration"() {
         def generatedSourcesDir = project.file('target/generated-sources')
 
         when:
@@ -317,7 +317,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.custom.output.generatedSourcesDirs.files == toLinkedSet(generatedSourcesDir)
     }
 
-    void createsConfigurationsForNewSourceSet() {
+    def "creates configurations for new sourceSet"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         def sourceSet = project.sourceSets.create('custom')
@@ -369,7 +369,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         sourceSetRuntimeClasspath sameCollection(sourceSet.output + runtimeClasspath)
     }
 
-    void appliesMappingsToTasksDefinedByBuildScript() {
+    def "applies mappings to tasks defined by build script"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -389,17 +389,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 
-    void appliesMappingsToCustomJarTasks() {
+    def "applies mappings to custom jar tasks"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         def task = project.task('customJar', type: Jar)
 
         then:
         TaskDependencyMatchers.dependsOn().matches(task)
-        task.destinationDir == project.libsDir
+        task.destinationDir == project.libsDirectory.get().asFile
     }
 
-    void createsLifecycleBuildTasks() {
+    def "creates lifecycle build tasks"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -497,7 +497,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     @Unroll
-    void "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
+    def "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
         given:
         JavaEcosystemSupport.UsageCompatibilityRules rules = new JavaEcosystemSupport.UsageCompatibilityRules()
         def details = Mock(CompatibilityCheckDetails)
