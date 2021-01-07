@@ -56,6 +56,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     ) {
 
         given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)
 
         and:
@@ -135,7 +138,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         where:
         [agpVersion, ide] << [
-            TestedVersions.androidGradle.toList(),
+            TestedVersions.androidGradle.toList().takeRight(2).take(1),
             [false, true]
         ].combinations()
     }
@@ -216,7 +219,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         appBuildFile << activityDependency()
         appBuildFile << """
             dependencies {
-                compile project(':${library}')
+                implementation project(':${library}')
             }
         """
 
@@ -235,7 +238,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     private static String activityDependency() {
         """
             dependencies {
-                compile 'joda-time:joda-time:2.7'
+                implementation 'joda-time:joda-time:2.7'
             }
         """
     }
