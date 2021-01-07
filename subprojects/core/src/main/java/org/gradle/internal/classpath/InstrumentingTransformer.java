@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -108,6 +110,15 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RENAMED_DESERIALIZE_LAMBDA = "$renamedDeserializeLambda$";
 
     private static final String[] NO_EXCEPTIONS = new String[0];
+
+    private static final List<Pair<String, String>> renamedInterfaces = asList(
+        Pair.of("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager"),
+        Pair.of("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture")
+    );
+
+    private static final List<Pair<String, String>> renamedInternalNames = renamedInterfaces.stream().map(
+        p -> Pair.of("L" + p.left + ";", "L" + p.right + ";")
+    ).collect(toList());
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
@@ -270,16 +281,20 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private String fixMethodOwnerForBackwardCompatibility(String typeName) {
             // Fix renamed type references
-            return typeName
-                .replace("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager")
-                .replace("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture");
+            for (Pair<String, String> renamedInterface : renamedInterfaces) {
+                if (renamedInterface.left.equals(typeName)) {
+                    return renamedInterface.right;
+                }
+            }
+            return typeName;
         }
 
         private String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
-            // Fix abstract Task method calls involving renamed types
-            return descriptor
-                .replace("Lorg/gradle/logging/LoggingManagerInternal;", "Lorg/gradle/api/logging/LoggingManager;")
-                .replace("Lorg/gradle/logging/StandardOutputCapture;", "Lorg/gradle/internal/logging/StandardOutputCapture;");
+            // Fix method signatures involving renamed types
+            for (Pair<String, String> renamedInternalName : renamedInternalNames) {
+                descriptor = descriptor.replace(renamedInternalName.left, renamedInternalName.right);
+            }
+            return descriptor;
         }
 
         private boolean visitINVOKESTATIC(String owner, String name, String descriptor) {
