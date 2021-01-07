@@ -170,6 +170,31 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         assertWorkerExecuted("runInDaemon")
     }
 
+    def "worker application classpath is isolated from the worker process classloader"() {
+        fixture.workActionThatCreatesFiles.action += """
+            try {
+                ${fixture.workActionThatCreatesFiles.name}.class.getClassLoader().loadClass("org.gradle.api.Project");
+            } catch (ClassNotFoundException e) {
+                return;
+            }
+            assert false : "org.gradle.api.Project leaked onto the application classpath";
+        """
+        fixture.withWorkActionClassInBuildSrc()
+
+        buildFile << """
+            task runInDaemon(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+                workActionClass = ${fixture.workActionThatCreatesFiles.name}.class
+            }
+        """
+
+        when:
+        succeeds("runInDaemon")
+
+        then:
+        assertWorkerExecuted("runInDaemon")
+    }
+
     WorkerExecutorFixture.WorkActionClass getWorkActionThatVerifiesExecutable(Jvm differentJvm) {
         def workerClass = fixture.getWorkActionThatCreatesFiles("ExecutableVerifyingWorkAction")
         workerClass.imports.add("java.net.URL")
