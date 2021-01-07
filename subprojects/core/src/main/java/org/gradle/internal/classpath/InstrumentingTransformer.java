@@ -111,12 +111,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static final String[] NO_EXCEPTIONS = new String[0];
 
-    private static final List<Pair<String, String>> renamedInterfaces = asList(
+    private static final List<Pair<String, String>> RENAMED_INTERFACES = asList(
         Pair.of("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager"),
         Pair.of("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture")
     );
 
-    private static final List<Pair<String, String>> renamedInternalNames = renamedInterfaces.stream().map(
+    private static final List<Pair<String, String>> RENAMED_INTERFACE_DESCRIPTORS = RENAMED_INTERFACES.stream().map(
         p -> Pair.of("L" + p.left + ";", "L" + p.right + ";")
     ).collect(toList());
 
@@ -281,7 +281,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private String fixMethodOwnerForBackwardCompatibility(String typeName) {
             // Fix renamed type references
-            for (Pair<String, String> renamedInterface : renamedInterfaces) {
+            for (Pair<String, String> renamedInterface : RENAMED_INTERFACES) {
                 if (renamedInterface.left.equals(typeName)) {
                     return renamedInterface.right;
                 }
@@ -291,8 +291,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
             // Fix method signatures involving renamed types
-            for (Pair<String, String> renamedInternalName : renamedInternalNames) {
-                descriptor = descriptor.replace(renamedInternalName.left, renamedInternalName.right);
+            for (Pair<String, String> renamedDescriptor : RENAMED_INTERFACE_DESCRIPTORS) {
+                descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
             }
             return descriptor;
         }
