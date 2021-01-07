@@ -37,6 +37,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.junit.rules.RuleChain
 import spock.lang.Retry
 import spock.lang.Specification
 
@@ -79,7 +80,10 @@ abstract class ToolingApiSpecification extends Specification {
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
 
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
-    ToolingApi toolingApi
+    final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder)
+
+    @Rule
+    public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
     // reflectively invoked by ToolingApiExecution
     static void selectTargetDist(GradleDistribution version) {
@@ -98,7 +102,7 @@ abstract class ToolingApiSpecification extends Specification {
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
-        this.toolingApi = new ToolingApi(targetDist, temporaryFolder)
+        toolingApi.setDist(targetDist)
     }
 
     DaemonsFixture getDaemonsFixture() {
