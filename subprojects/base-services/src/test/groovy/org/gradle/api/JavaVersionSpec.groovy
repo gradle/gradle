@@ -53,7 +53,10 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_15.toString() == "15"
         JavaVersion.VERSION_16.toString() == "16"
         JavaVersion.VERSION_17.toString() == "17"
-        JavaVersion.VERSION_HIGHER.toString() == "18"
+        JavaVersion.VERSION_18.toString() == "18"
+        JavaVersion.VERSION_19.toString() == "19"
+        JavaVersion.VERSION_20.toString() == "20"
+        JavaVersion.VERSION_HIGHER.toString() == "21"
     }
 
     def convertsStringToVersion() {
