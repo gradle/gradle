@@ -267,7 +267,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSet.getJavadocTaskName()
         - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
         - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
-    - Java Module System
+        - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
+      - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
         - org.gradle.api.plugins.JavaPluginExtension.getModularity()
@@ -285,6 +286,13 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainClass()
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
+    - Testing
+        - org.gradle.api.tasks.testing.Test.getStableClasspath
+        - org.gradle.api.plugins.JavaTestFixturesPlugin
+        - org.gradle.api.tasks.testing.TestFilter.excludeTestsMatching
+        - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns
+        - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns
+        - org.gradle.api.tasks.testing.TestFilter.excludeTest
 - [Kotlin DSL](userguide/kotlin_dsl.html)
     - org.gradle.kotlin.dsl.KotlinScript
     - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit

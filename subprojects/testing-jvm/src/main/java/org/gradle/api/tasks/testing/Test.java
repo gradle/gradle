@@ -1030,7 +1030,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 6.6
      */
-    @Incubating
     @Classpath
     protected FileCollection getStableClasspath() {
         return stableClasspath;
