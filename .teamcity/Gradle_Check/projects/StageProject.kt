@@ -76,18 +76,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             this@StageProject.buildType(FunctionalTestsPass(model, functionalTestProject))
         }
 
-        val deferredTestsForThisStage = functionalTestBucketProvider.createDeferredFunctionalTestsFor(stage)
-        if (deferredTestsForThisStage.isNotEmpty()) {
-            val deferredTestsProject = Project {
-                uuid = "${rootProjectUuid}_deferred_tests"
-                id = AbsoluteId(uuid)
-                name = "Test coverage deferred from Quick Feedback and Ready for Merge"
-                deferredTestsForThisStage.forEach(this::buildType)
-            }
-            subProject(deferredTestsProject)
-        }
-
-        functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests) + deferredTestsForThisStage
+        functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests)
     }
 
     private

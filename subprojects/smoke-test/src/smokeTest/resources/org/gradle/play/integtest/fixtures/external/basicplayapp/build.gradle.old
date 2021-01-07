@@ -1,0 +1,5 @@
+plugins {
+    id 'org.gradle.playframework' version '0.10'
+}
+
+// repositories added in PlayApp class
