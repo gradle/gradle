@@ -25,6 +25,5 @@ enum class License(val displayName: String) {
     EDL("Eclipse Distribution License 1.0"),
     EPL("Eclipse Public License 1.0"),
     LGPL21("LGPL 2.1"),
-    MIT("MIT"),
-    MPL2("Mozilla Public License 2.0")
+    MIT("MIT")
 }

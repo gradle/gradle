@@ -115,8 +115,6 @@ abstract class ExternalModulesExtension {
     val plist = "com.googlecode.plist:dd-plist"
     val pmavenCommon = "org.sonatype.pmaven:pmaven-common"
     val pmavenGroovy = "org.sonatype.pmaven:pmaven-groovy"
-    val rhino = "org.mozilla:rhino"
-    val simple = "org.simpleframework:simple"
     val slf4jApi = "org.slf4j:slf4j-api"
     val snakeyaml = "org.yaml:snakeyaml"
     val testng = "org.testng:testng"
@@ -254,8 +252,6 @@ abstract class ExternalModulesExtension {
         plist to License.MIT,
         pmavenCommon to License.Apache2,
         pmavenGroovy to License.Apache2,
-        rhino to License.MPL2,
-        simple to License.Apache2,
         slf4jApi to License.MIT,
         snakeyaml to License.Apache2,
         testng to License.Apache2,

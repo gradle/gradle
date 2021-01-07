@@ -73,9 +73,16 @@ An external replacement, the link:https://gradle.github.io/playframework[Play Fr
 === Removal of deprecated JVM plugins
 
 These unmaintained alternative JVM plugins have been removed:
-`java-lang`, `scala-lang`, `junit-test-suite`, `jvm-component`, `jvm-resources`
+`java-lang`, `scala-lang`, `junit-test-suite`, `jvm-component`, `jvm-resources`.
 
 Please use the stable <<java_library_plugin.adoc#,Java Library>> and <<scala_plugin.adoc#,Scala>> plugins instead.
+
+==== Removal of experimental JavaScript plugins
+
+The following plugins for experimental JavaScript integration are now removed from the distribution:
+`coffeescript-base`, `envjs`, `javascript-base`, `jshint`, `rhino`.
+
+If you used these plugins despite their experimental nature, you may find suitable replacements in the https://plugins.gradle.org/[Plugin Portal].
 
 ==== Configuring the layout of an Ivy repository
 

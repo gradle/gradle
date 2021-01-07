@@ -122,9 +122,7 @@ dependencies {
         api(libs.plist)                 { version { strictly("1.21") }}
         api(libs.pmavenCommon)          { version { strictly(pmavenVersion) }}
         api(libs.pmavenGroovy)          { version { strictly(pmavenVersion) }}
-        api(libs.rhino)                 { version { strictly("1.7.10") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
-        api(libs.simple)                { version { strictly("4.1.21") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
         api(libs.snakeyaml)             { version { strictly("1.17") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}

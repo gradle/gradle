@@ -392,13 +392,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "javascript",
-    "name": "javascript",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "jvm-services",
     "name": "jvm-services",
     "unitTests": true,
