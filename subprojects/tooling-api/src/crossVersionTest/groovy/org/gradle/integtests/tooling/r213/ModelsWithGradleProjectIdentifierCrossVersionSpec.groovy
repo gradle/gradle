@@ -29,15 +29,16 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
-import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
 @ToolingApiVersion('>=3.3')
 class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecification {
+    static List<Class<?>> modelsHavingGradleProjectIdentifier = [BuildInvocations, ProjectPublications]
+
     TestFile rootSingle
     TestFile rootMulti
 
-    void setup() {
+    def setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
@@ -95,19 +96,6 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
         withConnection(connector) { connection ->
             connection.action(buildAction).run()
         }
-    }
-
-    private static getModelsHavingGradleProjectIdentifier() {
-        List<Class<?>> models = [BuildInvocations]
-        if (targetDistVersion >= GradleVersion.version("1.12")) {
-            models += ProjectPublications
-        }
-        return models
-    }
-
-    static GradleVersion getTargetDistVersion() {
-        // Create a copy to work around classloader issues
-        GradleVersion.version(targetDist.version.version)
     }
 
     BuildTestFixture getBuildTestFixture() {

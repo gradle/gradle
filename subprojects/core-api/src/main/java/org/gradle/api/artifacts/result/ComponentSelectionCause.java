@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -71,7 +70,6 @@ public enum ComponentSelectionCause {
      *
      * @since 6.0
      */
-    @Incubating
     BY_ANCESTOR("by ancestor");
 
     private final String defaultReason;

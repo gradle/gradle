@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
@@ -55,7 +54,6 @@ public interface JavaApplication {
      *
      * @since 6.4
      */
-    @Incubating
     Property<String> getMainModule();
 
     /**

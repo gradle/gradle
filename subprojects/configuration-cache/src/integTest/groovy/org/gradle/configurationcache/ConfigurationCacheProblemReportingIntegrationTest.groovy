@@ -746,7 +746,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         registrationPoint                             | code
         "Gradle.addBuildListener"                     | "gradle.addBuildListener(new BuildAdapter())"
         "Gradle.addListener"                          | "gradle.addListener(new BuildAdapter())"
-        "Gradle.buildStarted"                         | "gradle.buildStarted {}"
         "Gradle.buildFinished"                        | "gradle.buildFinished {}"
         "TaskExecutionGraph.addTaskExecutionListener" | "gradle.taskGraph.addTaskExecutionListener(new TaskExecutionAdapter())"
         "TaskExecutionGraph.beforeTask"               | "gradle.taskGraph.beforeTask {}"

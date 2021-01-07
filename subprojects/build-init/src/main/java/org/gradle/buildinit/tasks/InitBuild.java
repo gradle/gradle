@@ -18,7 +18,6 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -77,7 +76,6 @@ public class InitBuild extends DefaultTask {
      *
      * @since 6.7
      */
-    @Incubating
     @Input
     @Optional
     @Option(option = "split-project", description = "Split functionality across multiple subprojects?")

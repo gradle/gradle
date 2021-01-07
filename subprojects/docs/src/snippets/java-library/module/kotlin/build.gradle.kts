@@ -15,12 +15,6 @@ tasks.compileJava {
 }
 // end::declareVersion[]
 
-// tag::inferModulePath[]
-java {
-    modularity.inferModulePath.set(true)
-}
-// end::inferModulePath[]
-
 // tag::dependencies[]
 dependencies {
     implementation("com.google.code.gson:gson:2.8.6")       // real module

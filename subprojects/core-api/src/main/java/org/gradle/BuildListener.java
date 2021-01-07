@@ -15,7 +15,6 @@
  */
 package org.gradle;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.service.scopes.EventScope;
@@ -28,13 +27,6 @@ import org.gradle.internal.service.scopes.Scopes;
  */
 @EventScope(Scopes.Build.class)
 public interface BuildListener {
-    /**
-     * <p>Called when the build is started.</p>
-     *
-     * @param gradle The build which is being started. Never null.
-     */
-    @Deprecated
-    void buildStarted(Gradle gradle);
 
     /**
      * Called when the build settings are about to be loaded and evaluated.
@@ -42,7 +34,6 @@ public interface BuildListener {
      * @param settings The settings. Never null.
      * @since 6.0
      */
-    @Incubating
     default void beforeSettings(Settings settings) {}
 
     /**

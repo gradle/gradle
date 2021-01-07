@@ -19,7 +19,6 @@ package org.gradle.integtests.fixtures.console
 import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.ConsoleAttachment
 import org.junit.runner.RunWith
 
@@ -27,7 +26,7 @@ import org.junit.runner.RunWith
  * A base class for testing the console.
  */
 @RunWith(ConsoleAttachmentTestRunner.class)
-abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
+abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec {
     static ConsoleAttachment consoleAttachment
 
     def setup() {

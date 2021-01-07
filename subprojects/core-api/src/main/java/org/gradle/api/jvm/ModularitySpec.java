@@ -16,7 +16,6 @@
 
 package org.gradle.api.jvm;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 
@@ -39,7 +38,6 @@ import org.gradle.api.tasks.Input;
  *
  * @since 6.4
  */
-@Incubating
 public interface ModularitySpec {
 
     /**

@@ -35,8 +35,12 @@ Some plugins will break with this new version of Gradle, for example because the
 
 [[changes_7.0]]
 == Upgrading from 6.8
+=== Changes in the IDE integration
 
-The `org.gradle.api.file.UnableToDeleteFileException` class was removed. All usages should be replaced with `RuntimeException`.
+===== Changes in the IDEA model
+
+The `getGeneratedSourceDirectories()` and `getGeneratedTestDirectories()` methods are removed from the `IdeaContentRoot` interface.
+Clients should replace these invocations with `getSourceDirectories()` and `getTestDirectories()` and use the `isGenerated()` method on the returned instances.
 
 === Potential breaking changes
 
@@ -69,6 +73,10 @@ The `layout` method taking a configuration block has been removed and is replace
 
 Please use `ObjectFactory#fileCollection()` instead.
 
+==== Removal of `UnableToDeleteFileException`
+
+Existing usages should be replaced with `RuntimeException`.
+
 ==== Properties removed in Checkstyle and PMD plugins
 
 * The `configDir` getters and setters have been removed from the Checkstle task and extension.
@@ -76,10 +84,28 @@ Use the `configDirectory` property instead.
 * The `rulePriority` getter and setter have been removed from the Pmd task and extension.
 Use the `rulesMinimumPriority` property instead.
 
+==== Removal of `baseName` property in `distribution` plugin
+
+The `getBaseName()` and `setBaseName()` methods were removed from the `Distribution` class. Clients should replace the usages with the `distributionBaseName` property.
+
 ==== Using `AbstractTask`
 
 Registering a task with the `AbstractTask` type or with a type extending `AbstractTask` was deprecated in Gradle 6.5 and is now an error in Gradle 7.0.
 You can use link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask] instead.
+
+==== Removal of `BuildListener.buildStarted(Gradle)`
+
+`BuildListener.buildStarted(Gradle)` was deprecated in Gradle 6.0 and is now removed in Gradle 7.0.
+Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings-org.gradle.api.initialization.Settings-[BuildListener.beforeSettings(Settings)] instead.
+
+==== `modularity.inferModulePath` defaults to 'true'
+
+<<java_library_plugin.adoc#sec:java_library_modular,Compiling>>,
+<<java_testing.adoc#sec:java_testing_modular,testing>> and
+<<application_plugin.adoc#sec:application_modular,executing>>
+now works automatically for any source set that defines a module by containing a `module-info.java` file.
+Usually, this is the behavior you need.
+If this is causing issues in cases you manually configure the module path, or use a 3rd party plugin for it, you can still opt out of this by setting `modularity.inferModulePath` to `false` on the java extension or individual tasks.
 
 === Deprecations
 

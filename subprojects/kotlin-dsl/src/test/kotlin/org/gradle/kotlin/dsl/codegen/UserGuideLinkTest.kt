@@ -78,7 +78,7 @@ val linkedPlugins =
         "idea", "ivy-publish",
         "jacoco", "java", "java-base", "java-gradle-plugin",
         "java-library", "java-library-distribution",
-        "maven", "maven-publish",
+        "maven-publish",
         "microsoft-visual-cpp-compiler",
         "native-component", "native-component-model",
         "objective-c", "objective-c-lang", "objective-cpp", "objective-cpp-lang",

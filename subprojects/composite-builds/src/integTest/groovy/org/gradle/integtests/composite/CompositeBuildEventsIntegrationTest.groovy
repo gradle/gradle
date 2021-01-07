@@ -25,9 +25,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
     def setup() {
         file('gradle-user-home/init.gradle') << """
-            gradle.buildStarted {
-                println 'gradle.buildStarted [' + gradle.identityPath + ']'
-            }
             gradle.buildFinished {
                 println 'gradle.buildFinished [' + gradle.identityPath + ']'
             }
@@ -36,9 +33,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             }
             gradle.addBuildListener(new LoggingBuildListener())
             class LoggingBuildListener extends BuildAdapter {
-                void buildStarted(Gradle gradle) {
-                    println 'buildListener.buildStarted [' + gradle.identityPath + ']'
-                }
                 void settingsEvaluated(Settings settings) {
                     def buildName = settings.gradle.parent == null ? '' : settings.rootProject.name
                     println 'buildListener.settingsEvaluated [:' + buildName + ']'
@@ -302,11 +296,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('gradle.taskGraphReady')
         loggedOncePerBuild('buildListener.buildFinished')
         loggedOncePerBuild('gradle.buildFinished')
-
-        // buildStarted events should _not_ be logged, since the listeners are added too late
-        // If they are logged, it's due to duplicate events fired.
-        outputDoesNotContain('gradle.buildStarted')
-        outputDoesNotContain('buildListener.buildStarted')
     }
 
     void loggedOncePerBuild(message, def builds = [':', ':buildB', ':buildC']) {
@@ -325,7 +314,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     protected void execute() {
-        executer.expectDeprecationWarnings(2) // Due to LoggingBuildListener
         super.execute(buildA, ":resolveArtifacts", ["-I../gradle-user-home/init.gradle"])
     }
 

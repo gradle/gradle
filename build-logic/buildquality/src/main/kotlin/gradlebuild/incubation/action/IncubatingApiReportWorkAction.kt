@@ -19,13 +19,17 @@ package gradlebuild.incubation.action
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.Node
+import com.github.javaparser.ast.PackageDeclaration
 import com.github.javaparser.ast.body.AnnotationDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.EnumDeclaration
+import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.comments.JavadocComment
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations
 import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName
+import com.github.javaparser.javadoc.Javadoc
 import com.github.javaparser.javadoc.description.JavadocSnippet
 import com.github.javaparser.symbolsolver.JavaSymbolSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver
@@ -213,18 +217,19 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
     private
     fun CompilationUnit.toVersionIncubating(sourceFile: File, node: Node) =
         Pair(
-            findVersionFromJavadoc(node as NodeWithAnnotations<*>) ?: versionNotFound,
+            (node as? NodeWithJavadoc<*>)?.javadoc?.orElse(null)?.let { findVersionFromJavadoc(it) }
+                // This is needed to find the JavaDoc of a package declaration in 'package-info.java'
+                ?: (node as? PackageDeclaration)?.parentNode?.get()?.childNodes?.filterIsInstance<JavadocComment>()?.singleOrNull()?.parse()?.let { findVersionFromJavadoc(it) }
+                ?: versionNotFound,
             nodeName(node, this, sourceFile)
         )
 
     private
-    fun findVersionFromJavadoc(node: NodeWithAnnotations<*>): String? =
-        (node as? NodeWithJavadoc<*>)?.javadoc?.map { javadoc ->
-            javadoc.blockTags
-                .find { tag -> tag.tagName == "since" }
-                ?.content?.elements?.find { description -> description is JavadocSnippet }
-                ?.toText()
-        }?.orElse(null)
+    fun findVersionFromJavadoc(javadoc: Javadoc): String? =
+        javadoc.blockTags
+            .find { tag -> tag.tagName == "since" }
+            ?.content?.elements?.find { description -> description is JavadocSnippet }
+            ?.toText()
 
     private
     fun nodeName(it: Node?, unit: CompilationUnit, file: File) = when (it) {
@@ -232,7 +237,9 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
         is ClassOrInterfaceDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
         is MethodDeclaration -> tryResolve({ it.resolve().qualifiedSignature }) { inferClassName(unit) }
         is AnnotationDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
-        is NodeWithSimpleName<*> -> it.nameAsString
+        is FieldDeclaration -> tryResolve({ inferClassName(unit) + "." + it.resolve().name }) { inferClassName(unit) }
+        is PackageDeclaration -> it.nameAsString + " (package-info.java)"
+        is NodeWithSimpleName<*> -> inferClassName(unit) + "." + it.nameAsString
         else -> unit.primaryTypeName.orElse(file.name)
     }
 

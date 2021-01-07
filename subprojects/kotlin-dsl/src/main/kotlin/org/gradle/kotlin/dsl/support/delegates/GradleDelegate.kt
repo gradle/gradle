@@ -92,12 +92,6 @@ abstract class GradleDelegate : Gradle {
     override fun afterProject(action: Action<in Project>) =
         delegate.afterProject(action)
 
-    override fun buildStarted(closure: Closure<Any>) =
-        delegate.buildStarted(closure)
-
-    override fun buildStarted(action: Action<in Gradle>) =
-        delegate.buildStarted(action)
-
     override fun settingsEvaluated(closure: Closure<Any>) =
         delegate.settingsEvaluated(closure)
 

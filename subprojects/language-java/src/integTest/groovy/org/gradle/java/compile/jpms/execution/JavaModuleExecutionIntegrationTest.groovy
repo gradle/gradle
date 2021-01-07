@@ -123,7 +123,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
             }
@@ -147,7 +146,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
                 mainClass.set('consumer.MainModule')
@@ -177,7 +175,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 def execOperations = project.objects.newInstance(Services).exec
                 doLast {
                     execOperations.javaexec { action ->
-                        action.modularity.inferModulePath.set(true)
                         action.classpath = files(jar) + configurations.runtimeClasspath
                         action.mainModule.set('consumer')
                     }
@@ -211,7 +208,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 def execOperations = project.objects.newInstance(Services).exec
                 doLast {
                     execOperations.javaexec { action ->
-                        action.modularity.inferModulePath.set(true)
                         action.classpath = files(jar) + configurations.runtimeClasspath
                         action.mainModule.set('consumer')
                         action.mainClass.set('consumer.MainModule')
@@ -231,4 +227,25 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         outputContains("Module Version: 1.0-beta2")
     }
 
+    def "does not run as module if module path inference is turned off"() {
+        given:
+        buildFile.text = buildFile.text.replace('java-library', 'application')
+        buildFile << """
+            tasks.run.modularity.inferModulePath = false
+            application {
+                mainClass.set('consumer.MainModule')
+                mainModule.set('consumer')
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo()
+        consumingModuleClass()
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: null")
+        outputContains("Module Version: null")
+    }
 }

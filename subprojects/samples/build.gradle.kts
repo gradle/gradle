@@ -21,3 +21,4 @@ dependencies {
 }
 
 integTest.usesSamples.set(true)
+testFilesCleanup.reportOnly.set(true)

@@ -237,7 +237,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 6.0
      */
-    @Incubating
     String getJavadocTaskName();
 
     /**
@@ -254,7 +253,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 6.0
      */
-    @Incubating
     String getJavadocJarTaskName();
 
     /**
@@ -264,7 +262,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 6.0
      */
-    @Incubating
     String getSourcesJarTaskName();
 
     /**
@@ -292,7 +289,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 6.7
      */
-    @Incubating
     String getCompileOnlyApiConfigurationName();
 
     /**
@@ -382,7 +378,6 @@ public interface SourceSet extends ExtensionAware {
      * @return the name of the javadoc elements configuration.
      * @since 6.0
      */
-    @Incubating
     String getJavadocElementsConfigurationName();
 
     /**
@@ -392,7 +387,6 @@ public interface SourceSet extends ExtensionAware {
      * @return the name of the sources elements configuration.
      * @since 6.0
      */
-    @Incubating
     String getSourcesElementsConfigurationName();
 
     /**

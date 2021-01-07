@@ -99,7 +99,6 @@ public interface JavaPluginExtension {
      *
      * @since 6.0
      */
-    @Incubating
     void withJavadocJar();
 
     /**
@@ -116,7 +115,6 @@ public interface JavaPluginExtension {
      *
      * @since 6.0
      */
-    @Incubating
     void withSourcesJar();
 
     /**
@@ -125,7 +123,6 @@ public interface JavaPluginExtension {
      *
      * @since 6.4
      */
-    @Incubating
     ModularitySpec getModularity();
 
     /**

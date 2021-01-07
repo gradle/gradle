@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
-class TestedProjectFixture implements RichConsoleStyling {
+class TestedProjectFixture {
 
     static String testClass(String testAnnotationClassName, String testClassName, String serverResource, BlockingHttpServer server) {
         """
@@ -41,13 +41,13 @@ class TestedProjectFixture implements RichConsoleStyling {
     static String testableJavaProject(String testDependency, int maxWorkers) {
         """
             apply plugin: 'java'
-            
+
             ${RepoScriptBlockUtil.jcenterRepository()}
-            
+
             dependencies {
                 testImplementation '${testDependency}'
             }
-            
+
             tasks.withType(Test) {
                 maxParallelForks = $maxWorkers
             }
@@ -63,7 +63,7 @@ class TestedProjectFixture implements RichConsoleStyling {
     }
 
     static void containsTestExecutionWorkInProgressLine(GradleHandle gradleHandle, String taskPath, String testName) {
-        assertHasWorkInProgress(gradleHandle, "> $taskPath > Executing test $testName")
+        RichConsoleStyling.assertHasWorkInProgress(gradleHandle, "> $taskPath > Executing test $testName")
     }
 
     static class JavaTestClass {

@@ -53,7 +53,6 @@ public interface FeatureSpec {
      *
      * @since 6.0
      */
-    @Incubating
     void withJavadocJar();
 
     /**
@@ -62,7 +61,6 @@ public interface FeatureSpec {
      *
      * @since 6.0
      */
-    @Incubating
     void withSourcesJar();
 
     /**

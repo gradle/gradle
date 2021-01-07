@@ -33,7 +33,7 @@ class JavaLibraryDistributionPluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(JavaLibraryPlugin.class)
         project.extensions.getByType(DistributionContainer.class) != null
         project.plugins.hasPlugin(DistributionPlugin.class)
-        project.distributions.main.baseName == project.name
+        project.distributions.main.distributionBaseName.get() == project.name
     }
 
     def "adds distZip task to project"() {

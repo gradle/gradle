@@ -112,16 +112,49 @@ ADD RELEASE FEATURES ABOVE
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
+### Java Module Support
+
+[Compiling](userguide/java_library_plugin.html#sec:java_library_modular),
+[testing](userguide/java_testing.html#sec:java_testing_modular) and
+[executing](userguide/application_plugin.html#sec:application_modular)
+Java modules is now a stable feature.
+It is no longer required to activate the functionality using `java.modularity.inferModulePath.set(true)`.
+
+### Promoted APIs
 In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
 - Core
-    - Services
+    - [Services](userguide/custom_gradle_types.html#service_injection)
+        - org.gradle.api.file.ArchiveOperations
+        - org.gradle.api.file.FileSystemOperations
         - org.gradle.process.ExecOperations
-    - Provider API
+    - [Lazy configuration](userguide/lazy_configuration.html)
         - org.gradle.api.model.ObjectFactory.directoryProperty
         - org.gradle.api.model.ObjectFactory.fileCollection
         - org.gradle.api.model.ObjectFactory.fileProperty
         - org.gradle.api.model.ObjectFactory.sourceDirectorySet
+        - org.gradle.api.file.FileCollection.getElements
+        - org.gradle.api.provider.Provider.flatMap
+        - org.gradle.api.provider.Provider.orElse(T)
+        - org.gradle.api.provider.Provider.orElse(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.HasConfigurableValue
+        - org.gradle.api.provider.Property.value(T)
+        - org.gradle.api.provider.Property.value(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.Property.convention(T)
+        - org.gradle.api.provider.Property.convention(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.empty
+        - org.gradle.api.provider.HasMultipleValues.value(java.lang.Iterable<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.value(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
+        - org.gradle.api.provider.HasMultipleValues.convention(java.lang.Iterable<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.convention(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
+        - org.gradle.api.provider.MapProperty
+        - org.gradle.api.file.FileSystemLocationProperty.getLocationOnly
+        - org.gradle.api.file.FileSystemLocationProperty.fileValue
+        - org.gradle.api.file.FileSystemLocationProperty.fileProvider
+        - org.gradle.api.file.Directory.files
+        - org.gradle.api.file.DirectoryProperty.files
+    - Miscellaneous
+        - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -143,12 +176,23 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getLockFile
         - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getIgnoredDependencies
         - org.gradle.api.artifacts.dsl.LockMode
+        - org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking
+        - org.gradle.api.initialization.dsl.ScriptHandler.getDependencyLocking
     - [Dependency verification](userguide/dependency_verification.html#verifying-dependencies)
         - org.gradle.api.artifacts.ResolutionStrategy.enableDependencyVerification
         - org.gradle.api.artifacts.ResolutionStrategy.disableDependencyVerification
+        - org.gradle.StartParameter.getWriteDependencyVerifications
+        - org.gradle.StartParameter.setWriteDependencyVerifications
+        - org.gradle.StartParameter.setDependencyVerificationMode
+        - org.gradle.StartParameter.getDependencyVerificationMode
+        - org.gradle.StartParameter.setRefreshKeys
+        - org.gradle.StartParameter.isRefreshKeys
+        - org.gradle.StartParameter.isExportKeys
+        - org.gradle.StartParameter.setExportKeys
     - [Dependency constraints improvements](userguide/dependency_constraints.html#dependency-constraints)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.DependencyConstraint>)
+        - org.gradle.api.artifacts.result.ComponentSelectionCause.BY_ANCESTOR
     - [Component metadata rules improvements](userguide/component_metadata_rules.html#sec:component_metadata_rules)
         - org.gradle.api.artifacts.DirectDependencyMetadata.endorseStrictVersions
         - org.gradle.api.artifacts.DirectDependencyMetadata.doNotEndorseStrictVersions
@@ -181,10 +225,19 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.DependencySubstitutions.Substitution.withoutArtifactSelectors
         - org.gradle.api.artifacts.DependencySubstitutions.Substitution.using
         - org.gradle.api.artifacts.VariantSelectionDetails
-    - Miscellaneous changes
+    - [Publishing](publishing_setup.html#publishing_components)
+        - org.gradle.api.publish.Publication.withoutBuildIdentifier
+        - org.gradle.api.publish.Publication.withBuildIdentifier
+    - Miscellaneous
         - org.gradle.api.artifacts.result.ResolutionResult.getRequestedAttributes
         - org.gradle.api.artifacts.result.ResolvedComponentResult.getDependenciesForVariant
         - org.gradle.api.artifacts.result.ResolvedDependencyResult.getResolvedVariant
+        - org.gradle.api.artifacts.ComponentVariantIdentifier
+        - org.gradle.api.artifacts.maven.PomModuleDescriptor
+        - org.gradle.api.artifacts.repositories.AuthenticationSupported.credentials(java.lang.Class<? extends org.gradle.api.credentials.Credentials>)
+        - org.gradle.jvm.JvmLibrary
+        - org.gradle.language.base.artifact.SourcesArtifact
+        - org.gradle.language.java.artifact.JavadocArtifact
 - Tooling API
     - Eclipse models
         - org.gradle.tooling.model.eclipse.EclipseRuntime
@@ -196,7 +249,38 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.Destination
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
+- Java Ecosystem
+    - Java plugins
+        - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
+        - org.gradle.api.plugins.FeatureSpec.withSourcesJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withJavadocJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withSourcesJar()
+        - org.gradle.api.tasks.SourceSet.getCompileOnlyApiConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocJarTaskName()
+        - org.gradle.api.tasks.SourceSet.getJavadocTaskName()
+        - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
+    - Java Module System
+        - org.gradle.api.jvm.ModularitySpec
+        - org.gradle.api.plugins.JavaApplication.getMainModule()
+        - org.gradle.api.plugins.JavaPluginExtension.getModularity()
+        - org.gradle.api.tasks.compile.JavaCompile.getModularity()
+        - org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()
+        - org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()
+        - org.gradle.api.tasks.javadoc.Javadoc.getModularity()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.getModulePath()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.setModulePath()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.modulePath()
+        - org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails.getModulePath()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getModularity()
+        - org.gradle.process.JavaExecSpec.getMainClass()
+        - org.gradle.process.JavaExecSpec.getMainModule()
+        - org.gradle.process.JavaExecSpec.getModularity()
 
+- org.gradle.api.distribution.Distribution.getDistributionBaseName()
 
 <!--
 ### Example promoted

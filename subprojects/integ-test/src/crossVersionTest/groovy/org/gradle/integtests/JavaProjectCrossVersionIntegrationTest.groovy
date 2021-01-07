@@ -16,11 +16,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.junit.Test
 
 class JavaProjectCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
-    @Test
-    public void "can upgrade and downgrade Gradle version used to build Java project"() {
+    def "can upgrade and downgrade Gradle version used to build Java project"() {
         given:
         buildFile << """
 apply plugin: 'java'
