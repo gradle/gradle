@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -43,7 +42,6 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  *
  * @since 5.6
  */
-@Incubating
 public class JavaTestFixturesPlugin implements Plugin<Project> {
 
     private final JvmModelingServices jvmEcosystemUtilities;

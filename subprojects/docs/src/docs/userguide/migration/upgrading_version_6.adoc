@@ -35,7 +35,6 @@ Some plugins will break with this new version of Gradle, for example because the
 
 [[changes_7.0]]
 == Upgrading from 6.8
-
 === Changes in the IDE integration
 
 ===== Changes in the IDEA model
@@ -66,6 +65,11 @@ You should use the `maven-publish` plugin instead.
 
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for more details.
 
+==== The Play plugins have been removed
+
+The deprecated Play plugins have been removed.
+An external replacement, the link:https://gradle.github.io/playframework[Play Framework plugin], is available from the plugin portal.
+
 ==== Configuring the layout of an Ivy repository
 
 The `layout` method taking a configuration block has been removed and is replaced by link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:patternLayout(org.gradle.api.Action)[patternLayout].
@@ -73,6 +77,14 @@ The `layout` method taking a configuration block has been removed and is replace
 ==== Removal of `ProjectLayout#configurableFiles`
 
 Please use `ObjectFactory#fileCollection()` instead.
+
+==== Removal of `BasePluginConvention.libsDir` and `BasePluginConvention.distsDir`
+
+Please use the the `libsDirectory` and `distsDirectory` properties instead.
+
+==== Removal of `UnableToDeleteFileException`
+
+Existing usages should be replaced with `RuntimeException`.
 
 ==== Properties removed in Checkstyle and PMD plugins
 
@@ -89,6 +101,11 @@ The `getBaseName()` and `setBaseName()` methods were removed from the `Distribut
 
 Registering a task with the `AbstractTask` type or with a type extending `AbstractTask` was deprecated in Gradle 6.5 and is now an error in Gradle 7.0.
 You can use link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask] instead.
+
+==== Removal of `BuildListener.buildStarted(Gradle)`
+
+`BuildListener.buildStarted(Gradle)` was deprecated in Gradle 6.0 and is now removed in Gradle 7.0.
+Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings-org.gradle.api.initialization.Settings-[BuildListener.beforeSettings(Settings)] instead.
 
 ==== `modularity.inferModulePath` defaults to 'true'
 

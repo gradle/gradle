@@ -17,6 +17,7 @@ package org.gradle.profile;
 
 import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 import org.gradle.util.CollectionUtils;
 
 import java.text.DateFormat;
@@ -160,7 +161,7 @@ public class BuildProfile {
     }
 
     /**
-     * Should be set with a timestamp from a {@link org.gradle.BuildListener#buildStarted}
+     * Should be set with a timestamp from a {@link org.gradle.BuildListener#beforeSettings(Settings)}
      * callback.
      */
     public void setBuildStarted(long buildStarted) {

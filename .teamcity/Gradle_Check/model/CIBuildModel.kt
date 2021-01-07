@@ -45,12 +45,11 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
             functionalTests = listOf(
-                TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION)), omitsSlowProjects = true),
+                TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION))),
         Stage(StageNames.QUICK_FEEDBACK,
             functionalTests = listOf(
                 TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION)),
             functionalTestsDependOnSpecificBuilds = true,
-            omitsSlowProjects = true,
             dependsOnSanityCheck = true),
         Stage(StageNames.READY_FOR_MERGE,
             specificBuilds = listOf(
@@ -65,8 +64,7 @@ data class CIBuildModel(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)),
-            performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, oldUuid = "PerformanceTestTestLinux")),
-            omitsSlowProjects = true),
+            performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, oldUuid = "PerformanceTestTestLinux"))),
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
             specificBuilds = listOf(
@@ -188,11 +186,10 @@ interface BuildTypeBucket {
     fun getDescription(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 }
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
+data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) : BuildTypeBucket {
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest {
-        val uuid = if (containsSlowTests) testCoverage.asConfigurationId(model, name.kebabCaseToCamelCase()) else getUuid(model, testCoverage, bucketIndex)
         return FunctionalTest(model,
-            uuid,
+            getUuid(model, testCoverage, bucketIndex),
             getName(testCoverage),
             getDescription(testCoverage),
 
@@ -236,7 +233,6 @@ data class Stage(
     val trigger: Trigger = Trigger.never,
     val functionalTestsDependOnSpecificBuilds: Boolean = false,
     val runsIndependent: Boolean = false,
-    val omitsSlowProjects: Boolean = false,
     val dependsOnSanityCheck: Boolean = false
 ) {
     val id = stageName.id

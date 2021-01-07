@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.Factory;
 
 /**
@@ -28,7 +27,6 @@ import org.gradle.internal.Factory;
  *
  * @since 6.2
  */
-@Incubating
 public interface ExclusiveContentRepository {
     /**
      * Declares the repository

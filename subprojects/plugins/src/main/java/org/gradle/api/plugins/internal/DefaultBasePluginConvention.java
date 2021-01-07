@@ -18,13 +18,9 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.internal.deprecation.DeprecationLogger;
-
-import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
@@ -33,14 +29,11 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     private final DirectoryProperty distsDirectory;
     private final DirectoryProperty libsDirectory;
 
-    private ProjectInternal project;
-
     private String distsDirName;
     private String libsDirName;
     private String archivesBaseName;
 
     public DefaultBasePluginConvention(Project project) {
-        this.project = (ProjectInternal) project;
         this.buildDirectory = project.getLayout().getBuildDirectory();
         this.archivesBaseName = project.getName();
 
@@ -59,45 +52,13 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     }
 
     @Override
-    @Deprecated
-    public File getDistsDir() {
-        DeprecationLogger.deprecateProperty(Project.class, "distsDir").replaceWith("distsDirectory").willBeRemovedInGradle7().withDslReference().nagUser();
-        return getDistsDirectory().get().getAsFile();
-    }
-
-    @Override
     public DirectoryProperty getDistsDirectory() {
         return distsDirectory;
     }
 
     @Override
-    @Deprecated
-    public File getLibsDir() {
-        DeprecationLogger.deprecateProperty(Project.class, "libsDir").replaceWith("libsDirectory").willBeRemovedInGradle7().withDslReference().nagUser();
-        return getLibsDirectory().get().getAsFile();
-    }
-
-    @Override
     public DirectoryProperty getLibsDirectory() {
         return libsDirectory;
-    }
-
-    @Override
-    public ProjectInternal getProject() {
-        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "getProject()")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(6, "discontinued_methods")
-            .nagUser();
-        return project;
-    }
-
-    @Override
-    public void setProject(ProjectInternal project) {
-        DeprecationLogger.deprecateMethod(BasePluginConvention.class, "setProject()")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(6, "discontinued_methods")
-            .nagUser();
-        this.project = project;
     }
 
     @Override

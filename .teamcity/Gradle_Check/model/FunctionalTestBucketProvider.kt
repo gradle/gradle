@@ -37,8 +37,6 @@ typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<
 
 interface FunctionalTestBucketProvider {
     fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest>
-
-    fun createDeferredFunctionalTestsFor(stage: Stage): List<FunctionalTest>
 }
 
 class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel, testTimeDataJson: File) : FunctionalTestBucketProvider {
@@ -47,24 +45,6 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
         return buckets.getValue(testCoverage).mapIndexed { bucketIndex: Int, bucket: BuildTypeBucket ->
             bucket.createFunctionalTestsFor(model, stage, testCoverage, bucketIndex)
-        }
-    }
-
-    override fun createDeferredFunctionalTestsFor(stage: Stage): List<FunctionalTest> {
-        // The first stage which doesn't omit slow projects
-        val deferredStage = model.stages.find { !it.omitsSlowProjects }!!
-        val deferredStageIndex = model.stages.indexOfFirst { !it.omitsSlowProjects }
-        return if (stage.stageName != deferredStage.stageName) {
-            emptyList()
-        } else {
-            val stages = model.stages.subList(0, deferredStageIndex)
-            val deferredTests = mutableListOf<FunctionalTest>()
-            stages.forEach { eachStage ->
-                eachStage.functionalTests.forEach { testConfig ->
-                    deferredTests.addAll(model.subprojects.getSlowSubprojects().map { it.createFunctionalTestsFor(model, eachStage, testConfig, -1) })
-                }
-            }
-            deferredTests
         }
     }
 

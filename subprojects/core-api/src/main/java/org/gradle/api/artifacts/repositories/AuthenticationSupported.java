@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -121,7 +120,6 @@ public interface AuthenticationSupported {
      *
      * @since 6.6
      */
-    @Incubating
     void credentials(Class<? extends Credentials> credentialsType);
 
     /**

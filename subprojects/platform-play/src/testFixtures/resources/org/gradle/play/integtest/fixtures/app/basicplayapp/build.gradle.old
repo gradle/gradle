@@ -1,5 +1,0 @@
-plugins {
-    id 'play'
-}
-
-// repositories added in PlayApp class

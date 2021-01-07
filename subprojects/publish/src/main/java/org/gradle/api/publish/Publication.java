@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -33,7 +32,6 @@ public interface Publication extends Named {
      *
      * @since 6.6
      */
-    @Incubating
     void withoutBuildIdentifier();
 
     /**
@@ -43,6 +41,5 @@ public interface Publication extends Named {
      *
      * @since 6.6
      */
-    @Incubating
     void withBuildIdentifier();
 }

@@ -174,7 +174,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @SuppressWarnings("deprecation")
     private void doConfigurationCacheBuild() {
-        buildListener.buildStarted(gradle);
         configurationCache.load();
         stage = Stage.TaskGraph;
         runWork();
@@ -213,10 +212,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @SuppressWarnings("deprecation")
     private void prepareSettings() {
         if (stage == null) {
-            buildListener.buildStarted(gradle);
-
             settingsPreparer.prepareSettings(gradle);
-
             stage = Stage.LoadSettings;
         }
     }

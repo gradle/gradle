@@ -9,20 +9,12 @@
                 </tr>
             </thead>
             <tr>
-                <td>distsDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.distsDirName}</replaceable></literal></td>
-            </tr>
-            <tr>
                 <td>distsDirectory</td>
                 <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.distsDirName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>distsDirName</td>
                 <td><literal>'distributions'</literal></td>
-            </tr>
-            <tr>
-                <td>libsDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.libsDirName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>libsDirectory</td>

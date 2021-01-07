@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -149,7 +148,6 @@ public class JavaPlugin implements Plugin<Project> {
      *
      * @since 6.7
      */
-    @Incubating
     public static final String COMPILE_ONLY_API_CONFIGURATION_NAME = "compileOnlyApi";
 
     /**
@@ -180,7 +178,6 @@ public class JavaPlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    @Incubating
     public static final String JAVADOC_ELEMENTS_CONFIGURATION_NAME = "javadocElements";
 
     /**
@@ -188,7 +185,6 @@ public class JavaPlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    @Incubating
     public static final String SOURCES_ELEMENTS_CONFIGURATION_NAME = "sourcesElements";
 
     /**

@@ -153,6 +153,14 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileSystemLocationProperty.fileProvider
         - org.gradle.api.file.Directory.files
         - org.gradle.api.file.DirectoryProperty.files
+    - Miscellaneous
+        - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
+        - org.gradle.api.JavaVersion.VERSION_15
+        - org.gradle.api.JavaVersion.VERSION_16
+        - org.gradle.api.JavaVersion.VERSION_17
+        - org.gradle.api.JavaVersion.isJava12
+        - org.gradle.api.JavaVersion.isJava12Compatible
+        - org.gradle.api.JavaVersion.isCompatibleWith
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -174,12 +182,23 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getLockFile
         - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getIgnoredDependencies
         - org.gradle.api.artifacts.dsl.LockMode
+        - org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking
+        - org.gradle.api.initialization.dsl.ScriptHandler.getDependencyLocking
     - [Dependency verification](userguide/dependency_verification.html#verifying-dependencies)
         - org.gradle.api.artifacts.ResolutionStrategy.enableDependencyVerification
         - org.gradle.api.artifacts.ResolutionStrategy.disableDependencyVerification
+        - org.gradle.StartParameter.getWriteDependencyVerifications
+        - org.gradle.StartParameter.setWriteDependencyVerifications
+        - org.gradle.StartParameter.setDependencyVerificationMode
+        - org.gradle.StartParameter.getDependencyVerificationMode
+        - org.gradle.StartParameter.setRefreshKeys
+        - org.gradle.StartParameter.isRefreshKeys
+        - org.gradle.StartParameter.isExportKeys
+        - org.gradle.StartParameter.setExportKeys
     - [Dependency constraints improvements](userguide/dependency_constraints.html#dependency-constraints)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.DependencyConstraint>)
+        - org.gradle.api.artifacts.result.ComponentSelectionCause.BY_ANCESTOR
     - [Component metadata rules improvements](userguide/component_metadata_rules.html#sec:component_metadata_rules)
         - org.gradle.api.artifacts.DirectDependencyMetadata.endorseStrictVersions
         - org.gradle.api.artifacts.DirectDependencyMetadata.doNotEndorseStrictVersions
@@ -212,10 +231,19 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.artifacts.DependencySubstitutions.Substitution.withoutArtifactSelectors
         - org.gradle.api.artifacts.DependencySubstitutions.Substitution.using
         - org.gradle.api.artifacts.VariantSelectionDetails
-    - Miscellaneous changes
+    - [Publishing](publishing_setup.html#publishing_components)
+        - org.gradle.api.publish.Publication.withoutBuildIdentifier
+        - org.gradle.api.publish.Publication.withBuildIdentifier
+    - Miscellaneous
         - org.gradle.api.artifacts.result.ResolutionResult.getRequestedAttributes
         - org.gradle.api.artifacts.result.ResolvedComponentResult.getDependenciesForVariant
         - org.gradle.api.artifacts.result.ResolvedDependencyResult.getResolvedVariant
+        - org.gradle.api.artifacts.ComponentVariantIdentifier
+        - org.gradle.api.artifacts.maven.PomModuleDescriptor
+        - org.gradle.api.artifacts.repositories.AuthenticationSupported.credentials(java.lang.Class<? extends org.gradle.api.credentials.Credentials>)
+        - org.gradle.jvm.JvmLibrary
+        - org.gradle.language.base.artifact.SourcesArtifact
+        - org.gradle.language.java.artifact.JavadocArtifact
 - Tooling API
     - Eclipse models
         - org.gradle.tooling.model.eclipse.EclipseRuntime
@@ -228,7 +256,19 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
 - Java Ecosystem
-    - Java Module System
+    - Java plugins
+        - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
+        - org.gradle.api.plugins.FeatureSpec.withSourcesJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withJavadocJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withSourcesJar()
+        - org.gradle.api.tasks.SourceSet.getCompileOnlyApiConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocJarTaskName()
+        - org.gradle.api.tasks.SourceSet.getJavadocTaskName()
+        - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
+        - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
+      - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
         - org.gradle.api.plugins.JavaPluginExtension.getModularity()
@@ -246,6 +286,31 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainClass()
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
+    - Testing
+        - org.gradle.api.tasks.testing.Test.getStableClasspath
+        - org.gradle.api.plugins.JavaTestFixturesPlugin
+        - org.gradle.api.tasks.testing.TestFilter.excludeTestsMatching
+        - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns
+        - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns
+        - org.gradle.api.tasks.testing.TestFilter.excludeTest
+- [Kotlin DSL](userguide/kotlin_dsl.html)
+    - org.gradle.kotlin.dsl.KotlinScript
+    - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.KotlinSettingsScript.pluginManagement(block: PluginManagementSpec.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.ExtensionContainer.add(name: String, extension: T): Unit
+    - org.gradle.kotlin.dsl.ExtensionContainer.create(name: String, vararg constructionArguments: Any): T
+    - org.gradle.kotlin.dsl.ExtensionContainer.getByType(): T
+    - org.gradle.kotlin.dsl.ExtensionContainer.findByType(): T?
+    - org.gradle.kotlin.dsl.ExtensionContainer.configure(noinline action: T.() -> Unit)
+    - org.gradle.kotlin.dsl.ArtifactHandler.invoke(configuration: ArtifactHandlerScope.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.ScriptHandler.dependencyLocking(configuration: DependencyLockingHandler.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
+    - org.gradle.tooling.model.kotlin.dsl.EditorPosition
+    - org.gradle.tooling.model.kotlin.dsl.EditorReport
+    - org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 - org.gradle.api.distribution.Distribution.getDistributionBaseName()
 

@@ -370,6 +370,95 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.invocation.Gradle",
+            "member": "Method org.gradle.api.invocation.Gradle.buildStarted(groovy.lang.Closure)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.invocation.Gradle",
+            "member": "Method org.gradle.api.invocation.Gradle.buildStarted(org.gradle.api.Action)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.BuildListener",
+            "member": "Method org.gradle.BuildListener.buildStarted(org.gradle.api.invocation.Gradle)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Class org.gradle.kotlin.dsl.InitScriptApi",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.GradleDelegate.buildStarted(groovy.lang.Closure)",
+                "org.gradle.kotlin.dsl.support.delegates.GradleDelegate.buildStarted(org.gradle.api.Action)"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.UnableToDeleteFileException",
+            "member": "Class org.gradle.api.file.UnableToDeleteFileException",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.UnableToDeleteFileException",
+            "member": "Method org.gradle.api.file.UnableToDeleteFileException.getFile()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.UnableToDeleteFileException",
+            "member": "Constructor org.gradle.api.file.UnableToDeleteFileException(java.io.File)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getDistsDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getLibsDir()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getProject()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.setProject(org.gradle.api.internal.project.ProjectInternal)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

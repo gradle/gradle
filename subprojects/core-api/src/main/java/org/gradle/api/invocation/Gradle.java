@@ -174,23 +174,6 @@ public interface Gradle extends PluginAware {
     void afterProject(Action<? super Project> action);
 
     /**
-     * Adds a closure to be called when the build is started.
-     *
-     * This {@code Gradle} instance is passed to the closure as the first parameter.
-     *
-     * @param closure The closure to execute.
-     */
-    void buildStarted(Closure closure);
-
-    /**
-     * Adds an action to be called when the build is started.
-     *
-     * @param action The action to execute.
-     * @since 3.4
-     */
-    void buildStarted(Action<? super Gradle> action);
-
-    /**
      * Adds an action to be called before the build settings have been loaded and evaluated.
      *
      * @param closure The action to execute.

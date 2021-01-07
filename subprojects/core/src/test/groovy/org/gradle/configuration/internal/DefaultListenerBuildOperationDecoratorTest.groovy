@@ -287,7 +287,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
     @Unroll
     def 'decorates BuildListener listeners'() {
         given:
-        def buildStartedArg = Mock(Gradle)
         def settingsEvaluatedArg = Mock(Settings)
         def projectsLoadedArg = Mock(Gradle)
         def projectsEvaluatedArg = Mock(Gradle)
@@ -304,15 +303,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
         then:
         !decoratedListener.is(listener)
-
-        when:
-        decoratedListener.buildStarted(buildStartedArg)
-
-        then:
-        1 * listener.buildStarted(buildStartedArg)
-
-        and:
-        verifyNoOp()
 
         when:
         decoratedListener.settingsEvaluated(settingsEvaluatedArg)
@@ -367,7 +357,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     def 'decorated BuildListener rethrows failures'() {
         given:
-        def buildStartedArg = Mock(Gradle)
         def settingsEvaluatedArg = Mock(Settings)
         def projectsLoadedArg = Mock(Gradle)
         def projectsEvaluatedArg = Mock(Gradle)
@@ -381,19 +370,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             id = it
             decoratedListener = decorator.decorate('foo', BuildListener, listener)
         }
-
-        when:
-        decoratedListener.buildStarted(buildStartedArg)
-
-        then:
-        def e1 = thrown(RuntimeException)
-        e1.is(failure)
-
-        and:
-        1 * listener.buildStarted(buildStartedArg) >> { throw failure }
-
-        and:
-        verifyNoOp()
 
         when:
         decoratedListener.settingsEvaluated(settingsEvaluatedArg)

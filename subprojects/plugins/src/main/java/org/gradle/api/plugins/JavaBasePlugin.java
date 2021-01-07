@@ -18,7 +18,6 @@ package org.gradle.api.plugins;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
@@ -86,7 +85,6 @@ public class JavaBasePlugin implements Plugin<Project> {
      *
      * @since 5.6
      */
-    @Incubating
     public static final String COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY = "org.gradle.java.compile-classpath-packaging";
 
     /**

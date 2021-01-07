@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -49,7 +48,6 @@ public class HelpTasksPlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    @Incubating
     public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";

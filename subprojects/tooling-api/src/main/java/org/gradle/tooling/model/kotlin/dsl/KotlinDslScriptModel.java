@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.util.List;
 
@@ -27,7 +25,6 @@ import java.util.List;
  *
  * @since 6.0
  */
-@Incubating
 public interface KotlinDslScriptModel {
 
     List<File> getClassPath();

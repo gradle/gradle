@@ -56,9 +56,8 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void buildStarted(Gradle gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
+    public void beforeSettings(Settings settings) {
+        StartParameter startParameter = settings.getStartParameter();
         logger.info("Starting Build");
         if (logger.isDebugEnabled()) {
             logger.debug("Gradle user home: {}", startParameter.getGradleUserHomeDir());
