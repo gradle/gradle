@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r69
+package org.gradle.integtests.tooling.r70
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -24,7 +24,7 @@ import spock.lang.Timeout
 
 @Timeout(120)
 @ToolingApiVersion('>=6.1')
-@TargetGradleVersion(">=6.9")
+@TargetGradleVersion(">=7.0")
 class TestDisplayNameCrossVersionSpec extends TestLauncherSpec {
     @Override
     void addDefaultTests() {
