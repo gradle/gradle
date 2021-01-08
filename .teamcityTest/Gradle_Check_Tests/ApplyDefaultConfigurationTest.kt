@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.io.File
+
 /*
  * Copyright 2019 the original author or authors.
  *
@@ -34,6 +35,7 @@ import java.io.File
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 @ExtendWith(MockKExtension::class)
 class ApplyDefaultConfigurationTest {
     @MockK(relaxed = true)
@@ -122,8 +124,8 @@ class ApplyDefaultConfigurationTest {
 
     private
     fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "", os: Os = Os.LINUX): String {
-        val windowsPaths = "-Porg.gradle.java.installations.paths=\"%windows.java8.oracle.64bit%,%windows.java8.openjdk.64bit%,%windows.java9.oracle.64bit%,%windows.java9.openjdk.64bit%,%windows.java10.oracle.64bit%,%windows.java10.openjdk.64bit%,%windows.java11.oracle.64bit%,%windows.java11.openjdk.64bit%,%windows.java12.oracle.64bit%,%windows.java12.openjdk.64bit%,%windows.java13.oracle.64bit%,%windows.java13.openjdk.64bit%,%windows.java14.oracle.64bit%,%windows.java14.openjdk.64bit%,%windows.java15.oracle.64bit%,%windows.java15.openjdk.64bit%,%windows.java16.oracle.64bit%,%windows.java16.openjdk.64bit%\""
-        val linuxPaths = "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java8.openjdk.64bit%,%linux.java9.oracle.64bit%,%linux.java9.openjdk.64bit%,%linux.java10.oracle.64bit%,%linux.java10.openjdk.64bit%,%linux.java11.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java12.oracle.64bit%,%linux.java12.openjdk.64bit%,%linux.java13.oracle.64bit%,%linux.java13.openjdk.64bit%,%linux.java14.oracle.64bit%,%linux.java14.openjdk.64bit%,%linux.java15.oracle.64bit%,%linux.java15.openjdk.64bit%,%linux.java16.oracle.64bit%,%linux.java16.openjdk.64bit%\""
+        val windowsPaths = "-Porg.gradle.java.installations.paths=\"%windows.java8.oracle.64bit%,%windows.java9.oracle.64bit%,%windows.java10.oracle.64bit%,%windows.java11.oracle.64bit%,%windows.java12.openjdk.64bit%,%windows.java13.openjdk.64bit%,%windows.java14.openjdk.64bit%,%windows.java15.openjdk.64bit%,%windows.java16.openjdk.64bit%\""
+        val linuxPaths = "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java9.oracle.64bit%,%linux.java10.oracle.64bit%,%linux.java11.oracle.64bit%,%linux.java12.openjdk.64bit%,%linux.java13.openjdk.64bit%,%linux.java14.openjdk.64bit%,%linux.java15.openjdk.64bit%,%linux.java16.openjdk.64bit%\""
         val expectedInstallationPaths = if (os == Os.WINDOWS) windowsPaths else linuxPaths
         return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -s $daemon --continue $extraParameters -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\" $expectedInstallationPaths"
     }
