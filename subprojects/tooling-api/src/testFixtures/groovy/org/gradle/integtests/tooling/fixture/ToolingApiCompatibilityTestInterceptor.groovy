@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
 
 package org.gradle.integtests.tooling.fixture
 
@@ -24,8 +24,18 @@ import org.gradle.util.GradleVersion
 
 class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestInterceptor {
 
-    private static final GradleVersion MINIMAL_VERSION = GradleVersion.version("2.6");
-    private static final ToolingApiDistributionResolver RESOLVER = new ToolingApiDistributionResolver().withDefaultRepository();
+    private static final GradleVersion MINIMAL_VERSION = GradleVersion.version("2.6")
+    private static ToolingApiDistributionResolver resolver
+
+    // Needs to be initialized lazily
+    // Otherwise in native tooling tests, NativeServices gets initialized too early with a wrong system property
+    // that then breaks them on Windows
+    private static ToolingApiDistributionResolver getResolver() {
+        if (resolver == null) {
+            resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+        }
+        return resolver
+    }
 
     protected ToolingApiCompatibilityTestInterceptor(Class<?> target) {
         super(target)
@@ -48,12 +58,12 @@ class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestIn
             // current vs. target
             def currentVersion = current.version
             if (currentVersion >= MINIMAL_VERSION) {
-                executions.add(new ToolingApiExecution(RESOLVER.resolve(currentVersion.baseVersion.version), distribution))
+                executions.add(new ToolingApiExecution(getResolver().resolve(currentVersion.baseVersion.version), distribution))
             }
             // target vs. current
             def distribVersion = distribution.version
             if (distribVersion >= MINIMAL_VERSION) {
-                executions.add(new ToolingApiExecution(RESOLVER.resolve(distribVersion.version), current))
+                executions.add(new ToolingApiExecution(getResolver().resolve(distribVersion.version), current))
             }
         }
 
@@ -63,7 +73,7 @@ class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestIn
     @Override
     protected void createExecutionsForContext(CoverageContext coverageContext) {
         // current vs. current
-        add(new ToolingApiExecution(RESOLVER.resolve(current.version.baseVersion.version), current))
+        add(new ToolingApiExecution(getResolver().resolve(current.version.baseVersion.version), current))
         super.createExecutionsForContext(coverageContext)
     }
 
