@@ -816,6 +816,22 @@
             "member": "Constructor org.gradle.language.scala.tasks.BaseScalaCompileOptions()",
             "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
             "changes": []
+        },
+
+
+        {
+            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
+            "member": "Class org.gradle.plugins.javascript.base.SourceTransformationException",
+            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
+            "member": "Constructor org.gradle.plugins.javascript.base.SourceTransformationException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
+            "changes": []
         }
     ]
 }
