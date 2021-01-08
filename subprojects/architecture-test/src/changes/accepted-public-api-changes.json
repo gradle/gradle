@@ -477,7 +477,6 @@
             ]
         },
 
-
         {
             "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
             "member": "Class org.gradle.api.tasks.scala.IncrementalCompileOptions",
@@ -833,8 +832,6 @@
             "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
             "changes": []
         },
-
-        ,
 
         {
             "type": "org.gradle.api.artifacts.maven.GroovyMavenDeployer",
