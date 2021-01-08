@@ -22,7 +22,9 @@ import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
 import org.spockframework.runtime.model.FeatureInfo;
+import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.MethodInfo;
+import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import javax.annotation.Nullable;
@@ -53,7 +55,12 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     public void interceptFeature(FeatureInfo feature) {
         initExecutions();
 
-        feature.setName(feature.getName() + " " + executions);
+        NameProvider<IterationInfo> iterationNameProvider = feature.getIterationNameProvider();
+        if (iterationNameProvider == null) {
+            feature.setName(feature.getName() + " " + executions);
+        } else {
+            feature.setIterationNameProvider(p -> iterationNameProvider.getName(p) + " " + executions);
+        }
 
         if (canSkipFeature(feature.getSpec(), executions)) {
             feature.skip(executions.toString());
