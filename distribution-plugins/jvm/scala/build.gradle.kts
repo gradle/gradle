@@ -20,7 +20,6 @@ dependencies {
     implementation("org.gradle:platform-jvm")
     implementation("org.gradle:language-jvm")
     implementation("org.gradle:language-java")
-    implementation("org.gradle:language-scala")
     implementation("org.gradle:plugins")
     implementation("org.gradle:reporting")
     implementation("org.gradle:dependency-management")
@@ -42,7 +41,8 @@ dependencies {
     testImplementation(testFixtures("org.gradle:language-java"))
 
     integTestImplementation("org.gradle:jvm-services")
-    integTestImplementation(testFixtures(project(":language-jvm")))
+
+    testFixturesImplementation(testFixtures("org.gradle:language-jvm"))
 
     testRuntimeOnly("org.gradle:distributions-core") {
         because("ProjectBuilder tests load services from a Gradle distribution.")

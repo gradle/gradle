@@ -574,20 +574,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "ide-play",
-    "path": "full:ide-play",
-    "unitTests": false,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "platform-play",
-    "path": "full:platform-play",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "name": "code-quality",
     "path": "jvm:code-quality",
     "unitTests": true,
@@ -618,13 +604,6 @@
   {
     "name": "jacoco",
     "path": "jvm:jacoco",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "language-scala",
-    "path": "jvm:language-scala",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
