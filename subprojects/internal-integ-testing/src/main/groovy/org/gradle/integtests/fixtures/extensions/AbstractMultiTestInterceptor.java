@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.extensions;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.junit.AssumptionViolatedException;
 import org.spockframework.lang.SpecInternals;
 import org.spockframework.mock.runtime.MockController;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
@@ -131,6 +132,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     private void initExecutions() {
         if (!executionsInitialized) {
             createExecutions();
+            executions.sort((e1, e2) -> e2.getDisplayName().compareTo(e1.getDisplayName()));
             for (Execution execution : executions) {
                 execution.init(target);
             }
@@ -241,6 +243,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         public void intercept(IMethodInvocation invocation) throws Throwable {
             try {
                 invocation.proceed();
+            } catch (AssumptionViolatedException e) {
+                // ignore - assumption violation is not a test failure
+                System.out.println("Skipping iteration: assumption not satisfied");
             } catch (Throwable t) {
                 hasThrown = true;
                 throw t;
