@@ -244,8 +244,8 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             try {
                 invocation.proceed();
             } catch (AssumptionViolatedException e) {
-                // ignore - assumption violation is not a test failure
                 System.out.println("Skipping iteration: assumption not satisfied");
+                throw e;
             } catch (Throwable t) {
                 hasThrown = true;
                 throw t;
