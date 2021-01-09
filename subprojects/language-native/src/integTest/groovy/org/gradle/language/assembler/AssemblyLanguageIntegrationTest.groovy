@@ -29,7 +29,10 @@ import static org.gradle.util.Matchers.containsText
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
 class AssemblyLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(toolChain)
+    @Override
+    HelloWorldApp getHelloWorldApp() {
+        return new AssemblerWithCHelloWorldApp(toolChain)
+    }
 
     def "build fails when assemble fails"() {
         given:
