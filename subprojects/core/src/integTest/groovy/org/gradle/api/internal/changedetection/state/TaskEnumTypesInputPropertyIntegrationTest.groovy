@@ -349,7 +349,7 @@ public enum SomeEnum {
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: ArrayList1_groovyProxy",iterationMatchers = '.*\\[2\\]$')
+    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: ArrayList1_groovyProxy", iterationMatchers = '.*\\[type: Map, #2\\]$')
     def "task can take as input a collection of enum type from various sources"() {
         def buildSrcEnum = file("buildSrc/src/main/java/BuildSrcEnum.java")
         buildSrcEnum << """
