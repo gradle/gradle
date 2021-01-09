@@ -30,7 +30,11 @@ import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
 class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     String imports = "org.junit.*"
-    String framework = version.toString().startsWith('Vintage') ? "JUnitPlatform" : "JUnit"
+
+    @Override
+    String getFramework() {
+        return version.toString().startsWith('Vintage') ? "JUnitPlatform" : "JUnit"
+    }
 
     @Override
     String getDependencies() {
@@ -38,7 +42,7 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
             """
                 testCompileOnly 'junit:junit:4.13'
                 testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
-"""
+            """
         } else {
             "testImplementation 'junit:junit:${dependencyVersion}'"
         }
