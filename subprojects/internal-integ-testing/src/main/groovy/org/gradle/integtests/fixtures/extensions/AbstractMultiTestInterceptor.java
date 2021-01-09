@@ -100,7 +100,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
                 System.out.println("\nRUNNING ITERATION [" + execution.getDisplayName() + "]\n");
             }
             if (AbstractIntegrationSpec.class.isAssignableFrom(target)) {
-                ((AbstractIntegrationSpec)invocation.getInstance()).recreateExecuter();
+                ((AbstractIntegrationSpec)invocation.getInstance()).resetExecuter();
             }
             if (initInvocation != null) { // null happens when a test class contains only features with 'where' clause
                 initInvocation.proceed();

@@ -106,7 +106,7 @@ class AbstractIntegrationSpec extends Specification {
         executer.cleanup()
     }
 
-    void recreateExecuter() {
+    private void recreateExecuter() {
         if (executor != null) {
             executor.cleanup()
         }
@@ -513,5 +513,13 @@ class AbstractIntegrationSpec extends Specification {
         if (executor != null) {
             executor.ignoreCleanupAssertions()
         }
+    }
+
+    /**
+     * Called by {@link org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor} when the test class is reused
+     */
+    void resetExecuter() {
+        this.ignoreCleanupAssertions = false
+        recreateExecuter()
     }
 }
