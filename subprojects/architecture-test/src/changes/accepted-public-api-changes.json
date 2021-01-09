@@ -459,6 +459,667 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getScalaPlatform()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setScalaPlatform(org.gradle.language.scala.ScalaPlatform)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Class org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Class org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Class org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getAnalysisFile()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getPublishedCode()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaForkOptions",
+            "member": "Class org.gradle.api.tasks.scala.ScalaForkOptions",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaForkOptions",
+            "member": "Constructor org.gradle.api.tasks.scala.ScalaForkOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Field LOGGER",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.compile()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.createSpec()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisFiles()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisMappingFile()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getCompiler(org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getJvmVersion()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getScalaCompileOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },{
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Constructor org.gradle.language.scala.tasks.AbstractScalaCompile(org.gradle.language.scala.tasks.BaseScalaCompileOptions)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getAdditionalParameters()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getDebugLevel()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getEncoding()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getForkOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getIncrementalOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getLoggingLevel()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getLoggingPhases()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isDeprecation()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isFailOnError()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isForce()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isListFiles()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isOptimize()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.isUnchecked()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setAdditionalParameters(java.util.List)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setDebugLevel(java.lang.String)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setDeprecation(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setEncoding(java.lang.String)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setFailOnError(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForce(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForkOptions(org.gradle.api.tasks.scala.ScalaForkOptions)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setIncrementalOptions(org.gradle.api.tasks.scala.IncrementalCompileOptions)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setListFiles(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setLoggingLevel(java.lang.String)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setLoggingPhases(java.util.List)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setOptimize(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setUnchecked(boolean)",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Constructor org.gradle.language.scala.tasks.BaseScalaCompileOptions()",
+            "acceptation": "Moved from 'gradle-language-scala.jar' to 'gradle-scala.jar' (this is not breaking and the checker should not report this)",
+            "changes": []
+        },
+
+
+        {
+            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
+            "member": "Class org.gradle.plugins.javascript.base.SourceTransformationException",
+            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
+            "changes": [
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
+            "member": "Constructor org.gradle.plugins.javascript.base.SourceTransformationException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
+            "changes": []
+        },
+
+        {
+            "type": "org.gradle.api.artifacts.maven.GroovyMavenDeployer",
+            "member": "Class org.gradle.api.artifacts.maven.GroovyMavenDeployer",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Class org.gradle.api.artifacts.maven.MavenDeployer",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.addProtocolProviderJars(java.util.Collection)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.getRepository()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.getSnapshotRepository()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.setRepository(java.lang.Object)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.setSnapshotRepository(java.lang.Object)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Class org.gradle.api.artifacts.maven.MavenDeployment",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.addArtifact(org.gradle.api.artifacts.PublishArtifact)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getArtifactId()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getArtifacts()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getAttachedArtifacts()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getGroupId()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getMainArtifact()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getPackaging()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getPomArtifact()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployment",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployment.getVersion()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenResolver",
+            "member": "Class org.gradle.api.artifacts.maven.MavenResolver",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenResolver",
+            "member": "Method org.gradle.api.artifacts.maven.MavenResolver.beforeDeployment(org.gradle.api.Action)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenResolver",
+            "member": "Method org.gradle.api.artifacts.maven.MavenResolver.beforeDeployment(groovy.lang.Closure)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenResolver",
+            "member": "Method org.gradle.api.artifacts.maven.MavenResolver.getSettings()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Class org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "acceptation": "Removed because it depends on deprecated removed classes",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Field DEFAULT_MAVEN_INSTALLER_NAME",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Field DEFAULT_MAVEN_DEPLOYER_NAME",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer()",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer(groovy.lang.Closure)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer(org.gradle.api.Action)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer(java.util.Map)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer(java.util.Map,groovy.lang.Closure)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenDeployer(java.util.Map,org.gradle.api.Action)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller()",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(groovy.lang.Closure)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(org.gradle.api.Action)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(java.util.Map)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(java.util.Map,groovy.lang.Closure)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenRepositoryHandlerConvention",
+            "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(java.util.Map,org.gradle.api.Action)",
+            "acceptation": "Class was removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

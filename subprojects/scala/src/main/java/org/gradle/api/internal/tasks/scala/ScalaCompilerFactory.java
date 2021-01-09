@@ -32,8 +32,8 @@ import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
     private final WorkerDaemonFactory workerDaemonFactory;
-    private FileCollection scalaClasspath;
-    private FileCollection zincClasspath;
+    private final FileCollection scalaClasspath;
+    private final FileCollection zincClasspath;
     private final File daemonWorkingDir;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final ClassPathRegistry classPathRegistry;
@@ -65,8 +65,8 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         HashedClasspath hashedScalaClasspath = new HashedClasspath(DefaultClassPath.of(scalaClasspathFiles), classpathHasher);
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
-        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
-            daemonWorkingDir, ZincScalaCompilerFacade.class, new Object[] {hashedScalaClasspath, false},
+        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<>(
+            daemonWorkingDir, ZincScalaCompilerFacade.class, new Object[] {hashedScalaClasspath},
             workerDaemonFactory, zincClasspathFiles, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         return new NormalizingScalaCompiler(scalaCompiler);
     }

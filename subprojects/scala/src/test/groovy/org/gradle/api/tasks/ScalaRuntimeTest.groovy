@@ -19,7 +19,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
@@ -35,7 +34,7 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         when:
         def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
         then:
-        assertHasCorrectDependencies(classpath, DefaultScalaToolProvider.DEFAULT_ZINC_VERSION)
+        assertHasCorrectDependencies(classpath, ScalaBasePlugin.DEFAULT_ZINC_VERSION)
     }
 
     def "inferred Scala class path contains 'scala-compiler' repository dependency and 'compiler-bridge' matching 'scala-library' Jar found on class path with specified zinc version"() {

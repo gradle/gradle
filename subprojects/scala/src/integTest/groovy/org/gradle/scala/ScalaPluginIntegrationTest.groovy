@@ -15,9 +15,9 @@
  */
 package org.gradle.scala
 
+import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -218,7 +218,7 @@ task someTask
 
         then:
         failureHasCause("The version of 'scala-library' was changed while using the default Zinc version." +
-            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION)
+            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION)
     }
 
     @ToBeFixedForConfigurationCache(because = ":dependencyInsight")

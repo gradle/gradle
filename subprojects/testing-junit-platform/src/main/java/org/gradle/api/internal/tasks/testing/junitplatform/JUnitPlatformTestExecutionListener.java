@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestExecutionResult;
@@ -40,7 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
-import static org.junit.platform.engine.TestDescriptor.Type.CONTAINER;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
@@ -81,7 +83,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
-        if (testIdentifier.isTest() || hasClassSource(testIdentifier)) {
+        // The root node will be "JUnit Jupiter" which isn't expected
+        // to be seen as a "real" test suite in many tests, so this
+        // test is to make sure we're at least under this event
+        if (testIdentifier.getParentId().isPresent()) {
             reportStartedUnlessAlreadyStarted(testIdentifier);
         }
     }
@@ -160,15 +165,34 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         MutableBoolean wasCreated = new MutableBoolean(false);
         descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
             wasCreated.set(true);
-            if (node.getType() == CONTAINER || isTestClassIdentifier(node)) {
-                TestIdentifier classIdentifier = findTestClassIdentifier(node);
-                String className = className(classIdentifier);
-                String classDisplayName = classDisplayName(classIdentifier);
-                return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName);
+            boolean isTestClassId = isTestClassIdentifier(node);
+            if (node.getType().isContainer() || isTestClassId) {
+                if (isTestClassId) {
+                    return createTestClassDescriptor(node);
+                }
+                String displayName = node.getDisplayName();
+                Optional<TestDescriptorInternal> parentId = node.getParentId().map(descriptorsByUniqueId::get);
+                if (parentId.isPresent()) {
+                    Object candidateId = parentId.get().getId();
+                    if (candidateId instanceof CompositeIdGenerator.CompositeId) {
+                        return createNestedTestSuite(node, displayName, (CompositeIdGenerator.CompositeId) candidateId);
+                    }
+                }
             }
             return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
         });
         return wasCreated.get();
+    }
+
+    private DefaultNestedTestSuiteDescriptor createNestedTestSuite(TestIdentifier node, String displayName, CompositeIdGenerator.CompositeId candidateId) {
+        return new DefaultNestedTestSuiteDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
+    }
+
+    private DefaultTestClassDescriptor createTestClassDescriptor(TestIdentifier node) {
+        TestIdentifier classIdentifier = findTestClassIdentifier(node);
+        String className = className(classIdentifier);
+        String classDisplayName = node.getDisplayName();
+        return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName);
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
@@ -224,14 +248,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                 return classSource.get().getClassName();
             }
         }
-        return "UnknownClass";
+        return JUnitSupport.UNKNOWN_CLASS;
     }
 
     private String classDisplayName(TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             return testClassIdentifier.getDisplayName();
         }
-        return "UnknownClass";
+        return JUnitSupport.UNKNOWN_CLASS;
     }
 
     private static boolean hasClassSource(TestIdentifier testIdentifier) {

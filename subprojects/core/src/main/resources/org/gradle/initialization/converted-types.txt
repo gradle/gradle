@@ -83,11 +83,6 @@ org.gradle.plugins.ide.idea.model.Project
 org.gradle.plugins.ide.idea.model.ProjectLibrary
 org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 org.gradle.plugins.ide.idea.model.Workspace
-org.gradle.plugins.javascript.base.JavaScriptBasePlugin
-org.gradle.plugins.javascript.coffeescript.CoffeeScriptBasePlugin
-org.gradle.plugins.javascript.envjs.EnvJsPlugin
-org.gradle.plugins.javascript.jshint.JsHintPlugin
-org.gradle.plugins.javascript.rhino.RhinoPlugin
 org.gradle.plugins.signing.Sign
 org.gradle.plugins.signing.signatory.pgp.PgpKeyId
 org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory

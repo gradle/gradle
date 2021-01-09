@@ -392,13 +392,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "javascript",
-    "name": "javascript",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "jvm-services",
     "name": "jvm-services",
     "unitTests": true,
@@ -478,13 +471,6 @@
   {
     "dirName": "language-native",
     "name": "language-native",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "language-scala",
-    "name": "language-scala",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
