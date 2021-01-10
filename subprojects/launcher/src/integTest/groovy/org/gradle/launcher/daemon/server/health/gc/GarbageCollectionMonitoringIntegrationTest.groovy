@@ -34,9 +34,10 @@ import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WI
 @MultiVersionTest
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     static def version
-    GarbageCollectorUnderTest garbageCollector = version
+    GarbageCollectorUnderTest garbageCollector
 
     def setup() {
+        garbageCollector = version
         executer.withBuildJvmOpts(garbageCollector.configuration.jvmArgs.split(" "))
         executer.withEnvironmentVars(JAVA_TOOL_OPTIONS: "-D${DefaultGarbageCollectionMonitor.DISABLE_POLLING_SYSTEM_PROPERTY}=true -D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true")
     }
