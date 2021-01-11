@@ -26,11 +26,11 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -92,7 +92,8 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheRepository cacheRepository,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore
+        ExecutionHistoryStore executionHistoryStore,
+        GlobalCacheLocations globalCacheLocations
     ) {
         return new ImmutableTransformationWorkspaceServices(
             cacheRepository
@@ -101,7 +102,11 @@ public class DependencyManagementGradleUserHomeScopeServices {
                 .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,
             executionHistoryStore,
-            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful)
+            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result
+                .map(transformedFiles -> transformedFiles.stream()
+                    .allMatch(transformedFile -> globalCacheLocations.isInsideGlobalCache(transformedFile.getAbsolutePath()))
+                ).getOrMapFailure(__ -> false)
+            )
         );
     }
 }

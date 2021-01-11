@@ -119,7 +119,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         then:
         output.count("files: [lib1.jar.txt, lib1.jar]") == 2
 
-        output.count("Transformed") == 1
+        // From the Gradle user home cache
+        output.count("Transformed") == 0
     }
 
     private void setupProjectInDir(TestFile projectDir) {
@@ -852,7 +853,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         failure.assertHasCause("Failed to transform lib2.jar (project :lib) to match attributes {artifactType=size, usage=api}")
         def outputDir1 = projectOutputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = projectOutputDir("lib2.jar", "lib2.jar.txt")
-        def outputDir3 = projectOutputDir("lib3.jar", "lib3.jar.txt")
+        def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
         def outputDir4 = gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt")
 
         when:
@@ -868,7 +869,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         isTransformed("lib4-1.0.jar", "lib4-1.0.jar.txt")
         projectOutputDir("lib1.jar", "lib1.jar.txt") == outputDir1
         projectOutputDir("lib2.jar", "lib2.jar.txt") == outputDir2
-        projectOutputDir("lib3.jar", "lib3.jar.txt") == outputDir3
+        gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt") == outputDir3
         gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt") == outputDir4
 
         when:
@@ -896,7 +897,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         isTransformed("dir1.classes", "dir1.classes.dir")
         isTransformed("lib1.jar", "lib1.jar.txt")
         def outputDir1 = projectOutputDir("dir1.classes", "dir1.classes.dir")
-        def outputDir2 = projectOutputDir("lib1.jar", "lib1.jar.txt")
+        def outputDir2 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -919,7 +920,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         isTransformed("dir1.classes", "dir1.classes.dir")
         isTransformed("lib1.jar", "lib1.jar.txt")
         outputDir("dir1.classes", "dir1.classes.dir") == outputDir1
-        projectOutputDir("lib1.jar", "lib1.jar.txt") == outputDir2
+        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") != outputDir2
 
         when:
         succeeds ":util:resolve", ":app:resolve"
