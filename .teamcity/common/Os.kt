@@ -72,6 +72,10 @@ enum class Os(
         }() }.joinToString(","))
     }
 
+    fun javaHomeForGradle(): String {
+        return asPlaceholder(JvmVersion.java11, JvmVendor.openjdk)
+    }
+
     fun asPlaceholder(jvmVersion: JvmVersion, vendor: JvmVendor): String {
         return "%${name.toLowerCase()}.$jvmVersion.$vendor.64bit%"
     }

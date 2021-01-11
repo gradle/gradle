@@ -30,6 +30,6 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     """.trimIndent()
 
     params {
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
+        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
     }
 })

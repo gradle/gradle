@@ -1,5 +1,6 @@
 package configurations
 
+import common.Os.LINUX
 import common.buildToolGradleParameters
 import common.customGradle
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -15,7 +16,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
     params {
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
+        param("env.JAVA_HOME", LINUX.javaHomeForGradle())
     }
 
     features {
