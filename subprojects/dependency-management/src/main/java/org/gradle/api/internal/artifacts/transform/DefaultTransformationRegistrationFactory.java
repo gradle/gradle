@@ -40,6 +40,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -216,6 +217,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             boolean optional,
             boolean skipWhenEmpty,
             DirectorySensitivity directorySensitivity,
+            LineEndingNormalization lineEndingNormalization,
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
             PropertyValue value,

@@ -25,4 +25,6 @@ public interface FileNormalizationSpec {
     Class<? extends FileNormalizer> getNormalizer();
 
     DirectorySensitivity getDirectorySensitivity();
+
+    LineEndingNormalization getLineEndingNormalization();
 }

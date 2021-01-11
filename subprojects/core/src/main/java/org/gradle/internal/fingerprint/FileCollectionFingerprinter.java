@@ -50,4 +50,9 @@ public interface FileCollectionFingerprinter {
      * Returns the directory sensitivity associated with this fingerprinter.
      */
     DirectorySensitivity getDirectorySensitivity();
+
+    /**
+     * Returns the line ending normalization associated with this fingerprinter.
+     */
+    LineEndingNormalization getLineEndingNormalization();
 }

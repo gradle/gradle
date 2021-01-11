@@ -74,6 +74,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.IgnoreLineEndings;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
@@ -203,7 +204,8 @@ public class ExecutionGlobalServices {
                 Optional.class,
                 PathSensitive.class,
                 SkipWhenEmpty.class,
-                IgnoreEmptyDirectories.class
+                IgnoreEmptyDirectories.class,
+                IgnoreLineEndings.class
             ),
             instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);

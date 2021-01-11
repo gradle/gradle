@@ -57,6 +57,7 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingNormalization
 import org.gradle.util.DeferredUtil
 
 
@@ -231,7 +232,8 @@ sealed class RegisteredProperty {
         val skipWhenEmpty: Boolean,
         val incremental: Boolean,
         val fileNormalizer: Class<out FileNormalizer>?,
-        val directorySensitivity: DirectorySensitivity
+        val directorySensitivity: DirectorySensitivity,
+        val lineEndingNormalization: LineEndingNormalization
     ) : RegisteredProperty()
 
     data class OutputFile(
@@ -335,6 +337,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             optional: Boolean,
             skipWhenEmpty: Boolean,
             directorySensitivity: DirectorySensitivity,
+            lineEndingNormalization: LineEndingNormalization,
             incremental: Boolean,
             fileNormalizer: Class<out FileNormalizer>?,
             propertyValue: PropertyValue,
@@ -349,7 +352,8 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     skipWhenEmpty,
                     incremental,
                     fileNormalizer,
-                    directorySensitivity
+                    directorySensitivity,
+                    lineEndingNormalization
                 )
             )
         }

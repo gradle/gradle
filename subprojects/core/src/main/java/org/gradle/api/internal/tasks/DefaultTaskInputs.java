@@ -38,6 +38,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -85,6 +86,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 registration.isOptional(),
                 registration.isSkipWhenEmpty(),
                 registration.getDirectorySensitivity(),
+                registration.getLineEndingNormalization(),
                 false,
                 registration.getNormalizer(),
                 registration.getValue(),
@@ -211,6 +213,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 boolean optional,
                 boolean skipWhenEmpty,
                 DirectorySensitivity directorySensitivity,
+                LineEndingNormalization lineEndingNormalization,
                 boolean incremental,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,
                 PropertyValue value,
@@ -253,6 +256,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                     boolean optional,
                     boolean skipWhenEmpty,
                     DirectorySensitivity directorySensitivity,
+                    LineEndingNormalization lineEndingNormalization,
                     boolean incremental,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
                     PropertyValue value, InputFilePropertyType filePropertyType
@@ -279,6 +283,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             boolean optional,
             boolean skipWhenEmpty,
             DirectorySensitivity directorySensitivity,
+            LineEndingNormalization lineEndingNormalization,
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
             PropertyValue value,

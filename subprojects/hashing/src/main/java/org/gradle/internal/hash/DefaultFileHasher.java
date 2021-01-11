@@ -24,19 +24,31 @@ import java.io.UncheckedIOException;
 
 public class DefaultFileHasher implements FileHasher {
     private final StreamHasher streamHasher;
+    private final InputStreamProvider<? extends InputStream> inputStreamProvider;
+
+    public DefaultFileHasher(StreamHasher streamHasher, InputStreamProvider<? extends InputStream> inputStreamProvider) {
+        this.streamHasher = streamHasher;
+        this.inputStreamProvider = inputStreamProvider;
+    }
 
     public DefaultFileHasher(StreamHasher streamHasher) {
-        this.streamHasher = streamHasher;
+        this(streamHasher, new InputStreamProvider<FileInputStream>() {
+            @Override
+            public FileInputStream create(File file) throws FileNotFoundException {
+                return new FileInputStream(file);
+            }
+        });
     }
 
     @Override
     public HashCode hash(File file) {
         InputStream inputStream;
         try {
-            inputStream = new FileInputStream(file);
+            inputStream = inputStreamProvider.create(file);
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
         }
+
         try {
             return streamHasher.hash(inputStream);
         } finally {
@@ -51,5 +63,9 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(File file, long length, long lastModified) {
         return hash(file);
+    }
+
+    public interface InputStreamProvider<T extends InputStream> {
+        T create(File file) throws FileNotFoundException;
     }
 }

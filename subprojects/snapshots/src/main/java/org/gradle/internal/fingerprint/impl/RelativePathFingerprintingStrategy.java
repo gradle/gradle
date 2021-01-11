@@ -22,6 +22,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
@@ -88,5 +89,10 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     @Override
     public DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
+    }
+
+    @Override
+    public LineEndingNormalization getLineEndingNormalization() {
+        return LineEndingNormalization.DEFAULT;
     }
 }

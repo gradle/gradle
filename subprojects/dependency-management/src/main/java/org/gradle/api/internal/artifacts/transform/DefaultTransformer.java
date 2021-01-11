@@ -55,6 +55,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileNormalizationSpec;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.impl.DefaultFileNormalizationSpec;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
@@ -293,9 +294,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             }
 
             @Override
-            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
-                FileNormalizationSpec fileNormalizationSpec = DefaultFileNormalizationSpec.from(FileParameterUtils.normalizerOrDefault(fileNormalizer), directorySensitivity);
+                FileNormalizationSpec fileNormalizationSpec = DefaultFileNormalizationSpec.from(FileParameterUtils.normalizerOrDefault(fileNormalizer), directorySensitivity, lineEndingNormalization);
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fileNormalizationSpec);
                 FileCollection inputFileValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(inputFileValue);
@@ -542,6 +543,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                         boolean optional,
                         boolean skipWhenEmpty,
                         DirectorySensitivity directorySensitivity,
+                        LineEndingNormalization lineEndingNormalization,
                         boolean incremental,
                         @Nullable Class<? extends FileNormalizer> fileNormalizer,
                         PropertyValue value,

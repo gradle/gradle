@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FingerprintingStrategy
+import org.gradle.internal.fingerprint.LineEndingNormalization
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -144,8 +145,8 @@ class PathNormalizationStrategyTest extends Specification {
 
         where:
         strategy << [
-            AbsolutePathFingerprintingStrategy.DEFAULT,
-            AbsolutePathFingerprintingStrategy.IGNORE_DIRECTORIES
+            new AbsolutePathFingerprintingStrategy(DirectorySensitivity.DEFAULT, LineEndingNormalization.DEFAULT),
+            new AbsolutePathFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES, LineEndingNormalization.DEFAULT)
         ]
     }
 

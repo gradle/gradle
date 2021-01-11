@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,20 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.tasks.FileNormalizer;
+import java.io.File;
+import java.util.function.Predicate;
 
-/**
- * {@link FileNormalizer} that uses the location of files in a hierarchy as normalized paths.
- */
-public interface RelativePathInputNormalizer extends FileNormalizer, DirectorySensitiveNormalizer, LineEndingSensitiveNormalizer {
+public enum LineEndingNormalization {
+    DEFAULT(file -> false),
+    UNIX(file -> file.getName().endsWith(".java"));
+
+    private final Predicate<File> shouldNormalize;
+
+    LineEndingNormalization(Predicate<File> shouldNormalize) {
+        this.shouldNormalize = shouldNormalize;
+    }
+
+    public boolean shouldNormalize(File file) {
+        return shouldNormalize.test(file);
+    }
 }

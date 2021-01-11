@@ -62,6 +62,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistrar;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -382,8 +383,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         FileCollectionFingerprinterRegistrar createAbsoluteFileCollectionFingerprinterRegistrar(FileCollectionSnapshotter snapshotter) {
             return FileCollectionFingerprinterRegistrar.of(
-                Arrays.stream(DirectorySensitivity.values())
-                    .map(directorySensitivity -> new AbsolutePathFileCollectionFingerprinter(directorySensitivity, snapshotter))
+                Arrays.stream(DirectorySensitivity.values()).flatMap(directorySensitivity ->
+                    Arrays.stream(LineEndingNormalization.values()).map(lineEndingNormalization ->
+                        new AbsolutePathFileCollectionFingerprinter(directorySensitivity, lineEndingNormalization, snapshotter)
+                    )
+                )
             );
         }
 

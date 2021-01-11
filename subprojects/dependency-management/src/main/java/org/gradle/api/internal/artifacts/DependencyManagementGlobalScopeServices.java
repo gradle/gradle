@@ -54,6 +54,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.IgnoreLineEndings;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -162,7 +163,8 @@ class DependencyManagementGlobalScopeServices {
                 Incremental.class,
                 Optional.class,
                 PathSensitive.class,
-                IgnoreEmptyDirectories.class
+                IgnoreEmptyDirectories.class,
+                IgnoreLineEndings.class
             ),
             instantiationScheme
         );
@@ -185,7 +187,8 @@ class DependencyManagementGlobalScopeServices {
                 Incremental.class,
                 Optional.class,
                 PathSensitive.class,
-                IgnoreEmptyDirectories.class
+                IgnoreEmptyDirectories.class,
+                IgnoreLineEndings.class
             ),
             instantiationScheme
         );

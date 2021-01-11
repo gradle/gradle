@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -86,5 +87,10 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     @Override
     public DirectorySensitivity getDirectorySensitivity() {
         return DirectorySensitivity.DEFAULT;
+    }
+
+    @Override
+    public LineEndingNormalization getLineEndingNormalization() {
+        return LineEndingNormalization.DEFAULT;
     }
 }

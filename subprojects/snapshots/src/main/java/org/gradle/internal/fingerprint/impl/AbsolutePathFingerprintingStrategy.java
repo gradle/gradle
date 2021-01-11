@@ -22,11 +22,18 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.hash.DefaultFileHasher;
+import org.gradle.internal.hash.DefaultStreamHasher;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.LineEndingNormalizingInputStream;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -34,15 +41,16 @@ import java.util.Map;
  * Fingerprint files without path or content normalization.
  */
 public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-    public static final FingerprintingStrategy DEFAULT = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.DEFAULT);
-    public static final FingerprintingStrategy IGNORE_DIRECTORIES = new AbsolutePathFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
     private final DirectorySensitivity directorySensitivity;
+    private final LineEndingNormalization lineEndingNormalization;
+    private final FileHasher lineEndingNormalizedHasher = new DefaultFileHasher(new DefaultStreamHasher(), file -> new LineEndingNormalizingInputStream(new FileInputStream(file)));
 
-    private AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
+    public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization) {
         super(IDENTIFIER);
         this.directorySensitivity = directorySensitivity;
+        this.lineEndingNormalization = lineEndingNormalization;
     }
 
     @Override
@@ -59,12 +67,21 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
-                    builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot));
+                    builder.put(absolutePath, getFingerprint(snapshot));
                 }
                 return SnapshotVisitResult.CONTINUE;
             }
         });
         return builder.build();
+    }
+
+    private DefaultFileSystemLocationFingerprint getFingerprint(FileSystemLocationSnapshot snapshot) {
+        File file = new File(snapshot.getAbsolutePath());
+        if (lineEndingNormalization.shouldNormalize(file)) {
+            return new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot.getType(), lineEndingNormalizedHasher.hash(file));
+        } else {
+            return new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot);
+        }
     }
 
     @Override
@@ -75,5 +92,10 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     @Override
     public DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
+    }
+
+    @Override
+    public LineEndingNormalization getLineEndingNormalization() {
+        return lineEndingNormalization;
     }
 }

@@ -35,7 +35,7 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
 
     public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinterRegistrar> registrars) {
         Collection<FileCollectionFingerprinter> fingerprinters = registrars.stream().flatMap(registrar -> registrar.getRegistrants().stream()).collect(Collectors.toList());
-        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> from(input.getRegisteredType(), input.getDirectorySensitivity())));
+        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> from(input.getRegisteredType(), input.getDirectorySensitivity(), input.getLineEndingNormalization())));
     }
 
     @Override
@@ -49,6 +49,6 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
 
     @Override
     public FileCollectionFingerprinter getFingerprinter(InputFilePropertySpec spec) {
-        return getFingerprinter(from(spec.getNormalizer(), spec.getDirectorySensitivity()));
+        return getFingerprinter(from(spec.getNormalizer(), spec.getDirectorySensitivity(), spec.getLineEndingNormalization()));
     }
 }

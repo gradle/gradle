@@ -51,4 +51,6 @@ public interface FingerprintingStrategy {
     String normalizePath(FileSystemLocationSnapshot snapshot);
 
     DirectorySensitivity getDirectorySensitivity();
+
+    LineEndingNormalization getLineEndingNormalization();
 }
