@@ -63,6 +63,42 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         "consuming descendant" | "dir('build/dir')" | "build/dir/sub/output.txt" | "build/dir/sub/output.txt"
     }
 
+    def "ignores missing dependency if there is an #relation relation in the other direction"() {
+        def sourceDir = "src"
+        file(sourceDir).createDir()
+        def outputDir = "build/output"
+
+        buildFile << """
+            task firstTask {
+                inputs.dir("${sourceDir}")
+                def outputDir = file("${outputDir}")
+                outputs.dir(outputDir)
+                doLast {
+                    new File(outputDir, "source").text = "fixed"
+                }
+            }
+
+            task secondTask {
+                def inputDir = file("${outputDir}")
+                def outputDir = file("${sourceDir}")
+                inputs.dir(inputDir)
+                outputs.dir(outputDir)
+                doLast {
+                    new File(outputDir, "source").text = "fixed"
+                }
+            }
+
+            secondTask.${relation}(firstTask)
+        """
+
+        expect:
+        succeeds("firstTask", "secondTask")
+        succeeds("firstTask", "secondTask")
+
+        where:
+        relation << ['dependsOn', 'mustRunAfter']
+    }
+
     def "does not detect missing dependency when consuming the sibling of the output of the producer"() {
         buildFile << """
             task producer {
