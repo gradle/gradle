@@ -24,20 +24,10 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     private final FeaturePreviews featurePreviews;
     private boolean smartExcludeOnUpperBound;
 
-    /**
-     * This constructor is here to maintain backwards compatibility with the nebula plugins
-     * and should be removed as soon as possible.
-     *
-     * See https://github.com/nebula-plugins/nebula-gradle-interop/issues/5
-     */
-    @Deprecated
-    public DefaultVersionSelectorScheme(VersionComparator versionComparator) {
-        this(versionComparator, new VersionParser(), null);
-    }
-
     public DefaultVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
         this(versionComparator, versionParser, null);
     }
+
     public DefaultVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser, FeaturePreviews featurePreviews) {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;

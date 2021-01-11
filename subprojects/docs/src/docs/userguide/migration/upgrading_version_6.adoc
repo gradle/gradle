@@ -175,6 +175,11 @@ The following deprecated constructors were removed:
 
 The local build cache configuration now needs to be done via the link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-.
 
+==== Removal of DefaultVersionSelectorScheme constructor
+
+This internal API was used in plugins, amongst other the https://github.com/nebula-plugins[Nebula plugins], and was deprecated in the Gradle 5.x timeline and is now removed.
+Latest plugins version should no longer reference it.
+
 === Deprecations
 
 [[missing_dependencies]]
