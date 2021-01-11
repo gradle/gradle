@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import com.google.common.collect.Maps
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -167,7 +166,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private GradlePomModuleDescriptorParser pomParser() {
         new GradlePomModuleDescriptorParser(
-            new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser())),
+            new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser())),
             moduleIdentifierFactory,
             Stub(FileResourceRepository),
             mavenMetadataFactory

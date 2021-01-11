@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import java.util.ArrayList;
@@ -30,12 +31,10 @@ import java.util.Map;
 class LatestModuleConflictResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
-    private final boolean releaseBias;
 
-    LatestModuleConflictResolver(VersionComparator versionComparator, VersionParser versionParser, boolean releaseBias) {
+    LatestModuleConflictResolver(VersionComparator versionComparator, VersionParser versionParser) {
         this.versionComparator = versionComparator.asVersionComparator();
         this.versionParser = versionParser;
-        this.releaseBias = releaseBias;
     }
 
     @Override
@@ -62,22 +61,43 @@ class LatestModuleConflictResolver<T extends ComponentResolutionState> implement
         // Work backwards from highest version, return the first candidate with qualified version and release status, or candidate with unqualified version
         List<Version> sorted = new ArrayList<>(matches.keySet());
         sorted.sort(Collections.reverseOrder(versionComparator));
+        T bestComponent = null;
+        T unqalifiedComponent = null;
         for (Version version : sorted) {
             T component = matches.get(version);
             if (!version.isQualified()) {
-                details.select(component);
-                return;
+                if (bestComponent == null) {
+                    details.select(component);
+                    return;
+                } else if (unqalifiedComponent == null) {
+                    unqalifiedComponent = component;
+                }
             }
-            if (releaseBias) {
+            // Only care about the first qualified version that matches
+            if (bestComponent == null) {
                 ComponentResolveMetadata metaData = component.getMetadata();
                 if (metaData != null && "release".equals(metaData.getStatus())) {
                     details.select(component);
                     return;
                 }
+                // Special case Maven snapshots
+                if (metaData instanceof MavenModuleResolveMetadata) {
+                    if (((MavenModuleResolveMetadata) metaData).getSnapshotTimestamp() != null || metaData.getModuleVersionId().getVersion().endsWith("-SNAPSHOT")) {
+                        bestComponent = component;
+                    }
+                }
             }
         }
 
-        // Nothing - just return the highest version
-        details.select(matches.get(sorted.get(0)));
+        if (bestComponent != null) {
+            if (unqalifiedComponent != null) {
+                details.select(unqalifiedComponent);
+                return;
+            }
+            details.select(bestComponent);
+        } else {
+            // Nothing - just return the highest version
+            details.select(matches.get(sorted.get(0)));
+        }
     }
 }

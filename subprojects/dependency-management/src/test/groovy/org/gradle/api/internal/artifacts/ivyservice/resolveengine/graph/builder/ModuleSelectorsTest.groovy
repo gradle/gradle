@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector
@@ -29,7 +28,7 @@ import spock.lang.Unroll
 
 class ModuleSelectorsTest extends Specification {
 
-    Comparator<Version> versionComparator = new DefaultVersionComparator(new FeaturePreviews()).asVersionComparator()
+    Comparator<Version> versionComparator = new DefaultVersionComparator().asVersionComparator()
     @Subject
     ModuleSelectors selectors = new ModuleSelectors(versionComparator)
     int dynCount = 1

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -25,20 +24,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 public class ConflictResolverFactory {
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
-    private final FeaturePreviews featurePreviews;
 
-    public ConflictResolverFactory(VersionComparator versionComparator, VersionParser versionParser, FeaturePreviews featurePreviews) {
+    public ConflictResolverFactory(VersionComparator versionComparator, VersionParser versionParser) {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
-        this.featurePreviews = featurePreviews;
     }
 
     public ModuleConflictResolver<ComponentState> createConflictResolver(ConflictResolution conflictResolution) {
-        boolean releaseBias = true;
-        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_ORDERING_V2)) {
-            releaseBias = false;
-        }
-        ModuleConflictResolver<ComponentState> conflictResolver = new LatestModuleConflictResolver<>(versionComparator, versionParser, releaseBias);
+        ModuleConflictResolver<ComponentState> conflictResolver = new LatestModuleConflictResolver<>(versionComparator, versionParser);
         if (conflictResolution == ConflictResolution.preferProjectModules) {
             conflictResolver = new ProjectDependencyForcingResolver<>(conflictResolver);
         }
