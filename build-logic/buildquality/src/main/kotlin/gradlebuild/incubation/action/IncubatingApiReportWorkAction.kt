@@ -235,11 +235,11 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
     fun nodeName(it: Node?, unit: CompilationUnit, file: File) = when (it) {
         is EnumDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
         is ClassOrInterfaceDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
-        is MethodDeclaration -> tryResolve({ it.resolve().qualifiedSignature }) { inferClassName(unit) }
-        is AnnotationDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
-        is FieldDeclaration -> tryResolve({ inferClassName(unit) + "." + it.resolve().name }) { inferClassName(unit) }
-        is PackageDeclaration -> it.nameAsString + " (package-info.java)"
-        is NodeWithSimpleName<*> -> inferClassName(unit) + "." + it.nameAsString
+        is MethodDeclaration -> tryResolve({ it.resolve().qualifiedSignature }) { "${inferClassName(unit)}.${it.name}()" }
+        is AnnotationDeclaration -> tryResolve({ it.resolve().qualifiedName }) { "${inferClassName(unit)}.${it.name}" }
+        is FieldDeclaration -> tryResolve({ "${inferClassName(unit)}.${it.resolve().name}" }) { inferClassName(unit) }
+        is PackageDeclaration -> "${it.nameAsString} (package-info.java)"
+        is NodeWithSimpleName<*> -> "${inferClassName(unit)}.${it.nameAsString}"
         else -> unit.primaryTypeName.orElse(file.name)
     }
 
