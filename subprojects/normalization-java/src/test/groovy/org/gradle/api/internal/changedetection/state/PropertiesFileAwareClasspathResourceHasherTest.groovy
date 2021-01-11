@@ -215,6 +215,27 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         hash4 == hash6
     }
 
+    def "delegates to file hasher when bad unicode escape sequences are used"() {
+        given:
+        filters = [ '**/*.properties': ResourceEntryFilter.FILTER_NOTHING ]
+        def properties = zipEntry('some/path/to/foo.properties', bytesFrom(property))
+
+        expect:
+        filteredHasher.hash(properties) == delegate.hash(properties)
+
+        where:
+        property << [
+            'someKey=a value with bad escape sequence \\uxxxx',
+            'keyWithBadEscapeSequence\\uxxxx=some value'
+        ]
+    }
+
+    static ByteArrayOutputStream bytesFrom(String value) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream()
+        bos.write(value.bytes)
+        return bos
+    }
+
     static filter(String... properties) {
         return new IgnoringResourceEntryFilter(ImmutableSet.copyOf(properties))
     }
@@ -228,6 +249,10 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
         properties.store(bos, comments)
+        return zipEntry(path, bos)
+    }
+
+    ZipEntryContext zipEntry(String path, ByteArrayOutputStream bos) {
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
