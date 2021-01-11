@@ -240,4 +240,3 @@ When signing <<#sec:signing_publications,publications>>, the resultant signature
 Thus, when publishing to a repository, e.g. by executing the `publish` task, your signatures will be distributed along with the other artifacts without any additional configuration.
 
 When signing <<#sec:signing_configurations,configurations>> and <<#sec:signing_tasks,tasks>>, the resultant signature artifacts are automatically added to the `signatures` and `archives` dependency configurations.
-This means that if you want to upload your signatures to your distribution repository along with the artifacts you simply execute the `uploadArchives` task.

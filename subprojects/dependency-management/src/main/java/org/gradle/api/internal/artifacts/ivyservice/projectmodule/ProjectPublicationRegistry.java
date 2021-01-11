@@ -25,7 +25,7 @@ import java.util.Collection;
 /**
  * A build scoped service that collects information on the local "publications" of each project within a build. A "publication" here means some buildable thing that the project produces that can be consumed outside of the project.
  *
- * The information is gathered from multiple sources ({@code publishing.publications} container, {@code uploadArchives} task, etc.).
+ * The information is gathered from multiple sources ({@code publishing.publications} container, etc.).
  */
 @ThreadSafe
 public interface ProjectPublicationRegistry {

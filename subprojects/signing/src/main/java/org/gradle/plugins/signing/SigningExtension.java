@@ -125,7 +125,7 @@ public class SigningExtension {
      *
      * <pre>
      * signing {
-     *   required = { gradle.taskGraph.hasTask("uploadArchives") }
+     *   required = { gradle.taskGraph.hasTask("publish") }
      * }
      * </pre>
      *

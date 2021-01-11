@@ -50,14 +50,4 @@ test {
     systemProperties 'property': 'value'
 }
 // end::task-customization[]
-
-// tag::upload[]
-uploadArchives {
-    repositories {
-       flatDir {
-           dirs 'repos'
-       }
-    }
-}
-// end::upload[]
 // end:complete-example[]

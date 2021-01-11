@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
@@ -91,11 +90,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         buildArchives instanceOf(DefaultTask)
         buildArchives dependsOn('someJar')
 
-        and:
-        def uploadArchives = project.tasks['uploadArchives']
-        uploadArchives instanceOf(Upload)
-        uploadArchives dependsOn('someJar')
-
         when:
         project.configurations.create('conf')
         project.artifacts.conf someJar
@@ -105,11 +99,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         buildConf instanceOf(DefaultTask)
         buildConf dependsOn('someJar')
 
-        and:
-        def uploadConf = project.tasks['uploadConf']
-        uploadConf instanceOf(Upload)
-        uploadConf dependsOn('someJar')
-        uploadConf.configuration == project.configurations.conf
     }
 
     def "adds a clean rule"() {
