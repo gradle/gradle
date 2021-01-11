@@ -1319,7 +1319,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                             at java.base/java.lang.Thread.sleep(Native Method)
                             at com.amazonaws.http.IdleConnectionReaper.run(IdleConnectionReaper.java:188)
                          */
-                        i++;
+                        i += 2;
                         i = skipStackTrace(lines, i);
                     } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
