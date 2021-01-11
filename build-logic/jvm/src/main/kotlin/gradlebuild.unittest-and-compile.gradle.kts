@@ -171,7 +171,7 @@ fun Test.configureJvmForTest() {
     val launcher = project.javaToolchains.launcherFor {
         languageVersion.set(jvmVersionForTest())
         getPropertyFromAnySource("testJavaVendor").map {
-            when(it.toLowerCase()) {
+            when (it.toLowerCase()) {
                 "oracle" -> vendor.set(JvmVendorSpec.ORACLE)
                 "openjdk" -> vendor.set(JvmVendorSpec.ADOPTOPENJDK)
             }
