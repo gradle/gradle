@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.cache.Cache;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -31,14 +31,14 @@ import java.io.File;
 
 @NotThreadSafe
 public class ImmutableTransformationWorkspaceServices implements TransformationWorkspaceServices, Closeable {
-    private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
+    private final Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache;
     private final DefaultImmutableWorkspaceProvider workspaceProvider;
 
     public ImmutableTransformationWorkspaceServices(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache
+        Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache
     ) {
         this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore);
         this.identityCache = identityCache;
@@ -50,7 +50,7 @@ public class ImmutableTransformationWorkspaceServices implements TransformationW
     }
 
     @Override
-    public CrossBuildInMemoryCache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
+    public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
         return identityCache;
     }
 
