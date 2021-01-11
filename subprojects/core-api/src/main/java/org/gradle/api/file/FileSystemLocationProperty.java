@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
@@ -53,7 +52,6 @@ public interface FileSystemLocationProperty<T extends FileSystemLocation> extend
      * @return this
      * @since 6.0
      */
-    @Incubating
     FileSystemLocationProperty<T> fileValue(@Nullable File file);
 
     /**
@@ -63,7 +61,6 @@ public interface FileSystemLocationProperty<T extends FileSystemLocation> extend
      * @return this
      * @since 6.0
      */
-    @Incubating
     FileSystemLocationProperty<T> fileProvider(Provider<File> provider);
 
     /**
@@ -71,6 +68,5 @@ public interface FileSystemLocationProperty<T extends FileSystemLocation> extend
      *
      * @since 5.6
      */
-    @Incubating
     Provider<T> getLocationOnly();
 }

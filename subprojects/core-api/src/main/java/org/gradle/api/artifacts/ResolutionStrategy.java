@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -98,7 +97,6 @@ public interface ResolutionStrategy {
      * @return this resolution strategy
      * @since 6.1
      */
-    @Incubating
     ResolutionStrategy failOnDynamicVersions();
 
     /**
@@ -110,7 +108,6 @@ public interface ResolutionStrategy {
      * @return this resolution strategy
      * @since 6.1
      */
-    @Incubating
     ResolutionStrategy failOnChangingVersions();
 
     /**
@@ -124,7 +121,6 @@ public interface ResolutionStrategy {
      * @return this resolution strategy
      * @since 6.1
      */
-    @Incubating
     ResolutionStrategy failOnNonReproducibleResolution();
 
     /**
@@ -162,7 +158,6 @@ public interface ResolutionStrategy {
      * @return this resolution strategy instance
      * @since 6.0
      */
-    @Incubating
     ResolutionStrategy deactivateDependencyLocking();
 
 
@@ -174,7 +169,6 @@ public interface ResolutionStrategy {
      *
      * @since 6.2
      */
-    @Incubating
     ResolutionStrategy disableDependencyVerification();
 
     /**
@@ -182,7 +176,6 @@ public interface ResolutionStrategy {
      *
      * @since 6.2
      */
-    @Incubating
     ResolutionStrategy enableDependencyVerification();
 
     /**
@@ -396,7 +389,6 @@ public interface ResolutionStrategy {
      * @return this resolution strategy
      * @since 5.6
      */
-    @Incubating
     ResolutionStrategy capabilitiesResolution(Action<? super CapabilitiesResolution> action);
 
     /**
@@ -404,7 +396,6 @@ public interface ResolutionStrategy {
      *
      * @since 5.6
      */
-    @Incubating
     CapabilitiesResolution getCapabilitiesResolution();
 
     /**

@@ -20,11 +20,11 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.LogContent
 
 /**
- * A trait for testing console behavior.
+ * Assertions for testing console behavior.
  * <p>
  * <b>Note:</b> The console output contains formatting characters.
  */
-trait RichConsoleStyling {
+class RichConsoleStyling {
     static String workInProgressLine(String plainText) {
         return "{bold-on}" + plainText + "{bold-off}"
     }

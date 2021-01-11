@@ -621,7 +621,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 6.4
      */
-    @Incubating
     @Nested
     public ModularitySpec getModularity() {
         return modularity;
@@ -1031,7 +1030,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 6.6
      */
-    @Incubating
     @Classpath
     protected FileCollection getStableClasspath() {
         return stableClasspath;

@@ -22,7 +22,7 @@ package org.gradle.integtests.fixtures.versions
 class KotlinGradlePluginVersions {
 
     // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-    private static final List<String> LATEST_VERSIONS = ['1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61', '1.3.72', '1.4.0', '1.4.10', '1.4.20']
+    private static final List<String> LATEST_VERSIONS = ['1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61', '1.3.72', '1.4.0', '1.4.10', '1.4.21']
 
     List<String> getLatests() {
         return LATEST_VERSIONS

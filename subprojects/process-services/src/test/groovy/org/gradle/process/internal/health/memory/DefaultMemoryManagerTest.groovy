@@ -161,14 +161,11 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
     }
 
     def "registers/deregisters os memory status listener"() {
-        def listenerManager = Mock(ListenerManager)
-        OsMemoryStatusListener osMemoryStatusListener
-
-        when:
+        given:
+        def listenerManager = Mock(ListenerManager) {
+            1 * addListener(_) >> { args -> osMemoryStatusListener = args[0] }
+        }
         def memoryManager = new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, new DefaultExecutorFactory(), 0.25, false)
-
-        then:
-        1 * listenerManager.addListener(_) >> { args -> osMemoryStatusListener = (OsMemoryStatusListener) args[0] }
 
         when:
         memoryManager.stop()

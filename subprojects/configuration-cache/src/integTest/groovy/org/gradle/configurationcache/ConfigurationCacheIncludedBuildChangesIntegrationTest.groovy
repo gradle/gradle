@@ -20,7 +20,6 @@ import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
 import org.gradle.configurationcache.fixtures.ScriptChangeFixture
-import org.junit.Test
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
@@ -28,7 +27,6 @@ import static org.junit.Assume.assumeFalse
 class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Unroll
-    @Test
     def "invalidates cache upon change to #scriptChangeSpec of included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

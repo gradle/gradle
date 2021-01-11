@@ -54,9 +54,9 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+    public void visitTransformSources(TransformSourceVisitor visitor) {
         for (ResolvedArtifactSet set : sets) {
-            set.visitLocalArtifacts(visitor);
+            set.visitTransformSources(visitor);
         }
     }
 

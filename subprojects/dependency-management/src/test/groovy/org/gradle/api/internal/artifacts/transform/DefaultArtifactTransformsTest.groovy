@@ -127,8 +127,8 @@ class DefaultArtifactTransformsTest extends Specification {
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _, _) >> []
 
-        matchingCache.collectConsumerVariants(_, _) >> { AttributeContainerInternal from, AttributeContainerInternal to ->
-            match(to, Stub(Transformation), 1)
+        matchingCache.collectConsumerVariants(_, _) >> { ImmutableAttributes from, ImmutableAttributes to ->
+            match(to, Stub(TransformationStep), 1)
         }
 
         def selector = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver)
@@ -221,9 +221,9 @@ Found the following transforms:
         attributeContainer.asImmutable()
     }
 
-    static MutableConsumerVariantMatchResult match(ImmutableAttributes output, Transformation trn, int depth) {
+    static MutableConsumerVariantMatchResult match(ImmutableAttributes output, TransformationStep trn, int depth) {
         def result = new MutableConsumerVariantMatchResult(2)
-        result.matched(output, trn, depth)
+        result.matched(output, trn, null, depth)
         result
     }
 }

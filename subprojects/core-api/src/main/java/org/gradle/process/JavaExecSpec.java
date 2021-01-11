@@ -15,7 +15,6 @@
  */
 package org.gradle.process;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ReplacedBy;
@@ -38,7 +37,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     Property<String> getMainModule();
@@ -52,7 +50,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @since 6.4
      */
-    @Incubating
     @Optional
     @Input
     Property<String> getMainClass();
@@ -156,7 +153,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @since 6.4
      */
-    @Incubating
     @Nested
     ModularitySpec getModularity();
 }

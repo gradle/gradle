@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtensionContainer
 
@@ -76,7 +75,6 @@ inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?,
  * @see [ExtensionContainer.add]
  * @since 5.0
  */
-@Incubating
 @Suppress("extension_shadowed_by_member")
 inline fun <reified T : Any> ExtensionContainer.add(name: String, extension: T) {
     add(typeOf<T>(), name, extension)
@@ -94,7 +92,6 @@ inline fun <reified T : Any> ExtensionContainer.add(name: String, extension: T) 
  * @see [ExtensionContainer.create]
  * @since 5.0
  */
-@Incubating
 inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg constructionArguments: Any): T =
     create(name, T::class.java, *constructionArguments)
 
@@ -109,7 +106,6 @@ inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg cons
  * @see [ExtensionContainer.getByType]
  * @since 5.0
  */
-@Incubating
 inline fun <reified T : Any> ExtensionContainer.getByType(): T =
     getByType(typeOf<T>())
 
@@ -123,7 +119,6 @@ inline fun <reified T : Any> ExtensionContainer.getByType(): T =
  * @see [ExtensionContainer.findByType]
  * @since 5.0
  */
-@Incubating
 inline fun <reified T : Any> ExtensionContainer.findByType(): T? =
     findByType(typeOf<T>())
 
@@ -137,7 +132,6 @@ inline fun <reified T : Any> ExtensionContainer.findByType(): T? =
  * @see [ExtensionContainer.configure]
  * @since 5.0
  */
-@Incubating
 inline fun <reified T : Any> ExtensionContainer.configure(noinline action: T.() -> Unit) {
     configure(typeOf<T>(), action)
 }

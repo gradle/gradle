@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
-import org.gradle.api.Incubating
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -45,7 +44,6 @@ import java.net.URI
  *
  * @since 6.0
  */
-@Incubating
 interface KotlinScript {
 
     /**

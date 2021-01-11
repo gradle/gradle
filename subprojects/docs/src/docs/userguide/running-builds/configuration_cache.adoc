@@ -288,7 +288,6 @@ link:{gradle-issues}13455[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
 link:{gradle-issues}13455[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
 link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
-[.gray]#🚫#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
 link:{gradle-issues}13455[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
 link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 

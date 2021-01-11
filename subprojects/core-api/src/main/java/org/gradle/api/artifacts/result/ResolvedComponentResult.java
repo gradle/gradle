@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -103,6 +102,5 @@ public interface ResolvedComponentResult extends ComponentResult {
      * @since 5.6
      *
      */
-    @Incubating
     List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant);
 }

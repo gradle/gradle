@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -30,7 +29,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 5.6
  */
-@Incubating
 @HasInternalProtocol
 public interface CapabilitiesResolution {
     /**

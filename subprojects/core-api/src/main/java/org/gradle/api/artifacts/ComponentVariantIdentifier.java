@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  *
  * @since 6.0
  */
-@Incubating
 public interface ComponentVariantIdentifier {
 
     /**

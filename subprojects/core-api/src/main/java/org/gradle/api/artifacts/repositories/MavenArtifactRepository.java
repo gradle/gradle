@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.net.URI;
 import java.util.Set;
@@ -109,7 +108,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @since 6.4
      */
-    @Incubating
     MetadataSources getMetadataSources();
 
     /**
@@ -151,7 +149,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          *
          * @since 6.4
          */
-        @Incubating
         boolean isGradleMetadataEnabled();
 
         /**
@@ -159,7 +156,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          *
          * @since 6.4
          */
-        @Incubating
         boolean isMavenPomEnabled();
 
         /**
@@ -167,7 +163,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          *
          * @since 6.4
          */
-        @Incubating
         boolean isArtifactEnabled();
 
         /**
@@ -175,7 +170,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          *
          * @since 6.4
          */
-        @Incubating
         boolean isIgnoreGradleMetadataRedirectionEnabled();
     }
 

@@ -45,8 +45,8 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         setup:
         1 * response.entity >> Mock(HttpEntity)
         when:
-        def resource = resource();
-        resource.openStream();
+        def resource = this.resource()
+        resource.openStream()
         and:
         resource.openStream()
         then:

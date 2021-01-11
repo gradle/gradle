@@ -22,7 +22,6 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.DefaultFileVisitDetails
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
-import org.junit.Test
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -34,7 +33,6 @@ class DefaultTestClassScannerTest extends Specification {
     @Subject
     def scanner = new DefaultTestClassScanner(files, detector, processor)
 
-    @Test
     void passesEachClassFileToTestClassDetector() {
         given:
         def class1 = stubFileVisitDetails('class1')
@@ -60,7 +58,6 @@ class DefaultTestClassScannerTest extends Specification {
         0 * _._
     }
 
-    @Test
     void skipAnonymousClass() {
         when:
         scanner.run()

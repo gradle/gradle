@@ -259,7 +259,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    void "honors multiple rejections #rejects using dynamic versions using dependency notation #notation"() {
+    void "honors multiple rejections #rejects using dynamic versions using dependency notation #rejects"() {
         given:
         repository {
             (0..5).each {

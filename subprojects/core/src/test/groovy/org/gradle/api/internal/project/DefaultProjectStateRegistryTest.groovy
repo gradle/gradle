@@ -28,6 +28,8 @@ import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Path
 
+import static org.junit.Assert.assertTrue
+
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, 4))
     def parentLease = workerLeaseService.getWorkerLease()
@@ -266,7 +268,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
                 def state = registry.stateFor(project("p1"))
                 assert state.hasMutableState()
                 registry.blocking {
-                    assert !state.hasMutableState()
+                    assertTrue !state.hasMutableState()
                 }
                 assert state.hasMutableState()
             }
@@ -332,12 +334,12 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
                     assert state1.hasMutableState()
                     assert state2.hasMutableState()
                     registry.allowUncontrolledAccessToAnyProject {
-                        assert state1.hasMutableState()
-                        assert state2.hasMutableState()
+                        assertTrue state1.hasMutableState()
+                        assertTrue state2.hasMutableState()
                     }
                     state1.applyToMutableState {
-                        assert state1.hasMutableState()
-                        assert state2.hasMutableState()
+                        assertTrue state1.hasMutableState()
+                        assertTrue state2.hasMutableState()
                     }
                     assert state1.hasMutableState()
                     assert state2.hasMutableState()
@@ -412,16 +414,16 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
                     assert state1.hasMutableState()
                     assert !state2.hasMutableState()
                     state1.forceAccessToMutableState {
-                        assert state1.hasMutableState()
-                        assert !state2.hasMutableState()
+                        assertTrue state1.hasMutableState()
+                        assertTrue !state2.hasMutableState()
                     }
                     state1.applyToMutableState {
-                        assert state1.hasMutableState()
-                        assert !state2.hasMutableState()
+                        assertTrue state1.hasMutableState()
+                        assertTrue !state2.hasMutableState()
                     }
                     state2.applyToMutableState {
-                        assert state1.hasMutableState()
-                        assert state2.hasMutableState()
+                        assertTrue state1.hasMutableState()
+                        assertTrue state2.hasMutableState()
                     }
                     assert state1.hasMutableState()
                     assert !state2.hasMutableState()
@@ -661,4 +663,5 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
             workerLeaseService.withLocks([parentLease.createChild()], closure)
         }
     }
+
 }

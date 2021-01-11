@@ -133,4 +133,21 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
         // Oracle JDK or IBM JDK
         failure.assertHasErrorOutput('Unrecognized option: --module') || failure.assertHasErrorOutput('Command-line option unrecognised: --module')
     }
+
+    def "runs JUnit4 module test on classpath if module path inference is turned off"() {
+        given:
+        buildFile << """
+            tasks.test.modularity.inferModulePath = false
+            dependencies { testImplementation 'junit:junit:4.13' }
+        """
+
+        when:
+        consumingModuleInfo('exports consumer')
+        consumingModuleClass()
+        testModuleInfo('requires consumer', 'requires junit')
+        testModuleClass('org.junit.Assert.assertNull(consumer.MainModule.class.getModule().getName())')
+
+        then:
+        succeeds ':test'
+    }
 }

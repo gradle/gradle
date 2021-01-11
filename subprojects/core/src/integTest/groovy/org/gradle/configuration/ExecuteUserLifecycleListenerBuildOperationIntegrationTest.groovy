@@ -560,9 +560,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         def addGradleListeners = { String source ->
             """
             class ComboListener implements BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener {
-                void buildStarted(Gradle gradle) {
-                    println 'gradle.addListener(ComboListener) from $source'
-                }
                 void beforeSettings(Settings settings) {
                     println 'gradle.addListener(ComboListener) from $source'
                 }
@@ -598,7 +595,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         initFile << addGradleListeners('init')
 
         when:
-        executer.expectDeprecationWarning()
         run()
 
         then:

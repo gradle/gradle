@@ -37,8 +37,6 @@ typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<
 
 interface FunctionalTestBucketProvider {
     fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest>
-
-    fun createDeferredFunctionalTestsFor(stage: Stage): List<FunctionalTest>
 }
 
 class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel, testTimeDataJson: File) : FunctionalTestBucketProvider {
@@ -47,24 +45,6 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
         return buckets.getValue(testCoverage).mapIndexed { bucketIndex: Int, bucket: BuildTypeBucket ->
             bucket.createFunctionalTestsFor(model, stage, testCoverage, bucketIndex)
-        }
-    }
-
-    override fun createDeferredFunctionalTestsFor(stage: Stage): List<FunctionalTest> {
-        // The first stage which doesn't omit slow projects
-        val deferredStage = model.stages.find { !it.omitsSlowProjects }!!
-        val deferredStageIndex = model.stages.indexOfFirst { !it.omitsSlowProjects }
-        return if (stage.stageName != deferredStage.stageName) {
-            emptyList()
-        } else {
-            val stages = model.stages.subList(0, deferredStageIndex)
-            val deferredTests = mutableListOf<FunctionalTest>()
-            stages.forEach { eachStage ->
-                eachStage.functionalTests.forEach { testConfig ->
-                    deferredTests.addAll(model.subprojects.getSlowSubprojects().map { it.createFunctionalTestsFor(model, eachStage, testConfig, -1) })
-                }
-            }
-            deferredTests
         }
     }
 
@@ -117,7 +97,7 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
-        return if (testCoverage.testType == TestType.platform) {
+        return if (testCoverage.testType == TestType.platform && testCoverage.os == Os.LINUX) {
             specialBucketForSubproject(listOf("core", "dependency-management", "docs"), validSubprojects, subProjectTestClassTimes, testCoverage)
         } else if (testCoverage.os == Os.LINUX) {
             specialBucketForSubproject(listOf("core", "dependency-management"), validSubprojects, subProjectTestClassTimes, testCoverage)
@@ -173,7 +153,8 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
 
 class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: String, private val endExclusive: String) : BuildTypeBucket {
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int) =
-        FunctionalTest(model,
+        FunctionalTest(
+            model,
             getUuid(model, testCoverage, bucketIndex),
             "${testCoverage.asName()} ($startInclusive <= gradle <$endExclusive)",
             "${testCoverage.asName()} for gradle ($startInclusive <= gradle <$endExclusive)",
@@ -191,7 +172,8 @@ class LargeSubprojectSplitBucket(val subproject: GradleSubproject, number: Int, 
     override fun getName(testCoverage: TestCoverage) = "${testCoverage.asName()} ($name)"
 
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest =
-        FunctionalTest(model,
+        FunctionalTest(
+            model,
             getUuid(model, testCoverage, bucketIndex),
             getName(testCoverage),
             getDescription(testCoverage),

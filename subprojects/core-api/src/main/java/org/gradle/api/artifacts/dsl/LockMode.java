@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
-
 /**
  * The supported lock modes:
  * <ul>
@@ -29,7 +27,6 @@ import org.gradle.api.Incubating;
  *
  * @since 6.1
  */
-@Incubating
 public enum LockMode {
     STRICT,
     DEFAULT,

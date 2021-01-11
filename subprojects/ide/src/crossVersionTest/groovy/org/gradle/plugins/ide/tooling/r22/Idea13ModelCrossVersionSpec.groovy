@@ -41,11 +41,11 @@ idea {
         def contentRoot = project.children[0].contentRoots[0]
 
         then:
-        contentRoot.sourceDirectories.findAll { it.generated }.collect { it.directory } == [file('foo')]
-        contentRoot.testDirectories.findAll { it.generated }.collect { it.directory } == [file('foo2')]
-        contentRoot.generatedSourceDirectories.size() == 1
-        contentRoot.generatedSourceDirectories.every { contentRoot.sourceDirectories.contains(it) }
-        contentRoot.generatedTestDirectories.size() == 1
-        contentRoot.getGeneratedTestDirectories().every { contentRoot.testDirectories.contains(it) }
+        def generatedSourceDirectories = contentRoot.sourceDirectories.findAll { it.generated }
+        def generatedTestDirectories = contentRoot.testDirectories.findAll { it.generated }
+        generatedSourceDirectories.collect { it.directory } == [file('foo')]
+        generatedTestDirectories.collect { it.directory } == [file('foo2')]
+        generatedSourceDirectories.every { contentRoot.sourceDirectories.contains(it) }
+        generatedTestDirectories.every { contentRoot.testDirectories.contains(it) }
     }
 }

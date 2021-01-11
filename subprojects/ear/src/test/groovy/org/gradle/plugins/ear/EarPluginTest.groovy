@@ -47,7 +47,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 </application>
 """
 
-    def appliesBasePluginAndAddsConvention() {
+    def "applies base plugin and adds convention"() {
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -56,7 +56,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.ear instanceof EarPluginConvention
     }
 
-    def createsConfigurations() {
+    def "creates configurations"() {
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -75,7 +75,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         configuration.transitive
     }
 
-    def addsTasks() {
+    def "adds tasks"() {
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -84,7 +84,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof Ear
-        task.destinationDir == project.libsDir
+        task.destinationDir == project.libsDirectory.get().asFile
 
         when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
@@ -93,7 +93,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(EarPlugin.EAR_TASK_NAME)
     }
 
-    def addsTasksToJavaProject() {
+    def "adds tasks to java project"() {
         when:
         project.pluginManager.apply(JavaPlugin.class)
         project.pluginManager.apply(EarPlugin)
@@ -104,7 +104,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof Ear
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-        task.destinationDir == project.libsDir
+        task.destinationDir == project.libsDirectory.get().asFile
 
         when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
@@ -113,7 +113,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(EarPlugin.EAR_TASK_NAME)
     }
 
-    def dependsOnEarlibConfig() {
+    def "depends on earlib config"() {
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -133,7 +133,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task.taskDependencies.getDependencies(task)*.path.contains(':child:jar')
     }
 
-    def appliesMappingsToArchiveTasks() {
+    def "applies mappings to archive tasks"() {
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -141,10 +141,10 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task(type: Ear, 'customEar')
 
         then:
-        task.destinationDir == project.libsDir
+        task.destinationDir == project.libsDirectory.get().asFile
     }
 
-    def worksWithJavaBasePluginAppliedBeforeEarPlugin() {
+    def "works with java base plugin applied before ear plugin"() {
         when:
         project.pluginManager.apply(JavaBasePlugin.class)
         project.pluginManager.apply(EarPlugin)
@@ -153,10 +153,10 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task(type: Ear, 'customEar')
 
         then:
-        task.destinationDir == project.libsDir
+        task.destinationDir == project.libsDirectory.get().asFile
     }
 
-    def appliesMappingsToArchiveTasksForJavaProject() {
+    def "applies mappings to archive tasks for java project"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(JavaPlugin.class)
@@ -165,11 +165,11 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task(type: Ear, 'customEar')
 
         then:
-        task.destinationDir == project.libsDir
+        task.destinationDir == project.libsDirectory.get().asFile
         task dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME))
     }
 
-    def addsEarAsPublication() {
+    def "adds ear as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -181,7 +181,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
-    def replacesWarAsPublication() {
+    def "replaces war as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(WarPlugin)
@@ -194,7 +194,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
-    def replacesJarAsPublication() {
+    def "replaces jar as publication"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(JavaPlugin)
@@ -207,7 +207,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
     }
 
-    def supportsAppDir() {
+    def "supports app dir"() {
         given:
         project.file("src/main/application/META-INF").mkdirs()
         project.file("src/main/application/META-INF/test.txt").createNewFile()
@@ -224,7 +224,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "META-INF/test.txt"
     }
 
-    def supportsRenamedAppDir() {
+    def "supports renamed app dir"() {
         given:
         project.file("src/main/myapp").mkdirs()
         project.file("src/main/myapp/test.txt").createNewFile()
@@ -240,7 +240,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "test.txt"
     }
 
-    def supportsRenamingLibDir() {
+    def "supports renaming lib dir"() {
         given:
         def childProject = TestUtil.createChildProject(project, 'child')
         childProject.file("src/main/resources").mkdirs()
@@ -261,7 +261,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "APP-INF/lib/child.jar"
     }
 
-    def supportsDuplicateDependencies() {
+    def "supports duplicate dependencies"() {
         given:
         def pojoProject = TestUtil.createChildProject(project, 'pojo')
         pojoProject.pluginManager.apply(JavaPlugin)
@@ -288,7 +288,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         notInEar "lib/bean.jar"
     }
 
-    def supportsGeneratingDeploymentDescriptor() {
+    def "supports generating deployment descriptor"() {
         when:
         project.pluginManager.apply(EarPlugin)
         executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
@@ -297,7 +297,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "META-INF/application.xml"
     }
 
-    def supportsSkippingDeploymentDescriptorCreation() {
+    def "supports skipping deployment descriptor creation"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.convention.plugins.ear.generateDeploymentDescriptor = false
@@ -307,7 +307,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         notInEar "META-INF/application.xml"
     }
 
-    def avoidsOverwritingDeploymentDescriptor() {
+    def "avoids overwriting deployment descriptor"() {
         given:
         project.file("src/main/application/META-INF").mkdirs()
         project.file("src/main/application/META-INF/application.xml").text = TEST_APP_XML
@@ -320,7 +320,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar("META-INF/application.xml").text == TEST_APP_XML
     }
 
-    def supportsRenamingDeploymentDescriptor() {
+    def "supports renaming deployment descriptor"() {
         when:
         project.pluginManager.apply(EarPlugin)
         project.convention.plugins.ear.deploymentDescriptor {
@@ -332,7 +332,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "META-INF/myapp.xml"
     }
 
-    def avoidsOverwritingRenamedDeploymentDescriptor() {
+    def "avoids overwriting renamed deployment descriptor"() {
         given:
         project.file("src/main/application/META-INF").mkdirs()
         project.file("src/main/application/META-INF/myapp.xml").text = TEST_APP_XML

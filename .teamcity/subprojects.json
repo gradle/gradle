@@ -322,13 +322,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "ide-play",
-    "name": "ide-play",
-    "unitTests": false,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "installation-beacon",
     "name": "installation-beacon",
     "unitTests": false,
@@ -396,13 +389,6 @@
     "name": "java-compiler-plugin",
     "unitTests": false,
     "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "javascript",
-    "name": "javascript",
-    "unitTests": true,
-    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -485,13 +471,6 @@
   {
     "dirName": "language-native",
     "name": "language-native",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "language-scala",
-    "name": "language-scala",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -583,13 +562,6 @@
   {
     "dirName": "platform-native",
     "name": "platform-native",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "platform-play",
-    "name": "platform-play",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

@@ -359,7 +359,6 @@ public class Javadoc extends SourceTask {
      *
      * @since 6.4
      */
-    @Incubating
     @Nested
     public ModularitySpec getModularity() {
         return modularity;

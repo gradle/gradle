@@ -47,8 +47,8 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentifier))
 
     def "returns empty build dependencies when no dependencies"() {
-        def depVisitor = Stub(TaskDependencyResolveContext)
-        def artifactVisitor = Stub(ArtifactVisitor)
+        def depVisitor = Mock(TaskDependencyResolveContext)
+        def artifactVisitor = Mock(ArtifactVisitor)
 
         given:
         dependencies.isEmpty() >> true
@@ -75,8 +75,8 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     }
 
     def "returns empty graph when no dependencies"() {
-        def depVisitor = Stub(TaskDependencyResolveContext)
-        def artifactVisitor = Stub(ArtifactVisitor)
+        def depVisitor = Mock(TaskDependencyResolveContext)
+        def artifactVisitor = Mock(ArtifactVisitor)
 
         given:
         dependencies.isEmpty() >> true

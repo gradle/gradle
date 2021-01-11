@@ -16,12 +16,11 @@
 
 package org.gradle.caching.http.internal
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
 @IntegrationTestTimeout(120)
-class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
+class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
 
     static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {

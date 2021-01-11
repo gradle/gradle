@@ -33,7 +33,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.9-20201201230040+0000"]
+        runner.targetVersions = ["7.0-20210110230048+0000"]
         runner.minimumBaseVersion = "2.11"
     }
 
@@ -112,8 +112,8 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
                     it.compilerOutput.testOutputDir
                     it.contentRoots.each {
                         it.excludeDirectories
-                        withIdeaSources(it.generatedSourceDirectories)
-                        withIdeaSources(it.generatedTestDirectories)
+                        withIdeaSources(it.sourceDirectories.findAll { it.generated })
+                        withIdeaSources(it.testDirectories.findAll { it.generated })
                         withIdeaSources(it.sourceDirectories)
                         withIdeaSources(it.testDirectories)
                     }

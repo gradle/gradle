@@ -157,10 +157,9 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         startScripts.defaultJvmOpts == ['-Dfoo=bar', '-Xmx500m']
     }
 
-    void "module path handling is configured for all tasks"() {
+    void "module path inference is turned on for all tasks by default"() {
         when:
         plugin.apply(project)
-        project.extensions.getByType(JavaPluginExtension).modularity.inferModulePath.set(true)
 
         then:
         project.tasks.getByName("compileJava").modularity.inferModulePath.get()
@@ -168,5 +167,18 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         project.tasks.getByName("test").modularity.inferModulePath.get()
         project.tasks.getByName("run").modularity.inferModulePath.get()
         project.tasks.getByName("startScripts").modularity.inferModulePath.get()
+    }
+
+    void "module path inference can be turned off for all tasks"() {
+        when:
+        plugin.apply(project)
+        project.extensions.getByType(JavaPluginExtension).modularity.inferModulePath.set(false)
+
+        then:
+        !project.tasks.getByName("compileJava").modularity.inferModulePath.get()
+        !project.tasks.getByName("compileTestJava").modularity.inferModulePath.get()
+        !project.tasks.getByName("test").modularity.inferModulePath.get()
+        !project.tasks.getByName("run").modularity.inferModulePath.get()
+        !project.tasks.getByName("startScripts").modularity.inferModulePath.get()
     }
 }

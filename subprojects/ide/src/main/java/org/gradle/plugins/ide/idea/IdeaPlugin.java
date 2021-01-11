@@ -477,21 +477,12 @@ public class IdeaPlugin extends IdePlugin {
         return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
     }
 
-
-    @SuppressWarnings("deprecation")
     private void configureForScalaPlugin() {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
                 ideaModuleDependsOnRoot();
             }
-        });
-        project.getPlugins().withType(org.gradle.language.scala.plugins.ScalaLanguagePlugin.class, new Action<org.gradle.language.scala.plugins.ScalaLanguagePlugin>() {
-            @Override
-            public void execute(org.gradle.language.scala.plugins.ScalaLanguagePlugin scalaLanguagePlugin) {
-                ideaModuleDependsOnRoot();
-            }
-
         });
         if (isRoot()) {
             new IdeaScalaConfigurer(project).configure();

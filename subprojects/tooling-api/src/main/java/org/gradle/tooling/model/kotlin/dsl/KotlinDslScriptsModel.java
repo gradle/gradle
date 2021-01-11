@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.util.Map;
 
@@ -49,7 +47,6 @@ import java.util.Map;
  *
  * @since 6.0
  */
-@Incubating
 public interface KotlinDslScriptsModel {
 
     /**

@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * <p>Descriptor of a repository content, used to avoid reaching to
@@ -31,7 +30,6 @@ import org.gradle.api.Incubating;
  *
  * @since 6.2
  */
-@Incubating
 public interface InclusiveRepositoryContentDescriptor {
     /**
      * Declares that an entire group should be searched for in this repository.

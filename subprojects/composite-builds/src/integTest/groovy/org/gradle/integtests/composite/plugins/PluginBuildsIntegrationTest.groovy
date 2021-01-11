@@ -376,6 +376,51 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         build.assertProjectPluginApplied()
     }
 
+    def "Including a build as both plugin build and regular build does not lead to an error in the presence of include cycles"() {
+        given:
+        def commonsPluginBuild = pluginBuild("commons-plugin-build")
+        def mainPluginBuild = pluginBuild("main-plugin-build")
+
+        commonsPluginBuild.settingsFile.text = """
+            pluginManagement {
+                includeBuild('../${mainPluginBuild.buildName}')
+            }
+        """
+        commonsPluginBuild.projectPluginFile.text = """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """
+
+        mainPluginBuild.settingsFile.text = """
+            pluginManagement {
+                includeBuild('../${commonsPluginBuild.buildName}')
+            }
+        """
+        mainPluginBuild.buildFile.text = """
+           plugins {
+                id("${commonsPluginBuild.projectPluginId}")
+            }
+        """
+
+        settingsFile << """
+            pluginManagement {
+                includeBuild('${mainPluginBuild.buildName}')
+            }
+            includeBuild('${mainPluginBuild.buildName}')
+        """
+
+        when:
+        buildFile << """
+            plugins {
+                id('${mainPluginBuild.projectPluginId}')
+            }
+        """
+
+        then:
+        succeeds("help")
+    }
+
     def "a build can be included both as a plugin build and as regular build and can contribute both settings plugins and library components"() {
         given:
         def build = pluginAndLibraryBuild("included-build")
@@ -510,7 +555,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         """
         def settingsPluginBuild = pluginBuild("settings-plugin")
 
-        // workaround to use Kotlin precompiled script plugin because Groovy version does not support pluginManagement {} in settings plugins (to be fixed)
+        // workaround to use Kotlin precompiled script plugin because Groovy version does not support pluginManagement {} in settings plugins (https://github.com/gradle/gradle/issues/15416)
         settingsPluginBuild.buildFile.setText("""
             plugins {
                 id("org.gradle.kotlin.kotlin-dsl") version "2.0.0"

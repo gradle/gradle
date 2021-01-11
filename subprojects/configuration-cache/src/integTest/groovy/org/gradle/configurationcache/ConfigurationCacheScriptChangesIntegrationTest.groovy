@@ -17,13 +17,11 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.fixtures.ScriptChangeFixture
-import org.junit.Test
 import spock.lang.Unroll
 
 class ConfigurationCacheScriptChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Unroll
-    @Test
     def "invalidates cache upon change to #scriptChangeSpec"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

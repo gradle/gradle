@@ -28,7 +28,7 @@ class JvmLibraryResolveContextTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     @Unroll
-    def "context name for project #path and library #library is #contextName"() {
+    def "context name for project #path and library #library is #usage"() {
         given:
         def id = new DefaultLibraryBinaryIdentifier(path, COMPONENT_NAME, VARIANT)
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 6.1
  */
-@Incubating
 public interface FileContents {
 
     /**

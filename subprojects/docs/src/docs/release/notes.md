@@ -112,24 +112,212 @@ ADD RELEASE FEATURES ABOVE
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-In Gradle 7.0 we moved the following classes out of incubation phase.
+### Java Module Support
 
-- org.gradle.tooling.model.eclipse.EclipseRuntime
-- org.gradle.tooling.model.eclipse.EclipseWorkspace
-- org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
-- org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
+[Compiling](userguide/java_library_plugin.html#sec:java_library_modular),
+[testing](userguide/java_testing.html#sec:java_testing_modular) and
+[executing](userguide/application_plugin.html#sec:application_modular)
+Java modules is now a stable feature.
+It is no longer required to activate the functionality using `java.modularity.inferModulePath.set(true)`.
 
-- org.gradle.tooling.events.OperationType.TestOutput
-- org.gradle.tooling.events.test.Destination
-- org.gradle.tooling.events.test.TestOutputDescriptor
-- org.gradle.tooling.events.test.TestOutputEvent
+### Promoted APIs
+In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
-- org.gradle.process.ExecOperations
+- Core
+    - [Services](userguide/custom_gradle_types.html#service_injection)
+        - org.gradle.api.file.ArchiveOperations
+        - org.gradle.api.file.FileSystemOperations
+        - org.gradle.process.ExecOperations
+    - [Lazy configuration](userguide/lazy_configuration.html)
+        - org.gradle.api.model.ObjectFactory.directoryProperty
+        - org.gradle.api.model.ObjectFactory.fileCollection
+        - org.gradle.api.model.ObjectFactory.fileProperty
+        - org.gradle.api.model.ObjectFactory.sourceDirectorySet
+        - org.gradle.api.file.FileCollection.getElements
+        - org.gradle.api.file.FileContents
+        - org.gradle.api.provider.ProviderFactory.environmentVariable
+        - org.gradle.api.provider.ProviderFactory.fileContents
+        - org.gradle.api.provider.ProviderFactory.gradleProperty
+        - org.gradle.api.provider.ProviderFactory.systemProperty
+        - org.gradle.api.provider.Provider.flatMap
+        - org.gradle.api.provider.Provider.orElse(T)
+        - org.gradle.api.provider.Provider.orElse(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.HasConfigurableValue
+        - org.gradle.api.provider.Property.value(T)
+        - org.gradle.api.provider.Property.value(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.Property.convention(T)
+        - org.gradle.api.provider.Property.convention(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.empty
+        - org.gradle.api.provider.HasMultipleValues.value(java.lang.Iterable<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.value(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
+        - org.gradle.api.provider.HasMultipleValues.convention(java.lang.Iterable<? extends T>)
+        - org.gradle.api.provider.HasMultipleValues.convention(org.gradle.api.provider.Provider<? extends java.lang.Iterable<? extends T>>)
+        - org.gradle.api.provider.MapProperty
+        - org.gradle.api.file.FileSystemLocationProperty.getLocationOnly
+        - org.gradle.api.file.FileSystemLocationProperty.fileValue
+        - org.gradle.api.file.FileSystemLocationProperty.fileProvider
+        - org.gradle.api.file.Directory.files
+        - org.gradle.api.file.DirectoryProperty.files
+    - Miscellaneous
+        - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
+        - org.gradle.api.JavaVersion.VERSION_15
+        - org.gradle.api.JavaVersion.VERSION_16
+        - org.gradle.api.JavaVersion.VERSION_17
+        - org.gradle.api.JavaVersion.isJava12
+        - org.gradle.api.JavaVersion.isJava12Compatible
+        - org.gradle.api.JavaVersion.isCompatibleWith
+- Dependency management
+    - Dependency notations
+        - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
+        - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.Dependency>)
+        - org.gradle.api.artifacts.dsl.DependencyHandler.testFixtures(java.lang.Object)
+        - org.gradle.api.artifacts.dsl.DependencyHandler.testFixtures(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.Dependency>)
+    - [Capabilities resolution](userguide/dependency_capability_conflict#sec:handling-mutually-exclusive-deps)
+        - org.gradle.api.artifacts.CapabilitiesResolution
+        - org.gradle.api.artifacts.CapabilityResolutionDetails
+        - org.gradle.api.artifacts.ResolutionStrategy.capabilitiesResolution
+        - org.gradle.api.artifacts.ResolutionStrategy.getCapabilitiesResolution
+    - [Resolution strategy tuning](userguide/resolution_strategy_tuning.html#reproducible)
+        - org.gradle.api.artifacts.ResolutionStrategy.failOnDynamicVersions
+        - org.gradle.api.artifacts.ResolutionStrategy.failOnChangingVersions
+    - [Dependency locking improvements](userguide/dependency_locking.html#dependency-locking)
+        - org.gradle.api.artifacts.ResolutionStrategy.deactivateDependencyLocking
+        - org.gradle.api.artifacts.dsl.DependencyLockingHandler.unlockAllConfigurations
+        - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getLockMode
+        - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getLockFile
+        - org.gradle.api.artifacts.dsl.DependencyLockingHandler.getIgnoredDependencies
+        - org.gradle.api.artifacts.dsl.LockMode
+        - org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking
+        - org.gradle.api.initialization.dsl.ScriptHandler.getDependencyLocking
+    - [Dependency verification](userguide/dependency_verification.html#verifying-dependencies)
+        - org.gradle.api.artifacts.ResolutionStrategy.enableDependencyVerification
+        - org.gradle.api.artifacts.ResolutionStrategy.disableDependencyVerification
+        - org.gradle.StartParameter.getWriteDependencyVerifications
+        - org.gradle.StartParameter.setWriteDependencyVerifications
+        - org.gradle.StartParameter.setDependencyVerificationMode
+        - org.gradle.StartParameter.getDependencyVerificationMode
+        - org.gradle.StartParameter.setRefreshKeys
+        - org.gradle.StartParameter.isRefreshKeys
+        - org.gradle.StartParameter.isExportKeys
+        - org.gradle.StartParameter.setExportKeys
+    - [Dependency constraints improvements](userguide/dependency_constraints.html#dependency-constraints)
+        - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object)
+        - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.DependencyConstraint>)
+        - org.gradle.api.artifacts.result.ComponentSelectionCause.BY_ANCESTOR
+    - [Component metadata rules improvements](userguide/component_metadata_rules.html#sec:component_metadata_rules)
+        - org.gradle.api.artifacts.DirectDependencyMetadata.endorseStrictVersions
+        - org.gradle.api.artifacts.DirectDependencyMetadata.doNotEndorseStrictVersions
+        - org.gradle.api.artifacts.DirectDependencyMetadata.isEndorsingStrictVersions
+        - org.gradle.api.artifacts.DirectDependencyMetadata.getArtifactSelectors
+        - org.gradle.api.artifacts.ModuleDependency.endorseStrictVersions
+        - org.gradle.api.artifacts.ModuleDependency.doNotEndorseStrictVersions
+        - org.gradle.api.artifacts.ModuleDependency.isEndorsingStrictVersions
+        - org.gradle.api.artifacts.ComponentMetadataDetails.maybeAddVariant
+    - [Repositories](userguide/declaring_repositories.html#declaring-repositories)
+        - org.gradle.api.artifacts.repositories.IvyArtifactRepository.getMetadataSources
+        - org.gradle.api.artifacts.repositories.IvyArtifactRepository.MetadataSources.isGradleMetadataEnabled
+        - org.gradle.api.artifacts.repositories.IvyArtifactRepository.MetadataSources.isIvyDescriptorEnabled
+        - org.gradle.api.artifacts.repositories.IvyArtifactRepository.MetadataSources.isArtifactEnabled
+        - org.gradle.api.artifacts.repositories.IvyArtifactRepository.MetadataSources.isIgnoreGradleMetadataRedirectionEnabled
+        - org.gradle.api.artifacts.repositories.MavenArtifactRepository.getMetadataSources
+        - org.gradle.api.artifacts.repositories.MavenArtifactRepository.MetadataSources.isGradleMetadataEnabled
+        - org.gradle.api.artifacts.repositories.MavenArtifactRepository.MetadataSources.isMavenPomEnabled
+        - org.gradle.api.artifacts.repositories.MavenArtifactRepository.MetadataSources.isArtifactEnabled
+        - org.gradle.api.artifacts.repositories.MavenArtifactRepository.MetadataSources.isIgnoreGradleMetadataRedirectionEnabled
+    - [Dependency substitution improvements](resolution_rules.html#sec:dependency_substitution_rules)
+        - org.gradle.api.artifacts.ArtifactSelectionDetails
+        - org.gradle.api.artifacts.DependencyArtifactSelector
+        - org.gradle.api.artifacts.DependencyResolveDetails.artifactSelection
+        - org.gradle.api.artifacts.DependencySubstitution.artifactSelection
+        - org.gradle.api.artifacts.DependencySubstitutions.variant
+        - org.gradle.api.artifacts.DependencySubstitutions.platform
+        - org.gradle.api.artifacts.DependencySubstitutions.Substitution.withClassifier
+        - org.gradle.api.artifacts.DependencySubstitutions.Substitution.withoutClassifier
+        - org.gradle.api.artifacts.DependencySubstitutions.Substitution.withoutArtifactSelectors
+        - org.gradle.api.artifacts.DependencySubstitutions.Substitution.using
+        - org.gradle.api.artifacts.VariantSelectionDetails
+    - [Publishing](publishing_setup.html#publishing_components)
+        - org.gradle.api.publish.Publication.withoutBuildIdentifier
+        - org.gradle.api.publish.Publication.withBuildIdentifier
+    - Miscellaneous
+        - org.gradle.api.artifacts.result.ResolutionResult.getRequestedAttributes
+        - org.gradle.api.artifacts.result.ResolvedComponentResult.getDependenciesForVariant
+        - org.gradle.api.artifacts.result.ResolvedDependencyResult.getResolvedVariant
+        - org.gradle.api.artifacts.ComponentVariantIdentifier
+        - org.gradle.api.artifacts.maven.PomModuleDescriptor
+        - org.gradle.api.artifacts.repositories.AuthenticationSupported.credentials(java.lang.Class<? extends org.gradle.api.credentials.Credentials>)
+        - org.gradle.jvm.JvmLibrary
+        - org.gradle.language.base.artifact.SourcesArtifact
+        - org.gradle.language.java.artifact.JavadocArtifact
+- Tooling API
+    - Eclipse models
+        - org.gradle.tooling.model.eclipse.EclipseRuntime
+        - org.gradle.tooling.model.eclipse.EclipseWorkspace
+        - org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
+        - org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
+    - Testing events
+        - org.gradle.tooling.events.OperationType.TestOutput
+        - org.gradle.tooling.events.test.Destination
+        - org.gradle.tooling.events.test.TestOutputDescriptor
+        - org.gradle.tooling.events.test.TestOutputEvent
+- Java Ecosystem
+    - Java plugins
+        - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
+        - org.gradle.api.plugins.FeatureSpec.withSourcesJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withJavadocJar()
+        - org.gradle.api.plugins.JavaPluginExtension.withSourcesJar()
+        - org.gradle.api.tasks.SourceSet.getCompileOnlyApiConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getJavadocJarTaskName()
+        - org.gradle.api.tasks.SourceSet.getJavadocTaskName()
+        - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
+        - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
+        - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
+      - Java Module System
+        - org.gradle.api.jvm.ModularitySpec
+        - org.gradle.api.plugins.JavaApplication.getMainModule()
+        - org.gradle.api.plugins.JavaPluginExtension.getModularity()
+        - org.gradle.api.tasks.compile.JavaCompile.getModularity()
+        - org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()
+        - org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()
+        - org.gradle.api.tasks.javadoc.Javadoc.getModularity()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.getModulePath()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.setModulePath()
+        - org.gradle.external.javadoc.MinimalJavadocOptions.modulePath()
+        - org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails.getModulePath()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()
+        - org.gradle.jvm.application.tasks.CreateStartScripts.getModularity()
+        - org.gradle.process.JavaExecSpec.getMainClass()
+        - org.gradle.process.JavaExecSpec.getMainModule()
+        - org.gradle.process.JavaExecSpec.getModularity()
+    - Testing
+        - org.gradle.api.tasks.testing.Test.getStableClasspath
+        - org.gradle.api.plugins.JavaTestFixturesPlugin
+        - org.gradle.api.tasks.testing.TestFilter.excludeTestsMatching
+        - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns
+        - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns
+        - org.gradle.api.tasks.testing.TestFilter.excludeTest
+- [Kotlin DSL](userguide/kotlin_dsl.html)
+    - org.gradle.kotlin.dsl.KotlinScript
+    - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.KotlinSettingsScript.pluginManagement(block: PluginManagementSpec.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.ExtensionContainer.add(name: String, extension: T): Unit
+    - org.gradle.kotlin.dsl.ExtensionContainer.create(name: String, vararg constructionArguments: Any): T
+    - org.gradle.kotlin.dsl.ExtensionContainer.getByType(): T
+    - org.gradle.kotlin.dsl.ExtensionContainer.findByType(): T?
+    - org.gradle.kotlin.dsl.ExtensionContainer.configure(noinline action: T.() -> Unit)
+    - org.gradle.kotlin.dsl.ArtifactHandler.invoke(configuration: ArtifactHandlerScope.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.ScriptHandler.dependencyLocking(configuration: DependencyLockingHandler.() -> Unit): Unit
+    - org.gradle.kotlin.dsl.PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
+    - org.gradle.tooling.model.kotlin.dsl.EditorPosition
+    - org.gradle.tooling.model.kotlin.dsl.EditorReport
+    - org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+    - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
-- org.gradle.api.model.ObjectFactory.directoryProperty
-- org.gradle.api.model.ObjectFactory.fileCollection
-- org.gradle.api.model.ObjectFactory.fileProperty
-- org.gradle.api.model.ObjectFactory.sourceDirectorySet
+- org.gradle.api.distribution.Distribution.getDistributionBaseName()
 
 <!--
 ### Example promoted

@@ -22,14 +22,6 @@ import spock.lang.Subject
 
 @Subject(LeakingProcessKillPattern)
 class LeakingProcessKillPatternTest extends Specification {
-    @Issue("https://github.com/gradle/ci-health/issues/138")
-    def "matches Play application process started on Windows"() {
-        def line = '"C:\\Program Files\\Java\\jdk1.7/bin/java.exe"    -Dhttp.port=0  -classpath "C:\\some\\ci\\workspace\\subprojects\\platform-play\\build\\tmp\\test files\\PlayDistributionAdvancedAppIntegrationTest\\can_run_play_distribution\\d3r0j\\build\\stage\\playBinary\\bin\\..\\lib\\advancedplayapp.jar" play.core.server.NettyServer '
-        def projectDir = 'C:\\some\\ci\\workspace'
-
-        expect:
-        (line =~ LeakingProcessKillPattern.generate(projectDir)).find()
-    }
 
     def "matches worker process started in test on Windows"() {
         def line = '"C:\\Program Files\\Java\\jdk1.7/bin/java.exe"    -Dorg.gradle.daemon.idletimeout=120000 -Dorg.gradle.daemon.registry.base=C:\\some\\agent\\workspace\\build\\daemon -Dorg.gradle.native.dir=C:\\some\\agent\\workspace\\intTestHomeDir\\worker-1\\native -Dorg.gradle.deprecation.trace=true -Djava.io.tmpdir=C:\\some\\agent\\workspace\\subprojects\\osgi\\build\\tmp -Dfile.encoding=windows-1252 -Dorg.gradle.classloaderscope.strict=true -ea -ea "-Dorg.gradle.appname=gradle" -classpath "C:\\some\\agent\\workspace\\subprojects\\osgi\\build\\integ test\\bin\\..\\lib\\gradle-launcher-4.5.jar" org.gradle.launcher.GradleMain --init-script "C:\\some\\agent\\workspace\\subprojects\\osgi\\build\\tmp\\test files\\OsgiPluginIntegrationSpec\\can_merge_manifests...archives_\\uz4kt\\reproducible-archives-init.gradle" --no-daemon --stacktrace --gradle-user-home C:\\some\\agent\\workspace\\intTestHomeDir\\worker-1 jar'

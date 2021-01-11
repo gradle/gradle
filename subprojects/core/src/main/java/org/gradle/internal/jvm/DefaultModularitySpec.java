@@ -24,11 +24,11 @@ import javax.inject.Inject;
 
 public class DefaultModularitySpec implements ModularitySpec {
 
-    private Property<Boolean> inferModulePath;
+    private final Property<Boolean> inferModulePath;
 
     @Inject
     public DefaultModularitySpec(ObjectFactory objects) {
-        inferModulePath = objects.property(Boolean.class).convention(false);
+        inferModulePath = objects.property(Boolean.class).convention(true);
     }
 
     @Override

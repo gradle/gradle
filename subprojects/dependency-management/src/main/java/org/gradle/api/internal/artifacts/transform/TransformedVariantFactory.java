@@ -19,18 +19,15 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 public interface TransformedVariantFactory {
     ResolvedArtifactSet transformedExternalArtifacts(ComponentIdentifier componentIdentifier,
                                                      ResolvedVariant sourceVariant,
-                                                     ImmutableAttributes target,
-                                                     Transformation transformation,
+                                                     VariantDefinition variantDefinition,
                                                      ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
 
     ResolvedArtifactSet transformedProjectArtifacts(ComponentIdentifier componentIdentifier,
                                                     ResolvedVariant sourceVariant,
-                                                    ImmutableAttributes target,
-                                                    Transformation transformation,
+                                                    VariantDefinition variantDefinition,
                                                     ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
 }

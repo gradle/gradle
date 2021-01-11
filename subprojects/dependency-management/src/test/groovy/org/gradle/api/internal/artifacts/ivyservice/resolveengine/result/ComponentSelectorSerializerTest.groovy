@@ -176,7 +176,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
     }
 
     @Unroll
-    def "serializes LibraryComponentSelector project #projectPath library #libraryName variant #variant"() {
+    def "serializes LibraryComponentSelector project #projectPath library #libraryName"() {
         given:
         LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName)
 

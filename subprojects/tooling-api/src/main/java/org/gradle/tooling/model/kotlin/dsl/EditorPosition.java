@@ -16,15 +16,12 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-import org.gradle.api.Incubating;
-
 
 /**
  * Position in the editor.
  *
  * @since 6.0
  */
-@Incubating
 public interface EditorPosition {
 
     int getLine();

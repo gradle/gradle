@@ -17,9 +17,7 @@
 package org.gradle.invocation;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -53,7 +51,6 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -308,26 +305,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void buildStarted(Closure closure) {
-        DeprecationLogger.deprecateMethod(Gradle.class, "buildStarted(Closure)")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
-            .nagUser();
-        notifyListenerRegistration("Gradle.buildStarted", closure);
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
-    }
-
-    @Override
-    public void buildStarted(Action<? super Gradle> action) {
-        DeprecationLogger.deprecateMethod(Gradle.class, "buildStarted(Action)")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
-            .nagUser();
-        notifyListenerRegistration("Gradle.buildStarted", action);
-        buildListenerBroadcast.add("buildStarted", action);
-    }
-
-    @Override
     public void beforeSettings(Closure<?> closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeSettings", closure));
     }
@@ -385,9 +362,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void addListener(Object listener) {
-        if (listener instanceof BuildListener) {
-            nagBuildStartedDeprecationIfOverriden(((BuildListener) listener).getClass());
-        }
         addListener("Gradle.addListener", listener);
     }
 
@@ -419,21 +393,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void addBuildListener(BuildListener buildListener) {
-        nagBuildStartedDeprecationIfOverriden(buildListener.getClass());
         addListener("Gradle.addBuildListener", buildListener);
-    }
-
-    private void nagBuildStartedDeprecationIfOverriden(Class<? extends BuildListener> buildListenerClass) {
-        try {
-            if (!ImmutableSet.of(BuildAdapter.class, InternalBuildAdapter.class).contains(buildListenerClass.getMethod("buildStarted", Gradle.class).getDeclaringClass())) {
-                DeprecationLogger.deprecateMethod(BuildListener.class, "buildStarted(Gradle)")
-                    .willBeRemovedInGradle7()
-                    .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
-                    .nagUser();
-            }
-        } catch (NoSuchMethodException e) {
-            assert false; // There's always a method named buildStarted
-        }
     }
 
     @Override

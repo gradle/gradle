@@ -21,7 +21,7 @@ import spock.lang.Unroll
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
     @Unroll
-    def "assigns a unique fixed port range based on worker id (maxForks: #maxForks, totalAgents: #totalAgents)" () {
+    def "assigns a unique fixed port range based on worker id (totalWorkers: #totalWorkers, totalAgents: #totalAgents)" () {
         int rangeSize = FixedAvailablePortAllocator.DEFAULT_RANGE_SIZE - 1
         def portAllocators = (1..totalAgents).collect { agentNum ->
             (1..totalWorkers).collect { workerId ->

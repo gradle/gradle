@@ -17,7 +17,6 @@
 /**
  * NOTE: The sources in this package have been adopted unchanged from 'org.apache.maven:maven-ant-tasks:2.1.3'.
  *
- * These classes form part of the public Gradle API, via {@link org.gradle.api.artifacts.maven.MavenDeployer#getRepository()}.
  * We no longer use the actual Maven Ant Tasks for publishing, and these classes are only available publicly in a fat-jar that
  * bundles a version of Maven as well as the Ant tasks themselves.
  * For this reason, these classes have been 'adopted' here so they can remain in the Gradle API without bloating the Gradle distribution.
