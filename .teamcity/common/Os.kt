@@ -67,7 +67,7 @@ enum class Os(
 
     fun javaInstallationLocations(): String {
         return escapeKeyValuePair("-Porg.gradle.java.installations.paths", enumValues<JvmVersion>().map { version -> {
-            val vendor = if (version.major > 11) JvmVendor.openjdk else JvmVendor.oracle
+            val vendor = if (version.major >= 11) JvmVendor.openjdk else JvmVendor.oracle
             asPlaceholder(version, vendor)
         }() }.joinToString(","))
     }
