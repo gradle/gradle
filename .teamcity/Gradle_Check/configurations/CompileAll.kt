@@ -10,6 +10,10 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
     name = "Compile All"
     description = "Compiles all the source code and warms up the build cache"
 
+    params {
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
+    }
+
     features {
         publishBuildStatusToGithub(model)
     }

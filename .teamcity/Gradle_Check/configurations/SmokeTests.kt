@@ -14,6 +14,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
 
     params {
         param("env.ANDROID_HOME", LINUX.androidHome)
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
     }
 
     features {

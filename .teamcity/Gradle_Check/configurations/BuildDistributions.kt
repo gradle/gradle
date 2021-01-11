@@ -28,4 +28,8 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
         subprojects/distributions-full/build/distributions/*.zip => distributions
         subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     """.trimIndent()
+
+    params {
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
+    }
 })

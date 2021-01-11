@@ -29,6 +29,7 @@ object WarmupEc2Agent : BuildType({
 
     params {
         param("defaultBranchName", "master")
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
     }
 
     steps {

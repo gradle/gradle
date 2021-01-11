@@ -14,6 +14,10 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
+    params {
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
+    }
+
     features {
         publishBuildStatusToGithub(model)
     }
