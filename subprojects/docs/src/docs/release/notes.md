@@ -262,6 +262,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.TestOutputEvent
 - Java Ecosystem
     - Java plugins
+        - org.gradle.api.file.SourceDirectorySet.getDestinationDirectory()
+        - org.gradle.api.file.SourceDirectorySet.getClassesDirectory()
+        - org.gradle.api.file.SourceDirectorySet.compiledBy(TaskProvider<T>, Function<T, DirectoryProperty>)
+        - org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()
         - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
         - org.gradle.api.plugins.FeatureSpec.withSourcesJar()
         - org.gradle.api.plugins.JavaPluginExtension.withJavadocJar()
