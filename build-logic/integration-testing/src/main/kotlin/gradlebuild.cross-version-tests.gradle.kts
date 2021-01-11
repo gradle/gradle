@@ -43,7 +43,6 @@ fun configureTestFixturesForCrossVersionTests() {
 }
 
 fun createAggregateTasks(sourceSet: SourceSet) {
-    // Calculate the set of released versions - do this at configuration time because we need this to create various tasks
     val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
         group = "verification"
         description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
