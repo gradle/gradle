@@ -1,1 +1,3 @@
-<<third_party_integration.adoc#embedding,Embedding Gradle using the Tooling API>>
+++++
+<meta http-equiv="refresh" content="0;URL=third_party_integration.html#embedding">
+++++
