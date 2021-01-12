@@ -47,9 +47,10 @@ abstract class GenerateLanguageAnnotations : DefaultTask() {
 
     @TaskAction
     fun generateAnnotations() {
-        val queue = workerExecutor.noIsolation()
+        val queue = workerExecutor.classLoaderIsolation {
+            classpath.setFrom(classpath)
+        }
         queue.submit(AnnotationGeneratorWorkAction::class) {
-            generatorClasspath.from(classpath)
             packageName.set(this@GenerateLanguageAnnotations.packageName)
             destDir.set(this@GenerateLanguageAnnotations.destDir)
         }

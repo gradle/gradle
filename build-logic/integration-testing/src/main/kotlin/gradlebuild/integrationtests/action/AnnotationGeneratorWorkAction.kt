@@ -17,7 +17,6 @@
 package gradlebuild.integrationtests.action
 
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.configuration.DefaultImportsReader
@@ -36,7 +35,6 @@ abstract class AnnotationGeneratorWorkAction : WorkAction<AnnotationGeneratorWor
 
     internal
     interface AnnotationGeneratorParameters : WorkParameters {
-        val generatorClasspath: ConfigurableFileCollection
         val packageName: Property<String>
         val destDir: DirectoryProperty
     }
@@ -112,8 +110,7 @@ ${groovyProjectAccessors()}
     private
     fun groovyImports(): String {
         val imports: List<String> =
-            DefaultImportsReader()
-                .importPackages
+            generateImportPackages()
                 .map { "$it.*" } + "" +
                 AnnotationGenerator.ADDITIONAL_DEFAULT_IMPORTS
         return imports.joinToString(separator = "\n") {
@@ -152,5 +149,32 @@ ${groovyProjectAccessors()}
         return toString()
             .replace("class ", "")
             .replace("interface ", "")
+    }
+
+    companion object {
+        private
+        const val RESOURCE = "/default-imports.txt"
+
+        /**
+         * Logic duplicated from [org.gradle.configuration.DefaultImportsReader].
+         * Please keep this code in sync.
+         */
+        internal
+        fun generateImportPackages(): List<String> {
+            /*
+             * The class that getResource called upon must be from within a jar that contains the import txt file.
+             *
+             * Note: Even though 'jump to declaration' in IJ will show this to be the 'DefaultImportsReader' from
+             * the plugin Gradle distribution, this is only true at compile time.
+             *
+             * At runtime, the 'DefaultImportsReader' will be the version from the distribution actively being built/tested.
+             */
+            val clazz = DefaultImportsReader::class.java
+            return clazz.getResource(RESOURCE)
+                .readText()
+                .split('\n')
+                .filter { it.isNotBlank() }
+                .map { line -> line.substring(7, line.length - 2) }
+        }
     }
 }
