@@ -315,77 +315,62 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     return;
                 }
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("setArchiveName") && descriptor.equals("(Ljava/lang/String;)V")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatSetArchiveName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && (AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner)) && name.equals("getArchiveName") && descriptor.equals("()Ljava/lang/String;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetArchiveName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && (AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner)) && name.equals("getArchivePath") && descriptor.equals("()Ljava/io/File;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetArchivePath", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/io/File;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && (AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner)) && name.equals("getDestinationDir") && descriptor.equals("()Ljava/io/File;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetDestinationDir", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/io/File;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("setDestinationDir") && descriptor.equals("(Ljava/io/File;)V")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatSetDestinationDir", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/io/File;)V", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("getBaseName") && descriptor.equals("()Ljava/lang/String;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetBaseName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("setBaseName") && descriptor.equals("(Ljava/lang/String;)V")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatSetBaseName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("getAppendix") && descriptor.equals("()Ljava/lang/String;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetAppendix", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("setAppendix") && descriptor.equals("(Ljava/lang/String;)V")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatSetAppendix", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", false);
                 return;
             }  else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("getVersion") && descriptor.equals("()Ljava/lang/String;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetVersion", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("setVersion") && descriptor.equals("(Ljava/lang/String;)V")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatSetVersion", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("getExtension") && descriptor.equals("()Ljava/lang/String;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetExtension", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("setExtension") && descriptor.equals("(Ljava/lang/String;)V")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatSetExtension", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("getClassifier") && descriptor.equals("()Ljava/lang/String;")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatGetClassifier", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", false);
                 return;
             } else if (opcode == Opcodes.INVOKEVIRTUAL && AbstractArchiveTaskCompatUtils.isArchiveTaskType(owner) && name.equals("setClassifier") && descriptor.equals("(Ljava/lang/String;)V")) {
-                System.out.println("Instrumenting " + " " + owner + "#" + name + descriptor + " in " + className);
                 this.owner.needsBackwardsCompatibility();
                 super.visitMethodInsn(INVOKESTATIC, className, "gradleCompatSetClassifier", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", false);
                 return;
