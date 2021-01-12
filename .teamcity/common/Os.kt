@@ -66,10 +66,11 @@ enum class Os(
     fun asName() = name.toLowerCase().capitalize()
 
     fun javaInstallationLocations(): String {
-        return "-Porg.gradle.java.installations.paths=" + enumValues<JvmVersion>().map { version -> {
+        val escapeChar = if (this == WINDOWS) "\"" else ""
+        return "-Porg.gradle.java.installations.paths=" + escapeChar + enumValues<JvmVersion>().map { version -> {
             val vendor = if (version.major >= 11) JvmVendor.openjdk else JvmVendor.oracle
             asPlaceholder(version, vendor)
-        }() }.joinToString(",")
+        }() }.joinToString(",") + escapeChar
     }
 
     fun javaHomeForGradle(): String {
