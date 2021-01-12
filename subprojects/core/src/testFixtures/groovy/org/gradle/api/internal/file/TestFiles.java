@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -165,7 +166,8 @@ public class TestFiles {
             fileCollectionFactory(basedDir),
             fileSystem,
             getPatternSetFactory(),
-            deleter()
+            deleter(),
+            documentationRegistry()
         );
     }
 
@@ -253,6 +255,10 @@ public class TestFiles {
     @SuppressWarnings("deprecation")
     public static Factory<PatternSet> getPatternSetFactory() {
         return PatternSets.getNonCachingPatternSetFactory();
+    }
+
+    public static DocumentationRegistry documentationRegistry() {
+        return new DocumentationRegistry();
     }
 
     public static String systemSpecificAbsolutePath(String path) {

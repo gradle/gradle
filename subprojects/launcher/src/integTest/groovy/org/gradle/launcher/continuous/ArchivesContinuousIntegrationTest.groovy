@@ -88,6 +88,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
                 from($type("${sourceFile.toURI()}"))
                 into("unpack")
                 ${permissions}
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
         """
 
