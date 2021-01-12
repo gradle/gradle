@@ -130,9 +130,6 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
             }
         """
 
-        println "prev: ${previous.version}"
-        println "curr: ${current.version}"
-
         when:
         version previous withTasks 'publish' inDirectory(file("plugin")) run()
         def result = version current requireDaemon() requireIsolatedDaemons() withTasks 'customArchive' inDirectory(file('client')) run()
