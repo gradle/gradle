@@ -146,10 +146,6 @@ public class AbstractArchiveTaskCompatUtils {
         methodVisitor.visitMaxs(3, 2);
         methodVisitor.visitEnd();
 
-
-        //
-
-
         methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetBaseName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", null, null);
         methodVisitor.visitCode();
         label0 = new Label();
