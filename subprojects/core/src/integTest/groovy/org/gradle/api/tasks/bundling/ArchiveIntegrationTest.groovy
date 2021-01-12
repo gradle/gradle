@@ -950,48 +950,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Unroll
-    def "plugins can configure #taskType tasks with removed APIs re-introduced by MixInLegacyTypesClassLoader"(String taskType) {
-        given:
-        Assume.assumeFalse(GradleContextualExecuter.isEmbedded())
-
-        when:
-        buildFile << """
-            apply plugin: MyPlugin
-            apply plugin: 'base'
-
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project p) {
-                    p.tasks.register('archive', $taskType) {
-                        from("src")
-
-                        archiveName = 'test.jar'
-                        println archiveName
-                        destinationDir = p.buildDir
-                        println destinationDir
-                        baseName = 'test'
-                        println baseName
-                        appendix = 'custom'
-                        println appendix
-                        version = '0.1'
-                        println version
-                        extension = 'jr'
-                        println extension
-                        classifier = 'cf'
-                        println classifier
-                        println archivePath
-                    }
-                }
-            }
-        """
-
-        then:
-        succeeds "archive"
-
-        where:
-        taskType << ['Jar', /*'Zip', ' Tar', 'Ear'*/] // TODO (donat) fix classloading for the other archive tasks types
-    }
-
     private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
         tarRoot.deleteDir()
