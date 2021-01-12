@@ -20,13 +20,11 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
-import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
