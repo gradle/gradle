@@ -138,7 +138,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         where:
         [agpVersion, ide] << [
-            TestedVersions.androidGradle.toList().takeRight(2).take(1),
+            TestedVersions.androidGradle.toList(),
             [false, true]
         ].combinations()
     }
