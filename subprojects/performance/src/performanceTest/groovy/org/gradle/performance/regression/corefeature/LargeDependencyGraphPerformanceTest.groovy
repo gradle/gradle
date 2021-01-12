@@ -35,7 +35,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     public static final String MAX_MEMORY = "-Xmx800m"
 
     def setup() {
-        runner.minimumBaseVersion = '4.8'
+        runner.minimumBaseVersion = '5.6.4'
         runner.targetVersions = ["6.9-20201210230047+0000"]
     }
 
