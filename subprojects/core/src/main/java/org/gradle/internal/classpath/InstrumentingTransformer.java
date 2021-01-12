@@ -128,7 +128,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(visitor));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new BackwardCompatibilityVisitor(visitor)));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
@@ -263,38 +263,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (opcode == INVOKESTATIC && visitINVOKESTATIC(owner, name, descriptor)) {
                 return;
             }
-            if (fixMethodInsnForBackwardCompatibility(opcode, owner, name, descriptor, isInterface)) {
-                return;
-            }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-        }
-
-        private boolean fixMethodInsnForBackwardCompatibility(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            final String newOwner = fixMethodOwnerForBackwardCompatibility(owner);
-            final String newDescriptor = fixMethodDescriptorForBackwardCompatibility(descriptor);
-            if (newOwner.equals(owner) && newDescriptor.equals(descriptor)) {
-                return false;
-            }
-            super.visitMethodInsn(opcode, newOwner, name, newDescriptor, isInterface);
-            return true;
-        }
-
-        private String fixMethodOwnerForBackwardCompatibility(String typeName) {
-            // Fix renamed type references
-            for (Pair<String, String> renamedInterface : RENAMED_INTERFACES) {
-                if (renamedInterface.left.equals(typeName)) {
-                    return renamedInterface.right;
-                }
-            }
-            return typeName;
-        }
-
-        private String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
-            // Fix method signatures involving renamed types
-            for (Pair<String, String> renamedDescriptor : RENAMED_INTERFACE_DESCRIPTORS) {
-                descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
-            }
-            return descriptor;
         }
 
         private boolean visitINVOKESTATIC(String owner, String name, String descriptor) {
@@ -403,6 +372,53 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             this.descriptor = descriptor;
             this.bootstrapMethodHandle = bootstrapMethodHandle;
             this.bootstrapMethodArguments = bootstrapMethodArguments;
+        }
+    }
+
+    private static class BackwardCompatibilityVisitor extends ClassVisitor {
+
+        public BackwardCompatibilityVisitor(ClassVisitor visitor) {
+            super(ASM7, visitor);
+        }
+
+        @Override
+        public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
+            return methodVisitor != null
+                ? new BackwardCompatibilityMethodVisitor(methodVisitor)
+                : null;
+        }
+
+        private static class BackwardCompatibilityMethodVisitor extends MethodVisitor {
+
+            public BackwardCompatibilityMethodVisitor(MethodVisitor methodVisitor) {
+                super(ASM7, methodVisitor);
+            }
+
+            @Override
+            public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                final String newOwner = fixMethodOwnerForBackwardCompatibility(owner);
+                final String newDescriptor = fixMethodDescriptorForBackwardCompatibility(descriptor);
+                super.visitMethodInsn(opcode, newOwner, name, newDescriptor, isInterface);
+            }
+
+            private String fixMethodOwnerForBackwardCompatibility(String typeName) {
+                // Fix renamed type references
+                for (Pair<String, String> renamedInterface : RENAMED_INTERFACES) {
+                    if (renamedInterface.left.equals(typeName)) {
+                        return renamedInterface.right;
+                    }
+                }
+                return typeName;
+            }
+
+            private String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
+                // Fix method signatures involving renamed types
+                for (Pair<String, String> renamedDescriptor : RENAMED_INTERFACE_DESCRIPTORS) {
+                    descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
+                }
+                return descriptor;
+            }
         }
     }
 
