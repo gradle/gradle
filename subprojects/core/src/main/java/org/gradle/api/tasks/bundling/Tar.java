@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
  * Assembles a TAR archive.
