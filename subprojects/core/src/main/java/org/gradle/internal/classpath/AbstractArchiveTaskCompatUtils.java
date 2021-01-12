@@ -36,7 +36,8 @@ public class AbstractArchiveTaskCompatUtils {
     }
 
     public static boolean isArchiveTaskType(String typeName) {
-        return typeName.equals("org/gradle/api/tasks/bundling/Tar") ||
+        return typeName.equals("org/gradle/api/tasks/bundling/AbstractArchiveTask") ||
+               typeName.equals("org/gradle/api/tasks/bundling/Tar") ||
                typeName.equals("org/gradle/api/tasks/bundling/Jar") ||
                typeName.equals("org/gradle/api/tasks/bundling/Zip") ||
                typeName.equals("org/gradle/api/tasks/bundling/War") ||
