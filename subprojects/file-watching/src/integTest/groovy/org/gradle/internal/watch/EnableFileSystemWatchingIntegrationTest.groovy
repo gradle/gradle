@@ -78,26 +78,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     @Unroll
     @SuppressWarnings('GrDeprecatedAPIUsage')
-    def "deprecation message is shown when using the old property to enable watching the file system (enabled: #enabled)"() {
-        buildFile << """
-            apply plugin: "java"
-        """
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.unsafe.watch-fs system property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 7.0. " +
-                "Please use the org.gradle.vfs.watch system property instead. " +
-                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
-        )
-
-        expect:
-        succeeds("assemble", "-D${StartParameterBuildOptions.DeprecatedWatchFileSystemOption.GRADLE_PROPERTY}=${enabled}")
-
-        where:
-        enabled << [true, false]
-    }
-
-    @Unroll
-    @SuppressWarnings('GrDeprecatedAPIUsage')
     def "deprecation message is shown when using old VFS retention property to enable watching the file system (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"

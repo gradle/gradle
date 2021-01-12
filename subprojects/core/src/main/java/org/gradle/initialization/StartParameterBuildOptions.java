@@ -64,7 +64,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new WatchFileSystemOption());
         options.add(new WatchFileSystemDebugLoggingOption());
-        options.add(new DeprecatedWatchFileSystemOption());
         options.add(new VfsVerboseLoggingOption());
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
@@ -310,21 +309,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
             startParameter.setWatchFileSystem(value);
-        }
-    }
-
-    @Deprecated
-    public static class DeprecatedWatchFileSystemOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.unsafe.watch-fs";
-
-        public DeprecatedWatchFileSystemOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
-            startParameter.setWatchFileSystem(value);
-            startParameter.setWatchFileSystemUsingDeprecatedOption(true);
         }
     }
 

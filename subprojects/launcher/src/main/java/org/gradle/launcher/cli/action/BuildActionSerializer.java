@@ -117,7 +117,6 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
             encoder.writeBoolean(startParameter.isWatchFileSystem());
             encoder.writeBoolean(startParameter.isWatchFileSystemDebugLogging());
-            encoder.writeBoolean(startParameter.isWatchFileSystemUsingDeprecatedOption());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             encoder.writeBoolean(startParameter.isConfigurationCache());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
@@ -197,7 +196,6 @@ public class BuildActionSerializer {
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setWatchFileSystem(decoder.readBoolean());
             startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
-            startParameter.setWatchFileSystemUsingDeprecatedOption(decoder.readBoolean());
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(decoder.readBoolean());
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
