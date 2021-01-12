@@ -33,11 +33,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Subject
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None
 
+@Ignore
 class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
