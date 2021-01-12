@@ -244,7 +244,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
     def "delegates to file hasher when bad unicode escape sequences are present (error in: #location, context: #context)"() {
         given:
         filters = [ '**/*.properties': ResourceEntryFilter.FILTER_NOTHING ]
-        def properties = contextFor(context, 'some/path/to/foo.properties', bytesFrom(property))
+        def properties = contextFor(context, 'some/path/to/foo.properties', property.bytes)
 
         expect:
         filteredHasher.hash(properties) == delegate.hash(properties)
@@ -268,29 +268,23 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             case SnapshotContext.FILE_SNAPSHOT:
                 return fileSnapshot(path, attributes, comments)
             default:
-                throw new IllegalAccessException()
+                throw new IllegalArgumentException()
         }
     }
 
-    def contextFor(SnapshotContext context, String path, ByteArrayOutputStream bos) {
+    def contextFor(SnapshotContext context, String path, byte[] bytes) {
         switch(context) {
             case SnapshotContext.ZIP_ENTRY:
-                return zipEntry(path, bos)
+                return zipEntry(path, bytes)
             case SnapshotContext.FILE_SNAPSHOT:
-                return fileSnapshot(path, bos)
+                return fileSnapshot(path, bytes)
             default:
-                throw new IllegalAccessException()
+                throw new IllegalArgumentException()
         }
     }
 
     def contextFor(SnapshotContext context, Map<String, String> attributes, String comments = "") {
         contextFor(context, "META-INF/build-info.properties", attributes, comments)
-    }
-
-    static ByteArrayOutputStream bytesFrom(String value) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        bos.write(value.bytes)
-        return bos
     }
 
     static filter(String... properties) {
@@ -302,10 +296,10 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
         properties.store(bos, comments)
-        return zipEntry(path, bos)
+        return zipEntry(path, bos.toByteArray())
     }
 
-    ZipEntryContext zipEntry(String path, ByteArrayOutputStream bos) {
+    ZipEntryContext zipEntry(String path, byte[] bytes) {
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
@@ -319,17 +313,17 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
 
             @Override
             byte[] getContent() throws IOException {
-                return bos.toByteArray()
+                return bytes
             }
 
             @Override
             InputStream getInputStream() {
-                return new ByteArrayInputStream(bos.toByteArray())
+                return new ByteArrayInputStream(bytes)
             }
 
             @Override
             int size() {
-                return bos.size()
+                return bytes.length
             }
         }
         return new ZipEntryContext(zipEntry, path, "foo.zip")
@@ -340,20 +334,20 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
         properties.store(bos, comments)
-        return fileSnapshot(path, bos)
+        return fileSnapshot(path, bos.toByteArray())
     }
 
-    RegularFileSnapshotContext fileSnapshot(String path, ByteArrayOutputStream bos) {
+    RegularFileSnapshotContext fileSnapshot(String path, byte[] bytes) {
         def dir = tmpdir.newFolder()
         def file = new File(dir, path)
         file.parentFile.mkdirs()
-        file << bos.toByteArray()
+        file << bytes
         return Mock(RegularFileSnapshotContext) {
             _ * getSnapshot() >> Mock(RegularFileSnapshot) {
                 _ * getAbsolutePath() >> file.absolutePath
                 _ * getHash() >> {
                     HashingOutputStream hasher = Hashing.primitiveStreamHasher()
-                    ByteStreams.copy(new ByteArrayInputStream(bos.toByteArray()), hasher)
+                    ByteStreams.copy(new ByteArrayInputStream(bytes), hasher)
                     return hasher.hash()
                 }
             }
