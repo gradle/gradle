@@ -21,14 +21,13 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
-@TargetVersions("3.0+")
-class JarBinaryCompatibilityCrossVersionTest extends CrossVersionIntegrationSpec {
+@TargetVersions(["6.8"])
+class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegrationSpec {
 
-    def "Removed API methods are still available in #type via InstrumentingClassloader"(String type) {
+    def "API methods removed from AbstractArchiveTask are still available for plugins"(String type) {
         setup:
-        // TODO I want to bind this test to a specific Gradle version and not to a range of versions
-        // TODO To make things faster we could merge the executions into one
-        Assume.assumeTrue(previous.version.baseVersion <= GradleVersion.version("6.8"))
+        Assume.assumeTrue(previous.version.baseVersion <= GradleVersion.version("6.8") &&
+                          current.version.baseVersion >= GradleVersion.version("7.0"))
 
         file("plugin/build.gradle") << """
             plugins {
