@@ -17,12 +17,6 @@ The two most common types are Maven-compatible and Ivy-compatible repositories, 
 
 As of Gradle 6.0, the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>> will always be published alongside the Ivy XML or Maven POM metadata file.
 
-[NOTE]
-====
-Looking for information on upload tasks and the `archives` configuration?
-See the <<artifact_management.adoc#artifact_management,Legacy Publishing>> chapter, a feature which is now deprecated and scheduled for removal.
-====
-
 Gradle makes it easy to publish to these types of repository by providing some prepackaged infrastructure in the form of the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> and the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>.
 These plugins allow you to configure what to publish and perform the publishing with a minimum of effort.
 

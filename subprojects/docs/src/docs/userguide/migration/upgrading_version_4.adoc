@@ -706,7 +706,7 @@ You can learn more about lazily creating tasks in the <<task_configuration_avoid
 [[rel4.8:switch_to_publishing_plugins]]
 === [4.8] Switch to the Maven Publish and Ivy Publish Plugins
 
-Now that the publishing plugins are stable, we recommend that you migrate from the <<artifact_management.adoc#artifact_management,legacy publishing>> mechanism for standard Java projects, i.e. those based on the <<java_plugin#java_plugin,Java Plugin>>. That includes projects that use any one of: <<java_library_plugin#java_library_plugin,Java Library Plugin>>, <<application_plugin#application_plugin,Application Plugin>> or <<war_plugin#war_plugin,War Plugin>>.
+Now that the publishing plugins are stable, we recommend that you migrate from the legacy publishing mechanism for standard Java projects, i.e. those based on the <<java_plugin#java_plugin,Java Plugin>>. That includes projects that use any one of: <<java_library_plugin#java_library_plugin,Java Library Plugin>>, <<application_plugin#application_plugin,Application Plugin>> or <<war_plugin#war_plugin,War Plugin>>.
 
 To use the new approach, simply replace any `upload<Conf>` configuration with a `publishing {}` block. See the <<publishing_setup.adoc#publishing_overview,publishing overview chapter>> for more information.
 

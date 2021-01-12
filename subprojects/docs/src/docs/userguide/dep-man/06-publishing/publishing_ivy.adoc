@@ -182,22 +182,3 @@ The result is that the following artifacts will be published for each project:
 * The Ivy module metadata file: `ivy-1.0.xml`.
 * The primary JAR artifact for the Java component: `project1-1.0.jar`.
 * The Javadoc and sources JAR artifacts of the Java component (because we configured `withJavadocJar()` and `withSourcesJar()`): `project1-1.0-javadoc.jar`, `project1-1.0-source.jar`.
-
-[[sec:pub_ivy:legacy_migration]]
-== Migrating from legacy Ivy publication
-
-If you are migrating a project that used to rely on the <<artifact_management.adoc#,legacy publishing>> support, you will find the differences between the two solutions below.
-
-=== Configurations marked as non transitive
-
-When a configuration is marked as `transitive = false`, this is not mapped to Ivy.
-
-Gradle will emit a warning that such a configuration is published. The recommendation, if this really needs to be published, is to use dependency level `transitive = false`.
-
-=== Forced dependencies are not mapped
-
-While Ivy supports the concept of a https://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html#_forcing_revision[`force` on a dependency], Gradle will not map its own deprecated `force` declarations to it.
-
-Instead, it is recommended to replace the Gradle `force` with a <<rich_versions.adoc#sec:strict-version,`strictly` version>>, which provides <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,better semantics>> and is supported by the Gradle Module Metadata format.
-
-Note that if you absolutely need to publish a force, you can still <<#sec:modifying_the_generated_module_descriptor,modify the produced `ivy.xml`>>.
