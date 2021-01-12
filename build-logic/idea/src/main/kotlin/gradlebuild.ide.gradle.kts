@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import com.google.gson.GsonBuilder
 import gradlebuild.basics.repoRoot
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
-import org.jetbrains.gradle.ext.TaskTriggersConfig
 
 plugins {
     id("org.jetbrains.gradle.plugin.idea-ext")
@@ -59,7 +57,6 @@ if (idea.project != null) { // may be null during script compilation
             settings {
                 configureCopyright()
                 configureRunConfigurations()
-                configureTaskTriggers()
                 doNotDetectFrameworks("android", "web", "12wq")
             }
         }
@@ -90,30 +87,9 @@ fun ProjectSettings.configureRunConfigurations() {
     }
 }
 
-fun ProjectSettings.configureTaskTriggers() {
-    taskTriggers {
-        project(":internal-integ-testing").afterEvaluate {
-            afterSync(tasks.named("generateLanguageAnnotations"))
-        }
-    }
-}
-
-tasks.register("printIdeaSettings") {
-    group = HelpTasksPlugin.HELP_GROUP
-    description = "Generates a JSON representation of the IDEA ProjectSettings for debugging"
-    doLast {
-        val settings: ProjectSettings = idea.project.settings
-        val map = settings.collectExtensionsMap()
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        // This output is missing the 'frameworkDetectionExcludes' because it is a private field
-        logger.lifecycle(gson.toJson(map))
-    }
-}
 
 fun IdeaProject.settings(configuration: ProjectSettings.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
-val IdeaProject.settings
-    get() = (this as ExtensionAware).extensions.getByType<ProjectSettings>()
 
 fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
@@ -121,5 +97,3 @@ fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> Unit) 
 fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
     (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
 }
-
-fun ProjectSettings.taskTriggers(configuration: TaskTriggersConfig.() -> Unit) = (this as ExtensionAware).configure(configuration)
