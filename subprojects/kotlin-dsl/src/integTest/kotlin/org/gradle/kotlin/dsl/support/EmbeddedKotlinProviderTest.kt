@@ -49,7 +49,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
         withBuildScript(
             """
             plugins {
-                kotlin("jvm") version "1.4.21"
+                kotlin("jvm") version "1.3.31"
             }
             """
         )
@@ -57,7 +57,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
         val result = build("buildEnvironment")
 
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.4.21 -> $embeddedKotlinVersion"))
+             assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.3.31 -> $embeddedKotlinVersion"))
         }
     }
 
