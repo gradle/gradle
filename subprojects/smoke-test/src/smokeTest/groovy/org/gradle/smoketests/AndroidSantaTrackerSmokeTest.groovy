@@ -43,6 +43,9 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     def "check deprecation warnings produced by building Santa Tracker Java (agp=#agpVersion)"() {
 
         given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
 
@@ -70,6 +73,9 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     def "incremental Java compilation works for Santa Tracker Java (agp=#agpVersion)"() {
 
         given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
         def buildContext = new DefaultScenarioContext(UUID.randomUUID(), "nonAbiChange").withBuild(Phase.MEASURE, 0)
@@ -103,12 +109,15 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
-    @ToBeFixedForConfigurationCache(iterationMatchers = AGP_4_2_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
+    @ToBeFixedForConfigurationCache(iterationMatchers = AGP_7_ITERATION_MATCHER)
     @Ignore("Lint does not work right now, see https://github.com/gradle/gradle/issues/15489")
     def "can lint Santa-Tracker #flavour (agp=#agpVersion)"() {
 
         given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, flavour, agpVersion)
 
