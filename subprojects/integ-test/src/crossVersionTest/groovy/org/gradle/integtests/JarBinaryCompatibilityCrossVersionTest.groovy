@@ -149,6 +149,6 @@ class JarBinaryCompatibilityCrossVersionTest extends CrossVersionIntegrationSpec
         result.output.contains "archivePath=${file('client/destinationDir/archiveName').absolutePath}"
 
         where:
-        type << ["Zip", "Tar", "Jar", "War", "Ear"]
+        type << ["Zip", "Tar", "Jar", "War", "Ear", "org.gradle.jvm.tasks.Jar"]
     }
 }

@@ -41,7 +41,8 @@ public class AbstractArchiveTaskCompatUtils {
                typeName.equals("org/gradle/api/tasks/bundling/Jar") ||
                typeName.equals("org/gradle/api/tasks/bundling/Zip") ||
                typeName.equals("org/gradle/api/tasks/bundling/War") ||
-               typeName.equals("org/gradle/plugins/ear/Ear");
+               typeName.equals("org/gradle/plugins/ear/Ear") ||
+               typeName.equals("org/gradle/jvm/tasks/Jar");
     }
 
     public static void contributeCompatibilityMethods(ClassVisitor cv) {
