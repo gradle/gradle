@@ -189,6 +189,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.JavaVersion.isJava12Compatible
         - org.gradle.api.JavaVersion.isCompatibleWith
         - org.gradle.api.ProjectConfigurationException
+        - org.gradle.api.invocation.BuildInvocationDetails
         - org.gradle.testkit.runner.GradleRunner.getEnvironment()
         - org.gradle.testkit.runner.GradleRunner.withEnvironment(Map<String, String>)
 - Dependency management
