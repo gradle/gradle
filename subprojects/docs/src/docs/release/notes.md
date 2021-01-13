@@ -185,6 +185,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.JavaVersion.isJava12
         - org.gradle.api.JavaVersion.isJava12Compatible
         - org.gradle.api.JavaVersion.isCompatibleWith
+        - org.gradle.api.ProjectConfigurationException
+        - org.gradle.testkit.runner.GradleRunner.getEnvironment()
+        - org.gradle.testkit.runner.GradleRunner.withEnvironment(Map<String, String>)
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -279,6 +282,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.Destination
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
+    - Miscellaneous
+        - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
 - Java Ecosystem
     - Java plugins
         - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
@@ -291,6 +296,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSet.getJavadocTaskName()
         - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
         - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
+        - org.gradle.api.tasks.SourceSetOutput.getGeneratedSourcesDirs()
         - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
       - Java Module System
         - org.gradle.api.jvm.ModularitySpec

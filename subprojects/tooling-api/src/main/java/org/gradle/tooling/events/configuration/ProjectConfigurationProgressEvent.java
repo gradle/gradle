@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.ProgressEvent;
  *
  * @since 5.1
  */
-@Incubating
 public interface ProjectConfigurationProgressEvent extends ProgressEvent {
     /**
      * Returns the description of the project configuration operation for which progress is reported.
