@@ -556,7 +556,7 @@
     "dirName": "platform-jvm",
     "name": "platform-jvm",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
