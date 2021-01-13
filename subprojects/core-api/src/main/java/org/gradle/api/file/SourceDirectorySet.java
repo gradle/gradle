@@ -144,26 +144,34 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * Returns the directory to put the output for these sources.
      *
      * @return The output directory for this set of sources.
+     * @deprecated get the value from {@link #getClassesDirectory()} instead
      * @since 4.0
      */
     @ReplacedBy("classesDirectory")
+    @Deprecated
     File getOutputDir();
 
     /**
      * Sets the provider that gives the directory to assemble the compiled classes into.
 
      * @param provider provides output directory for this source directory set
+     *
+     * @deprecated set the value in {@link #getDestinationDirectory()} instead
      * @since 4.0
      */
     @ReplacedBy("destinationDirectory")
+    @Deprecated
     void setOutputDir(Provider<File> provider);
 
     /**
      * Sets the directory to assemble the compiled classes into.
      *
      * @param outputDir output directory for this source directory set
+     *
+     * @deprecated set the value in {@link #getDestinationDirectory()} instead
      * @since 4.0
      */
     @ReplacedBy("destinationDirectory")
+    @Deprecated
     void setOutputDir(File outputDir);
 }
