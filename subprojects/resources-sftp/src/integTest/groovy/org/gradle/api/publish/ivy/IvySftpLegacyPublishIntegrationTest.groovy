@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
-import org.junit.Test
+import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.junit.Rule
 
-class AutoTestedSamplesIvyIntegrationTest extends AbstractAutoTestedSamplesTest {
+class IvySftpLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
+    @Rule
+    final SFTPServer server = new SFTPServer(temporaryFolder)
 
-    @Test
-    void runSamples() {
-        runSamplesFrom("src/main")
+    def setup() {
+        // SFTP test fixture does not handle parallel resolution requests
+        executer.beforeExecute {
+            it.withArgument("--max-workers=1")
+        }
     }
-
 }
