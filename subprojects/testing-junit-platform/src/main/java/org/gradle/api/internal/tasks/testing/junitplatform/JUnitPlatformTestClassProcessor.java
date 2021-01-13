@@ -40,6 +40,8 @@ import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -77,7 +79,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private class CollectAllTestClassesExecutor implements Action<String> {
-        private final List<Class<?>> testClasses = new ArrayList<>();
+        private final List<String> testClasses = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
         CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
@@ -90,7 +92,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
                 return;
             }
-            testClasses.add(klass);
+            testClasses.add(testClassName);
         }
 
         private void processAllTestClasses() {
@@ -106,14 +108,14 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     private Class<?> loadClass(String className) {
         try {
-            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
-            return Class.forName(className, false, applicationClassloader);
+            ClassLoader isolatedClassLoader = new URLClassLoader(new URL[0], Thread.currentThread().getContextClassLoader());
+            return Class.forName(className, false, isolatedClassLoader);
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<String> testClasses) {
         List<DiscoverySelector> classSelectors = testClasses.stream()
             .map(DiscoverySelectors::selectClass)
             .collect(Collectors.toList());
