@@ -465,7 +465,7 @@
     "dirName": "language-jvm",
     "name": "language-jvm",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -556,7 +556,7 @@
     "dirName": "platform-jvm",
     "name": "platform-jvm",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
