@@ -317,6 +317,13 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns
         - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns
         - org.gradle.api.tasks.testing.TestFilter.excludeTest
+  - Scala
+        - org.gradle.api.plugins.scala.ScalaBasePlugin.SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME
+        - org.gradle.api.plugins.scala.ScalaPluginExtension
+        - org.gradle.api.tasks.scala.ScalaCompile.getScalaCompilerPlugins()
+        - org.gradle.api.tasks.scala.ScalaCompile.setScalaCompilerPlugins(FileCollection)
+        - org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()
+        - org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()
 - [Kotlin DSL](userguide/kotlin_dsl.html)
     - org.gradle.kotlin.dsl.KotlinScript
     - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit
