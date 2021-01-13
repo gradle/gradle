@@ -1198,6 +1198,206 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.jvm.JarBinarySpec$TasksCollection",
+            "member": "Class org.gradle.jvm.JarBinarySpec$TasksCollection",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.JarBinarySpec$TasksCollection",
+            "member": "Method org.gradle.jvm.JarBinarySpec$TasksCollection.getJar()",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.plugins.JvmTestSuiteBasePlugin",
+            "member": "Class org.gradle.jvm.plugins.JvmTestSuiteBasePlugin",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.plugins.JvmTestSuiteBasePlugin",
+            "member": "Method org.gradle.jvm.plugins.JvmTestSuiteBasePlugin.configureRuntimeClasspath(org.gradle.jvm.test.internal.JvmTestSuiteBinarySpecInternal,org.gradle.internal.service.ServiceRegistry,org.gradle.model.internal.manage.schema.ModelSchemaStore)",
+            "acceptation": "Removal of deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.plugins.JvmTestSuiteBasePlugin",
+            "member": "Constructor org.gradle.jvm.plugins.JvmTestSuiteBasePlugin()",
+            "acceptation": "Removal of deprecated class",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JUnitTestSuiteBinarySpec",
+            "member": "Class org.gradle.jvm.test.JUnitTestSuiteBinarySpec",
+            "acceptation": "Class has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JUnitTestSuiteBinarySpec",
+            "member": "Method org.gradle.jvm.test.JUnitTestSuiteBinarySpec.getjUnitVersion()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JUnitTestSuiteBinarySpec",
+            "member": "Method org.gradle.jvm.test.JUnitTestSuiteBinarySpec.getTestSuite()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JUnitTestSuiteBinarySpec",
+            "member": "Method org.gradle.jvm.test.JUnitTestSuiteBinarySpec.setjUnitVersion(java.lang.String)",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JUnitTestSuiteSpec",
+            "member": "Class org.gradle.jvm.test.JUnitTestSuiteSpec",
+            "acceptation": "Class has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JUnitTestSuiteSpec",
+            "member": "Method org.gradle.jvm.test.JUnitTestSuiteSpec.getjUnitVersion()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JUnitTestSuiteSpec",
+            "member": "Method org.gradle.jvm.test.JUnitTestSuiteSpec.setjUnitVersion(java.lang.String)",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteBinarySpec",
+            "member": "Class org.gradle.jvm.test.JvmTestSuiteBinarySpec",
+            "acceptation": "Class has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteBinarySpec",
+            "member": "Method org.gradle.jvm.test.JvmTestSuiteBinarySpec.getRuntimeClasspath()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteBinarySpec",
+            "member": "Method org.gradle.jvm.test.JvmTestSuiteBinarySpec.getTasks()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteBinarySpec",
+            "member": "Method org.gradle.jvm.test.JvmTestSuiteBinarySpec.getTestedBinary()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteBinarySpec",
+            "member": "Method org.gradle.jvm.test.JvmTestSuiteBinarySpec.getTestSuite()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteBinarySpec$JvmTestSuiteTasks",
+            "member": "Class org.gradle.jvm.test.JvmTestSuiteBinarySpec$JvmTestSuiteTasks",
+            "acceptation": "Class has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteBinarySpec$JvmTestSuiteTasks",
+            "member": "Method org.gradle.jvm.test.JvmTestSuiteBinarySpec$JvmTestSuiteTasks.getRun()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteSpec",
+            "member": "Class org.gradle.jvm.test.JvmTestSuiteSpec",
+            "acceptation": "Class has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteSpec",
+            "member": "Method org.gradle.jvm.test.JvmTestSuiteSpec.getDependencies()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.test.JvmTestSuiteSpec",
+            "member": "Method org.gradle.jvm.test.JvmTestSuiteSpec.getTestedComponent()",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.jvm.plugins.JvmResourcesPlugin",
+            "member": "Class org.gradle.language.jvm.plugins.JvmResourcesPlugin",
+            "acceptation": "Class has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.jvm.plugins.JvmResourcesPlugin",
+            "member": "Method org.gradle.language.jvm.plugins.JvmResourcesPlugin.apply(org.gradle.api.Project)",
+            "acceptation": "Method has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.jvm.plugins.JvmResourcesPlugin",
+            "member": "Constructor org.gradle.language.jvm.plugins.JvmResourcesPlugin()",
+            "acceptation": "Class has been removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
