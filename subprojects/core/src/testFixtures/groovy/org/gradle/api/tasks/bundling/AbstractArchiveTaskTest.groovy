@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.bundling
 
-
+import groovy.transform.CompileStatic
 import org.gradle.api.tasks.AbstractCopyTaskContractTest
 
 abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
@@ -31,12 +31,13 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         assert archiveTask.archiveClassifier.get() == ''
     }
 
+    @CompileStatic
     protected void configure(AbstractArchiveTask archiveTask) {
         archiveTask.archiveBaseName.set('testbasename')
-        archiveTask.archiveAppendix = 'testappendix'
-        archiveTask.archiveVersion = '1.0'
-        archiveTask.archiveClassifier = 'src'
-        archiveTask.destinationDirectory = new File(temporaryFolder.testDirectory, 'destinationDir')
+        archiveTask.archiveAppendix.set('testappendix')
+        archiveTask.archiveVersion.set('1.0')
+        archiveTask.archiveClassifier.set('src')
+        archiveTask.destinationDirectory.set(new File(temporaryFolder.testDirectory, 'destinationDir'))
     }
 
     def "test execute()"() {

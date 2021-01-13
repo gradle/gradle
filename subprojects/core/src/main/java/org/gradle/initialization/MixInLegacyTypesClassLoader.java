@@ -119,7 +119,6 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     private static class TransformingAdapter extends ClassVisitor {
         private static final int PUBLIC_STATIC_FINAL = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
-
         private String className;
         /**
          * We only add getters for `public static final String` constants. This is because in
