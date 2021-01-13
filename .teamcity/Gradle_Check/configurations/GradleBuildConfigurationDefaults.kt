@@ -92,7 +92,8 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
                     listOf(extraParameters) +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) } +
-                    os.javaInstallationLocations()
+                    os.javaInstallationLocations() +
+                    "-Porg.gradle.java.installations.auto-download=false"
                 ).joinToString(separator = " ")
         }
     }
