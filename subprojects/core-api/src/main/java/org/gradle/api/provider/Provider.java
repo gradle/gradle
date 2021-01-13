@@ -148,7 +148,6 @@ public interface Provider<T> {
      *
      * @since 6.5
      */
-    @Incubating
     Provider<T> forUseAtConfigurationTime();
 
     /**
