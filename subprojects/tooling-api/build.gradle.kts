@@ -6,6 +6,10 @@ plugins {
 
 gradlebuildJava.usedInToolingApi()
 
+tasks.named<Jar>("sourcesJar") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages.set(listOf("org.gradle.tooling"))
