@@ -128,7 +128,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new BackwardCompatibilityVisitor(visitor)));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new ArchiveTaskCompatClassVisitor(new BackwardCompatibilityVisitor(visitor))));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
