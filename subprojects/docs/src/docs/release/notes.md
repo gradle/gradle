@@ -264,6 +264,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - [Publishing](publishing_setup.html#publishing_components)
         - org.gradle.api.publish.Publication.withoutBuildIdentifier
         - org.gradle.api.publish.Publication.withBuildIdentifier
+        - org.gradle.plugins.signing.SigningExtension.useInMemoryPgpKeys(String, String, String)
+        - org.gradle.plugins.signing.SigningExtension.useInMemoryPgpKeys(String, String)
+        - org.gradle.plugins.signing.Sign.getSignaturesByKey()
     - Miscellaneous
         - org.gradle.api.artifacts.result.ResolutionResult.getRequestedAttributes
         - org.gradle.api.artifacts.result.ResolvedComponentResult.getDependenciesForVariant
