@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.ProjectPublications
 
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
@@ -43,6 +44,7 @@ class PublicationsCrossVersionSpec extends ToolingApiSpecification {
         publications.publications.empty
     }
 
+    @ToolingApiVersion(">=3.0")
     @TargetGradleVersion("<7.0")
     def "Ivy repository based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
