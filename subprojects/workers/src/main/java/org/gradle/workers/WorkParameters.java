@@ -16,8 +16,6 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
-
 /**
  * Marker interface for parameter objects to {@link WorkAction}s.
  *
@@ -34,7 +32,6 @@ import org.gradle.api.Incubating;
  *
  * @since 5.6
  */
-@Incubating
 public interface WorkParameters {
     /**
      * Used for work actions without parameters.
@@ -43,7 +40,6 @@ public interface WorkParameters {
      *
      * @since 5.6
      */
-    @Incubating
     final class None implements WorkParameters {
         private None() {}
     }

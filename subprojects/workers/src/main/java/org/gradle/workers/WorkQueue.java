@@ -17,7 +17,6 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Represents a queue of work items with a uniform set of worker requirements.
@@ -26,7 +25,6 @@ import org.gradle.api.Incubating;
  *
  * @since 5.6
  */
-@Incubating
 public interface WorkQueue {
     /**
      * Submits a piece of work to be executed asynchronously.

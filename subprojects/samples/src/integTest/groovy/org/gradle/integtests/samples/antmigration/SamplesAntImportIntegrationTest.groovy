@@ -78,7 +78,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
         when:
         // FIXME: Infer dependencies for zipTree(Provider<>)
-        executer.expectDocumentedDeprecationWarning(":unpackJavadocs consumes the output of :javadocJarArchive, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectMissingDependencyDeprecation(":javadocJarArchive", ":unpackJavadocs")
         def result = succeeds('javadocJar', 'unpackJavadocs')
 
         then: "The HTML Javadoc files are unpacked to the 'dist' directory"
@@ -86,6 +86,15 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
         where:
         dsl << ['groovy', 'kotlin']
+    }
+
+    void expectMissingDependencyDeprecation(String producer, String consumer) {
+        executer.expectDocumentedDeprecationWarning(
+            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '${producer}' as an input). " +
+                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
+                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 
     @Unroll

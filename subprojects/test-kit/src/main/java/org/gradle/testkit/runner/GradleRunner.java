@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import javax.annotation.Nullable;
@@ -313,7 +312,6 @@ public abstract class GradleRunner {
      * @since 5.2
      */
     @Nullable
-    @Incubating
     public abstract Map<String, String> getEnvironment();
 
     /**
@@ -327,8 +325,7 @@ public abstract class GradleRunner {
      * @return this
      * @since 5.2
      */
-    @Incubating
-    public abstract GradleRunner withEnvironment(Map<String, String> environmentVariables);
+    public abstract GradleRunner withEnvironment(@Nullable Map<String, String> environmentVariables);
 
     /**
      * Configures the runner to forward standard output from builds to the given writer.

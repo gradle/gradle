@@ -18,7 +18,6 @@ package org.gradle.plugins.signing;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -246,7 +245,6 @@ public class SigningExtension {
      *
      * @since 5.4
      */
-    @Incubating
     public void useInMemoryPgpKeys(@Nullable String defaultSecretKey, @Nullable String defaultPassword) {
         setSignatories(new InMemoryPgpSignatoryProvider(defaultSecretKey, defaultPassword));
     }
@@ -267,7 +265,6 @@ public class SigningExtension {
      *
      * @since 6.0
      */
-    @Incubating
     public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
         setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
     }

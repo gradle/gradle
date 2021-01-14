@@ -26,6 +26,7 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
@@ -51,8 +52,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
 
     @Internal
-    @SuppressWarnings("deprecation")
-    org.gradle.logging.StandardOutputCapture getStandardOutputCapture();
+    StandardOutputCapture getStandardOutputCapture();
 
     @Override
     TaskInputsInternal getInputs();

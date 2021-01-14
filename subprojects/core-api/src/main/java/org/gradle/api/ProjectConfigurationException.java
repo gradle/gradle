@@ -34,7 +34,6 @@ public class ProjectConfigurationException extends DefaultMultiCauseException {
      * @param causes The causes
      * @since 5.1
      */
-    @Incubating
     public ProjectConfigurationException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);
     }

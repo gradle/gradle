@@ -16,7 +16,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.model.ReplacedBy;
@@ -115,7 +114,6 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return The destination directory property for this set of sources.
      * @since 6.1
      */
-    @Incubating
     DirectoryProperty getDestinationDirectory();
 
     /**
@@ -124,10 +122,9 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      *
      * Note: To define the path of the output folder use {@link #getDestinationDirectory()}
      *
-     * @return The output directory property for this set of sources.
+     * @return The classes directory property for this set of sources.
      * @since 6.1
      */
-    @Incubating
     Provider<Directory> getClassesDirectory();
 
     /**
@@ -137,7 +134,6 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @param mapping a mapping from the task to the task's output directory (e.g. AbstractCompile::getDestinationDirectory)
      * @since 6.1
      */
-    @Incubating
     <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping);
 
     /**

@@ -73,7 +73,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
     private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             consumedLocations.getNodesRelatedTo(outputPath).stream()
-                .filter(consumerNode -> missesDependency(node, consumerNode))
+                .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
                 .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
         }
         Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
@@ -102,9 +102,18 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         consumedLocations.recordRelatedToNode(node, locationsConsumedByThisTask);
         for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
             producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
-                .filter(producerNode -> missesDependency(producerNode, node))
+                .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }
+    }
+
+    // In a perfect world, the consumer should depend on the producer.
+    // Though we still don't have a good solution for the code linter and formatter use-case.
+    // And for that case, there will be a cyclic dependency between the analyze and the format task if we only take output/input locations into account.
+    // Therefore, we currently allow these kind of missing dependencies, as long as any order has been specified.
+    // See https://github.com/gradle/gradle/issues/15616.
+    private boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode) {
+        return missesDependency(producerNode, consumerNode) && missesDependency(consumerNode, producerNode);
     }
 
     private static boolean missesDependency(Node producer, Node consumer) {
@@ -133,7 +142,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         TypeValidationContext.Severity severity = TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
             severity,
-            String.format("%s consumes the output of %s, but does not declare a dependency", consumer, producer)
+            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '%s' as an input). This can lead to incorrect results being produced, depending on what order the tasks are executed", consumer, producer, producer)
         );
     }
 }

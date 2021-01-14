@@ -16,7 +16,6 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
  *
  * @since 5.6
  */
-@Incubating
 public interface ClassLoaderWorkerSpec extends WorkerSpec {
     /**
      * Gets the classpath associated with the worker.

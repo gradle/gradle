@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -70,7 +69,6 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The destination directory property.
      * @since 6.1
      */
-    @Incubating
     @OutputDirectory
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;

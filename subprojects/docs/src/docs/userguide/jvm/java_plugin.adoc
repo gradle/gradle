@@ -238,7 +238,7 @@ _Default value_: `src/$name/java`, e.g. _src/main/java_
 +
 The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
 
-`java.outputDir` — `File`::
+`java.destinationDirectory` — `DirectoryProperty`::
 _Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
 +
 The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files.adoc#sec:single_file_paths,this section>>.

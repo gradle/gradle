@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.base.Strings;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -87,7 +86,6 @@ public class TaskReportTask extends AbstractReportTask {
      *
      * @since 5.1
      */
-    @Incubating
     @Option(option = "group", description = "Show tasks for a specific group.")
     public void setDisplayGroup(String group) {
         this.group = group;
@@ -98,7 +96,6 @@ public class TaskReportTask extends AbstractReportTask {
      *
      * @since 5.1
      */
-    @Incubating
     @Console
     public String getDisplayGroup() {
         return group;

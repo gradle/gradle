@@ -18,7 +18,6 @@ package org.gradle.api.model;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -114,7 +113,6 @@ public interface ObjectFactory {
      *
      * @since 6.0
      */
-    @Incubating
     ConfigurableFileTree fileTree();
 
     /**
@@ -133,7 +131,6 @@ public interface ObjectFactory {
      * @return The container. Never returns null.
      * @since 5.5
      */
-    @Incubating
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType);
 
     /**
@@ -147,7 +144,6 @@ public interface ObjectFactory {
      * @return The container. Never returns null.
      * @since 5.5
      */
-    @Incubating
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
 
     /**
@@ -160,7 +156,6 @@ public interface ObjectFactory {
      * @return The container.
      * @since 6.1
      */
-    @Incubating
     <T> ExtensiblePolymorphicDomainObjectContainer<T> polymorphicDomainObjectContainer(Class<T> elementType);
 
     /**
@@ -171,7 +166,6 @@ public interface ObjectFactory {
      * @return The domain object set. Never returns null.
      * @since 5.5
      */
-    @Incubating
     <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType);
 
     /**
@@ -184,7 +178,6 @@ public interface ObjectFactory {
      * @return The domain object set.
      * @since 6.1
      */
-    @Incubating
     <T> NamedDomainObjectSet<T> namedDomainObjectSet(Class<T> elementType);
 
     /**
@@ -197,7 +190,6 @@ public interface ObjectFactory {
      * @return The domain object list.
      * @since 6.1
      */
-    @Incubating
     <T> NamedDomainObjectList<T> namedDomainObjectList(Class<T> elementType);
 
     /**
@@ -254,7 +246,6 @@ public interface ObjectFactory {
      * @return the property. Never returns null.
      * @since 5.1
      */
-    @Incubating
     <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
     /**

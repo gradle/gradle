@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -58,6 +60,12 @@ import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
 class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
+
+    /**
+     * Decoration format. Increment this when making changes.
+     */
+    private static final int DECORATION_FORMAT = 13;
+
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
@@ -103,15 +111,24 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static final String[] NO_EXCEPTIONS = new String[0];
 
+    private static final List<Pair<String, String>> RENAMED_INTERFACES = asList(
+        Pair.of("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager"),
+        Pair.of("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture")
+    );
+
+    private static final List<Pair<String, String>> RENAMED_INTERFACE_DESCRIPTORS = RENAMED_INTERFACES.stream().map(
+        p -> Pair.of("L" + p.left + ";", "L" + p.right + ";")
+    ).collect(toList());
+
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
-        hasher.putInt(12); // decoration format, increment this when making changes
+        hasher.putInt(DECORATION_FORMAT);
     }
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(visitor));
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new BackwardCompatibilityVisitor(visitor)));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
@@ -243,67 +260,72 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            // TODO - load the class literal instead of class name to pass to the methods on Instrumented
-            if (opcode == INVOKESTATIC) {
-                if (owner.equals(SYSTEM_TYPE.getInternalName())) {
-                    if (name.equals("getProperty")) {
-                        if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
-                            _LDC(binaryClassNameOf(className));
-                            _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING);
-                            return;
-                        }
-                        if (descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
-                            _LDC(binaryClassNameOf(className));
-                            _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
-                            return;
-                        }
-                    } else if (name.equals("getProperties") && descriptor.equals(RETURN_PROPERTIES)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
-                        return;
-                    }
-                } else if (owner.equals(INTEGER_TYPE.getInternalName()) && name.equals("getInteger")) {
-                    if (descriptor.equals(RETURN_INTEGER_FROM_STRING)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_STRING);
-                        return;
-                    }
-                    if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INT)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INT_STRING);
-                        return;
-                    }
-                    if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INTEGER)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INTEGER_STRING);
-                        return;
-                    }
-                } else if (owner.equals(LONG_TYPE.getInternalName()) && name.equals("getLong")) {
-                    if (descriptor.equals(RETURN_LONG_FROM_STRING)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_STRING);
-                        return;
-                    }
-                    if (descriptor.equals(RETURN_LONG_FROM_STRING_PRIMITIVE_LONG)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING);
-                        return;
-                    }
-                    if (descriptor.equals(RETURN_LONG_FROM_STRING_LONG)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_LONG_STRING);
-                        return;
-                    }
-                } else if (owner.equals(BOOLEAN_TYPE.getInternalName()) && name.equals("getBoolean") && descriptor.equals(RETURN_PRIMITIVE_BOOLEAN_FROM_STRING)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING);
-                    return;
-                } else if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
-                    _INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
-                    return;
-                }
+            if (opcode == INVOKESTATIC && visitINVOKESTATIC(owner, name, descriptor)) {
+                return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+        }
+
+        private boolean visitINVOKESTATIC(String owner, String name, String descriptor) {
+            // TODO - load the class literal instead of class name to pass to the methods on Instrumented
+            if (owner.equals(SYSTEM_TYPE.getInternalName())) {
+                if (name.equals("getProperty")) {
+                    if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING);
+                        return true;
+                    }
+                    if (descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
+                        return true;
+                    }
+                } else if (name.equals("getProperties") && descriptor.equals(RETURN_PROPERTIES)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
+                    return true;
+                }
+            } else if (owner.equals(INTEGER_TYPE.getInternalName()) && name.equals("getInteger")) {
+                if (descriptor.equals(RETURN_INTEGER_FROM_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_STRING);
+                    return true;
+                }
+                if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INT)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INT_STRING);
+                    return true;
+                }
+                if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INTEGER)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INTEGER_STRING);
+                    return true;
+                }
+            } else if (owner.equals(LONG_TYPE.getInternalName()) && name.equals("getLong")) {
+                if (descriptor.equals(RETURN_LONG_FROM_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_STRING);
+                    return true;
+                }
+                if (descriptor.equals(RETURN_LONG_FROM_STRING_PRIMITIVE_LONG)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING);
+                    return true;
+                }
+                if (descriptor.equals(RETURN_LONG_FROM_STRING_LONG)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_LONG_STRING);
+                    return true;
+                }
+            } else if (owner.equals(BOOLEAN_TYPE.getInternalName()) && name.equals("getBoolean") && descriptor.equals(RETURN_PRIMITIVE_BOOLEAN_FROM_STRING)) {
+                _LDC(binaryClassNameOf(className));
+                _INVOKESTATIC(INSTRUMENTED_TYPE, "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING);
+                return true;
+            } else if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
+                _INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
+                return true;
+            }
+            return false;
         }
 
         @Override
@@ -353,6 +375,53 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
     }
 
+    private static class BackwardCompatibilityVisitor extends ClassVisitor {
+
+        public BackwardCompatibilityVisitor(ClassVisitor visitor) {
+            super(ASM7, visitor);
+        }
+
+        @Override
+        public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
+            return methodVisitor != null
+                ? new BackwardCompatibilityMethodVisitor(methodVisitor)
+                : null;
+        }
+
+        private static class BackwardCompatibilityMethodVisitor extends MethodVisitor {
+
+            public BackwardCompatibilityMethodVisitor(MethodVisitor methodVisitor) {
+                super(ASM7, methodVisitor);
+            }
+
+            @Override
+            public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                final String newOwner = fixMethodOwnerForBackwardCompatibility(owner);
+                final String newDescriptor = fixMethodDescriptorForBackwardCompatibility(descriptor);
+                super.visitMethodInsn(opcode, newOwner, name, newDescriptor, isInterface);
+            }
+
+            private String fixMethodOwnerForBackwardCompatibility(String typeName) {
+                // Fix renamed type references
+                for (Pair<String, String> renamedInterface : RENAMED_INTERFACES) {
+                    if (renamedInterface.left.equals(typeName)) {
+                        return renamedInterface.right;
+                    }
+                }
+                return typeName;
+            }
+
+            private String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
+                // Fix method signatures involving renamed types
+                for (Pair<String, String> renamedDescriptor : RENAMED_INTERFACE_DESCRIPTORS) {
+                    descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
+                }
+                return descriptor;
+            }
+        }
+    }
+
     /**
      * Simplifies emitting bytecode to a {@link MethodVisitor} by providing a JVM bytecode DSL.
      */
@@ -387,7 +456,11 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         protected void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKEVIRTUAL, owner.getInternalName(), name, descriptor, false);
+            _INVOKEVIRTUAL(owner.getInternalName(), name, descriptor);
+        }
+
+        protected void _INVOKEVIRTUAL(String owner, String name, String descriptor) {
+            super.visitMethodInsn(INVOKEVIRTUAL, owner, name, descriptor, false);
         }
 
         protected void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {

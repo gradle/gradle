@@ -17,7 +17,6 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.process.JavaForkOptions;
  *
  * @since 5.6
  */
-@Incubating
 public interface ForkingWorkerSpec extends WorkerSpec {
     /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.

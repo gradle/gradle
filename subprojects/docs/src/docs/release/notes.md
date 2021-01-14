@@ -147,10 +147,17 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileSystemOperations
         - org.gradle.process.ExecOperations
     - [Lazy configuration](userguide/lazy_configuration.html)
-        - org.gradle.api.model.ObjectFactory.directoryProperty
-        - org.gradle.api.model.ObjectFactory.fileCollection
-        - org.gradle.api.model.ObjectFactory.fileProperty
-        - org.gradle.api.model.ObjectFactory.sourceDirectorySet
+        - org.gradle.api.model.ObjectFactory.directoryProperty()
+        - org.gradle.api.model.ObjectFactory.domainObjectContainer(Class)
+        - org.gradle.api.model.ObjectFactory.domainObjectContainer(Class, NamedDomainObjectFactory)
+        - org.gradle.api.model.ObjectFactory.domainObjectSet(Class)
+        - org.gradle.api.model.ObjectFactory.fileCollection()
+        - org.gradle.api.model.ObjectFactory.fileProperty()
+        - org.gradle.api.model.ObjectFactory.fileTree()
+        - org.gradle.api.model.ObjectFactory.namedDomainObjectList(Class<T>)
+        - org.gradle.api.model.ObjectFactory.namedDomainObjectSet(Class<T>)
+        - org.gradle.api.model.ObjectFactory.polymorphicDomainObjectContainer(Class<T>)
+        - org.gradle.api.model.ObjectFactory.sourceDirectorySet(String, String)
         - org.gradle.api.file.FileCollection.getElements
         - org.gradle.api.file.FileContents
         - org.gradle.api.provider.ProviderFactory.environmentVariable
@@ -177,6 +184,25 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileSystemLocationProperty.fileProvider
         - org.gradle.api.file.Directory.files
         - org.gradle.api.file.DirectoryProperty.files
+    - [Worker API](userguide/worker_api.html)
+        - org.gradle.workers.ClassLoaderWorkerSpec
+        - org.gradle.workers.ForkingWorkerSpec
+        - org.gradle.workers.ProcessWorkerSpec
+        - org.gradle.workers.WorkAction
+        - org.gradle.workers.WorkParameters
+        - org.gradle.workers.WorkParameters.None
+        - org.gradle.workers.WorkQueue
+        - org.gradle.workers.WorkerExecutor.submit(Class actionClass, Action);
+        - org.gradle.workers.WorkerExecutor.classLoaderIsolation()
+        - org.gradle.workers.WorkerExecutor.classLoaderIsolation(Action)
+        - org.gradle.workers.WorkerExecutor.noIsolation()
+        - org.gradle.workers.WorkerExecutor.noIsolation(Action)
+        - org.gradle.workers.WorkerExecutor.processIsolation()
+        - org.gradle.workers.WorkerExecutor.processIsolation(Action)
+        - org.gradle.workers.WorkerSpec
+    - Reporting
+        - org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroup()
+        - org.gradle.api.tasks.diagnostics.TaskReportTask.setDisplayGroup(String)
     - Miscellaneous
         - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
         - org.gradle.api.JavaVersion.VERSION_15
@@ -185,6 +211,13 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.JavaVersion.isJava12
         - org.gradle.api.JavaVersion.isJava12Compatible
         - org.gradle.api.JavaVersion.isCompatibleWith
+        - org.gradle.api.ProjectConfigurationException
+        - org.gradle.api.invocation.BuildInvocationDetails
+        - org.gradle.api.reflect.TypeOf.getConcreteClass()
+        - org.gradle.plugin.management.PluginManagementSpec.getPlugins()
+        - org.gradle.plugin.management.PluginManagementSpec.plugins(Action)  
+        - org.gradle.testkit.runner.GradleRunner.getEnvironment()
+        - org.gradle.testkit.runner.GradleRunner.withEnvironment(Map<String, String>)
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -258,6 +291,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - [Publishing](publishing_setup.html#publishing_components)
         - org.gradle.api.publish.Publication.withoutBuildIdentifier
         - org.gradle.api.publish.Publication.withBuildIdentifier
+        - org.gradle.plugins.signing.SigningExtension.useInMemoryPgpKeys(String, String, String)
+        - org.gradle.plugins.signing.SigningExtension.useInMemoryPgpKeys(String, String)
+        - org.gradle.plugins.signing.Sign.getSignaturesByKey()
     - Miscellaneous
         - org.gradle.api.artifacts.result.ResolutionResult.getRequestedAttributes
         - org.gradle.api.artifacts.result.ResolvedComponentResult.getDependenciesForVariant
@@ -279,8 +315,14 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.Destination
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
+    - Miscellaneous
+        - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
 - Java Ecosystem
     - Java plugins
+        - org.gradle.api.file.SourceDirectorySet.getDestinationDirectory()
+        - org.gradle.api.file.SourceDirectorySet.getClassesDirectory()
+        - org.gradle.api.file.SourceDirectorySet.compiledBy(TaskProvider<T>, Function<T, DirectoryProperty>)
+        - org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()
         - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
         - org.gradle.api.plugins.FeatureSpec.withSourcesJar()
         - org.gradle.api.plugins.JavaPluginExtension.withJavadocJar()
@@ -291,8 +333,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSet.getJavadocTaskName()
         - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
         - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
+        - org.gradle.api.tasks.SourceSetOutput.getGeneratedSourcesDirs()
         - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
-      - Java Module System
+    - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
         - org.gradle.api.plugins.JavaPluginExtension.getModularity()
@@ -317,13 +360,22 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns
         - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns
         - org.gradle.api.tasks.testing.TestFilter.excludeTest
-  - Scala
+    - Groovy
+        - org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()
+        - org.gradle.api.tasks.compile.GroovyCompile.getSourceClassesMappingFile()
+        - org.gradle.api.tasks.compile.GroovyCompileOptions.isParameters()
+        - org.gradle.api.tasks.compile.GroovyCompileOptions.setParameters(boolean)
+    - Scala
         - org.gradle.api.plugins.scala.ScalaBasePlugin.SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME
         - org.gradle.api.plugins.scala.ScalaPluginExtension
         - org.gradle.api.tasks.scala.ScalaCompile.getScalaCompilerPlugins()
         - org.gradle.api.tasks.scala.ScalaCompile.setScalaCompilerPlugins(FileCollection)
         - org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()
         - org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()
+    - Miscellaneous
+        - org.gradle.plugins.ear.Ear.getGenerateDeploymentDescriptor()
+        - org.gradle.plugins.ear.EarPluginConvention.getGenerateDeploymentDescriptor()
+    
 - [Kotlin DSL](userguide/kotlin_dsl.html)
     - org.gradle.kotlin.dsl.KotlinScript
     - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit
