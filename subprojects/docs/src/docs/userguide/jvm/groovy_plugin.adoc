@@ -221,9 +221,9 @@ The task can also leverage the <<toolchains.adoc#,Java toolchain support>>.
 Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 | `__sourceSet__.groovy`
 
-|  `destinationDir`
+|  `destinationDirectory`
 | `File`.
-| `__sourceSet__.groovy.outputDir`
+| `__sourceSet__.groovy.destinationDirectory`
 
 |  `groovyClasspath`
 | link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]
