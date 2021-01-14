@@ -342,6 +342,11 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns
         - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns
         - org.gradle.api.tasks.testing.TestFilter.excludeTest
+    - Groovy
+        - org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()
+        - org.gradle.api.tasks.compile.GroovyCompile.getSourceClassesMappingFile()
+        - org.gradle.api.tasks.compile.GroovyCompileOptions.isParameters()
+        - org.gradle.api.tasks.compile.GroovyCompileOptions.setParameters(boolean)
   - Scala
         - org.gradle.api.plugins.scala.ScalaBasePlugin.SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME
         - org.gradle.api.plugins.scala.ScalaPluginExtension
