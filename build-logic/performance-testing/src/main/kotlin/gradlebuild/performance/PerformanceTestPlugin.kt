@@ -39,6 +39,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
@@ -56,13 +57,13 @@ import org.w3c.dom.Document
 import java.io.File
 import java.nio.charset.StandardCharsets
 import javax.xml.parsers.DocumentBuilderFactory
-import org.gradle.api.tasks.ClasspathNormalizer
 
 
 object PropertyNames {
     const val dbUrl = "org.gradle.performance.db.url"
     const val dbUsername = "org.gradle.performance.db.username"
     const val dbPassword = "org.gradle.performance.db.password"
+    const val dbPasswordEnv = "PERFORMANCE_DB_PASSWORD_TCAGENT"
 
     const val performanceTestVerbose = "performanceTest.verbose"
 
@@ -85,7 +86,6 @@ object Config {
 
 @Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
-
     override fun apply(project: Project): Unit = project.run {
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addPerformanceTestConfigurationAndDependencies()
@@ -293,6 +293,23 @@ class PerformanceTestPlugin : Plugin<Project> {
 
 
 private
+fun Project.propertiesForPerformanceDb(): Map<String, String> {
+    val password = providers.environmentVariable(PropertyNames.dbPasswordEnv).forUseAtConfigurationTime()
+    return if (password.isPresent) {
+        selectStringProperties(
+            PropertyNames.dbUrl,
+            PropertyNames.dbUsername
+        ) + (PropertyNames.dbPassword to password.get())
+    } else {
+        selectStringProperties(
+            PropertyNames.dbUrl,
+            PropertyNames.dbUsername
+        )
+    }
+}
+
+
+private
 fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out PerformanceTestReport>): TaskProvider<Zip> =
     tasks.register("${performanceReport.name}ResultsZip", Zip::class) {
         from(performanceReport.get().reportDir.locationOnly) {
@@ -454,15 +471,6 @@ class PerformanceTestExtension(
             archiveFileName.set("test-results-${junitXmlDir.name}.zip")
         }
 }
-
-
-private
-fun Project.propertiesForPerformanceDb(): Map<String, String> =
-    selectStringProperties(
-        PropertyNames.dbUrl,
-        PropertyNames.dbUsername,
-        PropertyNames.dbPassword
-    )
 
 
 private
