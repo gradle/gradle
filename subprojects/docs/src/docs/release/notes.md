@@ -349,6 +349,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.scala.ScalaCompile.setScalaCompilerPlugins(FileCollection)
         - org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()
         - org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()
+    - Miscellaneous
+        - org.gradle.plugins.ear.Ear.getGenerateDeploymentDescriptor()
+        - org.gradle.plugins.ear.EarPluginConvention.getGenerateDeploymentDescriptor()
+    
 - [Kotlin DSL](userguide/kotlin_dsl.html)
     - org.gradle.kotlin.dsl.KotlinScript
     - org.gradle.kotlin.dsl.KotlinSettingsScript.plugins(block: PluginDependenciesSpecScope.() -> Unit): Unit

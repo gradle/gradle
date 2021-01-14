@@ -17,7 +17,6 @@ package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
@@ -58,7 +57,6 @@ public abstract class EarPluginConvention {
      *
      * @since 6.0
      */
-    @Incubating
     public abstract Property<Boolean> getGenerateDeploymentDescriptor();
 
     /**
