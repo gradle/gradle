@@ -123,7 +123,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      * @since 5.6
      */
     @Classpath
-    @Incubating
     public ConfigurableFileCollection getAstTransformationClasspath() {
         return astTransformationClasspath;
     }
@@ -171,7 +170,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      * @since 5.6
      */
     @LocalState
-    @Incubating
     protected File getSourceClassesMappingFile() {
         if (sourceClassesMappingFile == null) {
             File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
