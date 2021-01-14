@@ -1458,7 +1458,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('one.txt', 'more/more.txt')
     }
 
-    def "copy includes duplicates by default and emits deprecation warning when duplicates are present"() {
+    def "copy fails by default when duplicates are present"() {
         given:
         file('dir1/path/file.txt').createFile() << 'f1'
         file('dir2/path/file.txt').createFile() << 'f2'
@@ -1471,13 +1471,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         '''.stripIndent()
 
         when:
-        fails 'copy'
-
-        then:
-        failure.assertHasCause "Entry path/file.txt is a duplicate but no duplicate handling strategy has been set. Please refer to ${DOCUMENTATION_REGISTRY.getDslRefForProperty(CopySpec.class, "duplicatesStrategy")} for details."
-
-        when:
-        file('dir2/path/file.txt').text = 'new'
         fails 'copy'
 
         then:

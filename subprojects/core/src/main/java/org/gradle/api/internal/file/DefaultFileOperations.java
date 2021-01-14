@@ -103,7 +103,8 @@ public class DefaultFileOperations implements FileOperations {
             patternSetFactory,
             fileSystem,
             instantiator,
-            documentationRegistry);
+            documentationRegistry
+        );
         this.fileSystem = fileSystem;
         this.deleter = deleter;
     }

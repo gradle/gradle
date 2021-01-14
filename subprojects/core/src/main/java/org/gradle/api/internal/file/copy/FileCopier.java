@@ -48,7 +48,8 @@ public class FileCopier {
         Factory<PatternSet> patternSetFactory,
         FileSystem fileSystem,
         Instantiator instantiator,
-        DocumentationRegistry documentationRegistry) {
+        DocumentationRegistry documentationRegistry
+    ) {
         this.deleter = deleter;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileCollectionFactory = fileCollectionFactory;

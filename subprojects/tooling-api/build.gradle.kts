@@ -7,6 +7,7 @@ plugins {
 gradlebuildJava.usedInToolingApi()
 
 tasks.named<Jar>("sourcesJar") {
+    // duplicate package-info.java because of split packages
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
