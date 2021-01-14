@@ -16,14 +16,16 @@
 
 package org.gradle.internal.classpath;
 
+import org.apache.commons.lang.StringUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
@@ -36,6 +38,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Reroutes invocations from methods no longer available in AbstractArchiveTask to static bridge methods.
@@ -64,6 +68,20 @@ import static org.objectweb.asm.Opcodes.RETURN;
  * </p>
  */
 public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
+    private static final Type STRING_TYPE = getType(String.class);
+    private static final Type FILE_TYPE = getType(File.class);
+    private static final Type ARCHIVE_TASK_TYPE = getType("Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;");
+
+    private static final String ARCHIVE_TASK_DESCRIPTOR = ARCHIVE_TASK_TYPE.getDescriptor();
+
+    private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
+    private static final String RETURN_FILE = getMethodDescriptor(FILE_TYPE);
+    private static final String RETURN_VOID_FROM_FILE = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE);
+    private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING = getMethodDescriptor(Type.VOID_TYPE, ARCHIVE_TASK_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_ARCHIVE_TASK_AND_FILE = getMethodDescriptor(Type.VOID_TYPE, ARCHIVE_TASK_TYPE, FILE_TYPE);
+    private static final String RETURN_STRING_FROM_ARCHIVE_TASK = getMethodDescriptor(STRING_TYPE, ARCHIVE_TASK_TYPE);
+    private static final String RETURN_FILE_FROM_ARCHIVE_TASK = getMethodDescriptor(FILE_TYPE, ARCHIVE_TASK_TYPE);
 
     private Set<RemovedMethod> missingMethods = new HashSet<>();
     private String className;
@@ -121,400 +139,168 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
         }
     }
 
+    static abstract class BridgeMethodImplementation {
+        abstract void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv);
+
+        static BridgeMethodImplementation forStringPropertyGetter(final String methodNameReturningStringProperty) {
+            return new BridgeMethodImplementation() {
+                @Override
+                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                    MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_STRING_FROM_ARCHIVE_TASK, null, null);
+                    methodVisitor.visitCode();
+                    Label label0 = new Label();
+                    methodVisitor.visitLabel(label0);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "get", "()Ljava/lang/Object;", true);
+                    methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
+                    methodVisitor.visitInsn(ARETURN);
+                    Label label1 = new Label();
+                    methodVisitor.visitLabel(label1);
+                    methodVisitor.visitLocalVariable("task", ARCHIVE_TASK_DESCRIPTOR, null, label0, label1, 0);
+                    methodVisitor.visitMaxs(1, 1);
+                    methodVisitor.visitEnd();
+                }
+            };
+        }
+
+        static BridgeMethodImplementation forStringPropertySetter(final String methodNameReturningStringProperty) {
+            return new BridgeMethodImplementation() {
+                @Override
+                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                    MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING, null, null);
+                    methodVisitor.visitCode();
+                    Label label0 = new Label();
+                    methodVisitor.visitLabel(label0);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
+                    methodVisitor.visitVarInsn(ALOAD, 1);
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
+                    methodVisitor.visitInsn(POP);
+                    Label label1 = new Label();
+                    methodVisitor.visitLabel(label1);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
+                    methodVisitor.visitVarInsn(ALOAD, 1);
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
+                    Label label2 = new Label();
+                    methodVisitor.visitLabel(label2);
+                    methodVisitor.visitInsn(RETURN);
+                    Label label3 = new Label();
+                    methodVisitor.visitLabel(label3);
+                    methodVisitor.visitLocalVariable("task", ARCHIVE_TASK_DESCRIPTOR, null, label0, label3, 0);
+                    methodVisitor.visitLocalVariable("name", "Ljava/lang/String;", null, label0, label3, 1);
+                    methodVisitor.visitMaxs(2, 2);
+                    methodVisitor.visitEnd();
+                }
+            };
+        }
+
+        static BridgeMethodImplementation forGetArchivePath() {
+            return new BridgeMethodImplementation() {
+                @Override
+                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                    MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_FILE_FROM_ARCHIVE_TASK, null, null);
+                    methodVisitor.visitCode();
+                    Label label0 = new Label();
+                    methodVisitor.visitLabel(label0);
+                    methodVisitor.visitLineNumber(212, label0);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getArchiveFile", "()Lorg/gradle/api/provider/Provider;", false);
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Provider", "get", "()Ljava/lang/Object;", true);
+                    methodVisitor.visitTypeInsn(CHECKCAST, "org/gradle/api/file/RegularFile");
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/RegularFile", "getAsFile", "()Ljava/io/File;", true);
+                    methodVisitor.visitInsn(ARETURN);
+                    Label label1 = new Label();
+                    methodVisitor.visitLabel(label1);
+                    methodVisitor.visitLocalVariable("task", ARCHIVE_TASK_DESCRIPTOR, null, label0, label1, 0);
+                    methodVisitor.visitMaxs(1, 1);
+                    methodVisitor.visitEnd();
+                }
+            };
+        }
+
+        static BridgeMethodImplementation forGetDestinationDir() {
+            return new BridgeMethodImplementation() {
+                @Override
+                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                    MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_FILE_FROM_ARCHIVE_TASK, null, null);
+                    methodVisitor.visitCode();
+                    Label label0 = new Label();
+                    methodVisitor.visitLabel(label0);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/DirectoryProperty", "get", "()Ljava/lang/Object;", true);
+                    methodVisitor.visitTypeInsn(CHECKCAST, "org/gradle/api/file/Directory");
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/Directory", "getAsFile", "()Ljava/io/File;", true);
+                    methodVisitor.visitInsn(ARETURN);
+                    Label label1 = new Label();
+                    methodVisitor.visitLabel(label1);
+                    methodVisitor.visitLocalVariable("task", ARCHIVE_TASK_DESCRIPTOR, null, label0, label1, 0);
+                    methodVisitor.visitMaxs(1, 1);
+                    methodVisitor.visitEnd();
+                }
+            };
+        }
+
+        static BridgeMethodImplementation forSetDestinationDir() {
+            return new BridgeMethodImplementation() {
+                @Override
+                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                    MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_VOID_FROM_ARCHIVE_TASK_AND_FILE, null, null);
+                    methodVisitor.visitCode();
+                    Label label0 = new Label();
+                    methodVisitor.visitLabel(label0);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getProject", "()Lorg/gradle/api/Project;", false);
+                    methodVisitor.visitVarInsn(ALOAD, 1);
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/Project", "file", "(Ljava/lang/Object;)Ljava/io/File;", true);
+                    methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/DirectoryProperty", "set", "(Ljava/io/File;)V", true);
+                    Label label1 = new Label();
+                    methodVisitor.visitLabel(label1);
+                    methodVisitor.visitInsn(RETURN);
+                    Label label2 = new Label();
+                    methodVisitor.visitLabel(label2);
+                    methodVisitor.visitLocalVariable("task", ARCHIVE_TASK_DESCRIPTOR, null, label0, label2, 0);
+                    methodVisitor.visitLocalVariable("f", "Ljava/io/File;", null, label0, label2, 1);
+                    methodVisitor.visitMaxs(3, 2);
+                    methodVisitor.visitEnd();
+                }
+            };
+        }
+    }
+
     enum RemovedMethod {
-        GET_ARCHIVE_NAME("getArchiveName", "()Ljava/lang/String;", "gradleCompatGetArchiveName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetArchiveName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(203, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveFileName", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "get", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        SET_ARCHIVE_NAME("setArchiveName", "(Ljava/lang/String;)V", "gradleCompatSetArchiveName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V",  new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatSetArchiveName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(38, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveFileName", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
-                methodVisitor.visitInsn(POP);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLineNumber(39, label1);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveFileName", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
-                Label label2 = new Label();
-                methodVisitor.visitLabel(label2);
-                methodVisitor.visitLineNumber(40, label2);
-                methodVisitor.visitInsn(RETURN);
-                Label label3 = new Label();
-                methodVisitor.visitLabel(label3);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label3, 0);
-                methodVisitor.visitLocalVariable("name", "Ljava/lang/String;", null, label0, label3, 1);
-                methodVisitor.visitMaxs(2, 2);
-            }
-        }),
-        GET_ARCHIVE_PATH("getArchivePath", "()Ljava/io/File;", "gradleCompatGetArchivePath", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/io/File;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetArchivePath", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/io/File;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(212, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveFile", "()Lorg/gradle/api/provider/Provider;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Provider", "get", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "org/gradle/api/file/RegularFile");
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/RegularFile", "getAsFile", "()Ljava/io/File;", true);
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        GET_DESTINATION_DIR("getDestinationDir", "()Ljava/io/File;", "gradleCompatGetDestinationDir", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/io/File;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetDestinationDir", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/io/File;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(216, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/DirectoryProperty", "get", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "org/gradle/api/file/Directory");
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/Directory", "getAsFile", "()Ljava/io/File;", true);
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        SET_DESTINATION_DIR("setDestinationDir", "(Ljava/io/File;)V", "gradleCompatSetDestinationDir", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/io/File;)V", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatSetDestinationDir", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/io/File;)V", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(220, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getProject", "()Lorg/gradle/api/Project;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/Project", "file", "(Ljava/lang/Object;)Ljava/io/File;", true);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/DirectoryProperty", "set", "(Ljava/io/File;)V", true);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLineNumber(221, label1);
-                methodVisitor.visitInsn(RETURN);
-                Label label2 = new Label();
-                methodVisitor.visitLabel(label2);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label2, 0);
-                methodVisitor.visitLocalVariable("f", "Ljava/io/File;", null, label0, label2, 1);
-                methodVisitor.visitMaxs(3, 2);
-                methodVisitor.visitEnd();
-            }
-        }),
-        GET_BASE_NAME("getBaseName", "()Ljava/lang/String;", "gradleCompatGetBaseName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetBaseName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(224, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveBaseName", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "getOrNull", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        SET_BASE_NAME("setBaseName", "(Ljava/lang/String;)V", "gradleCompatSetBaseName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatSetBaseName", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(228, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveBaseName", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
-                methodVisitor.visitInsn(POP);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLineNumber(229, label1);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveBaseName", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
-                Label label2 = new Label();
-                methodVisitor.visitLabel(label2);
-                methodVisitor.visitLineNumber(230, label2);
-                methodVisitor.visitInsn(RETURN);
-                Label label3 = new Label();
-                methodVisitor.visitLabel(label3);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label3, 0);
-                methodVisitor.visitLocalVariable("name", "Ljava/lang/String;", null, label0, label3, 1);
-                methodVisitor.visitMaxs(2, 2);
-                methodVisitor.visitEnd();
-            }
-        }),
-        GET_APPENDIX("getAppendix", "()Ljava/lang/String;", "gradleCompatGetAppendix", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetAppendix", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(233, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveAppendix", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "getOrNull", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        SET_APPENDIX("setAppendix", "(Ljava/lang/String;)V", "gradleCompatSetAppendix", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatSetAppendix", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(237, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveAppendix", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
-                methodVisitor.visitInsn(POP);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLineNumber(238, label1);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveAppendix", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
-                Label label2 = new Label();
-                methodVisitor.visitLabel(label2);
-                methodVisitor.visitLineNumber(239, label2);
-                methodVisitor.visitInsn(RETURN);
-                Label label3 = new Label();
-                methodVisitor.visitLabel(label3);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label3, 0);
-                methodVisitor.visitLocalVariable("name", "Ljava/lang/String;", null, label0, label3, 1);
-                methodVisitor.visitMaxs(2, 2);
-                methodVisitor.visitEnd();
-            }
-        }),
-        GET_VERSION("getVersion", "()Ljava/lang/String;", "gradleCompatGetVersion", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetVersion", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(242, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveVersion", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "getOrNull", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        SET_VERSION("setVersion", "(Ljava/lang/String;)V", "gradleCompatSetVersion", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatSetVersion", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(246, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveVersion", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
-                methodVisitor.visitInsn(POP);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLineNumber(247, label1);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveVersion", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
-                Label label2 = new Label();
-                methodVisitor.visitLabel(label2);
-                methodVisitor.visitLineNumber(248, label2);
-                methodVisitor.visitInsn(RETURN);
-                Label label3 = new Label();
-                methodVisitor.visitLabel(label3);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label3, 0);
-                methodVisitor.visitLocalVariable("name", "Ljava/lang/String;", null, label0, label3, 1);
-                methodVisitor.visitMaxs(2, 2);
-                methodVisitor.visitEnd();
-            }
-        }),
-        GET_EXTENSION("getExtension", "()Ljava/lang/String;", "gradleCompatGetExtension", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetExtension", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(251, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveExtension", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "getOrNull", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        SET_EXTENSION("setExtension", "(Ljava/lang/String;)V", "gradleCompatSetExtension", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatSetExtension", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(255, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveExtension", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
-                methodVisitor.visitInsn(POP);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLineNumber(256, label1);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveExtension", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
-                Label label2 = new Label();
-                methodVisitor.visitLabel(label2);
-                methodVisitor.visitLineNumber(257, label2);
-                methodVisitor.visitInsn(RETURN);
-                Label label3 = new Label();
-                methodVisitor.visitLabel(label3);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label3, 0);
-                methodVisitor.visitLocalVariable("name", "Ljava/lang/String;", null, label0, label3, 1);
-                methodVisitor.visitMaxs(2, 2);
-                methodVisitor.visitEnd();
-            }
-        }),
-        GET_CLASSIFIER("getClassifier", "()Ljava/lang/String;", "gradleCompatGetClassifier", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatGetClassifier", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;)Ljava/lang/String;", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(260, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveClassifier", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "getOrNull", "()Ljava/lang/Object;", true);
-                methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
-                methodVisitor.visitInsn(ARETURN);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label1, 0);
-                methodVisitor.visitMaxs(1, 1);
-                methodVisitor.visitEnd();
-            }
-        }),
-        SET_CLASSIFIER("setClassifier", "(Ljava/lang/String;)V", "gradleCompatSetClassifier", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", new Consumer<ClassVisitor>() {
-            @Override
-            public void accept(ClassVisitor cv) {
-                MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, "gradleCompatSetClassifier", "(Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;Ljava/lang/String;)V", null, null);
-                methodVisitor.visitCode();
-                Label label0 = new Label();
-                methodVisitor.visitLabel(label0);
-                methodVisitor.visitLineNumber(264, label0);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveClassifier", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
-                methodVisitor.visitInsn(POP);
-                Label label1 = new Label();
-                methodVisitor.visitLabel(label1);
-                methodVisitor.visitLineNumber(265, label1);
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "org/gradle/api/tasks/bundling/AbstractArchiveTask", "getArchiveClassifier", "()Lorg/gradle/api/provider/Property;", false);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
-                Label label2 = new Label();
-                methodVisitor.visitLabel(label2);
-                methodVisitor.visitLineNumber(266, label2);
-                methodVisitor.visitInsn(RETURN);
-                Label label3 = new Label();
-                methodVisitor.visitLabel(label3);
-                methodVisitor.visitLocalVariable("task", "Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;", null, label0, label3, 0);
-                methodVisitor.visitLocalVariable("name", "Ljava/lang/String;", null, label0, label3, 1);
-                methodVisitor.visitMaxs(2, 2);
-                methodVisitor.visitEnd();
-            }
-        });
+        GET_ARCHIVE_NAME("getArchiveName", RETURN_STRING, RETURN_STRING_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forStringPropertyGetter("getArchiveFileName")),
+        SET_ARCHIVE_NAME("setArchiveName", RETURN_VOID_FROM_STRING, RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING,  BridgeMethodImplementation.forStringPropertySetter("getArchiveFileName")),
+        GET_ARCHIVE_PATH("getArchivePath", RETURN_FILE, RETURN_FILE_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forGetArchivePath()),
+        GET_DESTINATION_DIR("getDestinationDir", RETURN_FILE, RETURN_FILE_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forGetDestinationDir()),
+        SET_DESTINATION_DIR("setDestinationDir", RETURN_VOID_FROM_FILE, RETURN_VOID_FROM_ARCHIVE_TASK_AND_FILE, BridgeMethodImplementation.forSetDestinationDir()),
+        GET_BASE_NAME("getBaseName", RETURN_STRING, RETURN_STRING_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forStringPropertyGetter("getArchiveBaseName")),
+        SET_BASE_NAME("setBaseName", RETURN_VOID_FROM_STRING, RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING, BridgeMethodImplementation.forStringPropertySetter("getArchiveBaseName")),
+        GET_APPENDIX("getAppendix", RETURN_STRING, RETURN_STRING_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forStringPropertyGetter("getArchiveAppendix")),
+        SET_APPENDIX("setAppendix", RETURN_VOID_FROM_STRING, RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING, BridgeMethodImplementation.forStringPropertySetter("getArchiveAppendix")),
+        GET_VERSION("getVersion", RETURN_STRING, RETURN_STRING_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forStringPropertyGetter("getArchiveVersion")),
+        SET_VERSION("setVersion", RETURN_VOID_FROM_STRING, RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING, BridgeMethodImplementation.forStringPropertySetter("getArchiveVersion")),
+        GET_EXTENSION("getExtension", RETURN_STRING, RETURN_STRING_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forStringPropertyGetter("getArchiveExtension")),
+        SET_EXTENSION("setExtension", RETURN_VOID_FROM_STRING, RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING, BridgeMethodImplementation.forStringPropertySetter("getArchiveExtension")),
+        GET_CLASSIFIER("getClassifier", RETURN_STRING, RETURN_STRING_FROM_ARCHIVE_TASK, BridgeMethodImplementation.forStringPropertyGetter("getArchiveClassifier")),
+        SET_CLASSIFIER("setClassifier", RETURN_VOID_FROM_STRING,  RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING, BridgeMethodImplementation.forStringPropertySetter("getArchiveClassifier"));
 
         private final String name;
         private final String descriptor;
         private final String bridgeMethodName;
         private final String bridgeMethodDescriptor;
-        private final Consumer<ClassVisitor> bridgeMethodBody;
+        private final BridgeMethodImplementation implementation;
 
-        RemovedMethod(String name, String descriptor, String bridgeMethodName, String bridgeMethodDescriptor, Consumer<ClassVisitor> bridgeMethodBody) {
+        RemovedMethod(String name, String descriptor, String bridgeMethodDescriptor, BridgeMethodImplementation implementation) {
             this.name = name;
             this.descriptor = descriptor;
-            this.bridgeMethodName = bridgeMethodName;
+            this.bridgeMethodName = "gradleCompat" + StringUtils.capitalize(name);
             this.bridgeMethodDescriptor = bridgeMethodDescriptor;
-            this.bridgeMethodBody = bridgeMethodBody;
+            this.implementation = implementation;
         }
 
         String getBridgeMethodName() {
@@ -548,7 +334,7 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
         }
 
         void injectBridgeMethod(ClassVisitor cv) {
-            bridgeMethodBody.accept(cv);
+            implementation.injectImplementation(bridgeMethodName, "org/gradle/api/tasks/bundling/AbstractArchiveTask", cv);
         }
     }
 }
