@@ -70,10 +70,9 @@ import static org.objectweb.asm.Type.getType;
 public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
     private static final Type STRING_TYPE = getType(String.class);
     private static final Type FILE_TYPE = getType(File.class);
-    private static final Type ARCHIVE_TASK_TYPE = getType("Lorg/gradle/api/tasks/bundling/AbstractArchiveTask;");
-
+    private static final String ARCHIVE_TASK_NAME = "org/gradle/api/tasks/bundling/AbstractArchiveTask";
+    private static final Type ARCHIVE_TASK_TYPE = getType("L" + ARCHIVE_TASK_NAME + ";");
     private static final String ARCHIVE_TASK_DESCRIPTOR = ARCHIVE_TASK_TYPE.getDescriptor();
-
     private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
     private static final String RETURN_FILE = getMethodDescriptor(FILE_TYPE);
     private static final String RETURN_VOID_FROM_FILE = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE);
@@ -140,18 +139,22 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
     }
 
     static abstract class BridgeMethodImplementation {
-        abstract void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv);
+
+        private BridgeMethodImplementation() {
+        }
+
+        abstract void injectImplementation(String bridgeMethodName, ClassVisitor cv);
 
         static BridgeMethodImplementation forStringPropertyGetter(final String methodNameReturningStringProperty) {
             return new BridgeMethodImplementation() {
                 @Override
-                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                void injectImplementation(String bridgeMethodName, ClassVisitor cv) {
                     MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_STRING_FROM_ARCHIVE_TASK, null, null);
                     methodVisitor.visitCode();
                     Label label0 = new Label();
                     methodVisitor.visitLabel(label0);
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, ARCHIVE_TASK_NAME, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "get", "()Ljava/lang/Object;", true);
                     methodVisitor.visitTypeInsn(CHECKCAST, "java/lang/String");
                     methodVisitor.visitInsn(ARETURN);
@@ -167,20 +170,20 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
         static BridgeMethodImplementation forStringPropertySetter(final String methodNameReturningStringProperty) {
             return new BridgeMethodImplementation() {
                 @Override
-                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                void injectImplementation(String bridgeMethodName, ClassVisitor cv) {
                     MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_VOID_FROM_ARCHIVE_TASK_AND_STRING, null, null);
                     methodVisitor.visitCode();
                     Label label0 = new Label();
                     methodVisitor.visitLabel(label0);
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, ARCHIVE_TASK_NAME, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
                     methodVisitor.visitVarInsn(ALOAD, 1);
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "convention", "(Ljava/lang/Object;)Lorg/gradle/api/provider/Property;", true);
                     methodVisitor.visitInsn(POP);
                     Label label1 = new Label();
                     methodVisitor.visitLabel(label1);
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, ARCHIVE_TASK_NAME, methodNameReturningStringProperty, "()Lorg/gradle/api/provider/Property;", false);
                     methodVisitor.visitVarInsn(ALOAD, 1);
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Property", "set", "(Ljava/lang/Object;)V", true);
                     Label label2 = new Label();
@@ -199,14 +202,14 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
         static BridgeMethodImplementation forGetArchivePath() {
             return new BridgeMethodImplementation() {
                 @Override
-                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                void injectImplementation(String bridgeMethodName, ClassVisitor cv) {
                     MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_FILE_FROM_ARCHIVE_TASK, null, null);
                     methodVisitor.visitCode();
                     Label label0 = new Label();
                     methodVisitor.visitLabel(label0);
                     methodVisitor.visitLineNumber(212, label0);
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getArchiveFile", "()Lorg/gradle/api/provider/Provider;", false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, ARCHIVE_TASK_NAME, "getArchiveFile", "()Lorg/gradle/api/provider/Provider;", false);
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/provider/Provider", "get", "()Ljava/lang/Object;", true);
                     methodVisitor.visitTypeInsn(CHECKCAST, "org/gradle/api/file/RegularFile");
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/RegularFile", "getAsFile", "()Ljava/io/File;", true);
@@ -223,13 +226,13 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
         static BridgeMethodImplementation forGetDestinationDir() {
             return new BridgeMethodImplementation() {
                 @Override
-                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                void injectImplementation(String bridgeMethodName, ClassVisitor cv) {
                     MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_FILE_FROM_ARCHIVE_TASK, null, null);
                     methodVisitor.visitCode();
                     Label label0 = new Label();
                     methodVisitor.visitLabel(label0);
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, ARCHIVE_TASK_NAME, "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/DirectoryProperty", "get", "()Ljava/lang/Object;", true);
                     methodVisitor.visitTypeInsn(CHECKCAST, "org/gradle/api/file/Directory");
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/Directory", "getAsFile", "()Ljava/io/File;", true);
@@ -246,15 +249,15 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
         static BridgeMethodImplementation forSetDestinationDir() {
             return new BridgeMethodImplementation() {
                 @Override
-                void injectImplementation(String bridgeMethodName, String targetType, ClassVisitor cv) {
+                void injectImplementation(String bridgeMethodName, ClassVisitor cv) {
                     MethodVisitor methodVisitor = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, bridgeMethodName, RETURN_VOID_FROM_ARCHIVE_TASK_AND_FILE, null, null);
                     methodVisitor.visitCode();
                     Label label0 = new Label();
                     methodVisitor.visitLabel(label0);
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, ARCHIVE_TASK_NAME, "getDestinationDirectory", "()Lorg/gradle/api/file/DirectoryProperty;", false);
                     methodVisitor.visitVarInsn(ALOAD, 0);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, targetType, "getProject", "()Lorg/gradle/api/Project;", false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, ARCHIVE_TASK_NAME, "getProject", "()Lorg/gradle/api/Project;", false);
                     methodVisitor.visitVarInsn(ALOAD, 1);
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/Project", "file", "(Ljava/lang/Object;)Ljava/io/File;", true);
                     methodVisitor.visitMethodInsn(INVOKEINTERFACE, "org/gradle/api/file/DirectoryProperty", "set", "(Ljava/io/File;)V", true);
@@ -334,7 +337,7 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
         }
 
         void injectBridgeMethod(ClassVisitor cv) {
-            implementation.injectImplementation(bridgeMethodName, "org/gradle/api/tasks/bundling/AbstractArchiveTask", cv);
+            implementation.injectImplementation(bridgeMethodName, cv);
         }
     }
 }
