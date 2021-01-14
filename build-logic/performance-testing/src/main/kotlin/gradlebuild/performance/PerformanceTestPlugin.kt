@@ -470,7 +470,6 @@ class PerformanceTestExtension(
             destinationDirectory.set(project.layout.buildDirectory)
             archiveFileName.set("test-results-${junitXmlDir.name}.zip")
         }
-
 }
 
 
