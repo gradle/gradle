@@ -24,7 +24,6 @@ jobs:
     - name: Disable checksum offloading
       # See: https://github.com/actions/virtual-environments/issues/1187#issuecomment-686735760
       run: sudo ethtool -K eth0 tx off rx off
-      if: matrix.os == 'ubuntu-latest'
 
     - name: Checkout repository
       uses: actions/checkout@v2
