@@ -55,14 +55,12 @@ public interface PluginManagementSpec {
      * Configure the default plugin versions.
      * @since 5.6
      */
-    @Incubating
     void plugins(Action<? super PluginDependenciesSpec> action);
 
     /**
      * The Plugin dependencies, permitting default plugin versions to be configured.
      * @since 5.6
      */
-    @Incubating
     PluginDependenciesSpec getPlugins();
 
     /**
