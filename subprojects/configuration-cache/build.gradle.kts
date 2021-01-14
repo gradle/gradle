@@ -22,17 +22,6 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
-// The same options should eventually be used for all Kotlin sources.
-// When ready, move these to 'gradlebuild.kotlin-library' and adjust sources where needed.
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions {
-        freeCompilerArgs += listOf(
-            "-XXLanguage:+NewInference",
-            "-XXLanguage:+SamConversionForKotlinFunctions"
-        )
-    }
-}
-
 // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
 // For the current project, we simply disable it since there are no tasks in there.
 tasks.withType<ValidatePlugins>().configureEach {

@@ -71,7 +71,7 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
         } else {
             try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
                 return hashProperties(propertiesFileInputStream, resourceEntryFilter);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
                 return delegate.hash(snapshotContext);
             }
@@ -87,7 +87,7 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
         } else {
             try {
                 return hashProperties(zipEntryContext.getEntry().getInputStream(), resourceEntryFilter);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
                 return delegate.hash(zipEntryContext);
             }

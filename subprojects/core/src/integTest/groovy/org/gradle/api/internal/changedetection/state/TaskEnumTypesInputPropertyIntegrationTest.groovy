@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3018")
     def "task can take an input with enum type and task action defined in the build script"() {
-        buildFile << """
+        buildFile """
 task someTask {
     inputs.property "someEnum", SomeEnum.E1
     def f = file("build/e1")
@@ -84,7 +84,7 @@ task someOtherTask
     }
 
     def "task can take an input with enum type and task type defined in the build script"() {
-        buildFile << """
+        buildFile """
 class SomeTask extends DefaultTask {
     @Input
     SomeEnum e
@@ -224,7 +224,7 @@ public class SomeTask extends DefaultTask {
     public void go() { }
 }
 """
-        buildFile << """
+        buildFile """
 task someTask(type: SomeTask) {
     inputs.property "someEnum", SomeEnum.E1
     def f = file("build/e1")

@@ -166,7 +166,7 @@ someTask.inputs.property "someValue", new CustomType("value1")
 
 ${customSerializableType()}
 """
-        buildFile << """
+        buildFile """
 task someTask {
     def f = file("build/e1")
     outputs.dir f

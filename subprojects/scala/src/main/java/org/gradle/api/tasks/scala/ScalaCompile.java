@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -76,7 +75,6 @@ public class ScalaCompile extends AbstractScalaCompile {
      * @since 6.4
      */
     @Classpath
-    @Incubating
     public FileCollection getScalaCompilerPlugins() {
         return scalaCompilerPlugins;
     }
@@ -87,7 +85,6 @@ public class ScalaCompile extends AbstractScalaCompile {
      * @param scalaCompilerPlugins Collection of Scala compiler plugins.
      * @since 6.4
      */
-    @Incubating
     public void setScalaCompilerPlugins(FileCollection scalaCompilerPlugins) {
         this.scalaCompilerPlugins = scalaCompilerPlugins;
     }

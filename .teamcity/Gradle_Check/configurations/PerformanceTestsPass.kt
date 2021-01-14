@@ -43,6 +43,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.JAVA_HOME", os.buildJavaHome())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
+        param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
         param("performance.db.username", "tcagent")
         param("performance.channel", performanceTestSpec.channel())
     }
@@ -69,8 +70,7 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
             extraParameters = listOf(
                 "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",
-                "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-                "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%"
+                "-Porg.gradle.performance.db.username" to "%performance.db.username%"
             ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
         )
     }

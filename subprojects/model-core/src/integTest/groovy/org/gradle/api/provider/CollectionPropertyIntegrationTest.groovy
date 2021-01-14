@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        buildFile << """
+        buildFile """
             class MyTask extends DefaultTask {
                 @Internal
                 final ListProperty<String> prop = project.objects.listProperty(String)
@@ -80,7 +80,7 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
 
     def "can finalize the value of a property using API"() {
         given:
-        buildFile << """
+        buildFile """
 Integer counter = 0
 def provider = providers.provider { [++counter, ++counter] }
 
@@ -105,7 +105,7 @@ property.set([1])
 
     def "can disallow changes to a property using API without finalizing value"() {
         given:
-        buildFile << """
+        buildFile """
 Integer counter = 0
 def provider = providers.provider { [++counter, ++counter] }
 
@@ -130,7 +130,7 @@ property.set([1])
 
     def "task @Input property is implicitly finalized when task starts execution"() {
         given:
-        buildFile << """
+        buildFile """
 class SomeTask extends DefaultTask {
     @Input
     final ListProperty<String> prop = project.objects.listProperty(String)
@@ -174,7 +174,7 @@ thing.dependsOn before
 
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
-        buildFile << """
+        buildFile """
 
 def prop = project.objects.listProperty(String)
 
@@ -198,7 +198,7 @@ task thing {
 
     def "can use property with no value as optional ad hoc task input property"() {
         given:
-        buildFile << """
+        buildFile """
 
 def prop = project.objects.listProperty(String)
 prop.set((List)null)

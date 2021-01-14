@@ -16,7 +16,11 @@
 
 package org.gradle.integtests.fixtures.versions
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.Factory
+import org.gradle.util.VersionNumber
+
+import static org.junit.Assume.assumeTrue
 
 
 /**
@@ -112,5 +116,18 @@ class AndroidGradlePluginVersions {
             properties = propertiesFactory.create()
         }
         return properties
+    }
+
+    static void assumeCurrentJavaVersionIsSupportedBy(String agpVersion) {
+        JavaVersion current = JavaVersion.current()
+        JavaVersion mini = getMinimumJavaVersionFor(agpVersion)
+        assumeTrue("AGP $agpVersion minimum supported Java version is $mini, current is $current", current >= mini)
+    }
+
+    private static JavaVersion getMinimumJavaVersionFor(String agpVersion) {
+        if (VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse('7.0.0')) {
+            return JavaVersion.VERSION_1_8
+        }
+        return JavaVersion.VERSION_11
     }
 }

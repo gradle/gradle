@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        buildFile << '''
+        buildFile '''
             abstract class AbstractVerificationTask<K, V> extends DefaultTask {
 
                 @Internal

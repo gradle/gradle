@@ -209,7 +209,7 @@ task thing {
     def "cannot query strict task output file property until task starts execution"() {
         taskTypeWithOutputFileProperty()
         settingsFile << "rootProject.name = 'broken'"
-        buildFile << """
+        buildFile """
             task producer(type: FileProducer) {
                 output.disallowUnsafeRead()
                 output = layout.buildDir.file("text.out")

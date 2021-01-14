@@ -25,7 +25,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create named instances of interface using injected factory"() {
-        buildFile << """
+        buildFile """
             interface Thing extends Named { }
 
             class CustomPlugin implements Plugin<Project> {

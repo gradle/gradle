@@ -445,6 +445,27 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
+    def "safely handles properties files with bad unicode escape sequences"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        project.propertiesFileInDir.backingFile.text = 'propertyWithBadValue=this is a bad unicode sequence \\uxxxx'
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir.backingFile.text = 'propertyWithBadValue=this is also a bad unicode sequence \\uyyyy'
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+    }
+
     static final String IGNORE_ME = 'ignore-me'
     static final String IGNORE_ME_TOO = 'ignore-me-too'
     static final String DONT_IGNORE_ME = 'dont-ignore-me'

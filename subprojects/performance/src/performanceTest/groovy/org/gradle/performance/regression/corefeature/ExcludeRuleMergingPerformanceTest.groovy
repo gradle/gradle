@@ -30,7 +30,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     def setup() {
-        runner.minimumBaseVersion = '4.9'
+        runner.minimumBaseVersion = '5.6.4'
         runner.targetVersions = ["7.0-20201215144843+0000"]
     }
 

@@ -57,7 +57,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "task @OutputDirectories directory property is implicitly finalized when task starts execution"() {
-        buildFile << """
+        buildFile """
             class SomeTask extends DefaultTask {
                 @OutputDirectories
                 final SetProperty<Directory> prop = project.objects.setProperty(Directory)
@@ -86,7 +86,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can wire the output file of multiple tasks as input to another task using property"() {
-        buildFile << """
+        buildFile """
             class FileOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
@@ -155,7 +155,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can wire the output files of a task as input to another task"() {
-        buildFile << """
+        buildFile """
             class FileOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
@@ -222,7 +222,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can wire the output directory of multiple tasks as input to another task using property"() {
-        buildFile << """
+        buildFile """
             class DirOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
@@ -292,7 +292,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can wire the output directories of a task as input to another task"() {
-        buildFile << """
+        buildFile """
             class DirOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
@@ -360,7 +360,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can wire a set of output files modelled using a project level property as input to a task"() {
-        buildFile << """
+        buildFile """
             class FileOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
@@ -434,7 +434,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can wire a set of output directories modelled as a project level property as input to a task"() {
-        buildFile << """
+        buildFile """
             class DirOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()

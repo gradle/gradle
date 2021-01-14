@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.scala;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.provider.Property;
  *
  * @since 6.0
  */
-@Incubating
 public interface ScalaPluginExtension {
     /**
      * The version of the Zinc compiler to use for compiling Scala code.

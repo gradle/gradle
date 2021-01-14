@@ -26,9 +26,6 @@ import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.not
-import static org.junit.Assume.assumeThat
 
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
@@ -44,10 +41,10 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
 
-        // TODO remove after next 4.2 release
-        assumeThat(agpVersion, not(equalTo("4.2.0-alpha13")))
-
         given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
         def originalDir = temporaryFolder.createDir("original")
         def relocatedDir = temporaryFolder.createDir("relocated")
 

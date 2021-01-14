@@ -117,7 +117,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
         applyPlugin()
 
-        buildFile << """
+        buildFile """
             tasks.configureEach {
                 println("configuring \${it.path}")
             }

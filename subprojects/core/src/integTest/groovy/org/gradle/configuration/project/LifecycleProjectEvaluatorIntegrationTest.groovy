@@ -31,7 +31,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
     def "nested afterEvaluate action is executed after outer action completes"() {
         given:
 
-        buildFile << """
+        buildFile """
             afterEvaluate {
                 println "> Outer"
                 afterEvaluate {
@@ -87,7 +87,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         file("foo/before.gradle") << ""
         file("foo/after.gradle") << ""
         file("foo/whenReady.gradle") << ""
-        buildFile << """
+        buildFile """
             project(':foo').beforeEvaluate {
                 project(':foo').apply from: 'before.gradle'
             }

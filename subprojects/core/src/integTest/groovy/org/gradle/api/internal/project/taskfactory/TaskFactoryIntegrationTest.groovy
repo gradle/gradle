@@ -23,7 +23,7 @@ class TaskFactoryIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3317")
     def "can generate a task when the inject annotation is not present on all of the methods in the hierarchy"() {
         given:
-        buildFile << """
+        buildFile """
             //getInputs() and getOutputs() exists on both org.gradle.api.Task and org.gradle.api.internal.AbstractTask
             //Only AbstractTask has the @Inject annotation
 

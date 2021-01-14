@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.codehaus.groovy.GroovyBugError;
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.AnnotatedNode;
@@ -83,6 +84,16 @@ public class GradleResolveVisitor extends ResolveVisitor {
     // note: BigInteger and BigDecimal are also imported by default
     private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util.", "java.time."};
     private static final String SCRIPTS_PACKAGE = "org.gradle.groovy.scripts";
+
+    /**
+     * When updating this mapping, consider being nice and also updating the list of generated imports for our internal test infrastructure.
+     * See the import list in AnnotationGenerator.kt
+     */
+    private static final ImmutableMap<String, ClassNode> TYPE_REDIRECT_MAPPING = ImmutableMap.of(
+        "Inject", ClassHelper.makeCached(Inject.class),
+        "BigInteger", ClassHelper.BigInteger_TYPE,
+        "BigDecimal", ClassHelper.BigDecimal_TYPE
+    );
 
     private ClassNode currentClass;
     private final Map<String, List<String>> simpleNameToFQN;
@@ -501,7 +512,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     private static String replaceLastPoint(String name) {
         int lastPoint = name.lastIndexOf('.');
-        if (lastPoint>0) {
+        if (lastPoint > 0) {
             name = name.substring(0, lastPoint)
                 + "$"
                 + name.substring(lastPoint + 1);
@@ -577,14 +588,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
                     return true;
                 }
             }
-            if (name.equals("Inject")) {
-                type.setRedirect(ClassHelper.makeCached(Inject.class));
-                return true;
-            } else if (name.equals("BigInteger")) {
-                type.setRedirect(ClassHelper.BigInteger_TYPE);
-                return true;
-            } else if (name.equals("BigDecimal")) {
-                type.setRedirect(ClassHelper.BigDecimal_TYPE);
+            if (TYPE_REDIRECT_MAPPING.containsKey(name)) {
+                type.setRedirect(TYPE_REDIRECT_MAPPING.get(name));
                 return true;
             }
         }
@@ -1104,10 +1109,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
         Variable v = ve.getAccessedVariable();
 
         if (!(v instanceof DynamicVariable) && !checkingVariableTypeInDeclaration) {
-        /*
-         *  GROOVY-4009: when a normal variable is simply being used, there is no need to try to
-         *  resolve its type. Variable type resolve should proceed only if the variable is being declared.
-         */
+            /*
+             *  GROOVY-4009: when a normal variable is simply being used, there is no need to try to
+             *  resolve its type. Variable type resolve should proceed only if the variable is being declared.
+             */
             return ve;
         }
         if (v instanceof DynamicVariable) {

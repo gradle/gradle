@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 class IvyGradleModuleMetadataPublishIntegrationTest extends AbstractIvyPublishIntegTest {
     def setup() {
-        buildFile << """
+        buildFile """
 // TODO - use public APIs when available
 class TestComponent implements org.gradle.api.internal.component.SoftwareComponentInternal, ComponentWithVariants {
     String name

@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create instances of class using injected factory"() {
-        buildFile << """
+        buildFile """
             @groovy.transform.ToString
             class Thing {
                 @javax.inject.Inject
@@ -71,7 +71,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of interface with mutable properties"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 String getProp()
                 void setProp(String value)
@@ -88,7 +88,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of interface with read-only FileCollection property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 ConfigurableFileCollection getFiles()
             }
@@ -105,7 +105,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of interface with read-only Property<T> property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 Property<String> getValue()
             }
@@ -122,7 +122,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of abstract class with mutable properties"() {
-        buildFile << """
+        buildFile """
             abstract class Thing {
                 String otherProp
 
@@ -142,7 +142,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of interface with name property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 abstract String getName()
             }
@@ -156,7 +156,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of interface that extends Named"() {
-        buildFile << """
+        buildFile """
             interface Thing extends Named { }
 
             def t = objects.newInstance(Thing, "thingName")
@@ -168,7 +168,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of abstract class with name property"() {
-        buildFile << """
+        buildFile """
             abstract class Thing {
                 @javax.inject.Inject Thing() { }
 
@@ -184,7 +184,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin can create instance of abstract class that implements Named"() {
-        buildFile << """
+        buildFile """
             abstract class Thing implements Named {
                 @javax.inject.Inject Thing() { }
             }
@@ -198,7 +198,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails when abstract method cannot be implemented"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 String getProp()
             }
@@ -214,7 +214,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "services are injected into instances using constructor or getter"() {
-        buildFile << """
+        buildFile """
             class Thing1 {
                 final Property<String> name
 
@@ -241,7 +241,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "services injected using getter can be used from constructor"() {
-        buildFile << """
+        buildFile """
             class Thing1 {
                 final Property<String> name
 
@@ -272,7 +272,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "services can be injected using abstract getter"() {
-        buildFile << """
+        buildFile """
             class Thing1 {
                 final Property<String> name
 
@@ -303,7 +303,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "services can be injected using getter on interface"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 @javax.inject.Inject
                 ObjectFactory getObjects()
@@ -317,7 +317,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create nested DSL elements using injected ObjectFactory"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 String name
             }
@@ -360,7 +360,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "DSL elements created using injected ObjectFactory can be extended and those extensions can receive services"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 String name
 
@@ -411,7 +411,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "object creation fails with ObjectInstantiationException given invalid construction parameters"() {
         given:
-        buildFile << """
+        buildFile """
         class Thing {}
 
         task fail {
@@ -432,7 +432,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "object creation fails with ObjectInstantiationException when construction parameters provided for interface"() {
         given:
-        buildFile << """
+        buildFile """
         interface Thing {}
 
         task fail {
@@ -453,7 +453,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "object creation fails with ObjectInstantiationException given non-static inner class"() {
         given:
-        buildFile << """
+        buildFile """
         class Things {
             class Thing {
             }
@@ -477,7 +477,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "object creation fails with ObjectInstantiationException given unknown service requested as constructor parameter"() {
         given:
-        buildFile << """
+        buildFile """
         interface Unknown { }
 
         class Thing {
@@ -503,7 +503,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "object creation fails with ObjectInstantiationException when constructor throws an exception"() {
         given:
-        buildFile << """
+        buildFile """
         class Thing {
             Thing() { throw new GradleException("broken") }
         }
@@ -526,7 +526,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "object creation fails with ObjectInstantiationException when constructor takes parameters but is not annotated"() {
         given:
-        buildFile << """
+        buildFile """
         class Thing {
             Thing(ObjectFactory factory) { }
         }
@@ -549,7 +549,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "object creation fails with ObjectInstantiationException when type has multiple constructors not annotated"() {
         given:
-        buildFile << """
+        buildFile """
         class Thing {
             Thing() {}
             Thing(String foo) {}
@@ -584,7 +584,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create a NamedDomainObjectContainer instance that creates decorated elements of type and uses name bean property"() {
         given:
-        buildFile << """
+        buildFile """
             abstract class NamedThing implements Named {
                 final String name
                 abstract Property<String> getProp()
@@ -612,7 +612,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create NamedDomainObjectContainer instances that creates elements using user provided factory"() {
         given:
-        buildFile << """
+        buildFile """
             class NamedThing implements Named {
                 final String name
                 NamedThing(String name) {
@@ -635,7 +635,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create NamedDomainObjectContainer instances that creates decorated elements of a named managed type"() {
         given:
-        buildFile << """
+        buildFile """
             interface NamedThing extends Named {
                 Property<String> getProp()
             }
@@ -657,7 +657,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create DomainObjectSet instances"() {
         given:
-        buildFile << """
+        buildFile """
             def domainObjectSet = project.objects.domainObjectSet(String)
             assert domainObjectSet != null
             assert domainObjectSet.add('foo')
@@ -670,7 +670,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create a NamedDomainObjectSet instance that uses name bean property"() {
         given:
-        buildFile << """
+        buildFile """
             class NamedThing implements Named {
                 final String name
                 NamedThing(String name) {
@@ -693,7 +693,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create a NamedDomainObjectSet instance that uses a named managed type"() {
         given:
-        buildFile << """
+        buildFile """
             interface NamedThing extends Named { }
 
             def container = project.objects.namedDomainObjectSet(NamedThing)
@@ -711,7 +711,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create a NamedDomainObjectList instance that uses name bean property"() {
         given:
-        buildFile << """
+        buildFile """
             class NamedThing implements Named {
                 final String name
                 NamedThing(String name) {
@@ -735,7 +735,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create a NamedDomainObjectList instance that uses a named managed type"() {
         given:
-        buildFile << """
+        buildFile """
             interface NamedThing extends Named { }
 
             def container = project.objects.namedDomainObjectList(NamedThing)
@@ -754,7 +754,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create ExtensiblePolymorphicDomainObjectContainer instances"() {
         given:
-        buildFile << """
+        buildFile """
             class NamedThing implements Named {
                 final String name
                 NamedThing(String name) {
@@ -776,7 +776,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create ExtensiblePolymorphicDomainObjectContainer instances using named managed types"() {
         given:
-        buildFile << """
+        buildFile """
             interface BaseThing extends Named { }
             interface ThingA extends BaseThing { }
             interface ThingB extends BaseThing { }
@@ -797,7 +797,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin can create instance of interface with nested NamedDomainObjectContainer using named managed types"() {
         given:
-        buildFile << """
+        buildFile """
             interface Thing extends Named {
                 Property<Integer> getValue()
             }

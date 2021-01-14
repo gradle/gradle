@@ -18,9 +18,7 @@ package org.gradle.api
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecutionEngine
@@ -29,16 +27,10 @@ import spock.lang.Unroll
 
 import javax.inject.Inject
 
-
 class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        buildFile << """
-            import ${Inject.name}
-        """
-    }
 
     def "can apply a plugin with @Inject services constructor arg"() {
-        buildFile << """
+        buildFile """
             class CustomPlugin implements Plugin<Project> {
                 private final WorkerExecutor executor
 
@@ -64,7 +56,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails when plugin constructor is not annotated with @Inject"() {
-        buildFile << """
+        buildFile """
             class CustomPlugin implements Plugin<Project> {
                 CustomPlugin(WorkerExecutor executor) {
                 }
@@ -84,7 +76,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails when plugin constructor requests unknown service"() {
-        buildFile << """
+        buildFile """
             interface Unknown { }
 
             class CustomPlugin implements Plugin<Project> {
@@ -107,7 +99,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can inject service using getter method"() {
-        buildFile << """
+        buildFile """
             class CustomPlugin implements Plugin<Project> {
                 @Inject
                 WorkerExecutor getExecutor() { }
@@ -117,8 +109,8 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
                     // is generated but not extensible
                     assert getClass() != CustomPlugin
-                    assert (this instanceof ${GeneratedSubclass.name})
-                    assert !(this instanceof ${ExtensionAware.name})
+                    assert (this instanceof org.gradle.api.internal.GeneratedSubclass)
+                    assert !(this instanceof ExtensionAware)
                 }
             }
 
@@ -131,7 +123,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can inject service using abstract getter method"() {
-        buildFile << """
+        buildFile """
             abstract class CustomPlugin implements Plugin<Project> {
                 @Inject
                 abstract WorkerExecutor getExecutor()
@@ -141,8 +133,8 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
                     // is generated but not extensible
                     assert getClass() != CustomPlugin
-                    assert (this instanceof ${GeneratedSubclass.name})
-                    assert !(this instanceof ${ExtensionAware.name})
+                    assert (this instanceof org.gradle.api.internal.GeneratedSubclass)
+                    assert !(this instanceof ExtensionAware)
                 }
             }
 

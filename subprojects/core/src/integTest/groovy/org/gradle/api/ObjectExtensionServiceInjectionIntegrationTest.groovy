@@ -25,13 +25,11 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.process.ExecOperations
 import spock.lang.Unroll
 
-import javax.inject.Inject
-
 
 class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
     def "can inject service and configuration as constructor args when constructor not annotated with @Inject"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 Thing(String a, ObjectFactory objects, int b) {
                     assert a == "a"
@@ -48,9 +46,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
     }
 
     def "can inject service using getter"() {
-        buildFile << """
-            import ${Inject.name}
-
+        buildFile """
             class Thing {
                 Thing(String a) {
                 }
@@ -68,9 +64,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
     }
 
     def "can inject service using abstract getter"() {
-        buildFile << """
-            import ${Inject.name}
-
+        buildFile """
             abstract class Thing {
                 Thing(String a) {
                 }
@@ -88,9 +82,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
     }
 
     def "can use getter injected services from constructor"() {
-        buildFile << """
-            import ${Inject.name}
-
+        buildFile """
             class Thing {
                 Thing(String a) {
                     objects.property(String).set(a)
@@ -109,10 +101,8 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
     }
 
     def "can inject service using getter on interface"() {
-        buildFile << """
-            import ${Inject.name}
-
-            interface Thing {
+        buildFile """
+           interface Thing {
                 @Inject
                 ObjectFactory getObjects()
             }

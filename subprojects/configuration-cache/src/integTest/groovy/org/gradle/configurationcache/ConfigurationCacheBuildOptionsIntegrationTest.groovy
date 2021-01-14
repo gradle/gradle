@@ -410,7 +410,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         given:
         def configurationCache = newConfigurationCacheFixture()
-        buildKotlinFile """
+        buildKotlinFile ("""
 
             val sysPropProvider = providers
                 .systemProperty("thread.pool.size")
@@ -431,7 +431,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             tasks.register<TaskA>("a") {
                 threadPoolSize.set(sysPropProvider)
             }
-        """
+        """)
 
         when:
         configurationCacheRun("a")

@@ -24,7 +24,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     private static final String STRING_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "src/resource/file.txt" } }'
 
     def "can access the project dir and build dir"() {
-        buildFile << """
+        buildFile """
             println "project dir: " + layout.projectDirectory.asFile
             def b = layout.buildDirectory
             println "build dir: " + b.get()
@@ -42,7 +42,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can apply convention to build dir"() {
-        buildFile << """
+        buildFile """
             println "build dir: " + project.buildDir
             layout.buildDirectory.convention(layout.projectDirectory.dir("out"))
             println "build dir 2: " + project.buildDir
@@ -63,7 +63,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "layout is available for injection"() {
-        buildFile << """
+        buildFile """
             class SomeTask extends DefaultTask {
                 @Inject
                 ProjectLayout getLayout() { null }
@@ -97,7 +97,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can define and resolve calculated directory relative to project and build directory"() {
-        buildFile << """
+        buildFile """
             def childDirName = "child"
             def srcDir = layout.projectDir.dir("src").dir(providers.provider { childDirName })
             def outputDir = layout.buildDirectory.dir(providers.provider { childDirName })
@@ -120,7 +120,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can define and resolve calculated file relative to project and build directory"() {
-        buildFile << """
+        buildFile """
             def childDirName = "child"
             def srcFile = layout.projectDir.dir("src").file(providers.provider { childDirName })
             def outputFile = layout.buildDirectory.file(providers.provider { childDirName })

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        buildFile << """
+        buildFile """
             def extractSchema(container) {
                 return container.collectionSchema.elements.collectEntries { e ->
                     [ e.name, e.publicType.simpleName ]
@@ -35,7 +35,7 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
     }
 
     def "collection schema from project.container is public type"() {
-        buildFile << """
+        buildFile """
             interface PubType {}
             class Impl implements PubType, Named {
                 String name
@@ -65,7 +65,7 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
     }
 
     def "built-in container types presents public type in schema"() {
-        buildFile << """
+        buildFile """
             apply plugin: 'java'
 
             repositories {

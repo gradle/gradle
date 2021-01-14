@@ -35,7 +35,7 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
     }
 
     @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(20000)
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(60000)
 
     def "daemon process dedicated to test execution uses short idle timeout"() {
         when:

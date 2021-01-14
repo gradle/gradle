@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Internal;
@@ -56,7 +55,6 @@ public class IncrementalCompileOptions {
      * @since 6.6
      */
     @LocalState
-    @Incubating
     public RegularFileProperty getClassfileBackupDir() {
         return classfileBackupDir;
     }

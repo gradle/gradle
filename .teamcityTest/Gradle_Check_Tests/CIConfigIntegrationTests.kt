@@ -186,7 +186,7 @@ class CIConfigIntegrationTests {
     fun onlyReadyForNightlyTriggerHasUpdateBranchStatus() {
         val triggerNameToTasks = rootProject.buildTypes.map { it.uuid to ((it as StagePasses).steps.items[0] as GradleBuildStep).tasks }.toMap()
         val readyForNightlyId = toTriggerId("MasterAccept")
-        assertEquals(":base-services:createBuildReceipt updateBranchStatus -PgithubToken=%github.bot-teamcity.token%", triggerNameToTasks[readyForNightlyId])
+        assertEquals(":base-services:createBuildReceipt updateBranchStatus", triggerNameToTasks[readyForNightlyId])
         val otherTaskNames = triggerNameToTasks.filterKeys { it != readyForNightlyId }.values.toSet()
         assertEquals(setOf(":base-services:createBuildReceipt"), otherTaskNames)
     }

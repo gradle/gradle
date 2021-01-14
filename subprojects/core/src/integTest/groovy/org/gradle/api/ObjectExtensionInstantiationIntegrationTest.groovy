@@ -24,7 +24,7 @@ import spock.lang.Unroll
 class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
     def "can create instance of extension with multiple constructors without @Inject annotation"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 String a
                 String b
@@ -49,7 +49,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "fails when too few construction parameters provided"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 Thing(String a, String b) {
                 }
@@ -65,7 +65,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "fails when non-static inner class provided"() {
-        buildFile << """
+        buildFile """
             class Things {
                 class Thing { }
             }
@@ -80,7 +80,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "fails when mismatched construction parameters provided"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 Thing(String a, String b) {
                 }
@@ -96,7 +96,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "fails when mismatched construction parameters provided when there are multiple constructors"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 Thing(String a, String b) {
                 }
@@ -114,7 +114,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "fails when constructor is ambiguous"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 Thing(String a, String b, ObjectFactory f) {
                 }
@@ -132,7 +132,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "fails when too many construction parameters provided"() {
-        buildFile << """
+        buildFile """
             class Thing {
                 Thing(String a, String b) {
                 }
@@ -177,7 +177,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only ConfigurableFileCollection property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 ConfigurableFileCollection getValue()
             }
@@ -194,7 +194,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only ConfigurableFileTree property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 ConfigurableFileTree getValue()
             }
@@ -212,7 +212,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only Property<T> property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 Property<String> getValue()
             }
@@ -231,7 +231,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only RegularFileProperty property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 RegularFileProperty getValue()
             }
@@ -250,7 +250,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only DirectoryProperty property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 DirectoryProperty getValue()
             }
@@ -269,7 +269,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only ListProperty property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 ListProperty<String> getValue()
             }
@@ -288,7 +288,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only SetProperty property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 SetProperty<String> getValue()
             }
@@ -307,7 +307,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only MapProperty property"() {
-        buildFile << """
+        buildFile """
             interface Thing {
                 MapProperty<String, String> getValue()
             }
@@ -326,7 +326,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only NamedDomainObjectContainer property"() {
-        buildFile << """
+        buildFile """
             class Bean {
                 final String name
                 Bean(String name) {
@@ -355,7 +355,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only DomainObjectSet property"() {
-        buildFile << """
+        buildFile """
             class Bean {
                 String name
             }
@@ -377,7 +377,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of interface with read-only @Nested interface property"() {
-        buildFile << """
+        buildFile """
             interface Bean {
                 Property<String> getName()
             }
@@ -399,7 +399,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "@Nested property constructor can use identity information"() {
-        buildFile << """
+        buildFile """
             abstract class Bean {
                 abstract Property<String> getName()
 
@@ -424,7 +424,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "can create instance of abstract class with mutable property"() {
-        buildFile << """
+        buildFile """
             abstract class Thing {
                 abstract String getValue()
                 abstract void setValue(String value)
@@ -443,7 +443,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "fails when construction parameters provided for interface"() {
-        buildFile << """
+        buildFile """
             interface Thing {
             }
 
@@ -457,7 +457,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "generates a display name for extension when it does not provide a toString() implementation"() {
-        buildFile << """
+        buildFile """
             class NoDisplayName { }
             class DisplayName {
                 String toString() { return "<display name>" }
@@ -517,7 +517,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "generates a display name for extension interface"() {
-        buildFile << """
+        buildFile """
             interface NoDisplayName { }
 
             def noDisplayName = extensions.create("no-name", NoDisplayName)
@@ -532,7 +532,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
 
     @Issue("https://github.com/gradle/gradle/issues/11466")
     def "extension toString() implementation can use toString() of managed property"() {
-        buildFile << """
+        buildFile """
             abstract class DisplayName {
                 abstract Property<String> getProp()
 
