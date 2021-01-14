@@ -39,6 +39,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeServices
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 
@@ -85,7 +86,10 @@ open class ConfigurationCacheIncludedBuildState(
                     settingsPreparer,
                     taskExecutionPreparer,
                     NullConfigurationCache,
-                    BuildOptionBuildOperationProgressEventsEmitter(gradle.serviceOf())
+                    BuildOptionBuildOperationProgressEventsEmitter(
+                        gradle.serviceOf(),
+                        serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem::class.java)
+                    )
                 )
             }
         )

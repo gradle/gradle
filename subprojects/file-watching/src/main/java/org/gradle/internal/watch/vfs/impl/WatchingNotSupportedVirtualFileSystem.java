@@ -47,6 +47,11 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
+    public boolean isWatchingFileSystem() {
+        return false;
+    }
+
+    @Override
     protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
         return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
     }

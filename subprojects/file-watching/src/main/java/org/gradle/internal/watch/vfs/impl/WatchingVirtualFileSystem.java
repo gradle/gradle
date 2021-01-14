@@ -72,6 +72,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
+    public boolean isWatchingFileSystem() {
+        return watchRegistry != null;
+    }
+
+    @Override
     protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
         if (watchRegistry == null) {
             return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);

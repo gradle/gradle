@@ -51,6 +51,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.invocation.DefaultGradle;
 
 import javax.annotation.Nullable;
@@ -190,7 +191,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             taskExecutionPreparer,
             gradle.getServices().get(ConfigurationCache.class),
             new BuildOptionBuildOperationProgressEventsEmitter(
-                gradle.getServices().get(BuildOperationProgressEventEmitter.class)
+                gradle.getServices().get(BuildOperationProgressEventEmitter.class),
+                serviceRegistry.get(BuildLifecycleAwareVirtualFileSystem.class)
             )
         );
     }
