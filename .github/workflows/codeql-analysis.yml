@@ -21,6 +21,11 @@ jobs:
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
     steps:
+    - name: Disable checksum offloading
+      # See: https://github.com/actions/virtual-environments/issues/1187#issuecomment-686735760
+      run: sudo ethtool -K eth0 tx off rx off
+      if: matrix.os == 'ubuntu-latest'
+
     - name: Checkout repository
       uses: actions/checkout@v2
 
@@ -50,7 +55,7 @@ jobs:
     - name: Compile with Gradle without Build Scan
       if: ${{ matrix.language != 'javascript' && github.repository_owner != 'gradle' }}
       run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -S testClasses
-    
+
     - name: Cleanup Gradle Daemons
       run: ./gradlew --stop
 
