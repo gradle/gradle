@@ -21,7 +21,9 @@ import org.junit.platform.engine.ExecutionRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestEngine;
 import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.support.descriptor.EngineDescriptor;
 import org.spockframework.runtime.SpockEngine;
+import org.spockframework.runtime.SpockEngineDescriptor;
 
 
 public class CrossVersionTestEngine implements TestEngine {
@@ -35,6 +37,9 @@ public class CrossVersionTestEngine implements TestEngine {
 
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
+        if (System.getProperty("org.gradle.integtest.versions") == null) {
+            return new EngineDescriptor(uniqueId, getId());
+        }
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             String toolingApiToLoad = System.getProperty("org.gradle.integtest.tooling-api-to-load");
@@ -50,7 +55,9 @@ public class CrossVersionTestEngine implements TestEngine {
 
     @Override
     public void execute(ExecutionRequest request) {
-        spockEngine.execute(request);
+        if (request.getRootTestDescriptor() instanceof SpockEngineDescriptor) {
+            spockEngine.execute(request);
+        }
     }
 
 }

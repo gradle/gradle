@@ -64,7 +64,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
                 this.systemProperties["org.gradle.integtest.tooling-api-to-load"] = targetVersion.version
                 this.systemProperties["org.gradle.integtest.currentVersion"] = moduleIdentity.version.get().version
                 this.useJUnitPlatform {
-                    excludeEngines("spock")
+                    includeEngines("cross-version-test-engine")
                 }
             }
             allVersionsCrossVersionTests.configure { dependsOn(crossVersionTestToCurrent) }
@@ -76,7 +76,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
             this.description = "Runs the cross-version tests from current Gradle towards ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.useJUnitPlatform {
-                excludeEngines("spock")
+                includeEngines("cross-version-test-engine")
             }
         }
 
