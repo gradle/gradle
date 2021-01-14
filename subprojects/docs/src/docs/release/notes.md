@@ -177,6 +177,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileSystemLocationProperty.fileProvider
         - org.gradle.api.file.Directory.files
         - org.gradle.api.file.DirectoryProperty.files
+    - Reporting
+        - org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroup()
+        - org.gradle.api.tasks.diagnostics.TaskReportTask.setDisplayGroup(String)
     - Miscellaneous
         - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
         - org.gradle.api.JavaVersion.VERSION_15
