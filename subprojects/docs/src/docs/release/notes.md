@@ -147,10 +147,17 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileSystemOperations
         - org.gradle.process.ExecOperations
     - [Lazy configuration](userguide/lazy_configuration.html)
-        - org.gradle.api.model.ObjectFactory.directoryProperty
-        - org.gradle.api.model.ObjectFactory.fileCollection
-        - org.gradle.api.model.ObjectFactory.fileProperty
-        - org.gradle.api.model.ObjectFactory.sourceDirectorySet
+        - org.gradle.api.model.ObjectFactory.directoryProperty()
+        - org.gradle.api.model.ObjectFactory.domainObjectContainer(Class)
+        - org.gradle.api.model.ObjectFactory.domainObjectContainer(Class, NamedDomainObjectFactory)
+        - org.gradle.api.model.ObjectFactory.domainObjectSet(Class)
+        - org.gradle.api.model.ObjectFactory.fileCollection()
+        - org.gradle.api.model.ObjectFactory.fileProperty()
+        - org.gradle.api.model.ObjectFactory.fileTree()
+        - org.gradle.api.model.ObjectFactory.namedDomainObjectList(Class<T>)
+        - org.gradle.api.model.ObjectFactory.namedDomainObjectSet(Class<T>)
+        - org.gradle.api.model.ObjectFactory.polymorphicDomainObjectContainer(Class<T>)
+        - org.gradle.api.model.ObjectFactory.sourceDirectorySet(String, String)
         - org.gradle.api.file.FileCollection.getElements
         - org.gradle.api.file.FileContents
         - org.gradle.api.provider.ProviderFactory.environmentVariable
