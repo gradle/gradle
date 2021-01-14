@@ -21,6 +21,13 @@ jobs:
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
     steps:
+    - name: Cache Gradle Modules
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches/modules-2/
+        key: ${{ runner.os }}-gradle-cache }}
+
     - name: Disable checksum offloading
       # See: https://github.com/actions/virtual-environments/issues/1187#issuecomment-686735760
       run: sudo ethtool -K eth0 tx off rx off
@@ -46,14 +53,14 @@ jobs:
 
     - name: Compile with Gradle with Build Scan
       if: ${{ matrix.language != 'javascript' && github.repository_owner == 'gradle' }}
-      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses
+      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -S testClasses
       env:
         # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
 
     - name: Compile with Gradle without Build Scan
       if: ${{ matrix.language != 'javascript' && github.repository_owner != 'gradle' }}
-      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -S testClasses
+      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -S testClasses
 
     - name: Cleanup Gradle Daemons
       run: ./gradlew --stop
@@ -71,3 +78,9 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
+
+    - name: Cleanup Gradle Cache
+      # Cleans up the Gradle caches before being cached
+      run: |
+        rm -f ~/.gradle/caches/modules-2/modules-2.lock
+        rm -f ~/.gradle/caches/modules-2/gc.properties
