@@ -88,8 +88,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
         @Override
         public void execute(@Nonnull String testClassName) {
-            Class<?> klass = loadClass(testClassName);
-            if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
+            if (shouldBeExcluded(testClassName)) {
                 return;
             }
             testClasses.add(testClassName);
@@ -102,11 +101,19 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
+    private boolean shouldBeExcluded(String className) {
+        if (!className.contains("$")) {
+            return false;
+        }
+        Class<?> isolatedClass = loadIsolatedClass(className);
+        return isInnerClass(isolatedClass) || isNestedClassInsideEnclosedRunner(isolatedClass);
+    }
+
     private boolean isInnerClass(Class<?> klass) {
         return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
     }
 
-    private Class<?> loadClass(String className) {
+    private Class<?> loadIsolatedClass(String className) {
         try {
             ClassLoader isolatedClassLoader = new URLClassLoader(new URL[0], Thread.currentThread().getContextClassLoader());
             return Class.forName(className, false, isolatedClassLoader);

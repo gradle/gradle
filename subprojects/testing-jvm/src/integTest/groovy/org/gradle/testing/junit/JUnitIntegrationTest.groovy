@@ -481,7 +481,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         if (isVintage() || isJupiter()) {
             result.testClassStartsWith('Gradle Test Executor')
                 .assertTestCount(1, 1, 0)
-                .assertTestFailed("failed to execute tests", containsString("Could not execute test class 'com.example.Foo'"))
+                .assertTestFailed("failed to execute tests", containsString("Could not complete execution for Gradle Test Executor"))
         } else {
             result.testClass('com.example.Foo')
                 .assertTestCount(1, 1, 0)
