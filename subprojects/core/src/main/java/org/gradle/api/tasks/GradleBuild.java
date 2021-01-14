@@ -16,7 +16,6 @@
 package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ConventionTask;
@@ -166,7 +165,6 @@ public class GradleBuild extends ConventionTask {
      * @return the build name to use for the nested build (or null if the default is to be used)
      * @since 6.0
      */
-    @Incubating
     @Internal
     public String getBuildName() {
         return buildName;
@@ -178,7 +176,6 @@ public class GradleBuild extends ConventionTask {
      * @param buildName the build name to use for the nested build
      * @since 6.0
      */
-    @Incubating
     public void setBuildName(String buildName) {
         this.buildName = buildName;
     }
