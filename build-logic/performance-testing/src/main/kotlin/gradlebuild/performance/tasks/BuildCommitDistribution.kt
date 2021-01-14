@@ -91,7 +91,6 @@ abstract class BuildCommitDistribution : DefaultTask() {
             if (remoteCache?.url != null) {
                 buildCommands.add("-Dgradle.cache.remote.url=${remoteCache.url}")
                 buildCommands.add("-Dgradle.cache.remote.username=${remoteCache.credentials.username}")
-                buildCommands.add("-Dgradle.cache.remote.password=${remoteCache.credentials.password}")
             }
         }
 

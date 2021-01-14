@@ -47,9 +47,7 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
-    "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-    "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%",
-    "-PteamCityToken" to "%teamcity.user.bot-gradle.token%"
+    "-Porg.gradle.performance.db.username" to "%performance.db.username%"
 ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
 const val individualPerformanceTestArtifactRules = """

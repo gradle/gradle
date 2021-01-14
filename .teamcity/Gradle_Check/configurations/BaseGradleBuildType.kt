@@ -13,5 +13,9 @@ open class BaseGradleBuildType(model: CIBuildModel, val stage: Stage? = null, us
 
     init {
         this.init()
+        params {
+            param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
+            param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
+        }
     }
 }
