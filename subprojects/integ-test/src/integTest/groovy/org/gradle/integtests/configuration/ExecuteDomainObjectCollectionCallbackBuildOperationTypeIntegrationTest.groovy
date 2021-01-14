@@ -203,7 +203,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         file('registration.gradle') << """
 
         """
-        buildFile << """
+        buildFile """
             class CallbackPlugin implements Plugin<Project> {
                 void apply(Project p) {
                     p.plugins.withType(RegisterPlugin) {
@@ -284,7 +284,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         file('registration.gradle') << """
 
         """
-        buildFile << """
+        buildFile """
             class CallbackPlugin implements Plugin<Project> {
                 void apply(Project p) {
                     p.afterEvaluate {

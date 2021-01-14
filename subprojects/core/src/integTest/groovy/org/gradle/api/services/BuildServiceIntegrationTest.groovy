@@ -45,7 +45,7 @@ import javax.inject.Inject
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
-        buildFile << """
+        buildFile """
             abstract class Consumer extends DefaultTask {
                 @Internal
                 abstract Property<CountingService> getCounter()

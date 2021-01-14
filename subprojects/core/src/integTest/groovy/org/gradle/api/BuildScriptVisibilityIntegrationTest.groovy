@@ -23,7 +23,7 @@ class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to descendant projects"() {
         settingsFile << "include 'child1'"
-        buildFile << """
+        buildFile """
 def doSomething(def value) {
     return "{" + value + "}"
 }

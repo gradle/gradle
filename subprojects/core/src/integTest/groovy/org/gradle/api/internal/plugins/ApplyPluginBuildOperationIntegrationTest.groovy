@@ -109,7 +109,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             include "a"
             include "b"
         """
-        buildFile << """
+        buildFile """
             class Plugin1 implements Plugin {
                 void apply(project) {
                     project.rootProject.project(":b").apply(plugin: Plugin2)
@@ -166,7 +166,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: PluginB
         """
-        buildFile << """
+        buildFile """
             class PluginRoot implements Plugin {
                 void apply(project) {
 

@@ -244,7 +244,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "reasonable error message if one of zipped provider has no value"() {
-        buildFile << """
+        buildFile """
             tasks.register("run") {
                 doLast {
                     def p1 = objects.property(String).convention("ok")
@@ -263,7 +263,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "zipped provider is live"() {
-        buildFile << """
+        buildFile """
             tasks.register("run") {
                 doLast {
                     def p1 = objects.property(String)

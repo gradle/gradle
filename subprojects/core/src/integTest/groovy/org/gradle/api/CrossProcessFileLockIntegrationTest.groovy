@@ -28,7 +28,7 @@ public class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec
         file("b/src/main/java/B.java") << "public class B {}"
 
         when:
-        buildFile << """
+        buildFile """
             def waitForStop() {
               def sanityWaitUntil = System.currentTimeMillis() + 120000
               println 'waiting for file...'

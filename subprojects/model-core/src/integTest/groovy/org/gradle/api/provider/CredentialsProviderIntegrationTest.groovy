@@ -29,7 +29,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         settingsFile << "rootProject.name='credentials-provider-test'"
-        buildFile << """
+        buildFile """
             abstract class TaskWithCredentials extends DefaultTask {
 
                 @Input
@@ -65,7 +65,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
     def "can execute a task when credentials are missing for task not in execution graph"() {
         when:
-        buildFile << """
+        buildFile """
             def firstTask = tasks.register('firstTask') {
             }
 

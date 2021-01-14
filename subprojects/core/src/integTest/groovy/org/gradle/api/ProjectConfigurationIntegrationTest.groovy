@@ -65,7 +65,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "shows deprecation warning when calling Project#afterEvaluate(Action) after the project was evaluated"() {
-        buildFile << '''
+        buildFile '''
             allprojects { p ->
                 println "[1] Adding afterEvaluate for $p.name"
                 p.afterEvaluate new Action<Project>() {

@@ -27,7 +27,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('files/b/ignore.txt').createFile()
         file('files/b/not one to IGNORE.txt').createFile()
         file('files/b/one.ignore').createFile()
-        buildFile << """
+        buildFile """
             def files = fileTree(dir: 'files')
             files.include('**/*one*')
             files.exclude('**/*ignore*')
@@ -82,7 +82,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('files/b/ignore.txt').createFile()
         file('files/b/IGNORE this.txt').createFile()
         file('files/b/one.ignore').createFile()
-        buildFile << """
+        buildFile """
             def files = fileTree(dir: 'files')
             files.include('**/*one*')
             files.exclude('**/*ignore*')
@@ -131,7 +131,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can include the elements of a tree using a Groovy closure spec"() {
-        buildFile << """
+        buildFile """
             class SomeTask extends DefaultTask {
                 @InputFiles
                 final ConfigurableFileTree sourceFiles = project.objects.fileTree()
@@ -194,7 +194,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can exclude the elements of a tree using a Groovy closure spec"() {
-        buildFile << """
+        buildFile """
             class SomeTask extends DefaultTask {
                 @InputFiles
                 final ConfigurableFileTree sourceFiles = project.objects.fileTree()
@@ -261,7 +261,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('files/a/one.txt').createFile()
         file('files/b/ignore.txt').createFile()
         file('files/b/one.ignore').createFile()
-        buildFile << """
+        buildFile """
             def files = fileTree(dir: 'files')
             files.include('**/*one*')
             def filtered = files.matching {

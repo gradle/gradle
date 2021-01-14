@@ -28,7 +28,7 @@ class UpToDateIntegTest extends AbstractIntegrationSpec {
 
     def "empty output directories created automatically are part of up-to-date checking"() {
         given:
-        buildFile << '''
+        buildFile '''
 apply plugin: 'base'
 
 task checkCreated {
@@ -73,7 +73,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
 
     @Issue("https://github.com/gradle/gradle/issues/13554")
     def "removing an empty output directory is detected even when it existed before the first task execution"() {
-        buildFile << """
+        buildFile """
             task createEmptyDir {
                 outputs.dir("empty")
                 doLast {

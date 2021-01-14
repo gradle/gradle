@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class GradleBuildScriptExecutionFromSubDirIntegTest extends AbstractIntegrationSpec {
 
     def "shouldn't create a gradle directory within the invocation directory"() {
-        buildFile << """
+        buildFile """
             tasks.register("checkDir") {
                 doLast {
                     println file("tmp/gradle")

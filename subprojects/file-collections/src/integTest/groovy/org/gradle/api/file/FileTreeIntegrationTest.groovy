@@ -24,7 +24,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('files/one.txt').createFile()
         file('files/a/two.txt').createFile()
         file('files/b/ignore.txt').createFile()
-        buildFile << """
+        buildFile """
             def files = fileTree(dir: 'files').minus(fileTree(dir: 'files/b'))
             task copy(type: Copy) {
                 from files
@@ -72,7 +72,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('files/b/ignore.txt').createFile()
         file('other/add-one.txt').createFile()
         file('other/a/add-two.txt').createFile()
-        buildFile << """
+        buildFile """
             def files = fileTree(dir: 'files').minus(fileTree(dir: 'files/b')).plus(fileTree(dir: 'other'))
             task copy(type: Copy) {
                 from files
@@ -128,7 +128,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('files/b/ignore.txt').createFile()
         file('other/other-one.txt').createFile()
         file('other/a/other-ignore.txt').createFile()
-        buildFile << """
+        buildFile """
             def files = fileTree(dir: 'files').plus(fileTree(dir: 'other')).filter {
                 println("checking \${it.name}")
                 !it.name.contains('ignore')
@@ -195,7 +195,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('files/b/wrong case.TXT').createFile()
         file('other/c/other-one.txt').createFile()
         file('other/c/other-ignore.txt').createFile()
-        buildFile << """
+        buildFile """
             def files = files('files', 'other').asFileTree.matching {
                 include("**/*.txt")
                 exclude("**/*ignore*")

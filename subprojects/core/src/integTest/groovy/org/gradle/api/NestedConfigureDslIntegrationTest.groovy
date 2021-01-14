@@ -79,7 +79,7 @@ tasks.help {
     }
 
     def "can read property from configure closure outer scope"() {
-        buildFile << """
+        buildFile """
 ext.prop = "value"
 tasks.help {
     println "1: " + prop
@@ -96,7 +96,7 @@ tasks.help {
     }
 
     def "can set property in configure closure outer scope"() {
-        buildFile << """
+        buildFile """
 ext.prop = "value 1"
 tasks.help {
     assert prop == "value 1"
@@ -114,7 +114,7 @@ assert prop == "value 3"
     }
 
     def "can read static property from configure closure outer scope"() {
-        buildFile << """
+        buildFile """
 class MyPlugin implements Plugin<Project> {
     static String prop = "value"
 

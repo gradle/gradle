@@ -107,7 +107,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
 
     def canAddMixinsToProject() {
 
-        file('build.gradle') << '''
+        buildFile '''
 convention.plugins.test = new ConventionBean()
 
 assert conventionProperty == 'convention'
@@ -125,7 +125,7 @@ class ConventionBean {
 
     def canAddExtensionsToProject() {
 
-        file('build.gradle') << '''
+        buildFile '''
 extensions.test = new ExtensionBean()
 
 assert test instanceof ExtensionBean
@@ -147,7 +147,7 @@ class ExtensionBean {
         file("gradle.properties") << '''
 global=some value
 '''
-        file("build.gradle") << '''
+        buildFile '''
 assert 'some value' == global
 assert hasProperty('global')
 assert 'some value' == property('global')
@@ -170,7 +170,7 @@ assert 'overridden value' == global
 
     def canAddDynamicPropertiesToCoreDomainObjects() {
 
-        file('build.gradle') << '''
+        buildFile '''
             class GroovyTask extends DefaultTask { }
 
             task defaultTask {
@@ -233,7 +233,7 @@ assert 'overridden value' == global
 
     def canAddMixInsToCoreDomainObjects() {
 
-        file('build.gradle') << '''
+        buildFile '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
 
@@ -288,7 +288,7 @@ assert 'overridden value' == global
 
     def canAddExtensionsToCoreDomainObjects() {
 
-        file('build.gradle') << '''
+        buildFile '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
 
@@ -343,7 +343,7 @@ assert 'overridden value' == global
 
     def mixesDslMethodsIntoCoreDomainObjects() {
 
-        file('build.gradle') << '''
+        buildFile '''
             class GroovyTask extends DefaultTask {
                 @Input
                 def String prop
@@ -370,7 +370,7 @@ assert 'overridden value' == global
     }
 
     def mixesConversionMethodsIntoDecoratedObjects() {
-        file('build.gradle') << '''
+        buildFile '''
             enum Letter { A, B, C }
             class SomeThing {
                 Letter letter
@@ -408,7 +408,7 @@ assert 'overridden value' == global
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddExtensionsToDynamicExtensions() {
 
-        file('build.gradle') << '''
+        buildFile '''
             class Extension {
                 String name
                 Extension(String name) {
@@ -435,7 +435,7 @@ assert 'overridden value' == global
 
     def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
         file("settings.gradle").writelns("include 'child1', 'child2'");
-        file("build.gradle") << """
+        buildFile """
             class Thing {
                 def prop1 = { it }
             }
@@ -457,7 +457,7 @@ assert 'overridden value' == global
     }
 
     def appliesTypeConversionForClosureParameters() {
-        file('build.gradle') << '''
+        buildFile '''
             enum Letter { A, B, C }
             ext.letter = null
             ext.m = { Letter l -> letter = l }
@@ -474,7 +474,7 @@ assert 'overridden value' == global
     def canInjectMethodsFromParentProject() {
 
         file("settings.gradle").writelns("include 'child1', 'child2'");
-        file("build.gradle") << """
+        buildFile """
             subprojects {
                 ext.useSomeProperty = { project.name }
                 ext.useSomeMethod = { file(it) }
@@ -495,7 +495,7 @@ assert 'overridden value' == global
 
     def canAddNewPropertiesViaTheAdhocNamespace() {
 
-        file("build.gradle") << """
+        buildFile """
             assert !hasProperty("p1")
 
             ext {
@@ -537,7 +537,7 @@ assert 'overridden value' == global
     }
 
     def canCallMethodWithClassArgumentType() {
-        buildFile << """
+        buildFile """
 interface Transformer {}
 
 class Impl implements Transformer {}
@@ -563,7 +563,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenTryingToCallMethodWithClassValue() {
-        buildFile << """
+        buildFile """
 interface Transformer {}
 
 class Impl implements Transformer {}
@@ -586,7 +586,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenGettingUnknownPropertyOnProject() {
-        buildFile << """
+        buildFile """
             assert !hasProperty("p1")
             println p1
         """
@@ -598,7 +598,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenSettingUnknownPropertyOnProject() {
-        buildFile << """
+        buildFile """
             assert !hasProperty("p1")
 
             p1 = 1
@@ -611,7 +611,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenInvokingUnknownMethodOnProject() {
-        buildFile << """
+        buildFile """
             unknown(12, "things")
         """
 
@@ -622,7 +622,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenGettingUnknownPropertyOnTask() {
-        buildFile << """
+        buildFile """
             task p
             assert !tasks.p.hasProperty("p1")
             println tasks.p.p1
@@ -635,7 +635,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenGettingUnknownPropertyOnDecoratedObject() {
-        buildFile << """
+        buildFile """
             class Thing {
             }
             def thing = objects.newInstance(Thing)
@@ -650,7 +650,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenGettingUnknownPropertyOnExtensionObject() {
-        buildFile << """
+        buildFile """
             class Thing {
             }
             extensions.add('thing', Thing)
@@ -665,7 +665,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenGettingUnknownPropertyOnExtensionObjectWithToStringImplementation() {
-        buildFile << """
+        buildFile """
             class Thing {
                 String toString() { "<thing>" }
             }
@@ -681,7 +681,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenGettingUnknownPropertyOnDecoratedObjectThatIsSubjectOfConfigureClosure() {
-        buildFile << """
+        buildFile """
             task p
             tasks.p {
                 assert !hasProperty("p1")
@@ -696,7 +696,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenSettingUnknownPropertyOnTask() {
-        buildFile << """
+        buildFile """
             task p
             assert !tasks.p.hasProperty("p1")
             tasks.p.p1 = 1
@@ -709,7 +709,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenSettingUnknownPropertyOnDecoratedObject() {
-        buildFile << """
+        buildFile """
             class Thing {
                 String toString() { "<thing>" }
             }
@@ -725,7 +725,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenSettingUnknownPropertyOnDecoratedObjectWhenSubjectOfConfigureClosure() {
-        buildFile << """
+        buildFile """
             task p
             tasks.p {
                 assert !hasProperty("p1")
@@ -740,7 +740,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenInvokingUnknownMethodOnDecoratedObject() {
-        buildFile << """
+        buildFile """
             task p
             tasks.p.unknown(12, "things")
         """
@@ -752,7 +752,7 @@ task print(type: MyTask) {
     }
 
     def failsWhenInvokingUnknownMethodOnDecoratedObjectWhenSubjectOfConfigureClosure() {
-        buildFile << """
+        buildFile """
             task p
             tasks.p {
                 unknown(12, "things")
@@ -766,7 +766,7 @@ task print(type: MyTask) {
     }
 
     def canApplyACategoryToDecoratedObject() {
-        buildFile << '''
+        buildFile '''
             class SomeCategory {
                 static String show(Project p, String val) {
                     "project $val path '$p.path'"
@@ -793,7 +793,7 @@ task print(type: MyTask) {
     }
 
     def canAddMethodsAndPropertiesToMetaClassOfDecoratedObject() {
-        buildFile << '''
+        buildFile '''
             class SomeTask extends DefaultTask {
             }
             class SomeExtension {
@@ -820,7 +820,7 @@ task print(type: MyTask) {
     @Issue("GRADLE-2163")
     def canDecorateBooleanPrimitiveProperties() {
 
-        file("build.gradle") << """
+        buildFile """
             class CustomBean {
                 boolean b
             }
@@ -843,7 +843,7 @@ task print(type: MyTask) {
     }
 
     def ignoresDynamicBehaviourOfMixIn() {
-        buildFile << """
+        buildFile """
             class DynamicThing {
                 def methods = [:]
                 def props = [:]
@@ -870,7 +870,7 @@ task print(type: MyTask) {
                 m1(1,2,3)
                 fail()
             } catch (MissingMethodException e) {
-                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type ${Project.name}."
+                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type \${Project.name}."
             }
 
             convention.plugins.test.p1 = 1
@@ -878,7 +878,7 @@ task print(type: MyTask) {
                 p1 = 2
                 fail()
             } catch (MissingPropertyException e) {
-                assert e.message == "Could not set unknown property 'p1' for root project 'test' of type ${Project.name}."
+                assert e.message == "Could not set unknown property 'p1' for root project 'test' of type \${Project.name}."
             }
 
             convention.plugins.test.p1 += 1
@@ -886,7 +886,7 @@ task print(type: MyTask) {
                 p1 += 1
                 fail()
             } catch (MissingPropertyException e) {
-                assert e.message == "Could not get unknown property 'p1' for root project 'test' of type ${Project.name}."
+                assert e.message == "Could not get unknown property 'p1' for root project 'test' of type \${Project.name}."
             }
         """
 
@@ -895,7 +895,7 @@ task print(type: MyTask) {
     }
 
     def canHaveDynamicDecoratedObject() {
-        buildFile << """
+        buildFile """
             class DynamicTask extends DefaultTask {
                 def methods = [:]
                 def props = [:]
@@ -939,7 +939,7 @@ task print(type: MyTask) {
 
     @Issue("GRADLE-2417")
     def canHaveDynamicExtension() {
-        buildFile << """
+        buildFile """
             class DynamicThing {
                 def methods = [:]
                 def props = [:]
@@ -981,7 +981,7 @@ task print(type: MyTask) {
     }
 
     def dynamicPropertiesOfDecoratedObjectTakePrecedenceOverDecorations() {
-        buildFile << """
+        buildFile """
             class DynamicTask extends DefaultTask {
                 def props = [:]
 
@@ -1021,7 +1021,7 @@ task print(type: MyTask) {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def findPropertyShouldReturnValueIfFound() {
-        buildFile << """
+        buildFile """
             task run {
                 doLast {
                     assert project.findProperty('foundProperty') == 'foundValue'
@@ -1036,7 +1036,7 @@ task print(type: MyTask) {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def findPropertyShouldReturnNullIfNotFound() {
-        buildFile << """
+        buildFile """
             task run {
                 doLast {
                     assert project.findProperty('notFoundProperty') == null

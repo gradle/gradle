@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "finalized file collection resolves locations and ignores later changes to source paths"() {
-        buildFile << """
+        buildFile """
             def files = objects.fileCollection()
             Integer counter = 0
             files.from { "a\${++counter}" }
@@ -48,7 +48,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "finalize on read file collection resolves locations and ignores later changes to source paths"() {
-        buildFile << """
+        buildFile """
             def files = objects.fileCollection()
             Integer counter = 0
             files.from { "a\${++counter}" }
@@ -75,7 +75,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "finalized file collection ignores later changes to nested file collections"() {
-        buildFile << """
+        buildFile """
             def nested = objects.fileCollection()
             def name = 'a'
             nested.from { name }
@@ -98,7 +98,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "finalized file collection still reflects changes to file system but not changes to locations"() {
-        buildFile << """
+        buildFile """
             def files = objects.fileCollection()
             def name = 'a'
             files.from {
@@ -124,7 +124,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "cannot mutate finalized file collection"() {
-        buildFile << """
+        buildFile """
             def files = objects.fileCollection()
             files.finalizeValue()
 
@@ -143,7 +143,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "can disallow changes to file collection without finalizing value"() {
-        buildFile << """
+        buildFile """
             def files = objects.fileCollection()
             def name = 'other'
             files.from { name }
@@ -170,7 +170,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     def "can write but cannot read strict project file collection instance before project configuration completes"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 ConfigurableFileCollection getProp()
             }
@@ -243,7 +243,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     def "can change value of strict file collection after project configuration completes and before the value has been read"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 ConfigurableFileCollection getProp()
             }
@@ -278,7 +278,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     def "cannot finalize a strict file collection before project configuration completes"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
-        buildFile << """
+        buildFile """
             interface ProjectModel {
                 ConfigurableFileCollection getProp()
             }
@@ -315,7 +315,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
 
     def "task @InputFiles file collection property is implicitly finalized and changes ignored when task starts execution"() {
         taskTypeWithInputFileCollection()
-        buildFile << """
+        buildFile """
             task merge(type: InputFilesTask) {
                 outFile = file("out.txt")
                 inFiles.from = "in.txt"
@@ -337,7 +337,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "task ad hoc input file collection property is implicitly finalized and changes ignored when task starts execution"() {
-        buildFile << """
+        buildFile """
             def files = project.files()
             def outFile = file("out.txt")
             task show {
