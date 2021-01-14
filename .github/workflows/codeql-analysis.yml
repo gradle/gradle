@@ -26,7 +26,7 @@ jobs:
       with:
         path: |
           ~/.gradle/caches/modules-2/
-        key: ${{ runner.os }}-gradle-cache }}
+        key: ${{ runner.os }}-gradle-cache
 
     - name: Disable checksum offloading
       # See: https://github.com/actions/virtual-environments/issues/1187#issuecomment-686735760
