@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.internal.file.Stat
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
@@ -42,7 +43,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new RelatedLocations(CASE_SENSITIVE), new RelatedLocations(CASE_SENSITIVE))
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new RelatedLocations(CASE_SENSITIVE, Stub(Stat)), new RelatedLocations(CASE_SENSITIVE, Stub(Stat)))
         _ * workerLease.tryLock() >> true
     }
 

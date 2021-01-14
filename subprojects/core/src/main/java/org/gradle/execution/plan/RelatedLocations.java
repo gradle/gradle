@@ -18,39 +18,104 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ChildMap;
 import org.gradle.internal.snapshot.ChildMapFactory;
 import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
-import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class RelatedLocations {
     private volatile RelatedLocation root;
+    private final Stat stat;
     private final CaseSensitivity caseSensitivity;
 
-    public RelatedLocations(CaseSensitivity caseSensitivity) {
+    public RelatedLocations(CaseSensitivity caseSensitivity, Stat stat) {
         this.caseSensitivity = caseSensitivity;
         this.root = new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(), caseSensitivity);
+        this.stat = stat;
     }
 
     public ImmutableSet<Node> getNodesRelatedTo(String location) {
+        return getNodesRelatedTo(location, null);
+    }
+
+    public ImmutableSet<Node> getNodesRelatedTo(String location, @Nullable Spec<FileTreeElement> filter) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
+        NodeVisitor nodeVisitor = filter == null
+            ? new NodeVisitor() {
+            @Override
+            public void visitExact(Node node) {
+                builder.add(node);
+            }
+
+            @Override
+            public void visitAncestor(Node node) {
+                builder.add(node);
+            }
+
+            @Override
+            public void visitChildren(Iterable<Node> nodes, Supplier<String> relativePathSupplier) {
+                builder.addAll(nodes);
+            }
+        } : new NodeVisitor() {
+            @Override
+            public void visitExact(Node node) {
+                builder.add(node);
+            }
+
+            @Override
+            public void visitAncestor(Node node) {
+                builder.add(node);
+            }
+
+            @Override
+            public void visitChildren(Iterable<Node> nodes, Supplier<String> relativePathSupplier) {
+                String relativePathFromLocation = relativePathSupplier.get();
+                if (filter.isSatisfiedBy(new LocationFileTreeElement(new File(location + "/" + relativePathFromLocation).getAbsolutePath(), relativePathFromLocation, stat))) {
+                    builder.addAll(nodes);
+                }
+            }
+        };
         if (relativePath.length() == 0) {
-            root.visitNodes(builder::add);
+            root.visitNodes(nodeVisitor);
         } else {
-            root.visitNodes(relativePath, builder::add);
+            root.visitNodes(relativePath, nodeVisitor);
         }
         return builder.build();
     }
 
-    public synchronized void recordRelatedToNode(Node node, Iterable<String> locationsRelatedToNode) {
+    private interface NodeVisitor {
+        void visitExact(Node node);
+        void visitAncestor(Node node);
+        void visitChildren(Iterable<Node> nodes, Supplier<String> relativePathSupplier);
+    }
+
+    public synchronized void recordRelatedToNode(Iterable<String> locationsRelatedToNode, Node node) {
         for (String location : locationsRelatedToNode) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
-            root = root.recordRelatedToNode(relativePath, node);
+            root = root.recordRelatedToNode(relativePath, new DefaultRelatedNode(node));
         }
+    }
+
+    public synchronized void recordFileTreeRelatedToNode(String locationRelatedToNode, Node node, Spec<FileTreeElement> spec) {
+        VfsRelativePath relativePath = VfsRelativePath.of(locationRelatedToNode);
+        root = root.recordRelatedToNode(relativePath, new FilteredRelatedNode(node, spec));
     }
 
     public synchronized void clear() {
@@ -59,37 +124,45 @@ public class RelatedLocations {
 
     private static final class RelatedLocation {
         private final ChildMap<RelatedLocation> children;
-        private final ImmutableList<Node> relatedNodes;
+        private final ImmutableList<RelatedNode> relatedNodes;
         private final CaseSensitivity caseSensitivity;
 
-        private RelatedLocation(ChildMap<RelatedLocation> children, ImmutableList<Node> relatedNodes, CaseSensitivity caseSensitivity) {
+        private RelatedLocation(ChildMap<RelatedLocation> children, ImmutableList<RelatedNode> relatedNodes, CaseSensitivity caseSensitivity) {
             this.children = children;
             this.relatedNodes = relatedNodes;
             this.caseSensitivity = caseSensitivity;
         }
 
-        public ImmutableList<Node> getNodes() {
+        public ImmutableList<RelatedNode> getNodes() {
             return relatedNodes;
         }
 
-        public void visitNodes(VfsRelativePath relatedToLocation, Consumer<Node> nodeConsumer) {
-            relatedNodes.forEach(nodeConsumer);
+        public void visitNodes(VfsRelativePath relatedToLocation, NodeVisitor visitor) {
+            relatedNodes.forEach(relatedNode -> {
+                if (relatedNode.relatedToLocation(relatedToLocation)) {
+                    visitor.visitAncestor(relatedNode.getNode());
+                }
+            });
             children.withNode(relatedToLocation, caseSensitivity, new ChildMap.NodeHandler<RelatedLocation, String>() {
                 @Override
                 public String handleAsDescendantOfChild(VfsRelativePath pathInChild, RelatedLocation child) {
-                    child.visitNodes(pathInChild, nodeConsumer);
+                    child.visitNodes(pathInChild, visitor);
                     return "";
                 }
 
                 @Override
-                public String handleAsAncestorOfChild(String childPath, RelatedLocation child) {
-                    child.visitNodes(nodeConsumer);
+                public String handleAsAncestorOfChild(String childPathFromAncestor, RelatedLocation child) {
+                    visitor.visitChildren(
+                        child.getNodes().stream().map(RelatedNode::getNode).collect(Collectors.toList()),
+                        () -> childPathFromAncestor.substring(relatedToLocation.length() + 1));
+                    child.visitAllChildren((nodes, relativePath) ->
+                        visitor.visitChildren(nodes, () -> childPathFromAncestor.substring(relatedToLocation.length() + 1) + "/" + relativePath.get()));
                     return "";
                 }
 
                 @Override
                 public String handleExactMatchWithChild(RelatedLocation child) {
-                    child.visitNodes(nodeConsumer);
+                    child.visitNodes(visitor);
                     return "";
                 }
 
@@ -100,16 +173,26 @@ public class RelatedLocations {
             });
         }
 
-        public void visitNodes(Consumer<Node> nodeConsumer) {
-            getNodes().forEach(nodeConsumer);
-            children.visitChildren((__, child) -> child.visitNodes(nodeConsumer));
+        public void visitNodes(NodeVisitor nodeVisitor) {
+            getNodes().forEach(relatedNode -> nodeVisitor.visitExact(relatedNode.getNode()));
+            visitAllChildren(nodeVisitor::visitChildren);
         }
 
-        public RelatedLocation recordRelatedToNode(VfsRelativePath locationRelatedToNode, Node node) {
+        public void visitAllChildren(BiConsumer<Iterable<Node>, Supplier<String>> childConsumer) {
+            children.visitChildren((childPath, child) -> {
+                childConsumer.accept(
+                    child.getNodes().stream().map(RelatedNode::getNode).collect(Collectors.toList()),
+                    () -> childPath
+                );
+                child.visitAllChildren((grandChildren, relativePath) -> childConsumer.accept(grandChildren, () -> childPath + "/" + relativePath));
+            });
+        }
+
+        public RelatedLocation recordRelatedToNode(VfsRelativePath locationRelatedToNode, RelatedNode node) {
             if (locationRelatedToNode.length() == 0) {
                 return new RelatedLocation(
                     children,
-                    ImmutableList.<Node>builderWithExpectedSize(relatedNodes.size() + 1)
+                    ImmutableList.<RelatedNode>builderWithExpectedSize(relatedNodes.size() + 1)
                         .addAll(relatedNodes)
                         .add(node)
                         .build(),
@@ -130,7 +213,7 @@ public class RelatedLocations {
 
                 @Override
                 public RelatedLocation mergeWithExisting(RelatedLocation child) {
-                    return new RelatedLocation(child.getChildren(), ImmutableList.<Node>builderWithExpectedSize(child.getNodes().size() + 1).addAll(child.getNodes()).add(node).build(), caseSensitivity);
+                    return new RelatedLocation(child.getChildren(), ImmutableList.<RelatedNode>builderWithExpectedSize(child.getNodes().size() + 1).addAll(child.getNodes()).add(node).build(), caseSensitivity);
                 }
 
                 @Override
@@ -143,11 +226,128 @@ public class RelatedLocations {
                     return new RelatedLocation(children, ImmutableList.of(), caseSensitivity);
                 }
             });
-            return new RelatedLocation(newChildren, ImmutableList.of(), caseSensitivity);
+            return new RelatedLocation(newChildren, relatedNodes, caseSensitivity);
         }
 
         public ChildMap<RelatedLocation> getChildren() {
             return children;
+        }
+    }
+
+    private interface RelatedNode {
+        Node getNode();
+        boolean relatedToLocation(VfsRelativePath relativePath);
+    }
+
+    private static class DefaultRelatedNode implements RelatedNode {
+
+        private final Node node;
+
+        public DefaultRelatedNode(Node node) {
+            this.node = node;
+        }
+
+        @Override
+        public Node getNode() {
+            return node;
+        }
+
+        @Override
+        public boolean relatedToLocation(VfsRelativePath relativePath) {
+            return true;
+        }
+    }
+
+    private class FilteredRelatedNode implements RelatedNode {
+        private final Node node;
+        private final Spec<FileTreeElement> spec;
+
+        public FilteredRelatedNode(Node node, Spec<FileTreeElement> spec) {
+            this.node = node;
+            this.spec = spec;
+        }
+
+        @Override
+        public Node getNode() {
+            return node;
+        }
+
+        @Override
+        public boolean relatedToLocation(VfsRelativePath relativePath) {
+            return spec.isSatisfiedBy(new LocationFileTreeElement(relativePath.getAbsolutePath(), relativePath.getAsString(), stat));
+        }
+    }
+
+    private static class LocationFileTreeElement implements FileTreeElement {
+        private final File file;
+        private final boolean isFile;
+        private final String relativePath;
+        private final Stat stat;
+
+        public LocationFileTreeElement(String absolutePath, String relativePath, Stat stat) {
+            this.file = new File(absolutePath);
+            this.isFile = file.isFile();
+            this.relativePath = relativePath;
+            this.stat = stat;
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return !isFile;
+        }
+
+        @Override
+        public long getLastModified() {
+            return getFile().lastModified();
+        }
+
+        @Override
+        public long getSize() {
+            return getFile().length();
+        }
+
+        @Override
+        public InputStream open() {
+            try {
+                return Files.newInputStream(file.toPath());
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        @Override
+        public void copyTo(OutputStream output) {
+            throw new UnsupportedOperationException("Copy to not supported for filters");
+        }
+
+        @Override
+        public boolean copyTo(File target) {
+            throw new UnsupportedOperationException("Copy to not supported for filters");
+        }
+
+        @Override
+        public String getName() {
+            return file.getName();
+        }
+
+        @Override
+        public String getPath() {
+            return getRelativePath().getPathString();
+        }
+
+        @Override
+        public RelativePath getRelativePath() {
+            return RelativePath.parse(isFile, relativePath);
+        }
+
+        @Override
+        public int getMode() {
+            return stat.getUnixMode(file);
         }
     }
 }

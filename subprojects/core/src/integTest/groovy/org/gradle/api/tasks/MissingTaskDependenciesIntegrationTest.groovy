@@ -22,12 +22,6 @@ import spock.lang.Unroll
 @Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String DEPRECATION_WARNING = "Task ':consumer' uses the output of task ':producer', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task ':producer' as an input). " +
-        "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
-        "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-        "Execution optimizations are disabled due to the failed validation. " +
-        "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
             task producer {
@@ -51,12 +45,12 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(DEPRECATION_WARNING)
+        expectMissingDependencyDeprecation(":producer", ":consumer")
         then:
         succeeds("producer", "consumer")
 
         when:
-        executer.expectDocumentedDeprecationWarning(DEPRECATION_WARNING)
+        expectMissingDependencyDeprecation(":producer", ":consumer")
         then:
         succeeds("consumer", "producer")
 
@@ -199,7 +193,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning(DEPRECATION_WARNING)
+        expectMissingDependencyDeprecation(":producer", ":consumer")
         succeeds("producer", "consumer")
     }
 
@@ -223,7 +217,82 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning(DEPRECATION_WARNING)
+        expectMissingDependencyDeprecation(":producer", ":consumer")
         succeeds("producer", "consumer")
+    }
+
+    def "can have tasks which consume a filtered project directory"() {
+        file("src/main/java/MyClass.java").createFile()
+        buildFile << """
+            task firstTask {
+                def outputFile = file("build/output1.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "first"
+                }
+            }
+            task lastTask {
+                def outputFile = file("build/output2.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "last"
+                }
+            }
+            task packageProjectDir(type: Zip) {
+                from(project.projectDir) {
+                    include 'src/**'
+                }
+                destinationDirectory = file("build")
+                archiveBaseName = "output3"
+            }
+        """
+
+        when:
+        run("firstTask", "packageProjectDir", "lastTask")
+        then:
+        executedAndNotSkipped(":firstTask", ":packageProjectDir", ":lastTask")
+    }
+
+    def "detects filtered trees with missing dependencies"() {
+        file("src/main/java/MyClass.java").createFile()
+        buildFile << """
+            task firstTask {
+                def outputFile = file("build/output1.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "first"
+                }
+            }
+            task lastTask {
+                def outputFile = file("build/output2.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = "last"
+                }
+            }
+            task packageProjectDir(type: Zip) {
+                from(project.projectDir) {
+                    include 'build/**'
+                }
+                destinationDirectory = file("build")
+                archiveBaseName = "output3"
+            }
+        """
+
+        when:
+        expectMissingDependencyDeprecation(":firstTask", ":packageProjectDir")
+        expectMissingDependencyDeprecation(":lastTask", ":packageProjectDir")
+        run("firstTask", "packageProjectDir", "lastTask")
+        then:
+        executedAndNotSkipped(":firstTask", ":packageProjectDir", ":lastTask")
+    }
+
+    void expectMissingDependencyDeprecation(String producer, String consumer) {
+        executer.expectDocumentedDeprecationWarning(
+            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '${producer}' as an input). " +
+                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
+                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 }

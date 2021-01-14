@@ -653,7 +653,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (!mutations.resolved) {
             node.resolveMutations();
             mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
-            producedLocations.recordRelatedToNode(node, mutations.outputPaths);
+            producedLocations.recordRelatedToNode(mutations.outputPaths, node);
         }
         return mutations;
     }
