@@ -16,7 +16,6 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 5.6
  */
-@Incubating
 @HasInternalProtocol
 public interface WorkerSpec {
 }

@@ -16,14 +16,11 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
-
 /**
  * A worker spec providing the requirements of a forked process with a custom classpath.
  *
  * @since 5.6
  */
-@Incubating
 public interface ProcessWorkerSpec extends ForkingWorkerSpec, ClassLoaderWorkerSpec {
 
 }
