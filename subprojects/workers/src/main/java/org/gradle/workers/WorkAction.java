@@ -16,8 +16,6 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
-
 import javax.inject.Inject;
 
 /**
@@ -56,7 +54,6 @@ import javax.inject.Inject;
  * @param <T> Parameter type for the work action. Should be {@link WorkParameters.None} if the action does not have parameters.
  * @since 5.6
  **/
-@Incubating
 public interface WorkAction<T extends WorkParameters> {
     /**
      * The parameters associated with a concrete work item.

@@ -17,7 +17,6 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -56,7 +55,6 @@ public interface WorkerExecutor {
      * in the {@link WorkerConfiguration}.  If no idle daemons are available, a new daemon will be started.  Any errors
      * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
      */
-    @Deprecated
     void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction);
 
     /**
@@ -64,7 +62,6 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
-    @Incubating
     WorkQueue noIsolation();
 
     /**
@@ -72,7 +69,6 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
-    @Incubating
     WorkQueue classLoaderIsolation();
 
     /**
@@ -82,7 +78,6 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
-    @Incubating
     WorkQueue processIsolation();
 
     /**
@@ -90,7 +85,6 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
-    @Incubating
     WorkQueue noIsolation(Action<? super WorkerSpec> action);
 
     /**
@@ -98,7 +92,6 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
-    @Incubating
     WorkQueue classLoaderIsolation(Action<? super ClassLoaderWorkerSpec> action);
 
     /**
@@ -108,7 +101,6 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
-    @Incubating
     WorkQueue processIsolation(Action<? super ProcessWorkerSpec> action);
 
     /**

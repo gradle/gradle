@@ -184,6 +184,22 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileSystemLocationProperty.fileProvider
         - org.gradle.api.file.Directory.files
         - org.gradle.api.file.DirectoryProperty.files
+    - [Worker API](userguide/worker_api.html)
+        - org.gradle.workers.ClassLoaderWorkerSpec
+        - org.gradle.workers.ForkingWorkerSpec
+        - org.gradle.workers.ProcessWorkerSpec
+        - org.gradle.workers.WorkAction
+        - org.gradle.workers.WorkParameters
+        - org.gradle.workers.WorkParameters.None
+        - org.gradle.workers.WorkQueue
+        - org.gradle.workers.WorkerExecutor.submit(Class actionClass, Action);
+        - org.gradle.workers.WorkerExecutor.classLoaderIsolation()
+        - org.gradle.workers.WorkerExecutor.classLoaderIsolation(Action)
+        - org.gradle.workers.WorkerExecutor.noIsolation()
+        - org.gradle.workers.WorkerExecutor.noIsolation(Action)
+        - org.gradle.workers.WorkerExecutor.processIsolation()
+        - org.gradle.workers.WorkerExecutor.processIsolation(Action)
+        - org.gradle.workers.WorkerSpec
     - Reporting
         - org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroup()
         - org.gradle.api.tasks.diagnostics.TaskReportTask.setDisplayGroup(String)
@@ -319,7 +335,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
         - org.gradle.api.tasks.SourceSetOutput.getGeneratedSourcesDirs()
         - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
-      - Java Module System
+    - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
         - org.gradle.api.plugins.JavaPluginExtension.getModularity()
@@ -349,7 +365,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.compile.GroovyCompile.getSourceClassesMappingFile()
         - org.gradle.api.tasks.compile.GroovyCompileOptions.isParameters()
         - org.gradle.api.tasks.compile.GroovyCompileOptions.setParameters(boolean)
-  - Scala
+    - Scala
         - org.gradle.api.plugins.scala.ScalaBasePlugin.SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME
         - org.gradle.api.plugins.scala.ScalaPluginExtension
         - org.gradle.api.tasks.scala.ScalaCompile.getScalaCompilerPlugins()
