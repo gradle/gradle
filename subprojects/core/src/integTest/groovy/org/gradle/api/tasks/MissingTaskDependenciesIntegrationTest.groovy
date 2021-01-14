@@ -22,7 +22,11 @@ import spock.lang.Unroll
 @Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String DEPRECATION_WARNING = ":consumer consumes the output of :producer, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+    private static final String DEPRECATION_WARNING = "Task ':consumer' uses the output of task ':producer', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task ':producer' as an input). " +
+        "This will cause correctness issues, depending on what order the tasks are executed. " +
+        "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+        "Execution optimizations are disabled due to the failed validation. " +
+        "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
 
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
