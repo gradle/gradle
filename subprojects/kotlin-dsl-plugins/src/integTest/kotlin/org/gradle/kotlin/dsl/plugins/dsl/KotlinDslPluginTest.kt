@@ -292,6 +292,46 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         }
     }
 
+
+    @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    fun `by default experimental Kotlin compiler features are enabled and a warning is issued when allWarningsAsErrors is true`() {
+
+        withBuildExercisingSamConversionForKotlinFunctions(
+            """
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                kotlinOptions {
+                    allWarningsAsErrors = true
+                }
+            }
+            """.trimIndent()
+        )
+
+        build("test").apply {
+
+            assertThat(
+                output.also(::println),
+                containsMultiLineString(
+                    """
+                    STRING
+                    foo
+                    bar
+                    """
+                )
+            )
+
+            assertThat(
+                output + error,
+                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
+            )
+
+            assertThat(
+                output + error,
+                containsString(experimentalWarningFor(":buildSrc"))
+            )
+        }
+    }
+
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can explicitly disable experimental Kotlin compiler features warning`() {
@@ -320,6 +360,47 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             assertThat(
                 output,
+                not(containsString(experimentalWarningFor(":buildSrc")))
+            )
+        }
+    }
+
+    @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    fun `can explicitly disable experimental Kotlin compiler features warning when allWarningsAsErrors is true`() {
+
+        withBuildExercisingSamConversionForKotlinFunctions(
+            """
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                kotlinOptions {
+                    allWarningsAsErrors = true
+                }
+            }
+
+            kotlinDslPluginOptions.experimentalWarning.set(false)
+            """.trimIndent()
+        )
+
+        build("test").apply {
+
+            assertThat(
+                output.also(::println),
+                containsMultiLineString(
+                    """
+                    STRING
+                    foo
+                    bar
+                    """
+                )
+            )
+
+            assertThat(
+                output + error,
+                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
+            )
+
+            assertThat(
+                output + error,
                 not(containsString(experimentalWarningFor(":buildSrc")))
             )
         }
@@ -358,7 +439,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             package my
 
             // Action<T> is a SAM with receiver
-            fun <T> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
+            fun <T : Any> applyActionTo(value: T, action: org.gradle.api.Action<T>): Unit = action.execute(value)
 
             // NamedDomainObjectFactory<T> is a regular SAM
             fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
