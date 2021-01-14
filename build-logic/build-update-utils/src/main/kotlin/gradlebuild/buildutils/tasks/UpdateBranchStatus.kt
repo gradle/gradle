@@ -19,7 +19,6 @@ package gradlebuild.buildutils.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.Project
-import org.gradle.api.provider.ProviderFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -41,7 +40,7 @@ abstract class UpdateBranchStatus : DefaultTask() {
     private
     fun publishBranchStatus(branch: String) {
         println("Publishing branch status of $branch")
-        project.execAndGetStdout("git", "push", "https://bot-teamcity:${project.providers.environmentVariable("BOT_TEAMCITY_GITHUB_TOKEN").forUseAtConfigurationTime().get()}@github.com/gradle/gradle.git", "$branch:green-$branch")
+        project.execAndGetStdout("git", "push", "https://bot-teamcity:${System.getenv("BOT_TEAMCITY_GITHUB_TOKEN")}@github.com/gradle/gradle.git", "$branch:green-$branch")
     }
 
     private
