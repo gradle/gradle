@@ -21,10 +21,12 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
+@Ignore
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["mediumSwiftMulti", "bigSwiftApp"])
 )
