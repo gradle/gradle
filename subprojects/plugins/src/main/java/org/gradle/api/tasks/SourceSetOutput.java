@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 import javax.annotation.Nullable;
@@ -160,6 +159,5 @@ public interface SourceSetOutput extends FileCollection {
      * @return The generated sources directories. Never returns null.
      * @since 5.2
      */
-    @Incubating
     FileCollection getGeneratedSourcesDirs();
 }
