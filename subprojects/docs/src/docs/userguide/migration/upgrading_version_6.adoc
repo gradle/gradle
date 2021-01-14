@@ -65,6 +65,15 @@ You should use the `maven-publish` plugin instead.
 
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for more details.
 
+==== Removal of the `uploadArchives` task
+
+The `uploadArchives` task was used in combination with the legacy Ivy or Maven publishing mechanisms.
+It has been removed in Gradle 7.
+You should migrate to the `maven-publish` or `ivy-publish` plugin instead.
+
+Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for publishing on Maven repositories.
+Please refer to the <<publishing_ivy.adoc#publishing_maven, documentation of the Ivy Publish plugin>> for publishing on Maven repositories.
+
 ==== The Play plugins have been removed
 
 The deprecated Play plugins have been removed.
