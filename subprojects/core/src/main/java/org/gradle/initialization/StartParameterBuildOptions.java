@@ -304,7 +304,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 LONG_OPTION,
                 "Enables watching the file system for changes, allowing data about the file system to be re-used for the next build.",
                 "Disables watching the file system."
-            ).incubating());
+            ));
         }
 
         @Override
