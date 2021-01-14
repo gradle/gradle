@@ -54,6 +54,8 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
+    private static ClassLoader ISOLATED_CLASSLOADER;
+
     private CollectAllTestClassesExecutor testClassExecutor;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -101,22 +103,28 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private boolean shouldBeExcluded(String className) {
-        if (!className.contains("$")) {
+    private static boolean shouldBeExcluded(String className) {
+        if (!isInnerClassName(className)) {
             return false;
         }
         Class<?> isolatedClass = loadIsolatedClass(className);
         return isInnerClass(isolatedClass) || isNestedClassInsideEnclosedRunner(isolatedClass);
     }
 
-    private boolean isInnerClass(Class<?> klass) {
+    private static boolean isInnerClassName(String className) {
+        return className.contains("$");
+    }
+
+    private static boolean isInnerClass(Class<?> klass) {
         return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
     }
 
-    private Class<?> loadIsolatedClass(String className) {
+    private static Class<?> loadIsolatedClass(String className) {
+        if (ISOLATED_CLASSLOADER == null) {
+            ISOLATED_CLASSLOADER = new URLClassLoader(new URL[0], Thread.currentThread().getContextClassLoader());
+        }
         try {
-            ClassLoader isolatedClassLoader = new URLClassLoader(new URL[0], Thread.currentThread().getContextClassLoader());
-            return Class.forName(className, false, isolatedClassLoader);
+            return Class.forName(className, false, ISOLATED_CLASSLOADER);
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
