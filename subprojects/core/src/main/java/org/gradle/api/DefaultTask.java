@@ -278,7 +278,7 @@ public class DefaultTask extends org.gradle.api.internal.AbstractTask implements
     }
 
     @Override
-    public org.gradle.logging.LoggingManagerInternal getLogging() {
+    public org.gradle.api.logging.LoggingManager getLogging() {
         return super.getLogging();
     }
 
