@@ -108,8 +108,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         }
         // Generate external jar with entries in alphabetical order
         def externalJar = file('build/libs/external.jar')
-        executer.expectDocumentedDeprecationWarning(":a:compileJava consumes the output of :alphabetic, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        executer.expectDocumentedDeprecationWarning(":a:javadoc consumes the output of :alphabetic, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectMissingDependencyDeprecation(":alphabetic", ":a:compileJava")
+        expectMissingDependencyDeprecation(":alphabetic", ":a:javadoc")
         succeeds("alphabetic", ":a:javadoc")
         new ZipTestFixture(externalJar).hasDescendantsInOrder('META-INF/MANIFEST.MF', 'a', 'b', 'c', 'd')
 
@@ -156,8 +156,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             file("external/$it").touch()
         }
         // Generate external jar with entries with a current timestamp
-        executer.expectDocumentedDeprecationWarning(":a:compileJava consumes the output of :currentTime, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        executer.expectDocumentedDeprecationWarning(":a:javadoc consumes the output of :currentTime, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectMissingDependencyDeprecation(":currentTime", ":a:compileJava")
+        expectMissingDependencyDeprecation(":currentTime", ":a:javadoc")
         succeeds("currentTime", ":a:javadoc")
         def oldHash = externalJar.md5Hash
         when:
@@ -199,8 +199,8 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         duplicate.text = "duplicate"
 
         // Generate external jar with entries with a duplicate 'a' file
-        executer.expectDocumentedDeprecationWarning(":a:compileJava consumes the output of :duplicate, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        executer.expectDocumentedDeprecationWarning(":a:javadoc consumes the output of :duplicate, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectMissingDependencyDeprecation(":duplicate", ":a:compileJava")
+        expectMissingDependencyDeprecation(":duplicate", ":a:javadoc")
         succeeds("duplicate", ":a:javadoc")
         def oldHash = externalJar.md5Hash
 
@@ -257,5 +257,14 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":a:javadoc")
         file("a/build/docs/javadoc/A.html").isFile()
         !file("a/build/docs/javadoc/AA.html").isFile()
+    }
+
+    void expectMissingDependencyDeprecation(String producer, String consumer) {
+        executer.expectDocumentedDeprecationWarning(
+            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '${producer}' as an input). " +
+            "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+            "Execution optimizations are disabled due to the failed validation. " +
+            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
     }
 }

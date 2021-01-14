@@ -22,7 +22,11 @@ import spock.lang.Unroll
 @Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String DEPRECATION_WARNING = ":consumer consumes the output of :producer, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+    private static final String DEPRECATION_WARNING = "Task ':consumer' uses the output of task ':producer', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task ':producer' as an input). " +
+        "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
+        "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+        "Execution optimizations are disabled due to the failed validation. " +
+        "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
 
     def "detects missing dependency between two tasks (#description)"() {
         buildFile << """
@@ -61,6 +65,42 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         "same location"        | "file(outputFile)" | "output.txt"               | "output.txt"
         "consuming ancestor"   | "file(outputFile)" | "build/dir/sub/output.txt" | "build/dir"
         "consuming descendant" | "dir('build/dir')" | "build/dir/sub/output.txt" | "build/dir/sub/output.txt"
+    }
+
+    def "ignores missing dependency if there is an #relation relation in the other direction"() {
+        def sourceDir = "src"
+        file(sourceDir).createDir()
+        def outputDir = "build/output"
+
+        buildFile << """
+            task firstTask {
+                inputs.dir("${sourceDir}")
+                def outputDir = file("${outputDir}")
+                outputs.dir(outputDir)
+                doLast {
+                    new File(outputDir, "source").text = "fixed"
+                }
+            }
+
+            task secondTask {
+                def inputDir = file("${outputDir}")
+                def outputDir = file("${sourceDir}")
+                inputs.dir(inputDir)
+                outputs.dir(outputDir)
+                doLast {
+                    new File(outputDir, "source").text = "fixed"
+                }
+            }
+
+            secondTask.${relation}(firstTask)
+        """
+
+        expect:
+        succeeds("firstTask", "secondTask")
+        succeeds("firstTask", "secondTask")
+
+        where:
+        relation << ['dependsOn', 'mustRunAfter']
     }
 
     def "does not detect missing dependency when consuming the sibling of the output of the producer"() {

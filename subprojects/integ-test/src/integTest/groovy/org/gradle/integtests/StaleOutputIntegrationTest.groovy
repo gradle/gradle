@@ -469,8 +469,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        executer.expectDocumentedDeprecationWarning(":backup consumes the output of :restore, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        executer.expectDocumentedDeprecationWarning(":restore consumes the output of :backup, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectMissingDependencyDeprecation(":restore", ":backup")
+        expectMissingDependencyDeprecation(":backup", ":restore")
         run 'backup', 'restore'
 
         then:
@@ -487,8 +487,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         //
         // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
-        executer.expectDocumentedDeprecationWarning(":backup consumes the output of :restore, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
-        executer.expectDocumentedDeprecationWarning(":restore consumes the output of :backup, but does not declare a dependency. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Execution optimizations are disabled due to the failed validation. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectMissingDependencyDeprecation(":restore", ":backup")
+        expectMissingDependencyDeprecation(":backup", ":restore")
         run 'backup', 'restore', '--info'
 
         then:
@@ -732,4 +732,12 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    void expectMissingDependencyDeprecation(String producer, String consumer) {
+        executer.expectDocumentedDeprecationWarning(
+            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '${producer}' as an input). " +
+                "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "Execution optimizations are disabled due to the failed validation. " +
+                "See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+    }
 }
