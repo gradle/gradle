@@ -181,12 +181,12 @@ fun zip(destZip: File, srcDir: File) {
 fun prepareReportForCiPublishing(report: File) {
     if (report.exists()) {
         if (report.isDirectory) {
-            val destFile = layout.buildDirectory.file("report-${project.name}-${report.name}.zip").get().asFile
+            val destFile = rootProject.layout.buildDirectory.file("report-${project.name}-${report.name}.zip").get().asFile
             zip(destFile, report)
         } else {
             copy {
                 from(report)
-                into(layout.buildDirectory)
+                into(rootProject.layout.buildDirectory)
                 rename { "report-${project.name}-${report.parentFile.name}-${report.name}" }
             }
         }
