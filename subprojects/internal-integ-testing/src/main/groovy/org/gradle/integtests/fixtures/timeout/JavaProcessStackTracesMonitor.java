@@ -50,7 +50,7 @@ public class JavaProcessStackTracesMonitor {
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
 
     public static void main(String[] args) {
-        System.out.println(getAllStackTracesByJstack());
+//        System.out.println(getAllStackTracesByJstack());
     }
 
     private static void assertTrue(boolean condition, String message) {
