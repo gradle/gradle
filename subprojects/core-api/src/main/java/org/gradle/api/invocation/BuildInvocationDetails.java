@@ -16,8 +16,6 @@
 
 package org.gradle.api.invocation;
 
-import org.gradle.api.Incubating;
-
 /**
  * Provides some useful information about the build invocation that triggered this build.
  * <p>
@@ -35,7 +33,6 @@ import org.gradle.api.Incubating;
  * </pre>
  * @since 5.0
  */
-@Incubating
 public interface BuildInvocationDetails {
 
     /**
