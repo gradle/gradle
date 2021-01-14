@@ -16,30 +16,56 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
-import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
 import spock.lang.Unroll
 
-class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution implements ToolingApiClasspathProvider {
-    private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
+class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
-    final ToolingApiDistribution toolingApi
+    private static final GradleVersion INSTALLATION_GRADLE_VERSION
+
+    static  {
+        // If we are testing a non-current tooling API version, we will have loaded the class using its classloader and thus
+        // GradleVersion.current() will report that version. In order to set up the testing infrastructure, we need to
+        // know the version of Gradle being built
+        def currentVersionOverride = System.getProperty("org.gradle.integtest.currentVersion")
+        if (currentVersionOverride != null) {
+            INSTALLATION_GRADLE_VERSION = GradleVersion.version(currentVersionOverride)
+        } else {
+            INSTALLATION_GRADLE_VERSION = GradleVersion.current()
+        }
+    }
+
+    final GradleDistribution toolingApi
     final GradleDistribution gradle
 
-    ToolingApiExecution(ToolingApiDistribution toolingApi, GradleDistribution gradle) {
-        this.toolingApi = toolingApi
-        this.gradle = gradle
+    private final GradleVersion toolingApiVersion
+    private final GradleVersion gradleVersion
+
+    ToolingApiExecution(GradleDistribution loadedDistribution, GradleDistribution packagedDistribution) {
+        if (isClassloadedVersionCurrent()) {
+            // Gradle current -> TAPI {source}
+            this.gradle = packagedDistribution
+            this.toolingApi = loadedDistribution
+        } else {
+            // TAPI {target} -> Gradle current
+            this.gradle = loadedDistribution
+            this.toolingApi = packagedDistribution
+        }
+        this.toolingApiVersion = GradleVersion.version(toolingApi.version.version)
+        this.gradleVersion = GradleVersion.version(gradle.version.version)
+    }
+
+    private static boolean isClassloadedVersionCurrent() {
+        return INSTALLATION_GRADLE_VERSION == GradleVersion.current()
     }
 
     @Override
     protected String getDisplayName() {
-        return "TAPI ${displayName(toolingApi.version)} -> Gradle ${displayName(gradle.version)}"
+        return "TAPI ${displayName(toolingApiVersion)} -> Gradle ${displayName(gradleVersion)}"
     }
 
     @Override
@@ -47,8 +73,8 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution impleme
         return displayName
     }
 
-    protected String displayName(GradleVersion version) {
-        if (version == GradleVersion.current()) {
+    private static String displayName(GradleVersion version) {
+        if (version == INSTALLATION_GRADLE_VERSION) {
             return "current"
         }
         return version.version
@@ -70,12 +96,14 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution impleme
             // So, for windows we'll only run tests against target gradle that supports ttl
             return false
         }
-        ToolingApiVersion toolingApiVersion = testDetails.getAnnotation(ToolingApiVersion)
-        if (!toVersionSpec(toolingApiVersion).isSatisfiedBy(toolingApi.version)) {
+        ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
+        Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
+        if (!toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion)) {
             return false
         }
-        TargetGradleVersion targetGradleVersion = testDetails.getAnnotation(TargetGradleVersion)
-        if (!toVersionSpec(targetGradleVersion).isSatisfiedBy(gradle.version)) {
+        TargetGradleVersion gradleVersionAnnotation = testDetails.getAnnotation(TargetGradleVersion)
+        Spec<GradleVersion> gradleVersionSpec = toVersionSpec(gradleVersionAnnotation)
+        if (!gradleVersionSpec.isSatisfiedBy(this.gradleVersion)) {
             return false
         }
 
@@ -86,35 +114,14 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution impleme
         if (annotation == null) {
             return Specs.SATISFIES_ALL
         }
+        if (annotation.value() == "current") {
+            return GradleVersionSpec.toSpec("=${INSTALLATION_GRADLE_VERSION.baseVersion.version}")
+        }
         return GradleVersionSpec.toSpec(annotation.value())
-    }
-
-    ClassLoader getTestClassLoader() {
-        def testClassPath = []
-        testClassPath << ClasspathUtil.getClasspathForClass(target)
-        testClassPath << ClasspathUtil.getClasspathForClass(TestResultHandler)
-
-        testClassPath.addAll(collectAdditionalClasspath())
-
-        getTestClassLoader(TEST_CLASS_LOADERS, toolingApi, testClassPath) {
-            it.allowResources(target.name.replace('.', '/'))
-        }
-    }
-
-    private List<File> collectAdditionalClasspath() {
-        target.annotations.findAll { it instanceof ToolingApiAdditionalClasspath }.collectMany { annotation ->
-            (annotation as ToolingApiAdditionalClasspath).value()
-                .newInstance()
-                .additionalClasspathFor(toolingApi, gradle)
-        }
     }
 
     @Override
     protected void before(IMethodInvocation invocation) {
-        // TODO: how does this work? Does it work?
-        def testClazz = testClassLoader.loadClass(invocation.getSpec().getReflection().getName())
-        testClazz.selectTargetDist(gradle)
-
         ((ToolingApiSpecification)invocation.getInstance()).selectTargetDist(gradle)
     }
 }

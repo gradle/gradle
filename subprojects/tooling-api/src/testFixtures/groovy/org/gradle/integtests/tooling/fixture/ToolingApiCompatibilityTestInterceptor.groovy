@@ -16,26 +16,12 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.compatibility.AbstractCompatibilityTestInterceptor
 import org.gradle.integtests.fixtures.GradleDistributionTool
+import org.gradle.integtests.fixtures.compatibility.AbstractCompatibilityTestInterceptor
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.util.GradleVersion
 
 class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestInterceptor {
-
-    private static final GradleVersion MINIMAL_VERSION = GradleVersion.version("2.6")
-    private static ToolingApiDistributionResolver resolver
-
-    // Needs to be initialized lazily
-    // Otherwise in native tooling tests, NativeServices gets initialized too early with a wrong system property
-    // that then breaks them on Windows
-    private static ToolingApiDistributionResolver getResolver() {
-        if (resolver == null) {
-            resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-        }
-        return resolver
-    }
 
     protected ToolingApiCompatibilityTestInterceptor(Class<?> target) {
         super(target)
@@ -50,31 +36,19 @@ class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestIn
     }
 
     @Override
-    protected Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
-        def executions = []
-
-        def distribution = versionedTool.distribution
-        if (distribution.toolingApiSupported) {
-            // current vs. target
-            def currentVersion = current.version
-            if (currentVersion >= MINIMAL_VERSION) {
-                executions.add(new ToolingApiExecution(getResolver().resolve(currentVersion.baseVersion.version), distribution))
-            }
-            // target vs. current
-            def distribVersion = distribution.version
-            if (distribVersion >= MINIMAL_VERSION) {
-                executions.add(new ToolingApiExecution(getResolver().resolve(distribVersion.version), current))
-            }
-        }
-
-        return executions
+    protected void createExecutionsForContext(CoverageContext coverageContext) {
+        // current vs. current
+        add(createToolingApiExecution(current))
+        super.createExecutionsForContext(coverageContext)
     }
 
     @Override
-    protected void createExecutionsForContext(CoverageContext coverageContext) {
-        // current vs. current
-        add(new ToolingApiExecution(getResolver().resolve(current.version.baseVersion.version), current))
-        super.createExecutionsForContext(coverageContext)
+    protected Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
+        return [createToolingApiExecution(versionedTool.distribution)]
+    }
+
+    private ToolingApiExecution createToolingApiExecution(GradleDistribution gradleDistribution) {
+        return new ToolingApiExecution(current, gradleDistribution)
     }
 
     @Override
