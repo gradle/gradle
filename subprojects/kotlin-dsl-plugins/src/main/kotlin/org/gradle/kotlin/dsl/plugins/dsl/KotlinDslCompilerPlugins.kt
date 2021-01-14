@@ -96,7 +96,7 @@ private
 fun newLoggerMessageRewriterFor(experimentalWarning: Boolean, target: String, link: String) =
     { logLevel: LogLevel, message: String ->
         when {
-            logLevel != LogLevel.WARN -> message
+            logLevel != LogLevel.WARN && logLevel != LogLevel.ERROR -> message
             !message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions) -> message
             experimentalWarning -> kotlinDslPluginExperimentalWarning(target, link)
             else -> null
