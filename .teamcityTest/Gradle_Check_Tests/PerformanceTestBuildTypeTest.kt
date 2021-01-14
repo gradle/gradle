@@ -70,8 +70,6 @@ class PerformanceTestBuildTypeTest {
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
-            "\"-Porg.gradle.performance.db.password=%performance.db.password.tcagent%\"",
-            "\"-PteamCityToken=%teamcity.user.bot-gradle.token%\"",
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
             "-s",
@@ -79,8 +77,7 @@ class PerformanceTestBuildTypeTest {
             "",
             "\"-Dscan.tag.PerformanceTest\"",
             "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
-            "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\"",
-            "\"-Dgradle.cache.remote.password=%gradle.cache.remote.password%\""
+            "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\""
         )
 
         assertEquals(
