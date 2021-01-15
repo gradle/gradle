@@ -16,8 +16,6 @@
 
 package org.gradle.api.reflect;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -31,7 +29,6 @@ import java.lang.annotation.Target;
  *
  * @since 5.3
  */
-@Incubating
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.ANNOTATION_TYPE})
 @Documented

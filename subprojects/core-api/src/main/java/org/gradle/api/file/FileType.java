@@ -16,14 +16,11 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
-
 /**
  * The type of a file.
  *
  * @since 5.4
  */
-@Incubating
 public enum FileType {
     FILE,
     DIRECTORY,

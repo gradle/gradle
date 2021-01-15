@@ -224,6 +224,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.plugin.management.PluginManagementSpec.plugins(Action)  
         - org.gradle.testkit.runner.GradleRunner.getEnvironment()
         - org.gradle.testkit.runner.GradleRunner.withEnvironment(Map<String, String>)
+        - org.gradle.api.reflect.InjectionPointQualifier
+        - org.gradle.api.file.FileType
+        - org.gradle.api.model.ReplacedBy
+        - org.gradle.api.Task.getTimeout
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
