@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -385,7 +384,6 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * @since 6.1
      */
     @Internal
-    @Incubating
     public Provider<ExecResult> getExecutionResult() {
         return execResult;
     }

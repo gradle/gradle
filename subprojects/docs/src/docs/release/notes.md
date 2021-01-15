@@ -160,14 +160,18 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.model.ObjectFactory.sourceDirectorySet(String, String)
         - org.gradle.api.file.FileCollection.getElements
         - org.gradle.api.file.FileContents
-        - org.gradle.api.provider.ProviderFactory.environmentVariable
-        - org.gradle.api.provider.ProviderFactory.fileContents
-        - org.gradle.api.provider.ProviderFactory.gradleProperty
-        - org.gradle.api.provider.ProviderFactory.systemProperty
-        - org.gradle.api.provider.Provider.flatMap
-        - org.gradle.api.provider.Provider.forUseAtConfigurationTime
+        - org.gradle.api.provider.ProviderFactory.credentials(Class, String)
+        - org.gradle.api.provider.ProviderFactory.credentials(Class, Provider<String>)
+        - org.gradle.api.provider.ProviderFactory.environmentVariable()
+        - org.gradle.api.provider.ProviderFactory.fileContents()
+        - org.gradle.api.provider.ProviderFactory.gradleProperty()
+        - org.gradle.api.provider.ProviderFactory.systemProperty()
+        - org.gradle.api.provider.ProviderFactory.zip(Provider, Provider, BiFunction)
+        - org.gradle.api.provider.Provider.flatMap(Transformer)
+        - org.gradle.api.provider.Provider.forUseAtConfigurationTime()
         - org.gradle.api.provider.Provider.orElse(T)
         - org.gradle.api.provider.Provider.orElse(org.gradle.api.provider.Provider<? extends T>)
+        - org.gradle.api.provider.Provider.zip(Provider, BiFunction)
         - org.gradle.api.provider.HasConfigurableValue
         - org.gradle.api.provider.Property.value(T)
         - org.gradle.api.provider.Property.value(org.gradle.api.provider.Provider<? extends T>)
@@ -205,10 +209,13 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.GradleBuild.getBuildName()
         - org.gradle.api.tasks.GradleBuild.setBuildName(String)
     - Reporting
+        - org.gradle.api.reporting.Report.getOutputLocation()
+        - org.gradle.api.reporting.Report.getRequired()
         - org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroup()
         - org.gradle.api.tasks.diagnostics.TaskReportTask.setDisplayGroup(String)
     - Miscellaneous
         - org.gradle.buildinit.tasks.InitBuild.getSplitProject()
+        - org.gradle.api.Generated
         - org.gradle.api.JavaVersion.VERSION_15
         - org.gradle.api.JavaVersion.VERSION_16
         - org.gradle.api.JavaVersion.VERSION_17
@@ -219,7 +226,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.invocation.BuildInvocationDetails
         - org.gradle.api.invocation.Gradle.beforeSettings(Action)
         - org.gradle.api.invocation.Gradle.beforeSettings(Closure)
+        - org.gradle.api.logging.WarningMode.Fail
         - org.gradle.api.reflect.TypeOf.getConcreteClass()
+        - org.gradle.api.resources.TextResourceFactory.fromInsecureUri(Object)
+        - org.gradle.api.tasks.AbstractExecTask.getExecutionResult()  
         - org.gradle.plugin.management.PluginManagementSpec.getPlugins()
         - org.gradle.plugin.management.PluginManagementSpec.plugins(Action)  
         - org.gradle.testkit.runner.GradleRunner.getEnvironment()
@@ -258,6 +268,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.StartParameter.isRefreshKeys
         - org.gradle.StartParameter.isExportKeys
         - org.gradle.StartParameter.setExportKeys
+        - org.gradle.api.artifacts.verification.DependencyVerificationMode
     - [Dependency constraints improvements](userguide/dependency_constraints.html#dependency-constraints)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object)
         - org.gradle.api.artifacts.dsl.DependencyConstraintHandler.enforcedPlatform(java.lang.Object, org.gradle.api.Action<? super org.gradle.api.artifacts.DependencyConstraint>)
@@ -312,6 +323,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.language.java.artifact.JavadocArtifact
 - Tooling API
     - Eclipse models
+        - org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary
         - org.gradle.tooling.model.eclipse.EclipseRuntime
         - org.gradle.tooling.model.eclipse.EclipseWorkspace
         - org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
@@ -322,6 +334,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.test.TestOutputDescriptor
         - org.gradle.tooling.events.test.TestOutputEvent
     - Miscellaneous
+        - org.gradle.tooling.events.OperationCompletionListener
         - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
 - Java Ecosystem
     - Java plugins
@@ -331,8 +344,11 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()
         - org.gradle.api.plugins.FeatureSpec.withJavadocJar()
         - org.gradle.api.plugins.FeatureSpec.withSourcesJar()
+        - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
+        - org.gradle.api.plugins.JvmEcosystemPlugin
         - org.gradle.api.plugins.JavaPluginExtension.withJavadocJar()
         - org.gradle.api.plugins.JavaPluginExtension.withSourcesJar()
+        - org.gradle.api.tasks.JavaExec.getExecutionResult()
         - org.gradle.api.tasks.SourceSet.getCompileOnlyApiConfigurationName()
         - org.gradle.api.tasks.SourceSet.getJavadocElementsConfigurationName()
         - org.gradle.api.tasks.SourceSet.getJavadocJarTaskName()
@@ -340,7 +356,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSet.getSourcesElementsConfigurationName()
         - org.gradle.api.tasks.SourceSet.getSourcesJarTaskName()
         - org.gradle.api.tasks.SourceSetOutput.getGeneratedSourcesDirs()
-        - org.gradle.api.plugins.JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY
+        - org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()
+        - org.gradle.api.tasks.compile.CompileOptions.getRelease()
     - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
@@ -360,12 +377,15 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
     - Testing
-        - org.gradle.api.tasks.testing.Test.getStableClasspath
         - org.gradle.api.plugins.JavaTestFixturesPlugin
-        - org.gradle.api.tasks.testing.TestFilter.excludeTestsMatching
-        - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns
-        - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns
-        - org.gradle.api.tasks.testing.TestFilter.excludeTest
+        - org.gradle.api.tasks.testing.JUnitXmlReport.getMergeReruns()
+        - org.gradle.api.tasks.testing.Test.getStableClasspath()
+        - org.gradle.api.tasks.testing.TestDescriptor.getDisplayName()
+        - org.gradle.api.tasks.testing.TestFilter.excludeTestsMatching(String)
+        - org.gradle.api.tasks.testing.TestFilter.excludeTest(String, String)
+        - org.gradle.api.tasks.testing.TestFilter.getExcludePatterns()
+        - org.gradle.api.tasks.testing.TestFilter.setExcludePatterns()
+        - org.gradle.testing.jacoco.tasks.JacocoReport.getReportProjectName()
     - Groovy
         - org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()
         - org.gradle.api.tasks.compile.GroovyCompile.getSourceClassesMappingFile()

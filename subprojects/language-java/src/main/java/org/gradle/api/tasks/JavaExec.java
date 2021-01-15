@@ -740,11 +740,9 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 6.1
      */
     @Internal
-    @Incubating
     public Provider<ExecResult> getExecutionResult() {
         return execResult;
     }
-
 
     /**
      * Configures the java executable to be used to run the tests.
