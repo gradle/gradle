@@ -58,6 +58,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
+            this.systemProperties["org.gradle.integtest.tooling-api-to-load"] = targetVersion.version
             this.useJUnitPlatform {
                 includeEngines("cross-version-test-engine")
             }

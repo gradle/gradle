@@ -52,8 +52,8 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
 
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
-        String versionToTestAgainst = System.getProperty("org.gradle.integtest.versions");
-        if (versionToTestAgainst == null) {
+        String toolingApiToLoad = System.getProperty("org.gradle.integtest.tooling-api-to-load");
+        if (toolingApiToLoad == null) {
             return new EngineDescriptor(uniqueId, "skip");
         }
         System.setProperty("org.gradle.integtest.currentVersion", GradleVersion.current().getVersion());
@@ -61,8 +61,8 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
         EngineDescriptor engineDescriptor = new EngineDescriptor(uniqueId, getId());
         engineDescriptor.addChild(delegateEngine.discover(discoveryRequest, uniqueId.append("classloader", "current")));
 
-        if (isToolingApiVersionLoadable(versionToTestAgainst)) {
-            EngineDiscoveryRequest tapiDiscoveryRequest = new ToolingApiClassloaderDiscoveryRequest(discoveryRequest, versionToTestAgainst);
+        if (isToolingApiVersionLoadable(toolingApiToLoad)) {
+            EngineDiscoveryRequest tapiDiscoveryRequest = new ToolingApiClassloaderDiscoveryRequest(discoveryRequest, toolingApiToLoad);
             engineDescriptor.addChild(delegateEngine.discover(tapiDiscoveryRequest, uniqueId.append("classloader", "tapi")));
         }
 
