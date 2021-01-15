@@ -30,6 +30,7 @@ jobs:
           ~/.gradle/caches/signatures/
           ~/.gradle/caches/keyrings/
         key: ${{ runner.os }}-gradle-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+        if: ${{ matrix.language == 'java' }}
 
     - name: Disable checksum offloading
       # See: https://github.com/actions/virtual-environments/issues/1187#issuecomment-686735760
@@ -55,18 +56,19 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - name: Compile with Gradle with Build Scan
-      if: ${{ matrix.language != 'javascript' && github.repository_owner == 'gradle' }}
+      if: ${{ matrix.language == 'java' && github.repository_owner == 'gradle' }}
       run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -S testClasses
       env:
         # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
 
     - name: Compile with Gradle without Build Scan
-      if: ${{ matrix.language != 'javascript' && github.repository_owner != 'gradle' }}
+      if: ${{ matrix.language == 'java' && github.repository_owner != 'gradle' }}
       run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -S testClasses
 
     - name: Cleanup Gradle Daemons
       run: ./gradlew --stop
+      if: ${{ matrix.language == 'java' }}
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -87,3 +89,4 @@ jobs:
       run: |
         rm -f ~/.gradle/caches/modules-2/modules-2.lock
         rm -f ~/.gradle/caches/modules-2/gc.properties
+      if: ${{ matrix.language == 'java' }}
