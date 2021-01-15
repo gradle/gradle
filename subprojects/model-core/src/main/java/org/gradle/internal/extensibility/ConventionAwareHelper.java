@@ -19,13 +19,20 @@ package org.gradle.internal.extensibility;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +55,31 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
+        if (isArchiveTask(_source.getClass())) {
+            if (propertyName.equals("archiveName")) {
+                reflectivelySetStringConvention(_source, "getArchiveFileName", mapping);
+                return mapping;
+            } else if (propertyName.equals("destinationDir")) {
+                reflectivelySetDestinationDirNameConvention(_source, mapping);
+                return mapping;
+            } else if (propertyName.equals("baseName")) {
+                reflectivelySetStringConvention(_source, "getArchiveBaseName", mapping);
+                return mapping;
+            } else if (propertyName.equals("appendix")) {
+                reflectivelySetStringConvention(_source, "getArchiveAppendix", mapping);
+                return mapping;
+            } else if (propertyName.equals("version")) {
+                reflectivelySetStringConvention(_source, "getArchiveVersion", mapping);
+                return mapping;
+            } else if (propertyName.equals("extension")) {
+                reflectivelySetStringConvention(_source, "getArchiveExtension", mapping);
+                return mapping;
+            } else if (propertyName.equals("classifier")) {
+                reflectivelySetStringConvention(_source, "getArchiveClassifier", mapping);
+                return mapping;
+            }
+        }
+
         if (!_propertyNames.contains(propertyName)) {
             throw new InvalidUserDataException(
                 "You can't map a property that does not exist: propertyName=" + propertyName);
@@ -55,6 +87,53 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
 
         _mappings.put(propertyName, mapping);
         return mapping;
+    }
+
+    private static boolean isArchiveTask(Class<?> cls) {
+        if (cls.getCanonicalName().equals("org.gradle.api.tasks.bundling.AbstractArchiveTask")) {
+            return true;
+        }
+
+        Class<?> superclass = cls.getSuperclass();
+        if (superclass != null) {
+            return isArchiveTask(superclass);
+        }
+
+        return false;
+    }
+
+
+    private void reflectivelySetStringConvention(Object target, String propertyGetter, MappedPropertyImpl action) {
+        try {
+            @SuppressWarnings("unchecked")
+            Property<String> archiveFileName = (Property<String>) target.getClass().getMethod(propertyGetter).invoke(target);
+            @SuppressWarnings("unchecked")
+            Task task = (Task) target;
+            ProviderFactory providers = task.getProject().getProviders();
+            Property<String> prop = task.getProject().getObjects().property(String.class);
+            archiveFileName.convention(prop.convention(providers.provider(() -> (String) action.getValue(_convention, _source))));
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void reflectivelySetDestinationDirNameConvention(Object target, MappedPropertyImpl action) {
+        try {
+            @SuppressWarnings("unchecked")
+            DirectoryProperty destinationDirectory = (DirectoryProperty) target.getClass().getMethod("getDestinationDirectory").invoke(target);
+            @SuppressWarnings("unchecked")
+            Task task = (Task) target;
+            Project project = task.getProject();
+            ProviderFactory providers = project.getProviders();
+            ObjectFactory objects = project.getObjects();
+            DirectoryProperty prop = objects.directoryProperty();
+            // why there's DirectoryProperty.set(File) but no DirectoryProperty.convention(File)?
+            File dest = (File) action.getValue(_convention, _source);
+            prop.set(dest);
+            destinationDirectory.convention(prop.get());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

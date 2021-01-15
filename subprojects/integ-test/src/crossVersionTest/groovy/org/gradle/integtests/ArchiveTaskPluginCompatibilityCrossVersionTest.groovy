@@ -24,11 +24,7 @@ import org.junit.Assume
 @TargetVersions(["6.8"])
 class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegrationSpec {
 
-    def "API methods removed from AbstractArchiveTask are still available for plugins"() {
-        setup:
-        Assume.assumeTrue(previous.version.baseVersion <= GradleVersion.version("6.8") &&
-                          current.version.baseVersion >= GradleVersion.version("7.0"))
-
+    def setup() {
         file("plugin/build.gradle") << """
             plugins {
                 id 'java-gradle-plugin'
@@ -64,7 +60,6 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
                 }
             }
         """
-
         file('plugin/src/main/java/org/example/MyPlugin.java') << """
             package org.example;
 
@@ -92,53 +87,12 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
                 }
             }
         """
-        file('plugin/src/main/java/org/example/ConfigurationAction.java') << """
-            package org.example;
-
-            import java.io.File;
-            import org.gradle.api.Action;
-            import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-
-            public class ConfigurationAction implements Action<AbstractArchiveTask> {
-
-                @Override
-                public void execute(AbstractArchiveTask task) {
-                    task.setArchiveName("archiveName");
-                    System.out.println(task.getName() + " archiveName=" + task.getArchiveName());
-
-                    task.setDestinationDir(new File("destinationDir"));
-                    System.out.println(task.getName() + " destinationDir=" + task.getDestinationDir());
-
-                    task.setBaseName("baseName");
-                    System.out.println(task.getName() + " baseName=" + task.getBaseName());
-
-                    task.setAppendix("appendix");
-                    System.out.println(task.getName() + " appendix=" + task.getAppendix());
-
-                    task.setVersion("version");
-                    System.out.println(task.getName() + " version=" + task.getVersion());
-
-                    task.setExtension("extension");
-                    System.out.println(task.getName() + " extension=" + task.getExtension());
-
-                    task.setClassifier("classifier");
-                    System.out.println(task.getName() + " classifier=" + task.getClassifier());
-
-                    System.out.println(task.getName() + " archivePath=" + task.getArchivePath());
-                }
-            }
-        """
-
         file('client/build.gradle') << """
             plugins {
-                id 'java-library'
                 id 'my.plugin' version '0.1'
             }
-
-            repositories {
-                jcenter()
-            }
         """
+
         file('client/settings.gradle') << """
             pluginManagement {
                 repositories {
@@ -146,6 +100,50 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
                         url '../plugin/build/repo'
                     }
                     gradlePluginPortal()
+                }
+            }
+        """
+    }
+
+    def "API methods removed from AbstractArchiveTask are still available for plugins"() {
+        setup:
+        Assume.assumeTrue(previous.version.baseVersion <= GradleVersion.version("6.8") &&
+                          current.version.baseVersion >= GradleVersion.version("7.0"))
+
+        file('plugin/src/main/java/org/example/ConfigurationAction.java') << """
+            package org.example;
+
+            import java.io.File;
+            import org.gradle.api.Action;
+            import org.gradle.api.Task;
+            import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+
+            public class ConfigurationAction implements Action<AbstractArchiveTask> {
+
+                @Override
+                public void execute(final AbstractArchiveTask task) {
+                    task.from("build");
+                    task.setArchiveName("archiveName");
+                    task.setDestinationDir(new File("destinationDir"));
+                    task.setBaseName("baseName");
+                    task.setAppendix("appendix");
+                    task.setVersion("version");
+                    task.setExtension("extension");
+                    task.setClassifier("classifier");
+
+                    task.doLast(new Action<Task>() {
+                        @Override
+                        public void execute(Task t) {
+                            System.out.println(task.getName() + " archiveName=" + task.getArchiveName());
+                            System.out.println(task.getName() + " destinationDir=" + task.getDestinationDir());
+                            System.out.println(task.getName() + " baseName=" + task.getBaseName());
+                            System.out.println(task.getName() + " appendix=" + task.getAppendix());
+                            System.out.println(task.getName() + " version=" + task.getVersion());
+                            System.out.println(task.getName() + " extension=" + task.getExtension());
+                            System.out.println(task.getName() + " classifier=" + task.getClassifier());
+                            System.out.println(task.getName() + " archivePath=" + task.getArchivePath());
+                        }
+                    });
                 }
             }
         """
@@ -164,6 +162,112 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
             assert result.output.contains("$taskName extension=extension")
             assert result.output.contains("$taskName classifier=classifier")
             assert result.output.contains("$taskName archivePath=${file('client/destinationDir/archiveName').absolutePath}")
+        }
+    }
+
+    def "AbstractArchiveTask can be still configured via convention mapping referencing removed methods"() {
+        setup:
+        Assume.assumeTrue(previous.version.baseVersion <= GradleVersion.version("6.8") &&
+            current.version.baseVersion >= GradleVersion.version("7.0"))
+
+        file('plugin/src/main/java/org/example/ConfigurationAction.java') << """
+            package org.example;
+
+            import java.io.File;
+            import org.gradle.api.Action;
+            import org.gradle.api.Task;
+            import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+            import java.util.concurrent.Callable;
+
+            public class ConfigurationAction implements Action<AbstractArchiveTask> {
+
+                @Override
+                public void execute(final AbstractArchiveTask task) {
+                    task.from(new File("${testDirectory.createFile("file.txt").absolutePath}"));
+
+                    // reset default configuration
+                    task.getArchiveExtension().set((String) null);
+
+                    task.getConventionMapping().map("archiveName", new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "conventionArchiveName";
+                        }
+                    });
+
+                    task.getConventionMapping().map("destinationDir", new Callable<File>() {
+                        @Override
+                        public File call() throws Exception {
+                            return new File("conventionDestinationDir");
+                        }
+                    });
+
+                    task.getConventionMapping().map("baseName", new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "conventionBaseName";
+                        }
+                    });
+
+                    task.getConventionMapping().map("appendix", new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "conventionAppendix";
+                        }
+                    });
+
+                    task.getConventionMapping().map("version", new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "conventionVersion";
+                        }
+                    });
+
+                    task.getConventionMapping().map("extension", new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "conventionExtension";
+                        }
+                    });
+
+                    task.getConventionMapping().map("classifier", new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "conventionClassifier";
+                        }
+                    });
+
+                    task.doLast(new Action<Task>() {
+                        @Override
+                        public void execute(Task t) {
+                            System.out.println(task.getName() + " archiveName=" + task.getArchiveName());
+                            System.out.println(task.getName() + " destinationDir=" + task.getDestinationDir());
+                            System.out.println(task.getName() + " baseName=" + task.getBaseName());
+                            System.out.println(task.getName() + " appendix=" + task.getAppendix());
+                            System.out.println(task.getName() + " version=" + task.getVersion());
+                            System.out.println(task.getName() + " extension=" + task.getExtension());
+                            System.out.println(task.getName() + " classifier=" + task.getClassifier());
+                            System.out.println(task.getName() + " archivePath=" + task.getArchivePath());
+                        }
+                    });
+                }
+            }
+        """
+
+        when:
+        version previous withTasks 'publish' inDirectory(file("plugin")) run()
+        def result = version current requireDaemon() requireIsolatedDaemons() withTasks 'customArchive' inDirectory(file('client')) run()
+
+        then:
+        ["customZip", "customTar", "customJar", "customWar", "customEar", "customJvmJar"].each {taskName ->
+            assert result.output.contains("$taskName archiveName=conventionArchiveName")
+            assert result.output.contains("$taskName destinationDir=${file('client/conventionDestinationDir').absolutePath}")
+            assert result.output.contains("$taskName baseName=conventionBaseName")
+            assert result.output.contains("$taskName appendix=conventionAppendix")
+            assert result.output.contains("$taskName version=conventionVersion")
+            assert result.output.contains("$taskName extension=conventionExtension")
+            assert result.output.contains("$taskName classifier=conventionClassifier")
+            assert result.output.contains("$taskName archivePath=${file('client/conventionDestinationDir/conventionArchiveName').absolutePath}")
         }
     }
 }
