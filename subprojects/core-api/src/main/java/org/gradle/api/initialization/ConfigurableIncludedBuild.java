@@ -17,7 +17,6 @@
 package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencySubstitutions;
 
 /**
@@ -33,7 +32,6 @@ public interface ConfigurableIncludedBuild extends IncludedBuild {
      * @param name the name of the build
      * @since 6.0
      */
-    @Incubating
     void setName(String name);
 
     /**

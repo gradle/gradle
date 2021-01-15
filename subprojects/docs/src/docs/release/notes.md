@@ -200,6 +200,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.workers.WorkerExecutor.processIsolation()
         - org.gradle.workers.WorkerExecutor.processIsolation(Action)
         - org.gradle.workers.WorkerSpec
+    - [Composite Builds](userguide/composite_builds.html)
+        - org.gradle.api.initialization.ConfigurableIncludedBuild.setName(String)
+        - org.gradle.api.tasks.GradleBuild.getBuildName()
+        - org.gradle.api.tasks.GradleBuild.setBuildName(String)
     - Reporting
         - org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroup()
         - org.gradle.api.tasks.diagnostics.TaskReportTask.setDisplayGroup(String)
@@ -213,6 +217,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.JavaVersion.isCompatibleWith
         - org.gradle.api.ProjectConfigurationException
         - org.gradle.api.invocation.BuildInvocationDetails
+        - org.gradle.api.invocation.Gradle.beforeSettings(Action)
+        - org.gradle.api.invocation.Gradle.beforeSettings(Closure)
         - org.gradle.api.reflect.TypeOf.getConcreteClass()
         - org.gradle.plugin.management.PluginManagementSpec.getPlugins()
         - org.gradle.plugin.management.PluginManagementSpec.plugins(Action)  

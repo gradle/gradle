@@ -179,7 +179,6 @@ public interface Gradle extends PluginAware {
      * @param closure The action to execute.
      * @since 6.0
      */
-    @Incubating
     void beforeSettings(Closure<?> closure);
 
     /**
@@ -188,7 +187,6 @@ public interface Gradle extends PluginAware {
      * @param action The action to execute.
      * @since 6.0
      */
-    @Incubating
     void beforeSettings(Action<? super Settings> action);
 
     /**
