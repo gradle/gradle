@@ -383,7 +383,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
+            String newDescriptor = fixSyntheticBridgeMethodDescriptor(access, descriptor);
+            MethodVisitor methodVisitor = super.visitMethod(access, name, newDescriptor, signature, exceptions);
             return methodVisitor != null
                 ? new BackwardCompatibilityMethodVisitor(methodVisitor)
                 : null;
@@ -402,23 +403,32 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 super.visitMethodInsn(opcode, newOwner, name, newDescriptor, isInterface);
             }
 
-            private String fixMethodOwnerForBackwardCompatibility(String typeName) {
-                // Fix renamed type references
-                for (Pair<String, String> renamedInterface : RENAMED_INTERFACES) {
-                    if (renamedInterface.left.equals(typeName)) {
-                        return renamedInterface.right;
-                    }
-                }
-                return typeName;
-            }
+        }
 
-            private String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
-                // Fix method signatures involving renamed types
-                for (Pair<String, String> renamedDescriptor : RENAMED_INTERFACE_DESCRIPTORS) {
-                    descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
+        private String fixSyntheticBridgeMethodDescriptor(int access, String descriptor) {
+            // Restore compatibility with plugins compiled with an old Groovy version (like org.samples.greeting:1.0 used by the GE build)
+            // in which super class getters are accessed via bridge methods.
+            return (ACC_SYNTHETIC & access) != 0 && descriptor.startsWith("()")
+                ? fixMethodDescriptorForBackwardCompatibility(descriptor)
+                : descriptor;
+        }
+
+        private static String fixMethodOwnerForBackwardCompatibility(String typeName) {
+            // Fix renamed type references
+            for (Pair<String, String> renamedInterface : RENAMED_INTERFACES) {
+                if (renamedInterface.left.equals(typeName)) {
+                    return renamedInterface.right;
                 }
-                return descriptor;
             }
+            return typeName;
+        }
+
+        private static String fixMethodDescriptorForBackwardCompatibility(String descriptor) {
+            // Fix method signatures involving renamed types
+            for (Pair<String, String> renamedDescriptor : RENAMED_INTERFACE_DESCRIPTORS) {
+                descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
+            }
+            return descriptor;
         }
     }
 
