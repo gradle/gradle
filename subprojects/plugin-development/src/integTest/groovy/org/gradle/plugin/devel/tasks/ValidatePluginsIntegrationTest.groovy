@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -385,19 +384,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             "Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.": ERROR,
             "Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.": ERROR,
         )
-    }
-
-    @UnsupportedWithConfigurationCache(because = "validateTaskProperties references validatePlugins")
-    def "can run old task"() {
-        executer.expectDocumentedDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Please use the validatePlugins task instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#plugin_validation_changes")
-
-        when:
-        run "validateTaskProperties"
-
-        then:
-        executedAndNotSkipped(":validatePlugins")
     }
 
     def "tests only classes from plugin source set"() {

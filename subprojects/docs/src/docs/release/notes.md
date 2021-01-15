@@ -423,6 +423,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+    
+- Plugin development
+    - org.gradle.plugin.devel.tasks.ValidatePlugins
 
 - org.gradle.api.distribution.Distribution.getDistributionBaseName()
 

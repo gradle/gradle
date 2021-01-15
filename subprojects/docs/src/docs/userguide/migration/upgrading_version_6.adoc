@@ -139,6 +139,10 @@ now works automatically for any source set that defines a module by containing a
 Usually, this is the behavior you need.
 If this is causing issues in cases you manually configure the module path, or use a 3rd party plugin for it, you can still opt out of this by setting `modularity.inferModulePath` to `false` on the java extension or individual tasks.
 
+==== Removal of `ValidateTaskProperties`
+
+The `ValidateTaskProperties` task has been removed and replaced by the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html task.
+
 === Deprecations
 
 [[missing_dependencies]]
