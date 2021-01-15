@@ -204,6 +204,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.initialization.ConfigurableIncludedBuild.setName(String)
         - org.gradle.api.tasks.GradleBuild.getBuildName()
         - org.gradle.api.tasks.GradleBuild.setBuildName(String)
+    - [Build Caching](userguide/build_cache.html)
+        - org.gradle.normalization.RuntimeClasspathNormalization.metaInf(Action)
+        - org.gradle.normalization.MetaInfNormalization
     - Reporting
         - org.gradle.api.tasks.diagnostics.TaskReportTask.getDisplayGroup()
         - org.gradle.api.tasks.diagnostics.TaskReportTask.setDisplayGroup(String)
