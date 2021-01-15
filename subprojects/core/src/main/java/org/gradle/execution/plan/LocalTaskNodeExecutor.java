@@ -31,6 +31,7 @@ import org.gradle.internal.reflect.TypeValidationContext;
 
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -126,14 +127,20 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             return false;
         }
         // Do a breadth first search for any dependency
-        ArrayDeque<Node> queue = new ArrayDeque<>();
+        Deque<Node> queue = new ArrayDeque<>();
         consumer.getHardSuccessors().forEach(queue::add);
         while (!queue.isEmpty()) {
             Node dependency = queue.removeFirst();
             if (dependency == producer) {
                 return false;
             }
-            dependency.getHardSuccessors().forEach(queue::add);
+            dependency.getHardSuccessors().forEach(node -> {
+                // Using the queue itself for deduplication should be fast enough
+                // since the queue should normally be pretty short.
+                if (!queue.contains(node)) {
+                    queue.add(node);
+                }
+            });
         }
         return true;
     }
