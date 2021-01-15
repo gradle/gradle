@@ -16,21 +16,17 @@
 
 package org.gradle.normalization;
 
-import org.gradle.api.Incubating;
-
 /**
  * Configuration of manifest normalization.
  *
  * @since 6.6
  */
-@Incubating
 public interface MetaInfNormalization {
     /**
      * Ignore all files and subdirectories in the {@code META-INF} directory within archives.
      *
      * @since 6.6
      */
-    @Incubating
     void ignoreCompletely();
 
     /**
@@ -38,7 +34,6 @@ public interface MetaInfNormalization {
      *
      * @since 6.6
      */
-    @Incubating
     void ignoreManifest();
 
     /**
@@ -46,7 +41,6 @@ public interface MetaInfNormalization {
      *
      * @since 6.6
      */
-    @Incubating
     void ignoreAttribute(String name);
 
     /**
@@ -54,6 +48,5 @@ public interface MetaInfNormalization {
      *
      * @since 6.6
      */
-    @Incubating
     void ignoreProperty(String name);
 }

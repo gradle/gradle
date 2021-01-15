@@ -90,6 +90,5 @@ public interface RuntimeClasspathNormalization extends InputNormalization {
      *
      * @since 6.6
      */
-    @Incubating
     void metaInf(Action<? super MetaInfNormalization> configuration);
 }
