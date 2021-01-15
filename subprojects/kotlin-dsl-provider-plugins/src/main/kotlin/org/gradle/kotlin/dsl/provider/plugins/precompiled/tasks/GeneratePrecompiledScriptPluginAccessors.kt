@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -26,7 +27,9 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -116,6 +119,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     internal
     val scriptFiles: Set<File>
         get() = scriptPluginFilesOf(plugins)
+
+    @get:Input
+    abstract val strict: Property<Boolean>
 
     /**
      *  ## Computation and sharing of type-safe accessors
@@ -322,15 +328,17 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, error: Throwable) {
-        logger.warn(
-            plugins.joinToString(
-                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
-                separator = "\n",
-                postfix = "\n"
-            ) { " - " + projectRelativePathOf(it) },
-            error
-        )
+        if (strict.get()) throw GradleException(failedToGenerateAccessorsFor(plugins), error)
+        else logger.warn(failedToGenerateAccessorsFor(plugins), error)
     }
+
+    private
+    fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>) =
+        plugins.joinToString(
+            prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+            separator = "\n",
+            postfix = "\n"
+        ) { " - " + projectRelativePathOf(it) }
 
     private
     fun projectRelativePathOf(scriptPlugin: PrecompiledScriptPlugin) =

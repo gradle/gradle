@@ -634,6 +634,23 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
     }
 
+    @Test
+    @ToBeFixedForConfigurationCache
+    fun `plugin application errors can be made to fail the build via system property`() {
+
+        // given:
+        val pluginId = "invalid.plugin"
+        val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
+
+        withPrecompiledScriptApplying(pluginId, pluginJar)
+
+        gradleExecuterFor(arrayOf("classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=true")).withStackTraceChecksDisabled().runWithFailure().apply {
+            assertHasFailure("An exception occurred applying plugin request [id: '$pluginId']") {
+                assertHasCause("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
+            }
+        }
+    }
+
     private
     fun withPrecompiledScriptApplying(pluginId: String, pluginJar: File) {
 
