@@ -89,18 +89,28 @@ class ToolingApiClassloaderDiscoveryRequest implements EngineDiscoveryRequest {
     private final EngineDiscoveryRequest delegate;
     private final List<ClassSelector> selectors = new ArrayList<ClassSelector>();
 
+    private ToolingApiDistribution toolingApi;
+
     ToolingApiClassloaderDiscoveryRequest(EngineDiscoveryRequest delegate, String versionToTestAgainst) {
         this.delegate = delegate;
-        ToolingApiDistribution toolingApi = new ToolingApiDistributionResolver().withDefaultRepository().resolve(versionToTestAgainst);
         List<ClassSelector> testClasses = delegate.getSelectorsByType(ClassSelector.class);
         for (ClassSelector selector: testClasses) {
-            ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(toolingApi, selector.getJavaClass());
-            try {
-                selectors.add(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+            if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
+                ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(versionToTestAgainst), selector.getJavaClass());
+                try {
+                    selectors.add(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
+    }
+
+    private ToolingApiDistribution getToolingApi(String versionToTestAgainst) {
+        if (toolingApi == null) {
+            toolingApi = new ToolingApiDistributionResolver().withDefaultRepository().resolve(versionToTestAgainst);
+        }
+        return toolingApi;
     }
 
     @Override
