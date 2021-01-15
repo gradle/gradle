@@ -62,8 +62,7 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
         engineDescriptor.addChild(delegateEngine.discover(discoveryRequest, uniqueId.append("classloader", "current")));
 
         if (isToolingApiVersionLoadable(versionToTestAgainst)) {
-            ClassLoader toolingApiClassloader = ToolingApiClassLoaderProvider.getToolingApiClassloader(versionToTestAgainst);
-            EngineDiscoveryRequest tapiDiscoveryRequest = new ToolingApiClassloaderDiscoveryRequest(discoveryRequest, toolingApiClassloader);
+            EngineDiscoveryRequest tapiDiscoveryRequest = new ToolingApiClassloaderDiscoveryRequest(discoveryRequest, versionToTestAgainst);
             engineDescriptor.addChild(delegateEngine.discover(tapiDiscoveryRequest, uniqueId.append("classloader", "tapi")));
         }
 
@@ -90,10 +89,12 @@ class ToolingApiClassloaderDiscoveryRequest implements EngineDiscoveryRequest {
     private final EngineDiscoveryRequest delegate;
     private final List<ClassSelector> selectors = new ArrayList<ClassSelector>();
 
-    ToolingApiClassloaderDiscoveryRequest(EngineDiscoveryRequest delegate, ClassLoader classLoader) {
+    ToolingApiClassloaderDiscoveryRequest(EngineDiscoveryRequest delegate, String versionToTestAgainst) {
         this.delegate = delegate;
+        ToolingApiDistribution toolingApi = new ToolingApiDistributionResolver().withDefaultRepository().resolve(versionToTestAgainst);
         List<ClassSelector> testClasses = delegate.getSelectorsByType(ClassSelector.class);
         for (ClassSelector selector: testClasses) {
+            ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(toolingApi, selector.getJavaClass());
             try {
                 selectors.add(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
             } catch (ClassNotFoundException e) {

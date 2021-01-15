@@ -18,6 +18,9 @@ package org.gradle.integtests.tooling.fixture
 
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -30,10 +33,10 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 
 class ToolingApiClassLoaderProvider {
+    private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
+    private static final GradleDistribution CURRENT_GRADLE = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
 
-    static ClassLoader getToolingApiClassloader(String toolingApiToLoad) {
-        def toolingApi = new ToolingApiDistributionResolver().withDefaultRepository().resolve(toolingApiToLoad)
-
+    static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
         List<File> testClassPath = []
         testClassPath << ClasspathUtil.getClasspathForClass(ToolingApiSpecification)
         String currentClasspath = System.getProperty("java.class.path")
@@ -42,7 +45,31 @@ class ToolingApiClassLoaderProvider {
             .collect { new File(it) }
         testClassPath.addAll(currentClasspathFiles)
 
-        return createTestClassLoader(toolingApi, {}, testClassPath)
+        testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
+
+        getTestClassLoader(toolingApi, testClassPath) {
+            it.allowResources(target.name.replace('.', '/'))
+        }
+    }
+
+    private static List<File> collectAdditionalClasspath(ToolingApiDistribution toolingApi, Class<?> target) {
+        target.annotations.findAll { it instanceof ToolingApiAdditionalClasspath }.collectMany { annotation ->
+            (annotation as ToolingApiAdditionalClasspath).value()
+                .getDeclaredConstructor()
+                .newInstance()
+                .additionalClasspathFor(toolingApi, CURRENT_GRADLE)
+        }
+    }
+
+    private static ClassLoader getTestClassLoader(ToolingApiDistribution toolingApi, List<File> testClasspath, Action<? super FilteringClassLoader.Spec> classpathConfigurer) {
+        synchronized(ToolingApiClassLoaderProvider) {
+            def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version.version)
+            if (!classLoader) {
+                classLoader = createTestClassLoader(toolingApi, classpathConfigurer, testClasspath)
+                TEST_CLASS_LOADERS.put(toolingApi.version.version, classLoader)
+            }
+            return classLoader
+        }
     }
 
     private static ClassLoader createTestClassLoader(ToolingApiDistribution toolingApi, Action<? super FilteringClassLoader.Spec> classpathConfigurer, List<File> testClassPath) {
