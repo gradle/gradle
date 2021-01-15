@@ -24,6 +24,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -82,7 +83,8 @@ public class DefaultFileOperations implements FileOperations {
         FileCollectionFactory fileCollectionFactory,
         FileSystem fileSystem,
         Factory<PatternSet> patternSetFactory,
-        Deleter deleter
+        Deleter deleter,
+        DocumentationRegistry documentationRegistry
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
@@ -100,7 +102,8 @@ public class DefaultFileOperations implements FileOperations {
             fileResolver,
             patternSetFactory,
             fileSystem,
-            instantiator
+            instantiator,
+            documentationRegistry
         );
         this.fileSystem = fileSystem;
         this.deleter = deleter;
@@ -252,6 +255,7 @@ public class DefaultFileOperations implements FileOperations {
         ApiTextResourceAdapter.Factory textResourceAdapterFactory = services.get(ApiTextResourceAdapter.Factory.class);
         Factory<PatternSet> patternSetFactory = services.getFactory(PatternSet.class);
         Deleter deleter = services.get(Deleter.class);
+        DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
@@ -271,7 +275,8 @@ public class DefaultFileOperations implements FileOperations {
             fileTreeFactory,
             fileSystem,
             patternSetFactory,
-            deleter
+            deleter,
+            documentationRegistry
         );
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
@@ -88,7 +89,8 @@ public class WorkerSharedProjectScopeServices {
             FileCollectionFactory fileCollectionFactory,
             FileSystem fileSystem,
             Factory<PatternSet> patternSetFactory,
-            Deleter deleter
+            Deleter deleter,
+            DocumentationRegistry documentationRegistry
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -101,7 +103,8 @@ public class WorkerSharedProjectScopeServices {
                 fileCollectionFactory,
                 fileSystem,
                 patternSetFactory,
-                deleter
+                deleter,
+                documentationRegistry
         );
     }
 

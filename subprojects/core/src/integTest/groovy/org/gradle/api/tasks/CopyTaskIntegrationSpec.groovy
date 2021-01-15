@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.file.CopySpec
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
@@ -30,6 +32,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
+
+    private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def "copies everything by default"() {
         given:
@@ -1454,7 +1458,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('one.txt', 'more/more.txt')
     }
 
-    def "copy includes duplicates by default and emits deprecation warning when duplicates are present"() {
+    def "copy fails by default when duplicates are present"() {
         given:
         file('dir1/path/file.txt').createFile() << 'f1'
         file('dir2/path/file.txt').createFile() << 'f2'
@@ -1467,30 +1471,22 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         '''.stripIndent()
 
         when:
-        executer.expectDocumentedDeprecationWarning("Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: \"path/file.txt\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
-        run 'copy'
+        fails 'copy'
 
         then:
-        file('dest').assertHasDescendants('path/file.txt')
-        file('dest/path/file.txt').text == 'f2'
+        failure.assertHasCause "Entry path/file.txt is a duplicate but no duplicate handling strategy has been set. Please refer to ${DOCUMENTATION_REGISTRY.getDslRefForProperty(CopySpec.class, "duplicatesStrategy")} for details."
 
         when:
+        buildFile << """
+            tasks.withType(Copy).configureEach {
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+        """
         run 'copy'
 
         then:
-        skipped(':copy')
         file('dest').assertHasDescendants('path/file.txt')
-        file('dest/path/file.txt').text == 'f2'
-
-        when:
-        file('dir2/path/file.txt').text = 'new'
-        executer.expectDocumentedDeprecationWarning("Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: \"path/file.txt\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
-        run 'copy'
-
-        then:
-        executedAndNotSkipped(':copy')
-        file('dest').assertHasDescendants('path/file.txt')
-        file('dest/path/file.txt').text == 'new'
+        file('dest/path/file.txt').text == 'f1'
     }
 
     def "copy excludes duplicates when flag is set, stopping at first duplicate"() {
@@ -1871,13 +1867,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                 from "b", {
                     includeEmptyDirs = true
                 }
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
             }
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Duplicate path: \"b.txt\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
         succeeds "copyTask"
 
         then:

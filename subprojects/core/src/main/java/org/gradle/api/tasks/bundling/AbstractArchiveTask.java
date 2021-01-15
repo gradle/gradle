@@ -503,6 +503,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, fileSystem, isReproducibleFileOrder());
+        return new CopyActionExecuter(instantiator, fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
     }
 }
