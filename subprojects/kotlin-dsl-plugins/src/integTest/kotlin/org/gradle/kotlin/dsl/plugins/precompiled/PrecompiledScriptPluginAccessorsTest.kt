@@ -644,7 +644,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withPrecompiledScriptApplying(pluginId, pluginJar)
 
-        gradleExecuterFor(arrayOf("classes", "-Dorg.gradle.kotlin-dsl.precompiled.accessors.strict=true")).withStackTraceChecksDisabled().runWithFailure().apply {
+        gradleExecuterFor(arrayOf("classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=true")).withStackTraceChecksDisabled().runWithFailure().apply {
             assertHasFailure("An exception occurred applying plugin request [id: '$pluginId']") {
                 assertHasCause("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
             }

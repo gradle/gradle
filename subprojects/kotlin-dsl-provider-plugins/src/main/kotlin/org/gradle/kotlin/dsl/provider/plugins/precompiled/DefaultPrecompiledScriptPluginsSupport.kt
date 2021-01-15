@@ -228,7 +228,7 @@ fun Project.enableScriptCompilationOf(
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
                 strict.set(
                     providers
-                        .systemProperty("org.gradle.kotlin-dsl.precompiled.accessors.strict")
+                        .systemProperty("org.gradle.kotlin.dsl.precompiled.accessors.strict")
                         .map(java.lang.Boolean::parseBoolean)
                         .orElse(false)
                 )
