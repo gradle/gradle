@@ -235,6 +235,7 @@ public class JavaProcessStackTracesMonitor {
 
 
     public static String getAllStackTracesByJstack() {
-        return ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n"));
+        return "DISABLED FOR NOW";
+//        return ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n"));
     }
 }
