@@ -138,7 +138,7 @@ Starting with this release, [composite builds](userguide/composite_builds.html) 
 
 #### More supported core plugins
 
-In this release all core code analysis plugins received full for support the configuration cache:
+In this release all core code analysis plugins received full support for the configuration cache:
 
 * [`checkstyle`](userguide/checkstyle_plugin.html)
 * [`pmd`](userguide/pmd_plugin.html)
