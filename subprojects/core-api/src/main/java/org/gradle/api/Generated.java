@@ -30,7 +30,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Documented
-@Incubating
 @SuppressWarnings("unused")
 public @interface Generated {
 }

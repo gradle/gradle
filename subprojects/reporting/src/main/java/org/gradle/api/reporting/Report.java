@@ -16,7 +16,6 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Namer;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.model.ReplacedBy;
@@ -72,7 +71,7 @@ public interface Report extends Configurable<Report> {
      *
      * @since 6.1
      */
-    @Input @Incubating
+    @Input
     Property<Boolean> getRequired();
 
     /**
@@ -99,7 +98,6 @@ public interface Report extends Configurable<Report> {
      *
      * @since 6.1
      */
-    @Incubating
     @Internal("Implementations need to add the correct annotation, @OutputDirectory or @OutputFile")
     Provider<? extends FileSystemLocation> getOutputLocation();
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.Input;
@@ -56,7 +55,6 @@ public interface JUnitXmlReport extends DirectoryReport {
      * @since 6.8
      */
     @Input
-    @Incubating
     Property<Boolean> getMergeReruns();
 
 }

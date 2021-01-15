@@ -200,7 +200,6 @@ public interface ProviderFactory {
      *
      * @since 6.6
      */
-    @Incubating
     <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, String identity);
 
     /**
@@ -227,7 +226,6 @@ public interface ProviderFactory {
      *
      * @since 6.6
      */
-    @Incubating
     <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, Provider<String> identity);
 
     /**
@@ -247,6 +245,5 @@ public interface ProviderFactory {
      *
      * @since 6.6
      */
-    @Incubating
     <A, B, R> Provider<R> zip(Provider<A> first, Provider<B> second, BiFunction<A, B, R> combiner);
 }

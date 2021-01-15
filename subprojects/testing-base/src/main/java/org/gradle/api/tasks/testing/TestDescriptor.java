@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -41,7 +40,6 @@ public interface TestDescriptor {
      * @return the name for display.
      * @since 6.1
      */
-    @Incubating
     String getDisplayName();
 
     /**
