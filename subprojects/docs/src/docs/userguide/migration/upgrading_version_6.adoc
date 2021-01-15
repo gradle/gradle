@@ -72,7 +72,7 @@ It has been removed in Gradle 7.
 You should migrate to the `maven-publish` or `ivy-publish` plugin instead.
 
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for publishing on Maven repositories.
-Please refer to the <<publishing_ivy.adoc#publishing_maven, documentation of the Ivy Publish plugin>> for publishing on Maven repositories.
+Please refer to the <<publishing_ivy.adoc#publishing_ivy, documentation of the Ivy Publish plugin>> for publishing on Ivy repositories.
 
 ==== The Play plugins have been removed
 
