@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 import static org.hamcrest.core.StringContains.containsString
 
-class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvyLocalPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
     @ToBeFixedForConfigurationCache
     def canPublishToLocalFileRepository() {
         given:
@@ -43,7 +43,6 @@ uploadArchives {
 }
 """
         when:
-        executer.expectDeprecationWarning()
         succeeds 'uploadArchives'
 
         then:
@@ -78,7 +77,6 @@ uploadArchives {
 }
 """
         when:
-        executer.expectDeprecationWarning()
         succeeds 'uploadArchives'
 
         then:
@@ -200,7 +198,6 @@ task ivyXml(type: Upload) {
         """
 
         when:
-        executer.expectDeprecationWarning()
         succeeds 'uploadArchives'
 
         then:

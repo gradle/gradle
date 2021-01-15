@@ -20,31 +20,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.plugins.UploadRule;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
-import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.internal.Describables;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-
-import javax.inject.Inject;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
@@ -54,20 +37,6 @@ public class BasePlugin implements Plugin<Project> {
     public static final String ASSEMBLE_TASK_NAME = LifecycleBasePlugin.ASSEMBLE_TASK_NAME;
     public static final String BUILD_GROUP = LifecycleBasePlugin.BUILD_GROUP;
 
-    public static final String UPLOAD_ARCHIVES_TASK_NAME = "uploadArchives";
-    public static final String UPLOAD_GROUP = "upload";
-
-    private final ProjectPublicationRegistry publicationRegistry;
-    private final ProjectConfigurationActionContainer configurationActionContainer;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-
-    @Inject
-    public BasePlugin(ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.publicationRegistry = publicationRegistry;
-        this.configurationActionContainer = configurationActionContainer;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
-    }
-
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -76,8 +45,6 @@ public class BasePlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("base", convention);
 
         configureBuildConfigurationRule(project);
-        configureUploadRules(project);
-        configureUploadArchivesTask();
         configureArchiveDefaults(project, convention);
         configureConfigurations(project);
         configureAssemble((ProjectInternal) project);
@@ -103,37 +70,6 @@ public class BasePlugin implements Plugin<Project> {
 
     private void configureBuildConfigurationRule(Project project) {
         project.getTasks().addRule(new BuildConfigurationRule(project.getConfigurations(), project.getTasks()));
-    }
-
-    private void configureUploadRules(final Project project) {
-        project.getTasks().addRule(new UploadRule(project));
-    }
-
-    private void configureUploadArchivesTask() {
-        configurationActionContainer.add(project -> {
-            Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
-            if (uploadArchives == null) {
-                return;
-            }
-            AtomicBoolean usesMaven = new AtomicBoolean();
-            project.getPluginManager().withPlugin("maven", p -> usesMaven.set(true));
-            uploadArchives.doFirst(action(task -> DeprecationLogger
-                .deprecateTask(UPLOAD_ARCHIVES_TASK_NAME)
-                .withAdvice("Use the " + (usesMaven.get() ? "'maven-publish'" : "'ivy-publish'") + " plugin instead.")
-                .willBeRemovedInGradle7()
-                .withUpgradeGuideSection(5, "legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
-                .nagUser()
-            ));
-            boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
-            if (!hasIvyRepo) {
-                return;
-            } // Maven repos are handled by MavenPlugin
-
-            ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
-            Module module = configuration.getModule();
-            ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-            publicationRegistry.registerPublication(project, new DefaultProjectPublication(Describables.of("Ivy publication"), publicationId, true));
-        });
     }
 
     private void configureConfigurations(final Project project) {

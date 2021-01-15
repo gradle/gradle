@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 import spock.lang.Issue
 
-abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractIntegrationSpec implements WithUploadArchives {
     abstract RepositoryServer getServer()
 
     @Rule
@@ -41,6 +41,7 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
         requireOwnGradleUserHomeDir()
         ivyRepo = server.remoteIvyRepo
         module = ivyRepo.module("org.gradle", "publish", "2")
+        configureUploadTask()
     }
 
     @Issue("GRADLE-3440")
@@ -49,10 +50,6 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
         because = "IvyGcsUploadArchivesIntegrationTest leaks test files"
     )
     void "can publish using uploadArchives"() {
-        executer.expectDocumentedDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Use the 'ivy-publish' plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
-
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -163,9 +160,6 @@ uploadArchives {
         module.jar.expectUploadBroken()
 
         when:
-        executer.expectDocumentedDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Use the 'ivy-publish' plugin instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
         fails 'uploadArchives'
 
         then:

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.publish.ivy
 
+import org.gradle.api.publish.ivy.WithUploadArchives
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
 import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
@@ -26,7 +27,11 @@ import org.gradle.test.fixtures.ivy.IvyJavaModule
 import org.gradle.test.fixtures.ivy.IvyModule
 
 
-abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
+abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec, WithUploadArchives {
+
+    def setup() {
+        configureUploadTask()
+    }
 
     protected static IvyJavaModule javaLibrary(IvyFileModule ivyFileModule) {
         return new IvyJavaModule(ivyFileModule)
@@ -64,7 +69,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         settingsFile.text = "rootProject.name = 'resolve'"
         def attributes = params.variant == null ?
             "" :
-            """ 
+            """
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
     }
@@ -108,7 +113,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 }
             }
             repositories {
-                ivy { 
+                ivy {
                     url "${ivyRepo.uri}"
                     metadataSources {
                         ${params.resolveModuleMetadata?'gradleMetadata':'ivyDescriptor'}()

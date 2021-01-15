@@ -16,10 +16,14 @@
 
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvySingleProjectPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
+    def setup() {
+        configureUploadTask("publish")
+    }
+
     @ToBeFixedForConfigurationCache
     def "publish multiple artifacts in single configuration"() {
         settingsFile << "rootProject.name = 'publishTest'"
@@ -118,6 +122,8 @@ uploadPublish {
 
     @ToBeFixedForConfigurationCache
     def "publish multiple artifacts in separate configurations"() {
+        configureUploadTask('publish1')
+        configureUploadTask('publish2')
         file("settings.gradle") << "rootProject.name = 'publishTest'"
         file("file1") << "some content"
         file("file2") << "other content"

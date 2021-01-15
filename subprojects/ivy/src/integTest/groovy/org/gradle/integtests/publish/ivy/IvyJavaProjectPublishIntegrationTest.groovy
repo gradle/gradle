@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvyJavaProjectPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
 
     def setup() {
         // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
