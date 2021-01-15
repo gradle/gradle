@@ -20,7 +20,6 @@ import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTasks
 import gradlebuild.integrationtests.createTestTask
-import org.gradle.util.GradleVersion
 
 plugins {
     java
@@ -55,34 +54,18 @@ fun createAggregateTasks(sourceSet: SourceSet) {
     }
 
     val releasedVersions = moduleIdentity.releasedVersions.forUseAtConfigurationTime().getOrNull()
-    val minToolingVersion = GradleVersion.version("2.6")
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
-        if (targetVersion >= minToolingVersion) {
-            val crossVersionTestToCurrent = createTestTask("gradle${targetVersion.version}ToCurrentCrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
-                this.description = "Runs the cross-version tests from ${targetVersion.version} towards current Gradle"
-                this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
-                this.systemProperties["org.gradle.integtest.tooling-api-to-load"] = targetVersion.version
-                this.systemProperties["org.gradle.integtest.currentVersion"] = moduleIdentity.version.get().version
-                this.useJUnitPlatform {
-                    includeEngines("cross-version-test-engine")
-                }
-            }
-            allVersionsCrossVersionTests.configure { dependsOn(crossVersionTestToCurrent) }
-            if (targetVersion in releasedVersions.mainTestedVersions) {
-                quickFeedbackCrossVersionTests.configure { dependsOn(crossVersionTestToCurrent) }
-            }
-        }
-        val crossVersionTestToTarget = createTestTask("gradleCurrentTo${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
-            this.description = "Runs the cross-version tests from current Gradle towards ${targetVersion.version}"
+        val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
+            this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.useJUnitPlatform {
                 includeEngines("cross-version-test-engine")
             }
         }
 
-        allVersionsCrossVersionTests.configure { dependsOn(crossVersionTestToTarget) }
+        allVersionsCrossVersionTests.configure { dependsOn(crossVersionTest) }
         if (targetVersion in releasedVersions.mainTestedVersions) {
-            quickFeedbackCrossVersionTests.configure { dependsOn(crossVersionTestToTarget) }
+            quickFeedbackCrossVersionTests.configure { dependsOn(crossVersionTest) }
         }
     }
 }
