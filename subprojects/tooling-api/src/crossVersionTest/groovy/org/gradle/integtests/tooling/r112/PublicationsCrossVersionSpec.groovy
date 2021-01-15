@@ -45,7 +45,7 @@ class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=3.0")
-    @TargetGradleVersion("<7.0")
+    @TargetGradleVersion(">=3.0 <7.0")
     def "Ivy repository based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
