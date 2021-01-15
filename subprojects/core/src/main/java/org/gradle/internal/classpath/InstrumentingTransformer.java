@@ -27,7 +27,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import java.lang.invoke.CallSite;
@@ -42,6 +41,7 @@ import java.util.Properties;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -150,7 +150,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             this.className = name;
-            this.isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
+            this.isInterface = (access & ACC_INTERFACE) != 0;
         }
 
         @Override
@@ -408,7 +408,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private String fixSyntheticBridgeMethodDescriptor(int access, String descriptor) {
             // Restore compatibility with plugins compiled with an old Groovy version (like org.samples.greeting:1.0 used by the GE build)
             // in which super class getters are accessed via bridge methods.
-            return (ACC_SYNTHETIC & access) != 0 && descriptor.startsWith("()")
+            return (access & ACC_SYNTHETIC) != 0 && descriptor.startsWith("()")
                 ? fixMethodDescriptorForBackwardCompatibility(descriptor)
                 : descriptor;
         }
