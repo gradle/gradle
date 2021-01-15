@@ -33,7 +33,6 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 
 import java.text.SimpleDateFormat
 
@@ -48,7 +47,6 @@ import java.text.SimpleDateFormat
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
 
-    @Ignore("wip")
     def "can build gradle with configuration cache enabled"() {
 
         given:
