@@ -31,7 +31,9 @@ import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.EngineDescriptor;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
+import org.spockframework.runtime.RunContext;
 import org.spockframework.runtime.SpockEngine;
+import org.spockframework.runtime.SpockEngineDescriptor;
 import org.spockframework.runtime.SpockExecutionContext;
 
 import java.util.ArrayList;
@@ -58,15 +60,21 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
         }
         System.setProperty("org.gradle.integtest.currentVersion", GradleVersion.current().getVersion());
 
-        EngineDescriptor engineDescriptor = new EngineDescriptor(uniqueId, getId());
-        engineDescriptor.addChild(delegateEngine.discover(discoveryRequest, uniqueId.append("classloader", "current")));
+        EngineDescriptor rootDescriptor = new SpockEngineDescriptor(uniqueId, RunContext.get());
+        TestDescriptor spockDescriptor = delegateEngine.discover(discoveryRequest, uniqueId.append("classloader", "current"));
+        for (TestDescriptor test : spockDescriptor.getChildren()) {
+            rootDescriptor.addChild(test);
+        }
 
         if (isToolingApiVersionLoadable(toolingApiToLoad)) {
             EngineDiscoveryRequest tapiDiscoveryRequest = new ToolingApiClassloaderDiscoveryRequest(discoveryRequest, toolingApiToLoad);
-            engineDescriptor.addChild(delegateEngine.discover(tapiDiscoveryRequest, uniqueId.append("classloader", "tapi")));
+            TestDescriptor spockTapiDescriptor = delegateEngine.discover(tapiDiscoveryRequest, uniqueId.append("classloader", "tapi"));
+            for (TestDescriptor test : spockTapiDescriptor.getChildren()) {
+                rootDescriptor.addChild(test);
+            }
         }
 
-        return engineDescriptor;
+        return rootDescriptor;
     }
 
     @Override
