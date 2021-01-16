@@ -86,6 +86,7 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowPackage('org.gradle.language.fixtures')
         sharedSpec.allowPackage('org.gradle.workers.fixtures')
         sharedSpec.allowPackage('org.gradle.launcher.daemon.testing')
+        sharedSpec.allowPackage('org.gradle.tooling')
         sharedSpec.allowClass(OperatingSystem)
         sharedSpec.allowClass(Requires)
         sharedSpec.allowClass(TestPrecondition)
