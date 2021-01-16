@@ -879,4 +879,5 @@ include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=re
 include::sample[dir="snippets/files/archives/kotlin",files="build.gradle.kts[tags=reproducible]"]
 ====
 
-Often you will want to publish an archive, so that it is usable from another project. This process is described in <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
+Often you will want to publish an archive, so that it is usable from another project.
+This process is described in <<cross_project_publications.adoc#cross_project_publications,Cross-Project publications>>.

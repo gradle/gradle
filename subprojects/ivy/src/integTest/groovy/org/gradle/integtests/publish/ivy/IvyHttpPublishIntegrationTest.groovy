@@ -18,7 +18,6 @@
 package org.gradle.integtests.publish.ivy
 
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -34,7 +33,7 @@ import spock.lang.Unroll
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.gradle.util.Matchers.matchesRegexp
 
-class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvyHttpPublishIntegrationTest extends AbstractLegacyIvyPublishTest {
     private static final String BAD_CREDENTIALS = '''
         credentials {
             username 'testuser'
@@ -91,7 +90,6 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
-        executer.expectDeprecationWarning()
         run 'uploadArchives'
 
         then:
@@ -129,7 +127,6 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         server.allowPut('/repo/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
 
         when:
-        executer.expectDeprecationWarning()
         fails 'uploadArchives'
 
         then:
@@ -167,7 +164,6 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         server.addBroken("/")
 
         then:
-        executer.expectDeprecationWarning()
         fails 'uploadArchives'
 
         and:
@@ -179,7 +175,6 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         server.stop()
 
         then:
-        executer.expectDeprecationWarning()
         fails 'uploadArchives'
 
         and:
@@ -218,7 +213,6 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         module.ivy.sha512.expectPut()
 
         when:
-        executer.expectDeprecationWarning()
         run 'uploadArchives'
 
         then:
@@ -228,6 +222,7 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache
     void "can publish large artifact to authenticated repository"() {
+        configureUploadTask("tools")
         given:
         def largeJar = file("large.jar")
         new RandomAccessFile(largeJar, "rw").withCloseable {

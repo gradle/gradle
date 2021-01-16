@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.bundling
 
 import org.apache.commons.lang.RandomStringUtils
+import org.gradle.api.file.CopySpec
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
@@ -31,6 +33,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 @Unroll
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
+    private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def canCopyFromAZip() {
         given:
@@ -758,16 +761,16 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         "test.tar"  | "tarTree" | "createTar"
     }
 
-    def 'emit deprecation warning when duplicates are included in #archiveType for default duplicates strategy'() {
+    def 'fails when duplicates are included in #archiveType for default duplicates strategy'() {
         given:
         createFilesStructureForDupeTests()
         buildFile << archiveTaskWithDuplicates(archiveType)
 
-        expect:
-        executer.expectDocumentedDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. ' +
-            'Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths. ' +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
-        succeeds 'archive'
+        when:
+        fails 'archive'
+
+        then:
+        failure.assertHasCause "Entry file1.txt is a duplicate but no duplicate handling strategy has been set. Please refer to ${DOCUMENTATION_REGISTRY.getDslRefForProperty(CopySpec.class, "duplicatesStrategy")} for details."
 
         where:
         archiveType << ['tar', 'zip']

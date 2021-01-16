@@ -166,11 +166,11 @@ With this configuration, the "my-app" composite build will substitute any depend
 [[included_build_substitution_requirements]]
 === Cases where included build substitutions must be declared
 
-Many builds that use the `uploadArchives` task to publish artifacts will function automatically as an included build, without declared substitutions.
+Many builds will function automatically as an included build, without declared substitutions.
 Here are some common cases where declared substitutions are required:
 
 * When the `archivesBaseName` property is used to set the name of the published artifact.
-* When a configuration other than `default` is published: this usually means a task other than `uploadArchives` is used.
+* When a configuration other than `default` is published.
 * When the `MavenPom.addFilter()` is used to publish artifacts that don't match the project name.
 * When the `maven-publish` or `ivy-publish` plugins are used for publishing, and the publication coordinates don't match `${project.group}:${project.name}`.
 

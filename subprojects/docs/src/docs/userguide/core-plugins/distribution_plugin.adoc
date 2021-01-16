@@ -100,7 +100,7 @@ The `baseName` property has also been changed. This will cause the distribution 
 [[sec:publishing_distributions]]
 == Publishing
 
-A distribution can be published using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, or via the _original_ publishing mechanism using the `uploadArchives` task.
+A distribution can be published using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>.
 
 [[sec:publishing_distributions_publish_plugins]]
 === Using the Ivy/Maven Publish Plugins

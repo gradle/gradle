@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.internal.HasInternalProtocol;
@@ -165,6 +164,5 @@ public interface Provider<T> {
      *
      * @since 6.6
      */
-    @Incubating
     <B, R> Provider<R> zip(Provider<B> right, BiFunction<T, B, R> combiner);
 }

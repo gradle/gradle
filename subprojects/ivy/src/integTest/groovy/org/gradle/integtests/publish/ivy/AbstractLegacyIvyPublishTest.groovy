@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
-import org.junit.Test
+import org.gradle.api.publish.ivy.WithUploadArchives
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class AutoTestedSamplesIvyIntegrationTest extends AbstractAutoTestedSamplesTest {
-
-    @Test
-    void runSamples() {
-        runSamplesFrom("src/main")
+class AbstractLegacyIvyPublishTest extends AbstractIntegrationSpec implements WithUploadArchives {
+    def setup() {
+        configureUploadTask()
     }
-
 }

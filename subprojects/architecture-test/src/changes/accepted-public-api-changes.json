@@ -1120,6 +1120,28 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePlugin",
+            "member": "Field UPLOAD_ARCHIVES_TASK_NAME",
+            "acceptation": "Deprecated task was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePlugin",
+            "member": "Field UPLOAD_GROUP",
+            "acceptation": "UploadArchives task was removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePlugin",
+            "member": "Constructor org.gradle.api.plugins.BasePlugin()",
+            "acceptation": "Constructor used for dependency injection",
+            "changes": []
         }
     ]
 }

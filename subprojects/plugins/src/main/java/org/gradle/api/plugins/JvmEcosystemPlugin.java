@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -41,7 +40,6 @@ import javax.inject.Inject;
  * @since 6.7
  *
  */
-@Incubating
 public class JvmEcosystemPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;

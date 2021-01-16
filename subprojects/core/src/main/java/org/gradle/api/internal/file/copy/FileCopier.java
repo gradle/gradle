@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -37,6 +38,7 @@ public class FileCopier {
     private final Factory<PatternSet> patternSetFactory;
     private final FileSystem fileSystem;
     private final Instantiator instantiator;
+    private final DocumentationRegistry documentationRegistry;
 
     public FileCopier(
         Deleter deleter,
@@ -45,7 +47,8 @@ public class FileCopier {
         FileResolver fileResolver,
         Factory<PatternSet> patternSetFactory,
         FileSystem fileSystem,
-        Instantiator instantiator
+        Instantiator instantiator,
+        DocumentationRegistry documentationRegistry
     ) {
         this.deleter = deleter;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -54,6 +57,7 @@ public class FileCopier {
         this.patternSetFactory = patternSetFactory;
         this.fileSystem = fileSystem;
         this.instantiator = instantiator;
+        this.documentationRegistry = documentationRegistry;
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
@@ -81,7 +85,7 @@ public class FileCopier {
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
-        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileSystem, false);
+        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileSystem, false, documentationRegistry);
         return visitorDriver.execute(copySpec, visitor);
     }
 

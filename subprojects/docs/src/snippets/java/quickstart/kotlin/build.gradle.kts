@@ -52,14 +52,4 @@ tasks.test {
     systemProperties("property" to "value")
 }
 // end::task-customization[]
-
-// tag::upload[]
-tasks.named<Upload>("uploadArchives") {
-    repositories {
-        flatDir {
-            dirs("repos")
-        }
-    }
-}
-// end::upload[]
 // end::complete-example[]
