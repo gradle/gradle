@@ -84,23 +84,4 @@ Binaries
 """
     }
 
-    def "shows an error when targeting a jvm platform from a native component"() {
-        given:
-        buildFile << """
-    apply plugin: 'native-component'
-
-    model {
-        components {
-            myLib(NativeLibrarySpec) {
-                targetPlatform "java8"
-            }
-        }
-    }
-"""
-        when:
-        fails "components"
-
-        then:
-        failure.assertHasCause("Invalid NativePlatform: java8")
-    }
 }
