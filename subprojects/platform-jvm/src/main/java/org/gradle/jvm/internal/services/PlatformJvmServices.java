@@ -45,6 +45,7 @@ import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
@@ -96,6 +97,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(AdoptOpenJdkRemoteBinary.class);
         registration.add(AdoptOpenJdkDownloader.class);
         registration.add(JavaToolchainQueryService.class);
+        registration.add(DefaultJavaToolchainService.class);
     }
 
     private static class LocalLibraryDependencyResolverFactory implements ResolverProviderFactory {

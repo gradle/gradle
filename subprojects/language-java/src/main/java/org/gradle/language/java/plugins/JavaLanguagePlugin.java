@@ -176,7 +176,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 JavaPlatform targetPlatform = assembly.getTargetPlatform();
                 String targetCompatibility = targetPlatform.getTargetCompatibility().toString();
                 compile.setPlatform(targetPlatform);
-                compile.setToolChain(assembly.getToolChain());
                 compile.setTargetCompatibility(targetCompatibility);
                 compile.setSourceCompatibility(targetCompatibility);
 

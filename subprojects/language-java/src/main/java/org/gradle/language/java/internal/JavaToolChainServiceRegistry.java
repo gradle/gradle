@@ -18,10 +18,8 @@ package org.gradle.language.java.internal;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
-import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -48,8 +46,5 @@ public class JavaToolChainServiceRegistry extends AbstractPluginServiceRegistry 
             return new CurrentJvmJavaToolChain(compilerFactory, execActionFactory);
         }
 
-        JavaToolChainFactory createJavaToolChainFactory(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory, JvmVersionDetector jvmVersionDetector) {
-            return new JavaToolChainFactory(compilerFactory, execActionFactory, jvmVersionDetector);
-        }
     }
 }

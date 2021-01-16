@@ -1142,6 +1142,62 @@
             "member": "Constructor org.gradle.api.plugins.BasePlugin()",
             "acceptation": "Constructor used for dependency injection",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getToolChain()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.setToolChain(org.gradle.jvm.toolchain.JavaToolChain)",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getJavaToolChainFactory()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getToolChain()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.setToolChain(org.gradle.jvm.toolchain.JavaToolChain)",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getJavaToolChain()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getJavaToolChainFactory()",
+            "acceptation": "Removed deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

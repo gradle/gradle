@@ -26,7 +26,6 @@ import org.gradle.process.internal.ExecActionFactory;
  * The {@link #getJavaVersion()} is the version of the current JVM.
  * It supports compiling in the same JVM and in a forked JVM with the same version.
  *
- * @see JavaHomeBasedJavaToolChain
  */
 public class CurrentJvmJavaToolChain extends AbstractJavaToolChain {
     private JavaVersion javaVersion;

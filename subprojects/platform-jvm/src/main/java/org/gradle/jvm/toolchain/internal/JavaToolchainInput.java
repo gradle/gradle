@@ -27,7 +27,7 @@ public class JavaToolchainInput {
     private final String implementation;
 
     public JavaToolchainInput(JavaToolchainSpec spec) {
-        this.javaLanguageVersion = spec.getLanguageVersion().get();
+        this.javaLanguageVersion = spec.getLanguageVersion().getOrNull();
         this.vendor = spec.getVendor().get().toString();
         this.implementation = spec.getImplementation().get().toString();
     }

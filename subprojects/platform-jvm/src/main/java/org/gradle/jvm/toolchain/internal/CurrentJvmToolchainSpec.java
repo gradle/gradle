@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.javadoc.internal;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
-public class JavadocCompilerAdapter implements Compiler<JavadocSpec> {
+public class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
 
-    private final JavadocGenerator generator;
-
-    public JavadocCompilerAdapter(ExecActionFactory execActionFactory) {
-        this.generator = new JavadocGenerator(execActionFactory);
+    public CurrentJvmToolchainSpec(ObjectFactory factory) {
+        super(factory);
+        getLanguageVersion().set(JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion()));
     }
 
     @Override
-    public WorkResult execute(JavadocSpec spec) {
-        return generator.execute(spec);
+    public String getDisplayName() {
+        return "CurrentJVM" + super.getDisplayName();
     }
-
 }
