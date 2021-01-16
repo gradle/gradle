@@ -38,11 +38,7 @@ class ToolingApiClassLoaderProvider {
     static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
         List<File> testClassPath = []
         testClassPath << ClasspathUtil.getClasspathForClass(ToolingApiSpecification)
-        String currentClasspath = System.getProperty("java.class.path")
-        List<File> currentClasspathFiles = currentClasspath.split(":")
-            .findAll { !it.endsWith(".jar") }
-            .collect { new File(it) }
-        testClassPath.addAll(currentClasspathFiles)
+        testClassPath << ClasspathUtil.getClasspathForClass(target)
 
         testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
 
