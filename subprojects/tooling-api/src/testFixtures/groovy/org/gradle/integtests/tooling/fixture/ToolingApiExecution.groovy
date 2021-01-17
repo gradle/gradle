@@ -114,6 +114,6 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     protected void before(IMethodInvocation invocation) {
-        ((ToolingApiSpecification)invocation.getInstance()).selectTargetDist(gradle)
+        ((ToolingApiSpecification)invocation.getInstance()).setTargetDist(gradle)
     }
 }

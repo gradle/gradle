@@ -74,14 +74,10 @@ abstract class ToolingApiSpecification extends Specification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
-    String getReleasedGradleVersion() {
-        return targetDist.version.baseVersion.version
-    }
-
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
+    private GradleDistribution targetGradleDistribution
 
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
     final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder)
@@ -89,24 +85,28 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
-    // reflectively invoked by ToolingApiExecution
-    static void selectTargetDist(GradleDistribution version) {
-        VERSION.set(version)
+    // used reflectively by retry rule
+    String getReleasedGradleVersion() {
+        return targetDist.version.baseVersion.version
     }
 
-    static GradleDistribution getTargetDist() {
-        def targetDist = VERSION.get()
-        if (targetDist == null)  {
+    // reflectively invoked by ToolingApiExecution
+    void setTargetDist(GradleDistribution targetDist) {
+        targetGradleDistribution = targetDist
+        toolingApi.setDist(targetGradleDistribution)
+    }
+
+    GradleDistribution getTargetDist() {
+        if (targetGradleDistribution == null)  {
             throw new IllegalStateException("targetDist is not yet set by the testing framework")
         }
-        return targetDist
+        return targetGradleDistribution
     }
 
     def setup() {
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
-        toolingApi.setDist(targetDist)
     }
 
     DaemonsFixture getDaemonsFixture() {
@@ -153,7 +153,7 @@ abstract class ToolingApiSpecification extends Specification {
         new BuildTestFixture(projectDir).withBuildInRootDir().multiProjectBuild(projectName, subprojects, cl)
     }
 
-    public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
+    void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
         try {
             toolingApi.withConnector(cl)
         } catch (GradleConnectionException e) {
@@ -184,7 +184,7 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
+    ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
         withConnection {
             def model = it.model(modelType)
             cl(model)
@@ -192,7 +192,7 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public ConfigurableOperation withBuild(Closure cl = {}) {
+    ConfigurableOperation withBuild(Closure cl = {}) {
         withConnection {
             def build = it.newBuild()
             cl(build)
@@ -311,7 +311,7 @@ abstract class ToolingApiSpecification extends Specification {
         withConnection { connection -> connection.getModel(modelClass) }
     }
 
-    protected static GradleVersion getTargetVersion() {
+    protected GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)
     }
 
