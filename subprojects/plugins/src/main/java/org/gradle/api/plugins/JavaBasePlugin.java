@@ -128,7 +128,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
-        bridgeToSoftwareModelIfNecessary(projectInternal);
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
@@ -140,12 +139,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaConvention;
-    }
-
-    private void bridgeToSoftwareModelIfNecessary(ProjectInternal project) {
-        project.addRuleBasedPluginListener(targetProject -> {
-            targetProject.getPluginManager().apply(JavaBasePluginRules.class);
-        });
     }
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {

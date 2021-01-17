@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.jvm.JvmBinaryRenderer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultUserHomeScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
@@ -31,10 +30,6 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 public class CompileServices extends AbstractPluginServiceRegistry {
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(JvmBinaryRenderer.class);
-    }
 
     @Override
     public void registerGradleServices(ServiceRegistration registration) {

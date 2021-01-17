@@ -291,17 +291,6 @@ $ gradle -q api:properties
 include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out[]
 ----
 
-=== Software Model reports
-
-You can get a hierarchical view of elements for <<software_model.adoc#software_model,software model>> projects using the `model` task:
-
-----
-$ gradle model
-----
-
-Learn more about <<software_model.adoc#model-report,the model report>> in the software model documentation.
-
-
 [[sec:command_line_completion]]
 == Command-line completion
 
