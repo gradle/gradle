@@ -78,6 +78,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
 
                 @Override
                 void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
+                    currentExecution.assertCanExecute();
                     currentExecution.before(invocation);
                     // TODO: there is still some clash between Spock's JUnit rule interceptor and our cleanup interceptor
                     // that causes @Rule fields to be initialized with before() and torn down with after() twice.
@@ -151,6 +152,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
 
         @Override
         public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
+            currentExecution.assertCanExecute();
             currentExecution.before(invocation);
             invocation.proceed();
             currentExecution.after();
