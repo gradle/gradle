@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
-import spock.lang.Unroll
 
 class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
@@ -82,13 +81,6 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        // Trying to use @Unroll with a tooling api runner causes NPEs in the test fixtures
-        // Fail early with a message until we can fix this properly.
-        Unroll unroll = testDetails.getAnnotation(Unroll)
-        if (unroll != null) {
-            throw new IllegalArgumentException("Cannot use @Unroll with Tooling Api tests")
-        }
-
         if (!gradle.daemonIdleTimeoutConfigurable && OperatingSystem.current().isWindows()) {
             // Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
             // This is a real problem on windows due to eager file locking and continuous CI failures.
