@@ -37,18 +37,13 @@ class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestIn
 
     @Override
     protected void createExecutionsForContext(CoverageContext coverageContext) {
-        // current vs. current
-        add(createToolingApiExecution(current))
+        add(new ToolingApiExecution(current, current))
         super.createExecutionsForContext(coverageContext)
     }
 
     @Override
     protected Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
-        return [createToolingApiExecution(versionedTool.distribution)]
-    }
-
-    private ToolingApiExecution createToolingApiExecution(GradleDistribution gradleDistribution) {
-        return new ToolingApiExecution(current, gradleDistribution)
+        return [new ToolingApiExecution(current, versionedTool.distribution)]
     }
 
     @Override
