@@ -27,7 +27,6 @@ import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -122,7 +121,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             IterationExceptionInterceptor iterationExceptionInterceptor = new IterationExceptionInterceptor();
             invocation.getFeature().getFeatureMethod().addInterceptor(iterationExceptionInterceptor);
 
-            TestDetails testDetails = new FeatureTestDetails(invocation.getFeature());
+            TestDetails testDetails = new TestDetails(invocation.getFeature());
 
             for (Execution execution : executions) {
                 if (!execution.isTestEnabled(testDetails)) {
@@ -178,9 +177,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         }
     }
 
-    private static boolean canSkipFeature(FeatureInfo feature, List<AbstractMultiTestInterceptor.Execution> executions) {
-        AbstractMultiTestInterceptor.TestDetails testDetails = new FeatureTestDetails(feature);
-        for (AbstractMultiTestInterceptor.Execution execution : executions) {
+    private static boolean canSkipFeature(FeatureInfo feature, List<Execution> executions) {
+        TestDetails testDetails = new TestDetails(feature);
+        for (Execution execution : executions) {
             if (execution.isTestEnabled(testDetails)) {
                 return false;
             }
@@ -220,27 +219,15 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         }
     }
 
-    public interface TestDetails {
-        /**
-         * Locates the given annotation for the test. May be inherited from test class.
-         */
-        @Nullable
-        <A extends Annotation> A getAnnotation(Class<A> type);
-
-        Annotation[] getAnnotations();
-    }
-
-    private static class FeatureTestDetails implements TestDetails {
-
+    public static class TestDetails {
         private final SpecInfo spec;
         private final Method featureMethod;
 
-        FeatureTestDetails(FeatureInfo feature) {
+        TestDetails(FeatureInfo feature) {
             this.spec = feature.getSpec().getBottomSpec();
             this.featureMethod = feature.getFeatureMethod().getReflection();
         }
 
-        @Override
         public <A extends Annotation> A getAnnotation(Class<A> type) {
             A methodAnnotation = featureMethod.getAnnotation(type);
             if (methodAnnotation != null) {
@@ -249,7 +236,6 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             return spec.getAnnotation(type);
         }
 
-        @Override
         public Annotation[] getAnnotations() {
             return featureMethod.getAnnotations();
         }
