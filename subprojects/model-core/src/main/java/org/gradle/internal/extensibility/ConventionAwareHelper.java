@@ -55,29 +55,8 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
-        if (isArchiveTask(_source.getClass())) {
-            if (propertyName.equals("archiveName")) {
-                reflectivelySetStringConvention(_source, "getArchiveFileName", mapping);
-                return mapping;
-            } else if (propertyName.equals("destinationDir")) {
-                reflectivelySetDestinationDirNameConvention(_source, mapping);
-                return mapping;
-            } else if (propertyName.equals("baseName")) {
-                reflectivelySetStringConvention(_source, "getArchiveBaseName", mapping);
-                return mapping;
-            } else if (propertyName.equals("appendix")) {
-                reflectivelySetStringConvention(_source, "getArchiveAppendix", mapping);
-                return mapping;
-            } else if (propertyName.equals("version")) {
-                reflectivelySetStringConvention(_source, "getArchiveVersion", mapping);
-                return mapping;
-            } else if (propertyName.equals("extension")) {
-                reflectivelySetStringConvention(_source, "getArchiveExtension", mapping);
-                return mapping;
-            } else if (propertyName.equals("classifier")) {
-                reflectivelySetStringConvention(_source, "getArchiveClassifier", mapping);
-                return mapping;
-            }
+        if (ArchiveTaskCompatHelper.forwardConventionMapping(_source, propertyName, mapping, _convention)) {
+            return mapping;
         }
 
         if (!_propertyNames.contains(propertyName)) {
@@ -120,7 +99,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     private void reflectivelySetDestinationDirNameConvention(Object target, MappedPropertyImpl action) {
         try {
             @SuppressWarnings("unchecked")
-            DirectoryProperty destinationDirectory = (DirectoryProperty) target.getClass().getMethod("getDestinationDirectory").invoke(target);
+            DirectoryProperty property = (DirectoryProperty) target.getClass().getMethod("getDestinationDirectory").invoke(target);
             @SuppressWarnings("unchecked")
             Task task = (Task) target;
             Project project = task.getProject();
@@ -130,7 +109,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
             // why there's DirectoryProperty.set(File) but no DirectoryProperty.convention(File)?
             File dest = (File) action.getValue(_convention, _source);
             prop.set(dest);
-            destinationDirectory.convention(prop.get());
+            property.convention(prop.get());
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -220,5 +199,84 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         }
 
         abstract Object doGetValue(Convention convention, IConventionAware conventionAwareObject);
+    }
+
+    /**
+     * Forwards convention mapping defined for removed AbstractArchiveTask properties.
+     */
+    static class ArchiveTaskCompatHelper {
+        private static final Map<String, String> REMOVED_STRING_PROPERTY_MAPPING = new HashMap<>();
+
+        static {
+            REMOVED_STRING_PROPERTY_MAPPING.put("archiveName", "getArchiveFileName");
+            REMOVED_STRING_PROPERTY_MAPPING.put("baseName", "getArchiveBaseName");
+            REMOVED_STRING_PROPERTY_MAPPING.put("appendix", "getArchiveAppendix");
+            REMOVED_STRING_PROPERTY_MAPPING.put("version", "getArchiveVersion");
+            REMOVED_STRING_PROPERTY_MAPPING.put("extension", "getArchiveExtension");
+            REMOVED_STRING_PROPERTY_MAPPING.put("classifier", "getArchiveClassifier");
+        }
+
+        public static boolean forwardConventionMapping(IConventionAware _source, String propertyName, MappedPropertyImpl mapping, Convention _convention) {
+            if (isArchiveTask(_source.getClass())) {
+                String propertyGetterMethodName = REMOVED_STRING_PROPERTY_MAPPING.get(propertyName);
+                if (propertyGetterMethodName != null) {
+                    reflectivelySetStringConvention(propertyGetterMethodName, mapping, _convention, _source);
+                    return true;
+                } else if (propertyName.equals("destinationDir")) {
+                    reflectivelySetDirectoryConvention("getDestinationDirectory", mapping, _convention, _source);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static boolean isArchiveTask(Class<?> cls) {
+            if (cls.getCanonicalName().equals("org.gradle.api.tasks.bundling.AbstractArchiveTask")) {
+                return true;
+            }
+
+            Class<?> superclass = cls.getSuperclass();
+            if (superclass != null) {
+                return isArchiveTask(superclass);
+            }
+
+            return false;
+        }
+
+        private static void reflectivelySetStringConvention(String propertyGetterMethodName, MappedPropertyImpl action, Convention _convention, IConventionAware _source) {
+            try {
+                @SuppressWarnings("unchecked")
+                Property<String> archiveFileName = (Property<String>) _source.getClass().getMethod(propertyGetterMethodName).invoke(_source);
+                @SuppressWarnings("unchecked")
+                Task task = (Task) _source;
+                ProviderFactory providers = task.getProject().getProviders();
+                Property<String> prop = task.getProject().getObjects().property(String.class);
+                archiveFileName.convention(prop.convention(providers.provider(() -> (String) action.getValue(_convention, _source))));
+            } catch(Exception e) {
+               throw new RuntimeException(e);
+            }
+        }
+
+        private static void reflectivelySetDirectoryConvention(String propertyGetterMethodName, MappedPropertyImpl action, Convention _convention, IConventionAware _source) {
+            try {
+                @SuppressWarnings("unchecked")
+                DirectoryProperty property = (DirectoryProperty) _source.getClass().getMethod(propertyGetterMethodName).invoke(_source);
+                @SuppressWarnings("unchecked")
+                Task task = (Task) _source;
+                Project project = task.getProject();
+                ProviderFactory providers = project.getProviders();
+                ObjectFactory objects = project.getObjects();
+                DirectoryProperty directoryProperty = objects.directoryProperty();
+                property.convention(directoryProperty.convention(providers.provider(() -> {
+                    // there's no DirectoryProperty.convention(File)
+                    File dest = (File) action.getValue(_convention, _source);
+                    DirectoryProperty prop = objects.directoryProperty();
+                    prop.set(dest);
+                    return prop.get();
+                })));
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

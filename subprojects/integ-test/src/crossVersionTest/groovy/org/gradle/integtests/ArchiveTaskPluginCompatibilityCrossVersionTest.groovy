@@ -76,14 +76,30 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
                     project.getTasks().register("customWar", War.class, new ConfigurationAction());
                     project.getTasks().register("customEar", Ear.class, new ConfigurationAction());
                     project.getTasks().register("customJvmJar", org.gradle.jvm.tasks.Jar.class, new ConfigurationAction());
+                    project.getTasks().register("myJar", MyJar.class, new ConfigurationAction());
 
                     TaskProvider<Task> customArchives = project.getTasks().register("customArchives");
                     customArchives.configure(new Action<Task>() {
                         @Override
                         public void execute(Task task) {
-                            task.dependsOn("customZip", "customTar", "customJar", "customWar", "customEar", "customJvmJar");
+                            task.dependsOn("customZip", "customTar", "customJar", "customWar", "customEar", "customJvmJar", "myJar");
                         }
                     });
+                }
+            }
+        """
+        file('plugin/src/main/java/org/example/MyJar.java') << """
+            package org.example;
+
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.tasks.bundling.*;
+
+            public class MyJar extends Jar {
+
+                @TaskAction
+                protected void copy() {
+                    System.out.println(getArchivePath().getAbsolutePath());
+                    super.copy();
                 }
             }
         """
@@ -92,7 +108,6 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
                 id 'my.plugin' version '0.1'
             }
         """
-
         file('client/settings.gradle') << """
             pluginManagement {
                 repositories {
@@ -153,7 +168,7 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
         def result = version current requireDaemon() requireIsolatedDaemons() withTasks 'customArchives' inDirectory(file('client')) run()
 
         then:
-        ["customZip", "customTar", "customJar", "customWar", "customEar", "customJvmJar"].each {taskName ->
+        ["customZip", "customTar", "customJar", "customWar", "customEar", "customJvmJar", "myJar"].each {taskName ->
             assert result.output.contains("$taskName archiveName=archiveName")
             assert result.output.contains("$taskName destinationDir=${file('client/destinationDir').absolutePath}")
             assert result.output.contains("$taskName baseName=baseName")
@@ -259,7 +274,7 @@ class ArchiveTaskPluginCompatibilityCrossVersionTest extends CrossVersionIntegra
         def result = version current requireDaemon() requireIsolatedDaemons() withTasks 'customArchive' inDirectory(file('client')) run()
 
         then:
-        ["customZip", "customTar", "customJar", "customWar", "customEar", "customJvmJar"].each {taskName ->
+        ["customZip", "customTar", "customJar", "customWar", "customEar", "customJvmJar", "myJar"].each {taskName ->
             assert result.output.contains("$taskName archiveName=conventionArchiveName")
             assert result.output.contains("$taskName destinationDir=${file('client/conventionDestinationDir').absolutePath}")
             assert result.output.contains("$taskName baseName=conventionBaseName")

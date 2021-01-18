@@ -84,6 +84,7 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
 
     private Set<RemovedMethod> missingMethods = new HashSet<>();
     private String className;
+    private String superClassName;
 
     public ArchiveTaskCompatClassVisitor(ClassVisitor classVisitor) {
         super(ASM7, classVisitor);
@@ -98,6 +99,11 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         this.className = name;
+        this.superClassName = superName;
+      //  if (className.contains("ShadowJar")) {
+            System.out.println("Classname = " + className);
+            System.out.println("SuperName = " + superClassName);
+        //}
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
@@ -117,17 +123,19 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
 
         private final ArchiveTaskCompatClassVisitor owner;
         private final String className;
+        private final String superClassName;
 
         ArchiveTaskCompatMethodVisitor(ArchiveTaskCompatClassVisitor owner, MethodVisitor methodVisitor) {
             super(ASM7, methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.superClassName = owner.superClassName;
         }
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
             if (opcode == Opcodes.INVOKEVIRTUAL) {
-                RemovedMethod removedMethod = RemovedMethod.find(owner, name, descriptor);
+                RemovedMethod removedMethod = RemovedMethod.find(owner, className, superClassName, name, descriptor);
                 if (removedMethod != null) {
                     this.owner.injectBridgeMethodFor(removedMethod);
                     super.visitMethodInsn(INVOKESTATIC, className, removedMethod.getBridgeMethodName(), removedMethod.getBridgeMethodDescriptor(), false);
@@ -314,8 +322,8 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
             return bridgeMethodDescriptor;
         }
 
-        static RemovedMethod find(String owner, String name, String descriptor) {
-            if (!isArchiveTaskType(owner)) {
+        static RemovedMethod find(String owner, String className, String superClassName, String name, String descriptor) {
+            if (!(isArchiveTaskType(owner) || thisExtendsArchiveTask(owner, className, isArchiveTaskType(superClassName)))) {
                 return null;
             }
             for (RemovedMethod m : RemovedMethod.values()) {
@@ -324,6 +332,11 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
                 }
             }
             return null;
+        }
+
+        private static boolean thisExtendsArchiveTask(String owner, String className, boolean archiveTaskType) {
+            // returns true if the owner object is 'this' and 'this' extends AbstractArchiveTask
+            return owner.equals(className) && archiveTaskType;
         }
 
         private static boolean isArchiveTaskType(String typeName) {
