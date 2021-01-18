@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchMode
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -53,11 +54,9 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def delegate = Mock(BuildActionRunner)
     def buildAction = Mock(BuildAction)
 
-    def "watching virtual file system is informed about watching the file system being #watchFsEnabledString (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
+    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
-        _ * startParameter.watchFileSystemMode >> watchFsEnabled
-            ? BuildLifecycleAwareVirtualFileSystem.WatchMode.ENABLED
-            : BuildLifecycleAwareVirtualFileSystem.WatchMode.DISABLED
+        _ * startParameter.watchFileSystemMode >> watchMode
         _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
         _ * startParameter.isVfsDebugLogging() >> false
@@ -67,25 +66,28 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         when:
         runner.run(buildAction, buildController)
         then:
-        1 * watchingHandler.afterBuildStarted(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner)
+        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner)
 
         then:
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, watchLogging, buildOperationRunner, _)
 
         then:
         0 * _
 
         where:
-        watchFsEnabled | vfsLogging         | watchLogging
-        true           | VfsLogging.VERBOSE | WatchLogging.NORMAL
-        true           | VfsLogging.NORMAL  | WatchLogging.NORMAL
-        true           | VfsLogging.VERBOSE | WatchLogging.DEBUG
-        true           | VfsLogging.NORMAL  | WatchLogging.DEBUG
-        false          | VfsLogging.NORMAL  | WatchLogging.NORMAL
-        false          | VfsLogging.NORMAL  | WatchLogging.DEBUG
-        watchFsEnabledString = watchFsEnabled ? "enabled" : "disabled"
+        watchMode          | vfsLogging         | watchLogging
+        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.NORMAL
+        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.NORMAL
+        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.DEBUG
+        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.DEBUG
+        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.NORMAL
+        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.NORMAL
+        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.DEBUG
+        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.DEBUG
+        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.NORMAL
+        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG
     }
 }
