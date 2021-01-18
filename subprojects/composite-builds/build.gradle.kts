@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
+    testImplementation(project(":file-watching"))
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":build-option"))
