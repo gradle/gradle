@@ -85,6 +85,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """subst p: /d"""
         }
+<<<<<<< HEAD
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons", os)
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic", os)
     }
@@ -105,5 +106,18 @@ private fun BuildSteps.cleanBuildLogicBuild(buildDir: String, os: Os) {
             buildToolGradleParameters() +
                 buildScanTag("PerformanceTest")
             ).joinToString(separator = " ")
+=======
+        gradleWrapper {
+            name = "CLEAN_BUILD_SRC_ON_CHECKOUT"
+            tasks = "clean"
+            workingDir = "%teamcity.build.checkoutDir%/buildSrc"
+            gradleWrapperPath = "../"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            gradleParams = (
+                buildToolGradleParameters() +
+                    buildScanTag("PerformanceTest")
+                ).joinToString(separator = " ")
+        }
+>>>>>>> release
     }
 }

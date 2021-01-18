@@ -53,3 +53,51 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         }
     }
 }
+
+
+object KotlinCompilerArguments {
+    const val javaParameters = "-java-parameters"
+    const val jsr305Strict = "-Xjsr305=strict"
+    const val newInference = "-XXLanguage:+NewInference"
+    const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
+    const val referencesToSyntheticJavaProperties = "-XXLanguage:+ReferencesToSyntheticJavaProperties"
+}
+
+
+private
+fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) {
+    setWarningRewriter(newLoggerMessageRewriterFor(experimentalWarning, project.toString(), project.experimentalWarningLink))
+}
+
+
+private
+fun KotlinCompile.setWarningRewriter(rewriter: ContextAwareTaskLogger.MessageRewriter) {
+    (this as TaskInternal).setLoggerMessageRewriter(rewriter)
+}
+
+
+private
+fun newLoggerMessageRewriterFor(experimentalWarning: Boolean, target: String, link: String) =
+    { logLevel: LogLevel, message: String ->
+        when {
+            logLevel != LogLevel.WARN && logLevel != LogLevel.ERROR -> message
+            !message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions) -> message
+            experimentalWarning -> kotlinDslPluginExperimentalWarning(target, link)
+            else -> null
+        }
+    }
+
+
+fun kotlinDslPluginExperimentalWarning(target: String, link: String) =
+    "The `kotlin-dsl` plugin applied to $target enables experimental Kotlin compiler features. For more information see $link"
+
+
+private
+val Project.experimentalWarningLink
+    get() = documentationRegistry.getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
+
+
+private
+val Project.documentationRegistry
+    get() = serviceOf<DocumentationRegistry>()
+>>>>>>> release
