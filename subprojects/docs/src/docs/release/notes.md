@@ -343,6 +343,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.model.eclipse.EclipseWorkspace
         - org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
         - org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
+        - org.gradle.tooling.model.eclipse.EclipseExternalDependency.isResolved()
+        - org.gradle.tooling.model.eclipse.EclipseExternalDependency.getAttemptedSelector()
+        - org.gradle.tooling.model.ComponentSelector
     - Testing events
         - org.gradle.tooling.events.OperationType.TestOutput
         - org.gradle.tooling.events.test.Destination
