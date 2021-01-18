@@ -216,14 +216,14 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
             REMOVED_STRING_PROPERTY_MAPPING.put("classifier", "getArchiveClassifier");
         }
 
-        public static boolean forwardConventionMapping(IConventionAware _source, String propertyName, MappedPropertyImpl mapping, Convention _convention) {
-            if (isArchiveTask(_source.getClass())) {
+        public static boolean forwardConventionMapping(IConventionAware source, String propertyName, MappedPropertyImpl mapping, Convention convention) {
+            if (isArchiveTask(source.getClass())) {
                 String propertyGetterMethodName = REMOVED_STRING_PROPERTY_MAPPING.get(propertyName);
                 if (propertyGetterMethodName != null) {
-                    reflectivelySetStringConvention(propertyGetterMethodName, mapping, _convention, _source);
+                    reflectivelySetStringConvention(propertyGetterMethodName, mapping, convention, source);
                     return true;
                 } else if (propertyName.equals("destinationDir")) {
-                    reflectivelySetDirectoryConvention("getDestinationDirectory", mapping, _convention, _source);
+                    reflectivelySetDirectoryConvention("getDestinationDirectory", mapping, convention, source);
                     return true;
                 }
             }
@@ -243,33 +243,33 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
             return false;
         }
 
-        private static void reflectivelySetStringConvention(String propertyGetterMethodName, MappedPropertyImpl action, Convention _convention, IConventionAware _source) {
+        private static void reflectivelySetStringConvention(String propertyGetterMethodName, MappedPropertyImpl action, Convention convention, IConventionAware source) {
             try {
                 @SuppressWarnings("unchecked")
-                Property<String> archiveFileName = (Property<String>) _source.getClass().getMethod(propertyGetterMethodName).invoke(_source);
+                Property<String> archiveFileName = (Property<String>) source.getClass().getMethod(propertyGetterMethodName).invoke(source);
                 @SuppressWarnings("unchecked")
-                Task task = (Task) _source;
+                Task task = (Task) source;
                 ProviderFactory providers = task.getProject().getProviders();
                 Property<String> prop = task.getProject().getObjects().property(String.class);
-                archiveFileName.convention(prop.convention(providers.provider(() -> (String) action.getValue(_convention, _source))));
+                archiveFileName.convention(prop.convention(providers.provider(() -> (String) action.getValue(convention, source))));
             } catch(Exception e) {
                throw new RuntimeException(e);
             }
         }
 
-        private static void reflectivelySetDirectoryConvention(String propertyGetterMethodName, MappedPropertyImpl action, Convention _convention, IConventionAware _source) {
+        private static void reflectivelySetDirectoryConvention(String propertyGetterMethodName, MappedPropertyImpl action, Convention convention, IConventionAware source) {
             try {
                 @SuppressWarnings("unchecked")
-                DirectoryProperty property = (DirectoryProperty) _source.getClass().getMethod(propertyGetterMethodName).invoke(_source);
+                DirectoryProperty property = (DirectoryProperty) source.getClass().getMethod(propertyGetterMethodName).invoke(source);
                 @SuppressWarnings("unchecked")
-                Task task = (Task) _source;
+                Task task = (Task) source;
                 Project project = task.getProject();
                 ProviderFactory providers = project.getProviders();
                 ObjectFactory objects = project.getObjects();
                 DirectoryProperty directoryProperty = objects.directoryProperty();
                 property.convention(directoryProperty.convention(providers.provider(() -> {
                     // there's no DirectoryProperty.convention(File)
-                    File dest = (File) action.getValue(_convention, _source);
+                    File dest = (File) action.getValue(convention, source);
                     DirectoryProperty prop = objects.directoryProperty();
                     prop.set(dest);
                     return prop.get();
