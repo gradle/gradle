@@ -16,8 +16,6 @@
 
 package Gradle_Promotion.buildTypes
 
-import common.Os
-import common.builtInRemoteBuildCacheNode
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
@@ -46,7 +44,7 @@ abstract class PublishGradleDistribution(
             gradleWrapper {
                 name = "Promote"
                 tasks = task
-                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  ${builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX).joinToString(" ")}"""
+                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  """
             }
         }
         dependencies {

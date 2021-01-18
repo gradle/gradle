@@ -20,12 +20,14 @@ import com.google.common.base.Charsets;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.test.fixtures.ResettableExpectations;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,8 +37,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-
-import static org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor.getAllStackTracesByJstack;
 
 class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     private final int timeoutMs;
@@ -163,7 +163,7 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     // Dump all JVMs' threads on the machine to troubleshoot deadlock issues
     private void dumpThreadsUponTimeout(String stacktrace) {
         if (stacktrace.contains("due to a timeout waiting for other requests")) {
-            System.out.println(getAllStackTracesByJstack());
+            JavaProcessStackTracesMonitor.printAllStackTracesByJstack(new File("."));
         }
     }
 

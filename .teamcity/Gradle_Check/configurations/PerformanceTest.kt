@@ -73,7 +73,7 @@ class PerformanceTest(
             steps {
                 preBuildSteps()
                 killGradleProcessesStep(os)
-                substDirOnWindows(os, model.parentBuildCache)
+                substDirOnWindows(os)
 
                 gradleWrapper {
                     name = "GRADLE_RUNNER"
@@ -87,11 +87,10 @@ class PerformanceTest(
                             os
                         ) +
                             buildToolGradleParameters() +
-                            buildScanTag("PerformanceTest") +
-                            model.parentBuildCache.gradleParameters(os)
+                            buildScanTag("PerformanceTest")
                         ).joinToString(separator = " ")
                 }
-                removeSubstDirOnWindows(os, model.parentBuildCache)
+                removeSubstDirOnWindows(os)
                 checkCleanM2(os)
             }
         }
