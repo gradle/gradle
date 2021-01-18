@@ -287,44 +287,44 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
 
-    @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
-    fun `by default experimental Kotlin compiler features are enabled and a warning is issued when allWarningsAsErrors is true`() {
-
-        withBuildExercisingSamConversionForKotlinFunctions(
-            """
-            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-                kotlinOptions {
-                    allWarningsAsErrors = true
-                }
-            }
-            """.trimIndent()
-        )
-
-        build("test").apply {
-
-            assertThat(
-                output.also(::println),
-                containsMultiLineString(
-                    """
-                    STRING
-                    foo
-                    bar
-                    """
-                )
-            )
-
-            assertThat(
-                output + error,
-                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
-            )
-
-            assertThat(
-                output + error,
-                containsString(experimentalWarningFor(":buildSrc"))
-            )
-        }
-    }
+//    @Test
+//    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+//    fun `by default experimental Kotlin compiler features are enabled and a warning is issued when allWarningsAsErrors is true`() {
+//
+//        withBuildExercisingSamConversionForKotlinFunctions(
+//            """
+//            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+//                kotlinOptions {
+//                    allWarningsAsErrors = true
+//                }
+//            }
+//            """.trimIndent()
+//        )
+//
+//        build("test").apply {
+//
+//            assertThat(
+//                output.also(::println),
+//                containsMultiLineString(
+//                    """
+//                    STRING
+//                    foo
+//                    bar
+//                    """
+//                )
+//            )
+//
+//            assertThat(
+//                output + error,
+//                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
+//            )
+//
+//            assertThat(
+//                output + error,
+//                containsString(experimentalWarningFor(":buildSrc"))
+//            )
+//        }
+//    }
 
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
@@ -360,46 +360,46 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         }
     }
 
-    @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
-    fun `can explicitly disable experimental Kotlin compiler features warning when allWarningsAsErrors is true`() {
-
-        withBuildExercisingSamConversionForKotlinFunctions(
-            """
-            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-                kotlinOptions {
-                    allWarningsAsErrors = true
-                }
-            }
-
-            kotlinDslPluginOptions.experimentalWarning.set(false)
-            """.trimIndent()
-        )
-
-        build("test").apply {
-
-            assertThat(
-                output.also(::println),
-                containsMultiLineString(
-                    """
-                    STRING
-                    foo
-                    bar
-                    """
-                )
-            )
-
-            assertThat(
-                output + error,
-                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
-            )
-
-            assertThat(
-                output + error,
-                not(containsString(experimentalWarningFor(":buildSrc")))
-            )
-        }
-    }
+//    @Test
+//    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+//    fun `can explicitly disable experimental Kotlin compiler features warning when allWarningsAsErrors is true`() {
+//
+//        withBuildExercisingSamConversionForKotlinFunctions(
+//            """
+//            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+//                kotlinOptions {
+//                    allWarningsAsErrors = true
+//                }
+//            }
+//
+//            kotlinDslPluginOptions.experimentalWarning.set(false)
+//            """.trimIndent()
+//        )
+//
+//        build("test").apply {
+//
+//            assertThat(
+//                output.also(::println),
+//                containsMultiLineString(
+//                    """
+//                    STRING
+//                    foo
+//                    bar
+//                    """
+//                )
+//            )
+//
+//            assertThat(
+//                output + error,
+//                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
+//            )
+//
+//            assertThat(
+//                output + error,
+//                not(containsString(experimentalWarningFor(":buildSrc")))
+//            )
+//        }
+//    }
 
     private
     fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {
