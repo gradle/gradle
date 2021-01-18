@@ -36,11 +36,10 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
         projectsCorrectlyPublished()
     }
 
-    @Unroll
-    def "project dependencies reference publication identity of dependent project (version mapping: #mapping)"() {
+    def "project dependencies reference publication identity of dependent project"() {
         def project3 = javaLibrary(mavenRepo.module("changed.group", "changed-artifact-id", "changed"))
 
-        def extra = """
+        createBuildScripts("""
 project(":project3") {
     publishing {
         publications.maven {
@@ -50,23 +49,7 @@ project(":project3") {
         }
     }
 }
-"""
-        if (mapping) {
-            extra = """
-project(":project1") {
-    publishing {
-        publications.maven {
-            versionMapping {
-                usage(Usage.JAVA_API) {
-                    fromResolutionResult()
-                }
-            }
-        }
-    }
-}
-""" + extra
-        }
-        createBuildScripts(extra)
+""")
 
         when:
         run "publish"
@@ -85,9 +68,6 @@ project(":project1") {
         resolveArtifacts(project1) {
             expectFiles 'changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar'
         }
-
-        where:
-        mapping << [false, true]
     }
 
     def "reports failure when project dependency references a project with multiple conflicting publications"() {

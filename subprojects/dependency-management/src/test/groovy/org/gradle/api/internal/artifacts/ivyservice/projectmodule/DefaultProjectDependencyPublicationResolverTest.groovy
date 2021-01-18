@@ -32,6 +32,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
     def project = Mock(ProjectInternal)
     def publicationRegistry = Mock(ProjectPublicationRegistry)
     def projectConfigurer = Mock(ProjectConfigurer)
+    def publication = Mock(ProjectPublication)
 
     def setup() {
         project.identityPath >> Path.path(":path")
@@ -42,9 +43,9 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         when:
         dependentProjectHasPublications()
 
-        project.group >> "dep-group"
+        projectDependency.group >> "dep-group"
         project.name >> "project-name"
-        project.version >> "dep-version"
+        projectDependency.version >> "dep-version"
 
         then:
         with (resolve()) {

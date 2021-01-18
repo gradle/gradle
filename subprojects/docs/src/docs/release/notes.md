@@ -28,7 +28,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-
 ## Performance improvements for incremental development
 
 This release contains further improvements for incremental development &mdash; the part of the software development process where you make frequent small changes.
