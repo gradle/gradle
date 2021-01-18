@@ -142,6 +142,10 @@ It is no longer required to activate the functionality using `java.modularity.in
 
 [Dependency verification](userguide/dependency_verification.html) is promoted to a stable feature.
 
+### Changing the priority of the daemon process
+
+Changing the [priority of the daemon process](userguide/command_line_interface.html#sec:command_line_performance) with `--priority` is now a stable feature.
+
 ### Promoted APIs
 In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 

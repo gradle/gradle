@@ -210,7 +210,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public static final String GRADLE_PROPERTY = "org.gradle.priority";
 
         public PriorityOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("priority", "Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are 'normal' (default) or 'low'").incubating());
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("priority", "Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are 'normal' (default) or 'low'"));
         }
 
         @Override
