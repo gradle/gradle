@@ -35,7 +35,6 @@ import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -76,13 +75,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
-    protected boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<>();
     private Map<String, String> systemPropertiesArgs = new HashMap<>();
     private File gradleUserHomeDir;
     protected File gradleHomeDir;
     private File settingsFile;
-    protected boolean useEmptySettings;
     private File buildFile;
     private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
@@ -193,7 +190,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public StartParameter() {
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
         gradleHomeDir = layoutParameters.getGradleInstallationHomeDir();
-        searchUpwards = layoutParameters.getSearchUpwards();
         currentDir = layoutParameters.getCurrentDir();
         projectDir = layoutParameters.getProjectDir();
         gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
@@ -214,12 +210,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.buildFile = buildFile;
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
-        p.useEmptySettings = useEmptySettings;
         p.taskRequests = new ArrayList<>(taskRequests);
         p.excludedTaskNames = new LinkedHashSet<>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
-        p.searchUpwards = searchUpwards;
         p.projectProperties = new HashMap<>(projectProperties);
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.initScripts = new ArrayList<>(initScripts);
@@ -296,43 +290,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             this.buildFile = FileUtils.canonicalize(buildFile);
             setProjectDir(this.buildFile.getParentFile());
         }
-    }
-
-    /**
-     * Specifies that an empty settings script should be used.
-     *
-     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(File)}, it will not be used.
-     *
-     * If {@link #setSettingsFile(File)} is called after this, it will supersede calling this method.
-     *
-     * @return this
-     */
-    public StartParameter useEmptySettings() {
-        DeprecationLogger.deprecateMethod(StartParameter.class, "useEmptySettings()")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(6, "discontinued_methods")
-            .nagUser();
-        doUseEmptySettings();
-        return this;
-    }
-
-    protected void doUseEmptySettings() {
-        searchUpwards = false;
-        useEmptySettings = true;
-        settingsFile = null;
-    }
-
-    /**
-     * Returns whether an empty settings script will be used regardless of whether one exists in the default location.
-     *
-     * @return Whether to use empty settings or not.
-     */
-    public boolean isUseEmptySettings() {
-        DeprecationLogger.deprecateMethod(StartParameter.class, "isUseEmptySettings()")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(6, "discontinued_methods")
-            .nagUser();
-        return useEmptySettings;
     }
 
     /**
@@ -421,22 +378,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         }
     }
 
-    public boolean isSearchUpwards() {
-        DeprecationLogger.deprecateMethod(StartParameter.class, "isSearchUpwards()")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
-            .nagUser();
-        return searchUpwards;
-    }
-
-    public void setSearchUpwards(boolean searchUpwards) {
-        DeprecationLogger.deprecateMethod(StartParameter.class, "setSearchUpwards(boolean)")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
-            .nagUser();
-        this.searchUpwards = searchUpwards;
-    }
-
     public Map<String, String> getProjectProperties() {
         return projectProperties;
     }
@@ -505,7 +446,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         if (settingsFile == null) {
             this.settingsFile = null;
         } else {
-            this.useEmptySettings = false;
             this.settingsFile = FileUtils.canonicalize(settingsFile);
             currentDir = this.settingsFile.getParentFile();
         }
@@ -514,10 +454,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Returns the explicit settings file to use for the build, or null.
      *
-     * Will return null if the default settings file is to be used. However, if {@link #isUseEmptySettings()} returns true, then no settings file at all will be used.
+     * Will return null if the default settings file is to be used.
      *
      * @return The settings file. May be null.
-     * @see #isUseEmptySettings()
      */
     @Nullable
     public File getSettingsFile() {
@@ -750,7 +689,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + "taskRequests=" + taskRequests
             + ", excludedTaskNames=" + excludedTaskNames
             + ", currentDir=" + currentDir
-            + ", searchUpwards=" + searchUpwards
             + ", projectProperties=" + projectProperties
             + ", systemPropertiesArgs=" + systemPropertiesArgs
             + ", gradleUserHomeDir=" + gradleUserHomeDir

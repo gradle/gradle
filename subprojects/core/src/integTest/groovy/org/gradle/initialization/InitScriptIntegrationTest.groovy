@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @LeaksFileHandles
 class InitScriptIntegrationTest extends AbstractIntegrationSpec {
@@ -168,31 +167,6 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains("order: plugin - settings.gradle - settingsEvaluated")
         output.contains("subprojects: :sub1 - :sub2")
-    }
-
-    @Unroll
-    def "shows deprecation warning when accessing #displayName from init script"() {
-        given:
-        createProject()
-        file("init.gradle") << """
-            ${codeUnderTest}
-        """
-
-        executer.usingInitScript(file('init.gradle'))
-
-        when:
-        executer.expectDeprecationWarning()
-        run 'help'
-
-        then:
-        outputContains("${displayName} method has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-
-        where:
-        displayName                                | codeUnderTest
-        "StartParameter.setSearchUpwards(boolean)" | "gradle.startParameter.searchUpwards = true"
-        "StartParameter.isSearchUpwards()"         | "gradle.startParameter.searchUpwards"
-        "StartParameter.useEmptySettings()"        | "gradle.startParameter.useEmptySettings()"
-        "StartParameter.isUseEmptySettings()"      | "gradle.startParameter.useEmptySettings"
     }
 
     private static String initScript() {

@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Unroll
 
 class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -88,35 +87,6 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':b2'")
         failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
-    }
-
-    @Unroll
-    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
-    def "shows deprecation warning when accessing #displayName when configuring GradleBuild task"() {
-        given:
-        settingsFile << "rootProject.name = 'parent'"
-        buildFile << """
-            task buildInBuild(type:GradleBuild) {
-                buildFile = 'other.gradle'
-            }
-
-            ${codeUnderTest}
-        """
-        file('other.gradle') << 'assert true'
-
-        when:
-        executer.expectDeprecationWarning()
-        run 'buildInBuild'
-
-        then:
-        outputContains("${displayName} method has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-
-        where:
-        displayName                                | codeUnderTest
-        "StartParameter.setSearchUpwards(boolean)" | "buildInBuild.startParameter.searchUpwards = true"
-        "StartParameter.isSearchUpwards()"         | "buildInBuild.startParameter.searchUpwards"
-        "StartParameter.useEmptySettings()"        | "buildInBuild.startParameter.useEmptySettings()"
-        "StartParameter.isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
     }
 
     @ToBeFixedForConfigurationCache(because = "GradleBuild task")

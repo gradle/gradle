@@ -24,16 +24,9 @@ public class SettingsLocation {
     @Nullable
     private final File settingsFile;
 
-    private final boolean settingsLoadedFromMasterDirectory;
-
-    public SettingsLocation(File settingsDir, @Nullable File settingsFile, boolean settingsLoadedFromMasterDirectory) {
+    public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
         this.settingsDir = settingsDir;
         this.settingsFile = settingsFile;
-        this.settingsLoadedFromMasterDirectory = settingsLoadedFromMasterDirectory;
-    }
-
-    public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
-        this(settingsDir, settingsFile, false);
     }
 
     /**
@@ -49,10 +42,6 @@ public class SettingsLocation {
     @Nullable
     public File getSettingsFile() {
         return settingsFile;
-    }
-
-    boolean isSettingsLoadedFromMasterDirectory() {
-        return settingsLoadedFromMasterDirectory;
     }
 }
 

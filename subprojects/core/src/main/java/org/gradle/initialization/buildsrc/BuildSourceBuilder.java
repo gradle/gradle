@@ -85,10 +85,10 @@ public class BuildSourceBuilder {
             return ClassPath.EMPTY;
         }
 
-        final StartParameter buildSrcStartParameter = containingBuildParameters.newBuild();
+        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        ((StartParameterInternal) buildSrcStartParameter).setSearchUpwardsWithoutDeprecationWarning(false);
+        buildSrcStartParameter.doNotSearchUpwards();
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
         final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
             buildSrcStartParameter,

@@ -201,9 +201,8 @@ project.description = text
         def allProgress = new CopyOnWriteArrayList<String>()
 
         concurrent.start {
-            def connector = toolingApi.connector()
+            def connector = toolingApi.connector(file("build1"))
             distributionOperation(connector, { it.description = "download for 1"; Thread.sleep(500) } )
-            connector.forProjectDirectory(file("build1"))
 
             toolingApi.withConnection(connector) { connection ->
                 def build = connection.newBuild()
@@ -216,9 +215,8 @@ project.description = text
         }
 
         concurrent.start {
-            def connector = toolingApi.connector()
+            def connector = toolingApi.connector(file("build2"))
             distributionOperation(connector, { it.description = "download for 2"; Thread.sleep(500) } )
-            connector.forProjectDirectory(file("build2"))
 
             def connection = connector.connect()
 
@@ -367,8 +365,7 @@ logger.lifecycle 'this is lifecycle: $idx'
     }
 
     def withConnectionInDir(String dir, Closure cl) {
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(file(dir))
+        GradleConnector connector = toolingApi.connector(file(dir))
         toolingApi.withConnection(connector, cl)
     }
 }

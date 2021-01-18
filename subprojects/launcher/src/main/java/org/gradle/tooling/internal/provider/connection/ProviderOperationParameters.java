@@ -83,7 +83,9 @@ public interface ProviderOperationParameters {
     /**
      * @return When null, use the provider's default value for search upwards.
      * @since 1.0-milestone-3
+     * @deprecated The ability to change the search upward behavior when calling a build has been removed in Gradle 7.0. This is kept for compatibility with pre 7.0 versions.
      */
+    @Deprecated
     @Nullable
     Boolean isSearchUpwards();
 

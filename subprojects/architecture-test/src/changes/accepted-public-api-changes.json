@@ -1511,6 +1511,63 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Field useEmptySettings",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Field searchUpwards",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.doUseEmptySettings()",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.isSearchUpwards()",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.isUseEmptySettings()",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.setSearchUpwards(boolean)",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.useEmptySettings()",
+            "acceptation": "Deprecated start parameter has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

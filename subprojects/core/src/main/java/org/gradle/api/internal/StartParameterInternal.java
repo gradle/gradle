@@ -38,6 +38,8 @@ public class StartParameterInternal extends StartParameter {
     private int configurationCacheMaxProblems = 512;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
+    private boolean searchUpwards = true;
+    private boolean useEmptySettings = false;
 
     @Override
     public StartParameter newInstance() {
@@ -60,6 +62,8 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
+        p.searchUpwards = searchUpwards;
+        p.useEmptySettings = useEmptySettings;
         return p;
     }
 
@@ -71,20 +75,20 @@ public class StartParameterInternal extends StartParameter {
         this.gradleHomeDir = gradleHomeDir;
     }
 
-    public void useEmptySettingsWithoutDeprecationWarning() {
-        doUseEmptySettings();
+    public boolean isSearchUpwards() {
+        return searchUpwards;
     }
 
-    public boolean isUseEmptySettingsWithoutDeprecationWarning() {
-        return super.useEmptySettings;
+    public void doNotSearchUpwards() {
+        this.searchUpwards = false;
     }
 
-    public boolean isSearchUpwardsWithoutDeprecationWarning() {
-        return super.searchUpwards;
+    public boolean isUseEmptySettings() {
+        return useEmptySettings;
     }
 
-    public void setSearchUpwardsWithoutDeprecationWarning(boolean searchUpwards) {
-        super.searchUpwards = searchUpwards;
+    public void useEmptySettings() {
+        this.useEmptySettings = true;
     }
 
     public WatchMode getWatchFileSystemMode() {
