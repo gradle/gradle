@@ -33,6 +33,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -115,7 +116,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshDependencies());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
-            encoder.writeBoolean(startParameter.isWatchFileSystem());
+            encoder.writeString(startParameter.getWatchFileSystemMode().name());
             encoder.writeBoolean(startParameter.isWatchFileSystemDebugLogging());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             encoder.writeBoolean(startParameter.isConfigurationCache());
@@ -194,7 +195,7 @@ public class BuildActionSerializer {
             startParameter.setRefreshDependencies(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
-            startParameter.setWatchFileSystem(decoder.readBoolean());
+            startParameter.setWatchFileSystemMode(BuildLifecycleAwareVirtualFileSystem.WatchMode.valueOf(decoder.readString()));
             startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(decoder.readBoolean());

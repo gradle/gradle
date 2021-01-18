@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 
 import java.io.File;
 import java.util.Collection;
@@ -28,7 +29,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class StartParameterInternal extends StartParameter {
-    private boolean watchFileSystem;
+    private BuildLifecycleAwareVirtualFileSystem.WatchMode watchFileSystemMode = BuildLifecycleAwareVirtualFileSystem.WatchMode.DEFAULT;
     private boolean watchFileSystemDebugLogging;
     private boolean vfsVerboseLogging;
 
@@ -51,7 +52,7 @@ public class StartParameterInternal extends StartParameter {
     @Override
     protected StartParameter prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
-        p.watchFileSystem = watchFileSystem;
+        p.watchFileSystemMode = watchFileSystemMode;
         p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
@@ -86,12 +87,12 @@ public class StartParameterInternal extends StartParameter {
         super.searchUpwards = searchUpwards;
     }
 
-    public boolean isWatchFileSystem() {
-        return watchFileSystem;
+    public BuildLifecycleAwareVirtualFileSystem.WatchMode getWatchFileSystemMode() {
+        return watchFileSystemMode;
     }
 
-    public void setWatchFileSystem(boolean watchFileSystem) {
-        this.watchFileSystem = watchFileSystem;
+    public void setWatchFileSystemMode(BuildLifecycleAwareVirtualFileSystem.WatchMode watchFileSystemMode) {
+        this.watchFileSystemMode = watchFileSystemMode;
     }
 
     public boolean isWatchFileSystemDebugLogging() {

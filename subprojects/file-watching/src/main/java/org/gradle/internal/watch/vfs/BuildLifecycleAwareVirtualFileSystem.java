@@ -32,7 +32,7 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is started.
      */
-    void afterBuildStarted(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner);
+    void afterBuildStarted(WatchMode watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner);
 
     /**
      * Returns whether watching the file system is supported on the current operating system, and has successfully been started.
@@ -51,10 +51,32 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is finished.
      */
-    void beforeBuildFinished(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
+    void beforeBuildFinished(WatchMode watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
 
     enum VfsLogging {
         NORMAL, VERBOSE
+    }
+
+    enum WatchMode {
+        ENABLED(true, "enabled"),
+        DEFAULT(true, "enabled if available"),
+        DISABLED(false, "disabled");
+
+        private final boolean enabled;
+        private final String description;
+
+        WatchMode(boolean enabled, String description) {
+            this.enabled = enabled;
+            this.description = description;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public String getDescription() {
+            return description;
+        }
     }
 
     enum WatchLogging {

@@ -55,7 +55,9 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
     def "watching virtual file system is informed about watching the file system being #watchFsEnabledString (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
-        _ * startParameter.isWatchFileSystem() >> watchFsEnabled
+        _ * startParameter.watchFileSystemMode >> watchFsEnabled
+            ? BuildLifecycleAwareVirtualFileSystem.WatchMode.ENABLED
+            : BuildLifecycleAwareVirtualFileSystem.WatchMode.DISABLED
         _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
         _ * startParameter.isVfsDebugLogging() >> false

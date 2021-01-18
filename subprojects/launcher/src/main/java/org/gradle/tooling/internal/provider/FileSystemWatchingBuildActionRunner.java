@@ -55,7 +55,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector = services.get(DirectorySnapshotterStatistics.Collector.class);
         BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
-        boolean watchFileSystem = startParameter.isWatchFileSystem();
+        BuildLifecycleAwareVirtualFileSystem.WatchMode watchFileSystemMode = startParameter.getWatchFileSystemMode();
         VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
             ? VfsLogging.VERBOSE
             : VfsLogging.NORMAL;
@@ -64,19 +64,19 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             : WatchLogging.NORMAL;
 
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
-        LOGGER.info("Watching the file system is {}", watchFileSystem ? "enabled" : "disabled");
-        if (watchFileSystem) {
+        LOGGER.info("Watching the file system is {}", watchFileSystemMode.getDescription());
+        if (watchFileSystemMode.isEnabled()) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
         if (verboseVfsLogging == VfsLogging.VERBOSE) {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
         }
-        virtualFileSystem.afterBuildStarted(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+        virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
         try {
             return delegate.run(action, buildController);
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
-            virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
+            virtualFileSystem.beforeBuildFinished(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
             if (verboseVfsLogging == VfsLogging.VERBOSE) {
                 logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
             }
