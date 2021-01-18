@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Nested;
  *
  * @since 6.7
  */
-@Incubating
 public interface JavaCompiler {
 
     /**

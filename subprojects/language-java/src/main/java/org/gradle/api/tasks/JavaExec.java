@@ -749,7 +749,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      *
      * @since 6.7
      */
-    @Incubating
     @Nested
     @Optional
     public Property<JavaLauncher> getJavaLauncher() {

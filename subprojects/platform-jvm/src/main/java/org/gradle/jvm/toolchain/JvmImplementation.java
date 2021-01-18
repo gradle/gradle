@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
  *
  * @since 6.8
  */
-@Incubating
 public final class JvmImplementation {
 
     /**

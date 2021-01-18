@@ -133,7 +133,6 @@ public interface JavaPluginExtension {
      *
      * @since 6.7
      */
-    @Incubating
     JavaToolchainSpec getToolchain();
 
     /**
@@ -144,7 +143,6 @@ public interface JavaPluginExtension {
      *
      * @since 6.7
      */
-    @Incubating
     JavaToolchainSpec toolchain(Action<? super JavaToolchainSpec> action);
 
     /**

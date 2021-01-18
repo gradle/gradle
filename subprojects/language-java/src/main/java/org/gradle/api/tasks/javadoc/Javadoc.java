@@ -230,7 +230,6 @@ public class Javadoc extends SourceTask {
      *
      * @since 6.7
      */
-    @Incubating
     @Nested
     @Optional
     public Property<JavadocTool> getJavadocTool() {

@@ -27,7 +27,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 6.7
  */
-@Incubating
 public interface JavaToolchainService {
 
     /**

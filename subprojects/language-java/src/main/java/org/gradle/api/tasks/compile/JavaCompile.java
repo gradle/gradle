@@ -148,7 +148,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      * @see org.gradle.jvm.toolchain.JavaToolchainSpec
      * @since 6.7
      */
-    @Incubating
     @Nested
     @Optional
     public Property<JavaCompiler> getJavaCompiler() {

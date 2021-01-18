@@ -29,7 +29,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 6.7
  */
-@Incubating
 @HasInternalProtocol
 public interface JavaToolchainSpec extends Describable {
 

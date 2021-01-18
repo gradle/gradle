@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Internal;
  *
  * @since 6.7
  */
-@Incubating
 public interface JavaInstallationMetadata {
     /**
      * Returns the language version of the JVM to which this tool belongs
