@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GradleVersion;
 import org.junit.platform.engine.ConfigurationParameters;
 import org.junit.platform.engine.DiscoveryFilter;
@@ -176,6 +177,14 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
         if (toolingApiVersionToLoad == null) {
             return;
         }
+
+        // This is necessary because for the Tooling Api cross version tests, NativeServices
+        // can get initialized in a different classloader, which then makes it broken and unusable
+        // in the test class (because the native shared library is loaded from another classloader).
+        // By initializing it here, we ensure that it is loaded from the classloader the test engine
+        // also uses.
+        NativeServicesTestFixture.initialize();
+
         for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
                 ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), selector.getJavaClass());
