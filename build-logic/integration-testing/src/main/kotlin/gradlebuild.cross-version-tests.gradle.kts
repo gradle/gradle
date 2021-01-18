@@ -18,7 +18,6 @@ import gradlebuild.testing.TestType
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
-import gradlebuild.integrationtests.createTasks
 import gradlebuild.integrationtests.createTestTask
 
 plugins {
@@ -29,7 +28,7 @@ plugins {
 
 val sourceSet = addSourceSet(TestType.CROSSVERSION)
 addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
-createTasks(sourceSet, TestType.CROSSVERSION)
+createQuickFeedbackTasks()
 createAggregateTasks(sourceSet)
 configureIde(TestType.CROSSVERSION)
 configureTestFixturesForCrossVersionTests()
@@ -38,6 +37,26 @@ fun configureTestFixturesForCrossVersionTests() {
     if (name != "test") {
         dependencies {
             "crossVersionTestImplementation"(testFixtures(project(":tooling-api")))
+        }
+    }
+}
+
+fun createQuickFeedbackTasks() {
+    val testType = TestType.CROSSVERSION
+    val defaultExecuter = "embedded"
+    val prefix = testType.prefix
+    testType.executers.forEach { executer ->
+        val taskName = "$executer${prefix.capitalize()}Test"
+        val testTask = createTestTask(taskName, executer, sourceSet, testType) {
+            this.systemProperties["org.gradle.integtest.versions"] = "latest"
+            this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
+            this.useJUnitPlatform {
+                includeEngines("cross-version-test-engine")
+            }
+        }
+        if (executer == defaultExecuter) {
+            // The test task with the default executer runs with 'check'
+            tasks.named("check").configure { dependsOn(testTask) }
         }
     }
 }

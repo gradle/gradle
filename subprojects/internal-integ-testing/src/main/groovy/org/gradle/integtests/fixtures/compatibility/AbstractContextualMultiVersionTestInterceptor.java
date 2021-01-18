@@ -156,7 +156,7 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
         Set<T> versionsUnderTest = Sets.newHashSet();
 
         for (String criteria : selectionCriteria) {
-            if ("latest".equals(criteria)) {
+            if (CoverageContext.LATEST.selector.equals(criteria)) {
                 versionsUnderTest.add(getLast(possibleVersions.iterator()));
             } else {
                 for (T version : possibleVersions) {
@@ -171,25 +171,6 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
             for (Execution execution : createExecutionsFor(version)) {
                 add(execution);
             }
-        }
-    }
-
-    protected enum CoverageContext {
-        DEFAULT("default"), LATEST("latest"), PARTIAL("partial"), FULL("all"), UNKNOWN(null);
-
-        final String selector;
-
-        CoverageContext(String selector) {
-            this.selector = selector;
-        }
-
-        static CoverageContext from(String requested) {
-            for (CoverageContext context : values()) {
-                if (context != UNKNOWN && context.selector.equals(requested)) {
-                    return context;
-                }
-            }
-            return UNKNOWN;
         }
     }
 }

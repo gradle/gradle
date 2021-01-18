@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.compatibility.AbstractCompatibilityTestInterceptor
+import org.gradle.integtests.fixtures.compatibility.CoverageContext
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 
@@ -37,8 +38,11 @@ class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestIn
 
     @Override
     protected void createExecutionsForContext(CoverageContext coverageContext) {
-        add(new ToolingApiExecution(current, current))
-        super.createExecutionsForContext(coverageContext)
+        if (coverageContext == CoverageContext.DEFAULT) {
+            add(new ToolingApiExecution(current, current))
+        } else {
+            super.createExecutionsForContext(coverageContext)
+        }
     }
 
     @Override

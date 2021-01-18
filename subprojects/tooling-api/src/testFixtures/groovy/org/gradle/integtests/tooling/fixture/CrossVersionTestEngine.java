@@ -16,7 +16,12 @@
 
 package org.gradle.integtests.tooling.fixture;
 
+import org.gradle.integtests.fixtures.compatibility.CoverageContext;
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 import org.junit.platform.engine.ConfigurationParameters;
 import org.junit.platform.engine.DiscoveryFilter;
@@ -38,7 +43,9 @@ import org.spockframework.runtime.SpockExecutionContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor.VERSIONS_SYSPROP_NAME;
 
@@ -59,7 +66,6 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
         if (crossVersionTest == null) {
             return new EngineDescriptor(uniqueId, "skip");
         }
-        System.setProperty("org.gradle.integtest.currentVersion", GradleVersion.current().getVersion());
 
         buildTestVariants(uniqueId, discoveryRequest);
         return discoverTests(uniqueId);
@@ -71,14 +77,15 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
     }
 
     private void buildTestVariants(UniqueId rootId, EngineDiscoveryRequest discoveryRequest) {
-        variants.add(new TestVariant(rootId, "selected", discoveryRequest));
-        variants.add(new TestVariant(rootId, "tapi", new ToolingApiClassloaderDiscoveryRequest(discoveryRequest)));
+        variants.add(TestVariant.tapiCurrent(rootId, discoveryRequest));
+        variants.add(TestVariant.selected(rootId, discoveryRequest));
+        variants.add(TestVariant.tapiTargetLoaded(rootId, discoveryRequest));
     }
 
     private TestDescriptor discoverTests(UniqueId uniqueId) {
         EngineDescriptor rootDescriptor = new SpockEngineDescriptor(uniqueId, RunContext.get());
         for (TestVariant testVariant : variants) {
-            for (TestDescriptor test : delegateEngine.discover(testVariant.discoveryRequest, testVariant.id).getChildren()) {
+            for (TestDescriptor test : testVariant.discover(delegateEngine).getChildren()) {
                 rootDescriptor.addChild(test);
             }
         }
@@ -87,12 +94,38 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
 }
 
 class TestVariant {
-    final UniqueId id;
-    final EngineDiscoveryRequest discoveryRequest;
+    private final UniqueId id;
+    private final EngineDiscoveryRequest discoveryRequest;
+    private final Map<String, String> systemProperties = new HashMap<String, String>();
 
-    TestVariant(UniqueId rootId, String variant, EngineDiscoveryRequest request) {
+    static TestVariant tapiCurrent(UniqueId rootId, EngineDiscoveryRequest discoveryRequest) {
+        TestVariant testVariant = new TestVariant(rootId, "tapiCurrent", new ToolingApiCurrentDiscoveryRequest(discoveryRequest));
+        testVariant.systemProperties.put(VERSIONS_SYSPROP_NAME, CoverageContext.DEFAULT.selector);
+        return testVariant;
+    }
+
+    static TestVariant selected(UniqueId rootId, EngineDiscoveryRequest discoveryRequest) {
+        return new TestVariant(rootId, "selected", discoveryRequest);
+    }
+
+    static TestVariant tapiTargetLoaded(UniqueId rootId, EngineDiscoveryRequest discoveryRequest) {
+        TestVariant testVariant = new TestVariant(rootId, "tapi", new ToolingApiClassloaderDiscoveryRequest(discoveryRequest));
+        testVariant.systemProperties.put("org.gradle.integtest.currentVersion", GradleVersion.current().getVersion());
+        return testVariant;
+    }
+
+    private TestVariant(UniqueId rootId, String variant, EngineDiscoveryRequest request) {
         this.id = rootId.append("variant", variant);
         this.discoveryRequest = request;
+    }
+
+    TestDescriptor discover(final TestEngine discoveryEngine) {
+        return SystemProperties.getInstance().withSystemProperties(systemProperties, new Factory<TestDescriptor>() {
+            @Override
+            public TestDescriptor create() {
+                return discoveryEngine.discover(discoveryRequest, id);
+            }
+        });
     }
 }
 
@@ -139,14 +172,13 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
     ToolingApiClassloaderDiscoveryRequest(EngineDiscoveryRequest delegate) {
         super(delegate);
-        List<ClassSelector> testClasses = delegate.getSelectorsByType(ClassSelector.class);
-        String versionToTestAgainst = System.getProperty(VERSIONS_SYSPROP_NAME);
-        if (!isToolingApiVersionLoadable(versionToTestAgainst)) {
+        String toolingApiVersionToLoad = getToolingApiVersionToLoad();
+        if (toolingApiVersionToLoad == null) {
             return;
         }
-        for (ClassSelector selector : testClasses) {
+        for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
-                ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(versionToTestAgainst), selector.getJavaClass());
+                ClassLoader classLoader = ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), selector.getJavaClass());
                 try {
                     addSelector(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
                 } catch (ClassNotFoundException e) {
@@ -163,12 +195,31 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
         return toolingApi;
     }
 
-    private static boolean isToolingApiVersionLoadable(String candidateTapiVersion) {
-        try {
-            return GradleVersion.version(candidateTapiVersion).compareTo(MIN_LOADABLE_TAPI_VERSION) >= 0;
-        } catch (IllegalArgumentException e) {
-            // only test current -> current for quick/partial/latest selectors for now
-            return false;
+    private String getToolingApiVersionToLoad() {
+        String candidateTapiVersion = System.getProperty(VERSIONS_SYSPROP_NAME);
+        if (CoverageContext.LATEST.selector.equals(candidateTapiVersion)) {
+            ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(IntegrationTestBuildContext.INSTANCE);
+            return releasedVersions.getMostRecentRelease().getVersion().getVersion();
+        }
+        if (GradleVersion.version(candidateTapiVersion).compareTo(MIN_LOADABLE_TAPI_VERSION) >= 0) {
+            return candidateTapiVersion;
+        }
+        return null;
+    }
+}
+
+class ToolingApiCurrentDiscoveryRequest extends DelegatingDiscoveryRequest {
+
+    ToolingApiCurrentDiscoveryRequest(EngineDiscoveryRequest delegate) {
+        super(delegate);
+        String candidateTapiVersion = System.getProperty(VERSIONS_SYSPROP_NAME);
+        if (!CoverageContext.LATEST.selector.equals(candidateTapiVersion)) {
+            return;
+        }
+        for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
+            if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
+                addSelector(DiscoverySelectors.selectClass(selector.getJavaClass()));
+            }
         }
     }
 }
