@@ -138,6 +138,10 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 Java modules is now a stable feature.
 It is no longer required to activate the functionality using `java.modularity.inferModulePath.set(true)`.
 
+### Dependency Verification
+
+[Dependency verification](userguide/dependency_verification.html) is promoted to a stable feature.
+
 ### Promoted APIs
 In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
