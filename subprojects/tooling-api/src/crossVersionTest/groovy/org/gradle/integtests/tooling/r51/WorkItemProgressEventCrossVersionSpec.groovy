@@ -24,10 +24,13 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
 class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
+
+    def workActionClass = file("buildSrc/src/main/java/org/gradle/test/TestWork.java")
 
     def setup() {
         prepareTaskTypeUsingWorker()
@@ -44,10 +47,10 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         then:
         def taskOperation = events.operation("Task :runInWorker")
         taskOperation.task
-        with(taskOperation.descendant("TestWork")) {
+        with(taskOperation.descendant("org.gradle.test.TestWork")) {
             successful
             workItem
-            descriptor.className == "org.gradle.test.TestRunnable"
+            descriptor.className == "org.gradle.test.TestWork"
         }
     }
 
@@ -95,11 +98,11 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         thrown(BuildException)
         def taskOperation = events.operation("Task :runInWorker")
         taskOperation.task
-        with(taskOperation.child("TestWork")) {
+        with(taskOperation.child("org.gradle.test.TestWork")) {
             !successful
             workItem
             descriptor instanceof WorkItemOperationDescriptor
-            descriptor.className == "org.gradle.test.TestRunnable"
+            descriptor.className == "org.gradle.test.TestWork"
             failures.size() == 1
             with (failures[0]) {
                 message == "something went horribly wrong"
@@ -124,15 +127,11 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def prepareTaskTypeUsingWorker() {
+        def gradle3Submit = 'workerExecutor.submit(TestWork) { c -> c.displayName = "org.gradle.test.TestWork" }'
+        def submit = 'workerExecutor.noIsolation().submit(TestWork) { }'
         buildFile << """
-            import org.gradle.workers.*
-            $taskTypeUsingWorker
-        """
-    }
-
-    String getTaskTypeUsingWorker() {
-        return """
             import javax.inject.Inject
+            import org.gradle.workers.*
 
             class WorkerTask extends DefaultTask {
 
@@ -143,36 +142,40 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
                 @TaskAction
                 void executeTask() {
-                    workerExecutor.submit(TestRunnable) { config ->
-                        config.displayName = 'TestWork'
-                    }
+                    ${targetVersion < GradleVersion.version("6.0") ? gradle3Submit : submit}
                 }
             }
         """
     }
 
     void withRunnableClassInBuildSrc() {
-        file("buildSrc/src/main/java/org/gradle/test/TestRunnable.java") << """
-            package org.gradle.test;
-            public class TestRunnable implements Runnable {
+        def gradle3Runnable = """
+            public class TestWork implements Runnable {
                 public void run() {
+                    // DO NOTHING
                 }
             }
         """
+        def workAction = """
+            abstract public class TestWork implements WorkAction<WorkParameters.None> {
+                public void execute() {
+                    // DO NOTHING
+                }
+            }
+        """
+
+        workActionClass << """
+            package org.gradle.test;
+            import org.gradle.workers.*;
+            ${targetVersion < GradleVersion.version("6.0") ? gradle3Runnable : workAction}
+        """
         buildFile.text = """
-            import org.gradle.test.TestRunnable
+            import org.gradle.test.TestWork
             ${buildFile.text}
         """
     }
 
     void withRunnableClassThatFails() {
-        file("buildSrc/src/main/java/org/gradle/test/TestRunnable.java").text = """
-            package org.gradle.test;
-            public class TestRunnable implements Runnable {
-                public void run() {
-                    throw new IllegalStateException("something went horribly wrong");
-                }
-            }
-        """
+        workActionClass.text = workActionClass.text.replace('// DO NOTHING', 'throw new IllegalStateException("something went horribly wrong");')
     }
 }
