@@ -84,22 +84,6 @@ public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerS
     Iterable<File> getClasspath();
 
     /**
-     * Gets the forking mode for this worker, see {@link ForkMode}.
-     *
-     * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
-     */
-    @Deprecated
-    ForkMode getForkMode();
-
-    /**
-     * Sets the forking mode for this worker, see {@link ForkMode}.
-     *
-     * @param forkMode the forking mode for this worker, see {@link ForkMode}
-     */
-    @Deprecated
-    void setForkMode(ForkMode forkMode);
-
-    /**
      * Sets the name to use when displaying this item of work.
      *
      * @param displayName the name of this item of work

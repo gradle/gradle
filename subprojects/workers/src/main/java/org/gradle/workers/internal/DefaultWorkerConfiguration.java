@@ -24,7 +24,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.util.GUtil;
 import org.gradle.workers.ClassLoaderWorkerSpec;
-import org.gradle.workers.ForkMode;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.ProcessWorkerSpec;
 import org.gradle.workers.WorkerConfiguration;
@@ -106,38 +105,6 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     @Override
     public Object[] getParams() {
         return actionConfiguration.getParams();
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public ForkMode getForkMode() {
-        switch (getIsolationMode()) {
-            case AUTO:
-                return ForkMode.AUTO;
-            case NONE:
-            case CLASSLOADER:
-                return ForkMode.NEVER;
-            case PROCESS:
-                return ForkMode.ALWAYS;
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void setForkMode(ForkMode forkMode) {
-        switch (forkMode) {
-            case AUTO:
-                setIsolationMode(IsolationMode.AUTO);
-                break;
-            case NEVER:
-                setIsolationMode(IsolationMode.CLASSLOADER);
-                break;
-            case ALWAYS:
-                setIsolationMode(IsolationMode.PROCESS);
-                break;
-        }
     }
 
     void adaptTo(WorkerSpec workerSpec) {

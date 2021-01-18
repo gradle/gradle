@@ -1511,6 +1511,86 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Class org.gradle.workers.ForkMode",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Field AUTO",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Field NEVER",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Field ALWAYS",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Method org.gradle.workers.ForkMode.valueOf(java.lang.String)",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Method org.gradle.workers.ForkMode.values()",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.getForkMode()",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },{
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.setForkMode(org.gradle.workers.ForkMode)",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.setForkMode(org.gradle.workers.ForkMode)",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerExecutor",
+            "member": "Method org.gradle.workers.WorkerExecutor.submit(java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "Deprecated submit with fork mode of Worker API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

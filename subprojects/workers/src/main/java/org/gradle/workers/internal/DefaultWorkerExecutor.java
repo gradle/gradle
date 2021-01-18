@@ -44,7 +44,6 @@ import org.gradle.workers.ProcessWorkerSpec;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
-import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkerSpec;
@@ -135,36 +134,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
-        DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
-        configAction.execute(configuration);
-
-        Action<AdapterWorkParameters> parametersAction = parameters -> {
-            parameters.setImplementationClassName(actionClass.getName());
-            parameters.setParams(configuration.getParams());
-            parameters.setDisplayName(configuration.getDisplayName());
-        };
-
-        WorkQueue workQueue;
-        switch (configuration.getIsolationMode()) {
-            case NONE:
-            case AUTO:
-                workQueue = noIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            case CLASSLOADER:
-                workQueue = classLoaderIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            case PROCESS:
-                workQueue = processIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown isolation mode: " + configuration.getIsolationMode());
-        }
-        workQueue.submit(AdapterWorkAction.class, parametersAction);
     }
 
     <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {

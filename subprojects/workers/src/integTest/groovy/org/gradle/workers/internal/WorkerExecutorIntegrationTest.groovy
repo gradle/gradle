@@ -160,14 +160,14 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
                 @TaskAction
                 def go() {
-                    workerExecutor.submit(SomeWork) { }
-                    workerExecutor.submit(SomeWork) { }
+                    workerExecutor.noIsolation().submit(SomeWork) { }
+                    workerExecutor.noIsolation().submit(SomeWork) { }
                     workerExecutor.await()
                 }
             }
 
-            class SomeWork implements Runnable {
-                void run() {
+            abstract class SomeWork implements WorkAction<WorkParameters.None> {
+                void execute() {
                     Thread.sleep(50)
                 }
             }
