@@ -185,36 +185,29 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             executer.withStackTraceChecksDisabled()
         }
         buildFile << """
-            import java.util.concurrent.CountDownLatch;
-            import java.util.concurrent.TimeUnit;
+            import java.util.concurrent.CountDownLatch
+            import java.util.concurrent.TimeUnit
+            import org.gradle.workers.WorkParameters
 
             task block(type: WorkerTask) {
                 timeout = Duration.ofMillis($TIMEOUT)
             }
 
-            class WorkerTask extends DefaultTask {
+            abstract class WorkerTask extends DefaultTask {
 
                 @Inject
-                WorkerExecutor getWorkerExecutor() {
-                    throw new UnsupportedOperationException()
-                }
+                abstract WorkerExecutor getWorkerExecutor()
 
                 @TaskAction
                 void executeTask() {
                     for (int i = 0; i < 100; i++) {
-                        workerExecutor.submit(BlockingRunnable) {
-                            isolationMode = IsolationMode.$isolationMode
-                        }
+                        workerExecutor.${isolationMode}Isolation().submit(BlockingWorkAction) { }
                     }
                 }
             }
 
-            public class BlockingRunnable implements Runnable {
-                @Inject
-                public BlockingRunnable() {
-                }
-
-                public void run() {
+            abstract class BlockingWorkAction implements WorkAction<WorkParameters.None> {
+                public void execute() {
                     new CountDownLatch(1).await(90, TimeUnit.SECONDS);
                 }
             }
@@ -231,7 +224,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        isolationMode << IsolationMode.values()
+        isolationMode << ['no', 'classLoader', 'process']
     }
 
     def "message is logged when stop is requested"() {
