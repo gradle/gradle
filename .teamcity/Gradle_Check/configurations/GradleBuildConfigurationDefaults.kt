@@ -88,7 +88,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
             name = "GRADLE_RUNNER"
             tasks = "clean javaToolchains $gradleTasks"
             gradleParams = (
-                buildToolGradleParameters(daemon) +
+                    buildToolGradleParameters(daemon) +
                     listOf(extraParameters) +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) } +
