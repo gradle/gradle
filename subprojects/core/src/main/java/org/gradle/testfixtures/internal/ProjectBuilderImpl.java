@@ -150,7 +150,8 @@ public class ProjectBuilderImpl {
                 buildServices,
                 buildTreeState,
                 buildSessionState,
-                crossBuildSessionState
+                crossBuildSessionState,
+                userHomeServices
             )
         );
         return project;
