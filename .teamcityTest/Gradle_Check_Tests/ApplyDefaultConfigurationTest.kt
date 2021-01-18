@@ -64,6 +64,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+            "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
@@ -82,6 +83,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+            "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
             "CHECK_CLEAN_M2"
@@ -102,6 +104,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(listOf(
             "ATTACH_FILE_LEAK_DETECTOR",
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+            "SHOW_TOOLCHAINS",
             "GRADLE_RUNNER",
             "SET_BUILD_SUCCESS_ENV",
             "DUMP_OPEN_FILES_ON_FAILURE",
@@ -116,7 +119,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(BuildStep.ExecutionMode.DEFAULT, getGradleStep("GRADLE_RUNNER").executionMode)
 
         assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters, os), getGradleStep("GRADLE_RUNNER").gradleParams)
-        assertEquals("clean javaToolchains myTask", getGradleStep("GRADLE_RUNNER").tasks)
+        assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
     }
 
     private
