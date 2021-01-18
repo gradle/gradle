@@ -103,16 +103,15 @@ public class ProjectBuilderImpl {
     }
 
     public ProjectInternal createProject(String name, File inputProjectDir, File gradleUserHomeDir, boolean isolate) {
-        final ServiceRegistry globalServices = isolate ? createGlobalServices() : getGlobalServices();
+
         final File projectDir = prepareProjectDir(inputProjectDir);
-
         final File homeDir = new File(projectDir, "gradleHome");
-
-        StartParameter startParameter = new StartParameterInternal();
-
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
+        StartParameter startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
+
+        final ServiceRegistry globalServices = isolate ? createGlobalServices() : getGlobalServices();
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
