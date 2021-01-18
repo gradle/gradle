@@ -70,7 +70,7 @@ fun BuildSteps.killGradleProcessesStep(os: Os) {
 }
 
 // to avoid pathname too long error
-fun BuildSteps.substDirOnWindows(os: Os, buildCache: BuildCache) {
+fun BuildSteps.substDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
         script {
             name = "SETUP_VIRTUAL_DISK_FOR_PERF_TEST"
@@ -89,14 +89,13 @@ fun BuildSteps.substDirOnWindows(os: Os, buildCache: BuildCache) {
             gradleWrapperPath = "../"
             gradleParams = (
                 buildToolGradleParameters() +
-                    buildScanTag("PerformanceTest") +
-                    buildCache.gradleParameters(os)
+                    buildScanTag("PerformanceTest")
                 ).joinToString(separator = " ")
         }
     }
 }
 
-fun BuildSteps.removeSubstDirOnWindows(os: Os, buildCache: BuildCache) {
+fun BuildSteps.removeSubstDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
         script {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
@@ -111,8 +110,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os, buildCache: BuildCache) {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             gradleParams = (
                 buildToolGradleParameters() +
-                    buildScanTag("PerformanceTest") +
-                    buildCache.gradleParameters(os)
+                    buildScanTag("PerformanceTest")
                 ).joinToString(separator = " ")
         }
     }

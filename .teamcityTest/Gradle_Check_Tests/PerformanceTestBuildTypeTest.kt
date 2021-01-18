@@ -75,9 +75,7 @@ class PerformanceTestBuildTypeTest {
             "-s",
             "--daemon",
             "",
-            "\"-Dscan.tag.PerformanceTest\"",
-            "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
-            "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\""
+            "\"-Dscan.tag.PerformanceTest\""
         )
 
         assertEquals(
