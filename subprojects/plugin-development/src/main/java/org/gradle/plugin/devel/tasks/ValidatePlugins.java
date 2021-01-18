@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -52,7 +51,6 @@ import java.util.stream.Collectors;
  * @since 6.0
  */
 @CacheableTask
-@Incubating
 public abstract class ValidatePlugins extends DefaultTask {
 
     public ValidatePlugins() {

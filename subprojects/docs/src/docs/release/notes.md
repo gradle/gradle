@@ -138,6 +138,14 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 Java modules is now a stable feature.
 It is no longer required to activate the functionality using `java.modularity.inferModulePath.set(true)`.
 
+### Dependency Verification
+
+[Dependency verification](userguide/dependency_verification.html) is promoted to a stable feature.
+
+### Changing the priority of the daemon process
+
+Changing the [priority of the daemon process](userguide/command_line_interface.html#sec:command_line_performance) with `--priority` is now a stable feature.
+
 ### Promoted APIs
 In Gradle 7.0 we moved the following classes or methods out of incubation phase.
 
@@ -402,6 +410,12 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()
         - org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()
     - Miscellaneous
+        - org.gradle.api.plugins.quality.CodeNarc.getCompilationClasspath()
+        - org.gradle.api.plugins.quality.CodeNarc.setCompilationClasspath(FileCollection)
+        - org.gradle.api.plugins.quality.Pmd.getIncrementalAnalysis()
+        - org.gradle.api.plugins.quality.Pmd.getIncrementalCacheFile()
+        - org.gradle.api.plugins.quality.Pmd.getMaxFailures()
+        - org.gradle.api.plugins.quality.PmdExtension.getMaxFailures()
         - org.gradle.plugins.ear.Ear.getGenerateDeploymentDescriptor()
         - org.gradle.plugins.ear.EarPluginConvention.getGenerateDeploymentDescriptor()
     
@@ -423,6 +437,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
     - org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+    
+- Plugin development
+    - org.gradle.plugin.devel.tasks.ValidatePlugins
 
 - org.gradle.api.distribution.Distribution.getDistributionBaseName()
 

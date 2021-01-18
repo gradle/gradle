@@ -1398,6 +1398,71 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Class org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "acceptation": "Deprecated class was removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.getClasses()",
+            "acceptation": "Deprecated class ValidateTaskProperties has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.getClasspath()",
+            "acceptation": "Deprecated class ValidateTaskProperties has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.getEnableStricterValidation()",
+            "acceptation": "Deprecated class ValidateTaskProperties has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.getFailOnWarning()",
+            "acceptation": "Deprecated class ValidateTaskProperties has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.getOutputFile()",
+            "acceptation": "Deprecated class ValidateTaskProperties has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.setEnableStricterValidation(boolean)",
+            "acceptation": "Deprecated class ValidateTaskProperties has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.setFailOnWarning(boolean)",
+            "acceptation": "Deprecated class ValidateTaskProperties has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

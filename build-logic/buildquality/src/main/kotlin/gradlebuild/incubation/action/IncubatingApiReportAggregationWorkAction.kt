@@ -21,18 +21,24 @@ import org.gradle.workers.WorkAction
 
 abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingApiReportAggregationParameter> {
     override fun execute() {
-        val byVersion = mutableMapOf<String, ReportNameToProblems>()
+        val byCategory = mutableMapOf<String, ReportNameToProblems>()
         parameters.reports.files.sorted().forEach { file ->
             file.forEachLine(Charsets.UTF_8) {
                 val (version, _, problem) = it.split(';')
-                byVersion.getOrPut(version) {
+                byCategory.getOrPut(toCategory(version, file.nameWithoutExtension)) {
                     mutableMapOf()
                 }.getOrPut(file.nameWithoutExtension) {
                     mutableSetOf()
                 }.add(problem)
             }
         }
-        generateReport(byVersion)
+        generateReport(byCategory)
+    }
+
+    private
+    fun toCategory(version: String, gradleModule: String) = when {
+        gradleModule.endsWith("-native") || gradleModule in listOf("model-core", "platform-base", "testing-base") -> "Software Model and Native"
+        else -> "Incubating since $version"
     }
 
     private
@@ -57,13 +63,13 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
     """
             )
 
-            data.toSortedMap().forEach { (version, _) ->
-                writer.println("<li><a href=\"#$version\">Incubating since $version</a><br></li>")
+            data.toSortedMap().forEach { (category, _) ->
+                writer.println("<li><a href=\"#$category\">$category</a><br></li>")
             }
             writer.println("</ul>")
-            data.toSortedMap().forEach { (version, problems) ->
-                writer.println("<a name=\"$version\"></a>")
-                writer.println("<h2>Incubating since $version</h2>")
+            data.toSortedMap().forEach { (category, problems) ->
+                writer.println("<a name=\"$category\"></a>")
+                writer.println("<h2>$category</h2>")
                 problems.forEach { (name, issues) ->
                     writer.println("<h3>In $name</h3>")
                     writer.println("<ul>")

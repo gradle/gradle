@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -144,7 +143,6 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 4.2
      */
-    @Incubating
     @Classpath
     public FileCollection getCompilationClasspath() {
         return compilationClasspath;
@@ -155,7 +153,6 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 4.2
      */
-    @Incubating
     public void setCompilationClasspath(FileCollection compilationClasspath) {
         this.compilationClasspath = compilationClasspath;
     }

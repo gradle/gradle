@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.repoRoot
 import gradlebuild.incubation.tasks.IncubatingApiReportTask
@@ -29,6 +30,7 @@ val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {
     versionFile.set(repoRoot().file("version.txt"))
     releasedVersionsFile.set(repoRoot().file("released-versions.json"))
     sources.from(sourceSets.main.get().java.sourceDirectories)
+    sources.from(sourceSets.main.get().groovy.sourceDirectories)
     htmlReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.html")))
     textReportFile.set(file(layout.buildDirectory.file("reports/incubation/${project.name}.txt")))
 }
