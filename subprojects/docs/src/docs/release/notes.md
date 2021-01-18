@@ -219,6 +219,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - [Build Caching](userguide/build_cache.html)
         - org.gradle.normalization.RuntimeClasspathNormalization.metaInf(Action)
         - org.gradle.normalization.MetaInfNormalization
+        - org.gradle.caching.BuildCacheKey.toByteArray
     - Reporting
         - org.gradle.api.reporting.Report.getOutputLocation()
         - org.gradle.api.reporting.Report.getRequired()
