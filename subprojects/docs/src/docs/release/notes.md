@@ -142,6 +142,10 @@ It is no longer required to activate the functionality using `java.modularity.in
 
 [Dependency verification](userguide/dependency_verification.html) is promoted to a stable feature.
 
+### Java Toolchain
+
+[Java Toolchains](userguide/toolchains.html) is promoted to a stable feature.
+
 ### Changing the priority of the daemon process
 
 Changing the [priority of the daemon process](userguide/command_line_interface.html#sec:command_line_performance) with `--priority` is now a stable feature.
@@ -391,6 +395,23 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.process.JavaExecSpec.getMainClass()
         - org.gradle.process.JavaExecSpec.getMainModule()
         - org.gradle.process.JavaExecSpec.getModularity()
+    - Java Toolchains
+        - org.gradle.api.tasks.JavaExec.getJavaLauncher()
+        - org.gradle.api.tasks.compile.JavaCompile.getJavaCompiler()
+        - org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()
+        - org.gradle.api.tasks.testing.Test.getJavaLauncher()
+        - org.gradle.jvm.toolchain.JavaCompiler
+        - org.gradle.jvm.toolchain.JavaInstallationMetadata
+        - org.gradle.jvm.toolchain.JavaLanguageVersion
+        - org.gradle.jvm.toolchain.JavaLauncher
+        - org.gradle.jvm.toolchain.JavaToolchainService
+        - org.gradle.jvm.toolchain.JavaToolchainSpec
+        - org.gradle.jvm.toolchain.JavadocTool
+        - org.gradle.jvm.toolchain.JvmImplementation
+        - org.gradle.jvm.toolchain.JvmVendorSpec
+        - org.gradle.api.plugins.JavaPluginExtension.toolchain(action)
+        - org.gradle.api.plugins.JavaPluginExtension.getToolchain()
+        - org.gradle.api.tasks.compile.GroovyCompile.getJavaLauncher()
     - Testing
         - org.gradle.api.plugins.JavaTestFixturesPlugin
         - org.gradle.api.tasks.testing.JUnitXmlReport.getMergeReruns()
