@@ -6,5 +6,8 @@ includeBuild("build-logic")
 
 includeBuild("aggregation")
 
+includeBuild("user-feature")
+includeBuild("admin-feature")
+
 includeBuild("server-application")
 includeBuild("android-app")
