@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
@@ -57,7 +58,7 @@ public class JavaToolchainQueryService {
 
     Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         return new DefaultProvider<>(() -> {
-            if (((DefaultToolchainSpec) filter).isConfigured()) {
+            if (((ToolchainSpecInternal) filter).isConfigured()) {
                 return matchingToolchains.computeIfAbsent(filter, k -> query(k));
             } else {
                 return null;
@@ -66,6 +67,12 @@ public class JavaToolchainQueryService {
     }
 
     private JavaToolchain query(JavaToolchainSpec filter) {
+        if (filter instanceof CurrentJvmToolchainSpec) {
+            return asToolchain(Jvm.current().getJavaHome(), filter).get();
+        }
+        if (filter instanceof SpecificInstallationToolchainSpec) {
+            return asToolchain(((SpecificInstallationToolchainSpec) filter).getJavaHome(), filter).get();
+        }
         return registry.listInstallations().stream()
             .map(InstallationLocation::getLocation)
             .map(javaHome -> asToolchain(javaHome, filter))

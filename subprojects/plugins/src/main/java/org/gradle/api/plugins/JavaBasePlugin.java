@@ -56,6 +56,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -127,7 +128,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
-        bridgeToSoftwareModelIfNecessary(projectInternal);
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
@@ -139,12 +139,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaConvention;
-    }
-
-    private void bridgeToSoftwareModelIfNecessary(ProjectInternal project) {
-        project.addRuleBasedPluginListener(targetProject -> {
-            targetProject.getPluginManager().apply(JavaBasePluginRules.class);
-        });
     }
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -320,7 +314,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void checkToolchainAndCompatibilityUsage(JavaPluginExtension javaExtension, Supplier<JavaVersion> rawJavaVersionSupplier) {
-        if (((DefaultToolchainSpec) javaExtension.getToolchain()).isConfigured() && rawJavaVersionSupplier.get() != null) {
+        if (((ToolchainSpecInternal) javaExtension.getToolchain()).isConfigured() && rawJavaVersionSupplier.get() != null) {
             throw new InvalidUserDataException("The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility");
         }
     }
@@ -371,6 +365,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         return toolMapper.apply(service, extension.getToolchain());
     }
 
+    @Deprecated
     @Inject
     protected JavaToolchainQueryService getJavaToolchainQueryService() {
         throw new UnsupportedOperationException();

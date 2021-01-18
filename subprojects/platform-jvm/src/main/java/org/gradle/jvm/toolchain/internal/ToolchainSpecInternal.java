@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.jvm.toolchain.internal;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-/**
- * Indicates that the annotated member code was generated.
- *
- * @since 6.5
- */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-@Documented
-@SuppressWarnings("unused")
-public @interface Generated {
+public interface ToolchainSpecInternal extends JavaToolchainSpec {
+
+    boolean isConfigured();
+
 }

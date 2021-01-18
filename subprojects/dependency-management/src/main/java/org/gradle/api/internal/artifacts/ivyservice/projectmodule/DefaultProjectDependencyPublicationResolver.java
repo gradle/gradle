@@ -52,11 +52,17 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         // Could probably apply some caching and some immutable types
 
         ProjectInternal dependencyProject = (ProjectInternal) dependency.getDependencyProject();
+        return resolve(coordsType, dependencyProject);
+    }
+
+    @Override
+    public <T> T resolve(Class<T> coordsType, ProjectInternal project) {
+
         // Ensure target project is configured
-        projectConfigurer.configureFully(dependencyProject);
+        projectConfigurer.configureFully(project);
 
         List<ProjectComponentPublication> publications = new ArrayList<>();
-        for (ProjectComponentPublication publication : publicationRegistry.getPublications(ProjectComponentPublication.class, dependencyProject.getIdentityPath())) {
+        for (ProjectComponentPublication publication : publicationRegistry.getPublications(ProjectComponentPublication.class, project.getIdentityPath())) {
             if (!publication.isLegacy() && publication.getCoordinates(coordsType) != null) {
                 publications.add(publication);
             }
@@ -65,9 +71,9 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         if (publications.isEmpty()) {
             // Project has no publications: simply use the project name in place of the dependency name
             if (coordsType.isAssignableFrom(ModuleVersionIdentifier.class)) {
-                return coordsType.cast(DefaultModuleVersionIdentifier.newId(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
+                return coordsType.cast(DefaultModuleVersionIdentifier.newId(project.getGroup().toString(), project.getName(), project.getVersion().toString()));
             }
-            throw new UnsupportedOperationException(String.format("Could not find any publications of type %s in %s.", coordsType.getSimpleName(), dependencyProject.getDisplayName()));
+            throw new UnsupportedOperationException(String.format("Could not find any publications of type %s in %s.", coordsType.getSimpleName(), project.getDisplayName()));
         }
 
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
@@ -101,7 +107,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             if (!candidate.equals(alternative)) {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.");
-                formatter.node("Found the following publications in " + dependencyProject.getDisplayName());
+                formatter.node("Found the following publications in " + project.getDisplayName());
                 formatter.startChildren();
                 for (ProjectComponentPublication publication : topLevel) {
                     formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates(coordsType));

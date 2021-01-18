@@ -375,7 +375,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "write-locks";
 
         public DependencyLockingWriteOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency resolution for locked configurations, ignoring existing locking information if it exists").incubating());
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency resolution for locked configurations, ignoring existing locking information if it exists"));
         }
 
         @Override
@@ -390,7 +390,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         DependencyVerificationWriteOption() {
             super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION,
-                "Generates checksums for dependencies used in the project (comma-separated list)").incubating());
+                "Generates checksums for dependencies used in the project (comma-separated list)"));
         }
 
         @Override
@@ -418,7 +418,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 DependencyVerificationMode.values(),
                 GRADLE_PROPERTY,
                 CommandLineOptionConfiguration.create(
-                    LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)").incubating()
+                    LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)")
             );
         }
 
@@ -446,7 +446,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public RefreshKeysOption() {
             super(null,
-                CommandLineOptionConfiguration.create(LONG_OPTION, "Refresh the public keys used for dependency verification.").incubating());
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Refresh the public keys used for dependency verification."));
         }
 
         @Override
@@ -461,7 +461,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public ExportKeysOption() {
             super(null,
-                CommandLineOptionConfiguration.create(LONG_OPTION, "Exports the public keys used for dependency verification.").incubating());
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Exports the public keys used for dependency verification."));
         }
 
         @Override

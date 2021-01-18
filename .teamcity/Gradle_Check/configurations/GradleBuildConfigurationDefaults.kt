@@ -89,7 +89,6 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
             tasks = "clean $gradleTasks"
             gradleParams = (
                 buildToolGradleParameters(daemon) +
-                    this@gradleRunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) }
@@ -141,7 +140,6 @@ fun BaseGradleBuildType.killProcessStep(stepName: String, daemon: Boolean, os: O
             tasks = "killExistingProcessesStartedByGradle"
             gradleParams = (
                 buildToolGradleParameters(daemon) +
-                    this@killProcessStep.buildCache.gradleParameters(os) +
                     "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
                 ).joinToString(separator = " ")
         }

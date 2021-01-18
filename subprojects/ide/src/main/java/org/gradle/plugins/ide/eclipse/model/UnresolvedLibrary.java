@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
  *
  * @since 6.7
  */
-@Incubating
 public class UnresolvedLibrary extends Library {
 
     private ComponentSelector attemptedSelector;

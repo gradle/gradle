@@ -226,6 +226,12 @@ fun Project.enableScriptCompilationOf(
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
+                strict.set(
+                    providers
+                        .systemProperty("org.gradle.kotlin.dsl.precompiled.accessors.strict")
+                        .map(java.lang.Boolean::parseBoolean)
+                        .orElse(false)
+                )
                 plugins = scriptPlugins
             }
 

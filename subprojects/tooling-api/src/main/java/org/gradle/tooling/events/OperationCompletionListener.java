@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * A listener which is notified when operations run as part of the build complete.
  *
  * @since 6.1
  */
-@Incubating
 public interface OperationCompletionListener {
     /**
      * Called when an operation completes.

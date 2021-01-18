@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.verification;
 
-import org.gradle.api.Incubating;
-
 /**
  * The different dependency verification modes. By default, Gradle
  * will use the strict mode, which means that it will verify dependencies
@@ -34,7 +32,6 @@ import org.gradle.api.Incubating;
  *
  * @since 6.2
  */
-@Incubating
 public enum DependencyVerificationMode {
     STRICT, // the default, fail as soon as possible
     LENIENT, // do not fail, but report all verification failures on console

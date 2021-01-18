@@ -21,13 +21,12 @@ import com.google.common.base.Objects;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 
-public class DefaultToolchainSpec implements JavaToolchainSpec {
+public class DefaultToolchainSpec implements ToolchainSpecInternal {
 
     private final Property<JavaLanguageVersion> languageVersion;
     private final Property<JvmVendorSpec> vendor;
@@ -55,6 +54,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
         return implementation;
     }
 
+    @Override
     public boolean isConfigured() {
         return languageVersion.isPresent();
     }
@@ -87,4 +87,5 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
     public int hashCode() {
         return Objects.hashCode(languageVersion.get(), vendor.get(), implementation.get());
     }
+
 }

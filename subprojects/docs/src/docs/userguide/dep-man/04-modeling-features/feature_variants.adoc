@@ -55,7 +55,7 @@ If we do so, a consumer would then have to declare two dependencies:
 
 [NOTE]
 ====
-While the engine supports feature variants independently of the ecosystem, this feature is currently only available using the Java plugins and is incubating.
+While the engine supports feature variants independently of the ecosystem, this feature is currently only available using the Java plugins.
 ====
 
 [[sec::declare_feature_variants]]

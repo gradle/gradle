@@ -70,7 +70,7 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "compileJava", "--info"
         then:
         executedAndNotSkipped ":compileJava"
-        output.contains "Value of input property 'toolChain.version' has changed for task ':compileJava'"
+        output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
     }
 
     def "not up-to-date when java version for forking changes"() {
@@ -105,7 +105,7 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "compileJava", "--info"
         then:
         executedAndNotSkipped ":compileJava"
-        output.contains "Value of input property 'toolChain.version' has changed for task ':compileJava'"
+        output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
     }
 
     private static String forkedJavaCompilation(Jvm jdk) {

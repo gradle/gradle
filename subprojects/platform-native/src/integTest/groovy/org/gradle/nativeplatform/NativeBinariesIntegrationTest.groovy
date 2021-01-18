@@ -23,7 +23,6 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
@@ -212,40 +211,6 @@ model {
 
         and:
         executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
-    }
-
-    @Ignore("this test no longer covers the intended case, which is to fail when there is an input to a binary for which there is no _transformation_ available")
-    def "cannot add java sources to native binary"() {
-        given:
-        useMixedSources()
-        file("src/test/java/HelloWorld.java") << """
-    This would not compile
-"""
-
-        when:
-        buildFile << """
-apply plugin: "c"
-apply plugin: "cpp"
-apply plugin: "java-lang"
-
-model {
-    components {
-        main(NativeExecutableSpec) {
-            sources {
-                java(JavaSourceSet) {
-                    source.srcDir "src/test/java"
-                }
-            }
-        }
-    }
-}
-"""
-
-        then:
-        fails "mainExecutable"
-        failure.assertHasCause("Exception thrown while executing model rule: main(org.gradle.nativeplatform.NativeExecutableSpec) { ... } @ build.gradle line 8, column 9");
-        failure.assertHasCause("Cannot create a 'org.gradle.language.java.JavaSourceSet' because this type is not known to sourceSets. " +
-            "Known types are: org.gradle.language.c.CSourceSet, org.gradle.language.cpp.CppSourceSet")
     }
 
     private def useMixedSources() {

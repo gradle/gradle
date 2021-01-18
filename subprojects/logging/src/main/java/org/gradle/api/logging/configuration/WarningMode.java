@@ -16,8 +16,6 @@
 
 package org.gradle.api.logging.configuration;
 
-import org.gradle.api.Incubating;
-
 /**
  * Specifies the warning mode a user wants to see.
  *
@@ -44,7 +42,6 @@ public enum WarningMode {
      *
      * @since 5.6
      */
-    @Incubating
     Fail(true);
 
     private boolean displayMessages;
@@ -60,7 +57,6 @@ public enum WarningMode {
      *
      * @since 5.6
      */
-    @Incubating
     public boolean shouldDisplayMessages() {
         return displayMessages;
     }

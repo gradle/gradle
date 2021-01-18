@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -488,7 +487,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 6.6
      */
-    @Incubating
     @Input
     @Optional
     public Property<Integer> getRelease() {
@@ -523,7 +521,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 6.3
      */
-    @Incubating
     @Optional
     @OutputDirectory
     public DirectoryProperty getGeneratedSourceOutputDirectory() {

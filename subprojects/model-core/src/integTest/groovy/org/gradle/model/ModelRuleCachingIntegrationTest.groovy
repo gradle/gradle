@@ -31,13 +31,6 @@ class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationT
         """
     }
 
-    private void expectDeprecationWarnings() {
-        executer.expectDocumentedDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-    }
-
     boolean getNewRulesExtracted() {
         def match = output =~ /.*### extracted new rules: (true|false).*/
         match[0][1] == "true"
@@ -46,18 +39,16 @@ class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationT
     def "rules extracted from core plugins are reused across builds"() {
         given:
         buildFile << '''
-            apply plugin: 'java-lang'
+            apply plugin: 'cpp'
         '''
 
         when:
-        expectDeprecationWarnings()
         run()
 
         then:
         newRulesExtracted
 
         when:
-        expectDeprecationWarnings()
         run()
 
         then:

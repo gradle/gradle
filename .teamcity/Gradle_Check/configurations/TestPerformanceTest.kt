@@ -19,7 +19,6 @@ package configurations
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
-import common.builtInRemoteBuildCacheNode
 import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
@@ -39,8 +38,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             name = "GRADLE_RUNNER"
             gradleParams = (
                 tasks +
-                    buildToolGradleParameters(isContinue = false) +
-                    builtInRemoteBuildCacheNode.gradleParameters(os)
+                    buildToolGradleParameters(isContinue = false)
                 ).joinToString(separator = " ")
         }
     }

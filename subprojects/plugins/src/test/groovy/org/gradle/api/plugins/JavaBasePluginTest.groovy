@@ -34,13 +34,8 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.jvm.Jvm
-import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.java.JavaSourceSet
-import org.gradle.language.jvm.JvmResourceSet
-import org.gradle.platform.base.BinarySpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
@@ -51,7 +46,6 @@ import spock.lang.Unroll
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
-import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.WrapUtil.toLinkedSet
 
 class JavaBasePluginTest extends AbstractProjectBuilderSpec {
@@ -412,88 +406,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def buildNeeded = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
-    }
-
-    def "adds language source sets for each source set added to the 'sourceSets' container when software model is active"() {
-        project.pluginManager.apply(JavaBasePlugin)
-
-        given:
-        project.sourceSets {
-            custom {
-                java {
-                    srcDirs = [project.file("src1"), project.file("src2")]
-                }
-                resources {
-                    srcDirs = [project.file("resrc1"), project.file("resrc2")]
-                }
-                compileClasspath = project.layout.files("jar1.jar", "jar2.jar")
-            }
-        }
-
-        when:
-        project.prepareForRuleBasedPlugins()
-        def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
-
-        then:
-        sources.size() == 2
-
-        and:
-        def java = sources.withType(JavaSourceSet).iterator().next()
-        java.source.srcDirs as Set == [project.file("src1"), project.file("src2")] as Set
-        java.compileClasspath.files as Set == project.layout.files("jar1.jar", "jar2.jar") as Set
-
-        and:
-        def resources = sources.withType(JvmResourceSet).iterator().next()
-        resources.source.srcDirs as Set == [project.file("resrc1"), project.file("resrc2")] as Set
-    }
-
-    def "adds a class directory binary for each source set added to the 'sourceSets' container when software model is active"() {
-        project.pluginManager.apply(JavaBasePlugin)
-
-        given:
-        project.sourceSets {
-            custom {
-                java.outputDir = project.file("classes")
-                output.resourcesDir = project.file("resources")
-            }
-        }
-
-        when:
-        project.prepareForRuleBasedPlugins()
-        def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
-        def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
-
-        then:
-        binaries.size() == 1
-        def binary = binaries.get("custom")
-        binary instanceof ClassDirectoryBinarySpec
-        binary.classesDir == project.file("classes")
-        binary.resourcesDir == project.file("resources")
-        binary.inputs.size() == 2
-        binary.inputs as Set == sources as Set
-    }
-
-    def "attaches tasks to binary associated with each source set when software model is active"() {
-        when:
-        project.pluginManager.apply(JavaBasePlugin)
-
-        project.sourceSets {
-            custom {
-                output.classesDirs.from = project.files("classes")
-                output.resourcesDir = project.files("resources")
-            }
-        }
-        project.prepareForRuleBasedPlugins()
-        def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
-
-        then:
-        def binary = binaries.get("custom")
-        assert binary instanceof ClassDirectoryBinarySpec
-        def classesTask = project.tasks.findByName("customClasses")
-        binary.buildTask == null
-        binary.tasks.contains(classesTask)
-        binary.tasks.contains(project.tasks.findByName("compileCustomJava"))
-        binary.tasks.contains(project.tasks.findByName("processCustomResources"))
     }
 
     @Unroll

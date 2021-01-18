@@ -2,7 +2,6 @@ package Gradle_Util.buildTypes
 
 import common.Os.LINUX
 import common.buildToolGradleParameters
-import common.builtInRemoteBuildCacheNode
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -38,8 +37,7 @@ object WarmupEc2Agent : BuildType({
             name = "Resolve all dependencies"
             tasks = "resolveAllDependencies"
             gradleParams = (
-                    buildToolGradleParameters(isContinue = false) +
-                    builtInRemoteBuildCacheNode.gradleParameters(LINUX)
+                    buildToolGradleParameters(isContinue = false)
             ).joinToString(separator = " ")
         }
     }

@@ -19,11 +19,8 @@ package org.gradle.api.tasks.javadoc
 import org.apache.commons.io.FileUtils
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter
-import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -31,50 +28,43 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     def testDir = temporaryFolder.getTestDirectory()
     def destDir = new File(testDir, "dest")
     def srcDir = new File(testDir, "srcdir")
-    def toolChain = Mock(JavaToolChainInternal)
-    def toolProvider = Mock(ToolProvider)
-    def generator = Mock(Compiler)
     def configurationMock = TestFiles.fixed(new File("classpath"))
-    def executable = "somepath"
+    def tool = Mock(JavadocToolAdapter)
+
     Javadoc task
 
     def setup() {
         task = TestUtil.createTask(Javadoc, project)
         task.setClasspath(configurationMock)
-        task.setExecutable(executable)
-        task.setToolChain(toolChain)
+        task.getJavadocTool().set(tool)
+        tool.metadata >> Mock(JavaInstallationMetadata) {
+            getLanguageVersion() >> JavaLanguageVersion.of(11)
+        }
         FileUtils.touch(new File(srcDir, "file.java"))
     }
 
     def defaultExecution() {
-        when:
         task.setDestinationDir(destDir)
         task.source(srcDir)
 
-        and:
+        when:
         execute(task)
 
         then:
-        1 * toolChain.select(_) >> toolProvider
-        1 * toolProvider.newCompiler(!null) >> generator
-        1 * generator.execute(_)
+        1 * tool.execute(!null)
     }
 
     def usesToolchainIfConfigured() {
-        def tool = Mock(JavadocToolAdapter)
-        def toolMetadata = Mock(JavaInstallationMetadata)
         task.setDestinationDir(destDir)
         task.source(srcDir)
 
         when:
-        task.javadocTool.set(tool)
+        task.getJavadocTool().set(tool)
 
         and:
         execute(task)
 
         then:
-        1 * tool.metadata >> toolMetadata
-        1 * toolMetadata.languageVersion >> JavaLanguageVersion.of(11)
         1 * tool.execute(!null)
     }
 
@@ -89,8 +79,6 @@ class JavadocTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        1 * toolChain.select(_) >> toolProvider
-        1 * toolProvider.newCompiler(!null) >> generator
-        1 * generator.execute(_)
+        1 * tool.execute(_)
     }
 }
