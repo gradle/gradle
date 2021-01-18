@@ -73,6 +73,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 
+import static org.gradle.internal.concurrent.CompositeStoppable.NO_OP_STOPPABLE;
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
@@ -98,6 +99,11 @@ public class ProjectBuilderImpl {
     }
 
     public Project createProject(String name, @Nullable File inputProjectDir, File gradleUserHomeDir) {
+        return createProject(name, inputProjectDir, gradleUserHomeDir, false);
+    }
+
+    public ProjectInternal createProject(String name, File inputProjectDir, File gradleUserHomeDir, boolean isolate) {
+        final ServiceRegistry globalServices = isolate ? createGlobalServices() : getGlobalServices();
         final File projectDir = prepareProjectDir(inputProjectDir);
 
         final File homeDir = new File(projectDir, "gradleHome");
@@ -109,8 +115,8 @@ public class ProjectBuilderImpl {
         NativeServices.initialize(userHomeDir);
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(getGlobalServices(), startParameter);
-        GradleUserHomeScopeServiceRegistry userHomeServices = getUserHomeServices();
+        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
+        GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS);
         TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir);
@@ -151,7 +157,8 @@ public class ProjectBuilderImpl {
                 buildTreeState,
                 buildSessionState,
                 crossBuildSessionState,
-                userHomeServices
+                isolate ? userHomeServices : NO_OP_STOPPABLE,
+                isolate ? globalServices : NO_OP_STOPPABLE
             )
         );
         return project;
@@ -162,20 +169,13 @@ public class ProjectBuilderImpl {
             .stop();
     }
 
-    private GradleUserHomeScopeServiceRegistry getUserHomeServices() {
-        ServiceRegistry globalServices = getGlobalServices();
+    private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {
         return globalServices.get(GradleUserHomeScopeServiceRegistry.class);
     }
 
     public synchronized static ServiceRegistry getGlobalServices() {
         if (globalServices == null) {
-            globalServices = ServiceRegistryBuilder
-                .builder()
-                .displayName("global services")
-                .parent(LoggingServiceRegistry.newNestedLogging())
-                .parent(NativeServices.getInstance())
-                .provider(new TestGlobalScopeServices())
-                .build();
+            globalServices = createGlobalServices();
             // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
             // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
             // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
@@ -185,6 +185,16 @@ public class ProjectBuilderImpl {
             globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(ProjectBuilderImpl.class.getClassLoader());
         }
         return globalServices;
+    }
+
+    private static ServiceRegistry createGlobalServices() {
+        return ServiceRegistryBuilder
+            .builder()
+            .displayName("global services")
+            .parent(LoggingServiceRegistry.newNestedLogging())
+            .parent(NativeServices.getInstance())
+            .provider(new TestGlobalScopeServices())
+            .build();
     }
 
     public File prepareProjectDir(@Nullable File projectDir) {
