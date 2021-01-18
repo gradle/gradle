@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.timeout
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.spockframework.runtime.SpockAssertionError
 import org.spockframework.runtime.SpockTimeoutError
@@ -26,6 +27,7 @@ import org.spockframework.runtime.model.MethodInfo
 
 import java.util.concurrent.TimeUnit
 
+@CompileStatic
 class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
     IntegrationTestTimeoutInterceptor(IntegrationTestTimeout timeout) {
         super(new TimeoutAdapter(timeout))
@@ -40,8 +42,8 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         try {
             super.intercept(invocation)
         } catch (SpockTimeoutError e) {
-            String allThreadStackTraces = getAllStackTraces()
-            throw new SpockAssertionError(allThreadStackTraces, e)
+            String threadDumpFile = getThreadDump()
+            throw new SpockAssertionError("Timeout, see thread dumps at $threadDumpFile", e)
         } catch (Throwable t) {
             throw t
         }
@@ -57,9 +59,9 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         })
     }
 
-    static String getAllStackTraces() {
+    static String getThreadDump() {
         try {
-            return JavaProcessStackTracesMonitor.getAllStackTracesByJstack()
+            return JavaProcessStackTracesMonitor.printAllStackTracesByJstack(new File("."))
         } catch (Throwable e) {
             def stream = new ByteArrayOutputStream()
             e.printStackTrace(new PrintStream(stream))

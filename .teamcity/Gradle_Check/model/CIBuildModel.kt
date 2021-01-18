@@ -5,12 +5,10 @@ import Gradle_Check.model.GradleSubprojectProvider
 import Gradle_Check.model.PerformanceScenario
 import Gradle_Check.model.PerformanceTestCoverage
 import Gradle_Check.model.Scenario
-import common.BuildCache
 import common.JvmCategory
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
-import common.builtInRemoteBuildCacheNode
 import configurations.BuildDistributions
 import configurations.CompileAll
 import configurations.FunctionalTest
@@ -37,8 +35,6 @@ data class CIBuildModel(
     val projectPrefix: String = "Gradle_Check_",
     val rootProjectName: String = "Check",
     val publishStatusToGitHub: Boolean = true,
-    val parentBuildCache: BuildCache = builtInRemoteBuildCacheNode,
-    val childBuildCache: BuildCache = builtInRemoteBuildCacheNode,
     val buildScanTags: List<String> = emptyList(),
     val stages: List<Stage> = listOf(
         Stage(StageNames.QUICK_FEEDBACK_LINUX_ONLY,
