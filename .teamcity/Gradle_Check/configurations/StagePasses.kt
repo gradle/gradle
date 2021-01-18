@@ -72,7 +72,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
 
     val defaultGradleParameters = (
         buildToolGradleParameters() +
-            baseBuildType.buildCache.gradleParameters(LINUX) +
             buildScanTags.map(::buildScanTag)
         ).joinToString(" ") + " -Porg.gradle.java.installations.auto-download=false"
     steps {
