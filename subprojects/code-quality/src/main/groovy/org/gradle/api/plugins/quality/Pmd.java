@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -304,7 +303,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 6.4
      */
     @Input
-    @Incubating
     public Property<Integer> getMaxFailures() {
         return maxFailures;
     }
@@ -375,7 +373,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @since 5.6
      */
-    @Incubating
     @Internal
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
@@ -387,7 +384,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 5.6
      */
     @LocalState
-    @Incubating
     public File getIncrementalCacheFile() {
         return new File(getTemporaryDir(), "incremental.cache");
     }
