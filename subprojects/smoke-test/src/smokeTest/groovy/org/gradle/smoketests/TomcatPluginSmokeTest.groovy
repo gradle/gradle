@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class TomcatPluginSmokeTest extends AbstractSmokeTest {
@@ -29,6 +30,7 @@ class TomcatPluginSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.tomcat')
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
+    @Ignore("Tomcat plugin is written in Groovy which invokes baseName via reflection")
     def 'tomcat plugin'() {
         given:
         def httpPort = portAllocator.assignPort()

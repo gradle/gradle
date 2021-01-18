@@ -100,10 +100,6 @@ public class ArchiveTaskCompatClassVisitor extends ClassVisitor {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         this.className = name;
         this.superClassName = superName;
-      //  if (className.contains("ShadowJar")) {
-            System.out.println("Classname = " + className);
-            System.out.println("SuperName = " + superClassName);
-        //}
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
