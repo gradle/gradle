@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.jvm.toolchain.JavaToolChainRegistry;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
-public class DefaultJavaToolChainRegistry implements JavaToolChainRegistry {
-    private final JavaToolChainInternal toolChain;
+public class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
 
-    public DefaultJavaToolChainRegistry(JavaToolChainInternal toolChain) {
-        this.toolChain = toolChain;
+    public CurrentJvmToolchainSpec(ObjectFactory factory) {
+        super(factory);
+        getLanguageVersion().set(JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion()));
     }
 
     @Override
-    public JavaToolChain getForPlatform(JavaPlatform targetPlatform) {
-        return toolChain;
+    public String getDisplayName() {
+        return "CurrentJVM" + super.getDisplayName();
     }
 }

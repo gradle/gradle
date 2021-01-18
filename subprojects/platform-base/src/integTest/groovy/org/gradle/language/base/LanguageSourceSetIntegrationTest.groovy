@@ -25,24 +25,6 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 @UnsupportedWithConfigurationCache(because = "software model")
 class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can not create a top level LSS when the language base plugin has not been applied"() {
-        buildFile.text = """
-        class Rules extends RuleSource {
-            @Model
-            void lss(JavaSourceSet javaSource) {
-            }
-        }
-        apply plugin: Rules
-        """
-
-        when:
-        fails "model"
-
-        then:
-        failureCauseContains("Declaration of model rule Rules#lss(JavaSourceSet) is invalid.")
-        failureCauseContains("A model element of type: 'org.gradle.language.java.JavaSourceSet' can not be constructed.")
-    }
-
     def "can not create a top level LSS for using an implementation class"() {
         buildFile.text = """
         ${registerCustomLanguageWithImpl()}

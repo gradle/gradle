@@ -30,7 +30,6 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -63,6 +62,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -370,18 +370,11 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         if (javaLauncher.isPresent()) {
             return javaLauncher.get().getMetadata().getLanguageVersion().toString();
         }
+        final File customHome = getOptions().getForkOptions().getJavaHome();
+        if(customHome != null) {
+            return getServices().get(JvmMetadataDetector.class).getMetadata(customHome).getLanguageVersion().getMajorVersion();
+        }
         return JavaVersion.current().getMajorVersion();
-    }
-
-    /**
-     * We need to track the toolchain used by the Groovy compiler to compile Java sources.
-     *
-     * @since 4.0
-     */
-    @Nested
-    @Deprecated
-    protected org.gradle.jvm.toolchain.JavaToolChain getJavaToolChain() {
-        return getJavaToolChainFactory().forCompileOptions(getOptions());
     }
 
     /**
@@ -444,11 +437,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
-    }
-
-    @Inject
-    protected JavaToolChainFactory getJavaToolChainFactory() {
-        throw new UnsupportedOperationException();
     }
 
     @Inject

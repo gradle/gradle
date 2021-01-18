@@ -28,8 +28,9 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.internal.Actions;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import java.io.File;
@@ -52,7 +53,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     private JavaVersion targetCompat;
 
     private boolean autoTargetJvm = true;
-    private final DefaultToolchainSpec toolchainSpec;
+    private final ToolchainSpecInternal toolchainSpec;
 
     public DefaultJavaPluginConvention(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
         this.project = project;

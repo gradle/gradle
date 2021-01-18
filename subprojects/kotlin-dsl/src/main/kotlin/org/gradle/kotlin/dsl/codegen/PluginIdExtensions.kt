@@ -178,11 +178,6 @@ object UserGuideLink {
 
             // "jshint" to "jshint_plugin.html",
 
-            // "junit-test-suite" to "java_software.html#sec:testing_java_libraries",
-
-            // "jvm-component" to "java_software.html",
-            // "jvm-resources" to "java_software.html",
-
             // "language-base" to "language_base_plugin.html",
             // "lifecycle-base" to "lifecycle_base_plugin.html",
 

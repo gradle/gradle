@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.test.internal.services;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.test.internal.JUnitTestSuiteBinaryRenderer;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-public class JvmTestingServices extends AbstractPluginServiceRegistry {
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(JUnitTestSuiteBinaryRenderer.class);
-    }
+public interface ToolchainSpecInternal extends JavaToolchainSpec {
+
+    boolean isConfigured();
+
 }

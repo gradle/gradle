@@ -89,5 +89,8 @@ atlassian-ide-plugin.xml
 # ----
 /*.log
 
+# Thread dumps for troubleshooting
+*.threaddump
+
 # oh-my-zsh gradle plugin
 .gradletasknamecache

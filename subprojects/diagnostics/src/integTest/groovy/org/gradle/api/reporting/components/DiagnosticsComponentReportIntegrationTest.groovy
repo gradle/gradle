@@ -21,15 +21,6 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
 
-    private void expectJavaLanguagePluginDeprecationWarnings() {
-        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDocumentedDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-    }
-
     @RequiresInstalledToolChain
     @ToBeFixedForConfigurationCache(because = ":components")
     def "informs the user when project has no components defined"() {
@@ -45,13 +36,9 @@ No components defined for this project.
     @RequiresInstalledToolChain
     @ToBeFixedForConfigurationCache(because = ":components")
     def "shows details of multiple components"() {
-        expectJavaLanguagePluginDeprecationWarnings()
-
         given:
         buildFile << """
 plugins {
-    id 'jvm-component'
-    id 'java-lang'
     id 'cpp'
     id 'c'
 }
@@ -61,9 +48,6 @@ model {
         ${toolChain.buildScriptConfig}
     }
     components {
-        jvmLib(JvmLibrarySpec) {
-            targetPlatform "$currentJavaName"
-        }
         nativeLib(NativeLibrarySpec)
     }
 }
@@ -73,25 +57,6 @@ model {
 
         then:
         outputMatches """
-JVM library 'jvmLib'
---------------------
-
-Source sets
-    Java source 'jvmLib:java'
-        srcDir: src/jvmLib/java
-    JVM resources 'jvmLib:resources'
-        srcDir: src/jvmLib/resources
-
-Binaries
-    Jar 'jvmLib:jar'
-        build using task: :jvmLibJar
-        target platform: $currentJava
-        tool chain: $currentJdk
-        classes dir: build/classes/jvmLib/jar
-        resources dir: build/resources/jvmLib/jar
-        API Jar file: build/jars/jvmLib/jar/api/jvmLib.jar
-        Jar file: build/jars/jvmLib/jar/jvmLib.jar
-
 Native library 'nativeLib'
 --------------------------
 
@@ -119,54 +84,4 @@ Binaries
 """
     }
 
-    def "shows an error when targeting a native platform from a jvm component"() {
-        expectJavaLanguagePluginDeprecationWarnings()
-
-        given:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'native-component'
-    apply plugin: 'java-lang'
-
-    model {
-        platforms {
-            i386 { architecture 'i386' }
-        }
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "i386"
-            }
-        }
-    }
-"""
-        when:
-        fails "components"
-
-        then:
-        failure.assertHasCause("Invalid JavaPlatform: i386")
-    }
-
-    def "shows an error when targeting a jvm platform from a native component"() {
-        expectJavaLanguagePluginDeprecationWarnings()
-
-        given:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'native-component'
-    apply plugin: 'java-lang'
-
-    model {
-        components {
-            myLib(NativeLibrarySpec) {
-                targetPlatform "java8"
-            }
-        }
-    }
-"""
-        when:
-        fails "components"
-
-        then:
-        failure.assertHasCause("Invalid NativePlatform: java8")
-    }
 }

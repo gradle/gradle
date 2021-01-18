@@ -66,31 +66,31 @@ fun BuildSteps.killGradleProcessesStep(os: Os) {
 }
 
 // to avoid pathname too long error
-fun BuildSteps.substDirOnWindows(os: Os, buildCache: BuildCache) {
+fun BuildSteps.substDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
         script {
             name = "SETUP_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """subst p: "%teamcity.build.checkoutDir%" """
         }
-        cleanBuildLogicBuild("P:/build-logic-commons", buildCache, os)
-        cleanBuildLogicBuild("P:/build-logic", buildCache, os)
+        cleanBuildLogicBuild("P:/build-logic-commons", os)
+        cleanBuildLogicBuild("P:/build-logic", os)
     }
 }
 
-fun BuildSteps.removeSubstDirOnWindows(os: Os, buildCache: BuildCache) {
+fun BuildSteps.removeSubstDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
         script {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """subst p: /d"""
         }
-        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons", buildCache, os)
-        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic", buildCache, os)
+        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons", os)
+        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic", os)
     }
 }
 
-private fun BuildSteps.cleanBuildLogicBuild(buildDir: String, buildCache: BuildCache, os: Os) {
+private fun BuildSteps.cleanBuildLogicBuild(buildDir: String, os: Os) {
     // Gradle detects overlapping outputs when running first on a subst drive and then in the original location.
     // Even when running clean builds on CI, we don't run clean in buildSrc, so there may be stale leftover files there.
     // This means that we need to clean buildSrc before running for the first time on the subst drive
@@ -103,8 +103,7 @@ private fun BuildSteps.cleanBuildLogicBuild(buildDir: String, buildCache: BuildC
         gradleWrapperPath = "../"
         gradleParams = (
             buildToolGradleParameters() +
-                buildScanTag("PerformanceTest") +
-                buildCache.gradleParameters(os)
+                buildScanTag("PerformanceTest")
             ).joinToString(separator = " ")
     }
 }

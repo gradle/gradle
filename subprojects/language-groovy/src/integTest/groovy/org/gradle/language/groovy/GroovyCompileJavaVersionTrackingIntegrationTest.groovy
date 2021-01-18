@@ -60,13 +60,6 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         succeeds ":compileGroovy"
         then:
         skipped ":compileGroovy"
-
-        when:
-        executer.withJavaHome jdk8.javaHome
-        succeeds ":compileGroovy", "--info"
-        then:
-        executedAndNotSkipped ":compileGroovy"
-        output.contains "Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'"
     }
 
     def "tracks changes to the Java toolchain used for cross compilation"() {
@@ -88,7 +81,7 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         succeeds "compileGroovy", "--info"
         then:
         executedAndNotSkipped ":compileGroovy"
-        output.contains "Value of input property 'javaToolChain.version' has changed for task ':compileGroovy'"
+        output.contains "Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'"
     }
 
     private void compileWithJavaJdk(Jvm jdk) {

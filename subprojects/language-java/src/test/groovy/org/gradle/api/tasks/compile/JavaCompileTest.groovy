@@ -22,34 +22,16 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolChain
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
 @SuppressWarnings('GrDeprecatedAPIUsage')
 class JavaCompileTest extends AbstractProjectBuilderSpec {
 
-    @Issue("https://github.com/gradle/gradle/issues/1645")
-    def "can set the Java tool chain"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        def toolChain = Mock(JavaToolChain)
-        when:
-        javaCompile.setToolChain(toolChain)
-        then:
-        javaCompile.toolChain == toolChain
-    }
-
-    def "disallow using legacy toolchain api once compiler is present"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
-
-        when:
-        javaCompile.javaCompiler.set(Mock(JavaCompiler))
-        javaCompile.toolChain = Mock(JavaToolChain)
-        javaCompile.createSpec()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "Must not use `javaCompiler` property together with (deprecated) `toolchain`"
+    def setup() {
+        def toolchainService = Mock(JavaToolchainService)
+        project.extensions.add("javaToolchains", toolchainService)
     }
 
     def "disallow using custom java_home with compiler present"() {

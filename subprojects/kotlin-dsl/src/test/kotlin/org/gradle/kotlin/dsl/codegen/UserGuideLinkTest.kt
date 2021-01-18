@@ -94,8 +94,7 @@ val linkedPlugins =
 val unlinkedPlugins =
     listOf(
         "coffeescript-base", "envjs", "javascript-base", "jshint",
-        "java-lang", "junit-test-suite", "jvm-component", "jvm-resources",
-        "language-base", "lifecycle-base",
+        "jvm-resources", "language-base", "lifecycle-base",
         "publishing",
         "rhino",
         "scala-lang",
