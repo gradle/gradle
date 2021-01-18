@@ -176,7 +176,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      *
      * @since 6.0
      */
-    @Incubating
     @TaskAction
     protected void compile(InputChanges inputs) {
         DefaultJavaCompileSpec spec = createSpec();
@@ -458,7 +457,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      *
      * @since 6.0
      */
-    @Incubating
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)

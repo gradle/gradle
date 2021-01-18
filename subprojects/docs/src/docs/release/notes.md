@@ -353,6 +353,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.OperationCompletionListener
         - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
 - Java Ecosystem
+    - Antlr plugin
+        - org.gradle.api.plugins.antlr.AntlrTask.getStableSources
+        - org.gradle.api.plugins.antlr.AntlrTask.execute
     - Java plugins
         - org.gradle.api.file.SourceDirectorySet.getDestinationDirectory()
         - org.gradle.api.file.SourceDirectorySet.getClassesDirectory()
@@ -374,6 +377,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSetOutput.getGeneratedSourcesDirs()
         - org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()
         - org.gradle.api.tasks.compile.CompileOptions.getRelease()
+        - org.gradle.api.tasks.compile.JavaCompile.getStableSources
+        - org.gradle.api.tasks.compile.JavaCompile.compile(org.gradle.work.InputChanges)
     - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
@@ -407,6 +412,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.compile.GroovyCompile.getSourceClassesMappingFile()
         - org.gradle.api.tasks.compile.GroovyCompileOptions.isParameters()
         - org.gradle.api.tasks.compile.GroovyCompileOptions.setParameters(boolean)
+        - org.gradle.api.tasks.compile.GroovyCompile.getStableSources
     - Scala
         - org.gradle.api.plugins.scala.ScalaBasePlugin.SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME
         - org.gradle.api.plugins.scala.ScalaPluginExtension
