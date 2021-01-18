@@ -375,7 +375,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "write-locks";
 
         public DependencyLockingWriteOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency resolution for locked configurations, ignoring existing locking information if it exists").incubating());
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency resolution for locked configurations, ignoring existing locking information if it exists"));
         }
 
         @Override
@@ -390,7 +390,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         DependencyVerificationWriteOption() {
             super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION,
-                "Generates checksums for dependencies used in the project (comma-separated list)").incubating());
+                "Generates checksums for dependencies used in the project (comma-separated list)"));
         }
 
         @Override
