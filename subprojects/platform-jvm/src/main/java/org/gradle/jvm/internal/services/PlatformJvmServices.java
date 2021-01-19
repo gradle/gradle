@@ -18,10 +18,6 @@ package org.gradle.jvm.internal.services;
 
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.internal.resolve.DefaultJavaPlatformVariantAxisCompatibility;
-import org.gradle.jvm.internal.resolve.DefaultVariantAxisCompatibilityFactory;
-import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
-import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkDownloader;
 import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkRemoteBinary;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
@@ -43,10 +39,6 @@ import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
-    }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
