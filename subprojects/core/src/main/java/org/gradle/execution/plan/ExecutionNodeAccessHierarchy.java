@@ -58,7 +58,7 @@ public class ExecutionNodeAccessHierarchy {
             @Override
             public void visitChildren(Iterable<NodeAccess> values, Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
-                if (filter.isSatisfiedBy(new LocationFileTreeElement(new File(location + "/" + relativePathFromLocation).getAbsolutePath(), relativePathFromLocation, stat))) {
+                if (filter.isSatisfiedBy(new ReadOnlyFileTreeElement(new File(location + "/" + relativePathFromLocation), relativePathFromLocation, stat))) {
                     values.forEach(this::addNode);
                 }
             }
@@ -156,18 +156,18 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean accessesChild(VfsRelativePath childPath) {
-            return spec.isSatisfiedBy(new LocationFileTreeElement(childPath.getAbsolutePath(), childPath.getAsString(), stat));
+            return spec.isSatisfiedBy(new ReadOnlyFileTreeElement(new File(childPath.getAbsolutePath()), childPath.getAsString(), stat));
         }
     }
 
-    private static class LocationFileTreeElement implements FileTreeElement {
+    private static class ReadOnlyFileTreeElement implements FileTreeElement {
         private final File file;
         private final boolean isFile;
         private final String relativePath;
         private final Stat stat;
 
-        public LocationFileTreeElement(String absolutePath, String relativePath, Stat stat) {
-            this.file = new File(absolutePath);
+        public ReadOnlyFileTreeElement(File file, String relativePath, Stat stat) {
+            this.file = file;
             this.isFile = file.isFile();
             this.relativePath = relativePath;
             this.stat = stat;
@@ -185,12 +185,12 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public long getLastModified() {
-            return getFile().lastModified();
+            return file.lastModified();
         }
 
         @Override
         public long getSize() {
-            return getFile().length();
+            return file.length();
         }
 
         @Override
