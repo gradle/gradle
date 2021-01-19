@@ -18,15 +18,9 @@ package org.gradle.workers.fixtures
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
-import org.gradle.workers.internal.IsolationMode
 
 class WorkerExecutorFixture {
-    public static final ISOLATION_MODES = IsolationMode.values().collect { "IsolationMode.${it.toString()}" }
-    public static final Map<IsolationMode,String> WORKER_METHODS = [
-            (IsolationMode.NONE): "noIsolation",
-            (IsolationMode.CLASSLOADER): "classLoaderIsolation",
-            (IsolationMode.PROCESS): "processIsolation"
-    ]
+    public static final ISOLATION_MODES = ["'noIsolation'", "'classLoaderIsolation'", "'processIsolation'"]
     def outputFileDir
     def outputFileDirPath
     def list = [ 1, 2, 3 ]
@@ -84,7 +78,7 @@ class WorkerExecutorFixture {
                 @Internal
                 def displayName = null
                 @Internal
-                def isolationMode = IsolationMode.AUTO
+                def isolationMode = 'noIsolation'
                 @Internal
                 def forkMode = null
                 @Internal
@@ -97,7 +91,7 @@ class WorkerExecutorFixture {
 
                 @TaskAction
                 void executeTask() {
-                    workerExecutor."\${getWorkerMethod(isolationMode)}"({ spec ->
+                    workerExecutor."\${isolationMode}"({ spec ->
                         displayName = this.displayName
                         if (spec instanceof ClassLoaderWorkerSpec) {
                             classpath.from(additionalClasspath)
@@ -115,24 +109,6 @@ class WorkerExecutorFixture {
                         bar = foo
                         additionalParameters.call(parameters)
                     }
-                }
-
-                ${workerMethodTranslation}
-            }
-        """
-    }
-
-    static String getWorkerMethodTranslation() {
-        return """
-            static String getWorkerMethod(IsolationMode isolationMode) {
-                if (isolationMode == IsolationMode.AUTO || isolationMode == IsolationMode.NONE) {
-                    return "${WORKER_METHODS[IsolationMode.NONE]}"
-                } else if (isolationMode == IsolationMode.CLASSLOADER) {
-                    return "${WORKER_METHODS[IsolationMode.CLASSLOADER]}"
-                } else if (isolationMode == IsolationMode.PROCESS) {
-                    return "${WORKER_METHODS[IsolationMode.PROCESS]}"
-                } else {
-                    throw new IllegalArgumentException()
                 }
             }
         """

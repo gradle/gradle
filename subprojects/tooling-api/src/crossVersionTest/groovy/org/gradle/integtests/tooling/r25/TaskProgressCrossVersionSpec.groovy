@@ -228,7 +228,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         server.start()
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import org.gradle.workers.IsolationMode
             import javax.inject.Inject
 
             ${targetVersion < GradleVersion.version("6.0") ? defineGradle3WorkerRunnable() : defineGradleWorkAction()}
@@ -279,7 +278,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         class ParTask extends DefaultTask {
             @TaskAction zzz() {
                 services.get(WorkerExecutor.class).submit(TestRunnable) {
-                    it.isolationMode = IsolationMode.NONE
+                    it.isolationMode = org.gradle.workers.IsolationMode.NONE
                     it.params = [ name ]
                 }
             }
