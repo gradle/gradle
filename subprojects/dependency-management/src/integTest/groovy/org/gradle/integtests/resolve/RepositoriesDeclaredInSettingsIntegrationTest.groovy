@@ -762,6 +762,41 @@ You can figure out how project repositories are declared by configuring your bui
 See https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories for details."""))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/15772")
+    def "can add settings repositories in an init script"() {
+        given:
+        repository {
+            'org:module:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:module:1.0'
+            }
+        """
+
+        file("init.gradle") << """
+settingsEvaluated {
+  it.dependencyResolutionManagement {
+    repositories {
+      maven { url '/doesnt/matter'}
+    }
+  }
+}
+"""
+
+        when:
+        repositoryInteractions {
+            'org:module:1.0' {
+                expectResolve()
+            }
+        }
+        executer.usingInitScript(file("init.gradle"))
+
+        then:
+        succeeds ':checkDeps'
+    }
+
     void withSettingsPlugin() {
         file("settings-plugin/build.gradle") << """
             plugins {
