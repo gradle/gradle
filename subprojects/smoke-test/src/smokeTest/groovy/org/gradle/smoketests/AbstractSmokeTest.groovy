@@ -104,7 +104,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of(*KOTLIN_VERSIONS.latests.findAll {
             def lowerCaseVersion = it.toLowerCase(Locale.US)
-            !lowerCaseVersion.contains('-m') && !lowerCaseVersion.contains('-rc') && !(lowerCaseVersion.contains('-beta'))
+            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
