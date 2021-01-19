@@ -49,12 +49,10 @@ fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
     val extendedType = PluginDependenciesSpec::class.qualifiedName!!
     val extensionType = PluginDependencySpec::class.qualifiedName!!
     return pluginExtensionsFrom(jars)
-        .map { (memberName, pluginId, website, implementationClass) ->
+        .map { (memberName, pluginId, implementationClass) ->
             """
             /**
              * The builtin Gradle plugin implemented by [$implementationClass].
-             *
-             * ${website?.let { "Visit the [plugin user guide]($it) for additional information." } ?: ""}
              *
              * @see $implementationClass
              */
@@ -69,7 +67,6 @@ private
 data class PluginExtension(
     val memberName: String,
     val pluginId: String,
-    val website: String?,
     val implementationClass: String
 )
 
@@ -88,145 +85,9 @@ fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
         .asSequence()
         .map { (id, implementationClass) ->
             val simpleId = id.substringAfter("org.gradle.")
-            val website = UserGuideLink.forPlugin(simpleId)
             // One plugin extension for the simple id, e.g., "application"
-            PluginExtension(simpleId, id, website, implementationClass)
+            PluginExtension(simpleId, id, implementationClass)
         }
-
-
-internal
-object UserGuideLink {
-
-    fun forPlugin(simpleId: String): String? =
-        linkForPlugin[simpleId]?.let {
-            "https://docs.gradle.org/current/userguide/$it"
-        }
-
-    private
-    val linkForPlugin =
-        mapOf(
-            "antlr" to "antlr_plugin.html",
-            "application" to "application_plugin.html",
-
-            "assembler" to "native_software.html#assemblerPlugin",
-            "assembler-lang" to "native_software.html#assemblerPlugin",
-
-            "base" to "plugin_reference.html#sec:base_plugins",
-
-            "binary-base" to "software_model_concepts.html",
-
-            "build-dashboard" to "build_dashboard_plugin.html",
-
-            "build-init" to "build_init_plugin.html",
-            "c" to "native_software.html#sec:c_sources",
-            "c-lang" to "native_software.html#sec:c_sources",
-
-            "checkstyle" to "checkstyle_plugin.html",
-            "clang-compiler" to "native_software.html",
-
-            "codenarc" to "codenarc_plugin.html",
-
-            // "coffeescript-base" to "coffeescript_base_plugin.html",
-
-            "compare-gradle-builds" to "comparing_builds.html",
-
-            "component-base" to "software_model_concepts.html",
-            "component-model-base" to "software_model_concepts.html",
-
-            "cpp" to "native_software.html#cppPlugin",
-            "cpp-executable" to "native_software.html#cppPlugin",
-            "cpp-lang" to "native_software.html#cppPlugin",
-            "cpp-library" to "native_software.html#cppPlugin",
-
-            "cunit" to "native_software.html#native_binaries:cunit",
-            "cunit-test-suite" to "native_software.html#native_binaries:cunit",
-
-            "distribution" to "distribution_plugin.html",
-            "ear" to "ear_plugin.html",
-            "eclipse" to "eclipse_plugin.html",
-            "eclipse-wtp" to "eclipse_plugin.html",
-
-            // "envjs" to "envjs_plugin.html",
-
-            "gcc-compiler" to "native_software.html#native_binaries:tool_chain",
-
-            "google-test" to "native_software.html#native_binaries:google_test",
-            "google-test-test-suite" to "native_software.html#native_binaries:google_test",
-
-            "groovy" to "groovy_plugin.html",
-            "groovy-base" to "plugin_reference.html#sec:base_plugins",
-
-            "help-tasks" to "command_line_interface.html#sec:command_line_project_reporting",
-
-            "idea" to "idea_plugin.html",
-
-            "ivy-publish" to "publishing_ivy.html#publishing_ivy:plugin",
-
-            "jacoco" to "jacoco_plugin.html",
-
-            "java" to "java_plugin.html",
-            "java-base" to "plugin_reference.html#sec:base_plugins",
-
-            "java-gradle-plugin" to "java_gradle_plugin.html",
-
-            // "java-lang" to "java_software.html",
-
-            "java-library" to "java_library_plugin.html",
-            "java-library-distribution" to "java_library_distribution_plugin.html",
-
-            // "javascript-base" to "javascript_base_plugin.html",
-
-            // "jshint" to "jshint_plugin.html",
-
-            // "language-base" to "language_base_plugin.html",
-            // "lifecycle-base" to "lifecycle_base_plugin.html",
-
-            "maven-publish" to "publishing_maven.html",
-
-            "microsoft-visual-cpp-compiler" to "native_software.html#native_binaries:tool_chain",
-
-            "native-component" to "native_software.html#sec:native_software_model",
-            "native-component-model" to "native_software.html#sec:native_software_model",
-
-            "objective-c" to "native_software.html#sec:objectivec_sources",
-            "objective-c-lang" to "native_software.html#sec:objectivec_sources",
-
-            "objective-cpp" to "native_software.html#sec:objectivecpp_sources",
-            "objective-cpp-lang" to "native_software.html#sec:objectivecpp_sources",
-
-            "play" to "play_plugin.html",
-            "play-application" to "play_plugin.html",
-            "play-cofeescript" to "play_plugin.html",
-            "play-javascript" to "play_plugin.html",
-
-            "pmd" to "pmd_plugin.html",
-
-            "project-report" to "project_report_plugin.html",
-            "project-reports" to "project_report_plugin.html",
-
-            // "publishing" to "publishing_plugin.html",
-
-            "reporting-base" to "plugin_reference.html#sec:base_plugins",
-
-            // "rhino" to "rhino_plugin.html",
-
-            "scala" to "scala_plugin.html",
-            "scala-base" to "plugin_reference.html#sec:base_plugins",
-
-            // "scala-lang" to "scala_lang_plugin.html",
-
-            "signing" to "signing_plugin.html",
-
-            "standard-tool-chains" to "native_software.html#native_binaries:tool_chain",
-
-            "visual-studio" to "native_software.html#native_binaries:visual_studio",
-
-            "war" to "war_plugin.html",
-
-            "windows-resource-script" to "native_software.html#native_binaries:windows-resources",
-            "windows-resources" to "native_software.html#native_binaries:windows-resources"
-        )
-}
 
 
 internal
