@@ -1,13 +1,15 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
-import org.junit.Assert.assertFalse
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -357,4 +359,88 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             )
         }
     }
+
+    @Test
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    fun `applied precompiled script plugin is reloaded upon change`() {
+        // given:
+        withFolders {
+            "build-logic" {
+                withFile(
+                    "settings.gradle.kts",
+                    """
+                        $defaultSettingsScript
+                        include("producer", "consumer")
+                    """
+                )
+                withFile(
+                    "build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl` apply false
+                        }
+
+                        subprojects {
+                            apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+                            $repositoriesBlock
+                        }
+
+                        project(":consumer") {
+                            dependencies {
+                                "implementation"(project(":producer"))
+                            }
+                        }
+                    """
+                )
+
+                withFile(
+                    "producer/src/main/kotlin/producer-plugin.gradle.kts",
+                    """
+                        println("*version 1*")
+                    """
+                )
+                withFile(
+                    "consumer/src/main/kotlin/consumer-plugin.gradle.kts",
+                    """
+                        plugins { id("producer-plugin") }
+                    """
+                )
+            }
+        }
+        withSettings(
+            """
+                includeBuild("build-logic")
+            """
+        )
+        withBuildScript(
+            """
+                plugins { id("consumer-plugin") }
+            """
+        )
+
+        // when:
+        build("help").run {
+            // then:
+            assertThat(
+                output.count("*version 1*"),
+                equalTo(2)
+            )
+        }
+
+        // when:
+        file("build-logic/producer/src/main/kotlin/producer-plugin.gradle.kts").text = """
+            println("*version 2*")
+        """
+        build("help").run {
+            // then:
+            assertThat(
+                output.count("*version 2*"),
+                equalTo(2)
+            )
+        }
+    }
+
+    private
+    fun CharSequence.count(text: CharSequence): Int =
+        StringGroovyMethods.count(this, text)
 }
