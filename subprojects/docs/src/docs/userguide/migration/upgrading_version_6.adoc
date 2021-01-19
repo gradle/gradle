@@ -74,12 +74,6 @@ You should migrate to the `maven-publish` or `ivy-publish` plugin instead.
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for publishing on Maven repositories.
 Please refer to the <<publishing_ivy.adoc#publishing_ivy, documentation of the Ivy Publish plugin>> for publishing on Ivy repositories.
 
-==== Removal of legacy Worker API
-
-The portions of the Worker API, introduced in 3.5, that were deprecated and replaced by the new _work queue_ based APIs in 5.6, have now been removed.
-If you are using the Worker API and have not yet migrated: You now have to use the `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods to submit work.
-See <<worker_api.adoc#,the section on the Worker API>> for more information on using these methods.
-
 ==== Removal of Play Framework plugins
 
 The deprecated Play plugins have been removed.

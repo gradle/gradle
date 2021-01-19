@@ -30,8 +30,10 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
+import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
+import org.gradle.workers.WorkerConfiguration
 import org.gradle.workers.WorkerSpec
 import org.junit.Rule
 import spock.lang.Specification
@@ -63,17 +65,51 @@ class DefaultWorkerExecutorTest extends Specification {
     def worker = Mock(BuildOperationAwareWorker)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
+    def parameters = Mock(AdapterWorkParameters)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
+        _ * instantiator.newInstance(AdapterWorkParameters) >> parameters
         _ * instantiator.newInstance(DefaultWorkerSpec) >> { args -> new DefaultWorkerSpec() }
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.testDirectory)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
+    }
+
+    def "worker configuration fork property defaults to AUTO"() {
+        given:
+        WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory)
+
+        expect:
+        configuration.isolationMode == IsolationMode.AUTO
+
+        when:
+        configuration.isolationMode = IsolationMode.PROCESS
+
+        then:
+        configuration.isolationMode == IsolationMode.PROCESS
+
+        when:
+        configuration.isolationMode = IsolationMode.CLASSLOADER
+
+        then:
+        configuration.isolationMode == IsolationMode.CLASSLOADER
+
+        when:
+        configuration.isolationMode = IsolationMode.NONE
+
+        then:
+        configuration.isolationMode == IsolationMode.NONE
+
+        when:
+        configuration.isolationMode = null
+
+        then:
+        configuration.isolationMode == IsolationMode.AUTO
     }
 
     def "can convert javaForkOptions to daemonForkOptions"() {
@@ -122,6 +158,8 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.processIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
+        _ * parameters.implementationClassName >> TestExecutable.class.getName()
+        _ * parameters.params >> []
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -141,6 +179,8 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.classLoaderIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
+        _ * parameters.implementationClassName >> TestExecutable.class.getName()
+        _ * parameters.params >> []
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -160,6 +200,8 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.noIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
+        _ * parameters.implementationClassName >> TestExecutable.class.getName()
+        _ * parameters.params >> []
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
