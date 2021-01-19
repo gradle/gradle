@@ -40,12 +40,12 @@ import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
-    private final RelatedLocations producedLocations;
-    private final RelatedLocations consumedLocations;
+    private final ExecutionNodeAccessHierarchy outputsHierarchy;
+    private final ExecutionNodeAccessHierarchy inputsHierarchy;
 
-    public LocalTaskNodeExecutor(RelatedLocations producedLocations, RelatedLocations consumedLocations) {
-        this.producedLocations = producedLocations;
-        this.consumedLocations = consumedLocations;
+    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy outputsHierarchy, ExecutionNodeAccessHierarchy inputsHierarchy) {
+        this.outputsHierarchy = outputsHierarchy;
+        this.inputsHierarchy = inputsHierarchy;
     }
 
     @Override
@@ -76,48 +76,48 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
 
     private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
-            consumedLocations.getNodesRelatedTo(outputPath).stream()
+            inputsHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
                 .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
         }
-        Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
-        Set<FilteredTree> filteredFileTreesConsumedByThisTask = new LinkedHashSet<>();
+        Set<String> taskInputs = new LinkedHashSet<>();
+        Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
             .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    contents.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
+                    contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
                 }
 
                 @Override
                 public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    fileTree.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
+                    fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
                 }
 
                 @Override
                 public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                     if (patterns.isEmpty()) {
-                        locationsConsumedByThisTask.add(root.getAbsolutePath());
+                        taskInputs.add(root.getAbsolutePath());
                     } else {
-                        filteredFileTreesConsumedByThisTask.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                        filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
                     }
                 }
 
                 @Override
                 public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    locationsConsumedByThisTask.add(file.getAbsolutePath());
+                    taskInputs.add(file.getAbsolutePath());
                 }
             }));
-        consumedLocations.recordRelatedToNode(locationsConsumedByThisTask, node);
-        for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
-            producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
+        inputsHierarchy.recordNodeAccessingLocations(node, taskInputs);
+        for (String locationConsumedByThisTask : taskInputs) {
+            outputsHierarchy.getNodesAccessing(locationConsumedByThisTask).stream()
                 .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }
-        for (FilteredTree filteredFileTreeConsumedByThisTask : filteredFileTreesConsumedByThisTask) {
-            Spec<FileTreeElement> spec = filteredFileTreeConsumedByThisTask.getPatterns().getAsSpec();
-            consumedLocations.recordFileTreeRelatedToNode(filteredFileTreeConsumedByThisTask.getRoot(), node, spec);
-            producedLocations.getNodesRelatedTo(filteredFileTreeConsumedByThisTask.getRoot(), spec).stream()
+        for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
+            Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
+            inputsHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
+            outputsHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec).stream()
                 .filter(producerNode -> missesDependency(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }

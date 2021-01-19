@@ -39,22 +39,22 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class RelatedLocations {
+public class ExecutionNodeAccessHierarchy {
     private volatile RelatedLocation root;
     private final Stat stat;
     private final CaseSensitivity caseSensitivity;
 
-    public RelatedLocations(CaseSensitivity caseSensitivity, Stat stat) {
+    public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
         this.caseSensitivity = caseSensitivity;
         this.root = new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(), caseSensitivity);
         this.stat = stat;
     }
 
-    public ImmutableSet<Node> getNodesRelatedTo(String location) {
-        return getNodesRelatedTo(location, null);
+    public ImmutableSet<Node> getNodesAccessing(String location) {
+        return getNodesAccessing(location, null);
     }
 
-    public ImmutableSet<Node> getNodesRelatedTo(String location, @Nullable Spec<FileTreeElement> filter) {
+    public ImmutableSet<Node> getNodesAccessing(String location, @Nullable Spec<FileTreeElement> filter) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
         NodeVisitor nodeVisitor = filter == null
@@ -106,15 +106,15 @@ public class RelatedLocations {
         void visitChildren(Iterable<Node> nodes, Supplier<String> relativePathSupplier);
     }
 
-    public synchronized void recordRelatedToNode(Iterable<String> locationsRelatedToNode, Node node) {
-        for (String location : locationsRelatedToNode) {
+    public synchronized void recordNodeAccessingLocations(Node node, Iterable<String> accessedLocations) {
+        for (String location : accessedLocations) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
             root = root.recordRelatedToNode(relativePath, new DefaultRelatedNode(node));
         }
     }
 
-    public synchronized void recordFileTreeRelatedToNode(String locationRelatedToNode, Node node, Spec<FileTreeElement> spec) {
-        VfsRelativePath relativePath = VfsRelativePath.of(locationRelatedToNode);
+    public synchronized void recordNodeAccessingFileTree(Node node, String fileTreeRoot, Spec<FileTreeElement> spec) {
+        VfsRelativePath relativePath = VfsRelativePath.of(fileTreeRoot);
         root = root.recordRelatedToNode(relativePath, new FilteredRelatedNode(node, spec));
     }
 

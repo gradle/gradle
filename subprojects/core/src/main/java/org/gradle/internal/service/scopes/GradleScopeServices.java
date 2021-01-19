@@ -65,10 +65,10 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.execution.plan.ConsumedAndProducedLocations;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.DependencyResolver;
+import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
@@ -202,10 +202,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskDependencyResolver(dependencyResolvers);
     }
 
-    LocalTaskNodeExecutor createLocalTaskNodeExecutor(ConsumedAndProducedLocations consumedAndProducedLocations) {
+    LocalTaskNodeExecutor createLocalTaskNodeExecutor(ExecutionNodeAccessHierarchies executionNodeAccessHierarchies) {
         return new LocalTaskNodeExecutor(
-            consumedAndProducedLocations.getProducedLocations(),
-            consumedAndProducedLocations.getConsumedLocations()
+            executionNodeAccessHierarchies.getOutputsHierarchy(),
+            executionNodeAccessHierarchies.getInputsHierarchy()
         );
     }
 
@@ -229,23 +229,23 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
-    ConsumedAndProducedLocations createConsumedAndProducedLocations(FileSystem fileSystem, Stat stat) {
-        return new ConsumedAndProducedLocations(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
+    ExecutionNodeAccessHierarchies createExecutionNodeAccessHierarchies(FileSystem fileSystem, Stat stat) {
+        return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
     }
 
     ExecutionPlan createExecutionPlan(
         GradleInternal gradleInternal,
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
-        ConsumedAndProducedLocations consumedAndProducedLocations
+        ExecutionNodeAccessHierarchies executionNodeAccessHierarchies
     ) {
         return new DefaultExecutionPlan(
             gradleInternal.getIdentityPath().toString(),
             taskNodeFactory,
             dependencyResolver,
             new DefaultNodeValidator(),
-            consumedAndProducedLocations.getProducedLocations(),
-            consumedAndProducedLocations.getConsumedLocations()
+            executionNodeAccessHierarchies.getOutputsHierarchy(),
+            executionNodeAccessHierarchies.getInputsHierarchy()
         );
     }
 
