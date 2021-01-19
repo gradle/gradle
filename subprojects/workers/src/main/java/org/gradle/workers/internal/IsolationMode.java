@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.workers;
+package org.gradle.workers.internal;
 
 /**
  * Isolation mode for workers.
- *
- * @since 4.0
  */
 public enum IsolationMode {
-    /**
-     * Let Gradle decide, this is the default.
-     */
-    AUTO,
     /**
      * Don't attempt to isolate the work, use in-process workers.
      */

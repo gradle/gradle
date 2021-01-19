@@ -18,12 +18,11 @@ package org.gradle.workers.fixtures
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
-import org.gradle.workers.IsolationMode
+import org.gradle.workers.internal.IsolationMode
 
 class WorkerExecutorFixture {
-    public static final ISOLATION_MODES = (IsolationMode.values() - IsolationMode.AUTO).collect { "IsolationMode.${it.toString()}" }
+    public static final ISOLATION_MODES = IsolationMode.values().collect { "IsolationMode.${it.toString()}" }
     public static final Map<IsolationMode,String> WORKER_METHODS = [
-            (IsolationMode.AUTO): "noIsolation",
             (IsolationMode.NONE): "noIsolation",
             (IsolationMode.CLASSLOADER): "classLoaderIsolation",
             (IsolationMode.PROCESS): "processIsolation"

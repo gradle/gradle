@@ -16,8 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.workers.IsolationMode;
-
 public interface WorkerFactory {
     BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement);
 

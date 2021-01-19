@@ -136,10 +136,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }
 
-    <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
-        return spec -> configuration.adaptTo(spec);
-    }
-
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
