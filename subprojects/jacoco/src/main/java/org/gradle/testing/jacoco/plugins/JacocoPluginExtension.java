@@ -55,9 +55,6 @@ public class JacocoPluginExtension {
 
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
 
-    @Deprecated
-    protected final Project project;
-
     private final ProviderFactory providers;
     private final ObjectFactory objects;
     private final ProjectLayout layout;
@@ -74,7 +71,6 @@ public class JacocoPluginExtension {
      * @param agent the agent JAR to be used by Jacoco
      */
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
-        this.project = project;
         this.agent = agent;
         this.providers = project.getProviders();
         this.objects = project.getObjects();
