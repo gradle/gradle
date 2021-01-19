@@ -51,12 +51,12 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -69,7 +69,6 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
@@ -115,28 +114,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
 
     /**
-     * Deprecated system property used to enable watching the file system.
-     *
-     * Using this property causes Gradle to emit a deprecation warning.
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    public static final String DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
-
-    /**
      * When file system watching is enabled, this system property can be used to invalidate the entire VFS.
      *
      * @see org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.vfs.drop";
-
-    /**
-     * Previous name for {@link #VFS_DROP_PROPERTY}.
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    @VisibleForTesting
-    public static final String DEPRECATED_VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
     public static final String MAX_HIERARCHIES_TO_WATCH_PROPERTY = "org.gradle.vfs.watch.hierarchies.max";
 
@@ -144,16 +126,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     private static final int FILE_HASHER_MEMORY_CACHE_SIZE = 400000;
 
     public static boolean isDropVfs(StartParameter startParameter) {
-        if (getSystemProperty(DEPRECATED_VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()) != null) {
-            DeprecationLogger
-                .deprecateSystemProperty(DEPRECATED_VFS_DROP_PROPERTY)
-                .replaceWith(VFS_DROP_PROPERTY)
-                .willBeRemovedInGradle7()
-                .undocumented()
-                .nagUser();
-            return isSystemPropertyEnabled(DEPRECATED_VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
-        }
-        return isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
+        String dropVfs = getSystemProperty(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
+        return dropVfs != null && !"false".equalsIgnoreCase(dropVfs);
     }
 
     public static int getMaximumNumberOfWatchedHierarchies(StartParameter startParameter) {
@@ -161,15 +135,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         return fromProperty != null && !fromProperty.isEmpty()
             ? Integer.parseInt(fromProperty, 10)
             : DEFAULT_MAX_HIERARCHIES_TO_WATCH;
-    }
-
-    public static boolean isDeprecatedVfsRetentionPropertyPresent(StartParameter startParameter) {
-        return getSystemProperty(DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs()) != null;
-    }
-
-    private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
-        String value = getSystemProperty(systemProperty, systemPropertiesArgs);
-        return value != null && !"false".equalsIgnoreCase(value);
     }
 
     @Nullable

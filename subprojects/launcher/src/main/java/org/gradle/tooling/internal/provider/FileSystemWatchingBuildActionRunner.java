@@ -19,8 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
-import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -64,7 +62,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             ? WatchLogging.DEBUG
             : WatchLogging.NORMAL;
 
-        logMessageForDeprecatedVfsRetentionProperty(startParameter);
         LOGGER.info("Watching the file system is {}", watchFileSystemMode.getDescription());
         if (watchFileSystemMode.isEnabled()) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
@@ -99,18 +96,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
             virtualFileSystem.invalidateAll();
-        }
-    }
-
-    private static void logMessageForDeprecatedVfsRetentionProperty(StartParameterInternal startParameter) {
-        if (VirtualFileSystemServices.isDeprecatedVfsRetentionPropertyPresent(startParameter)) {
-            @SuppressWarnings("deprecation")
-            String deprecatedVfsRetentionEnabledProperty = VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY;
-            DeprecationLogger.deprecateIndirectUsage("Using the system property " + deprecatedVfsRetentionEnabledProperty + " to enable watching the file system")
-                .withAdvice("Use the gradle property " + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + " instead.")
-                .willBeRemovedInGradle7()
-                .withUserManual("gradle_daemon")
-                .nagUser();
         }
     }
 }
