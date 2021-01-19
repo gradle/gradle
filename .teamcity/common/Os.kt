@@ -65,12 +65,12 @@ enum class Os(
 
     fun asName() = name.toLowerCase().capitalize()
 
-    fun javaInstallationLocations(): List<String> {
+    fun javaInstallationLocations(): String {
         val paths = enumValues<JvmVersion>().map { version -> {
             val vendor = if (version.major >= 11) JvmVendor.openjdk else JvmVendor.oracle
             asPlaceholder(version, vendor)
         }() }.joinToString(",")
-        return listOf(escapeKeyValuePair("-Porg.gradle.java.installations.paths", paths))
+        return """"-Porg.gradle.java.installations.paths=$paths""""
     }
 
     fun javaHomeForGradle(): String {
