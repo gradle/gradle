@@ -41,12 +41,12 @@ import java.util.stream.Collectors;
 
 public class ExecutionNodeAccessHierarchy {
     private volatile RelatedLocation root;
-    private final Stat stat;
     private final CaseSensitivity caseSensitivity;
+    private final Stat stat;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
-        this.caseSensitivity = caseSensitivity;
         this.root = new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(), caseSensitivity);
+        this.caseSensitivity = caseSensitivity;
         this.stat = stat;
     }
 
@@ -123,8 +123,8 @@ public class ExecutionNodeAccessHierarchy {
     }
 
     private static final class RelatedLocation {
-        private final ChildMap<RelatedLocation> children;
         private final ImmutableList<RelatedNode> relatedNodes;
+        private final ChildMap<RelatedLocation> children;
         private final CaseSensitivity caseSensitivity;
 
         private RelatedLocation(ChildMap<RelatedLocation> children, ImmutableList<RelatedNode> relatedNodes, CaseSensitivity caseSensitivity) {
