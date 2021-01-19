@@ -53,7 +53,6 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
@@ -173,16 +172,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private static String getWorkerDisplayName(Class<?> workActionClass, WorkParameters parameters) {
-        if (workActionClass == AdapterWorkAction.class) {
-            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
-            if (adapterWorkParameters.getDisplayName() != null) {
-                return adapterWorkParameters.getDisplayName();
-            } else {
-                return adapterWorkParameters.getImplementationClassName();
-            }
-        } else {
-            return workActionClass.getName();
-        }
+        return workActionClass.getName();
     }
 
     private WorkerLease getCurrentWorkerLease() {
@@ -254,25 +244,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private Class<?>[] getParamClasses(Class<?> actionClass, WorkParameters parameters) {
-        Class<?> implementationClass;
-        Object[] params;
-        if (parameters instanceof AdapterWorkParameters) {
-            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
-            implementationClass = classFromContextLoader(adapterWorkParameters.getImplementationClassName());
-            params = adapterWorkParameters.getParams();
-        } else {
-            implementationClass = actionClass;
-            params = new Object[]{parameters};
+        if (parameters == null) {
+            return new Class<?>[] {actionClass};
         }
-
-        List<Class<?>> classes = Lists.newArrayList();
-        classes.add(implementationClass);
-        for (Object param : params) {
-            if (param != null) {
-                classes.add(param.getClass());
-            }
-        }
-        return classes.toArray(new Class<?>[0]);
+        return new Class<?>[] {actionClass, parameters.getClass()};
     }
 
     @Contextual

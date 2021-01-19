@@ -45,7 +45,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     @Override
     public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, WorkerRequirement workerRequirement, boolean usesInternalServices) {
         ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure() : null;
-        String actionImplementationClassName = implementationClass.equals(AdapterWorkAction.class) ? ((AdapterWorkParameters) params).getImplementationClassName() : implementationClass.getName();
+        String actionImplementationClassName = implementationClass.getName();
         return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, actionImplementationClassName, isolatableFactory.isolate(params), classLoaderStructure, workerRequirement.getWorkerDirectory(), usesInternalServices);
     }
 
