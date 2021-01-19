@@ -35,6 +35,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Checkstyle Plugin.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/checkstyle_plugin.html">Checkstyle plugin reference</a>
  */
 public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
