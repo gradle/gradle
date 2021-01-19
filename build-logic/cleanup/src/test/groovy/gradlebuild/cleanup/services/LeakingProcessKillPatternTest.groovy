@@ -16,7 +16,6 @@
 
 package gradlebuild.cleanup.services
 
-import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
