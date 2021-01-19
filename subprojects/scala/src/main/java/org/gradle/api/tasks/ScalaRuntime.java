@@ -84,10 +84,6 @@ public class ScalaRuntime {
 
             @Override
             public FileCollection createDelegate() {
-                if (project.getRepositories().isEmpty()) {
-                    throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s", project));
-                }
-
                 File scalaLibraryJar = findScalaJar(classpath, "library");
                 if (scalaLibraryJar == null) {
                     throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. "
