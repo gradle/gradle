@@ -28,7 +28,6 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +36,7 @@ import java.nio.file.Files;
 import java.util.function.Supplier;
 
 public class ExecutionNodeAccessHierarchy {
-    private volatile ValuedPathHierarchy<RelatedNode> root;
+    private volatile ValuedPathHierarchy<NodeAccess> root;
     private final Stat stat;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
@@ -46,85 +45,87 @@ public class ExecutionNodeAccessHierarchy {
     }
 
     public ImmutableSet<Node> getNodesAccessing(String location) {
-        return getNodesAccessing(location, null);
+        return visitValues(location, new AbstractNodeAccessVisitor() {
+            @Override
+            public void visitChildren(Iterable<NodeAccess> values, Supplier<String> relativePathSupplier) {
+                values.forEach(this::addNode);
+            }
+        });
     }
 
-    public ImmutableSet<Node> getNodesAccessing(String location, @Nullable Spec<FileTreeElement> filter) {
-        VfsRelativePath relativePath = VfsRelativePath.of(location);
-        ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
-        ValueVisitor<RelatedNode> nodeVisitor = filter == null
-            ? new ValueVisitor<RelatedNode>() {
+    public ImmutableSet<Node> getNodesAccessing(String location, Spec<FileTreeElement> filter) {
+        return visitValues(location, new AbstractNodeAccessVisitor() {
             @Override
-            public void visitExact(RelatedNode value) {
-                builder.add(value.getNode());
-            }
-
-            @Override
-            public void visitAncestor(RelatedNode value, VfsRelativePath pathToVisitedLocation) {
-                if (value.relatedToLocation(pathToVisitedLocation)) {
-                    builder.add(value.getNode());
-                }
-            }
-
-            @Override
-            public void visitChildren(Iterable<RelatedNode> values, Supplier<String> relativePathSupplier) {
-                values.forEach(node -> builder.add(node.getNode()));
-            }
-        } : new ValueVisitor<RelatedNode>() {
-            @Override
-            public void visitExact(RelatedNode value) {
-                builder.add(value.getNode());
-            }
-
-            @Override
-            public void visitAncestor(RelatedNode value, VfsRelativePath pathToVisitedLocation) {
-                if (value.relatedToLocation(pathToVisitedLocation)) {
-                    builder.add(value.getNode());
-                }
-            }
-
-            @Override
-            public void visitChildren(Iterable<RelatedNode> values, Supplier<String> relativePathSupplier) {
+            public void visitChildren(Iterable<NodeAccess> values, Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
                 if (filter.isSatisfiedBy(new LocationFileTreeElement(new File(location + "/" + relativePathFromLocation).getAbsolutePath(), relativePathFromLocation, stat))) {
-                    values.forEach(node -> builder.add(node.getNode()));
+                    values.forEach(this::addNode);
                 }
             }
-        };
+        });
+    }
+
+    private ImmutableSet<Node> visitValues(String location, AbstractNodeAccessVisitor visitor) {
+        VfsRelativePath relativePath = VfsRelativePath.of(location);
         if (relativePath.length() == 0) {
-            root.visitValues(nodeVisitor);
+            root.visitValues(visitor);
         } else {
-            root.visitValues(relativePath, nodeVisitor);
+            root.visitValues(relativePath, visitor);
         }
-        return builder.build();
+        return visitor.getResult();
     }
 
     public synchronized void recordNodeAccessingLocations(Node node, Iterable<String> accessedLocations) {
         for (String location : accessedLocations) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
-            root = root.recordValue(relativePath, new DefaultRelatedNode(node));
+            root = root.recordValue(relativePath, new DefaultNodeAccess(node));
         }
     }
 
     public synchronized void recordNodeAccessingFileTree(Node node, String fileTreeRoot, Spec<FileTreeElement> spec) {
         VfsRelativePath relativePath = VfsRelativePath.of(fileTreeRoot);
-        root = root.recordValue(relativePath, new FilteredRelatedNode(node, spec));
+        root = root.recordValue(relativePath, new FilteredNodeAccess(node, spec));
     }
 
     public synchronized void clear() {
         root = root.empty();
     }
 
-    private interface RelatedNode {
-        Node getNode();
-        boolean relatedToLocation(VfsRelativePath relativePath);
+    private abstract static class AbstractNodeAccessVisitor implements ValueVisitor<NodeAccess> {
+
+        private final ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
+
+        public void addNode(NodeAccess value) {
+            builder.add(value.getNode());
+        }
+
+        @Override
+        public void visitExact(NodeAccess value) {
+            addNode(value);
+        }
+
+        @Override
+        public void visitAncestor(NodeAccess value, VfsRelativePath pathToVisitedLocation) {
+            if (value.accessesChild(pathToVisitedLocation)) {
+                addNode(value);
+            }
+        }
+
+        public ImmutableSet<Node> getResult() {
+            return builder.build();
+        }
     }
 
-    private static class DefaultRelatedNode implements RelatedNode {
+    private interface NodeAccess {
+        Node getNode();
+        boolean accessesChild(VfsRelativePath childPath);
+    }
+
+    private static class DefaultNodeAccess implements NodeAccess {
 
         private final Node node;
 
-        public DefaultRelatedNode(Node node) {
+        public DefaultNodeAccess(Node node) {
             this.node = node;
         }
 
@@ -134,16 +135,16 @@ public class ExecutionNodeAccessHierarchy {
         }
 
         @Override
-        public boolean relatedToLocation(VfsRelativePath relativePath) {
+        public boolean accessesChild(VfsRelativePath childPath) {
             return true;
         }
     }
 
-    private class FilteredRelatedNode implements RelatedNode {
+    private class FilteredNodeAccess implements NodeAccess {
         private final Node node;
         private final Spec<FileTreeElement> spec;
 
-        public FilteredRelatedNode(Node node, Spec<FileTreeElement> spec) {
+        public FilteredNodeAccess(Node node, Spec<FileTreeElement> spec) {
             this.node = node;
             this.spec = spec;
         }
@@ -154,8 +155,8 @@ public class ExecutionNodeAccessHierarchy {
         }
 
         @Override
-        public boolean relatedToLocation(VfsRelativePath relativePath) {
-            return spec.isSatisfiedBy(new LocationFileTreeElement(relativePath.getAbsolutePath(), relativePath.getAsString(), stat));
+        public boolean accessesChild(VfsRelativePath childPath) {
+            return spec.isSatisfiedBy(new LocationFileTreeElement(childPath.getAbsolutePath(), childPath.getAsString(), stat));
         }
     }
 
