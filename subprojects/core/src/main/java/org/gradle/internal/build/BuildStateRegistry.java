@@ -102,4 +102,9 @@ public interface BuildStateRegistry {
      * Creates a new standalone nested build tree.
      */
     NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
+
+    /**
+     * Register dependency substitutions for the root build itself. This way, the projects of the root build can be addressed by coordinates as the projects of all other builds.
+     */
+    void registerSubstitutionsForRootBuild();
 }

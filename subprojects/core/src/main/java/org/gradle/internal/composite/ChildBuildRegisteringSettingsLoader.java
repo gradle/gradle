@@ -61,6 +61,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
                     IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
                     children.add(includedBuild.getModel());
                 } else {
+                    buildRegistry.registerSubstitutionsForRootBuild();
                     children.add(new IncludedRootBuild((CompositeBuildParticipantBuildState) buildRegistry.getRootBuild()));
                 }
             }

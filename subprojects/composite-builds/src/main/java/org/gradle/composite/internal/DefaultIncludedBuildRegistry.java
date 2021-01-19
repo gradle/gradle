@@ -63,6 +63,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
+    private boolean registerSubstitutionsForRootBuild = false;
 
     public DefaultIncludedBuildRegistry(BuildTreeState owner, IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager) {
         this.owner = owner;
@@ -162,7 +163,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void afterConfigureRootBuild() {
-        if (!includedBuildsByRootDir.isEmpty()) {
+        if (registerSubstitutionsForRootBuild) {
             dependencySubstitutionsBuilder.build((CompositeBuildParticipantBuildState) rootBuild);
         }
     }
@@ -207,6 +208,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         // Attach the build only after it has been fully constructed.
         rootOfNestedBuildTree.attach();
         return rootOfNestedBuildTree;
+    }
+
+    @Override
+    public void registerSubstitutionsForRootBuild() {
+        registerSubstitutionsForRootBuild = true;
     }
 
     private void validateNameIsNotBuildSrc(String name, File dir) {
