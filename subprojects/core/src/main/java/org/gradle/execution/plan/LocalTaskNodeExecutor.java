@@ -118,7 +118,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
             inputsHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
             outputsHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec).stream()
-                .filter(producerNode -> missesDependency(producerNode, node))
+                .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }
     }
