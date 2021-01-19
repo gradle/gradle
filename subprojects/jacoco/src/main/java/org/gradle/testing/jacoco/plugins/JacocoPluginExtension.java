@@ -35,7 +35,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
@@ -97,48 +96,6 @@ public class JacocoPluginExtension {
      */
     public DirectoryProperty getReportsDirectory() {
         return reportsDirectory;
-    }
-
-    /**
-     * The directory where reports will be generated.
-     */
-    @Deprecated
-    public File getReportsDir() {
-        nagReportsDirDeprecation();
-        return reportsDirectory.get().getAsFile();
-    }
-
-    /**
-     * Set the provider for calculating the report directory.
-     *
-     * @param reportsDir Reports directory provider
-     * @since 4.0
-     * @deprecated See {@link #getReportsDirectory()}
-     */
-    @Deprecated
-    public void setReportsDir(Provider<File> reportsDir) {
-        nagReportsDirDeprecation();
-        this.reportsDirectory.set(layout.dir(reportsDir));
-    }
-
-    /**
-     * Set the provider for calculating the report directory.
-     *
-     * @param reportsDir Reports directory
-     * @deprecated See {@link #getReportsDirectory()}
-     */
-    @Deprecated
-    public void setReportsDir(File reportsDir) {
-        nagReportsDirDeprecation();
-        this.reportsDirectory.set(reportsDir);
-    }
-
-    private void nagReportsDirDeprecation() {
-        DeprecationLogger.deprecateProperty(JacocoPluginExtension.class, "reportsDir")
-            .replaceWith("reportsDirectory")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
     }
 
     /**
