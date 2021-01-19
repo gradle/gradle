@@ -16,7 +16,6 @@
 
 package org.gradle.api.model;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 
 import java.lang.annotation.Documented;
@@ -37,7 +36,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
-@Incubating
 public @interface ReplacedBy {
     /**
      * The Java Bean-style name of the replacement property.
