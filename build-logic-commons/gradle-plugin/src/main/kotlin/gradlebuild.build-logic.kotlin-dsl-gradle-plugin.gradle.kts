@@ -36,6 +36,8 @@ java {
 dependencies {
     api(platform(project(":build-platform")))
     implementation("gradlebuild:code-quality")
+
+    testImplementation("org.junit.vintage:junit-vintage-engine")
 }
 
 ktlint {
