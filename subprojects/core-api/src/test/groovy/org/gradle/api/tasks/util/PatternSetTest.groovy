@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks.util
 
+import groovy.transform.CompileStatic
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.strictlyEquals
@@ -27,7 +29,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class PatternSetTest extends AbstractTestForPatternSet {
-    PatternSet patternSet = new PatternSet()
+    PatternSet patternSet = new TestPatternSet()
 
     def cleanup() {
         DirectoryScanner.resetDefaultExcludes()
@@ -354,5 +356,20 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     private static FileTreeElement dir(String... elements) {
         element(false, elements)
+    }
+
+    @CompileStatic
+    private static class TestPatternSet extends PatternSet {
+        TestPatternSet() {
+            super(new TestPatternSpecFactory())
+        }
+    }
+
+    @CompileStatic
+    private static class TestPatternSpecFactory extends PatternSpecFactory {
+        @Override
+        protected boolean invalidChangeOfExcludes(String[] defaultExcludes) {
+            false
+        }
     }
 }

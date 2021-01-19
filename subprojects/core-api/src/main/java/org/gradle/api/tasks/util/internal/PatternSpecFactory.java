@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.util.internal;
 
 import org.apache.tools.ant.DirectoryScanner;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
@@ -24,7 +25,6 @@ import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -85,12 +85,17 @@ public class PatternSpecFactory {
         String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
         if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
-        } else if (!Arrays.equals(previousDefaultExcludes, defaultExcludes)) {
+        } else if (invalidChangeOfExcludes(defaultExcludes)) {
             reportChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
+        } else {
             updateDefaultExcludeSpecCache(defaultExcludes);
         }
 
         return defaultExcludeSpecCache.get(caseSensitivity);
+    }
+
+    protected boolean invalidChangeOfExcludes(String[] defaultExcludes) {
+        return !Arrays.equals(previousDefaultExcludes, defaultExcludes);
     }
 
     private void reportChangedDefaultExcludes(String[] excludesFromSettings, String[] newDefaultExcludes) {
@@ -98,13 +103,7 @@ public class PatternSpecFactory {
         sortedExcludesFromSettings.sort(Comparator.naturalOrder());
         List<String> sortedNewExcludes = Arrays.asList(newDefaultExcludes);
         sortedNewExcludes.sort(Comparator.naturalOrder());
-        DeprecationLogger
-            .deprecateIndirectUsage("Changing default excludes during the build")
-            .withContext(String.format("Default excludes changed from %s to %s.", sortedExcludesFromSettings, sortedNewExcludes))
-            .withAdvice("Configure default excludes in the settings script instead.")
-            .willBeRemovedInGradle7()
-            .withUpgradeGuideSection(6, "changing_default_excludes_during_the_execution_phase")
-            .nagUser();
+        throw new InvalidUserCodeException(String.format("Cannot change default excludes during the build. They were changed from %s to %s. Configure default excludes in the settings script instead.",  sortedExcludesFromSettings, sortedNewExcludes));
     }
 
     public synchronized void setDefaultExcludesFromSettings(String[] excludesFromSettings) {
@@ -113,7 +112,7 @@ public class PatternSpecFactory {
         }
     }
 
-    private void updateDefaultExcludeSpecCache(String[] defaultExcludes) {
+    protected void updateDefaultExcludeSpecCache(String[] defaultExcludes) {
         previousDefaultExcludes = defaultExcludes;
         List<String> patterns = Arrays.asList(defaultExcludes);
         for (CaseSensitivity caseSensitivity : CaseSensitivity.values()) {
