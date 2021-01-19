@@ -37,15 +37,14 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class ExecutionNodeAccessHierarchy {
-    private volatile RelatedLocation root;
+    private volatile RelatedLocation<RelatedNode> root;
     private final CaseSensitivity caseSensitivity;
     private final Stat stat;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
-        this.root = new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(), caseSensitivity);
+        this.root = new RelatedLocation<>(EmptyChildMap.getInstance(), ImmutableList.of(), caseSensitivity);
         this.caseSensitivity = caseSensitivity;
         this.stat = stat;
     }
@@ -57,38 +56,42 @@ public class ExecutionNodeAccessHierarchy {
     public ImmutableSet<Node> getNodesAccessing(String location, @Nullable Spec<FileTreeElement> filter) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
-        NodeVisitor nodeVisitor = filter == null
-            ? new NodeVisitor() {
+        NodeVisitor<RelatedNode> nodeVisitor = filter == null
+            ? new NodeVisitor<RelatedNode>() {
             @Override
-            public void visitExact(Node node) {
-                builder.add(node);
+            public void visitExact(RelatedNode node) {
+                builder.add(node.getNode());
             }
 
             @Override
-            public void visitAncestor(Node node) {
-                builder.add(node);
+            public void visitAncestor(RelatedNode node, VfsRelativePath pathToAccessedLocation) {
+                if (node.relatedToLocation(pathToAccessedLocation)) {
+                    builder.add(node.getNode());
+                }
             }
 
             @Override
-            public void visitChildren(Iterable<Node> nodes, Supplier<String> relativePathSupplier) {
-                builder.addAll(nodes);
+            public void visitChildren(Iterable<RelatedNode> nodes, Supplier<String> relativePathSupplier) {
+                nodes.forEach(node -> builder.add(node.getNode()));
             }
-        } : new NodeVisitor() {
+        } : new NodeVisitor<RelatedNode>() {
             @Override
-            public void visitExact(Node node) {
-                builder.add(node);
-            }
-
-            @Override
-            public void visitAncestor(Node node) {
-                builder.add(node);
+            public void visitExact(RelatedNode node) {
+                builder.add(node.getNode());
             }
 
             @Override
-            public void visitChildren(Iterable<Node> nodes, Supplier<String> relativePathSupplier) {
+            public void visitAncestor(RelatedNode node, VfsRelativePath pathToAccessedLocation) {
+                if (node.relatedToLocation(pathToAccessedLocation)) {
+                    builder.add(node.getNode());
+                }
+            }
+
+            @Override
+            public void visitChildren(Iterable<RelatedNode> nodes, Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
                 if (filter.isSatisfiedBy(new LocationFileTreeElement(new File(location + "/" + relativePathFromLocation).getAbsolutePath(), relativePathFromLocation, stat))) {
-                    builder.addAll(nodes);
+                    nodes.forEach(node -> builder.add(node.getNode()));
                 }
             }
         };
@@ -98,12 +101,6 @@ public class ExecutionNodeAccessHierarchy {
             root.visitNodes(relativePath, nodeVisitor);
         }
         return builder.build();
-    }
-
-    private interface NodeVisitor {
-        void visitExact(Node node);
-        void visitAncestor(Node node);
-        void visitChildren(Iterable<Node> nodes, Supplier<String> relativePathSupplier);
     }
 
     public synchronized void recordNodeAccessingLocations(Node node, Iterable<String> accessedLocations) {
@@ -119,41 +116,43 @@ public class ExecutionNodeAccessHierarchy {
     }
 
     public synchronized void clear() {
-        root = new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(), caseSensitivity);
+        root = new RelatedLocation<>(EmptyChildMap.getInstance(), ImmutableList.of(), caseSensitivity);
     }
 
-    private static final class RelatedLocation {
-        private final ImmutableList<RelatedNode> relatedNodes;
-        private final ChildMap<RelatedLocation> children;
+    private interface NodeVisitor<T> {
+        void visitExact(T node);
+        void visitAncestor(T node, VfsRelativePath pathToAccessedLocation);
+        void visitChildren(Iterable<T> nodes, Supplier<String> relativePathSupplier);
+    }
+
+    private static final class RelatedLocation<T> {
+        private final ImmutableList<T> relatedNodes;
+        private final ChildMap<RelatedLocation<T>> children;
         private final CaseSensitivity caseSensitivity;
 
-        private RelatedLocation(ChildMap<RelatedLocation> children, ImmutableList<RelatedNode> relatedNodes, CaseSensitivity caseSensitivity) {
+        private RelatedLocation(ChildMap<RelatedLocation<T>> children, ImmutableList<T> relatedNodes, CaseSensitivity caseSensitivity) {
             this.children = children;
             this.relatedNodes = relatedNodes;
             this.caseSensitivity = caseSensitivity;
         }
 
-        public ImmutableList<RelatedNode> getNodes() {
+        public ImmutableList<T> getNodes() {
             return relatedNodes;
         }
 
-        public void visitNodes(VfsRelativePath relatedToLocation, NodeVisitor visitor) {
-            relatedNodes.forEach(relatedNode -> {
-                if (relatedNode.relatedToLocation(relatedToLocation)) {
-                    visitor.visitAncestor(relatedNode.getNode());
-                }
-            });
-            children.withNode(relatedToLocation, caseSensitivity, new ChildMap.NodeHandler<RelatedLocation, String>() {
+        public void visitNodes(VfsRelativePath relatedToLocation, NodeVisitor<T> visitor) {
+            relatedNodes.forEach(node -> visitor.visitAncestor(node, relatedToLocation));
+            children.withNode(relatedToLocation, caseSensitivity, new ChildMap.NodeHandler<RelatedLocation<T>, String>() {
                 @Override
-                public String handleAsDescendantOfChild(VfsRelativePath pathInChild, RelatedLocation child) {
+                public String handleAsDescendantOfChild(VfsRelativePath pathInChild, RelatedLocation<T> child) {
                     child.visitNodes(pathInChild, visitor);
                     return "";
                 }
 
                 @Override
-                public String handleAsAncestorOfChild(String childPathFromAncestor, RelatedLocation child) {
+                public String handleAsAncestorOfChild(String childPathFromAncestor, RelatedLocation<T> child) {
                     visitor.visitChildren(
-                        child.getNodes().stream().map(RelatedNode::getNode).collect(Collectors.toList()),
+                        child.getNodes(),
                         () -> childPathFromAncestor.substring(relatedToLocation.length() + 1));
                     child.visitAllChildren((nodes, relativePath) ->
                         visitor.visitChildren(nodes, () -> childPathFromAncestor.substring(relatedToLocation.length() + 1) + "/" + relativePath.get()));
@@ -161,7 +160,7 @@ public class ExecutionNodeAccessHierarchy {
                 }
 
                 @Override
-                public String handleExactMatchWithChild(RelatedLocation child) {
+                public String handleExactMatchWithChild(RelatedLocation<T> child) {
                     child.visitNodes(visitor);
                     return "";
                 }
@@ -173,63 +172,63 @@ public class ExecutionNodeAccessHierarchy {
             });
         }
 
-        public void visitNodes(NodeVisitor nodeVisitor) {
-            getNodes().forEach(relatedNode -> nodeVisitor.visitExact(relatedNode.getNode()));
+        public void visitNodes(NodeVisitor<T> nodeVisitor) {
+            getNodes().forEach(nodeVisitor::visitExact);
             visitAllChildren(nodeVisitor::visitChildren);
         }
 
-        public void visitAllChildren(BiConsumer<Iterable<Node>, Supplier<String>> childConsumer) {
+        public void visitAllChildren(BiConsumer<Iterable<T>, Supplier<String>> childConsumer) {
             children.visitChildren((childPath, child) -> {
                 childConsumer.accept(
-                    child.getNodes().stream().map(RelatedNode::getNode).collect(Collectors.toList()),
+                    child.getNodes(),
                     () -> childPath
                 );
                 child.visitAllChildren((grandChildren, relativePath) -> childConsumer.accept(grandChildren, () -> childPath + "/" + relativePath));
             });
         }
 
-        public RelatedLocation recordRelatedToNode(VfsRelativePath locationRelatedToNode, RelatedNode node) {
+        public RelatedLocation<T> recordRelatedToNode(VfsRelativePath locationRelatedToNode, T node) {
             if (locationRelatedToNode.length() == 0) {
-                return new RelatedLocation(
+                return new RelatedLocation<>(
                     children,
-                    ImmutableList.<RelatedNode>builderWithExpectedSize(relatedNodes.size() + 1)
+                    ImmutableList.<T>builderWithExpectedSize(relatedNodes.size() + 1)
                         .addAll(relatedNodes)
                         .add(node)
                         .build(),
                     caseSensitivity
                 );
             }
-            ChildMap<RelatedLocation> newChildren = children.store(locationRelatedToNode, caseSensitivity, new ChildMap.StoreHandler<RelatedLocation>() {
+            ChildMap<RelatedLocation<T>> newChildren = children.store(locationRelatedToNode, caseSensitivity, new ChildMap.StoreHandler<RelatedLocation<T>>() {
                 @Override
-                public RelatedLocation handleAsDescendantOfChild(VfsRelativePath pathInChild, RelatedLocation child) {
+                public RelatedLocation<T> handleAsDescendantOfChild(VfsRelativePath pathInChild, RelatedLocation<T> child) {
                     return child.recordRelatedToNode(pathInChild, node);
                 }
 
                 @Override
-                public RelatedLocation handleAsAncestorOfChild(String childPath, RelatedLocation child) {
-                    ChildMap<RelatedLocation> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(locationRelatedToNode.length() + 1).getAsString(), child)));
-                    return new RelatedLocation(singletonChild, ImmutableList.of(node), caseSensitivity);
+                public RelatedLocation<T> handleAsAncestorOfChild(String childPath, RelatedLocation<T> child) {
+                    ChildMap<RelatedLocation<T>> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(locationRelatedToNode.length() + 1).getAsString(), child)));
+                    return new RelatedLocation<>(singletonChild, ImmutableList.of(node), caseSensitivity);
                 }
 
                 @Override
-                public RelatedLocation mergeWithExisting(RelatedLocation child) {
-                    return new RelatedLocation(child.getChildren(), ImmutableList.<RelatedNode>builderWithExpectedSize(child.getNodes().size() + 1).addAll(child.getNodes()).add(node).build(), caseSensitivity);
+                public RelatedLocation<T> mergeWithExisting(RelatedLocation<T> child) {
+                    return new RelatedLocation<>(child.getChildren(), ImmutableList.<T>builderWithExpectedSize(child.getNodes().size() + 1).addAll(child.getNodes()).add(node).build(), caseSensitivity);
                 }
 
                 @Override
-                public RelatedLocation createChild() {
-                    return new RelatedLocation(EmptyChildMap.getInstance(), ImmutableList.of(node), caseSensitivity);
+                public RelatedLocation<T> createChild() {
+                    return new RelatedLocation<>(EmptyChildMap.getInstance(), ImmutableList.of(node), caseSensitivity);
                 }
 
                 @Override
-                public RelatedLocation createNodeFromChildren(ChildMap<RelatedLocation> children) {
-                    return new RelatedLocation(children, ImmutableList.of(), caseSensitivity);
+                public RelatedLocation<T> createNodeFromChildren(ChildMap<RelatedLocation<T>> children) {
+                    return new RelatedLocation<>(children, ImmutableList.of(), caseSensitivity);
                 }
             });
-            return new RelatedLocation(newChildren, relatedNodes, caseSensitivity);
+            return new RelatedLocation<>(newChildren, relatedNodes, caseSensitivity);
         }
 
-        public ChildMap<RelatedLocation> getChildren() {
+        public ChildMap<RelatedLocation<T>> getChildren() {
             return children;
         }
     }
