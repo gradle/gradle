@@ -1,16 +1,10 @@
 package org.gradle.kotlin.dsl.codegen
 
-import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
-
-import java.net.HttpURLConnection
-import java.net.URL
 
 
 class UserGuideLinkTest {
@@ -34,29 +28,6 @@ class UserGuideLinkTest {
                 UserGuideLink.forPlugin(it),
                 nullValue()
             )
-        }
-    }
-}
-
-
-@RunWith(Parameterized::class)
-class UserGuideLinkIntegrationTest(
-    private val pluginId: String
-) {
-
-    companion object {
-        @Parameterized.Parameters(name = "{0}")
-        @JvmStatic
-        fun testCases() = linkedPlugins
-    }
-
-    @Test
-    fun `linked resource is available`() {
-        val link = UserGuideLink.forPlugin(pluginId)!!
-        val url = URL(link.replace("/current/", "/nightly/"))
-        (url.openConnection() as HttpURLConnection).run {
-            requestMethod = "HEAD"
-            assertThat(url.toString(), responseCode, equalTo(200))
         }
     }
 }
