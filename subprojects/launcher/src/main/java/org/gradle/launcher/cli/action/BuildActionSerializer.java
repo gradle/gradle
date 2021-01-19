@@ -33,7 +33,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.WatchMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -195,7 +195,7 @@ public class BuildActionSerializer {
             startParameter.setRefreshDependencies(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
-            startParameter.setWatchFileSystemMode(BuildLifecycleAwareVirtualFileSystem.WatchMode.valueOf(decoder.readString()));
+            startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
             startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(decoder.readBoolean());

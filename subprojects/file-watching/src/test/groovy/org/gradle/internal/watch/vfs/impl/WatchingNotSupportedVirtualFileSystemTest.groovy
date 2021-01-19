@@ -21,9 +21,9 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
+import org.gradle.internal.watch.vfs.VfsLogging
+import org.gradle.internal.watch.vfs.WatchLogging
+import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -50,6 +50,6 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
         rootReference.getRoot() == emptySnapshotHierarchy
 
         where:
-        watchMode << BuildLifecycleAwareVirtualFileSystem.WatchMode.values().toList()
+        watchMode << WatchMode.values().toList()
     }
 }

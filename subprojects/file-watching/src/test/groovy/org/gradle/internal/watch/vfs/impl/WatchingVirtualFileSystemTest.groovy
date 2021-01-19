@@ -24,9 +24,9 @@ import org.gradle.internal.vfs.impl.VfsRootReference
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchMode
+import org.gradle.internal.watch.vfs.VfsLogging
+import org.gradle.internal.watch.vfs.WatchLogging
+import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
 
 class WatchingVirtualFileSystemTest extends Specification {

@@ -35,6 +35,9 @@ import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperati
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
+import org.gradle.internal.watch.vfs.VfsLogging;
+import org.gradle.internal.watch.vfs.WatchLogging;
+import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

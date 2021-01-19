@@ -27,9 +27,9 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchMode
+import org.gradle.internal.watch.vfs.VfsLogging
+import org.gradle.internal.watch.vfs.WatchLogging
+import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -32,7 +32,7 @@ import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.WatchMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -310,8 +310,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
             startParameter.setWatchFileSystemMode(value
-                ? BuildLifecycleAwareVirtualFileSystem.WatchMode.ENABLED
-                : BuildLifecycleAwareVirtualFileSystem.WatchMode.DISABLED
+                ? WatchMode.ENABLED
+                : WatchMode.DISABLED
             );
         }
     }

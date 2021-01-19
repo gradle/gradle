@@ -30,8 +30,9 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging;
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging;
+import org.gradle.internal.watch.vfs.VfsLogging;
+import org.gradle.internal.watch.vfs.WatchLogging;
+import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector = services.get(DirectorySnapshotterStatistics.Collector.class);
         BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
-        BuildLifecycleAwareVirtualFileSystem.WatchMode watchFileSystemMode = startParameter.getWatchFileSystemMode();
+        WatchMode watchFileSystemMode = startParameter.getWatchFileSystemMode();
         VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
             ? VfsLogging.VERBOSE
             : VfsLogging.NORMAL;
