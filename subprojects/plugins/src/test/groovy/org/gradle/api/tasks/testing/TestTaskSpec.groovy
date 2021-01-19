@@ -40,7 +40,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task = TestUtil.create(temporaryFolder).task(Test)
         task.testExecuter = testExecuter
         task.testReporter = Mock(TestReporter)
-        task.binResultsDir = task.project.file('build/test-results')
+        task.binaryResultsDirectory  = task.project.file('build/test-results')
         task.reports.junitXml.destination = task.project.file('build/test-results')
         task.testClassesDirs = task.project.layout.files()
         completion = task.project.services.get(WorkerLeaseRegistry).getWorkerLease().start()

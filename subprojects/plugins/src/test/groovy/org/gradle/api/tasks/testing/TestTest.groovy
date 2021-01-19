@@ -342,7 +342,7 @@ class TestTest extends AbstractConventionTaskTest {
 
         test.setTestClassesDirs(TestFiles.fixed(classesDir))
         test.getReports().getJunitXml().setDestination(resultsDir)
-        test.setBinResultsDir(binResultsDir)
+        test.binaryResultsDirectory = binResultsDir
         test.getReports().getHtml().setDestination(reportDir)
         test.setClasspath(classpathMock)
     }

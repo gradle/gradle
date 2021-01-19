@@ -203,27 +203,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Returns the root folder for the test results in internal binary format.
-     *
-     * @return the test result directory, containing the test results in binary format.
-     */
-    @ReplacedBy("binaryResultsDirectory")
-    @Deprecated
-    public File getBinResultsDir() {
-        return binaryResultsDirectory.getAsFile().getOrNull();
-    }
-
-    /**
-     * Sets the root folder for the test results in internal binary format.
-     *
-     * @param binResultsDir The root folder
-     */
-    @Deprecated
-    public void setBinResultsDir(File binResultsDir) {
-        this.binaryResultsDirectory.set(binResultsDir);
-    }
-
-    /**
      * Returns the root directory property for the test results in internal binary format.
      *
      * @since 4.4
@@ -435,7 +414,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecutionSpec executionSpec = createTestExecutionSpec();
 
-        final File binaryResultsDir = getBinResultsDir();
+        final File binaryResultsDir = getBinaryResultsDirectory().getAsFile().getOrNull();
         FileSystemOperations fs = getFileSystemOperations();
         fs.delete(new Action<DeleteSpec>() {
             @Override

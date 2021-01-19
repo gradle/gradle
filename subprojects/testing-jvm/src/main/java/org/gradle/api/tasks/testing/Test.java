@@ -650,7 +650,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private Set<String> getPreviousFailedTestClasses() {
-        TestResultSerializer serializer = new TestResultSerializer(getBinResultsDir());
+        TestResultSerializer serializer = new TestResultSerializer(getBinaryResultsDirectory().getAsFile().getOrNull());
         if (serializer.isHasResults()) {
             final Set<String> previousFailedTestClasses = new HashSet<String>();
             serializer.read(new Action<TestClassResult>() {
