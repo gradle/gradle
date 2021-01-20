@@ -126,7 +126,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         where:
         plugin         | configuration                  | alternatives
 
-        'java'         | 'compileOnly'                  | "apiElements"
+        'java'         | 'compileOnly'                  | FORBIDDEN
         'java'         | 'runtimeOnly'                  | FORBIDDEN
         'java'         | 'implementation'               | FORBIDDEN
         'java'         | 'runtimeElements'              | VALID
@@ -137,7 +137,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
 
-        'java-library' | 'compileOnly'                  | "apiElements"
+        'java-library' | 'compileOnly'                  | FORBIDDEN
         'java-library' | 'runtimeOnly'                  | FORBIDDEN
         'java-library' | 'implementation'               | FORBIDDEN
         'java-library' | 'runtimeElements'              | VALID
@@ -180,7 +180,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         where:
         plugin         | configuration                  | alternatives
 
-        'java'         | 'compileOnly'                  | "compileClasspath"
+        'java'         | 'compileOnly'                  | FORBIDDEN
         'java'         | 'runtimeOnly'                  | FORBIDDEN
         'java'         | 'implementation'               | FORBIDDEN
         'java'         | 'runtimeElements'              | FORBIDDEN
@@ -191,7 +191,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
 
-        'java-library' | 'compileOnly'                  | "compileClasspath"
+        'java-library' | 'compileOnly'                  | FORBIDDEN
         'java-library' | 'runtimeOnly'                  | FORBIDDEN
         'java-library' | 'implementation'               | FORBIDDEN
         'java-library' | 'runtimeElements'              | FORBIDDEN

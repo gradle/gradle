@@ -226,8 +226,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
         String annotationProcessorConfigurationName = sourceSet.getAnnotationProcessorConfigurationName();
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
-        String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
-        String runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
         String sourceSetName = sourceSet.toString();
 
         Configuration implementationConfiguration = configurations.maybeCreate(implementationConfigurationName);
@@ -238,6 +236,8 @@ public class JavaBasePlugin implements Plugin<Project> {
 
         DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
+        compileOnlyConfiguration.setCanBeConsumed(false);
+        compileOnlyConfiguration.setCanBeResolved(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
         ConfigurationInternal compileClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(compileClasspathConfigurationName);
@@ -273,9 +273,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
-
-        compileOnlyConfiguration.deprecateForConsumption(apiElementsConfigurationName);
-        compileOnlyConfiguration.deprecateForResolution(compileClasspathConfigurationName);
 
         compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName);
         runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
