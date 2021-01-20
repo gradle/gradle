@@ -74,6 +74,14 @@ You should migrate to the `maven-publish` or `ivy-publish` plugin instead.
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for publishing on Maven repositories.
 Please refer to the <<publishing_ivy.adoc#publishing_ivy, documentation of the Ivy Publish plugin>> for publishing on Ivy repositories.
 
+==== Changes in dependency version sorting
+
+In the context of dependency version sorting, a `-SNAPSHOT` version is now considered to be right before a final release but after any `-RC` version.
+More special version suffixes are also taken into account.
+This brings the Gradle algorithm closer to the Maven one for well-known version suffixes.
+
+Have a look at <<single_versions.adoc#single-version-declarations,the documentation>> for all the rules Gradle applies.
+
 ==== Removal of Play Framework plugins
 
 The deprecated Play plugins have been removed.
