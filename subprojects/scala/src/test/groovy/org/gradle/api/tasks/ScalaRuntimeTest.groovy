@@ -84,7 +84,8 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message == "Cannot infer Scala class path because no repository is declared in $project"
+        e.message == "Could not resolve all files for configuration ':detachedConfiguration1'."
+        e.cause.message.startsWith("Cannot resolve external dependency org.scala-lang:scala-compiler:2.10.1 because no repositories are defined.")
     }
 
     def "inference fails if 'scalaTools' configuration is empty and no Scala library Jar is found on class path"() {

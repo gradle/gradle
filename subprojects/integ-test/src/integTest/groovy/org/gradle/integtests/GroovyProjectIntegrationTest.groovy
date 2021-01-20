@@ -35,4 +35,34 @@ class GroovyProjectIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/libs/javaOnly.jar").exists()
     }
+
+    def "supports central repository declaration"() {
+        given:
+        buildFile << """
+plugins {
+    id 'groovy'
+}
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:2.5.13'
+}
+"""
+        settingsFile << """
+rootProject.name = 'groovyCompilation'
+dependencyResolutionManagement {
+    repositories {
+        ${jcenterRepository()}
+    }
+}
+"""
+        and:
+        file('src/main/groovy/Test.groovy') << """
+class Test { }
+"""
+        when:
+        succeeds 'compileGroovy'
+
+        then:
+        executedAndNotSkipped(':compileGroovy')
+    }
 }
