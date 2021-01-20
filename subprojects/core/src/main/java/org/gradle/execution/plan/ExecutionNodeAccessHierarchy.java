@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
-import org.gradle.execution.plan.ValuedPathHierarchy.ValueVisitor;
+import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
@@ -36,11 +36,11 @@ import java.nio.file.Files;
 import java.util.function.Supplier;
 
 public class ExecutionNodeAccessHierarchy {
-    private volatile ValuedPathHierarchy<NodeAccess> root;
+    private volatile ValuedVfsHierarchy<NodeAccess> root;
     private final Stat stat;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
-        this.root = new ValuedPathHierarchy<>(ImmutableList.of(), EmptyChildMap.getInstance(), caseSensitivity);
+        this.root = new ValuedVfsHierarchy<>(ImmutableList.of(), EmptyChildMap.getInstance(), caseSensitivity);
         this.stat = stat;
     }
 
