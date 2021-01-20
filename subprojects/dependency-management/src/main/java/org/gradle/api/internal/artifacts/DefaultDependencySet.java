@@ -72,7 +72,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
         List<String> alternatives = ((DeprecatableConfiguration) clientConfiguration).getDeclarationAlternatives();
         if (alternatives != null) {
             DeprecationLogger.deprecateConfiguration(clientConfiguration.getName()).forDependencyDeclaration().replaceWith(alternatives)
-                .willBecomeAnErrorInGradle7()
+                .willBecomeAnErrorInGradle8()
                 .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
                 .nagUser();
         }
