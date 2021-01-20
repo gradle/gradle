@@ -98,3 +98,7 @@ fun prepareReportForCIPublishing(report: File) {
         }
     }
 }
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
