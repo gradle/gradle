@@ -50,17 +50,12 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public boolean isWatchingFileSystem() {
-        return false;
-    }
-
-    @Override
     protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
         return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     @Override
-    public void afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
+    public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported on this operating system.");
         }
@@ -77,6 +72,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
                     .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
+        return false;
     }
 
     @Override

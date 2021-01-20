@@ -25,10 +25,12 @@ import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
+import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
@@ -39,9 +41,14 @@ import org.slf4j.LoggerFactory;
 public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemWatchingBuildActionRunner.class);
 
+    private final BuildOperationProgressEventEmitter eventEmitter;
     private final BuildActionRunner delegate;
 
-    public FileSystemWatchingBuildActionRunner(BuildActionRunner delegate) {
+    public FileSystemWatchingBuildActionRunner(
+        BuildOperationProgressEventEmitter eventEmitter,
+        BuildActionRunner delegate
+    ) {
+        this.eventEmitter = eventEmitter;
         this.delegate = delegate;
     }
 
@@ -72,7 +79,16 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         if (verboseVfsLogging == VfsLogging.VERBOSE) {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
         }
-        virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+
+        boolean actuallyWatching = virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+        //noinspection Convert2Lambda
+        eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
+            @Override
+            public boolean isEnabled() {
+                return actuallyWatching;
+            }
+        });
+
         try {
             return delegate.run(action, buildController);
         } finally {

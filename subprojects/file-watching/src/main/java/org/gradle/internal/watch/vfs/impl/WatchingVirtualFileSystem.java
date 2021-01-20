@@ -75,11 +75,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
-    public boolean isWatchingFileSystem() {
-        return watchRegistry != null;
-    }
-
-    @Override
     protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
         if (watchRegistry == null) {
             return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
@@ -93,7 +88,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
-    public void afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
+    public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -158,6 +153,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
+        return watchRegistry != null;
     }
 
     @Override

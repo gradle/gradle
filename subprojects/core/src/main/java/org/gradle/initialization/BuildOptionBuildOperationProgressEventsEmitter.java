@@ -19,23 +19,16 @@ package org.gradle.initialization;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails;
-import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 
 import javax.inject.Inject;
 
 public class BuildOptionBuildOperationProgressEventsEmitter {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
-    private final BuildLifecycleAwareVirtualFileSystem buildLifecycleAwareVirtualFileSystem;
 
     @Inject
-    public BuildOptionBuildOperationProgressEventsEmitter(
-        BuildOperationProgressEventEmitter eventEmitter,
-        BuildLifecycleAwareVirtualFileSystem buildLifecycleAwareVirtualFileSystem
-    ) {
+    public BuildOptionBuildOperationProgressEventsEmitter(BuildOperationProgressEventEmitter eventEmitter) {
         this.eventEmitter = eventEmitter;
-        this.buildLifecycleAwareVirtualFileSystem = buildLifecycleAwareVirtualFileSystem;
     }
 
     @SuppressWarnings({"Anonymous2MethodRef", "Convert2Lambda"})
@@ -44,12 +37,6 @@ public class BuildOptionBuildOperationProgressEventsEmitter {
             @Override
             public boolean isEnabled() {
                 return startParameterInternal.isConfigurationCache();
-            }
-        });
-        eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
-            @Override
-            public boolean isEnabled() {
-                return buildLifecycleAwareVirtualFileSystem.isWatchingFileSystem();
             }
         });
     }
