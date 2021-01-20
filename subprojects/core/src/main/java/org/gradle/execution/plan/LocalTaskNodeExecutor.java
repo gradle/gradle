@@ -40,12 +40,12 @@ import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
-    private final ExecutionNodeAccessHierarchy outputsHierarchy;
-    private final ExecutionNodeAccessHierarchy inputsHierarchy;
+    private final ExecutionNodeAccessHierarchy outputHierarchy;
+    private final ExecutionNodeAccessHierarchy inputHierarchy;
 
-    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy outputsHierarchy, ExecutionNodeAccessHierarchy inputsHierarchy) {
-        this.outputsHierarchy = outputsHierarchy;
-        this.inputsHierarchy = inputsHierarchy;
+    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy outputHierarchy, ExecutionNodeAccessHierarchy inputHierarchy) {
+        this.outputHierarchy = outputHierarchy;
+        this.inputHierarchy = inputHierarchy;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
 
     private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
-            inputsHierarchy.getNodesAccessing(outputPath).stream()
+            inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
                 .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
         }
@@ -108,16 +108,16 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                     taskInputs.add(file.getAbsolutePath());
                 }
             }));
-        inputsHierarchy.recordNodeAccessingLocations(node, taskInputs);
+        inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
         for (String locationConsumedByThisTask : taskInputs) {
-            outputsHierarchy.getNodesAccessing(locationConsumedByThisTask).stream()
+            outputHierarchy.getNodesAccessing(locationConsumedByThisTask).stream()
                 .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }
         for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
             Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
-            inputsHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
-            outputsHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec).stream()
+            inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
+            outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec).stream()
                 .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }

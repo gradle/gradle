@@ -20,19 +20,19 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 
 public class ExecutionNodeAccessHierarchies {
-    private final ExecutionNodeAccessHierarchy outputsHierarchy;
-    private final ExecutionNodeAccessHierarchy inputsHierarchy;
+    private final ExecutionNodeAccessHierarchy outputHierarchy;
+    private final ExecutionNodeAccessHierarchy inputHierarchy;
 
     public ExecutionNodeAccessHierarchies(CaseSensitivity caseSensitivity, Stat stat) {
-        outputsHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
-        inputsHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
+        outputHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
+        inputHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
     }
 
-    public ExecutionNodeAccessHierarchy getOutputsHierarchy() {
-        return outputsHierarchy;
+    public ExecutionNodeAccessHierarchy getOutputHierarchy() {
+        return outputHierarchy;
     }
 
-    public ExecutionNodeAccessHierarchy getInputsHierarchy() {
-        return inputsHierarchy;
+    public ExecutionNodeAccessHierarchy getInputHierarchy() {
+        return inputHierarchy;
     }
 }
