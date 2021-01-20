@@ -143,6 +143,10 @@ If this is causing issues in cases you manually configure the module path, or us
 
 The `ValidateTaskProperties` task has been removed and replaced by the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html task.
 
+==== Removal of `binResultsDir` property from `AbstractTestTask`
+
+The `getBinResultsDir()` and The `setBinResultsDir(File)` have been removed from `AbstractTestTask`. Clients should replace usages with `binaryResultsDirectory` property.
+
 === Deprecations
 
 [[missing_dependencies]]
