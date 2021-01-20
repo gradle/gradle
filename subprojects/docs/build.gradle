@@ -510,7 +510,6 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-cross-compilation_*.sample' // fails to find javadoc
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample' // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
         excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample' // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
-        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-multi-project-build_*.sample' // ratpack plugin is still using the deprecated API and  ArchiveTaskCompatClassVisitor does not cover dynamic Groovy objects
     }
 }
 
