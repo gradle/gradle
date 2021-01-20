@@ -284,7 +284,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void expectMissingDependencyDeprecation(String producer, String consumer) {
         executer.expectDocumentedDeprecationWarning(
-            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '${producer}' as an input). " +
+            "Task '${consumer}' uses the output of task '${producer}', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '${producer}' as an input). " +
                 "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "Execution optimizations are disabled due to the failed validation. " +

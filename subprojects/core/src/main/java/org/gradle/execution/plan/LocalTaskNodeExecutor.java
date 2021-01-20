@@ -164,7 +164,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         TypeValidationContext.Severity severity = TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
             severity,
-            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '%s' as an input). This can lead to incorrect results being produced, depending on what order the tasks are executed", consumer, producer, producer)
+            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). This can lead to incorrect results being produced, depending on what order the tasks are executed", consumer, producer, producer)
         );
     }
 
