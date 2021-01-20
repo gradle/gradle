@@ -22,7 +22,6 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 
@@ -35,19 +34,6 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
         super(type, instantiator, namer, callbackDecorator);
         namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
-    }
-
-    /**
-     * This internal constructor is used by the 'idea-ext' plugin which we use in our build.
-     */
-    @Deprecated
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, Named.Namer.forType(type), CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
-            .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
-            .willBeRemovedInGradle7()
-            .withUserManual("custom_gradle_types", "extensiblepolymorphicdomainobjectcontainer")
-            .nagUser();
     }
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
