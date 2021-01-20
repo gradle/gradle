@@ -936,7 +936,7 @@ include::sample[dir="snippets/kotlinDsl/interoperability-groovy-builder/kotlin",
 <4> Configure the `blockName` property, maps to a `Closure` taking method invocation
 <5> Invoke `another` method taking named arguments, maps to a Groovy named arguments `Map<String, ?>` taking method invocation
 
-The link:{kotlin-dsl-samples}maven-plugin[maven-plugin] sample demonstrates the use of the `withGroovyBuilder()` utility extensions for configuring the `uploadArchives` task to <<maven_plugin#sec:deploying_to_a_maven_repository, deploy to a Maven repository>> with a custom POM using Gradle's core <<maven_plugin#, Maven Plugin>>.
+The <<maven_plugin#sec:deploying_to_a_maven_repository, deploying to a Maven repository>> using Gradle's core <<maven_plugin#, Maven Plugin>> demonstrates the use of the `withGroovyBuilder()` utility extensions for configuring the `uploadArchives` task with a custom POM.
 Note that the recommended <<publishing_maven#, Maven Publish Plugin>> provides a type-safe and Kotlin-friendly DSL that allows you to easily do <<publishing_maven#sec:modifying_the_generated_pom, the same and more>> without resorting to `withGroovyBuilder()`.
 
 [[using_a_groovy_script]]
