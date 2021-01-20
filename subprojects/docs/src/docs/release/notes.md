@@ -249,6 +249,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileType
         - org.gradle.api.model.ReplacedBy
         - org.gradle.api.Task.getTimeout
+        - org.gradle.process.JavaDebugOptions
+        - org.gradle.process.JavaForkOptions.getDebugOptions()
+        - org.gradle.process.JavaForkOptions.debugOptions(Action)
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -351,6 +354,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - Miscellaneous
         - org.gradle.tooling.events.OperationCompletionListener
         - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
+    - Debugging
+        - org.gradle.tooling.TestLauncher.withTaskAndTestClasses(String, Iterable)
+        - org.gradle.tooling.TestLauncher.withTaskAndTestMethods(String, String, Iterable)
+        - org.gradle.tooling.TestLauncher.debugTestsOn(int)
 - Java Ecosystem
     - Java plugins
         - org.gradle.api.file.SourceDirectorySet.getDestinationDirectory()
