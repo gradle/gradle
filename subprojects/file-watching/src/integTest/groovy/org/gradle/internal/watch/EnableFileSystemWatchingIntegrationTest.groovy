@@ -24,6 +24,17 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
     private static final String ENABLED_MESSAGE = "Watching the file system is enabled"
     private static final String DISABLED_MESSAGE = "Watching the file system is disabled"
 
+    def "is enabled by default"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        when:
+        run("assemble", "--info")
+        then:
+        outputContains(ENABLED_MESSAGE)
+    }
+
     @Unroll
     def "can be enabled via gradle.properties (enabled: #enabled)"() {
         buildFile << """
