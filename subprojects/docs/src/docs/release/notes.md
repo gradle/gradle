@@ -336,6 +336,16 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.jvm.JvmLibrary
         - org.gradle.language.base.artifact.SourcesArtifact
         - org.gradle.language.java.artifact.JavadocArtifact
+- IDE
+    - Eclipse plugin
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublication()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublication(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationSourcePath()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationSourcePath(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationJavadocPath()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationJavadocPath(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getBuildDependencies()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.buildDependencies(Object...)
 - Tooling API
     - Eclipse models
         - org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary
