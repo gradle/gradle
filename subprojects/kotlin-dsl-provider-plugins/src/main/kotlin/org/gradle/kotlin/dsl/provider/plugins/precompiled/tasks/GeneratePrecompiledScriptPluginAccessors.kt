@@ -405,10 +405,8 @@ class SyntheticProjectSchemaBuilder(
         rootProjectClassPath: Collection<File>
     ): Project {
 
-        val project = ProjectBuilder.builder()
-            .withGradleUserHomeDir(gradleUserHomeDir)
-            .withProjectDir(projectDir)
-            .build()
+        val project = ProjectBuilderImpl()
+            .createProject("root", projectDir, gradleUserHomeDir, true)
             .withEmptyGradleProperties()
 
         addScriptClassPathDependencyTo(project, rootProjectClassPath)
