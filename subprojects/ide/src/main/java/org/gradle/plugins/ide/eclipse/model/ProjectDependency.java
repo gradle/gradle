@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -54,7 +53,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      *
      * @since 5.6
      */
-    @Incubating
     public FileReference getPublication() {
         return publication;
     }
@@ -64,7 +62,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      *
      * @since 5.6
      */
-    @Incubating
     public void setPublication(FileReference publication) {
         this.publication = publication;
     }
@@ -75,7 +72,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      * @see #getPublication()
      * @since 5.6
      */
-    @Incubating
     public FileReference getPublicationSourcePath() {
         return publicationSourcePath;
     }
@@ -86,7 +82,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      * @see #getPublication()
      * @since 5.6
      */
-    @Incubating
     public void setPublicationSourcePath(FileReference publicationSourcePath) {
         this.publicationSourcePath = publicationSourcePath;
     }
@@ -97,7 +92,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      * @see #getPublication()
      * @since 5.6
      */
-    @Incubating
     public FileReference getPublicationJavadocPath() {
         return publicationJavadocPath;
     }
@@ -108,7 +102,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      * @see #getPublication()
      * @since 5.6
      */
-    @Incubating
     public void setPublicationJavadocPath(FileReference publicationJavadocPath) {
         this.publicationJavadocPath = publicationJavadocPath;
     }
@@ -122,7 +115,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      *
      * @since 5.6
      */
-    @Incubating
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
     }
@@ -133,7 +125,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
      * @see #getBuildDependencies()
      * @since 5.6
      */
-    @Incubating
     public void buildDependencies(Object... buildDependencies) {
         this.buildDependencies.add(buildDependencies);
     }
