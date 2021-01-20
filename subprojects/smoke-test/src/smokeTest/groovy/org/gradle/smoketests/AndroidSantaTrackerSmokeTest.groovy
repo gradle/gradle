@@ -22,7 +22,6 @@ import org.gradle.profiler.DefaultScenarioContext
 import org.gradle.profiler.Phase
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -108,7 +107,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
     @ToBeFixedForConfigurationCache(iterationMatchers = AGP_7_ITERATION_MATCHER)
-    @Ignore("Lint does not work right now, see https://github.com/gradle/gradle/issues/15489")
     def "can lint Santa-Tracker #flavour (agp=#agpVersion)"() {
 
         given:
@@ -134,6 +132,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        [agpVersion, flavour] << [TESTED_AGP_VERSIONS, ['Java', 'Kotlin']].combinations()
+        [agpVersion, flavour] << [AGP_VERSIONS.getLatestsFromMinorPlusNightly("4.2"), ['Java', 'Kotlin']].combinations()
     }
 }
