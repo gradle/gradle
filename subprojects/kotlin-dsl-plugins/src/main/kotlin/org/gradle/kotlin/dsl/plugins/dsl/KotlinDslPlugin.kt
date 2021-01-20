@@ -39,6 +39,8 @@ import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @see JavaGradlePluginPlugin
  * @see KotlinDslBasePlugin
  * @see PrecompiledScriptPlugins
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html">Kotlin DSL reference</a>
  */
 class KotlinDslPlugin : Plugin<Project> {
 

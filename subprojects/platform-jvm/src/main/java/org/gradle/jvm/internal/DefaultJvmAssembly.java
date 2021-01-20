@@ -17,8 +17,6 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
@@ -29,8 +27,6 @@ public class DefaultJvmAssembly extends AbstractBuildableComponentSpec implement
 
     private LinkedHashSet<File> classDirectories = new LinkedHashSet<File>();
     private LinkedHashSet<File> resourceDirectories = new LinkedHashSet<File>();
-    private JavaToolChain toolChain;
-    private JavaPlatform targetPlatform;
 
     public DefaultJvmAssembly(ComponentSpecIdentifier identifier) {
         super(identifier, JvmAssembly.class);
@@ -50,21 +46,4 @@ public class DefaultJvmAssembly extends AbstractBuildableComponentSpec implement
         return resourceDirectories;
     }
 
-    @Override
-    public JavaToolChain getToolChain() {
-        return toolChain;
-    }
-
-    public void setToolChain(JavaToolChain toolChain) {
-        this.toolChain = toolChain;
-    }
-
-    @Override
-    public JavaPlatform getTargetPlatform() {
-        return targetPlatform;
-    }
-
-    public void setTargetPlatform(JavaPlatform targetPlatform) {
-        this.targetPlatform = targetPlatform;
-    }
 }

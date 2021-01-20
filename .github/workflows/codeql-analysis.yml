@@ -57,14 +57,14 @@ jobs:
 
     - name: Compile with Gradle with Build Scan
       if: ${{ matrix.language == 'java' && github.repository_owner == 'gradle' }}
-      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -S testClasses
+      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses
       env:
         # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
 
     - name: Compile with Gradle without Build Scan
       if: ${{ matrix.language == 'java' && github.repository_owner != 'gradle' }}
-      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -S testClasses
+      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -S testClasses
 
     - name: Cleanup Gradle Daemons
       run: ./gradlew --stop

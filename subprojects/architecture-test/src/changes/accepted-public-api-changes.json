@@ -1463,6 +1463,54 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getPlatform()",
+            "acceptation": "Has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.platform.JavaPlatform",
+            "member": "Class org.gradle.jvm.platform.JavaPlatform",
+            "acceptation": "Has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.platform.JavaPlatform",
+            "member": "Method org.gradle.jvm.platform.JavaPlatform.getTargetCompatibility()",
+            "acceptation": "Has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.platform.JavaPlatform",
+            "member": "Method org.gradle.jvm.platform.JavaPlatform.setTargetCompatibility(org.gradle.api.JavaVersion)",
+            "acceptation": "Has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JavaToolChain",
+            "member": "Class org.gradle.jvm.toolchain.JavaToolChain",
+            "acceptation": "Has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JavaToolChain",
+            "member": "Method org.gradle.jvm.toolchain.JavaToolChain.getVersion()",
+            "acceptation": "Has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

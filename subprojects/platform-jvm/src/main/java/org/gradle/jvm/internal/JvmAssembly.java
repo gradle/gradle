@@ -17,8 +17,6 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.BuildableComponentSpec;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 import java.util.Set;
@@ -44,13 +42,4 @@ public interface JvmAssembly extends BuildableComponentSpec {
      */
     Set<File> getResourceDirectories();
 
-    /**
-     * Returns the {@link org.gradle.jvm.toolchain.JavaToolChain} that will be used to build this assembly.
-     */
-    JavaToolChain getToolChain();
-
-    /**
-     * The target platform for this assembly.
-     */
-    JavaPlatform getTargetPlatform();
 }

@@ -43,6 +43,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  *
  * @see PmdExtension
  * @see Pmd
+ * @see <a href="https://docs.gradle.org/current/userguide/pmd_plugin.html">PMD plugin reference</a>
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 

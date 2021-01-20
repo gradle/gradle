@@ -27,6 +27,8 @@ import java.io.File;
 
 /**
  * <p>A {@link Plugin} which adds some project visualization report tasks to a project.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/project_report_plugin.html">Project Report plugin reference</a>
  */
 public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String TASK_REPORT = "taskReport";

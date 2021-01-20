@@ -43,6 +43,7 @@ import javax.inject.Inject;
  * Installs a {@link org.gradle.api.publish.PublishingExtension} with name {@value org.gradle.api.publish.PublishingExtension#NAME}.
  *
  * @since 1.3
+ * @see <a href="https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview">Publishing reference</a>
  */
 public class PublishingPlugin implements Plugin<Project> {
 

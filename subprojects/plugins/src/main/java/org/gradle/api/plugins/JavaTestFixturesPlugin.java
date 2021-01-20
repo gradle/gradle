@@ -41,6 +41,7 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  * method.
  *
  * @since 5.6
+ * @see <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Java Test Fixtures reference</a>
  */
 public class JavaTestFixturesPlugin implements Plugin<Project> {
 
