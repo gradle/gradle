@@ -263,7 +263,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
                 DefaultComponentMetadataHandler delegate = new DefaultComponentMetadataHandler(
                     instantiator, ruleActionAdapter, moduleIdentifierNotationParser, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, attributesFactory, isolatableFactory, ruleExecutor, platformSupport
                 );
-                dependencyResolutionManagement.applyRules(delegate);
+                dependencyResolutionManagement.applyComponentMetadataRules(delegate);
                 delegate.setVariantDerivationStrategy(getVariantDerivationStrategy());
                 return delegate;
             }

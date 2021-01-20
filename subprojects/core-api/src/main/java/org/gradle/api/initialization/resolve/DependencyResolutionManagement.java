@@ -40,7 +40,7 @@ public interface DependencyResolutionManagement {
     /**
      * Returns the shared repository handler
      */
-    RepositoryHandler getRepositories();
+    RepositoryRegistrar getRepositories();
 
     Property<RepositoriesMode> getRepositoriesMode();
 

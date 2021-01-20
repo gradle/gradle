@@ -745,7 +745,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (owner instanceof ProjectInternal) {
             ProjectInternal project = (ProjectInternal) this.owner;
             return !project.getRepositories().isEmpty() &&
-                !project.getGradle().getSettings().getDependencyResolutionManagement().getRepositories().isEmpty();
+                project.getGradle().getSettings().getDependencyResolutionManagement().containsRepositoryActions();
         }
         return false;
     }

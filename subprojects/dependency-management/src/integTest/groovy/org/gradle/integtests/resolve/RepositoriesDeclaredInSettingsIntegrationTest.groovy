@@ -493,7 +493,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
                 conf 'org:module:1.0'
             }
             repositories.all {
-                throw new RuntimeException("Shouldn't be called because no repositories are defined for this project")
+                println("The repositories are project local: \${this.repositories != gradle.settings.dependencyResolutionManagement.repositories}")
             }
         """
 
@@ -511,6 +511,9 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
                 module('org:module:1.0')
             }
         }
+
+        and:
+        outputContains "The repositories are project local: true"
     }
 
     def "mutation of settings repositories after settings have been evaluated is disallowed"() {
@@ -531,7 +534,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         fails ':mutateSettings'
 
         then:
-        failure.assertHasCause("Mutation of repositories declared in settings is only allowed during settings evaluation")
+        failure.assertHasCause("Mutation of dependency resolution management in settings is only allowed during settings evaluation")
     }
 
     /**
@@ -760,6 +763,25 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 The project declares repositories, effectively ignoring the repositories you have declared in the settings.
 You can figure out how project repositories are declared by configuring your build to fail on project repositories.
 See https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories for details."""))
+    }
+
+    def "a task which displays the repositories should see the repositories declared in settings"() {
+        buildFile << """
+            tasks.register("dumpRepositories") {
+                doLast {
+                    assert !repositories.empty
+                    repositories.each {
+                        println "Repository: \${it.name}"
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'dumpRepositories'
+
+        then:
+        outputContains "Repository: maven"
     }
 
     void withSettingsPlugin() {

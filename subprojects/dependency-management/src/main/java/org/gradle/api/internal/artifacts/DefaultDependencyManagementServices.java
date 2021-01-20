@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -41,6 +42,7 @@ import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.dsl.DefaultInitializingRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler;
@@ -330,8 +332,33 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     featurePreviews);
         }
 
-        RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {
-            return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
+
+        RepositoryHandler createRepositoryHandler(Instantiator instantiator,
+                                                  BaseRepositoryFactory baseRepositoryFactory,
+                                                  CollectionCallbackActionDecorator callbackDecorator,
+                                                  DependencyResolutionManagementInternal drm,
+                                                  DomainObjectContext context) {
+            DefaultRepositoryHandler repositoryHandler = instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
+            return instantiator.newInstance(DefaultInitializingRepositoryHandler.class,
+                repositoryHandler,
+                (Action<RepositoryHandler>) handler -> {
+                    if (context.isScript() || context.isDetachedState()) {
+                        return;
+                    }
+                    DependencyResolutionManagementInternal.RepositoriesModeInternal mode = drm.getConfiguredRepositoriesMode();
+                    if (mode.useProjectRepositories() && handler.isEmpty()) {
+                        drm.applyRepositoryRules(handler);
+                    }
+                },
+                (Action<RepositoryHandler>) handler -> {
+                    if (context.isScript() || context.isDetachedState()) {
+                        return;
+                    }
+                    DependencyResolutionManagementInternal.RepositoriesModeInternal mode = drm.getConfiguredRepositoriesMode();
+                    if (!mode.useProjectRepositories()) {
+                        drm.applyRepositoryRules(handler);
+                    }
+                });
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator,
@@ -546,21 +573,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, DependencyResolutionManagementInternal drm, DomainObjectContext context) {
-            return () -> {
-                List<ResolutionAwareRepository> repositories = collectRepositories(repositoryHandler);
-                if (context.isScript() || context.isDetachedState()) {
-                    return repositories;
-                }
-                DependencyResolutionManagementInternal.RepositoriesModeInternal mode = drm.getConfiguredRepositoriesMode();
-                if (mode.useProjectRepositories()) {
-                    if (repositories.isEmpty()) {
-                        repositories = collectRepositories(drm.getRepositories());
-                    }
-                } else {
-                    repositories = collectRepositories(drm.getRepositories());
-                }
-                return repositories;
-            };
+            return () -> collectRepositories(repositoryHandler);
         }
 
         private static List<ResolutionAwareRepository> collectRepositories(RepositoryHandler repositoryHandler) {
@@ -635,8 +648,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Override
         public ArtifactPublisher createArtifactPublisher() {
             DefaultArtifactPublisher publisher = new DefaultArtifactPublisher(
-                    services.get(LocalConfigurationMetadataBuilder.class),
-                    new DefaultIvyModuleDescriptorWriter(services.get(ComponentSelectorConverter.class))
+                services.get(LocalConfigurationMetadataBuilder.class),
+                new DefaultIvyModuleDescriptorWriter(services.get(ComponentSelectorConverter.class))
             );
             return new IvyContextualArtifactPublisher(services.get(IvyContextManager.class), publisher);
         }

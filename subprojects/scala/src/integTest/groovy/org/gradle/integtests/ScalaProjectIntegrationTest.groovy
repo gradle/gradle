@@ -37,4 +37,31 @@ class ScalaProjectIntegrationTest extends AbstractIntegrationSpec {
         succeeds "build"
         file("build/libs/javaOnly.jar").assertExists()
     }
+
+    def "supports central repository declaration"() {
+        given:
+        buildFile << """
+plugins {
+    id 'scala'
+}
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.11.12'
+}
+"""
+        settingsFile << """
+rootProject.name = 'scalaCompilation'
+dependencyResolutionManagement {
+   ${jcenterRepository()}
+}
+"""
+        and:
+        file('src/main/scala/Test.scala') << """
+class Test { }
+"""
+        when:
+        succeeds 'compileScala'
+
+        then:
+        executedAndNotSkipped(':compileScala')
+    }
 }

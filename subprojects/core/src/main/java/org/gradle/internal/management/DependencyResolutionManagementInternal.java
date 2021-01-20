@@ -16,6 +16,7 @@
 package org.gradle.internal.management;
 
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
@@ -27,11 +28,15 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
 
     void preventFromFurtherMutation();
 
-    void applyRules(ComponentMetadataHandler target);
+    void applyComponentMetadataRules(ComponentMetadataHandler target);
+
+    void applyRepositoryRules(RepositoryHandler target);
 
     RepositoriesModeInternal getConfiguredRepositoriesMode();
 
     RulesModeInternal getConfiguredRulesMode();
+
+    boolean containsRepositoryActions();
 
     enum RepositoriesModeInternal {
         PREFER_PROJECT(true),

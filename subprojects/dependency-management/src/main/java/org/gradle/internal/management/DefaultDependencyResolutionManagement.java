@@ -20,25 +20,21 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
+import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.initialization.resolve.RepositoryRegistrar;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
-import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -47,38 +43,34 @@ import org.gradle.api.provider.Property;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.lazy.Lazy;
 
 import java.util.List;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);
     private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = Lists.newArrayList();
+    private final List<Action<? super RepositoryHandler>> repositoriesActions = Lists.newArrayList();
 
-    private final Lazy<DependencyResolutionServices> dependencyResolutionServices;
     private final UserCodeApplicationContext context;
-    private final ComponentMetadataHandler registar = new ComponentMetadataRulesRegistar();
+    private final ComponentMetadataHandler componentMetadataRulesRegistar = new ComponentMetadataRulesRegistar();
+    private final DefaultRepositoriesRegistrar repositoriesRegistrar = new DefaultRepositoriesRegistrar();
     private final Property<RepositoriesMode> repositoryMode;
     private final Property<RulesMode> rulesMode;
     private boolean mutable = true;
 
-    public DefaultDependencyResolutionManagement(UserCodeApplicationContext context,
-                                                 DependencyManagementServices dependencyManagementServices,
-                                                 FileResolver fileResolver,
-                                                 FileCollectionFactory fileCollectionFactory,
-                                                 DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                 ObjectFactory objects) {
+    public DefaultDependencyResolutionManagement(UserCodeApplicationContext context, ObjectFactory objects) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
-        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
     }
 
     @Override
     public void repositories(Action<? super RepositoryHandler> repositoryConfiguration) {
-        repositoryConfiguration.execute(dependencyResolutionServices.get().getResolveRepositoryHandler());
+        assertMutable();
+        repositoriesActions.add(repositoryConfiguration);
     }
 
     @Override
@@ -89,17 +81,22 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     @Override
     public ComponentMetadataHandler getComponents() {
-        return registar;
+        return componentMetadataRulesRegistar;
     }
 
     @Override
-    public RepositoryHandler getRepositories() {
-        return dependencyResolutionServices.get().getResolveRepositoryHandler();
+    public RepositoryRegistrar getRepositories() {
+        return repositoriesRegistrar;
     }
 
     @Override
     public Property<RepositoriesMode> getRepositoriesMode() {
         return repositoryMode;
+    }
+
+    @Override
+    public boolean containsRepositoryActions() {
+        return !repositoriesActions.isEmpty();
     }
 
     @Override
@@ -133,19 +130,12 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     @Override
     public void preventFromFurtherMutation() {
         this.mutable = false;
-        NamedDomainObjectList<ArtifactRepository> repositoryHandler = getRepositories();
-        repositoryHandler.whenObjectAdded(this::mutationDisallowed);
-        repositoryHandler.whenObjectRemoved(this::mutationDisallowed);
     }
 
     private void assertMutable() {
         if (!mutable) {
             throw new InvalidUserCodeException("Mutation of dependency resolution management in settings is only allowed during settings evaluation");
         }
-    }
-
-    private void mutationDisallowed(ArtifactRepository artifactRepository) {
-        throw new InvalidUserCodeException("Mutation of repositories declared in settings is only allowed during settings evaluation");
     }
 
     private void repoMutationDisallowedOnProject(ArtifactRepository artifactRepository) {
@@ -180,14 +170,17 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
     }
 
-    private static ProjectFinder makeUnknownProjectFinder() {
-        return new UnknownProjectFinder("Project dependencies are not allowed in shared dependency resolution services");
+    @Override
+    public void applyComponentMetadataRules(ComponentMetadataHandler target) {
+        for (Action<? super ComponentMetadataHandler> rule : componentMetadataRulesActions) {
+            rule.execute(target);
+        }
     }
 
     @Override
-    public void applyRules(ComponentMetadataHandler target) {
-        for (Action<? super ComponentMetadataHandler> rule : componentMetadataRulesActions) {
-            rule.execute(target);
+    public void applyRepositoryRules(RepositoryHandler target) {
+        for (Action<? super RepositoryHandler> action : repositoriesActions) {
+            action.execute(target);
         }
     }
 
@@ -249,6 +242,105 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         @Override
         public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
             components(h -> h.withModule(id, rule, configureAction));
+            return this;
+        }
+    }
+
+    private class DefaultRepositoriesRegistrar implements RepositoryRegistrar {
+
+        @Override
+        public RepositoryRegistrar flatDir(Map<String, ?> args) {
+            repositories(h -> h.flatDir(args));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar flatDir(Action<? super FlatDirectoryArtifactRepository> action) {
+            repositories(h -> h.flatDir(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar gradlePluginPortal() {
+            repositories(RepositoryHandler::gradlePluginPortal);
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar gradlePluginPortal(Action<? super ArtifactRepository> action) {
+            repositories(h -> h.gradlePluginPortal(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar jcenter(Action<? super MavenArtifactRepository> action) {
+            repositories(h -> h.jcenter(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar jcenter() {
+            repositories(RepositoryHandler::jcenter);
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar mavenCentral(Map<String, ?> args) {
+            repositories(h -> h.mavenCentral(args));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar mavenCentral() {
+            repositories(RepositoryHandler::mavenCentral);
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar mavenCentral(Action<? super MavenArtifactRepository> action) {
+            repositories(h -> h.mavenCentral(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar mavenLocal() {
+            repositories(RepositoryHandler::mavenLocal);
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar mavenLocal(Action<? super MavenArtifactRepository> action) {
+            repositories(h -> h.mavenLocal(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar google() {
+            repositories(RepositoryHandler::google);
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar google(Action<? super MavenArtifactRepository> action) {
+            repositories(h -> h.google(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar maven(Action<? super MavenArtifactRepository> action) {
+            repositories(h -> h.maven(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar ivy(Action<? super IvyArtifactRepository> action) {
+            repositories(h -> h.ivy(action));
+            return this;
+        }
+
+        @Override
+        public RepositoryRegistrar exclusiveContent(Action<? super ExclusiveContentRepository> action) {
+            repositories(h -> h.exclusiveContent(action));
             return this;
         }
     }
