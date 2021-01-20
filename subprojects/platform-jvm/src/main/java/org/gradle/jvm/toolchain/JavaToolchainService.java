@@ -17,7 +17,6 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 /**
