@@ -143,6 +143,11 @@ If this is causing issues in cases you manually configure the module path, or us
 
 The `ValidateTaskProperties` task has been removed and replaced by the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html task.
 
+
+==== Removal of `UsageContext.getUsage()`
+
+The method was kept only for maintaining backward compatibility with older plugins.
+
 === Deprecations
 
 [[missing_dependencies]]
