@@ -26,6 +26,8 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling and documenting Groovy
  * source files.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/groovy_plugin.html">Groovy plugin reference</a>
  */
 public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";

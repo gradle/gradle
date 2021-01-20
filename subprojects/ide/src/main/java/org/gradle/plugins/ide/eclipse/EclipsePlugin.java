@@ -70,6 +70,8 @@ import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
  */
 public class EclipsePlugin extends IdePlugin {
 

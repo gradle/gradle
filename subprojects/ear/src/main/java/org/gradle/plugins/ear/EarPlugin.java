@@ -43,6 +43,8 @@ import java.util.concurrent.Callable;
  * <p>
  * A {@link Plugin} with tasks which assemble a web application into a EAR file.
  * </p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/ear_plugin.html">EAR plugin reference</a>
  */
 public class EarPlugin implements Plugin<Project> {
 

@@ -24,6 +24,8 @@ import org.gradle.api.file.CopySpec;
 
 /**
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/java_library_distribution_plugin.html">Java Library Distribution plugin reference</a>
  */
 public class JavaLibraryDistributionPlugin implements Plugin<Project> {
     @Override

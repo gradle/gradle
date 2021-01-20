@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.*
  *
  * @see KotlinDslPluginOptions
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+ * @see <a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html">Kotlin DSL reference</a>
  */
 class KotlinDslBasePlugin : Plugin<Project> {
 

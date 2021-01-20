@@ -133,13 +133,7 @@ include::swift_testing.adoc[leveloffset=+2]
 
 include::native_software.adoc[leveloffset=+2]
 
-include::software_model_concepts.adoc[leveloffset=+2]
-
-include::software_model.adoc[leveloffset=+2]
-
 include::rule_source.adoc[leveloffset=+2]
-
-include::software_model_extend.adoc[leveloffset=+2]
 
 [[part:extending_gradle]]
 == Extending Gradle

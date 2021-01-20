@@ -30,9 +30,8 @@ dependencies {
     implementation("gradlebuild:code-quality")
 
     implementation(localGroovy())
-    testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") {
-        exclude(group = "org.codehaus.groovy")
-    }
+    testImplementation("org.spockframework:spock-core")
+    testImplementation("org.spockframework:spock-junit4")
     testImplementation("net.bytebuddy:byte-buddy")
     testImplementation("org.objenesis:objenesis")
 }
@@ -57,6 +56,7 @@ tasks.withType<Test>().configureEach {
         jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
         jvmArgs("--illegal-access=deny")
     }
+    useJUnitPlatform()
 }
 
 

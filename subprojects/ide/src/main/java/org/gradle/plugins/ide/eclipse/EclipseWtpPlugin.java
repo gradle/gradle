@@ -52,6 +52,8 @@ import java.util.concurrent.Callable;
 
 /**
  * A plugin which configures the Eclipse Web Tools Platform.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
  */
 public class EclipseWtpPlugin extends IdePlugin {
 

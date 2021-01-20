@@ -30,6 +30,8 @@ import java.util.concurrent.Callable;
 
 /**
  * The build init plugin.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/build_init_plugin.html">Build Init plugin reference</a>
  */
 public class BuildInitPlugin implements Plugin<Project> {
 

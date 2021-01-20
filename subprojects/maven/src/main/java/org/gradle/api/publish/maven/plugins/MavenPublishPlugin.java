@@ -66,6 +66,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * Adds the ability to publish in the Maven format to Maven repositories.
  *
  * @since 1.4
+ * @see <a href="https://docs.gradle.org/current/userguide/publishing_maven.html">Maven Publishing reference</a>
  */
 public class MavenPublishPlugin implements Plugin<Project> {
 

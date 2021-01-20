@@ -29,6 +29,7 @@ import org.gradle.api.reporting.ReportingExtension;
  * <li>{@link org.gradle.api.reporting.ReportingExtension}</li>
  *
  * </ul>
+ * @see <a href="https://docs.gradle.org/current/userguide/project_report_plugin.html">Project Report plugin reference</a>
  */
 public class ReportingBasePlugin implements Plugin<Project> {
     @Override
