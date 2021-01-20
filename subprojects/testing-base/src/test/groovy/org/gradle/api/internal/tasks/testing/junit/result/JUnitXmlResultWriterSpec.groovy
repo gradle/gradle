@@ -181,6 +181,19 @@ class JUnitXmlResultWriterSpec extends Specification {
 """
     }
 
+    def "can generate report with failed tests with no exception"() {
+        given:
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
+        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40))
+
+        when:
+        def xml = getXml(result)
+        then:
+        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
+            .assertTestCount(1, 0, 1, 0)
+            .assertTestFailed("some failing test")
+    }
+
     @Unroll
     @Issue("gradle/gradle#11445")
     def "writes #writtenName as class display name when #displayName is specified"() {
