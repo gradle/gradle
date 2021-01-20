@@ -162,6 +162,16 @@ The `ImmutableFileCollection` type has been removed.
 Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...- factory method instead.
 A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--.
 
+==== Removal of domain object collection constructors
+
+The following deprecated constructors were removed:
+
+- DefaultDomainObjectSet(Class)
+- DefaultNamedDomainObjectList(Class, Instantiator, Namer)
+- DefaultNamedDomainObjectSet(Class, Instantiator)
+- DefaultPolymorphicDomainObjectContainer(Class, Instantiator)
+- FactoryNamedDomainObjectContainer(Class, Instantiator, NamedDomainObjectFactory)
+
 === Deprecations
 
 [[missing_dependencies]]
