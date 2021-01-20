@@ -44,6 +44,11 @@ public class ExecutionNodeAccessHierarchy {
         this.stat = stat;
     }
 
+    /**
+     * Returns all nodes which access the location.
+     *
+     * That includes node which access ancestors or children of the location.
+     */
     public ImmutableSet<Node> getNodesAccessing(String location) {
         return visitValues(location, new AbstractNodeAccessVisitor() {
             @Override
@@ -53,6 +58,12 @@ public class ExecutionNodeAccessHierarchy {
         });
     }
 
+    /**
+     * Returns all nodes which access the location, taking into account the filter.
+     *
+     * That includes nodes which access ancestors or children of the location.
+     * Nodes accessing children of the location are only included if the children match the filter.
+     */
     public ImmutableSet<Node> getNodesAccessing(String location, Spec<FileTreeElement> filter) {
         return visitValues(location, new AbstractNodeAccessVisitor() {
             @Override
@@ -65,6 +76,34 @@ public class ExecutionNodeAccessHierarchy {
         });
     }
 
+    /**
+     * Records that a node accesses the given locations.
+     */
+    public synchronized void recordNodeAccessingLocations(Node node, Iterable<String> accessedLocations) {
+        for (String location : accessedLocations) {
+            VfsRelativePath relativePath = VfsRelativePath.of(location);
+            root = root.recordValue(relativePath, new DefaultNodeAccess(node));
+        }
+    }
+
+    /**
+     * Records that a node accesses the fileTreeRoot with a filter.
+     *
+     * The node only accesses children of the fileTreeRoot if they match the filter.
+     * This is taken into account when using {@link #getNodesAccessing(String)} and {@link #getNodesAccessing(String, Spec)}.
+     */
+    public synchronized void recordNodeAccessingFileTree(Node node, String fileTreeRoot, Spec<FileTreeElement> filter) {
+        VfsRelativePath relativePath = VfsRelativePath.of(fileTreeRoot);
+        root = root.recordValue(relativePath, new FilteredNodeAccess(node, filter));
+    }
+
+    /**
+     * Removes all recorded nodes.
+     */
+    public synchronized void clear() {
+        root = root.empty();
+    }
+
     private ImmutableSet<Node> visitValues(String location, AbstractNodeAccessVisitor visitor) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         if (relativePath.length() == 0) {
@@ -73,22 +112,6 @@ public class ExecutionNodeAccessHierarchy {
             root.visitValuesRelatedTo(relativePath, visitor);
         }
         return visitor.getResult();
-    }
-
-    public synchronized void recordNodeAccessingLocations(Node node, Iterable<String> accessedLocations) {
-        for (String location : accessedLocations) {
-            VfsRelativePath relativePath = VfsRelativePath.of(location);
-            root = root.recordValue(relativePath, new DefaultNodeAccess(node));
-        }
-    }
-
-    public synchronized void recordNodeAccessingFileTree(Node node, String fileTreeRoot, Spec<FileTreeElement> spec) {
-        VfsRelativePath relativePath = VfsRelativePath.of(fileTreeRoot);
-        root = root.recordValue(relativePath, new FilteredNodeAccess(node, spec));
-    }
-
-    public synchronized void clear() {
-        root = root.empty();
     }
 
     private abstract static class AbstractNodeAccessVisitor implements ValueVisitor<NodeAccess> {
