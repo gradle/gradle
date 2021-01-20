@@ -36,6 +36,8 @@ java {
 dependencies {
     api(platform(project(":build-platform")))
     implementation("gradlebuild:code-quality")
+
+    testImplementation("org.junit.vintage:junit-vintage-engine")
 }
 
 ktlint {
@@ -95,4 +97,8 @@ fun prepareReportForCIPublishing(report: File) {
             rename { "report-${project.name}-${report.parentFile.name}-${report.name}" }
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
