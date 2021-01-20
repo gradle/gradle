@@ -22,7 +22,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
     applyDefaults(
         model,
         this,
-        "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true",
+        "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true -Pfoo=bar",
         extraParameters = buildScanTag("CompileAll")
     )
 
