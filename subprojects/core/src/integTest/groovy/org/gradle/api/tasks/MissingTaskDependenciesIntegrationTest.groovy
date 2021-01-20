@@ -221,24 +221,17 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("producer", "consumer")
     }
 
-    def "can have tasks which consume a filtered project directory"() {
+    def "takes filters for inputs into account when detecting missing dependencies"() {
         file("src/main/java/MyClass.java").createFile()
         buildFile << """
-            task firstTask {
-                def outputFile = file("build/output1.txt")
+            task producer {
+                def outputFile = file("build/output.txt")
                 outputs.file(outputFile)
                 doLast {
                     outputFile.text = "first"
                 }
             }
-            task lastTask {
-                def outputFile = file("build/output2.txt")
-                outputs.file(outputFile)
-                doLast {
-                    outputFile.text = "last"
-                }
-            }
-            task packageProjectDir(type: Zip) {
+            task filteredConsumer(type: Zip) {
                 from(project.projectDir) {
                     include 'src/**'
                 }
@@ -248,43 +241,45 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run("firstTask", "packageProjectDir", "lastTask")
+        run("producer", "filteredConsumer")
         then:
-        executedAndNotSkipped(":firstTask", ":packageProjectDir", ":lastTask")
+        executedAndNotSkipped(":producer", ":filteredConsumer")
+        when:
+        run("filteredConsumer", "producer")
+        then:
+        skipped(":producer", ":filteredConsumer")
     }
 
-    def "detects filtered trees with missing dependencies"() {
+    def "detects missing dependencies when using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()
         buildFile << """
-            task firstTask {
-                def outputFile = file("build/output1.txt")
+            task producer {
+                def outputFile = file("build/problematic/output.txt")
                 outputs.file(outputFile)
                 doLast {
                     outputFile.text = "first"
                 }
             }
-            task lastTask {
-                def outputFile = file("build/output2.txt")
-                outputs.file(outputFile)
-                doLast {
-                    outputFile.text = "last"
-                }
-            }
-            task packageProjectDir(type: Zip) {
+            task consumer(type: Zip) {
                 from(project.projectDir) {
-                    include 'build/**'
+                    include 'build/problematic/**'
                 }
                 destinationDirectory = file("build")
-                archiveBaseName = "output3"
+                archiveBaseName = "outputZip"
             }
         """
 
         when:
-        expectMissingDependencyDeprecation(":firstTask", ":packageProjectDir")
-        expectMissingDependencyDeprecation(":lastTask", ":packageProjectDir")
-        run("firstTask", "packageProjectDir", "lastTask")
+        expectMissingDependencyDeprecation(":producer", ":consumer")
+        run("producer", "consumer")
         then:
-        executedAndNotSkipped(":firstTask", ":packageProjectDir", ":lastTask")
+        executedAndNotSkipped(":producer", ":consumer")
+
+        when:
+        expectMissingDependencyDeprecation(":producer", ":consumer")
+        run("consumer", "producer")
+        then:
+        executed(":producer", ":consumer")
     }
 
     void expectMissingDependencyDeprecation(String producer, String consumer) {

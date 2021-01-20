@@ -219,7 +219,7 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public String getPath() {
-            return getRelativePath().getPathString();
+            return relativePath;
         }
 
         @Override

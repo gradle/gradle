@@ -170,15 +170,15 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         assertNodesAccessing("/other", root)
     }
 
-    def nodesRelatedTo(TestFile location, String includes) {
-        return hierarchy.getNodesAccessing(location.absolutePath, new PatternSet().include(includes).asSpec)
+    def nodesRelatedTo(TestFile location, String includePattern) {
+        return hierarchy.getNodesAccessing(location.absolutePath, includes(includePattern))
     }
 
     def nodesRelatedTo(TestFile location) {
         return hierarchy.getNodesAccessing(location.absolutePath)
     }
 
-    Spec<FileTreeElement> includes(String include) {
+    static Spec<FileTreeElement> includes(String include) {
         return new PatternSet().include(include).asSpec
     }
 
