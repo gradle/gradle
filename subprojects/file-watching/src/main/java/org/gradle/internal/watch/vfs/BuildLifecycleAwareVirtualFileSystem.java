@@ -35,7 +35,9 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     void afterBuildStarted(WatchMode watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner);
 
     /**
-     * Returns whether watching the file system is supported on the current operating system, and has successfully been started.
+     * Returns whether watching the file system is currently enabled. This requires that the feature
+     * is supported on the current operating system, it is enabled for the build, has been successfully
+     * started, and has not been disabled because of a problem.
      */
     boolean isWatchingFileSystem();
 
