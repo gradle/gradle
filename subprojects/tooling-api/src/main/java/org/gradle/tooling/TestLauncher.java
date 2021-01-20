@@ -16,7 +16,6 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
@@ -108,7 +107,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @return this
      * @since 6.1
      */
-    @Incubating
     TestLauncher withTaskAndTestClasses(String task, Iterable<String> testClasses);
 
     /**
@@ -121,7 +119,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @return this
      * @since 6.1
      */
-    @Incubating
     TestLauncher withTaskAndTestMethods(String task, String testClass, Iterable<String> methods);
 
     /**
@@ -141,7 +138,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      *
      * @since 5.6
      */
-    @Incubating
     TestLauncher debugTestsOn(int port);
 
     /**
