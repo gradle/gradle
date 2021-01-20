@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.profiler.DefaultScenarioContext
 import org.gradle.profiler.Phase
@@ -106,7 +106,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = AGP_4_2_ITERATION_MATCHER)
-    @ToBeFixedForConfigurationCache(iterationMatchers = AGP_7_ITERATION_MATCHER)
     def "can lint Santa-Tracker #flavour (agp=#agpVersion)"() {
 
         given:
