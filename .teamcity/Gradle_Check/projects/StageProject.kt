@@ -77,6 +77,8 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         }
 
         functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests)
+
+        println("Hello from configuration land")
     }
 
     private

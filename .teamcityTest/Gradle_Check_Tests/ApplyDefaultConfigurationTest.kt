@@ -79,7 +79,7 @@ class ApplyDefaultConfigurationTest {
     ])
     fun `can apply defaults to linux test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
         applyTestDefaults(buildModel, buildType, "myTask", extraParameters = extraParameters, daemon = daemon)
-
+        println("Hello from configuration tests")
         assertEquals(listOf(
             "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
             "GRADLE_RUNNER",
