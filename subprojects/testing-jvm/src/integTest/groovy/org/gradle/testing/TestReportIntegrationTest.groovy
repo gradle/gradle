@@ -205,7 +205,7 @@ public class SubClassTests extends SuperClassTests {
              $junitSetup
 
             task otherTests(type: Test) {
-                binResultsDir file("bin")
+                binaryResultsDirectory = file("bin")
                 testClassesDirs = files("blah")
             }
 
@@ -236,7 +236,7 @@ public class SubClassTests extends SuperClassTests {
              $junitSetup
 
             task testReport(type: TestReport) {
-                testResultDirs = [test.binResultsDir]
+                testResultDirs = [test.binaryResultsDirectory]
                 destinationDir reporting.file("tr")
             }
         """
