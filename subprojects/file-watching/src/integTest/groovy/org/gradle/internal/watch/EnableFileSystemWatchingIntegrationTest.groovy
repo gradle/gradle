@@ -24,6 +24,17 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
     private static final String ENABLED_MESSAGE = "Watching the file system is enabled"
     private static final String DISABLED_MESSAGE = "Watching the file system is disabled"
 
+    def "is enabled by default"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        when:
+        run("assemble", "--info")
+        then:
+        outputContains(ENABLED_MESSAGE)
+    }
+
     @Unroll
     def "can be enabled via gradle.properties (enabled: #enabled)"() {
         buildFile << """
@@ -74,26 +85,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         commandLineOption | expectedMessage
         "--watch-fs"      | ENABLED_MESSAGE
         "--no-watch-fs"   | DISABLED_MESSAGE
-    }
-
-    @Unroll
-    @SuppressWarnings('GrDeprecatedAPIUsage')
-    def "deprecation message is shown when using the old property to enable watching the file system (enabled: #enabled)"() {
-        buildFile << """
-            apply plugin: "java"
-        """
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.unsafe.watch-fs system property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 7.0. " +
-                "Please use the org.gradle.vfs.watch system property instead. " +
-                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
-        )
-
-        expect:
-        succeeds("assemble", "-D${StartParameterBuildOptions.DeprecatedWatchFileSystemOption.GRADLE_PROPERTY}=${enabled}")
-
-        where:
-        enabled << [true, false]
     }
 
     @Unroll

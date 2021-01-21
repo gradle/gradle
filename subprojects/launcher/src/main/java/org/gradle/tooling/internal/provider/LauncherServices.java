@@ -36,6 +36,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -156,6 +157,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                           BuildStateRegistry buildStateRegistry,
                                                           PayloadSerializer payloadSerializer,
                                                           BuildOperationNotificationValve buildOperationNotificationValve,
+                                                          BuildOperationProgressEventEmitter eventEmitter,
                                                           BuildCancellationToken buildCancellationToken,
                                                           ConfigurationCacheSupport configurationCacheSupport,
                                                           WorkValidationWarningReporter workValidationWarningReporter
@@ -168,7 +170,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 configurationCacheSupport,
                 new RunAsBuildOperationBuildActionRunner(
                     new BuildCompletionNotifyingBuildActionRunner(
-                        new FileSystemWatchingBuildActionRunner(
+                        new FileSystemWatchingBuildActionRunner(eventEmitter,
                             new ValidatingBuildActionRunner(
                                 new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory, workValidationWarningReporter,
                                     new ChainingBuildActionRunner(buildActionRunners)))))));

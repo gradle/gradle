@@ -85,21 +85,15 @@ That’s the end of the quick wins.
 From here on out, improving your build performance will require some elbow grease.
 First, perhaps the most important step: finding out which bits of your build are slow and why.
 
-=== Enable file system watching
+=== File system watching
 
 Gradle talks a lot to the file system, especially when trying to resolve the state of the inputs and outputs of the build.
 To avoid unnecessary I/O an in-memory _virtual file system_ is maintained throughout the build.
-The _file system watching_ feature allows Gradle to keep this in-memory data between builds, further reducing I/O in a significant way.
+The _file system watching_ feature allows Gradle to keep this in-memory data between builds, further reducing I/O significantly.
 The impact depends on a number of factors, but is proportional to how much of the build is up-to-date.
 Thus it is most useful for building small changes incrementally.
 
-The typical way to enable the feature is to add the by adding the following setting to the project's `gradle.properties` file:
-
-.gradle.properties
-[source,properties]
-----
-org.gradle.vfs.watch=true
-----
+Since Gradle 7.0 file system watching is enabled by default on operating systems where the feature is supported by Gradle.
 
 Read more about this feature in the <<gradle_daemon.adoc#sec:daemon_watch_fs,corresponding section>>.
 
