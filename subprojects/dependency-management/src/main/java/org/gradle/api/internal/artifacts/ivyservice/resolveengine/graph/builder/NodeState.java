@@ -58,6 +58,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,6 +127,7 @@ public class NodeState implements DependencyGraphNode {
     private StrictVersionConstraints ownStrictVersionConstraints;
     private List<EdgeState> endorsesStrictVersionsFrom;
     private boolean removingOutgoingEdges;
+    private boolean findingExternalVariants;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -1253,20 +1255,61 @@ public class NodeState implements DependencyGraphNode {
         return cachedVariantResult;
     }
 
+    @Nullable
     private ResolvedVariantResult findExternalVariant() {
         if (canIgnoreExternalVariant()) {
             return null;
         }
+        if (findingExternalVariants) {
+            // There is a cycle in the external variants
+            LOGGER.warn("Detecting cycle in external variants for :\n" + computePathToRoot());
+            findingExternalVariants = false;
+            return null;
+        }
+        findingExternalVariants = true;
         // An external variant must have exactly one outgoing edge
         // corresponding to the dependency to the external module
         // can be 0 if the selected variant also happens to be excluded
         // for example via configuration excludes
         assert outgoingEdges.size() <= 1;
-        for (EdgeState outgoingEdge : outgoingEdges) {
-            //noinspection ConstantConditions
-            return outgoingEdge.getSelectedVariant();
+        try {
+            for (EdgeState outgoingEdge : outgoingEdges) {
+                //noinspection ConstantConditions
+                return outgoingEdge.getSelectedVariant();
+            }
+            return null;
+        } finally {
+            findingExternalVariants = false;
         }
-        return null;
+    }
+
+    private String computePathToRoot() {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node(getSimpleName());
+        NodeState from = this;
+        int depth = 0;
+        do {
+            from = getFromNode(from);
+            if (from != null) {
+                formatter.startChildren();
+                formatter.node(from.getSimpleName());
+                depth++;
+            }
+        } while (from != null && !(from instanceof RootNode));
+        for (int i = 0; i < depth; i++) {
+            formatter.endChildren();
+        }
+        formatter.node("Dependency resolution has ignored the cycle to produce a result. It is recommended to resolve the cycle by upgrading one or more dependencies.");
+        return formatter.toString();
+    }
+
+    @Nullable
+    private NodeState getFromNode(NodeState from) {
+        List<EdgeState> incomingEdges = from.getIncomingEdges();
+        if (incomingEdges.isEmpty()) {
+            return null;
+        }
+        return incomingEdges.get(0).getFrom();
     }
 
     public void updateTransitiveExcludes() {
