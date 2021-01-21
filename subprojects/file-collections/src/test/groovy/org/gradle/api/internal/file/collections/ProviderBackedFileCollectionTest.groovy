@@ -60,7 +60,7 @@ class ProviderBackedFileCollectionTest extends Specification {
 
         then:
         1 * provider.producer >> ValueSupplier.ValueProducer.unknown()
-        1 * provider.get() >> 'ignore'
+        1 * provider.getOrNull() >> 'ignore'
         result.empty
     }
 
@@ -79,7 +79,7 @@ class ProviderBackedFileCollectionTest extends Specification {
 
         then:
         1 * provider.producer >> ValueSupplier.ValueProducer.unknown()
-        1 * provider.get() >> value
+        1 * provider.getOrNull() >> value
         1 * value.buildDependencies >> Stub(TaskDependency) {
             _ * getDependencies(_) >> ([task] as Set)
         }
