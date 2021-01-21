@@ -89,8 +89,6 @@ public class PatternSpecFactory {
             updateDefaultExcludeSpecCache(defaultExcludes);
         } else if (invalidChangeOfExcludes(defaultExcludes)) {
             failOnChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
-        } else {
-            updateDefaultExcludeSpecCache(defaultExcludes);
         }
 
         return defaultExcludeSpecCache.get(caseSensitivity);
@@ -119,7 +117,7 @@ public class PatternSpecFactory {
         return ImmutableList.copyOf(previousDefaultExcludes);
     }
 
-    protected void updateDefaultExcludeSpecCache(String[] defaultExcludes) {
+    private void updateDefaultExcludeSpecCache(String[] defaultExcludes) {
         previousDefaultExcludes = defaultExcludes;
         List<String> patterns = Arrays.asList(defaultExcludes);
         for (CaseSensitivity caseSensitivity : CaseSensitivity.values()) {
