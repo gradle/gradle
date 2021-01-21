@@ -341,7 +341,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         then:
         fails("build")
-        failureDescriptionContains("Could not determine the dependencies of task ':compileJava'.")
+        failureDescriptionContains("Execution failed for task ':compileJava'.")
         failureCauseContains("Cannot resolve external dependency com.example:included-build")
     }
 
