@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -206,7 +205,6 @@ public class AntlrTask extends SourceTask {
      *
      * @since 6.0
      */
-    @Incubating
     @TaskAction
     public void execute(InputChanges inputChanges) {
         Set<File> grammarFiles = new HashSet<>();
@@ -302,7 +300,6 @@ public class AntlrTask extends SourceTask {
      *
      * @since 6.0
      */
-    @Incubating
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
