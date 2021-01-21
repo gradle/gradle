@@ -76,11 +76,17 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     @Override
     public ClassPath transform(ClassPath classPath, StandardTransform transform) {
+        if (classPath.isEmpty()) {
+            return classPath;
+        }
         return transformFiles(classPath, fileTransformerFor(transform));
     }
 
     @Override
     public ClassPath transform(ClassPath classPath, StandardTransform transform, Transform additional) {
+        if (classPath.isEmpty()) {
+            return classPath;
+        }
         return transformFiles(classPath, new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new CompositeTransformer(additional, transformerFor(transform))));
     }
 
@@ -105,9 +111,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        if (classPath.isEmpty()) {
-            return classPath;
-        }
+        assert !classPath.isEmpty();
         return cache.useCache(() -> {
             List<File> originalFiles = classPath.getAsFiles();
             List<CacheOperation> operations = new ArrayList<>(originalFiles.size());
