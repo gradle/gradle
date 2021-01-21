@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.ComponentSelector;
 import org.gradle.tooling.model.ExternalDependency;
 
@@ -35,7 +34,6 @@ public interface EclipseExternalDependency extends ExternalDependency, EclipseCl
      *
      * @since 6.7
      */
-    @Incubating
     boolean isResolved();
 
     /**
@@ -48,6 +46,5 @@ public interface EclipseExternalDependency extends ExternalDependency, EclipseCl
      * @since 6.7
      */
     @Nullable
-    @Incubating
     ComponentSelector getAttemptedSelector();
 }
