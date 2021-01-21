@@ -261,7 +261,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.getFiles()
 
         then:
-        1 * provider.get() >> { throw exception }
+        1 * provider.getOrNull() >> { throw exception }
         def thrown = thrown(IllegalStateException)
         exception == thrown
     }
