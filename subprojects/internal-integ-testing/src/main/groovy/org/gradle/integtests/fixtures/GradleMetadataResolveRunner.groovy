@@ -17,31 +17,12 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-/**
- * Runs tests with and without Gradle metadata support enabled
- */
+// TODO: rename the class. Not doing it as part of Spock2 upgrade change so that there is less non-essential changes noise
 @CompileStatic
-class GradleMetadataResolveRunner extends BehindFlagFeatureRunner {
+class GradleMetadataResolveRunner  {
     public final static String GRADLE_METADATA = "org.gradle.internal.resolution.testWithGradleMetadata"
     public final static String REPOSITORY_TYPE = "org.gradle.internal.resolution.testRepositoryType"
-
-    GradleMetadataResolveRunner(Class<?> target) {
-        super(target, [
-                (GRADLE_METADATA): booleanFeature("Gradle metadata"),
-                (REPOSITORY_TYPE): new Feature(ivy: 'Ivy repository', maven: 'Maven repository')
-            ],
-            doNotExecuteAllPermutationsForNoDaemonExecuter())
-    }
-
-    private static boolean doNotExecuteAllPermutationsForNoDaemonExecuter() {
-        !GradleContextualExecuter.isNoDaemon()
-    }
-
-    def isInvalidCombination(Map<String, String> values) {
-        false
-    }
 
     static boolean isGradleMetadataPublished() {
         System.getProperty(GRADLE_METADATA) == "true"

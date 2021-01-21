@@ -116,6 +116,8 @@ fun addDependencies() {
         testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.groovy)
         testImplementation(libs.spock)
+        testImplementation(libs.junit5Vintage)
+        testImplementation(libs.spockJUnit4)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -214,9 +216,9 @@ fun configureTests() {
             }
         }
 
+        useJUnitPlatform()
         if (project.testDistributionEnabled() && !isUnitTest()) {
             println("Test distribution has been enabled for $testName")
-            useJUnitPlatform()
             distribution {
                 enabled.set(true)
                 if (BuildEnvironment.isCiServer) {

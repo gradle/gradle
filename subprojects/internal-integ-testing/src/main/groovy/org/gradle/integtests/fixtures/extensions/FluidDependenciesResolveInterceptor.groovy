@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.extensions
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -25,10 +25,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
  * Test classes that use this runner will have tests run twice, with and without fluid dependencies enabled.
  */
 @CompileStatic
-class FluidDependenciesResolveRunner extends BehindFlagFeatureRunner {
+class FluidDependenciesResolveInterceptor extends BehindFlagFeatureInterceptor {
     public final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
 
-    FluidDependenciesResolveRunner(Class<?> target) {
+    FluidDependenciesResolveInterceptor(Class<?> target) {
         super(target, [ASSUME_FLUID_DEPENDENCIES: booleanFeature("fluid dependencies")], doNotExecuteAllPermutationsForNoDaemonExecuter())
     }
 

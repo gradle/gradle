@@ -136,15 +136,17 @@ trait HttpServerFixture {
             configured = true
         }
 
-        server.start()
-        for (int i = 0; i < 5; i++) {
-            if (createConnector() && connector.localPort > 0) {
-                return
+        if (!server.started) {
+            server.start()
+            for (int i = 0; i < 5; i++) {
+                if (createConnector() && connector.localPort > 0) {
+                    return
+                }
+                // Has failed to start for some reason - try again
+                releaseConnector()
             }
-            // Has failed to start for some reason - try again
-            releaseConnector()
+            throw new AssertionError((Object) "SocketConnector failed to start.") // cast because of Groovy bug
         }
-        throw new AssertionError((Object) "SocketConnector failed to start.") // cast because of Groovy bug
     }
 
     private void releaseConnector() {

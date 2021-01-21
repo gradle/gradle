@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.util.GradleVersion;
 
 import java.util.ArrayList;

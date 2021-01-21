@@ -159,7 +159,8 @@ dependencies {
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.sampleCheck)           { version { strictly("0.12.6") }}
         api(libs.snappy)                { version { strictly("0.4") }}
-        api(libs.spock)                 { version { strictly("1.3-groovy-2.5") }}
+        api(libs.spock)                 { version { strictly("2.0-M4-groovy-2.5") }}
+        api(libs.spockJUnit4)           { version { strictly("2.0-M4-groovy-2.5") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}

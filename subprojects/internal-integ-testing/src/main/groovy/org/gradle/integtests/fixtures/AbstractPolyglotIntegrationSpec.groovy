@@ -17,18 +17,23 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTestInterceptor
 import org.gradle.integtests.fixtures.polyglot.MultiProjectBuilder
-import org.junit.runner.RunWith
 
 /**
  * An integration test which allows testing build scripts with both the
  * Groovy and Kotlin DSLs
  */
 @CompileStatic
-@RunWith(PolyglotDslTestRunner)
+@PolyglotDslTest
 class AbstractPolyglotIntegrationSpec extends AbstractIntegrationSpec {
 
-    private final MultiProjectBuilder projectBuilder = new MultiProjectBuilder(PolyglotDslTestRunner.currentDsl, testDirectory)
+    private MultiProjectBuilder projectBuilder
+
+    def setup() {
+        projectBuilder = new MultiProjectBuilder(PolyglotDslTestInterceptor.currentDsl, testDirectory)
+    }
 
     /**
      * Configures a build spec, but doesn't generate the files.

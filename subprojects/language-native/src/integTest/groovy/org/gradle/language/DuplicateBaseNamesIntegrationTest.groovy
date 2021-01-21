@@ -27,6 +27,7 @@ import org.gradle.language.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -39,10 +40,13 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
     @RequiresInstalledToolChain(SUPPORTS_32)
     @ToBeFixedForConfigurationCache
     def "can have sourcefiles with same base name but different directories"() {
-        setup:
+        given:
+        def testApp = initTestApp(testAppType)
+
+        when:
         testApp.writeSources(file("src/main"))
         buildFile.text = ""
-        testApp.plugins.each{ plugin ->
+        testApp.plugins.each { plugin ->
             buildFile << "apply plugin: '$plugin'\n"
         }
 
@@ -63,15 +67,25 @@ model {
     }
 }
             """
-        expect:
+        then:
         succeeds "mainExecutable"
         executable("build/exe/main/main").exec().out == expectedOutput
         where:
-        testApp                                              |   expectedOutput
-        new DuplicateCBaseNamesTestApp()                     |    "foo1foo2"
-        new DuplicateCppBaseNamesTestApp()                   |    "foo1foo2"
-        new DuplicateAssemblerBaseNamesTestApp(toolChain)    |    "foo1foo2"
-        new DuplicateMixedSameBaseNamesTestApp(toolChain)    |    "fooFromC\nfooFromCpp\nfooFromAsm\n"
+        testAppType                                   | expectedOutput
+        DuplicateCBaseNamesTestApp.simpleName         | "foo1foo2"
+        DuplicateCppBaseNamesTestApp.simpleName       | "foo1foo2"
+        DuplicateAssemblerBaseNamesTestApp.simpleName | "foo1foo2"
+        DuplicateMixedSameBaseNamesTestApp.simpleName | "fooFromC\nfooFromCpp\nfooFromAsm\n"
+    }
+
+    private TestNativeComponent initTestApp(String testAppType) {
+        switch (testAppType) {
+            case DuplicateCBaseNamesTestApp.simpleName: return new DuplicateCBaseNamesTestApp()
+            case DuplicateCppBaseNamesTestApp.simpleName: return new DuplicateCppBaseNamesTestApp()
+            case DuplicateAssemblerBaseNamesTestApp.simpleName: return new DuplicateAssemblerBaseNamesTestApp(toolChain)
+            case DuplicateMixedSameBaseNamesTestApp.simpleName: return new DuplicateMixedSameBaseNamesTestApp(toolChain)
+            default: throw IllegalArgumentException(testAppType)
+        }
     }
 
     /**
@@ -86,7 +100,7 @@ model {
         def testApp = new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
 
 
-        testApp.getSourceFiles().each {  SourceFile sourceFile ->
+        testApp.getSourceFiles().each { SourceFile sourceFile ->
             file("src/main/all/${sourceFile.name}") << sourceFile.content
         }
 
@@ -115,7 +129,7 @@ model {
             sources {"""
 
         testApp.functionalSourceSets.each { name, filterPattern ->
-                buildFile << """
+            buildFile << """
                 $name {
                     source {
                         include '$filterPattern'
@@ -139,11 +153,11 @@ model {
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(TestPrecondition.NOT_WINDOWS)
     @ToBeFixedForConfigurationCache
-    def "can have objectiveC and objectiveCpp source files with same name in different directories"(){
+    def "can have objectiveC and objectiveCpp source files with same name in different directories"() {
         setup:
         testApp.writeSources(file("src/main"))
         buildFile.text = ""
-        testApp.plugins.each{ plugin ->
+        testApp.plugins.each { plugin ->
             buildFile << "apply plugin: '$plugin'\n"
         }
 
@@ -159,7 +173,7 @@ model {
         succeeds "mainExecutable"
         executable("build/exe/main/main").exec().out == "foo1foo2"
         where:
-        testApp << [ new DuplicateObjectiveCBaseNamesTestApp(), new DuplicateObjectiveCppBaseNamesTestApp() ]
+        testApp << [new DuplicateObjectiveCBaseNamesTestApp(), new DuplicateObjectiveCppBaseNamesTestApp()]
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
@@ -169,10 +183,10 @@ model {
         def testApp = new DuplicateWindowsResourcesBaseNamesTestApp()
         testApp.writeSources(file("src/main"))
         buildFile.text = ""
-        testApp.plugins.each{ plugin ->
+        testApp.plugins.each { plugin ->
             buildFile << "apply plugin: '$plugin'\n"
         }
-        buildFile <<"""
+        buildFile << """
 model {
     components {
         main(NativeExecutableSpec) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures;
+package org.gradle.integtests.fixtures.polyglot;
 
+import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
 import org.gradle.test.fixtures.dsl.GradleDsl;
-import org.junit.runner.notification.RunNotifier;
+import org.spockframework.runtime.extension.IMethodInvocation;
 
-public class PolyglotDslTestRunner extends AbstractMultiTestRunner {
+public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
     private final static String DSL_LANGUAGE = "org.gradle.internal.runner.dsl";
 
-    public PolyglotDslTestRunner(Class<?> target) {
+    public PolyglotDslTestInterceptor(Class<?> target) {
         super(target);
     }
 
@@ -40,12 +41,7 @@ public class PolyglotDslTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    @Override
-    public void run(RunNotifier notifier) {
-        super.run(notifier);
-    }
-
-    private static class DslExecution extends AbstractMultiTestRunner.Execution {
+    private static class DslExecution extends Execution {
         private final GradleDsl dsl;
 
         private DslExecution(GradleDsl dsl) {
@@ -58,7 +54,12 @@ public class PolyglotDslTestRunner extends AbstractMultiTestRunner {
         }
 
         @Override
-        protected void before() {
+        public String toString() {
+            return getDisplayName();
+        }
+
+        @Override
+        protected void before(IMethodInvocation invocation) {
             System.setProperty(DSL_LANGUAGE, dsl.toString());
         }
 

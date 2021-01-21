@@ -17,12 +17,12 @@
 package org.gradle.integtests.fixtures.archives
 
 import groovy.transform.CompileStatic
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
 @CompileStatic
-class ReproducibleArchivesTestExtension extends AbstractAnnotationDrivenExtension<TestReproducibleArchives> {
+class ReproducibleArchivesTestExtension implements IAnnotationDrivenExtension<TestReproducibleArchives> {
     @Override
     void visitSpecAnnotation(TestReproducibleArchives annotation, SpecInfo spec) {
         spec.features.each { feature ->

@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.compatibility
 
+import org.gradle.integtests.fixtures.GradleDistributionTool
+import org.gradle.integtests.fixtures.IgnoreVersions
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.util.GradleVersion
+import org.spockframework.runtime.extension.IMethodInvocation
 
 /**
- * <p>Executes instances of {@link CrossVersionIntegrationSpec} against each previous Gradle version.
+ * <p>Executes instances of {@link org.gradle.integtests.fixtures.CrossVersionIntegrationSpec} against each previous Gradle version.
  *
- * <p>Sets the {@link CrossVersionIntegrationSpec#previous} property of the test instance before executing it.
+ * <p>Sets the {@link org.gradle.integtests.fixtures.CrossVersionIntegrationSpec#previous} property of the test instance before executing it.
  *
- * <p>A test class can be annotated with {@link TargetVersions} to specify the set of versions the test is compatible with, and {@link IgnoreVersions} to specify the set of versions the
+ * <p>A test class can be annotated with {@link org.gradle.integtests.fixtures.TargetVersions} to specify the set of versions the test is compatible with, and {@link org.gradle.integtests.fixtures.IgnoreVersions} to specify the set of versions the
  * test should not be run for.
  * <p>
- * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
+ * See {@link AbstractContextualMultiVersionTestInterceptor} for information on running these tests.
  */
-class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
-    CrossVersionTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
+class CrossVersionTestInterceptor extends AbstractCompatibilityTestInterceptor {
+    CrossVersionTestInterceptor(Class<?> target) {
         super(target)
     }
 
@@ -80,7 +84,7 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
         a ? a.value().newInstance(target, target) : defaultValue
     }
 
-    private static class PreviousVersionExecution extends AbstractMultiTestRunner.Execution {
+    private static class PreviousVersionExecution extends org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor.Execution {
         final GradleDistribution previousVersion
         final boolean enabled
 
@@ -95,12 +99,17 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
         }
 
         @Override
-        protected void before() {
+        String toString() {
+            return getDisplayName()
+        }
+
+        @Override
+        protected void before(IMethodInvocation invocation) {
             target.previous = previousVersion
         }
 
         @Override
-        protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+        boolean isTestEnabled(org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor.TestDetails testDetails) {
             return enabled
         }
     }

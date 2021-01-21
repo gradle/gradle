@@ -17,7 +17,10 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.apache.commons.io.output.TeeOutputStream
-import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
@@ -28,23 +31,41 @@ import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 
-trait ToolingApiClasspathProvider {
-    ClassLoader getTestClassLoader(
-        Map<String, ClassLoader> cache,
-        ToolingApiDistribution toolingApi,
-        List<File> testClasspath,
-        Action<? super FilteringClassLoader.Spec> classpathConfigurer) {
-        synchronized(ToolingApiClasspathProvider) {
-            def classLoader = cache.get(toolingApi.version.version)
+class ToolingApiClassLoaderProvider {
+    private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
+    private static final GradleDistribution CURRENT_GRADLE = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
+
+    static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
+        List<File> testClassPath = []
+        testClassPath << ClasspathUtil.getClasspathForClass(ToolingApiSpecification)
+        testClassPath << ClasspathUtil.getClasspathForClass(target)
+
+        testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
+
+        getTestClassLoader(toolingApi, testClassPath)
+    }
+
+    private static List<File> collectAdditionalClasspath(ToolingApiDistribution toolingApi, Class<?> target) {
+        target.annotations.findAll { it instanceof ToolingApiAdditionalClasspath }.collectMany { annotation ->
+            (annotation as ToolingApiAdditionalClasspath).value()
+                .getDeclaredConstructor()
+                .newInstance()
+                .additionalClasspathFor(toolingApi, CURRENT_GRADLE)
+        }
+    }
+
+    private static ClassLoader getTestClassLoader(ToolingApiDistribution toolingApi, List<File> testClasspath) {
+        synchronized(ToolingApiClassLoaderProvider) {
+            def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version.version)
             if (!classLoader) {
-                classLoader = createTestClassLoader(toolingApi, classpathConfigurer, testClasspath)
-                cache.put(toolingApi.version.version, classLoader)
+                classLoader = createTestClassLoader(toolingApi, testClasspath)
+                TEST_CLASS_LOADERS.put(toolingApi.version.version, classLoader)
             }
             return classLoader
         }
     }
 
-    private ClassLoader createTestClassLoader(ToolingApiDistribution toolingApi, Action<? super FilteringClassLoader.Spec> classpathConfigurer, List<File> testClassPath) {
+    private static ClassLoader createTestClassLoader(ToolingApiDistribution toolingApi, List<File> testClassPath) {
         def classLoaderFactory = new DefaultClassLoaderFactory()
 
         def sharedSpec = new FilteringClassLoader.Spec()
@@ -65,6 +86,7 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowPackage('org.gradle.language.fixtures')
         sharedSpec.allowPackage('org.gradle.workers.fixtures')
         sharedSpec.allowPackage('org.gradle.launcher.daemon.testing')
+        sharedSpec.allowPackage('org.gradle.tooling')
         sharedSpec.allowClass(OperatingSystem)
         sharedSpec.allowClass(Requires)
         sharedSpec.allowClass(TestPrecondition)
@@ -72,8 +94,7 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowClass(ToolingApiVersion)
         sharedSpec.allowClass(TeeOutputStream)
         sharedSpec.allowClass(ClassLoaderFixture)
-        classpathConfigurer.execute(sharedSpec)
-        def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader, sharedSpec)
+        def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(Thread.currentThread().getContextClassLoader(), sharedSpec)
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 

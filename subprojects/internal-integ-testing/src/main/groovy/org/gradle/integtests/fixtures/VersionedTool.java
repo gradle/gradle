@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption;
-
-/**
- * Intended to be a temporary runner until there is full cross-cutting coverage for all int tests with configuration cache enabled.
- */
-public class ConfigurationCacheRunner extends BehindFlagFeatureRunner {
-    public ConfigurationCacheRunner(Class<?> target) {
-        super(target, ImmutableMap.of(ConfigurationCacheOption.PROPERTY_NAME, booleanFeature("configuration cache")));
-    }
+public interface VersionedTool {
+    boolean matches(String criteria);
 }

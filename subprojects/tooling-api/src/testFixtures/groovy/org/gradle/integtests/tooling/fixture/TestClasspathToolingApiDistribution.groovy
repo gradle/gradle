@@ -24,7 +24,7 @@ class TestClasspathToolingApiDistribution implements ToolingApiDistribution {
     }
 
     Collection<File> getClasspath() {
-        null
+        Collections.emptyList()
     }
 
     ClassLoader getClassLoader() {

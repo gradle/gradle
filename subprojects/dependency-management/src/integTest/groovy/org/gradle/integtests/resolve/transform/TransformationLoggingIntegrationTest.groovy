@@ -20,7 +20,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -29,9 +28,6 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
     ConsoleOutput consoleType
 
     private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
-
-    @Rule
-    BlockingHttpServer server
 
     def setup() {
         settingsFile << """
@@ -182,6 +178,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         // since that is the only way it currently can distinguish transforms.
         // When it has a better way, then this test can be removed.
         consoleType = ConsoleOutput.Rich
+        BlockingHttpServer server = new BlockingHttpServer()
         server.start()
         buildFile << """
             allprojects {
@@ -230,6 +227,9 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
 
         block.releaseAll()
         build.waitForFinish()
+
+        cleanup:
+        server.stop()
     }
 
     def "each step is logged separately"() {

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
-public class DefaultVersionedTool implements AbstractContextualMultiVersionSpecRunner.VersionedTool {
+public class DefaultVersionedTool implements VersionedTool {
     private final Object version;
 
     public DefaultVersionedTool(Object version) {
