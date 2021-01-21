@@ -17,7 +17,6 @@
 package org.gradle.internal.watch
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import spock.lang.Unroll
 
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
@@ -85,41 +84,5 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         commandLineOption | expectedMessage
         "--watch-fs"      | ENABLED_MESSAGE
         "--no-watch-fs"   | DISABLED_MESSAGE
-    }
-
-    @Unroll
-    @SuppressWarnings('GrDeprecatedAPIUsage')
-    def "deprecation message is shown when using old VFS retention property to enable watching the file system (enabled: #enabled)"() {
-        buildFile << """
-            apply plugin: "java"
-        """
-        executer.expectDocumentedDeprecationWarning(
-            "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
-                "This is scheduled to be removed in Gradle 7.0. " +
-                "Use the gradle property org.gradle.vfs.watch instead. " +
-                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
-        )
-
-        expect:
-        succeeds("assemble", "-D${VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY}=${enabled}")
-
-        where:
-        enabled << [true, false]
-    }
-
-    @Unroll
-    @SuppressWarnings('GrDeprecatedAPIUsage')
-    def "deprecation message is shown when using the old property to drop the VFS (drop: #drop)"() {
-        executer.expectDeprecationWarning(
-            "The org.gradle.unsafe.vfs.drop system property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 7.0. " +
-                "Please use the org.gradle.vfs.drop system property instead."
-        )
-
-        expect:
-        succeeds("help", "--watch-fs", "-D${VirtualFileSystemServices.DEPRECATED_VFS_DROP_PROPERTY}=${drop}")
-
-        where:
-        drop << [true, false]
     }
 }
