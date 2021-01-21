@@ -93,7 +93,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 ) : ClassPathSensitiveCodeGenerationTask() {
 
     private
-    val gradleUserHomeDir = project.gradle.gradleUserHomeDir
+    val gradleUserHomeDir = File(temporaryDir, "guh")
 
     private
     val projectDesc = project.toString()
