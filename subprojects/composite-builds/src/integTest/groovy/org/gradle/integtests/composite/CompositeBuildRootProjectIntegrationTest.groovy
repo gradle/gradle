@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    def "root of a composite build can refer to own subprojects by GA coordinates"() {
+    def "root of a composite build cannot refer to own subprojects by GA coordinates by default"() {
         given:
         def buildB = multiProjectBuild("buildB", ['c1', 'c2', 'c3']) {
             buildFile << """
@@ -34,7 +34,32 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         dependency(new BuildTestFile(buildB.file('c3'), 'c3'), "org.test:buildB") // dependency to root
 
         buildB.settingsFile << """
-            includeBuild('${buildA.toURI()}')
+            includeBuild('${buildA.toURI()}') // include another build to become a composite
+        """
+
+        when:
+        fails(buildB, "c3:jar")
+
+        then:
+        failure.assertHasCause("Cannot resolve external dependency org.test:buildB because no repositories are defined.")
+    }
+
+    def "root of a composite build can refer to own subprojects by GA coordinates when including itself"() {
+        given:
+        def buildB = multiProjectBuild("buildB", ['c1', 'c2', 'c3']) {
+            buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+            }
+            """
+        }
+        dependency(buildB, "org.test:c1")
+        dependency(buildB, "org.test:c2:1.0")
+        dependency(new BuildTestFile(buildB.file('c3'), 'c3'), "org.test:buildB") // dependency to root
+
+        buildB.settingsFile << """
+            includeBuild('${buildA.toURI()}') // include another build to become a composite
+            includeBuild('.')
         """
 
         when:
@@ -59,6 +84,9 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
            tasks.register("buildBJar") {
                 dependsOn(gradle.includedBuild("buildB").task(":jar"))
             }
+        """
+        buildA.settingsFile << """
+            includeBuild('.')
         """
 
         includeBuild(buildB)

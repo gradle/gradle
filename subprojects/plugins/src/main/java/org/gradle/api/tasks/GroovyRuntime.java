@@ -94,10 +94,6 @@ public class GroovyRuntime {
                     return project.getLayout().files(groovyJar.getFile());
                 }
 
-                if (project.getRepositories().isEmpty()) {
-                    throw new GradleException("Cannot infer Groovy class path because no repository is declared for the project.");
-                }
-
                 String notation = groovyJar.getDependencyNotation();
                 List<Dependency> dependencies = Lists.newArrayList();
                 // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier

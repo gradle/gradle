@@ -777,6 +777,61 @@ Required by:
         failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
     }
 
+    @Unroll
+    def "substitutes external dependency for a subproject of the root build - #rootIsIncluded"() {
+        given:
+        def empty = file('empty').tap {
+            it.mkdir()
+        }
+        mavenRepo.module("org.test", "subproject1", "2.0").publish()
+        buildA.buildFile << """
+            subprojects {
+                apply plugin: 'java-library'
+                group = 'org.test'
+                version = '1.0'
+            }
+            dependencies {
+                implementation "org.test:subproject1:2.0"
+            }
+        """
+        includedBuilds = [empty]
+        buildA.settingsFile << """
+            include('subproject1')
+            $includeRootStatement
+        """
+
+        when:
+        checkDependencies()
+
+        then:
+        def expectSubstitution = rootIsIncluded.contains("yes")
+        checkGraph {
+            if (expectSubstitution) {
+                edge("org.test:subproject1:2.0", "project :subproject1", "org.test:subproject1:1.0") {
+                    configuration = "runtimeElements"
+                    compositeSubstitute()
+                }
+            } else {
+                module("org.test:subproject1:2.0")
+            }
+        }
+
+        and:
+        if (expectSubstitution) {
+            executed(":subproject1:jar")
+        } else {
+            notExecuted(":subproject1:jar")
+        }
+
+        where:
+        rootIsIncluded          | includeRootStatement
+        'no'                    | ""
+        'yes'                   | "includeBuild('.')"
+        // If substitutions for the root would be controllable (e.g. by the first include statement encountered) this would enable you to not have the ':subproject1' substitution
+        // This documents the current behavior. It is unclear if this is a useful functionality to have.
+        'yes with substitution' | "includeBuild('.') { dependencySubstitution { substitute module('org.test:subproject2') with project(':subproject2') } }"
+    }
+
     private void withArgs(List<String> args) {
         buildArgs = args as List
     }
