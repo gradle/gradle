@@ -189,5 +189,15 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
                 throw e;
             }
         }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            try {
+                return super.calculateOwnValue(consumer);
+            } catch (MissingValueException e) {
+                missingProviderErrors.add(e.getMessage());
+                throw e;
+            }
+        }
     }
 }
