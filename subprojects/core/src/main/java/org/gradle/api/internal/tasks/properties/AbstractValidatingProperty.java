@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.provider.Provider;
 import org.gradle.util.DeferredUtil;
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
@@ -37,11 +36,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     @Override
     public void validate(TaskValidationContext context) {
-        Object rawValue = value.call();
-        if (Provider.class.isInstance(rawValue)) {
-            rawValue = ((Provider) rawValue).getOrNull();
-        }
-        Object unpacked = DeferredUtil.unpack(rawValue);
+        Object unpacked = DeferredUtil.unpack(value.call());
         if (unpacked == null) {
             if (!optional) {
                 context.visitPropertyProblem(ERROR, String.format("No value has been specified for property '%s'", propertyName));

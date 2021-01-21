@@ -37,7 +37,7 @@ public class DeferredUtil {
         }
         Object value = unpackNestableDeferred(deferred);
         if (value instanceof Provider) {
-            return ((Provider<?>) value).get();
+            return ((Provider<?>) value).getOrNull();
         }
         if (value instanceof Factory) {
             return ((Factory<?>) value).create();
