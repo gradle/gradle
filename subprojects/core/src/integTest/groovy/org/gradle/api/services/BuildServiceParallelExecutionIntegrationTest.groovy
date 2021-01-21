@@ -17,12 +17,11 @@
 package org.gradle.api.services
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationCacheRunner
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import org.junit.runner.RunWith
 
-@RunWith(ConfigurationCacheRunner)
+@ConfigurationCacheTest
 class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()

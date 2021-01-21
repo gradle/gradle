@@ -18,10 +18,8 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.util.GradleVersion
 
-import javax.annotation.Nullable
-
 interface ToolingApiDistribution {
     GradleVersion getVersion()
-    @Nullable Collection<File> getClasspath()
+    Collection<File> getClasspath()
     ClassLoader getClassLoader()
 }

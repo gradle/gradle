@@ -81,12 +81,12 @@ class AndroidGradlePluginVersions {
         return getVersionList("latests")
     }
 
-    String getNightly() {
-        return getVersion("nightly")
+    List<String> getNightlies() {
+        return getVersionList("nightly")
     }
 
     List<String> getLatestsPlusNightly() {
-        return [latests, [nightly]].flatten() as List<String>
+        return [latests, nightlies].flatten() as List<String>
     }
 
     List<String> getLatestsFromMinor(String lowerBound) {
@@ -100,15 +100,12 @@ class AndroidGradlePluginVersions {
     }
 
     List<String> getLatestsFromMinorPlusNightly(String lowerBound) {
-        return [getLatestsFromMinor(lowerBound), [nightly]].flatten() as List<String>
+        return [getLatestsFromMinor(lowerBound), nightlies].flatten() as List<String>
     }
 
     private List<String> getVersionList(String name) {
-        return loadedProperties().getProperty(name).split(",")
-    }
-
-    private String getVersion(String name) {
-        return loadedProperties().getProperty(name)
+        def versionList = loadedProperties().getProperty(name)
+        return versionList.empty ? [] : versionList.split(",")
     }
 
     private Properties loadedProperties() {

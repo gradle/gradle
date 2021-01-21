@@ -17,12 +17,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class LocalExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
     /**
      * Dependency exclude rules defined through Gradle DSL.
@@ -196,7 +195,7 @@ task check {
                 apply plugin: 'java'
                 repositories { maven { url "${mavenRepo.uri}" } }
             }
-            
+
             project(':a') {
                 configurations {
                     implementation {
@@ -213,7 +212,7 @@ task check {
                     implementation project(':b')
                 }
             }
-            
+
             project(':b') {
                 configurations {
                     implementation {
@@ -221,15 +220,15 @@ task check {
                     }
                 }
             }
-            
+
             dependencies {
                 implementation project(':a')
             }
-            
+
             def compare(config, expectedDependencies) {
                 assert config*.name as Set == expectedDependencies as Set
             }
-            
+
             task checkDeps {
                 doLast {
                     assert configurations.runtimeClasspath*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
@@ -249,15 +248,15 @@ task check {
 
         when:
         buildFile << """
-            configurations { 
+            configurations {
                 foo {
                     exclude group: 'org.gradle.test', modue: 'external'
-                }  
+                }
             }
             dependencies {
                 foo "org.gradle.test:external:1.0"
             }
-            
+
             task resolve() {
                 doLast {
                     configurations.foo.resolve()

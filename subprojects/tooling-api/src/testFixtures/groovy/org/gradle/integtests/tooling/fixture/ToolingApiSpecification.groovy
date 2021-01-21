@@ -38,7 +38,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.RuleChain
-import org.junit.runner.RunWith
 import spock.lang.Retry
 import spock.lang.Specification
 
@@ -56,10 +55,10 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
  */
+@ToolingApiTest
 @CleanupTestDirectory
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=2.6')
-@RunWith(ToolingApiCompatibilitySuiteRunner)
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification {
     /**
@@ -75,28 +74,33 @@ abstract class ToolingApiSpecification extends Specification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
+    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    private GradleDistribution targetGradleDistribution
+
+    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
+    final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder)
+
+    @Rule
+    public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
+
+    // used reflectively by retry rule
     String getReleasedGradleVersion() {
         return targetDist.version.baseVersion.version
     }
 
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
-    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
-
-    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
-    final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
-
-    @Rule
-    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
-
-    // reflectively invoked by ToolingApiCompatibilitySuiteRunner
-    static void selectTargetDist(GradleDistribution version) {
-        VERSION.set(version)
+    // reflectively invoked by ToolingApiExecution
+    void setTargetDist(GradleDistribution targetDist) {
+        targetGradleDistribution = targetDist
+        toolingApi.setDist(targetGradleDistribution)
     }
 
-    static GradleDistribution getTargetDist() {
-        VERSION.get()
+    GradleDistribution getTargetDist() {
+        if (targetGradleDistribution == null)  {
+            throw new IllegalStateException("targetDist is not yet set by the testing framework")
+        }
+        return targetGradleDistribution
     }
 
     def setup() {
@@ -149,7 +153,7 @@ abstract class ToolingApiSpecification extends Specification {
         new BuildTestFixture(projectDir).withBuildInRootDir().multiProjectBuild(projectName, subprojects, cl)
     }
 
-    public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
+    void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
         try {
             toolingApi.withConnector(cl)
         } catch (GradleConnectionException e) {
@@ -180,7 +184,7 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
+    ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
         withConnection {
             def model = it.model(modelType)
             cl(model)
@@ -188,7 +192,7 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public ConfigurableOperation withBuild(Closure cl = {}) {
+    ConfigurableOperation withBuild(Closure cl = {}) {
         withConnection {
             def build = it.newBuild()
             cl(build)
@@ -307,7 +311,7 @@ abstract class ToolingApiSpecification extends Specification {
         withConnection { connection -> connection.getModel(modelClass) }
     }
 
-    protected static GradleVersion getTargetVersion() {
+    protected GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)
     }
 

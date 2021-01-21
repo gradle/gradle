@@ -17,13 +17,12 @@ package org.gradle.integtests.resolve
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.junit.runner.RunWith
 import spock.lang.Issue
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()

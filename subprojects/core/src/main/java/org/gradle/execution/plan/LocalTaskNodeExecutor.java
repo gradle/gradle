@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.TypeValidationContext;
 
@@ -34,16 +36,17 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
-    private final RelatedLocations producedLocations;
-    private final RelatedLocations consumedLocations;
+    private final ExecutionNodeAccessHierarchy outputHierarchy;
+    private final ExecutionNodeAccessHierarchy inputHierarchy;
 
-    public LocalTaskNodeExecutor(RelatedLocations producedLocations, RelatedLocations consumedLocations) {
-        this.producedLocations = producedLocations;
-        this.consumedLocations = consumedLocations;
+    public LocalTaskNodeExecutor(ExecutionNodeAccessHierarchy outputHierarchy, ExecutionNodeAccessHierarchy inputHierarchy) {
+        this.outputHierarchy = outputHierarchy;
+        this.inputHierarchy = inputHierarchy;
     }
 
     @Override
@@ -74,36 +77,48 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
 
     private void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
-            consumedLocations.getNodesRelatedTo(outputPath).stream()
+            inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
                 .forEach(consumerWithoutDependency -> collectValidationProblem(node, consumerWithoutDependency, validationContext));
         }
-        Set<String> locationsConsumedByThisTask = new LinkedHashSet<>();
+        Set<String> taskInputs = new LinkedHashSet<>();
+        Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
             .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    contents.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
+                    contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
                 }
 
                 @Override
                 public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    fileTree.forEach(location -> locationsConsumedByThisTask.add(location.getAbsolutePath()));
+                    fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
                 }
 
                 @Override
                 public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                    locationsConsumedByThisTask.add(root.getAbsolutePath());
+                    if (patterns.isEmpty()) {
+                        taskInputs.add(root.getAbsolutePath());
+                    } else {
+                        filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                    }
                 }
 
                 @Override
                 public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    locationsConsumedByThisTask.add(file.getAbsolutePath());
+                    taskInputs.add(file.getAbsolutePath());
                 }
             }));
-        consumedLocations.recordRelatedToNode(node, locationsConsumedByThisTask);
-        for (String locationConsumedByThisTask : locationsConsumedByThisTask) {
-            producedLocations.getNodesRelatedTo(locationConsumedByThisTask).stream()
+        inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
+        for (String locationConsumedByThisTask : taskInputs) {
+            outputHierarchy.getNodesAccessing(locationConsumedByThisTask).stream()
+                .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
+                .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
+        }
+        for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
+            Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
+            inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
+            outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec).stream()
                 .filter(producerNode -> hasNoSpecifiedOrder(producerNode, node))
                 .forEach(producerWithoutDependency -> collectValidationProblem(producerWithoutDependency, node, validationContext));
         }
@@ -153,7 +168,43 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         TypeValidationContext.Severity severity = TypeValidationContext.Severity.WARNING;
         validationContext.visitPropertyProblem(
             severity,
-            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using dependsOn or mustRunAfter) or an implicit dependency (declaring task '%s' as an input). This can lead to incorrect results being produced, depending on what order the tasks are executed", consumer, producer, producer)
+            String.format("Task '%s' uses the output of task '%s', without declaring an explicit dependency (using Task.dependsOn() or Task.mustRunAfter()) or an implicit dependency (declaring task '%s' as an input). This can lead to incorrect results being produced, depending on what order the tasks are executed", consumer, producer, producer)
         );
+    }
+
+    private static class FilteredTree {
+        private final String root;
+        private final PatternSet patterns;
+
+        private FilteredTree(String root, PatternSet patterns) {
+            this.root = root;
+            this.patterns = patterns;
+        }
+
+        public String getRoot() {
+            return root;
+        }
+
+        public PatternSet getPatterns() {
+            return patterns;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            FilteredTree that = (FilteredTree) o;
+            return root.equals(that.root) && patterns.equals(that.patterns);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(root, patterns);
+        }
+
     }
 }

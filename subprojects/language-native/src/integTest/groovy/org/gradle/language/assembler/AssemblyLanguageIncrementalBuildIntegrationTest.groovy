@@ -31,11 +31,12 @@ import org.gradle.util.TestPrecondition
 @UnsupportedWithConfigurationCache(because = "setup fails")
 class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    HelloWorldApp app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    HelloWorldApp app
     TestFile asmSourceFile
     def install
 
-    def "setup"() {
+    def setup() {
+        app = new MixedLanguageHelloWorldApp(toolChain)
         buildFile << """
             plugins {
                 id 'assembler'

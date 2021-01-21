@@ -35,6 +35,8 @@ import java.io.File;
 
 /**
  * A plugin for adding Antlr support to {@link JavaPlugin java projects}.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/antlr_plugin.html">ANTLR plugin reference</a>
  */
 public class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";

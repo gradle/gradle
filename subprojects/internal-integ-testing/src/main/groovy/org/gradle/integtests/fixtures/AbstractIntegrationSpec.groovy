@@ -60,7 +60,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 class AbstractIntegrationSpec extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
@@ -86,8 +86,8 @@ class AbstractIntegrationSpec extends Specification {
 
     ExecutionResult result
     ExecutionFailure failure
-    private MavenFileRepository mavenRepo
-    private IvyFileRepository ivyRepo
+    private final MavenFileRepository mavenRepo = new MavenFileRepository(temporaryFolder.testDirectory.file("maven-repo"))
+    private final IvyFileRepository ivyRepo = new IvyFileRepository(temporaryFolder.testDirectory.file("ivy-repo"))
 
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
@@ -418,9 +418,6 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     public MavenFileRepository getMavenRepo() {
-        if (mavenRepo == null) {
-            mavenRepo = new MavenFileRepository(file("maven-repo"))
-        }
         return mavenRepo
     }
 
@@ -446,9 +443,6 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     public IvyFileRepository getIvyRepo() {
-        if (ivyRepo == null) {
-            ivyRepo = new IvyFileRepository(file("ivy-repo"))
-        }
         return ivyRepo
     }
 
@@ -530,5 +524,13 @@ class AbstractIntegrationSpec extends Specification {
         if (executor != null) {
             executor.ignoreCleanupAssertions()
         }
+    }
+
+    /**
+     * Called by {@link org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor} when the test class is reused
+     */
+    void resetExecuter() {
+        this.ignoreCleanupAssertions = false
+        recreateExecuter()
     }
 }

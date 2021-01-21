@@ -17,10 +17,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
-@RunWith(FluidDependenciesResolveRunner)
+@FluidDependenciesResolveTest
 class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionTest {
     def "can query files for filtered first level dependencies"() {
         mavenRepo.module("group", "test1", "1.0").publish()
@@ -35,7 +34,7 @@ allprojects {
     repositories {
         maven { url '${mavenRepo.uri}' }
     }
-    configurations { 
+    configurations {
         compile
         create('default') { extendsFrom compile }
     }
@@ -107,7 +106,7 @@ allprojects {
     repositories {
         maven { url '${mavenRepo.uri}' }
     }
-    configurations { 
+    configurations {
         compile
         create('default') { extendsFrom compile }
     }
@@ -159,7 +158,7 @@ include "child1", "child2"
 """
         buildFile << """
 allprojects {
-    configurations { 
+    configurations {
         compile
         create('default') { extendsFrom compile }
     }

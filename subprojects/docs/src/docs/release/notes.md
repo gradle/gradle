@@ -219,6 +219,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - [Build Caching](userguide/build_cache.html)
         - org.gradle.normalization.RuntimeClasspathNormalization.metaInf(Action)
         - org.gradle.normalization.MetaInfNormalization
+        - org.gradle.caching.BuildCacheKey.toByteArray
     - Reporting
         - org.gradle.api.reporting.Report.getOutputLocation()
         - org.gradle.api.reporting.Report.getRequired()
@@ -249,6 +250,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileType
         - org.gradle.api.model.ReplacedBy
         - org.gradle.api.Task.getTimeout
+        - org.gradle.api.tasks.WorkResult.or
 - Dependency management
     - Dependency notations
         - org.gradle.api.artifacts.dsl.DependencyHandler.enforcedPlatform(java.lang.Object)
@@ -336,6 +338,16 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.jvm.JvmLibrary
         - org.gradle.language.base.artifact.SourcesArtifact
         - org.gradle.language.java.artifact.JavadocArtifact
+- IDE
+    - Eclipse plugin
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublication()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublication(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationSourcePath()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationSourcePath(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getPublicationJavadocPath()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.setPublicationJavadocPath(FileReference)
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.getBuildDependencies()
+      - org.gradle.plugins.ide.eclipse.model.ProjectDependency.buildDependencies(Object...)
 - Tooling API
     - Eclipse models
         - org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary
@@ -343,6 +355,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.model.eclipse.EclipseWorkspace
         - org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
         - org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
+        - org.gradle.tooling.model.eclipse.EclipseExternalDependency.isResolved()
+        - org.gradle.tooling.model.eclipse.EclipseExternalDependency.getAttemptedSelector()
+        - org.gradle.tooling.model.ComponentSelector
     - Testing events
         - org.gradle.tooling.events.OperationType.TestOutput
         - org.gradle.tooling.events.test.Destination
@@ -352,6 +367,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.tooling.events.OperationCompletionListener
         - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
 - Java Ecosystem
+    - Antlr plugin
+        - org.gradle.api.plugins.antlr.AntlrTask.getStableSources
+        - org.gradle.api.plugins.antlr.AntlrTask.execute
     - Java plugins
         - org.gradle.api.file.SourceDirectorySet.getDestinationDirectory()
         - org.gradle.api.file.SourceDirectorySet.getClassesDirectory()
@@ -373,6 +391,8 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.SourceSetOutput.getGeneratedSourcesDirs()
         - org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()
         - org.gradle.api.tasks.compile.CompileOptions.getRelease()
+        - org.gradle.api.tasks.compile.JavaCompile.getStableSources
+        - org.gradle.api.tasks.compile.JavaCompile.compile(org.gradle.work.InputChanges)
     - Java Module System
         - org.gradle.api.jvm.ModularitySpec
         - org.gradle.api.plugins.JavaApplication.getMainModule()
@@ -406,6 +426,7 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.tasks.compile.GroovyCompile.getSourceClassesMappingFile()
         - org.gradle.api.tasks.compile.GroovyCompileOptions.isParameters()
         - org.gradle.api.tasks.compile.GroovyCompileOptions.setParameters(boolean)
+        - org.gradle.api.tasks.compile.GroovyCompile.getStableSources
     - Scala
         - org.gradle.api.plugins.scala.ScalaBasePlugin.SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME
         - org.gradle.api.plugins.scala.ScalaPluginExtension

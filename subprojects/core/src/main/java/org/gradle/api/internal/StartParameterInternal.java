@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.internal.watch.vfs.WatchMode;
 
 import java.io.File;
 import java.util.Collection;
@@ -28,9 +29,8 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class StartParameterInternal extends StartParameter {
-    private boolean watchFileSystem;
+    private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
     private boolean watchFileSystemDebugLogging;
-    private boolean watchFileSystemUsingDeprecatedOption;
     private boolean vfsVerboseLogging;
 
     private boolean configurationCache;
@@ -52,9 +52,8 @@ public class StartParameterInternal extends StartParameter {
     @Override
     protected StartParameter prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
-        p.watchFileSystem = watchFileSystem;
+        p.watchFileSystemMode = watchFileSystemMode;
         p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
-        p.watchFileSystemUsingDeprecatedOption = watchFileSystemUsingDeprecatedOption;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
         p.configurationCacheProblems = configurationCacheProblems;
@@ -88,12 +87,12 @@ public class StartParameterInternal extends StartParameter {
         super.searchUpwards = searchUpwards;
     }
 
-    public boolean isWatchFileSystem() {
-        return watchFileSystem;
+    public WatchMode getWatchFileSystemMode() {
+        return watchFileSystemMode;
     }
 
-    public void setWatchFileSystem(boolean watchFileSystem) {
-        this.watchFileSystem = watchFileSystem;
+    public void setWatchFileSystemMode(WatchMode watchFileSystemMode) {
+        this.watchFileSystemMode = watchFileSystemMode;
     }
 
     public boolean isWatchFileSystemDebugLogging() {
@@ -102,14 +101,6 @@ public class StartParameterInternal extends StartParameter {
 
     public void setWatchFileSystemDebugLogging(boolean watchFileSystemDebugLogging) {
         this.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
-    }
-
-    public boolean isWatchFileSystemUsingDeprecatedOption() {
-        return watchFileSystemUsingDeprecatedOption;
-    }
-
-    public void setWatchFileSystemUsingDeprecatedOption(boolean watchFileSystemUsingDeprecatedOption) {
-        this.watchFileSystemUsingDeprecatedOption = watchFileSystemUsingDeprecatedOption;
     }
 
     public boolean isVfsVerboseLogging() {

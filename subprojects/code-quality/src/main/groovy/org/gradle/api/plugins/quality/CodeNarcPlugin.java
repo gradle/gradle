@@ -34,6 +34,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * CodeNarc Plugin.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/codenarc_plugin.html">CodeNarc plugin reference</a>
  */
 public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 

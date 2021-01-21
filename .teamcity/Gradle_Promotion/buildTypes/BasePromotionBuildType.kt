@@ -40,6 +40,9 @@ abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolea
 
         params {
             param("env.GE_GRADLE_ORG_GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+            param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
+            param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
+            param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
         }
     }
 }

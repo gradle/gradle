@@ -31,6 +31,8 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
  */
 public class BasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = LifecycleBasePlugin.CLEAN_TASK_NAME;

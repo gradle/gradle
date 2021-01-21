@@ -85,8 +85,8 @@ _Default is off_.
 
 `org.gradle.vfs.watch=(true,false)`::
 Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
-Allows Gradle to re-use information about the file system in the next build.
-_Default is off_.
+When enabled Gradle re-uses information it collects about the file system between builds.
+_Enabled by default on operating systems where Gradle supports this feature._
 
 `org.gradle.warning.mode=(all,fail,summary,none)`::
 When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging,Command-line logging options>> for details.

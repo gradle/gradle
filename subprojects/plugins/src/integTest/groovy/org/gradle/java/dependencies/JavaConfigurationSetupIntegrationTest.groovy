@@ -62,7 +62,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the $alternatives configuration instead.")
+        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 8.0. Please use the $alternatives configuration instead.")
         !valid(alternatives)        || !output.contains("> Configure project :")
         !doesNotExist(alternatives) || errorOutput.contains("Could not find method $configuration() for arguments [some:module:1.0] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
 
@@ -118,7 +118,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. Please use attributes to consume the ${alternatives} configuration instead.")
+        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Please use attributes to consume the ${alternatives} configuration instead.")
         !valid(alternatives)        || output.contains("> Task :resolve\n\n")
         !forbidden(alternatives)    || errorOutput.contains("Selected configuration '$configuration' on 'project :sub' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
         !doesNotExist(alternatives) || errorOutput.contains("Project : declares a dependency from configuration 'root' to configuration '$configuration' which is not declared in the descriptor for project :sub.")
@@ -126,7 +126,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         where:
         plugin         | configuration                  | alternatives
 
-        'java'         | 'compileOnly'                  | "apiElements"
+        'java'         | 'compileOnly'                  | FORBIDDEN
         'java'         | 'runtimeOnly'                  | FORBIDDEN
         'java'         | 'implementation'               | FORBIDDEN
         'java'         | 'runtimeElements'              | VALID
@@ -137,7 +137,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
 
-        'java-library' | 'compileOnly'                  | "apiElements"
+        'java-library' | 'compileOnly'                  | FORBIDDEN
         'java-library' | 'runtimeOnly'                  | FORBIDDEN
         'java-library' | 'implementation'               | FORBIDDEN
         'java-library' | 'runtimeElements'              | VALID
@@ -172,7 +172,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. Please resolve the ${alternatives} configuration instead.")
+        !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for resolution. This will fail with an error in Gradle 8.0. Please resolve the ${alternatives} configuration instead.")
         !valid(alternatives)        || output.contains("> Task :resolve\n\n")
         !forbidden(alternatives)    || errorOutput.contains("Resolving dependency configuration '$configuration' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '$configuration' should be resolved.")
         !doesNotExist(alternatives) || errorOutput.contains("Could not get unknown property '$configuration' for configuration container of type org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer.")
@@ -180,7 +180,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         where:
         plugin         | configuration                  | alternatives
 
-        'java'         | 'compileOnly'                  | "compileClasspath"
+        'java'         | 'compileOnly'                  | FORBIDDEN
         'java'         | 'runtimeOnly'                  | FORBIDDEN
         'java'         | 'implementation'               | FORBIDDEN
         'java'         | 'runtimeElements'              | FORBIDDEN
@@ -191,7 +191,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
 
-        'java-library' | 'compileOnly'                  | "compileClasspath"
+        'java-library' | 'compileOnly'                  | FORBIDDEN
         'java-library' | 'runtimeOnly'                  | FORBIDDEN
         'java-library' | 'implementation'               | FORBIDDEN
         'java-library' | 'runtimeElements'              | FORBIDDEN

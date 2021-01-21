@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -212,9 +213,9 @@ public class JavaProcessStackTracesMonitor {
             ByteArrayOutputStream stdout = connectStream(process.getInputStream(), latch);
             ByteArrayOutputStream stderr = connectStream(process.getErrorStream(), latch);
 
-            int code = process.waitFor();
-            latch.await();
-            return new ExecResult(args, code, stdout.toString(), stderr.toString());
+            process.waitFor(1, TimeUnit.MINUTES);
+            latch.await(1, TimeUnit.MINUTES);
+            return new ExecResult(args, process.exitValue(), stdout.toString(), stderr.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -297,7 +297,7 @@ Secondary variants (*)
         then:
         outputContains("""> Task :outgoingVariants
 There is no variant named 'nope' defined on this project.
-Here are the available outgoing variants: apiElements, archives, compileOnly, default, runtimeElements, testCompileOnly
+Here are the available outgoing variants: apiElements, archives, default, runtimeElements
 """)
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -356,11 +356,6 @@ Artifacts
     - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
 
 --------------------------------------------------
-Variant compileOnly (l)
---------------------------------------------------
-Description = Compile only dependencies for source set 'main'.
-
---------------------------------------------------
 Variant default (l)
 --------------------------------------------------
 Description = Configuration for default artifacts.
@@ -401,11 +396,6 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
-
---------------------------------------------------
-Variant testCompileOnly (l)
---------------------------------------------------
-Description = Compile only dependencies for source set 'test'.
 """
 
         and:

@@ -20,12 +20,11 @@ import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ConsoleAttachment
-import org.junit.runner.RunWith
 
 /**
  * A base class for testing the console.
  */
-@RunWith(ConsoleAttachmentTestRunner.class)
+@WithAttachedConsole
 abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec {
     static ConsoleAttachment consoleAttachment
 
