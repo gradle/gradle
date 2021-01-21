@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.extension.BuildJvms
 import java.nio.charset.Charset
 
 plugins {
@@ -21,7 +22,7 @@ plugins {
 }
 
 tasks.register("verifyIsProductionBuildEnvironment") {
-    val buildJvms = project.buildJvms
+    val buildJvms = project.the<BuildJvms>()
     doLast {
         buildJvms.validateForProductionEnvironment()
         val systemCharset = Charset.defaultCharset().name()
