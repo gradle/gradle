@@ -304,7 +304,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     scriptPlugins.map { hashedSchema to it }
                 } catch (error: Throwable) {
                     reportProjectSchemaError(scriptPlugins, error)
-                    emptyList<Pair<HashedProjectSchema, PrecompiledScriptPlugin>>()
+                    emptyList()
                 }
             }.groupBy(
                 { (schema, _) -> schema },
