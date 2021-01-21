@@ -101,8 +101,8 @@ tasks {
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
         configureForSmokeTest(*santaProjects)
-        useJUnit {
-            excludeCategories(gradleBuildCategory)
+        useJUnitPlatform {
+            excludeTags(gradleBuildCategory)
         }
     }
 
@@ -110,16 +110,16 @@ tasks {
         description = "Runs Smoke tests with the configuration cache"
         configureForSmokeTest(*santaProjects)
         systemProperty("org.gradle.integtest.executer", "configCache")
-        useJUnit {
-            excludeCategories(gradleBuildCategory)
+        useJUnitPlatform {
+            excludeTags(gradleBuildCategory)
         }
     }
 
     register<SmokeTest>("gradleBuildSmokeTest") {
         description = "Runs Smoke tests against the Gradle build"
         configureForSmokeTest(gradleBuildCurrent)
-        useJUnit {
-            includeCategories(gradleBuildCategory)
+        useJUnitPlatform {
+            includeTags(gradleBuildCategory)
         }
     }
 }
