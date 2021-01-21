@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.opentest4j.TestAbortedException
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
@@ -36,7 +37,7 @@ class UnsupportedWithConfigurationCacheExtension implements IAnnotationDrivenExt
                 spec.skipped = true
             } else {
                 spec.features.each { feature ->
-                    feature.addIterationInterceptor(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
+                    feature.getFeatureMethod().addInterceptor(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
                 }
             }
         }
@@ -48,7 +49,7 @@ class UnsupportedWithConfigurationCacheExtension implements IAnnotationDrivenExt
             if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { feature.parent.bottomSpec.name == it })) {
                 feature.skipped = true
             } else {
-                feature.addIterationInterceptor(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
+                feature.getFeatureMethod().addInterceptor(new IterationMatchingMethodInterceptor(annotation.iterationMatchers()))
             }
         }
     }
@@ -64,7 +65,7 @@ class UnsupportedWithConfigurationCacheExtension implements IAnnotationDrivenExt
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
             if (iterationMatches(iterationMatchers, invocation.iteration.name)) {
-                return // skip - unsupported with configuration cache
+                throw new TestAbortedException("Unsupported with configuration cache")
             }
             invocation.proceed()
         }
