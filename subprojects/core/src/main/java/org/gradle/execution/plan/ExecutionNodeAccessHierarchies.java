@@ -16,22 +16,23 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 
-public class ConsumedAndProducedLocations {
-    private final RelatedLocations producedLocations;
-    private final RelatedLocations consumedLocations;
+public class ExecutionNodeAccessHierarchies {
+    private final ExecutionNodeAccessHierarchy outputHierarchy;
+    private final ExecutionNodeAccessHierarchy inputHierarchy;
 
-    public ConsumedAndProducedLocations(CaseSensitivity caseSensitivity) {
-        producedLocations = new RelatedLocations(caseSensitivity);
-        consumedLocations = new RelatedLocations(caseSensitivity);
+    public ExecutionNodeAccessHierarchies(CaseSensitivity caseSensitivity, Stat stat) {
+        outputHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
+        inputHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
     }
 
-    public RelatedLocations getProducedLocations() {
-        return producedLocations;
+    public ExecutionNodeAccessHierarchy getOutputHierarchy() {
+        return outputHierarchy;
     }
 
-    public RelatedLocations getConsumedLocations() {
-        return consumedLocations;
+    public ExecutionNodeAccessHierarchy getInputHierarchy() {
+        return inputHierarchy;
     }
 }
