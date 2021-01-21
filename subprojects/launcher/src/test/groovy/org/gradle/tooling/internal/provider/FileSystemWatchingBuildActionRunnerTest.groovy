@@ -23,9 +23,11 @@ import org.gradle.internal.file.StatStatistics
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
+import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
@@ -53,6 +55,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     }
     def delegate = Mock(BuildActionRunner)
     def buildAction = Mock(BuildAction)
+    def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
 
     def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
@@ -61,12 +64,15 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
         _ * startParameter.isVfsDebugLogging() >> false
 
-        def runner = new FileSystemWatchingBuildActionRunner(delegate)
+        def runner = new FileSystemWatchingBuildActionRunner(buildOperationProgressEventEmitter, delegate)
 
         when:
         runner.run(buildAction, buildController)
         then:
-        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner)
+        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner) >> actuallyEnabled
+
+        then:
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
 
         then:
         1 * delegate.run(buildAction, buildController)
@@ -78,16 +84,16 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         0 * _
 
         where:
-        watchMode          | vfsLogging         | watchLogging
-        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.NORMAL
-        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.NORMAL
-        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.DEBUG
-        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.DEBUG
-        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.NORMAL
-        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.NORMAL
-        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.DEBUG
-        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.DEBUG
-        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.NORMAL
-        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG
+        watchMode          | vfsLogging         | watchLogging        | actuallyEnabled
+        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.NORMAL | true
+        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
+        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.DEBUG  | false
+        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
+        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.NORMAL | true
+        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.NORMAL | true
+        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.DEBUG  | true
+        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
+        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
+        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG  | false
     }
 }
