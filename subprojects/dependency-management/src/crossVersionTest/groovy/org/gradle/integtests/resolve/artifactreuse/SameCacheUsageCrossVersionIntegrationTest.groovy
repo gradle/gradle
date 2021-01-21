@@ -21,11 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 @IgnoreVersions({ it.artifactCacheLayoutVersion != DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
 class SameCacheUsageCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
-    @Ignore("Temporary ignore while release / master get back in sync")
     def "incurs zero remote requests when cache version not upgraded"() {
         given:
         def projectB = mavenHttpRepo.module('org.name', 'projectB', '1.0').publish()
