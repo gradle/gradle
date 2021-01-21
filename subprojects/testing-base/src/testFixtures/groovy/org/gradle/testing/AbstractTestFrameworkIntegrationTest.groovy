@@ -93,7 +93,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
                 doLast {
                     assert ${testTaskName}.reports.junitXml.destination == file('build/test-results/${testTaskName}')
                     assert ${testTaskName}.reports.html.destination == file('build/reports/tests/${testTaskName}')
-                    assert ${testTaskName}.binResultsDir == file('build/test-results/${testTaskName}/binary')
+                    assert ${testTaskName}.binaryResultsDirectory.asFile.orNull == file('build/test-results/${testTaskName}/binary')
                 }
             }
         """

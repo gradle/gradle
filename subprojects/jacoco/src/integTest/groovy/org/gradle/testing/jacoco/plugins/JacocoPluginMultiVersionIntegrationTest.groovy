@@ -164,7 +164,7 @@ public class ThingTest {
             sourceSets.otherTest.runtimeClasspath = sourceSets.otherTest.compileClasspath + sourceSets.otherTest.output
 
             task otherTests(type: Test) {
-                binResultsDir file("bin")
+                binaryResultsDirectory = file("bin")
                 testClassesDirs = sourceSets.otherTest.output.classesDirs
                 classpath = sourceSets.otherTest.runtimeClasspath
             }
