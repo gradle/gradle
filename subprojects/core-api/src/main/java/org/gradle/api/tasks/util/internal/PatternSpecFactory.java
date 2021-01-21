@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.util.internal;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.FileTreeElement;
@@ -86,7 +88,7 @@ public class PatternSpecFactory {
         if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
         } else if (invalidChangeOfExcludes(defaultExcludes)) {
-            reportChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
+            failOnChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
         } else {
             updateDefaultExcludeSpecCache(defaultExcludes);
         }
@@ -94,11 +96,11 @@ public class PatternSpecFactory {
         return defaultExcludeSpecCache.get(caseSensitivity);
     }
 
-    protected boolean invalidChangeOfExcludes(String[] defaultExcludes) {
+    private boolean invalidChangeOfExcludes(String[] defaultExcludes) {
         return !Arrays.equals(previousDefaultExcludes, defaultExcludes);
     }
 
-    private void reportChangedDefaultExcludes(String[] excludesFromSettings, String[] newDefaultExcludes) {
+    private void failOnChangedDefaultExcludes(String[] excludesFromSettings, String[] newDefaultExcludes) {
         List<String> sortedExcludesFromSettings = Arrays.asList(excludesFromSettings);
         sortedExcludesFromSettings.sort(Comparator.naturalOrder());
         List<String> sortedNewExcludes = Arrays.asList(newDefaultExcludes);
@@ -110,6 +112,11 @@ public class PatternSpecFactory {
         if (!Arrays.equals(previousDefaultExcludes, excludesFromSettings)) {
             updateDefaultExcludeSpecCache(excludesFromSettings);
         }
+    }
+
+    @VisibleForTesting
+    public synchronized List<String> getDefaultExcludesFromSettings() {
+        return ImmutableList.copyOf(previousDefaultExcludes);
     }
 
     protected void updateDefaultExcludeSpecCache(String[] defaultExcludes) {

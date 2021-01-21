@@ -18,6 +18,7 @@ package org.gradle.api.tasks.util
 
 import groovy.transform.CompileStatic
 import org.apache.tools.ant.DirectoryScanner
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
@@ -29,10 +30,11 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class PatternSetTest extends AbstractTestForPatternSet {
-    PatternSet patternSet = new TestPatternSet()
+    PatternSet patternSet = new PatternSet()
 
     def cleanup() {
         DirectoryScanner.resetDefaultExcludes()
+        updateSettingsDefaults()
     }
 
     def testConstructionFromMap() {
@@ -98,6 +100,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
         DirectoryScanner.defaultExcludes.each {
             DirectoryScanner.removeDefaultExclude(it)
         }
+        updateSettingsDefaults()
+
         then:
         included dir('.svn')
         included file('.svn', 'abc')
@@ -105,8 +109,26 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
         when:
         DirectoryScanner.addDefaultExclude('*X*')
+        updateSettingsDefaults()
+
         then:
         excluded file('X')
+    }
+
+    def "fails if default excludes are updated without changing the settings defaults"() {
+        given:
+        DirectoryScanner.defaultExcludes.each {
+            DirectoryScanner.removeDefaultExclude(it)
+        }
+
+        when:
+        included dir('.svn')
+
+        then:
+        InvalidUserCodeException ex = thrown()
+
+        and:
+        ex.message == "Cannot change default excludes during the build. They were changed from ${PatternSpecFactory.INSTANCE.defaultExcludesFromSettings} to []. Configure default excludes in the settings script instead."
     }
 
     def createsSpecForIncludePatterns() {
@@ -359,17 +381,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
     }
 
     @CompileStatic
-    private static class TestPatternSet extends PatternSet {
-        TestPatternSet() {
-            super(new TestPatternSpecFactory())
-        }
-    }
-
-    @CompileStatic
-    private static class TestPatternSpecFactory extends PatternSpecFactory {
-        @Override
-        protected boolean invalidChangeOfExcludes(String[] defaultExcludes) {
-            false
-        }
+    private static void updateSettingsDefaults() {
+        PatternSpecFactory.INSTANCE.setDefaultExcludesFromSettings(DirectoryScanner.getDefaultExcludes())
     }
 }
