@@ -210,6 +210,15 @@ enforced platforms use cases should be limited to applications, not things which
 
 If, for some reason, you still want to publish components with dependencies on enforced platforms, you can disable the validation following the <<publishing_setup.adoc#sec:suppressing_validation_errors, documentation>>.
 
+==== Changing default excludes during the execution phase
+
+Gradle's file trees apply some default exclude patterns for convenience — the same defaults as Ant in fact.
+See the <<working_with_files.adoc#sec:file_trees,user manual>> for more information.
+Sometimes, Ant's default excludes prove problematic, for example when you want to include the `.gitignore` in an archive file.
+
+Changing Gradle's default excludes during the execution phase can lead to correctness problems with up-to-date checks.
+As a consequence, you are only allowed to change Gradle's default excludes in the settings script, see the <<working_with_files.adoc#sec:change_default_excludes,user manual>> for an example.
+
 === Deprecations
 
 [[referencing_tasks_from_included_builds]]
