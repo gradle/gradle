@@ -18,7 +18,11 @@ package org.gradle.internal.classpath;
 
 import org.gradle.internal.Pair;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 import java.util.List;
 
@@ -43,6 +47,19 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
     }
 
     @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        String newSuperName = fixInternalNameForBackwardCompatibility(superName);
+        String[] newInterfaces = fixInternalNamesForBackwardsCompatibility(interfaces);
+        super.visit(version, access, name, signature, newSuperName, newInterfaces);
+    }
+
+    @Override
+    public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+        String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
+        return super.visitField(access, name, newDescriptor, signature, value);
+    }
+
+    @Override
     public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
         String newDescriptor = fixSyntheticBridgeMethodDescriptor(access, descriptor);
         MethodVisitor methodVisitor = super.visitMethod(access, name, newDescriptor, signature, exceptions);
@@ -58,10 +75,48 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
         }
 
         @Override
+        public void visitTypeInsn(int opcode, String type) {
+            String newType = fixInternalNameForBackwardCompatibility(type);
+            super.visitTypeInsn(opcode, newType);
+        }
+
+        @Override
+        public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+            final String newOwner = fixInternalNameForBackwardCompatibility(owner);
+            final String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
+            super.visitFieldInsn(opcode, newOwner, name, newDescriptor);
+        }
+
+        @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
             final String newOwner = fixInternalNameForBackwardCompatibility(owner);
             final String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
             super.visitMethodInsn(opcode, newOwner, name, newDescriptor, isInterface);
+        }
+
+        @Override
+        public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
+            String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
+            super.visitMultiANewArrayInsn(newDescriptor, numDimensions);
+        }
+
+        @Override
+        public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
+            final String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
+            super.visitLocalVariable(name, newDescriptor, signature, start, end, index);
+        }
+
+        @Override
+        public void visitLdcInsn(Object value) {
+            Object newValue = fixTypeForBackwardsCompatibility(value);
+            super.visitLdcInsn(newValue);
+        }
+
+        @Override
+        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+            String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
+            Object[] newBootstrapMethodArguments = fixTypesForBackwardsCompatibility(bootstrapMethodArguments);
+            super.visitInvokeDynamicInsn(name, newDescriptor, bootstrapMethodHandle, newBootstrapMethodArguments);
         }
     }
 
@@ -71,6 +126,32 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
         return (access & ACC_SYNTHETIC) != 0 && descriptor.startsWith("()")
             ? fixDescriptorForBackwardCompatibility(descriptor)
             : descriptor;
+    }
+
+    private static Object[] fixTypesForBackwardsCompatibility(Object[] values) {
+        Object[] newValues = new Object[values.length];
+        for (int idx = 0; idx < values.length; idx++) {
+            newValues[idx] = fixTypeForBackwardsCompatibility(values[idx]);
+        }
+        return newValues;
+    }
+
+    private static Object fixTypeForBackwardsCompatibility(Object value) {
+        if (value instanceof Type) {
+            Type type = (Type) value;
+            String newDescriptor = fixDescriptorForBackwardCompatibility(type.getDescriptor());
+            return Type.getType(newDescriptor);
+        } else {
+            return value;
+        }
+    }
+
+    private static String[] fixInternalNamesForBackwardsCompatibility(String[] internalNames) {
+        String[] newInternalNames = new String[internalNames.length];
+        for (int idx = 0; idx < internalNames.length; idx++) {
+            newInternalNames[idx] = fixInternalNameForBackwardCompatibility(internalNames[idx]);
+        }
+        return newInternalNames;
     }
 
     private static String fixInternalNameForBackwardCompatibility(String internalName) {
