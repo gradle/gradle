@@ -35,7 +35,8 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 
     private static final List<Pair<String, String>> RENAMED_TYPE_INTERNAL_NAMES = asList(
         Pair.of("org/gradle/logging/LoggingManagerInternal", "org/gradle/api/logging/LoggingManager"),
-        Pair.of("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture")
+        Pair.of("org/gradle/logging/StandardOutputCapture", "org/gradle/internal/logging/StandardOutputCapture"),
+        Pair.of("org/gradle/api/internal/AbstractTask", "org/gradle/api/DefaultTask")
     );
 
     private static final List<Pair<String, String>> RENAMED_TYPE_DESCRIPTORS = RENAMED_TYPE_INTERNAL_NAMES.stream().map(
