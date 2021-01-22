@@ -68,8 +68,8 @@ data class CIBuildModel(
             ),
             functionalTests = listOf(
                 TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION),
-                TestCoverage(28, TestType.watchFs, Os.LINUX, JvmCategory.MAX_VERSION)),
+                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION)
+            ),
             performanceTests = listOf(
                 PerformanceTestCoverage(6, PerformanceTestType.per_commit, Os.WINDOWS, numberOfBuckets = 5, failsStage = false),
                 PerformanceTestCoverage(7, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, failsStage = false)
@@ -90,11 +90,8 @@ data class CIBuildModel(
                 TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 20),
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION),
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, expectedBucketNumber = 10),
-                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, expectedBucketNumber = 10),
-                // Only Java 8 VFS retention tests pass on macOS, since later versions have problems
-                // with the JDK watcher and continuous build.
-                TestCoverage(31, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION),
-                TestCoverage(30, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION)),
+                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, expectedBucketNumber = 10)
+            ),
             performanceTests = listOf(
                 PerformanceTestCoverage(2, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, oldUuid = "PerformanceTestSlowLinux")
             )),
@@ -121,14 +118,6 @@ data class CIBuildModel(
         Stage(StageNames.EXPERIMENTAL_VFS_RETENTION,
             trigger = Trigger.never,
             runsIndependent = true,
-            functionalTests = listOf(
-                TestCoverage(27, TestType.watchFs, Os.LINUX, JvmCategory.MIN_VERSION, withoutDependencies = true),
-                TestCoverage(36, TestType.watchFs, Os.LINUX, JvmCategory.MAX_VERSION, withoutDependencies = true),
-                TestCoverage(29, TestType.watchFs, Os.WINDOWS, JvmCategory.MIN_VERSION, withoutDependencies = true),
-                TestCoverage(38, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION, withoutDependencies = true),
-                TestCoverage(32, TestType.watchFs, Os.MACOS, JvmCategory.MAX_VERSION, withoutDependencies = true),
-                TestCoverage(37, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION, withoutDependencies = true)
-            ),
             flameGraphs = listOf(
                 FlameGraphGeneration(14, "File System Watching", listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
                     PerformanceScenario(Scenario("org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest", "assemble for non-abi change with file system watching and configuration caching"), it)
@@ -286,7 +275,6 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
     configCache(false, true, false),
-    watchFs(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
 }
