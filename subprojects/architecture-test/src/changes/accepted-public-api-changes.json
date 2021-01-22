@@ -817,22 +817,6 @@
             "changes": []
         },
 
-
-        {
-            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
-            "member": "Class org.gradle.plugins.javascript.base.SourceTransformationException",
-            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
-            "changes": [
-                "ANNOTATION_DEPRECATED_ADDED"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.javascript.base.SourceTransformationException",
-            "member": "Constructor org.gradle.plugins.javascript.base.SourceTransformationException(java.lang.String,java.lang.Throwable)",
-            "acceptation": "Temporarily re-added for compatibility with the playframework plugin - see https://github.com/gradle/playframework/pull/161",
-            "changes": []
-        },
-
         {
             "type": "org.gradle.api.artifacts.maven.GroovyMavenDeployer",
             "member": "Class org.gradle.api.artifacts.maven.GroovyMavenDeployer",
