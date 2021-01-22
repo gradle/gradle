@@ -250,6 +250,9 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.file.FileType
         - org.gradle.api.model.ReplacedBy
         - org.gradle.api.Task.getTimeout
+        - org.gradle.process.JavaDebugOptions
+        - org.gradle.process.JavaForkOptions.getDebugOptions()
+        - org.gradle.process.JavaForkOptions.debugOptions(Action)
         - org.gradle.api.tasks.WorkResult.or
         - org.gradle.api.tasks.IgnoreEmptyDirectories
         - org.gradle.api.tasks.TaskInputFilePropertyBuilder.ignoreEmptyDirectories()
@@ -373,6 +376,10 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
     - Miscellaneous
         - org.gradle.tooling.events.OperationCompletionListener
         - org.gradle.tooling.events.configuration.ProjectConfigurationProgressEvent
+    - Debugging
+        - org.gradle.tooling.TestLauncher.withTaskAndTestClasses(String, Iterable)
+        - org.gradle.tooling.TestLauncher.withTaskAndTestMethods(String, String, Iterable)
+        - org.gradle.tooling.TestLauncher.debugTestsOn(int)
 - Java Ecosystem
     - Antlr plugin
         - org.gradle.api.plugins.antlr.AntlrTask.getStableSources
