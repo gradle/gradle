@@ -51,7 +51,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = runner(workers, 'clean', ':app:testDebugUnitTestCoverage') as DefaultGradleRunner
+        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage') as DefaultGradleRunner
         def result = useAgpVersion(androidPluginVersion, runner).build()
 
         then:
@@ -64,7 +64,9 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         }
 
         cleanup:
-        DaemonLogsAnalyzer.newAnalyzer(new File(runner.testKitDirProvider.getDir(), ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
+        if (runner) {
+            DaemonLogsAnalyzer.newAnalyzer(new File(runner.testKitDirProvider.getDir(), ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
+        }
 
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
@@ -80,7 +82,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    private GradleRunner runner(boolean workers, String... tasks) {
+    private GradleRunner createRunner(boolean workers, String... tasks) {
         return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
                 .forwardOutput()
     }
