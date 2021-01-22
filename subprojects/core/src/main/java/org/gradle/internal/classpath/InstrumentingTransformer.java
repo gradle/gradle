@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
@@ -46,7 +47,6 @@ import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.ASM7;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.F_SAME;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
@@ -128,7 +128,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private boolean isInterface;
 
         public InstrumentingVisitor(ClassVisitor visitor) {
-            super(ASM7, visitor);
+            super(ASM_LEVEL, visitor);
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -371,7 +371,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class MethodVisitorScope extends MethodVisitor {
 
         public MethodVisitorScope(MethodVisitor methodVisitor) {
-            super(ASM7, methodVisitor);
+            super(ASM_LEVEL, methodVisitor);
         }
 
         protected void unboxOrCastTo(Type targetType) {

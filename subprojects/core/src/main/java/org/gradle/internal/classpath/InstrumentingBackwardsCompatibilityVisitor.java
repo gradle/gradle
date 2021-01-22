@@ -28,8 +28,8 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
-import static org.objectweb.asm.Opcodes.ASM7;
 
 class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 
@@ -44,7 +44,7 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
     ).collect(toList());
 
     InstrumentingBackwardsCompatibilityVisitor(ClassVisitor classVisitor) {
-        super(ASM7, classVisitor);
+        super(ASM_LEVEL, classVisitor);
     }
 
     @Override
@@ -72,7 +72,7 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
     private static class BackwardCompatibilityMethodVisitor extends MethodVisitor {
 
         public BackwardCompatibilityMethodVisitor(MethodVisitor methodVisitor) {
-            super(ASM7, methodVisitor);
+            super(ASM_LEVEL, methodVisitor);
         }
 
         @Override
