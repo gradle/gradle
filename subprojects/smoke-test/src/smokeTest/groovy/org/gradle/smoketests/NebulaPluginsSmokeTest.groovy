@@ -46,8 +46,13 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
             """
 
+        withPluginValidation()
+
         then:
         runner('build').build()
+
+        and:
+        expectNoPluginValidationError()
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
@@ -97,11 +102,13 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
         """.stripIndent()
 
+        withPluginValidation()
+
         when:
         def result = runner('autoLintGradle').build()
 
         then:
-        int numOfRepoBlockLines = 14 + jcenterRepository().readLines().size()
+        int numOfRepoBlockLines = 17 + jcenterRepository().readLines().size()
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
         result.output.contains("build.gradle:$numOfRepoBlockLines")
@@ -116,6 +123,9 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 build.gradle:$numOfRepoBlockLines
 testImplementation('junit:junit:4.7')""")
         buildFile.text.contains("testImplementation 'junit:junit:4.7'")
+
+        and:
+        expectNoPluginValidationError()
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
@@ -128,8 +138,13 @@ testImplementation('junit:junit:4.7')""")
             }
         """.stripIndent()
 
+        withPluginValidation()
+
         then:
         runner('buildEnvironment', 'generateLock').build()
+
+        and:
+        expectNoPluginValidationError()
     }
 
     @Issue("gradle/gradle#3798")
@@ -188,10 +203,15 @@ testImplementation('junit:junit:4.7')""")
     }
 }'''
 
+        withPluginValidation()
+
         then:
         runner('dependencies').build()
         runner('generateLock').build()
         runner('resolve').build()
+
+        and:
+        expectNoPluginValidationError()
 
         where:
         version << TestedVersions.nebulaDependencyLock
@@ -231,7 +251,12 @@ testImplementation('junit:junit:4.7')""")
             }
         """.stripIndent()
 
+        withPluginValidation()
+
         then:
         runner('dependencies').build()
+
+        and:
+        expectNoPluginValidationError()
     }
 }

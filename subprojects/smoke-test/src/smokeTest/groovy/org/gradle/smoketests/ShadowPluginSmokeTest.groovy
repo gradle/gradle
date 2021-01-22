@@ -51,6 +51,8 @@ class ShadowPluginSmokeTest extends AbstractSmokeTest {
             }
             """.stripIndent()
 
+        withPluginValidation()
+
         when:
         def result = runner('shadowJar').build()
 
@@ -65,6 +67,9 @@ class ShadowPluginSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':shadowJar').outcome == SUCCESS
         assertConfigurationCacheStateLoaded()
+
+        and:
+        expectNoPluginValidationError()
 
         where:
         version << TestedVersions.shadow

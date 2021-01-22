@@ -52,6 +52,7 @@ class SpotBugsPluginSmokeTest extends AbstractSmokeTest {
             }
         """.stripIndent()
 
+        withPluginValidation()
 
         when:
         def result = runner('spotbugsMain').build()
@@ -60,6 +61,9 @@ class SpotBugsPluginSmokeTest extends AbstractSmokeTest {
         file('build/reports/spotbugs').isDirectory()
 
         expectNoDeprecationWarnings(result)
+
+        and:
+        expectNoPluginValidationError()
     }
 
 }

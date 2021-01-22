@@ -46,6 +46,8 @@ class SpringBootPluginSmokeTest extends AbstractSmokeTest {
             }
         """.stripIndent()
 
+        withPluginValidation()
+
         when:
         def buildResult = runner('assembleBootDist', 'check').build()
 
@@ -61,6 +63,9 @@ class SpringBootPluginSmokeTest extends AbstractSmokeTest {
         runResult.task(':bootRun').outcome == SUCCESS
 
         expectNoDeprecationWarnings(runResult)
+
+        and:
+        failsPluginValidation()
     }
 
 }

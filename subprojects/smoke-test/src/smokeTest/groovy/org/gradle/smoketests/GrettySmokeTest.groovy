@@ -31,13 +31,13 @@ class GrettySmokeTest extends AbstractSmokeTest {
                 id "war"
                 id "org.gretty" version "${TestedVersions.gretty}"
             }
-            
+
             ${jcenterRepository()}
 
             dependencies {
                 compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
             }
-            
+
             gretty {
                 contextPath = 'quickstart'
 
@@ -59,10 +59,15 @@ class GrettySmokeTest extends AbstractSmokeTest {
             }
         """
 
+        withPluginValidation()
+
         when:
         def result = runner('checkContainerUp').build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
+
+        and:
+        failsPluginValidation()
     }
 }

@@ -78,6 +78,8 @@ class JGitPluginSmokeTest extends AbstractSmokeTest {
             }
         """.stripIndent()
 
+        withPluginValidation()
+
         when:
         def result = runner('release').build()
 
@@ -87,6 +89,9 @@ class JGitPluginSmokeTest extends AbstractSmokeTest {
         result.task(':checkout').outcome == SUCCESS
 
         expectNoDeprecationWarnings(result)
+
+        and:
+        expectNoPluginValidationError()
     }
 
 }

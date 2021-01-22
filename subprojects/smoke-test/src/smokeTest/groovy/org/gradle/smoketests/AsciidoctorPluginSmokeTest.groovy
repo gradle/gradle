@@ -100,6 +100,8 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
             Topazes are blue.
             """.stripIndent()
 
+        withPluginValidation()
+
         when:
         def result = runner('asciidoc').build()
 
@@ -116,6 +118,11 @@ class AsciidoctorPluginSmokeTest extends AbstractSmokeTest {
                     "Execution optimizations are disabled due to the failed validation. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
             )
+        }
+
+        and:
+        checkThatPluginValidationFailsWhen {
+            VersionNumber.parse(version) < version3
         }
 
         where:

@@ -175,6 +175,38 @@ abstract class AbstractSmokeTest extends Specification {
         settingsFile = new File(testProjectDir.root, "settings.gradle")
     }
 
+    def withPluginValidation() {
+        def isKotlin = defaultBuildFileName.endsWith('.gradle.kts')
+        def pluginsBlockIdx = buildFile.text.indexOf('plugins {')
+        def buildScriptBlockIdx = buildFile.text.indexOf('buildscript {')
+        if (pluginsBlockIdx > 0 || (pluginsBlockIdx == -1 && buildScriptBlockIdx == -1)) {
+            buildFile.text = buildFile.text.replace('plugins {', """
+            plugins {
+                ${isKotlin ? '`validate-external-gradle-plugin`' : 'id "validate-external-gradle-plugin"'}
+        """)
+        } else if (buildScriptBlockIdx > 0) {
+            throw new UnsupportedOperationException("Validation with buildscript block isn't supported in smoke tests yet")
+        }
+    }
+
+    BuildResult checkThatPluginValidationFailsWhen(Closure<Boolean> shouldFail) {
+        def failsValidation =  shouldFail()
+        def validation = runner('validateExternalPlugins')
+        if (failsValidation) {
+            validation.buildAndFail()
+        } else {
+            validation.build()
+        }
+    }
+
+    BuildResult expectNoPluginValidationError() {
+        checkThatPluginValidationFailsWhen { false }
+    }
+
+    BuildResult failsPluginValidation() {
+        checkThatPluginValidationFailsWhen { true }
+    }
+
     protected String getDefaultBuildFileName() {
         'build.gradle'
     }
