@@ -31,16 +31,27 @@ import javax.annotation.concurrent.ThreadSafe;
  * The basic deprecation message structure is "Summary. DeprecationTimeline. Context. Advice. Documentation."
  *
  * The deprecateX methods in this class return a builder that guides creation of the deprecation message.
+ *
  * Summary is populated by the deprecateX methods in this class.
+ *
  * Context can be added in free text using {@link DeprecationMessageBuilder#withContext(String)}.
+ * It should provide any _instance specific_ details about the deprecated usage that would help a user identify
+ * the full nature of the use site. This is particularly important when the use site is not directly within user code.
+ *
  * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated. Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ *
  * DeprecationTimeline is mandatory and is added using one of:
  * - ${@link DeprecationMessageBuilder#willBeRemovedInGradle7()}
  * - ${@link DeprecationMessageBuilder#willBecomeAnErrorInGradle7()}
+ *
  * After DeprecationTimeline is set, Documentation reference must be added using one of:
  * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUpgradeGuideSection(int, String)}
  * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withDslReference(Class, String)}
  * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUserManual(String, String)}
+ *
+ * Generally, only one deprecation of a type (i.e. summary/advice) should be emitted during a logical unit of work.
+ * If there are multiple instances of the same logical deprecation during a logical unit of work,
+ * the individual instance specifics should be included as part of the context.
  *
  * In order for the deprecation message to be emitted, terminal operation {@link DeprecationMessageBuilder.WithDocumentation#nagUser()} has to be called after one of the documentation providing methods.
  */
