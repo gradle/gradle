@@ -16,10 +16,8 @@
 
 package org.gradle.docs.samples;
 
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
-@Ignore
 @RunWith(PartitioningSamplesRunner.SnippetsBucket3.class)
 public class Bucket3SnippetsTest extends BaseSamplesTest {
 }
