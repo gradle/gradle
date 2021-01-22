@@ -8,10 +8,11 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-[Martin d'Anjou](https://github.com/martinda)
-[Till Krullmann](https://github.com/tkrullmann)
-[Andreas Axelsson](https://github.com/judgeaxl)
-[Pedro Tôrres](https://github.com/t0rr3sp3dr0)
+[Martin d'Anjou](https://github.com/martinda),
+[Till Krullmann](https://github.com/tkrullmann),
+[Andreas Axelsson](https://github.com/judgeaxl),
+[Pedro Tôrres](https://github.com/t0rr3sp3dr0),
+[Stefan Oehme](https://github.com/oehme),
 
 ## Upgrade Instructions
 
