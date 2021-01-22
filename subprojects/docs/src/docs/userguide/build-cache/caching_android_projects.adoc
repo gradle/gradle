@@ -22,8 +22,8 @@ However, it is likely that many of those tasks will have been run with exactly t
 
 === Reusing CI builds for local development
 
-When you sign into work at the start of your day, it’s not unusual for your first task to be pulling master and then running a build (Android Studio will probably do the latter, whether you ask it to or not).
-Assuming all merges to master are built on CI (a best practice!), you can expect this first local build of the day to enjoy a larger-than-typical benefit with Gradle’s _remote cache_.
+When you sign into work at the start of your day, it’s not unusual for your first task to be pulling the main branch and then running a build (Android Studio will probably do the latter, whether you ask it to or not).
+Assuming all merges to main are built on CI (a best practice!), you can expect this first local build of the day to enjoy a larger-than-typical benefit with Gradle’s _remote cache_.
 CI already built this commit -- why should you re-do that work?
 
 === Switching branches
