@@ -21,12 +21,9 @@ import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -39,12 +36,14 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.initialization.DefaultGradlePropertiesController
-import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.Try
+import org.gradle.internal.build.NestedRootBuildRunner.createNestedRootBuild
+import org.gradle.internal.build.NestedRootBuildRunner.createStartParameterForNewBuild
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.invocation.GradleBuildController
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -65,8 +64,6 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
-import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
@@ -85,15 +82,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     val asyncIOScopeFactory: AsyncIOScopeFactory,
 
     private
-    val textFileResourceLoader: TextFileResourceLoader,
-
-    private
-    val projectSchemaProvider: ProjectSchemaProvider
+    val textFileResourceLoader: TextFileResourceLoader
 
 ) : ClassPathSensitiveCodeGenerationTask() {
-
-    private
-    val gradleUserHomeDir = project.gradle.gradleUserHomeDir
 
     private
     val projectDesc = project.toString()
@@ -290,30 +281,62 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun projectSchemaImpliedByPluginGroups(
         pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
-    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
-        SyntheticProjectSchemaBuilder(
-            gradleUserHomeDir = gradleUserHomeDir,
-            rootProjectDir = uniqueTempDirectory(),
-            rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files,
-            projectSchemaProvider = projectSchemaProvider
-        ).useToRun {
-            pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
-                try {
-                    val schema = schemaFor(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
-                    val hashedSchema = HashedProjectSchema(schema)
-                    scriptPlugins.map { hashedSchema to it }
-                } catch (error: Throwable) {
-                    reportProjectSchemaError(scriptPlugins, error)
-                    emptyList()
-                }
-            }.groupBy(
-                { (schema, _) -> schema },
-                { (_, plugin) -> plugin }
-            )
-        }
+    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> {
+        // TODO: assert the schema matches syntheticProjectSchemaImpliedByPluginGroups
+        return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
+            try {
+                val schema = projectSchemaFor(uniquePluginRequests, scriptPlugins).get()
+                val hashed = HashedProjectSchema(schema)
+                scriptPlugins.map { hashed to it }
+            } catch (error: Throwable) {
+                reportProjectSchemaError(scriptPlugins, error)
+                emptyList()
+            }
+        }.groupBy(
+            { (schema, _) -> schema },
+            { (_, plugin) -> plugin }
+        )
+    }
 
     private
-    fun uniqueTempDirectory() = Files.createTempDirectory(temporaryDir.toPath(), "project-").toFile()
+    fun projectSchemaFor(uniquePluginRequests: List<String>, scriptPlugins: List<PrecompiledScriptPlugin>): Try<TypedProjectSchema> {
+        val startParameter = createStartParameterForNewBuild(services).apply {
+            require(this is StartParameterInternal)
+            projectDir = uniqueTempDirectory()
+            useEmptySettings()
+        }
+        return createNestedRootBuild("$path:${startParameter.projectDir?.name}", startParameter, services).run { controller ->
+            require(controller is GradleBuildController)
+            controller.doBuild { launcher ->
+                Try.ofFailable {
+                    val settings = launcher.loadedSettings
+                    val gradle = settings.gradle
+                    val coreAndPluginsScope = gradle.serviceOf<ClassLoaderScopeRegistry>().coreAndPluginsScope
+                    val baseScope = coreAndPluginsScope.createChild("accessors-classpath").apply {
+                        export(DefaultClassPath.of(classPathFiles + runtimeClassPathFiles))
+                        lock()
+                    }
+                    val selfScope = baseScope.createChild("accessors-root-project")
+                    val rootProject = gradle.serviceOf<IProjectFactory>().createProject(
+                        gradle,
+                        settings.rootProject.apply { name = "test" },
+                        null,
+                        selfScope,
+                        baseScope
+                    )
+                    gradle.rootProject = rootProject
+                    gradle.defaultProject = rootProject
+                    rootProject.run {
+                        applyPluginRequests(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
+                        serviceOf<ProjectSchemaProvider>().schemaFor(this)
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun uniqueTempDirectory() = Files.createTempDirectory(temporaryDir.toPath(), "accessors").toFile()
 
     private
     fun pluginRequestsFor(pluginIds: List<String>, plugin: PrecompiledScriptPlugin): PluginRequests =
@@ -368,98 +391,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
 
 internal
-class SyntheticProjectSchemaBuilder(
-    gradleUserHomeDir: File,
-    rootProjectDir: File,
-    rootProjectClassPath: Collection<File>,
-    private val projectSchemaProvider: ProjectSchemaProvider
-) : AutoCloseable {
-
-    private
-    val rootProject = buildRootProject(gradleUserHomeDir, rootProjectDir, rootProjectClassPath)
-
-    fun schemaFor(plugins: PluginRequests): TypedProjectSchema =
-        projectSchemaProvider.schemaFor(childProjectWith(plugins))
-
-    override fun close() {
-        ProjectBuilderImpl.stop(rootProject)
-    }
-
-    private
-    fun childProjectWith(pluginRequests: PluginRequests): Project {
-
-        val project = ProjectBuilder.builder()
-            .withParent(rootProject)
-            .withProjectDir(rootProject.projectDir.resolve("schema"))
-            .build()
-
-        applyPluginsTo(project, pluginRequests)
-
-        return project
-    }
-
-    private
-    fun buildRootProject(
-        gradleUserHomeDir: File,
-        projectDir: File,
-        rootProjectClassPath: Collection<File>
-    ): Project {
-
-        val project = ProjectBuilderImpl()
-            .createProject("root", projectDir, gradleUserHomeDir, true)
-            .withEmptyGradleProperties()
-
-        addScriptClassPathDependencyTo(project, rootProjectClassPath)
-
-        applyPluginsTo(project, PluginRequests.EMPTY)
-
-        return project
-    }
-
-    private
-    fun Project.withEmptyGradleProperties(): Project {
-        gradle.run {
-            require(this is GradleInternal)
-            services[GradlePropertiesController::class.java].run {
-                require(this is DefaultGradlePropertiesController)
-                overrideWith(EmptyGradleProperties)
-            }
-        }
-        return this
-    }
-
-    private
-    object EmptyGradleProperties : GradleProperties {
-        override fun find(propertyName: String?) = null
-        override fun mergeProperties(properties: Map<String, String>) = properties.toMap()
-    }
-
-    private
-    fun addScriptClassPathDependencyTo(project: Project, rootProjectClassPath: Collection<File>) {
-        val scriptHandler = project.buildscript as ScriptHandlerInternal
-        scriptHandler.addScriptClassPathDependency(
-            DefaultSelfResolvingDependency(
-                project
-                    .serviceOf<FileCollectionFactory>()
-                    .fixed("precompiled-script-plugins-accessors-classpath", rootProjectClassPath)
-            )
-        )
-    }
-
-    private
-    fun applyPluginsTo(project: Project, pluginRequests: PluginRequests) {
-        val targetProjectScope = (project as ProjectInternal).classLoaderScope
-        project.serviceOf<PluginRequestApplicator>().applyPlugins(
-            pluginRequests,
-            project.buildscript,
-            project.pluginManager,
-            targetProjectScope
-        )
-    }
-}
-
-
-internal
 data class HashedProjectSchema(
     val schema: TypedProjectSchema,
     val hash: HashCode = hashCodeFor(schema)
@@ -479,3 +410,15 @@ data class ScriptPluginPlugins(
     val scriptPlugin: PrecompiledScriptPlugin,
     val plugins: List<String>
 )
+
+
+private
+fun Project.applyPluginRequests(pluginRequests: PluginRequests) {
+    val targetProjectScope = (this as ProjectInternal).classLoaderScope
+    serviceOf<PluginRequestApplicator>().applyPlugins(
+        pluginRequests,
+        buildscript,
+        pluginManager,
+        targetProjectScope
+    )
+}
