@@ -29,7 +29,6 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
-import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 
 class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 
@@ -62,7 +61,7 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-        String newDescriptor = fixSyntheticBridgeMethodDescriptor(access, descriptor);
+        String newDescriptor = fixDescriptorForBackwardCompatibility(descriptor);
         MethodVisitor methodVisitor = super.visitMethod(access, name, newDescriptor, signature, exceptions);
         return methodVisitor != null
             ? new BackwardCompatibilityMethodVisitor(methodVisitor)
@@ -119,14 +118,6 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
             Object[] newBootstrapMethodArguments = fixTypesForBackwardsCompatibility(bootstrapMethodArguments);
             super.visitInvokeDynamicInsn(name, newDescriptor, bootstrapMethodHandle, newBootstrapMethodArguments);
         }
-    }
-
-    private String fixSyntheticBridgeMethodDescriptor(int access, String descriptor) {
-        // Restore compatibility with plugins compiled with an old Groovy version (like org.samples.greeting:1.0 used by the GE build)
-        // in which super class getters are accessed via bridge methods.
-        return (access & ACC_SYNTHETIC) != 0 && descriptor.startsWith("()")
-            ? fixDescriptorForBackwardCompatibility(descriptor)
-            : descriptor;
     }
 
     private static Object[] fixTypesForBackwardsCompatibility(Object[] values) {
