@@ -16,10 +16,13 @@
 
 package org.gradle.api.tasks.util
 
+import groovy.transform.CompileStatic
 import org.apache.tools.ant.DirectoryScanner
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.strictlyEquals
@@ -31,6 +34,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def cleanup() {
         DirectoryScanner.resetDefaultExcludes()
+        updateSettingsDefaults()
     }
 
     def testConstructionFromMap() {
@@ -96,6 +100,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
         DirectoryScanner.defaultExcludes.each {
             DirectoryScanner.removeDefaultExclude(it)
         }
+        updateSettingsDefaults()
+
         then:
         included dir('.svn')
         included file('.svn', 'abc')
@@ -103,8 +109,27 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
         when:
         DirectoryScanner.addDefaultExclude('*X*')
+        updateSettingsDefaults()
+
         then:
         excluded file('X')
+    }
+
+    def "fails if default excludes are updated without changing the settings defaults"() {
+        given:
+        def previousExcludes = (DirectoryScanner.defaultExcludes as List).sort()
+        DirectoryScanner.defaultExcludes.each {
+            DirectoryScanner.removeDefaultExclude(it)
+        }
+
+        when:
+        included dir('.svn')
+
+        then:
+        InvalidUserCodeException ex = thrown()
+
+        and:
+        ex.message == "Cannot change default excludes during the build. They were changed from ${previousExcludes} to []. Configure default excludes in the settings script instead."
     }
 
     def createsSpecForIncludePatterns() {
@@ -354,5 +379,10 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     private static FileTreeElement dir(String... elements) {
         element(false, elements)
+    }
+
+    @CompileStatic
+    private static void updateSettingsDefaults() {
+        PatternSpecFactory.INSTANCE.setDefaultExcludesFromSettings(DirectoryScanner.getDefaultExcludes())
     }
 }
