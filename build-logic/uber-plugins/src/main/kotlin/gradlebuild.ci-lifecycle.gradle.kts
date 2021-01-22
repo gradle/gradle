@@ -68,10 +68,6 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
         dependsOn("configCacheIntegTest")
     }
 
-    named("watchFsTest") {
-        dependsOn("watchFsIntegTest")
-    }
-
     named("forceRealizeDependencyManagementTest") {
         dependsOn("integForceRealizeTest")
     }
