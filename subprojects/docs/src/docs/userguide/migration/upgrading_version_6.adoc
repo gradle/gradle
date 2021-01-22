@@ -37,7 +37,7 @@ Some plugins will break with this new version of Gradle, for example because the
 == Upgrading from 6.8
 === Changes in the IDE integration
 
-===== Changes in the IDEA model
+==== Changes in the IDEA model
 
 The `getGeneratedSourceDirectories()` and `getGeneratedTestDirectories()` methods are removed from the `IdeaContentRoot` interface.
 Clients should replace these invocations with `getSourceDirectories()` and `getTestDirectories()` and use the `isGenerated()` method on the returned instances.
@@ -129,6 +129,19 @@ You can use link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask] inst
 
 `BuildListener.buildStarted(Gradle)` was deprecated in Gradle 6.0 and is now removed in Gradle 7.0.
 Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings-org.gradle.api.initialization.Settings-[BuildListener.beforeSettings(Settings)] instead.
+
+==== Removal of unused `StartParameter` APIs
+
+The following APIs, which were not usable via command line options anymore since Gradle 5.0, are now removed:
+`StartParameter.useEmptySettings()`, `StartParameter.isUseEmptySettings()`, `StartParameter.setSearchUpwards(boolean)` and `StartParameter.isSearchUpwards()`.
+
+==== Removal of searching for settings files in 'master' directories
+
+Gradle no longer supports discovering the settings file in a directory named `master` in a sibling directory.
+If your build still uses this deprecated feature, consider refactoring the build to have the root directory match the physical root of the project hierarchy.
+You can find more information about <<multi_project_builds.adoc#,how to structure a Gradle build>> or a <<structuring_software_products.adoc#,composition of builds>> in the user manual.
+Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
+<<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
 
 ==== `modularity.inferModulePath` defaults to 'true'
 

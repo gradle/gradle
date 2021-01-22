@@ -26,7 +26,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 /**
@@ -54,12 +53,6 @@ public class DefaultSettingsLoader implements SettingsLoader {
         StartParameter startParameter = gradle.getStartParameter();
 
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        if (settingsLocation.isSettingsLoadedFromMasterDirectory()) {
-            DeprecationLogger.deprecateBehaviour("Searching for settings files in a directory named 'master' from a sibling directory has been deprecated.")
-                .willBeRemovedInGradle7()
-                .withUpgradeGuideSection(6, "master_subdirectory_root_build")
-                .nagUser();
-        }
         loadGradlePropertiesFrom(settingsLocation);
 
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
@@ -96,8 +89,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
-        StartParameter noSearchParameter = startParameter.newInstance();
-        ((StartParameterInternal) noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
+        StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
+        noSearchParameter.setSettingsFile(null);
+        noSearchParameter.useEmptySettings();
+        noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
 

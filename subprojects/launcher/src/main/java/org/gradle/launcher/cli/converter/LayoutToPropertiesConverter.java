@@ -65,7 +65,7 @@ public class LayoutToPropertiesConverter {
         layout.applyTo(layoutParameters);
         Map<String, String> properties = new HashMap<>();
         configureFromHomeDir(layoutParameters.getGradleInstallationHomeDir(), properties);
-        configureFromBuildDir(layoutParameters.getSearchDir(), layoutParameters.getSearchUpwards(), properties);
+        configureFromBuildDir(layoutParameters.getSearchDir(), properties);
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         properties.putAll(initialProperties.getRequestedSystemProperties());
@@ -86,8 +86,8 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES), result);
     }
 
-    private void configureFromBuildDir(File currentDir, boolean searchUpwards, Map<String, String> result) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(currentDir, searchUpwards);
+    private void configureFromBuildDir(File currentDir, Map<String, String> result) {
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(currentDir, true);
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 

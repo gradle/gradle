@@ -38,7 +38,6 @@ class StartParameterTest extends Specification {
         parameter.taskNames = ['a']
         parameter.buildProjectDependencies = true
         parameter.currentDir = new File('a')
-        parameter.searchUpwards = false
         parameter.projectProperties = [a: 'a']
         parameter.systemPropertiesArgs = [b: 'b']
         parameter.gradleUserHomeDir = new File('b')
@@ -220,18 +219,6 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.settingsFile == null
-        assertThat(parameter, isSerializable())
-    }
-
-    void "can use empty settings script"() {
-        StartParameter parameter = new StartParameter()
-
-        when:
-        parameter.useEmptySettings()
-
-        then:
-        parameter.settingsFile == null
-        !parameter.searchUpwards
         assertThat(parameter, isSerializable())
     }
 

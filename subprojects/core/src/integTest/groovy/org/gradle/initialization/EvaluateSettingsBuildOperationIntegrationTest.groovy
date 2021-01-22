@@ -35,25 +35,6 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         operation().details.buildPath == ":"
     }
 
-    def "settings with master folder are exposed"() {
-        executer.expectDocumentedDeprecationWarning("Searching for settings files in a directory named 'master' from a sibling directory has been deprecated. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#master_subdirectory_root_build")
-
-        def customSettingsFile = file("master/settings.gradle")
-        customSettingsFile << """
-        includeFlat "a"
-        """
-
-        def projectDirectory = testDirectory.createDir("a")
-
-        when:
-        projectDir(projectDirectory)
-        succeeds('help')
-
-        then:
-        verifySettings(operation(), customSettingsFile)
-        operation().details.buildPath == ":"
-    }
-
     def "settings set via cmdline flag are exposed"() {
         def customSettingsDir = file("custom")
         customSettingsDir.mkdirs()
