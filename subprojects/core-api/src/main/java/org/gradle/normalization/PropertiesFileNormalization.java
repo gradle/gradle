@@ -16,14 +16,11 @@
 
 package org.gradle.normalization;
 
-import org.gradle.api.Incubating;
-
 /**
  * Specifies how properties files should be normalized.
  *
  * @since 6.8
  */
-@Incubating
 public interface PropertiesFileNormalization {
     /**
      * Specifies that the value of a certain property should be ignored when normalizing properties files.  {@code propertyName} is matched case-sensitively with the property key.

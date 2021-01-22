@@ -34,6 +34,7 @@ dependencies {
         because("Using build mutators to change a Java file")
     }
     smokeTestImplementation(libs.spock)
+    smokeTestImplementation(libs.junitPlatform)
 
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":version-control")))
@@ -96,13 +97,15 @@ tasks {
             .withPathSensitivity(PathSensitivity.RELATIVE)
     }
 
-    val gradleBuildCategory = "org.gradle.smoketests.GradleBuild"
+    val gradleBuildTestPattern = "org.gradle.smoketests.GradleBuild*SmokeTest"
 
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
         configureForSmokeTest(*santaProjects)
-        useJUnit {
-            excludeCategories(gradleBuildCategory)
+        useJUnitPlatform {
+            filter {
+                excludeTestsMatching(gradleBuildTestPattern)
+            }
         }
     }
 
@@ -110,16 +113,20 @@ tasks {
         description = "Runs Smoke tests with the configuration cache"
         configureForSmokeTest(*santaProjects)
         systemProperty("org.gradle.integtest.executer", "configCache")
-        useJUnit {
-            excludeCategories(gradleBuildCategory)
+        useJUnitPlatform {
+            filter {
+                excludeTestsMatching(gradleBuildTestPattern)
+            }
         }
     }
 
     register<SmokeTest>("gradleBuildSmokeTest") {
         description = "Runs Smoke tests against the Gradle build"
         configureForSmokeTest(gradleBuildCurrent)
-        useJUnit {
-            includeCategories(gradleBuildCategory)
+        useJUnitPlatform {
+            filter {
+                includeTestsMatching(gradleBuildTestPattern)
+            }
         }
     }
 }

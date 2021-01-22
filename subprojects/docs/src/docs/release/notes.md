@@ -251,6 +251,12 @@ In Gradle 7.0 we moved the following classes or methods out of incubation phase.
         - org.gradle.api.model.ReplacedBy
         - org.gradle.api.Task.getTimeout
         - org.gradle.api.tasks.WorkResult.or
+        - org.gradle.api.tasks.IgnoreEmptyDirectories
+        - org.gradle.api.tasks.TaskInputFilePropertyBuilder.ignoreEmptyDirectories()
+        - org.gradle.api.tasks.TaskInputFilePropertyBuilder.ignoreEmptyDirectories(boolean)
+        - org.gradle.normalization.PropertiesFileNormalization
+        - org.gradle.normalization.RuntimeClasspathNormalization.properties(java.lang.String, org.gradle.api.Action<? super org.gradle.normalization.PropertiesFileNormalization>)
+        - org.gradle.normalization.RuntimeClasspathNormalization.properties(org.gradle.api.Action<? super org.gradle.normalization.PropertiesFileNormalization>)
         - org.gradle.api.file.DuplicatesStrategy.INHERIT
 - Dependency management
     - Dependency notations
