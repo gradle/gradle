@@ -117,6 +117,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def "fails if default excludes are updated without changing the settings defaults"() {
         given:
+        def previousExcludes = (DirectoryScanner.defaultExcludes as List).sort()
         DirectoryScanner.defaultExcludes.each {
             DirectoryScanner.removeDefaultExclude(it)
         }
@@ -128,7 +129,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         InvalidUserCodeException ex = thrown()
 
         and:
-        ex.message == "Cannot change default excludes during the build. They were changed from ${PatternSpecFactory.INSTANCE.defaultExcludesFromSettings} to []. Configure default excludes in the settings script instead."
+        ex.message == "Cannot change default excludes during the build. They were changed from ${previousExcludes} to []. Configure default excludes in the settings script instead."
     }
 
     def createsSpecForIncludePatterns() {

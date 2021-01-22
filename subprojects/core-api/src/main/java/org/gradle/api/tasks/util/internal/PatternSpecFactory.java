@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.util.internal;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.FileTreeElement;
@@ -110,11 +108,6 @@ public class PatternSpecFactory {
         if (!Arrays.equals(previousDefaultExcludes, excludesFromSettings)) {
             updateDefaultExcludeSpecCache(excludesFromSettings);
         }
-    }
-
-    @VisibleForTesting
-    public synchronized List<String> getDefaultExcludesFromSettings() {
-        return ImmutableList.copyOf(previousDefaultExcludes);
     }
 
     private void updateDefaultExcludeSpecCache(String[] defaultExcludes) {
