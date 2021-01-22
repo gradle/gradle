@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -38,12 +37,6 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
             }
             apply plugin: 'java-base'
         """
-    }
-
-    @Ignore
-    def "Spock workaround"() {
-        expect:
-        true
     }
 
     @Unroll
