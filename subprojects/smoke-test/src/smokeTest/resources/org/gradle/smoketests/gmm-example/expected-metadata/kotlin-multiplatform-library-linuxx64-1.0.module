@@ -17,8 +17,9 @@
   },
   "variants": [
     {
-      "name": "linuxX64-api",
+      "name": "linuxX64ApiElements-published",
       "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.native.target": "linux_x64",
         "org.jetbrains.kotlin.platform.type": "native"
@@ -28,7 +29,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-common",
           "version": {
-            "requires": "1.3.72"
+            "requires": "1.4.30-RC"
           }
         }
       ],
@@ -36,16 +37,16 @@
         {
           "name": "kotlin-multiplatform-library.klib",
           "url": "kotlin-multiplatform-library-linuxx64-1.0.klib",
-          "size": 5437,
-          "sha512": "3a5c3f67392016bc90735bacc4788b823e155ddf714919d75d1590b0148f5b63d98f53b832c412dcb411fd8f53270c52e2dd83408739be146b550c56c02a9340",
-          "sha256": "7dd6266ed30d631f6c2b95fb92946126ff711b3405a11f6a16ea3cc9b836b3a3",
-          "sha1": "d3c8aa8a265013414bfbb7b457fa5b66d86d062a",
-          "md5": "dd9099c1af5d8dc5b51b42d368d9977d"
+          "size": 5127,
+          "sha512": "756f2eaa622a4d87e08cebbfc5639cd627b3a07c3032dce7be7a3c5c60d2f333e1267f41bdd588decccbab5ae32cd899161814db8a426ce25d1da49bea80036d",
+          "sha256": "9a6e9de35cfe0a896a5f974fa1b18496825248a8a253e431cf171d6ead001ea0",
+          "sha1": "d474aa444d2dac761df4683edba8d6d0a064f0ea",
+          "md5": "1e0ca11151400c48fd41383df633036c"
         }
       ]
     },
     {
-      "name": "metadata-api",
+      "name": "metadataApiElements-published",
       "attributes": {
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.platform.type": "common"

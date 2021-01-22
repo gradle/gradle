@@ -29,11 +29,11 @@
         {
           "name": "android-library-1.0-demoDebug.aar",
           "url": "android-library-1.0-demoDebug.aar",
-          "size": 1597,
-          "sha512": "25c3244315cb65d34aa14b56cc6ff16d1c2ad1382ac2afe105c02cb7bd24dc4c2b583fd3d474f68c0fb22294317f91a5343648ee6b04ab82b9e62dabf889418c",
-          "sha256": "a88a9c1e7d1f941e2e3df253002a19fff3a1f0aab05614a62d6476fdda505671",
-          "sha1": "516dd8e10c920029d10960be40ffa4b2ad0f03db",
-          "md5": "86cb41e5d705687c26f719fef490d5fb"
+          "size": 1528,
+          "sha512": "3ca0a60b743ae6371eafdfb73c6635e3376d8357e56d076c556223d1ee1cedab56f0e91ee8f27733d800717ce7f942bee24fc9d8e6d11d335d6e0f6a3b50fbad",
+          "sha256": "911efb06c5566e0eed53344d6963a7440d00dd02f976f7e5be9e69eff0c938b5",
+          "sha1": "6d1e395f0bbd2fd54c39c3d14ace373c2d933bb5",
+          "md5": "76e7e67fadbae5b91e19299e20f1291f"
         }
       ]
     },
@@ -51,11 +51,11 @@
         {
           "name": "android-library-1.0-demoDebug.aar",
           "url": "android-library-1.0-demoDebug.aar",
-          "size": 1597,
-          "sha512": "25c3244315cb65d34aa14b56cc6ff16d1c2ad1382ac2afe105c02cb7bd24dc4c2b583fd3d474f68c0fb22294317f91a5343648ee6b04ab82b9e62dabf889418c",
-          "sha256": "a88a9c1e7d1f941e2e3df253002a19fff3a1f0aab05614a62d6476fdda505671",
-          "sha1": "516dd8e10c920029d10960be40ffa4b2ad0f03db",
-          "md5": "86cb41e5d705687c26f719fef490d5fb"
+          "size": 1528,
+          "sha512": "3ca0a60b743ae6371eafdfb73c6635e3376d8357e56d076c556223d1ee1cedab56f0e91ee8f27733d800717ce7f942bee24fc9d8e6d11d335d6e0f6a3b50fbad",
+          "sha256": "911efb06c5566e0eed53344d6963a7440d00dd02f976f7e5be9e69eff0c938b5",
+          "sha1": "6d1e395f0bbd2fd54c39c3d14ace373c2d933bb5",
+          "md5": "76e7e67fadbae5b91e19299e20f1291f"
         }
       ]
     },
@@ -73,11 +73,11 @@
         {
           "name": "android-library-1.0-fullDebug.aar",
           "url": "android-library-1.0-fullDebug.aar",
-          "size": 1595,
-          "sha512": "4b3509d7f20b3a4702086e1c4f3d6384c2c31096d9873ce255383f9554ae8ae3d424112daeb4c48720d78acd426afe8403e5e0f84b64d899c43db050e1bab9f5",
-          "sha256": "ff13a8da75097b23fd4ab152f43b23cd62b487b6027bdf7495839b8bbc0595af",
-          "sha1": "0c6eadf68e341b3a212467eb08692334d2ef4f5f",
-          "md5": "f81420a912e98b1d8034b951744f06f2"
+          "size": 1529,
+          "sha512": "3cafdcb56369c5d0a65a6d768c0907828f9c16d728c4cc3b4effe52ff1a49ef4215a4a964f945b4ca1dde2821286d95b53240ac3f5732957f13cc9900b7ab122",
+          "sha256": "911944a0a11ed6b296250062571cb46267f330d6830f15e32befa26e7d8cf129",
+          "sha1": "f2a9f57970a03f2d6613ea0e3042df172c476d5f",
+          "md5": "bf0884f6207dff732602be6d499566c4"
         }
       ]
     },
@@ -95,11 +95,11 @@
         {
           "name": "android-library-1.0-fullDebug.aar",
           "url": "android-library-1.0-fullDebug.aar",
-          "size": 1595,
-          "sha512": "4b3509d7f20b3a4702086e1c4f3d6384c2c31096d9873ce255383f9554ae8ae3d424112daeb4c48720d78acd426afe8403e5e0f84b64d899c43db050e1bab9f5",
-          "sha256": "ff13a8da75097b23fd4ab152f43b23cd62b487b6027bdf7495839b8bbc0595af",
-          "sha1": "0c6eadf68e341b3a212467eb08692334d2ef4f5f",
-          "md5": "f81420a912e98b1d8034b951744f06f2"
+          "size": 1529,
+          "sha512": "3cafdcb56369c5d0a65a6d768c0907828f9c16d728c4cc3b4effe52ff1a49ef4215a4a964f945b4ca1dde2821286d95b53240ac3f5732957f13cc9900b7ab122",
+          "sha256": "911944a0a11ed6b296250062571cb46267f330d6830f15e32befa26e7d8cf129",
+          "sha1": "f2a9f57970a03f2d6613ea0e3042df172c476d5f",
+          "md5": "bf0884f6207dff732602be6d499566c4"
         }
       ]
     },
@@ -117,11 +117,11 @@
         {
           "name": "android-library-1.0-demoRelease.aar",
           "url": "android-library-1.0-demoRelease.aar",
-          "size": 1504,
-          "sha512": "ebf3d491268135a18e86331dd68c2fa73a0b11b7569fc9d4eabf4ecfb9cbc421cb39154a6d1d32ea4d7135a94f277555ab8d29a4c1df65a7a228f6b8477b1954",
-          "sha256": "caa87b35c4c3275df1d4edca51de2f33b8e8fd70e33c9e04940d1c9a40a11789",
-          "sha1": "230b4be9ce81069ffaec2a7dc414a46c61fc0cf9",
-          "md5": "fbef986e14d586c5e61e2e4cfcbac6c2"
+          "size": 1442,
+          "sha512": "41a2c512c7a6d1da55abf6187d4f7e9e51c0602d26d6c1ed9cc8496b4e02e12b9a1e980d48365d1a6c6f5fcbe64142de33d6342cd129038334dfb0326f9e2540",
+          "sha256": "2cf0e377326830a0a99c92240d07435098439ccf52fa0465cd9c8cef0fff4127",
+          "sha1": "17a7cb2f5b8690107bf2382387cd98c78331eee0",
+          "md5": "5df7ef17e85be1e7446f42b0841cf080"
         }
       ]
     },
@@ -139,11 +139,11 @@
         {
           "name": "android-library-1.0-demoRelease.aar",
           "url": "android-library-1.0-demoRelease.aar",
-          "size": 1504,
-          "sha512": "ebf3d491268135a18e86331dd68c2fa73a0b11b7569fc9d4eabf4ecfb9cbc421cb39154a6d1d32ea4d7135a94f277555ab8d29a4c1df65a7a228f6b8477b1954",
-          "sha256": "caa87b35c4c3275df1d4edca51de2f33b8e8fd70e33c9e04940d1c9a40a11789",
-          "sha1": "230b4be9ce81069ffaec2a7dc414a46c61fc0cf9",
-          "md5": "fbef986e14d586c5e61e2e4cfcbac6c2"
+          "size": 1442,
+          "sha512": "41a2c512c7a6d1da55abf6187d4f7e9e51c0602d26d6c1ed9cc8496b4e02e12b9a1e980d48365d1a6c6f5fcbe64142de33d6342cd129038334dfb0326f9e2540",
+          "sha256": "2cf0e377326830a0a99c92240d07435098439ccf52fa0465cd9c8cef0fff4127",
+          "sha1": "17a7cb2f5b8690107bf2382387cd98c78331eee0",
+          "md5": "5df7ef17e85be1e7446f42b0841cf080"
         }
       ]
     },
@@ -161,11 +161,11 @@
         {
           "name": "android-library-1.0-fullRelease.aar",
           "url": "android-library-1.0-fullRelease.aar",
-          "size": 1507,
-          "sha512": "f5e0642902a7d671667d8792c6d41ca911b309ba9f0308a9be7b891146c42faba184cd65e1846b52382317e7ca8d5a70f5fb73a014253aca31bd759cbef6068c",
-          "sha256": "63f2ad7334719d0a3a35423dc92ff36f5f552882c9c05b9a441c5bfefa3561bc",
-          "sha1": "cec5931b8f4b6c2bfeb5700db11532fb45d584ef",
-          "md5": "3ad07b0e9411b1cd3da3be478957e8eb"
+          "size": 1441,
+          "sha512": "791790c04ff0986f9187bcfe92abd4587f509f9e196c94011e8f4eaaccb788659e1f8d652e3707ce6ade916047bab2f613cb0c18ca7ac837ecc0cff80b445f8d",
+          "sha256": "e3799ecaaf720643900ed50a141b2fc0ef80b3e276cdd3eb6c9bd3d51275355f",
+          "sha1": "b664ccf60842c6d23514dd05ed13d73afcc25b38",
+          "md5": "adcc9c06e6ebe0c2f751be60182f7aa3"
         }
       ]
     },
@@ -183,11 +183,11 @@
         {
           "name": "android-library-1.0-fullRelease.aar",
           "url": "android-library-1.0-fullRelease.aar",
-          "size": 1507,
-          "sha512": "f5e0642902a7d671667d8792c6d41ca911b309ba9f0308a9be7b891146c42faba184cd65e1846b52382317e7ca8d5a70f5fb73a014253aca31bd759cbef6068c",
-          "sha256": "63f2ad7334719d0a3a35423dc92ff36f5f552882c9c05b9a441c5bfefa3561bc",
-          "sha1": "cec5931b8f4b6c2bfeb5700db11532fb45d584ef",
-          "md5": "3ad07b0e9411b1cd3da3be478957e8eb"
+          "size": 1441,
+          "sha512": "791790c04ff0986f9187bcfe92abd4587f509f9e196c94011e8f4eaaccb788659e1f8d652e3707ce6ade916047bab2f613cb0c18ca7ac837ecc0cff80b445f8d",
+          "sha256": "e3799ecaaf720643900ed50a141b2fc0ef80b3e276cdd3eb6c9bd3d51275355f",
+          "sha1": "b664ccf60842c6d23514dd05ed13d73afcc25b38",
+          "md5": "adcc9c06e6ebe0c2f751be60182f7aa3"
         }
       ]
     }

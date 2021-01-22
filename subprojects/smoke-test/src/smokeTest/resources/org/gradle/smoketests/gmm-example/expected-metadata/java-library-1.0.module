@@ -29,10 +29,10 @@
           "name": "java-library-1.0.jar",
           "url": "java-library-1.0.jar",
           "size": 971,
-          "sha512": "b5b0154d601ecc55f81656312fae467fe44813e8d1d8cc4af5025d8dee84497922453b7cbb523774dbbfcb20f61f731d1341b7605c181d528731d40e9f2322f2",
-          "sha256": "c2adfbd62ab9c5b64d18f16dd00140ab1d2289ac5bdd87c9778ff1c20eb632ef",
-          "sha1": "4682dfc6da5339486005bcfcc4e3e9f8f641a748",
-          "md5": "859e71daaf29cafe9ea7aa066a036681"
+          "sha512": "5a7d44937366f96486ed2027b0c4a673347ced949879f55b7aa365adc697d86083a33c72c31785888f5bdc8a6f067dfd02e54642f1c99fe8cc023265f7f685fd",
+          "sha256": "5e854a1db22026274e4c1884d59197415b91fc277b77435ea8263a0b04b90b24",
+          "sha1": "7540539b199e774030077ccde023951f316f0a61",
+          "md5": "ab73e222b2856e44ca45ffdae1d82a88"
         }
       ]
     },
@@ -50,10 +50,10 @@
           "name": "java-library-1.0.jar",
           "url": "java-library-1.0.jar",
           "size": 971,
-          "sha512": "b5b0154d601ecc55f81656312fae467fe44813e8d1d8cc4af5025d8dee84497922453b7cbb523774dbbfcb20f61f731d1341b7605c181d528731d40e9f2322f2",
-          "sha256": "c2adfbd62ab9c5b64d18f16dd00140ab1d2289ac5bdd87c9778ff1c20eb632ef",
-          "sha1": "4682dfc6da5339486005bcfcc4e3e9f8f641a748",
-          "md5": "859e71daaf29cafe9ea7aa066a036681"
+          "sha512": "5a7d44937366f96486ed2027b0c4a673347ced949879f55b7aa365adc697d86083a33c72c31785888f5bdc8a6f067dfd02e54642f1c99fe8cc023265f7f685fd",
+          "sha256": "5e854a1db22026274e4c1884d59197415b91fc277b77435ea8263a0b04b90b24",
+          "sha1": "7540539b199e774030077ccde023951f316f0a61",
+          "md5": "ab73e222b2856e44ca45ffdae1d82a88"
         }
       ]
     },
@@ -70,10 +70,10 @@
           "name": "java-library-1.0-sources.jar",
           "url": "java-library-1.0-sources.jar",
           "size": 750,
-          "sha512": "a81e4d1cc8929ebb2a450e431a34197c986e2fc0735bfcb32ee54021fcc71b66f396b8b46a12e9233e4553dd2d932fbead5267007f21304dbbb39a0f2262ea98",
-          "sha256": "9251a52249aca92a8e40fa01e92308717b972945e5116f6cb406145f0d319212",
-          "sha1": "69c7380ffe5f951de3bceb689b67e820bf93fd6d",
-          "md5": "7d992e31836199ba5c6b94bd3aea8927"
+          "sha512": "85648fe7d940524767a59622d739945d670b26bb79dae28df663242186ea4bf99c400079b5bf5c18ed3dc80622262f8d8e3c12008d160d4e40ed41a84b93edd2",
+          "sha256": "a91f50e17ec902f6065189f9255c31daf78ab9bbdee0aa02b4637522f1362294",
+          "sha1": "3f57e160412feba2c81f110a1989be599031ecf9",
+          "md5": "6a571af6a3e22dd65a9f329e61acac2e"
         }
       ]
     },
@@ -89,11 +89,11 @@
         {
           "name": "java-library-1.0-javadoc.jar",
           "url": "java-library-1.0-javadoc.jar",
-          "size": 397477,
-          "sha512": "7ab0a478f52fd9161429a60c91323e2d33dd94314e68b446ed34634fa62ff101d34ce6f0d88ec12ac47a70c120769d79ab9f5bb8b9ebd45f4c72fcf40bfcb849",
-          "sha256": "d41e3fa38b3928f08c91cc6eaacc96fb8fd271acf92daf9dc7db69af9f12768f",
-          "sha1": "6250b27a1df1a6145a9406498b9bdb7fe6932538",
-          "md5": "781f411859ff8f7481fa0ffb629b8c2c"
+          "size": 393326,
+          "sha512": "a80dc0bb9b30a2a3d9a2dfb89feb8d4e8902dfcf31e9ffe43010cbe90fd3faf5f3952a596cdb1ea50f7a426cd5b9cf508fd127af62cd2d45a6fb868f858fa179",
+          "sha256": "96f038ebb86d37864d68460987536cd515881c33c8aa27dc3d591c7184f8e192",
+          "sha1": "1a076a153b9bdbed7ee0d938ad45d9d7687d1e87",
+          "md5": "1e10a127351ddd0a5ffb8a5b18504b66"
         }
       ]
     }

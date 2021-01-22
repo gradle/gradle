@@ -17,7 +17,7 @@
   },
   "variants": [
     {
-      "name": "metadata-api",
+      "name": "metadataApiElements-published",
       "attributes": {
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.platform.type": "common"
@@ -26,11 +26,11 @@
         {
           "name": "kotlin-multiplatform-android-library-metadata-1.0.jar",
           "url": "kotlin-multiplatform-android-library-metadata-1.0.jar",
-          "size": 1091,
-          "sha512": "8f12d8c41d65ff8b92584890846fdafa4f68a386a0a869057ae7742050f8a545116b0961e0a5e5eb4b41b5c9a99e26bd2fad2a1311c971712f5ba04a5fc898d4",
-          "sha256": "da18462c050f0aa06d360be7b794e34d2d74da4a108a2c47dfad9c71a7ec3a07",
-          "sha1": "af49280392293c96787ef51a37b03c5d025b99de",
-          "md5": "8f64c10e6dc60240a17547e8b71f14b3"
+          "size": 1096,
+          "sha512": "15bbe93c135851c1f6797e02620e28920b169a415568c96af325a217716175d6c2348a9c66f6ab0accc086d6d2a8850fe2b5d7ee84748c080a64f8aa7b530285",
+          "sha256": "6f751b274c45743f3fe4fa5c8198943c68c19cd0426b5f6e89b0ac526ab3a1b9",
+          "sha1": "3921422a7bf6f68e9165763e69445422eb993d77",
+          "md5": "60fe613b928a018306a918320838fcf4"
         }
       ]
     }
