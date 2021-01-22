@@ -24,7 +24,6 @@ import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerExecutor;

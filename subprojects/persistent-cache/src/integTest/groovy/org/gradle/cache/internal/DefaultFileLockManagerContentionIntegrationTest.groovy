@@ -237,30 +237,29 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.cache.PersistentCache
             import org.gradle.cache.FileLockManager
             import org.gradle.cache.internal.filelock.LockOptionsBuilder
-            import org.gradle.cache.internal.CacheRepositoryServices;
-            import org.gradle.internal.logging.events.OutputEventListener;
-            import org.gradle.internal.nativeintegration.services.NativeServices;
-            import org.gradle.internal.service.DefaultServiceRegistry;
-            import org.gradle.internal.service.scopes.GlobalScopeServices;
+            import org.gradle.cache.internal.CacheRepositoryServices
+            import org.gradle.internal.logging.events.OutputEventListener
+            import org.gradle.internal.nativeintegration.services.NativeServices
+            import org.gradle.internal.service.DefaultServiceRegistry
+            import org.gradle.internal.service.scopes.GlobalScopeServices
+            import org.gradle.workers.WorkParameters
 
             task doWorkInWorker(type: WorkerTask)
 
-            class WorkerTask extends DefaultTask {
-                @javax.inject.Inject
-                WorkerExecutor getWorkerExecutor() { throw new UnsupportedOperationException() }
+            abstract class WorkerTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
 
                 @TaskAction
                 void doWork() {
                     (1..8).each {
-                        workerExecutor.submit(ToolSetupRunnable) { WorkerConfiguration config ->
-                            config.isolationMode = IsolationMode.PROCESS
-                        }
+                        workerExecutor.processIsolation().submit(ToolSetupWorkAction) { }
                     }
                 }
             }
 
-            class ToolSetupRunnable implements Runnable {
-                void run() {
+            abstract class ToolSetupWorkAction implements WorkAction<WorkParameters.None> {
+                void execute() {
                     CacheRepository cacheRepository = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(CacheRepository.class);
                     println "Waiting for lock..."
                     final PersistentCache zincCache = cacheRepository.cache("zinc-0.3.15")

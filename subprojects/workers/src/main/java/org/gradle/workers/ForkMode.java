@@ -21,6 +21,7 @@ package org.gradle.workers;
  *
  * @since 3.5
  */
+@Deprecated
 public enum ForkMode {
     /**
      * Let Gradle decide, this is the default.

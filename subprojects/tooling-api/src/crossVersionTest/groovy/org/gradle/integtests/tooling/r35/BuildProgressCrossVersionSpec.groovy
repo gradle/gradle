@@ -273,17 +273,43 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('>=3.5 <5.1')
     def "generates events for worker actions (pre 5.1)"() {
         expect:
-        runBuildWithWorkerAction() != null
+        runBuildWithWorkerRunnable() != null
     }
 
     @ToolingApiVersion('>=5.1')
-    def "generates events for worker actions (post 5.1)"() {
+    @TargetGradleVersion('<7.0')
+    def "generates events for worker actions with old Worker API (post 5.1)"() {
+        expect:
+        runBuildWithWorkerRunnable() != null
+    }
+
+    @ToolingApiVersion('>=5.1')
+    @TargetGradleVersion('>=5.6')
+    def "generates events for worker actions with new Worker API (post 5.1)"() {
         expect:
         runBuildWithWorkerAction() != null
     }
 
     private ProgressEvents.Operation runBuildWithWorkerAction() {
-        settingsFile << "rootProject.name = 'single'"
+        buildFile << """
+            import org.gradle.workers.*
+            abstract class MyWorkerAction implements WorkAction<WorkParameters.None>{
+                @Override public void execute() {
+                    // Do nothing
+                }
+            }
+            task runInWorker {
+                doLast {
+                    def workerExecutor = services.get(WorkerExecutor)
+                    workerExecutor.noIsolation().submit(MyWorkerAction) { }
+                }
+            }
+        """
+
+        runBuildInAction()
+    }
+
+    private ProgressEvents.Operation runBuildWithWorkerRunnable() {
         buildFile << """
             import org.gradle.workers.*
             class TestRunnable implements Runnable {
@@ -295,11 +321,17 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 doLast {
                     def workerExecutor = services.get(WorkerExecutor)
                     workerExecutor.submit(TestRunnable) { config ->
-                        config.displayName = 'My Worker Action'
+                        config.displayName = 'MyWorkerAction'
                     }
                 }
             }
-        """.stripIndent()
+        """
+
+        runBuildInAction()
+    }
+
+    private ProgressEvents.Operation runBuildInAction() {
+        settingsFile << "rootProject.name = 'single'"
 
         def events = ProgressEvents.create()
         withConnection {
@@ -311,7 +343,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         events.assertIsABuild()
-        events.operation('Task :runInWorker').descendant('My Worker Action')
+        events.operation('Task :runInWorker').descendant('MyWorkerAction')
     }
 
     MavenHttpRepository getMavenHttpRepo() {

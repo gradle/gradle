@@ -35,21 +35,21 @@ class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractInte
         server.start()
         executer.requireOwnGradleUserHomeDir().withDaemonBaseDir(file("daemon")).requireDaemon()
         buildFile << """
+            import org.gradle.workers.WorkParameters
+
             task doWork(type: WorkerTask)
-            
-            class WorkerTask extends DefaultTask {         
-                @javax.inject.Inject
-                WorkerExecutor getWorkerExecutor() { throw new UnsupportedOperationException() }
-                
+
+            abstract class WorkerTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
                 @TaskAction
                 void doWork() {
-                    workerExecutor.submit(TestRunnable) { WorkerConfiguration config ->
-                        config.isolationMode = IsolationMode.PROCESS
-                    }
+                    workerExecutor.processIsolation().submit(TestWorkAction) { }
                     ${server.callFromBuild("waiting")}
                 }
             }
-            class TestRunnable implements Runnable { void run() { } }
+            abstract class TestWorkAction implements WorkAction<WorkParameters.None> { void execute() { } }
         """
 
         when:

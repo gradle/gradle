@@ -33,11 +33,11 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
             import org.gradle.workers.internal.WorkerDaemonFactory
 
             task runInWorker1(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
 
             task runInWorker2(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
                 doFirst {
                     def all = services.get(WorkerDaemonFactory.class).clientsManager.allClients.size()
                     def idle = services.get(WorkerDaemonFactory.class).clientsManager.idleClients.size()
@@ -60,11 +60,11 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker1(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
 
             task runInWorker2(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
         """
 
@@ -85,7 +85,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
         """
 
@@ -108,11 +108,11 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker1(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
 
             task runInWorker2(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
         """
 
@@ -138,11 +138,11 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker1(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
 
             task runInWorker2(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
         """
 
@@ -174,14 +174,14 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         workerExecutorThatCanFailUnexpectedly.writeToBuildFile()
         buildFile << """
             task runInWorker1(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
 
             task runInWorker2(type: WorkerTask) {
                 // This will cause the worker process to fail with exit code 127
                 list = runInWorker1.list + ["poisonPill"]
 
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
         """
 
@@ -207,7 +207,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
             apply plugin: "java"
 
             task runInWorker(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
 
             tasks.withType(JavaCompile) {
@@ -237,7 +237,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
+                isolationMode = 'processIsolation'
             }
         """
 

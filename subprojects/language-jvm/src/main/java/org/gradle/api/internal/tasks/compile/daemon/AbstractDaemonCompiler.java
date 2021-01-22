@@ -24,7 +24,6 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
@@ -33,6 +32,7 @@ import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
 import org.gradle.workers.internal.ForkedWorkerRequirement;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
+import org.gradle.workers.internal.IsolationMode;
 import org.gradle.workers.internal.ProvidesWorkResult;
 import org.gradle.workers.internal.WorkerFactory;
 
